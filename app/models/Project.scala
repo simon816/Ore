@@ -11,7 +11,10 @@ package models
   */
 case class Project(id: String, name: String, description: String, author: String) {
 
-  val url = '/'
+  val url = '/' + id
+  var views = 0
+  var downloads = 0
+  var starred = 0
 
   override def toString = "%s - %s".format(name, description)
 

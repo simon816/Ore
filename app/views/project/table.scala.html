@@ -1,14 +1,14 @@
-@(projects: Seq[Project])
+@(projects: Seq[Project])(implicit messages: Messages)
 
 <div class="contents">
     <table class="topic-list">
         <thead>
             <tr>
-                <th>Package</th>
-                <th>Author</th>
-                <th>Views</th>
-                <th>Downloads</th>
-                <th>Starred</th>
+                <th>@messages("project.package")</th>
+                <th>@messages("project.author")</th>
+                <th>@messages("project.views")</th>
+                <th>@messages("project.downloads")</th>
+                <th>@messages("project.starred")</th>
             </tr>
         </thead>
         <tbody>
@@ -18,9 +18,9 @@
                         <a class="title" href="@project.url">@project.toString</a>
                     </td>
                     <td>@project.author</td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td>0</td>
+                    <td>@project.views</td>
+                    <td>@project.downloads</td>
+                    <td>@project.starred</td>
                 </tr>
             }
         </tbody>

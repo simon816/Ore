@@ -1,28 +1,30 @@
+@()(implicit messages: Messages)
+
 <div class="list-controls">
     <div class="container">
         <ol class="category-breadcrumb">
             <li class="no-category has-drop bullet">
-                <a href="" class="badge-category home" style="background-color: #eee; color: #333" aria-label="Display category list" aria-expanded="false">all categories</a>
+                <a href="" class="badge-category home" style="background-color: #eee; color: #333" aria-label="Display category list" aria-expanded="false">@messages("general.all-cats")</a>
                 <a href="" class="badge-category category-dropdown-button home" style="background-color: #eee; color: #333">
                     <i class="fa fa-caret-right"></i>
                 </a>
                 <section class="hidden category-dropdown-menu chooser">
-                    <div class="cat"><a data-drop-close="true" class="badge-category home" href="/">all categories</a></div>
+                    <div class="cat"><a data-drop-close="true" class="badge-category home" href="/">@messages("general.all-cats")</a></div>
                     <div class="cat"></div>
                 </section>
             </li>
         </ol>
         <ul class="nav nav-pills">
-            <li class="active" title="packages with recent posts"><a href="#">Latest</a></li>
-            <li title="packages created in the last few days"><a href="#">New</a></li>
-            <li title="packages that are popular now"><a href="#">Hot</a></li>
-            <li title="packages that are the most popular"><a href="#">Top</a></li>
-            <li title="Forums"><a href="https://forums.spongepowered.org">Forums</a></li>
-            <li title="Docs"><a href="https://docs.spongepowered.org">Docs</a></li>
-            <li title="Chat"><a href="https://webchat.esper.net/?nick=&amp;channels=sponge%2Cspongedev%2Cspongedocs">Chat</a></li>
-            <li title="Downloads"><a href="https://forums.spongepowered.org/t/sponge-downloads/11448">Downloads</a></li>
-            <li title="About Us"><a href="https://docs.spongepowered.org/en/about/introduction.html">About Us</a></li>
+            <li class="active" title="packages with recent posts"><a href="#">@messages("project.latest")</a></li>
+            <li title="packages created in the last few days"><a href="#">@messages("project.new")</a></li>
+            <li title="packages that are popular now"><a href="#">@messages("project.hot")</a></li>
+            <li title="packages that are the most popular"><a href="#">@messages("project.top")</a></li>
+            <li title="Forums"><a href="https://forums.spongepowered.org">@messages("general.forums")</a></li>
+            <li title="Docs"><a href="https://docs.spongepowered.org">@messages("general.docs")</a></li>
+            <li title="Chat"><a href="https://webchat.esper.net/?nick=&amp;channels=sponge%2Cspongedev%2Cspongedocs">@messages("general.chat")</a></li>
+            <li title="Downloads"><a href="https://forums.spongepowered.org/t/sponge-downloads/11448">@messages("project.downloads")</a></li>
+            <li title="About Us"><a href="https://docs.spongepowered.org/en/about/introduction.html">@messages("general.about")</a></li>
         </ul>
-        <button id="create-topic" class="btn btn-default"><i class="fa fa-plus"></i>New Package</button>
+        <button id="create-topic" class="btn btn-default"><i class="fa fa-plus"></i>@messages("project.create")</button>
     </div>
 </div>
