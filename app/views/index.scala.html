@@ -1,7 +1,5 @@
-@(message: String)
+@()(implicit messages: Messages)
 
-@main("Welcome to Play") {
-
-    @play20.welcome(message)
-
+@layout(messages("general.title")) {
+    <p style="margin-top: 100px">hello, world</p>
 }
