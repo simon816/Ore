@@ -1,0 +1,16 @@
+@(title: String)(content: Html)
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>@title</title>
+        <script type="javascript" src="../../../public/javascripts/jquery-1.9.0.min.js"></script>
+        <link rel="icon" type="image/png" href="https://cdn.spongepowered.org/uploads/default/original/2X/9/9ba706a80e45cf427617525ee2a19fad7bb6b109.png">
+        <link rel="stylesheet" type="text/css" href="https://forums-cdn.spongepowered.org/stylesheets/desktop_52268f077fc3c24a38a9bece28bbb8e6ae598120.css"/>
+    </head>
+    <body>
+        @core.header()
+        @content
+    </body>
+</html>
