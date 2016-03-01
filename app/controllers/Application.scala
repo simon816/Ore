@@ -7,8 +7,8 @@ import play.api.mvc._
 
 class Application @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
-  def index = Action { implicit request =>
-    Ok(views.html.index())
+  def index = Action {
+    Ok(views.html.index(models.Project.projects))
   }
 
 }

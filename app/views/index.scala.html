@@ -1,9 +1,8 @@
-@()(implicit messages: Messages)
+@(projects: Seq[Project])(implicit messages: Messages)
 
 @core.layout(messages("general.title")) {
 
     @core.controls()
-
-    <p style="margin-top: 100px">hello, world</p>
+    @project.table(projects)
 
 }

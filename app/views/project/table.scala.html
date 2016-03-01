@@ -1,0 +1,28 @@
+@(projects: Seq[Project])
+
+<div class="contents">
+    <table class="topic-list">
+        <thead>
+            <tr>
+                <th>Package</th>
+                <th>Author</th>
+                <th>Views</th>
+                <th>Downloads</th>
+                <th>Starred</th>
+            </tr>
+        </thead>
+        <tbody>
+            @projects.map { project =>
+                <tr class="topic-list-item">
+                    <td class="main-link clearfix" colspan="1">
+                        <a class="title" href="@project.url">@project.toString</a>
+                    </td>
+                    <td>@project.author</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>0</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
