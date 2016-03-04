@@ -9,6 +9,7 @@ class Application @Inject()(val messagesApi: MessagesApi) extends Controller wit
 
    /**
     * Display the home page.
+    *
     * @return Home page
     */
   def index = Action {

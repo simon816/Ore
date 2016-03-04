@@ -32,4 +32,13 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     }
   }
 
+  def show(author: String, id: String) = Action {
+    val project = models.Project.get(author, id)
+    if (project.isDefined) {
+      Ok(views.html.project.detail(project.get))
+    } else {
+      NotFound
+    }
+  }
+
 }
