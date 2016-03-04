@@ -6,3 +6,11 @@
     color: black; !important;
     background-color: #dfbe58; !important;
 }
+
+.btn {
+    color: black; !important;
+}
+
+.btn:hover {
+    color: black; !important;
+}

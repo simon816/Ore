@@ -7,6 +7,10 @@ import play.api.mvc._
 
 class Application @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
+   /**
+    * Display the home page.
+    * @return Home page
+    */
   def index = Action {
     Ok(views.html.index(models.Project.projects))
   }
