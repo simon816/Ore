@@ -14,3 +14,38 @@
 .btn:hover {
     color: black; !important;
 }
+
+.project-header {
+    font-size: 20px;
+    font-weight: normal;
+    margin-right: 15px;
+    margin-top: 10px;
+}
+
+.project-navbar {
+    border: none;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+    margin: 0;
+}
+
+.project-navbar, .project-navbar:hover, .project-navbar > .navbar-inner > .navbar-nav > .active > a {
+    background: none; !important;
+}
+
+.project-navbar > .navbar-inner li.active > a {
+    border-bottom: 1px solid black;
+}
+
+.project-header-container {
+    border-bottom: 1px solid #ddd;
+}
+
+.project-controls {
+    margin-top: 10px;
+}
+
+.project-wiki {
+    margin-top: 15px;
+}

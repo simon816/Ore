@@ -11,7 +11,7 @@ class Api extends Controller {
       "id" -> project.id,
       "name" -> project.name,
       "description" -> project.description,
-      "author" -> project.author,
+      "owner" -> project.owner.name,
       "url" -> project.url,
       "views" -> project.views,
       "downloads" -> project.downloads,

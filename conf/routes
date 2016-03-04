@@ -6,8 +6,8 @@
 GET     /                           @controllers.Application.index
 
 # Projects
-GET     /projects/create            @controllers.Projects.create
-GET     /projects/create/upload     @controllers.Projects.upload
+GET     /projects/new               @controllers.Projects.create
+GET     /projects/new/upload        @controllers.Projects.upload
 GET     /projects/:author/:id       @controllers.Projects.show(author, id)
 
 # RESTful API

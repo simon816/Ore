@@ -1,7 +1,63 @@
 @(project: Project)(implicit messages: Messages)
 
-@core.layout(project.name) {
+@core.layout(project.owner.name + " / " + project.name) {
 
-    <p>@project.name</p>
+    <div class="project-header-container">
+        <div class="container">
+            <h1 class="project-header pull-left">
+                <a href="@project.owner.url">@project.owner.name</a> / <strong><a href="@project.url">@project.name</a></strong>
+            </h1>
+
+            <div class="navbar navbar-default project-navbar pull-left">
+                <div class="navbar-inner">
+                    <ul class="nav navbar-nav">
+                        <li class="active">
+                            <a href="@project.url">
+                                <i class="fa fa-book"></i>
+                                Docs
+                            </a>
+                        </li>
+                        <li class="">
+                            <a href="#">
+                                <i class="fa fa-download"></i>
+                                Versions
+                            </a>
+                        </li>
+                        <li class="">
+                            <a href="#">
+                                <i class="fa fa-users"></i>
+                                Discuss
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pull-right project-controls">
+                <button class="btn btn-default"><i class="fa fa-download"></i>Download</button>
+                <button class="btn btn-default"><i class="fa fa-star"></i>0</button>
+                <button class="btn btn-default"><i class="fa fa-flag"></i>Flag</button>
+                <button class="btn btn-default"><i class="fa fa-wrench"></i>Manage</button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="project-wiki">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1 class="pull-left">Home</h1>
+                    <button class="btn btn-default pull-right"><i class="fa fa-edit">Edit</i></button>
+                    <div class="clearfix"></div>
+                    <div class="row">
+                        <div class="col-md-9">
+                            <p>Welcome to your new project!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 }
