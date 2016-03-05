@@ -2,7 +2,7 @@
 Page used for uploading and creating new projects.
 *@
 @import views.html.helper.form
-@()(implicit messages: Messages)
+@(project: Option[Project])(implicit messages: Messages)
 
 @core.layout(messages("project.create")) {
 
@@ -15,12 +15,22 @@ Page used for uploading and creating new projects.
                     </div>
                     <div class="panel-body">
                         <p>A project contains your downloads and the documentation for your plugin.</p>
+
+                        @if(project.isDefined) {
+                            @defining(project.get) { project =>
+                              <p>ID: @project.id</p>
+                              <p>Name: @project.name</p>
+                              <p>Description: @project.description</p>
+                              <p>Owner: @project.owner.name</p>
+                            }
+                        }
+
                         @form(action = routes.Projects.upload, 'enctype -> "multipart/form-data") {
                             <label class="btn btn-primary" for="pluginFile">
                                 <input id="pluginFile" name="pluginFile" type="file" style="display:none ;">
-                                Upload plugin
+                                Select file
                             </label>
-                            <input type="submit" name="submit" value="Create project" class="btn btn-primary">
+                            <input type="submit" name="submit" value="Upload" class="btn btn-primary">
                         }
                     </div>
                 </div>

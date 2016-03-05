@@ -12,6 +12,7 @@ GET     /                                       @controllers.Application.index
 
 # Projects
 GET     /new                                    @controllers.Projects.create
+GET     /new/:author/:name                      @controllers.Projects.postUpload(author, name)
 POST    /new/upload                             @controllers.Projects.upload
 
 GET     /:author                                @controllers.Projects.showAuthor(author)

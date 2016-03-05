@@ -1,6 +1,8 @@
 package models
 
 import models.author.{Author, Dev}
+import play.api.Play.current
+import play.api.cache.Cache
 
 /**
   * Represents an Ore package. The specified ID should correspond with the
@@ -21,7 +23,11 @@ case class Project(id: String, name: String, description: String, owner: Author,
 
   def this(id: String, name: String, description: String, owner: Author) = this(id, name, description, owner, List(owner))
 
-  override def toString = "%s - %s".format(name, description)
+  def cache() = {
+    Cache.set(this.owner.name + '/' + this.name, this)
+  }
+
+  override def toString = "%s - %s".format(this.name, this.description)
 
 }
 
@@ -53,6 +59,10 @@ object Project {
       }
     }
     None
+  }
+
+  def getCached(owner: String, name: String): Option[Project] = {
+    Cache.getAs[Project](owner + '/' + name)
   }
 
 }

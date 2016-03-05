@@ -18,7 +18,16 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     */
   def create = Action {
     // TODO: Check auth here
-    Ok(views.html.project.create())
+    Ok(views.html.project.create(None))
+  }
+
+  def postUpload(author: String, name: String) = Action {
+    val project = Project.getCached(author, name)
+    if (project.isDefined) {
+      Ok(views.html.project.create(project))
+    } else {
+      Redirect(routes.Projects.create())
+    }
   }
 
   /**
@@ -31,7 +40,17 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
       // TODO: Check auth here
       val plugin = PluginFile(new File(Play.application().path() + "/tmp/" + pluginFile.filename))
       pluginFile.ref.moveTo(plugin.getFile)
-      plugin.parse
+      val project = plugin.parse
+      val result = plugin.getResult
+      if (result.isDefined) {
+        result.get
+      } else if (project.isEmpty) {
+        BadRequest("An unknown error occurred.")
+      } else {
+        val model = project.get
+        model.cache()
+        Redirect(routes.Projects.postUpload(model.owner.name, model.name))
+      }
     }.getOrElse {
       Redirect(routes.Projects.create()).flashing(
         "error" -> "Missing file"
