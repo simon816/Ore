@@ -15,7 +15,7 @@ case class Team(name: String, members: List[Dev]) extends Author {
 object Team {
 
   val teams = Seq(
-    new Team("SpongePowered", Dev.get("windy1").get)
+    new Team("SpongePowered", Dev.get("Spongie").get)
   )
 
   def get(name: String): Option[Team] = {

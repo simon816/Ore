@@ -12,9 +12,7 @@ case class Dev(name: String) extends Author {
 object Dev {
 
   val devs = Seq(
-    Dev("windy1"),
-    Dev("Zidane"),
-    Dev("gabizou"),
+    Dev("Spongie"),
     Dev("Author1"),
     Dev("Author2"),
     Dev("Author3"),

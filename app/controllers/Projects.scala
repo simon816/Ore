@@ -15,6 +15,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     * @return Create project view
     */
   def create = Action {
+    // TODO: Check auth here
     Ok(views.html.project.create())
   }
 
@@ -26,6 +27,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
   def upload = Action(parse.multipartFormData) { request =>
     request.body.file("pluginFile").map { pluginFile =>
       // TODO: Check plugin meta file here for plugin details
+      // TODO: Check auth here
       Ok("File uploaded")
     }.getOrElse {
       Redirect(routes.Projects.create()).flashing(
