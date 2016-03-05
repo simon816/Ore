@@ -51,7 +51,7 @@
     margin-top: 15px;
 }
 
-.badge-category:hover, .title:hover, .btn:hover {
+.badge-category:hover, .title:hover, .btn:hover, .plaintext:hover {
     text-decoration: none;
 }
 

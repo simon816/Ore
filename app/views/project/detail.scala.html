@@ -8,8 +8,8 @@ Base template for Project overview.
     <div class="project-header-container">
         <div class="container">
             <h1 class="project-header pull-left">
-                <a href="@routes.Projects.showAuthor(project.owner.name)">@project.owner.name</a>
-                / <strong><a href="@routes.Projects.show(project.owner.name, project.name)">@project.name</a></strong>
+                <a class="plaintext" href="@routes.Projects.showAuthor(project.owner.name)">@project.owner.name</a>
+                / <strong><a class="plaintext" href="@routes.Projects.show(project.owner.name, project.name)">@project.name</a></strong>
             </h1>
 
             <div class="navbar navbar-default project-navbar pull-left">
