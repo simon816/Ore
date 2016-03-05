@@ -14,8 +14,17 @@ abstract class Author {
 
 }
 
+/**
+  * Author data-sote
+  */
 object Author {
 
+  /**
+    * Returns the Author with the specified name.
+    *
+    * @param name Author name
+    * @return Author if exists, None otherwise
+    */
   def get(name: String): Option[Author] = Dev.get(name).orElse(Team.get(name))
 
 }

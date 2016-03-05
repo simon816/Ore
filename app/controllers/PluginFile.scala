@@ -13,14 +13,32 @@ import play.api.mvc.Results._
 import play.api.Play.current
 import scala.collection.JavaConversions._
 
+/**
+  * Represents an uploaded plugin file.
+  *
+  * @param file Uploaded file
+  */
 case class PluginFile(private val file: File) {
 
   val META_FILE_NAME = "mcmod.info"
   val PLUGIN_FILE_EXTENSION = ".jar"
   val PLUGIN_DIR = "uploads/plugins"
 
+  /**
+    * Returns the actual file associated with this plugin.
+    *
+    * @return File of plugin
+    */
   def getFile = file
 
+  /**
+    * Returns the path that the temporary file should be uploaded to.
+    *
+    * @param owner Plugin owner name
+    * @param name Name of plugin
+    * @param version Version of plugin
+    * @return Upload path
+    */
   def getUploadPath(owner: String, name: String, version: String) = {
     Paths.get(Play.application.path.getPath)
       .resolve(PLUGIN_DIR)
@@ -28,6 +46,12 @@ case class PluginFile(private val file: File) {
       .resolve(name + "-" + version + PLUGIN_FILE_EXTENSION)
   }
 
+  /**
+    * Reads the temporary file's plugin meta file and moves it to the
+    * appropriate location.
+    *
+    * @return Result of parse
+    */
   def parse: Result = {
     var jar : JarFile = null
     try {

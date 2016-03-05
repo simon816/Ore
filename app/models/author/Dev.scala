@@ -9,6 +9,9 @@ case class Dev(name: String) extends Author {
 
 }
 
+/**
+  * Dev data-store
+  */
 object Dev {
 
   val devs = Seq(
@@ -20,6 +23,12 @@ object Dev {
     Dev("Author5")
   )
 
+  /**
+    * Returns the Dev with the specified name.
+    *
+    * @param name Dev name
+    * @return Dev if exists, None otherwise
+    */
   def get(name: String): Option[Dev] = {
     for (dev <- devs) {
       if (dev.name.equals(name)) {

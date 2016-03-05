@@ -12,12 +12,21 @@ case class Team(name: String, members: List[Dev]) extends Author {
 
 }
 
+/**
+  * Team data-store
+  */
 object Team {
 
   val teams = Seq(
     new Team("SpongePowered", Dev.get("Spongie").get)
   )
 
+  /**
+    * Returns the Team with the specified name.
+    *
+    * @param name Team name
+    * @return Team if exists, None otherwise
+    */
   def get(name: String): Option[Team] = {
     for (team <- teams) {
       if (team.name.equals(name)) {

@@ -25,6 +25,9 @@ case class Project(id: String, name: String, description: String, owner: Author,
 
 }
 
+/**
+  * Project data-store
+  */
 object Project {
 
   // TODO: Replace with DB
@@ -36,6 +39,13 @@ object Project {
     new Project("example5", "Example-5", "Description 5", Dev.get("Author5").get)
   )
 
+  /**
+    * Returns the project with the specified owner and name.
+    *
+    * @param owner Project owner
+    * @param name Project name
+    * @return Project if exists, None otherwise
+    */
   def get(owner: String, name: String): Option[Project] = {
     for (project <- projects) {
       if (project.owner.name.equals(owner) && project.name.equals(name)) {
