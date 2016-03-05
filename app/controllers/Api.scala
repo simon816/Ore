@@ -18,9 +18,13 @@ class Api extends Controller {
     )
   }
 
-  def listProjects = Action {
-    val json = Json.toJson(Project.projects)
-    Ok(json)
+  def listProjects(version: String) = Action {
+    version match {
+      case "v1" => Ok(Json.toJson(Project.projects))
+      case zoinks => NotFound
+    }
   }
+
+  def listProjects() = listProjects("v1")
 
 }
