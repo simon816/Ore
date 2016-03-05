@@ -1,9 +1,11 @@
 package controllers
 
+import java.io.File
 import javax.inject.Inject
 
 import models.Project
 import models.author.{Author, Dev, Team}
+import play.Play
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 
@@ -26,9 +28,10 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     */
   def upload = Action(parse.multipartFormData) { request =>
     request.body.file("pluginFile").map { pluginFile =>
-      // TODO: Check plugin meta file here for plugin details
       // TODO: Check auth here
-      Ok("File uploaded")
+      val plugin = PluginFile(new File(Play.application().path() + "/tmp/" + pluginFile.filename))
+      pluginFile.ref.moveTo(plugin.getFile)
+      plugin.parse
     }.getOrElse {
       Redirect(routes.Projects.create()).flashing(
         "error" -> "Missing file"

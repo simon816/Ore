@@ -13,3 +13,8 @@ unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
 routesGenerator := InjectedRoutesGenerator
+
+// Additional dependencies
+resolvers += "sponge" at "http://repo.spongepowered.org/maven"
+
+libraryDependencies += "org.spongepowered" % "plugin-meta" % "0.1-SNAPSHOT"
