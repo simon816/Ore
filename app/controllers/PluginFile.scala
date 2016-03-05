@@ -32,21 +32,6 @@ case class PluginFile(private val file: File) {
   def getFile = file
 
   /**
-    * Returns the path that the temporary file should be uploaded to.
-    *
-    * @param owner Plugin owner name
-    * @param name Name of plugin
-    * @param version Version of plugin
-    * @return Upload path
-    */
-  def getUploadPath(owner: String, name: String, version: String) = {
-    Paths.get(Play.application.path.getPath)
-      .resolve(PLUGIN_DIR)
-      .resolve(owner)
-      .resolve(name + "-" + version + PLUGIN_FILE_EXTENSION)
-  }
-
-  /**
     * Reads the temporary file's plugin meta file and moves it to the
     * appropriate location.
     *
@@ -83,6 +68,13 @@ case class PluginFile(private val file: File) {
     }
     Files.move(Paths.get(file.getPath), output)
     Redirect(routes.Projects.show(owner.name, project.name))
+  }
+
+  private def getUploadPath(owner: String, name: String, version: String) = {
+    Paths.get(Play.application.path.getPath)
+      .resolve(PLUGIN_DIR)
+      .resolve(owner)
+      .resolve(name + "-" + version + PLUGIN_FILE_EXTENSION)
   }
 
 }
