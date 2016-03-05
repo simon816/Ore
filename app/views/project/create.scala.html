@@ -3,21 +3,23 @@
 
 @core.layout(messages("project.create")) {
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Create new project</h3>
-                </div>
-                <div class="panel-body">
-                    <p>A project contains your downloads and the documentation for your plugin.</p>
-                    @form(action = routes.Projects.upload, 'enctype -> "multipart/form-data") {
-                        <label class="btn btn-primary" for="pluginFile">
-                            <input id="pluginFile" type="file" style="display:none;">
-                            Upload plugin
-                        </label>
-                        <input type="submit" name="submit" value="Create project" class="btn btn-primary">
-                    }
+    <div class="container" style="margin-top: 90px">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Create new project</h3>
+                    </div>
+                    <div class="panel-body">
+                        <p>A project contains your downloads and the documentation for your plugin.</p>
+                        @form(action = routes.Projects.upload, 'enctype -> "multipart/form-data") {
+                            <label class="btn btn-primary" for="pluginFile">
+                                <input id="pluginFile" type="file" style="display:none;">
+                                Upload plugin
+                            </label>
+                            <input type="submit" name="submit" value="Create project" class="btn btn-primary">
+                        }
+                    </div>
                 </div>
             </div>
         </div>
