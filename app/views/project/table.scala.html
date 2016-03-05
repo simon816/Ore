@@ -15,17 +15,17 @@ Collection of all projects.
             </tr>
         </thead>
         <tbody>
-            @projects.map { project =>
-                <tr class="topic-list-item">
-                    <td class="main-link clearfix" colspan="1">
-                        <a class="title" href="@routes.Projects.show(project.owner.name, project.name)">@project.toString</a>
-                    </td>
-                    <td>@project.owner.name</td>
-                    <td>@project.views</td>
-                    <td>@project.downloads</td>
-                    <td>@project.starred</td>
-                </tr>
-            }
+        @projects.map { project =>
+            <tr class="topic-list-item">
+                <td class="main-link clearfix" colspan="1">
+                    <a class="title" href="@routes.Projects.show(project.owner.name, project.name)">@project.toString</a>
+                </td>
+                <td>@project.owner.name</td>
+                <td>@project.views</td>
+                <td>@project.downloads</td>
+                <td>@project.starred</td>
+            </tr>
+        }
         </tbody>
     </table>
 </div>

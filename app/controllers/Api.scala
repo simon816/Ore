@@ -18,7 +18,7 @@ class Api extends Controller {
     )
   }
 
-   /**
+  /**
     * Returns a JSON view of all projects.
     *
     * @param version API version
@@ -30,12 +30,5 @@ class Api extends Controller {
       case zoinks => NotFound
     }
   }
-
-   /**
-    * Returns a JSON view of all projects for API v1.
-    *
-    * @return JSON view of projects
-    */
-  def listProjects() = listProjects("v1")
 
 }

@@ -17,11 +17,11 @@ Page used for uploading and creating new projects.
                         <p>A project contains your downloads and the documentation for your plugin.</p>
                         @form(action = routes.Projects.upload, 'enctype -> "multipart/form-data") {
                             <label class="btn btn-primary" for="pluginFile">
-                                <input id="pluginFile" type="file" style="display:none;">
+                                <input id="pluginFile" type="file" style="display:none ;">
                                 Upload plugin
                             </label>
                             <input type="submit" name="submit" value="Create project" class="btn btn-primary">
-                        }
+                            }
                     </div>
                 </div>
             </div>

@@ -1,10 +1,10 @@
 package models.author
 
 /**
- * Represents a single developer on a project.
- *
- * @param name Name of developer
- */
+  * Represents a single developer on a project.
+  *
+  * @param name Name of developer
+  */
 case class Dev(name: String) extends Author {
 
 }
