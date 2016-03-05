@@ -15,7 +15,7 @@
             @projects.map { project =>
                 <tr class="topic-list-item">
                     <td class="main-link clearfix" colspan="1">
-                        <a class="title" href="@project.url">@project.toString</a>
+                        <a class="title" href="@routes.Projects.show(project.owner.name, project.name)">@project.toString</a>
                     </td>
                     <td>@project.owner.name</td>
                     <td>@project.views</td>

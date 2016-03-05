@@ -1,30 +1,31 @@
-@(project: Project, active: String)(content: Html)(implicit messages: Messages)
+@(project: Project)(content: Html)(implicit messages: Messages)
 
 @core.layout(project.owner.name + " / " + project.name) {
 
     <div class="project-header-container">
         <div class="container">
             <h1 class="project-header pull-left">
-                <a href="@project.owner.url">@project.owner.name</a> / <strong><a href="@project.url">@project.name</a></strong>
+                <a href="@routes.Projects.showAuthor(project.owner.name)">@project.owner.name</a>
+                / <strong><a href="@routes.Projects.show(project.owner.name, project.name)">@project.name</a></strong>
             </h1>
 
             <div class="navbar navbar-default project-navbar pull-left">
                 <div class="navbar-inner">
                     <ul class="nav navbar-nav">
                         <li id="docs" class="active">
-                            <a href="@project.url">
+                            <a href="@routes.Projects.show(project.owner.name, project.name)">
                                 <i class="fa fa-book"></i>
                                 Docs
                             </a>
                         </li>
                         <li id="versions">
-                            <a href="@routes.Projects.showVersions(project.owner.name, project.id)">
+                            <a href="@routes.Projects.showVersions(project.owner.name, project.name)">
                                 <i class="fa fa-download"></i>
                                 Versions
                             </a>
                         </li>
                         <li id="discussion">
-                            <a href="@routes.Projects.showDiscussion(project.owner.name, project.id)">
+                            <a href="@routes.Projects.showDiscussion(project.owner.name, project.name)">
                                 <i class="fa fa-users"></i>
                                 Discuss
                             </a>
@@ -35,7 +36,7 @@
 
             <div class="pull-right project-controls">
                 <button class="btn btn-default"><i class="fa fa-download"></i>Download</button>
-                <button class="btn btn-default"><i class="fa fa-star"></i>0</button>
+                <button class="btn btn-default"><i class="fa fa-star"></i>@project.starred</button>
                 <button class="btn btn-default"><i class="fa fa-flag"></i>Flag</button>
                 <button class="btn btn-default"><i class="fa fa-wrench"></i>Manage</button>
             </div>

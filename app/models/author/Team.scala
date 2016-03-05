@@ -4,8 +4,6 @@ case class Team(name: String, members: List[Author]) extends Author {
 
   def this(name: String, owner: Dev) = this(name, List(owner))
 
-  override def url: String = "/projects/teams/" + name
-
 }
 
 object Team {

@@ -3,7 +3,7 @@ package controllers
 import javax.inject.Inject
 
 import models.Project
-import models.author.{Dev, Team}
+import models.author.{Team, Dev, Author}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 
@@ -34,8 +34,8 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     }
   }
 
-  def show(author: String, id: String) = Action {
-    val project =  Project.get(author, id)
+  def show(author: String, name: String) = Action {
+    val project =  Project.get(author, name)
     if (project.isDefined) {
       Ok(views.html.project.docs(project.get))
     } else {
@@ -43,8 +43,8 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     }
   }
 
-  def showVersions(author: String, id: String) = Action {
-    val project = Project.get(author, id)
+  def showVersions(author: String, name: String) = Action {
+    val project = Project.get(author, name)
     if (project.isDefined) {
       Ok(views.html.project.versions(project.get))
     } else {
@@ -52,8 +52,8 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     }
   }
 
-  def showDiscussion(author: String, id: String) = Action {
-    val project = Project.get(author, id)
+  def showDiscussion(author: String, name: String) = Action {
+    val project = Project.get(author, name)
     if (project.isDefined) {
       Ok(views.html.project.discussion(project.get))
     } else {
@@ -61,19 +61,16 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     }
   }
 
-  def showDev(name: String) = Action {
-    val dev = Dev.get(name)
-    if (dev.isDefined) {
-      Ok(views.html.project.author.dev(dev.get))
-    } else {
-      NotFound
-    }
-  }
-
-  def showTeam(name: String) = Action {
-    val team = Team.get(name)
-    if (team.isDefined) {
-      Ok(views.html.project.author.team(team.get))
+  def showAuthor(name: String) = Action {
+    val author = Author.get(name)
+    if (author.isDefined) {
+      val model = author.get
+      model match {
+        case dev: Dev =>
+          Ok(views.html.project.dev(dev))
+        case team: Team =>
+          Ok(views.html.project.team(team))
+      }
     } else {
       NotFound
     }
