@@ -3,17 +3,23 @@
 # ~~~~
 
 # Home page
-GET     /                           @controllers.Application.index
+GET     /                               @controllers.Application.index
 
 # Projects
-GET     /projects/new               @controllers.Projects.create
-GET     /projects/new/upload        @controllers.Projects.upload
-GET     /projects/:author/:id       @controllers.Projects.show(author, id)
+GET     /projects/new                   @controllers.Projects.create
+GET     /projects/new/upload            @controllers.Projects.upload
+
+GET     /projects/:dev                  @controllers.Projects.showDev(dev)
+GET     /projects/teams/:team           @controllers.Projects.showTeam(team)
+
+GET     /projects/:author/:id           @controllers.Projects.show(author, id)
+GET     /projects/:author/:id/versions  @controllers.Projects.showVersions(author, id)
+GET     /projects/:author/:id/dicuss    @controllers.Projects.showDiscussion(author, id)
 
 # RESTful API
-GET     /api/projects               @controllers.Api.listProjects
+GET     /api/projects                   @controllers.Api.listProjects
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /assets/*file                   controllers.Assets.at(path="/public", file)
 
     

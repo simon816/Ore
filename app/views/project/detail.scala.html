@@ -1,4 +1,4 @@
-@(project: Project)(implicit messages: Messages)
+@(project: Project, active: String)(content: Html)(implicit messages: Messages)
 
 @core.layout(project.owner.name + " / " + project.name) {
 
@@ -11,20 +11,20 @@
             <div class="navbar navbar-default project-navbar pull-left">
                 <div class="navbar-inner">
                     <ul class="nav navbar-nav">
-                        <li class="active">
+                        <li id="docs" class="active">
                             <a href="@project.url">
                                 <i class="fa fa-book"></i>
                                 Docs
                             </a>
                         </li>
-                        <li class="">
-                            <a href="#">
+                        <li id="versions">
+                            <a href="@routes.Projects.showVersions(project.owner.name, project.id)">
                                 <i class="fa fa-download"></i>
                                 Versions
                             </a>
                         </li>
-                        <li class="">
-                            <a href="#">
+                        <li id="discussion">
+                            <a href="@routes.Projects.showDiscussion(project.owner.name, project.id)">
                                 <i class="fa fa-users"></i>
                                 Discuss
                             </a>
@@ -43,21 +43,6 @@
         </div>
     </div>
 
-    <div class="project-wiki">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <h1 class="pull-left">Home</h1>
-                    <button class="btn btn-default pull-right"><i class="fa fa-edit"></i>Edit</button>
-                    <div class="clearfix"></div>
-                    <div class="row">
-                        <div class="col-md-9">
-                            <p>Welcome to your new project!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @content
 
 }

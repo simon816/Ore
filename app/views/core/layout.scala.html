@@ -9,9 +9,6 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <script type="javascript" src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")"></script>
-        <script type="javascript" src="@routes.Assets.at("bootstrap/js/bootstrap.min.js")"></script>
-
         <link rel="icon" type="image/png" href="https://cdn.spongepowered.org/uploads/default/original/2X/9/9ba706a80e45cf427617525ee2a19fad7bb6b109.png">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("bootstrap/css/bootstrap.min.css")" />
         <!-- This is probably bad -->
@@ -19,11 +16,12 @@
         <!-------------------------->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/main.css")" />
+
+        <script type="javascript" src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")"></script>
+        <script type="javascript" src="@routes.Assets.at("bootstrap/js/bootstrap.min.js")"></script>
     </head>
     <body>
         @core.header()
-        <div id="main-outlet" class="wrap" style="padding-bottom: 0;">
-            @content
-        </div>
+        @content
     </body>
 </html>

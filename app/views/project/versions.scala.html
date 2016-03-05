@@ -1,0 +1,38 @@
+@(model: Project)(implicit messages: Messages)
+
+@project.detail(model, "versions") {
+
+    <div class="container version-container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-9"></div>
+                    <div class="col-md-3">
+                        <a href="#" class="btn btn-block btn-primary btn-panel btn-version">
+                            <i class="fa fa-plus"></i>Create version
+                        </a>
+                        <div class="panel panel-default channels">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Channels</h3>
+                            </div>
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <span class="channel channel-bg-light" style="background-color: #2ECC40">Stable</span>
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="channel channel-bg-dark" style="background-color: #0074D9">Beta</span>
+                                </li>
+                                <li class="list-group-item text-right">
+                                    <a href="#">
+                                        <i class="fa fa-cog"></i> Edit
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}

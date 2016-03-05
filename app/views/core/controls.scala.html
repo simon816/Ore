@@ -5,9 +5,7 @@
         <ol class="category-breadcrumb">
             <li class="no-category has-drop bullet">
                 <a href="" class="badge-category home" style="background-color: #eee; color: #333" aria-label="Display category list" aria-expanded="false">@messages("general.all-cats")</a>
-                <a href="" class="badge-category category-dropdown-button home" style="background-color: #eee; color: #333">
-                    <i class="fa fa-caret-right"></i>
-                </a>
+                <a href="" class="badge-category category-dropdown-button home" style="background-color: #eee; color: #333"><i class="fa fa-caret-right"></i></a>
                 <section class="hidden category-dropdown-menu chooser">
                     <div class="cat"><a data-drop-close="true" class="badge-category home" href="/">@messages("general.all-cats")</a></div>
                     <div class="cat"></div>
@@ -25,6 +23,6 @@
             <li title="Downloads"><a href="https://forums.spongepowered.org/t/sponge-downloads/11448">@messages("project.downloads")</a></li>
             <li title="About Us"><a href="https://docs.spongepowered.org/en/about/introduction.html">@messages("general.about")</a></li>
         </ul>
-        <button id="create-topic" class="btn btn-default"><i class="fa fa-plus"></i>@messages("project.create")</button>
+        <a id="create-package" class="btn btn-default" href="@routes.Projects.create()"><i class="fa fa-plus"></i>@messages("project.create")</a>
     </div>
 </div>

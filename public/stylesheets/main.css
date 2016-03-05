@@ -2,17 +2,17 @@
     color: black; !important;
 }
 
-.nav-pills>li>a:hover {
+.nav-pills>li>a:hover, .nav-pills>li.active>a:hover {
     color: black; !important;
     background-color: #dfbe58; !important;
 }
 
-.btn {
+.btn, .btn-primary[href], .btn:hover {
     color: black; !important;
 }
 
-.btn:hover {
-    color: black; !important;
+.btn-version {
+    width: 100%;
 }
 
 .project-header {
@@ -39,6 +39,7 @@
 }
 
 .project-header-container {
+    margin-top: 90px;
     border-bottom: 1px solid #ddd;
 }
 
@@ -48,4 +49,31 @@
 
 .project-wiki {
     margin-top: 15px;
+}
+
+.badge-category:hover, .title:hover, .btn:hover {
+    text-decoration: none;
+}
+
+.version-container {
+    padding: 20px;
+}
+
+.channel {
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-weight: bold;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.channels {
+    margin-top: 15px;
+}
+
+.list-group {
+    margin: 0;
+    width: 100%;
 }
