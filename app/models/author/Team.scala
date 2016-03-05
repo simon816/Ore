@@ -1,6 +1,12 @@
 package models.author
 
-case class Team(name: String, members: List[Author]) extends Author {
+/**
+ * Represents a collection of developers who work on a project.
+ *
+ * @param name Name of team
+ * @param members Developers on team
+ */
+case class Team(name: String, members: List[Dev]) extends Author {
 
   def this(name: String, owner: Dev) = this(name, List(owner))
 

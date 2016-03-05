@@ -1,8 +1,16 @@
 package models.author
 
+/**
+ * Represents an author of a Project.
+ */
 abstract class Author {
 
-  def name: String
+   /**
+    * Returns the name of this Author
+    *
+    * @return Name of author
+    */
+   def name: String
 
 }
 

@@ -17,7 +17,7 @@ GET     /:author/:name/dicuss                   @controllers.Projects.showDiscus
 
 # RESTful API
 # TODO: Ensure no one can be named "api"
-GET     /api/projects                           @controllers.Api.listProjects()
+GET     /api/projects                           @controllers.Api.listProjects
 GET     /api/:version/projects                  @controllers.Api.listProjects(version)
 
 # Map static resources from the /public folder to the /assets URL path

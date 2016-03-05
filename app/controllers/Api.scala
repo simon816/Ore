@@ -18,6 +18,12 @@ class Api extends Controller {
     )
   }
 
+   /**
+    * Returns a JSON view of all projects.
+    *
+    * @param version API version
+    * @return JSON view of projects
+    */
   def listProjects(version: String) = Action {
     version match {
       case "v1" => Ok(Json.toJson(Project.projects))
@@ -25,6 +31,11 @@ class Api extends Controller {
     }
   }
 
+   /**
+    * Returns a JSON view of all projects for API v1.
+    *
+    * @return JSON view of projects
+    */
   def listProjects() = listProjects("v1")
 
 }

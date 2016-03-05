@@ -34,6 +34,13 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     }
   }
 
+   /**
+    * Displays the Project with the specified author and name.
+    *
+    * @param author Owner of project
+    * @param name Name of project
+    * @return View of project
+    */
   def show(author: String, name: String) = Action {
     val project =  Project.get(author, name)
     if (project.isDefined) {
@@ -43,6 +50,13 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     }
   }
 
+   /**
+    * Displays the "versions" tab within a Project view.
+    *
+    * @param author Owner of project
+    * @param name Name of project
+    * @return View of project
+    */
   def showVersions(author: String, name: String) = Action {
     val project = Project.get(author, name)
     if (project.isDefined) {
@@ -52,6 +66,13 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     }
   }
 
+   /**
+    * Displays the "discussion" tab within a Project view.
+    *
+    * @param author Owner of project
+    * @param name Name of project
+    * @return View of project
+    */
   def showDiscussion(author: String, name: String) = Action {
     val project = Project.get(author, name)
     if (project.isDefined) {
@@ -61,6 +82,13 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     }
   }
 
+   /**
+    * Displays an author page for the specified name. This can be either a Team
+    * or a Dev.
+    *
+    * @param name Name of author
+    * @return View of author
+    */
   def showAuthor(name: String) = Action {
     val author = Author.get(name)
     if (author.isDefined) {
