@@ -24,13 +24,13 @@ abstract class Author {
     *
     * @return True if registered, false otherwise
     */
-  def isRegistered = !isInstanceOf[Author.Unknown]
+  def isRegistered: Boolean = !isInstanceOf[Author.Unknown]
 
-  override def toString = MoreObjects.toStringHelper(this).add("name", this.name).toString
+  override def toString: String = MoreObjects.toStringHelper(this).add("name", this.name).toString
 
-  override def hashCode = Objects.hashCode(this.name)
+  override def hashCode: Int = Objects.hashCode(this.name)
 
-  override def equals(o: Any) = o.isInstanceOf[Author] && o.asInstanceOf[Author].name.equals(this.name)
+  override def equals(o: Any): Boolean = o.isInstanceOf[Author] && o.asInstanceOf[Author].name.equals(this.name)
 
 }
 

@@ -15,7 +15,7 @@ case class Dev(override val name: String) extends Author {
 object Dev {
 
   // TODO: Replace with DB
-  val devs = Seq(
+  val devs = Set[Dev](
     Dev("Spongie"),
     Dev("Author1"),
     Dev("Author2"),

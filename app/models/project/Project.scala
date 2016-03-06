@@ -31,19 +31,19 @@ case class Project(id: String, name: String, description: String, owner: Author,
     *
     * TODO: Unique views?
     */
-  var views = 0
+  var views: Int = 0
 
   /**
     * The amount of times this Project has been downloaded.
     *
     * TODO: Unique downloads?
     */
-  var downloads = 0
+  var downloads: Int = 0
 
   /**
     * The amount of users who have starred this project.
     */
-  var starred = 0
+  var starred: Int = 0
 
   private var pendingUpload: Option[PluginFile] = None
 
@@ -54,7 +54,7 @@ case class Project(id: String, name: String, description: String, owner: Author,
     *
     * @return Key of cache
     */
-  def getKey = this.owner.name + '/' + this.name
+  def getKey: String = this.owner.name + '/' + this.name
 
   /**
     * Adds this Project to the cache, used to pass the model between requests
@@ -70,6 +70,20 @@ case class Project(id: String, name: String, description: String, owner: Author,
   def free() = Cache.remove(getKey)
 
   /**
+    * Returns true if this Project already exists.
+    *
+    * @return True if project exists, false otherwise
+    */
+  def exists: Boolean = false // TODO
+
+  /**
+    * Creates this Project
+    *
+    * TODO: Add to DB here
+    */
+  def create() = if (exists) throw new Exception("This project already exists.")
+
+  /**
     * Sets the PluginFile that is waiting to be uploaded.
     *
     * TODO: Expiration
@@ -83,7 +97,7 @@ case class Project(id: String, name: String, description: String, owner: Author,
     *
     * @return PluginFile waiting to be uploaded
     */
-  def getPendingUpload = this.pendingUpload
+  def getPendingUpload: Option[PluginFile] = this.pendingUpload
 
   /**
     * Returns the Channel in this project with the specified name.
@@ -98,7 +112,7 @@ case class Project(id: String, name: String, description: String, owner: Author,
     *
     * @return All channels in project
     */
-  def getChannels = Channel.getAll(this)
+  def getChannels: Set[Channel] = Channel.getAll(this)
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -113,13 +127,13 @@ case class Project(id: String, name: String, description: String, owner: Author,
     *
     * @return All versions in project
     */
-  def getVersions = Version.getAll(this)
+  def getVersions: Set[Version] = Version.getAll(this)
 
-  override def toString = "%s - %s".format(this.name, this.description)
+  override def toString: String = "%s - %s".format(this.name, this.description)
 
-  override def hashCode = getKey.hashCode
+  override def hashCode: Int = getKey.hashCode
 
-  override def equals(o: Any) = o.isInstanceOf[Project] && o.asInstanceOf[Project].getKey.equals(getKey)
+  override def equals(o: Any): Boolean = o.isInstanceOf[Project] && o.asInstanceOf[Project].getKey.equals(getKey)
 
 }
 
@@ -129,7 +143,7 @@ case class Project(id: String, name: String, description: String, owner: Author,
 object Project {
 
   // TODO: Replace with DB
-  val projects = List(
+  val projects = Set[Project](
     new Project("org.spongepowered.ore", "Ore", "The Minecraft Package Repository", Team.get("SpongePowered").get),
     new Project("example1", "Example-1", "Description 1", Dev.get("Author1").get),
     new Project("example2", "Example-2", "Description 2", Dev.get("Author2").get),
@@ -173,7 +187,6 @@ object Project {
     * @return New project
     */
   def fromMeta(owner: Author, meta: PluginMetadata): Project = {
-    // TODO: Make sure ID is unique
     val devs = for (author <- meta.getAuthors.toList) yield Author.get(author)
     Project(meta.getId, meta.getName, meta.getDescription, owner, devs)
   }

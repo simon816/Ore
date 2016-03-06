@@ -8,6 +8,7 @@ import models.util.PluginFile._
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 import play.api.Play
 import play.api.Play.current
+import play.api.libs.Files.TemporaryFile
 
 import scala.collection.JavaConversions._
 
@@ -27,21 +28,21 @@ case class PluginFile(private var path: Path, private val owner: Author) {
     *
     * @return Path of plugin file
     */
-  def getPath = this.path
+  def getPath: Path = this.path
 
   /**
     * Returns the owner of this file.
     *
     * @return Owner of file
     */
-  def getOwner = this.owner
+  def getOwner: Author = this.owner
 
   /**
     * Returns the loaded PluginMetadata, if any.
     *
     * @return PluginMetadata if present, None otherwise
     */
-  def getMeta = this.meta
+  def getMeta: Option[PluginMetadata] = this.meta
 
   /**
     * Reads the temporary file's plugin meta file and returns the result.
@@ -114,6 +115,23 @@ object PluginFile {
   val TEMP_FILE = "plugin" + PLUGIN_FILE_EXTENSION
 
   /**
+    * Initializes a new PluginFile with the specified owner and temporary file.
+    *
+    * @param tmp Temporary file
+    * @param owner Project owner
+    * @return New plugin file
+    */
+  def init(tmp: TemporaryFile, owner: Author): PluginFile = {
+    val plugin = new PluginFile(owner)
+    val tmpDir = plugin.getPath.getParent
+    if (!Files.exists(tmpDir)) {
+      Files.createDirectories(tmpDir)
+    }
+    tmp.moveTo(plugin.getPath.toFile, replace = true)
+    plugin
+  }
+
+  /**
     * Returns the Path to where the specified Version should be.
     *
     * @param owner Project owner
@@ -122,7 +140,7 @@ object PluginFile {
     * @param channel Project channel
     * @return Path to supposed file
     */
-  def getUploadPath(owner: String, name: String, version: String, channel: String = "ALPHA") = {
+  def getUploadPath(owner: String, name: String, version: String, channel: String = "ALPHA"): Path = {
     Paths.get(Play.application.path.getPath)
       .resolve(PLUGIN_DIR)
       .resolve(owner)

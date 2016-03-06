@@ -10,7 +10,7 @@ import com.google.common.base.Objects
   */
 case class Version(channel: Channel, versionString: String) {
 
-  override def hashCode = Objects.hashCode(this.versionString, this.channel)
+  override def hashCode: Int = Objects.hashCode(this.versionString, this.channel)
 
   override def equals(o: Any): Boolean = {
     if (!o.isInstanceOf[Version]) {
@@ -28,7 +28,7 @@ case class Version(channel: Channel, versionString: String) {
 object Version {
 
   // TODO: Replace with DB
-  val versions = for (project <- Project.projects) yield Version(project.getChannel("Alpha").get, "1.0.0")
+  val versions: Set[Version] = for (project <- Project.projects) yield Version(project.getChannel("Alpha").get, "1.0.0")
 
   /**
     * Returns the Version belonging to the specified project with the specified
@@ -53,7 +53,7 @@ object Version {
     * @param project Project to get versions for
     * @return All versions of project
     */
-  def getAll(project: Project) = for (
+  def getAll(project: Project): Set[Version] = for (
     version <- versions
     if version.channel.project.equals(project)
   ) yield {

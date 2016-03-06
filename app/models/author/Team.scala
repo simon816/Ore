@@ -18,7 +18,7 @@ case class Team(override val name: String, owner: Dev, members: List[Dev]) exten
 object Team {
 
   // TODO: Replace with DB
-  val teams = Seq(
+  val teams = Set[Team](
     new Team("SpongePowered", Dev.get("Spongie").get)
   )
 

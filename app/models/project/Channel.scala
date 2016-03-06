@@ -30,7 +30,7 @@ case class Channel(project: Project, name: String, colorHex: String) {
     */
   def newVersion(version: String): Version = Version(this, version) // TODO: Add to DB here
 
-  override def hashCode = Objects.hashCode(this.project, this.name)
+  override def hashCode: Int = Objects.hashCode(this.project, this.name)
 
   override def equals(o: Any): Boolean = {
     if (!o.isInstanceOf[Channel]) {
@@ -47,10 +47,10 @@ case class Channel(project: Project, name: String, colorHex: String) {
   */
 object Channel {
 
-  val HEX_GREEN = "#2ECC40"
+  val HEX_GREEN: String = "#2ECC40"
 
   // TODO: Replace with DB
-  val channels = List(
+  val channels = Set[Channel](
     new Channel(Project.get("SpongePowered", "Ore").get, "Alpha"),
     new Channel(Project.get("SpongePowered", "Ore").get, "Beta"),
     new Channel(Project.get("Author1", "Example-1").get, "Alpha"),
@@ -88,7 +88,7 @@ object Channel {
     * @param project Project to get channels for
     * @return All channels in project
     */
-  def getAll(project: Project) = for (
+  def getAll(project: Project): Set[Channel] = for (
     channel <- channels
     if channel.project.equals(project)
   ) yield {

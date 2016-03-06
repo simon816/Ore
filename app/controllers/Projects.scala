@@ -1,6 +1,5 @@
 package controllers
 
-import java.nio.file.Files
 import javax.inject.Inject
 
 import models.author.{Author, Dev, Team}
@@ -33,14 +32,11 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     */
   def upload = Action(parse.multipartFormData) { request =>
     request.body.file("pluginFile").map { pluginFile =>
+      // Initialize PluginFile
       val owner = Team.get("SpongePowered").get // TODO: Get auth'd user here
-      val plugin = new PluginFile(owner)
-      val tmpDir = plugin.getPath.getParent
-      if (!Files.exists(tmpDir)) {
-        Files.createDirectories(tmpDir)
-      }
-      pluginFile.ref.moveTo(plugin.getPath.toFile, replace = true)
+      val plugin = PluginFile.init(pluginFile.ref, owner)
 
+      // Load plugin metadata
       var meta: PluginMetadata = null
       var error: String = null
       try {
@@ -55,10 +51,15 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
       } else {
         // TODO: More file validation
         // TODO: Zip "bundle" uploads
+        // TODO: Make sure ID is unique
         val project = Project.fromMeta(owner, meta)
-        project.setPendingUpload(plugin)
-        project.cache() // Cache for use in postUpload
-        Redirect(routes.Projects.postUpload(project.owner.name, project.name))
+        if (project.exists) {
+          BadRequest("A project of that name already exists.")
+        } else {
+          project.setPendingUpload(plugin)
+          project.cache() // Cache for use in postUpload
+          Redirect(routes.Projects.postUpload(project.owner.name, project.name))
+        }
       }
 
     }.getOrElse {
@@ -118,15 +119,23 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
           if (error != null) {
             BadRequest(error)
           } else {
-            // TODO: Add to DB here
-            // Note: Until DB integration the below statement will generate a 404,
-            // as desired.
+            error = null
+            try {
+              model.create()
+            } catch {
+              case e: Exception =>
+                error = e.getMessage
+            }
 
-            // Add version to project
-            val meta = file.getMeta.get
-            val channel = model.newChannel("Alpha") // TODO: Channel selection (plugin-meta maybe?)
-            channel.newVersion(meta.getVersion)
-            Redirect(routes.Projects.show(model.owner.name, model.name))
+            if (error != null) {
+              BadRequest(error)
+            } else {
+              // Add version to project
+              val meta = file.getMeta.get
+              val channel = model.newChannel("Alpha") // TODO: Channel selection (plugin-meta maybe?)
+              channel.newVersion(meta.getVersion)
+              Redirect(routes.Projects.show(model.owner.name, model.name))
+            }
           }
         }
       }
