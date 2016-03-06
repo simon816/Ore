@@ -16,7 +16,7 @@ import scala.collection.JavaConversions._
   *
   * @param path Path to uploaded file
   */
-case class PluginFile(private val path: Path, private val owner: Author) {
+case class PluginFile(private var path: Path, private val owner: Author) {
 
   def this(owner: Author) = this(Paths.get(TEMP_DIR).resolve(owner.name).resolve(TEMP_FILE), owner)
 
@@ -73,7 +73,7 @@ case class PluginFile(private val path: Path, private val owner: Author) {
   /**
     * Uploads this PluginFile to the owner's upload directory.
     */
-  def upload = {
+  def upload() = {
     if (this.meta.isEmpty) {
       throw new Exception("No meta info found for plugin.")
     }
@@ -83,6 +83,7 @@ case class PluginFile(private val path: Path, private val owner: Author) {
       Files.createDirectories(output.getParent)
     }
     Files.move(this.path, output)
+    this.path = output
   }
 
   private def getUploadPath(owner: String, name: String, version: String) = {

@@ -6,9 +6,9 @@ package models.author
   * @param name    Name of team
   * @param members Developers on team
   */
-case class Team(name: String, members: List[Dev]) extends Author {
+case class Team(override val name: String, owner: Dev, members: List[Dev]) extends Author {
 
-  def this(name: String, owner: Dev) = this(name, List(owner))
+  def this(name: String, owner: Dev) = this(name, owner, List(owner))
 
 }
 

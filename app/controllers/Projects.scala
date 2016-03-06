@@ -93,7 +93,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
       } else {
         val file = pending.get
         try {
-          file.upload
+          file.upload()
         } catch {
           case e: Exception =>
             BadRequest(e.getMessage)

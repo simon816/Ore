@@ -5,7 +5,7 @@ package models.author
   *
   * @param name Name of developer
   */
-case class Dev(name: String) extends Author {
+case class Dev(override val name: String) extends Author {
 
 }
 
