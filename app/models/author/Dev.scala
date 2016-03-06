@@ -14,6 +14,7 @@ case class Dev(name: String) extends Author {
   */
 object Dev {
 
+  // TODO: Replace with DB
   val devs = Seq(
     Dev("Spongie"),
     Dev("Author1"),

@@ -12,7 +12,11 @@ import scala.collection.JavaConversions._
   * actual plugin id defined in the meta file. (TODO: check meta file in file
   * uploads).
   *
-  * Note: As a general rule, do not handle actions / results in model classes
+  * <p>Note: As a general rule, do not handle actions / results in model classes</p>
+  *
+  * <p>Note: Instance variables should be private unless they are database
+  * properties</p>
+  *
   * TODO: Versions / channels
   * TODO: Per-version descriptions
   *
@@ -24,9 +28,25 @@ import scala.collection.JavaConversions._
   */
 case class Project(id: String, name: String, description: String, owner: Author, authors: List[Author]) {
 
+  /**
+    * The amount of times this Project has been viewed.
+    *
+    * TODO: Unique views?
+    */
   var views = 0
+
+  /**
+    * The amount of times this Project has been downloaded.
+    *
+    * TODO: Unique downloads?
+    */
   var downloads = 0
+
+  /**
+    * The amount of users who have starred this project.
+    */
   var starred = 0
+
   private var pendingUpload: Option[PluginFile] = None
 
   def this(id: String, name: String, description: String, owner: Author) = this(id, name, description, owner, List(owner))

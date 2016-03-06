@@ -17,6 +17,7 @@ case class Team(name: String, members: List[Dev]) extends Author {
   */
 object Team {
 
+  // TODO: Replace with DB
   val teams = Seq(
     new Team("SpongePowered", Dev.get("Spongie").get)
   )

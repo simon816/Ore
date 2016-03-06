@@ -16,6 +16,7 @@ Page used for uploading and creating new projects.
                     <div class="panel-body">
                         <p>A project contains your downloads and the documentation for your plugin.</p>
 
+                        @* Cond: plugin uploaded -> display data. *@
                         @if(project.isDefined) {
                             @defining(project.get) { project =>
                               <p><strong>ID:</strong> @project.id</p>
@@ -24,6 +25,7 @@ Page used for uploading and creating new projects.
                               <p><strong>Owner:</strong> @project.owner.name</p>
                             }
                         }
+                        @* -------------------------------------- *@
 
                         @form(action = routes.Projects.upload, 'enctype -> "multipart/form-data") {
                             <label class="btn btn-primary" for="pluginFile">
@@ -33,6 +35,7 @@ Page used for uploading and creating new projects.
                             <input type="submit" name="submit" value="Upload" class="btn btn-primary" />
                         }
 
+                        @* Cond: plugin uploaded -> add create button *@
                         @if(project.isDefined) {
                             @defining(project.get) { project =>
                               @form(action = routes.Projects.create(project.owner.name, project.name)) {
@@ -40,6 +43,7 @@ Page used for uploading and creating new projects.
                               }
                             }
                         }
+                        @* ------------------------------------------ *@
                     </div>
                 </div>
             </div>
