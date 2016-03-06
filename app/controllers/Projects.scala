@@ -26,6 +26,41 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
   }
 
   /**
+    * Attempts to upload and create a new project.
+    *
+    * @return Result
+    */
+  def upload = Action(parse.multipartFormData) { request =>
+    request.body.file("pluginFile").map { pluginFile =>
+      val owner = Dev.get("Spongie").get // TODO: Get auth'd user here
+    val plugin = PluginFile(new File(Paths.get("tmp").resolve(owner.name).resolve("plugin.jar").toString), owner)
+      val tmpDir = Paths.get(plugin.getFile.getParent)
+      if (!Files.exists(tmpDir)) {
+        Files.createDirectories(tmpDir)
+      }
+      pluginFile.ref.moveTo(plugin.getFile, replace = true)
+
+      val project = plugin.parse
+      val result = plugin.getResult
+      if (result.isDefined) {
+        result.get
+      } else if (project.isEmpty) {
+        // Note: PluginFile returned None with no Result, this should never
+        // happen
+        BadRequest("An unknown error occurred.")
+      } else {
+        val model = project.get
+        model.cache() // Cache model to retrieve in postUpload
+        Redirect(routes.Projects.postUpload(model.owner.name, model.name))
+      }
+    }.getOrElse {
+      Redirect(routes.Projects.showCreate()).flashing(
+        "error" -> "Missing file"
+      )
+    }
+  }
+
+  /**
     * Displays the "create project" page with uploaded plugin meta data.
     *
     * @param author Author of plugin
@@ -72,41 +107,6 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
       }
     } else {
       BadRequest("No project to post.")
-    }
-  }
-
-  /**
-    * Attempts to upload and create a new project.
-    *
-    * @return Result
-    */
-  def upload = Action(parse.multipartFormData) { request =>
-    request.body.file("pluginFile").map { pluginFile =>
-      val owner = Dev.get("Spongie").get // TODO: Get auth'd user here
-      val plugin = PluginFile(new File(Paths.get("tmp").resolve(owner.name).resolve("plugin.jar").toString), owner)
-      val tmpDir = Paths.get(plugin.getFile.getParent)
-      if (!Files.exists(tmpDir)) {
-        Files.createDirectories(tmpDir)
-      }
-      pluginFile.ref.moveTo(plugin.getFile, replace = true)
-
-      val project = plugin.parse
-      val result = plugin.getResult
-      if (result.isDefined) {
-        result.get
-      } else if (project.isEmpty) {
-        // Note: PluginFile returned None with no Result, this should never
-        // happen
-        BadRequest("An unknown error occurred.")
-      } else {
-        val model = project.get
-        model.cache() // Cache model to retrieve in postUpload
-        Redirect(routes.Projects.postUpload(model.owner.name, model.name))
-      }
-    }.getOrElse {
-      Redirect(routes.Projects.showCreate()).flashing(
-        "error" -> "Missing file"
-      )
     }
   }
 
