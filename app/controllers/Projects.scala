@@ -26,7 +26,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
   }
 
   /**
-    * Attempts to upload and create a new project.
+    * Uploads a new project for review.
     *
     * @return Result
     */
