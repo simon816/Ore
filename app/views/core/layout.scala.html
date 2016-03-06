@@ -21,15 +21,10 @@ this.
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/main.css")" />
 
-        <script type="javascript" src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")"></script>
-        <script type="javascript" src="@routes.Assets.at("bootstrap/js/bootstrap.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("bootstrap/js/bootstrap.min.js")"></script>
     </head>
     <body>
-        <script>
-            $(function() {
-                alert("hello");
-            });
-        </script>
         @core.header()
         @content
     </body>

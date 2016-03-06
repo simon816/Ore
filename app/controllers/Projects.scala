@@ -89,6 +89,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     val project = Project.getCached(author, name)
     if (project.isDefined) {
       val model = project.get
+      model.free()
       val pending = model.getPendingUpload
       if (pending.isEmpty) {
         BadRequest("No file pending.")
@@ -98,7 +99,6 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
         if (file.getResult.isDefined) {
           file.getResult.get
         } else {
-          model.free()
           // TODO: Add to DB here
           // Note: Until DB integration the below statement will generate a
           // 404, as desired.
