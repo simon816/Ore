@@ -159,13 +159,26 @@ object Project {
     * @param name Project name
     * @return Project if exists, None otherwise
     */
-  def get(owner: String, name: String): Option[Project] = {
+  def get(owner: Author, name: String): Option[Project] = {
     for (project <- projects) {
-      if (project.owner.name.equals(owner) && project.name.equals(name)) {
+      if (project.owner.equals(owner) && project.name.equals(name)) {
         return Some(project)
       }
     }
     None
+  }
+
+  /**
+    * Returns all Projects by the specified Author.
+    *
+    * @param owner Owner of projects
+    * @return Set of projects owned by specified author
+    */
+  def getAll(owner: Author): Set[Project] = for (
+    project <- projects
+    if project.owner.equals(owner)
+  ) yield {
+    project
   }
 
   /**

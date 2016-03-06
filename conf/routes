@@ -11,17 +11,31 @@ GET     /api/:version/projects                                  @controllers.Api
 GET     /                                                       @controllers.Application.index
 
 # Projects
-GET     /new                                                    @controllers.Projects.showCreate
-GET     /new/:author/:name                                      @controllers.Projects.postUpload(author, name)
-POST    /new/upload                                             @controllers.Projects.upload
-
-GET     /:author                                                @controllers.Projects.showAuthor(author)
-
-POST    /:author/:name                                          @controllers.Projects.create(author, name)
 GET     /:author/:name                                          @controllers.Projects.show(author, name)
+
+# New Project
+GET     /new                                                    @controllers.Projects.showCreate
+GET     /new/:author/:name                                      @controllers.Projects.showCreateWithMeta(author, name)
+POST    /new/upload                                             @controllers.Projects.upload
+POST    /:author/:name                                          @controllers.Projects.create(author, name)
+
+# Versions
 GET     /:author/:name/versions                                 @controllers.Projects.showVersions(author, name)
+
+# New Version
+GET     /:author/:name/versions/new                             @controllers.Projects.showVersionCreate(author, name)
+GET     /:author/:name/versions/new/:channel/:version           @controllers.Projects.showVersionCreateWithMeta(author, name, channel, version)
+POST    /:author/:name/versions/new/upload                      @controllers.Projects.uploadVersion(author, name)
+POST    /:author/:name/versions/:channel/:version               @controllers.Projects.createVersion(author, name, channel, version)
+
+# Downloads
 GET     /:author/:name/versions/download/:channel/:version      @controllers.Projects.downloadVersion(author, name, channel, version)
+
+# Discussion
 GET     /:author/:name/dicuss                                   @controllers.Projects.showDiscussion(author, name)
+
+# User
+GET     /:author                                                @controllers.Projects.showAuthor(author)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                                           controllers.Assets.at(path="/public", file)

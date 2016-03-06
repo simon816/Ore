@@ -1,6 +1,7 @@
 package models.project
 
 import com.google.common.base.Objects
+import models.author.Author
 import models.project.Channel._
 
 /**
@@ -53,18 +54,18 @@ object Channel {
 
   // TODO: Replace with DB
   val channels = Set[Channel](
-    new Channel(Project.get("SpongePowered", "Ore").get, "Alpha"),
-    new Channel(Project.get("SpongePowered", "Ore").get, "Beta"),
-    new Channel(Project.get("Author1", "Example-1").get, "Alpha"),
-    new Channel(Project.get("Author1", "Example-1").get, "Beta"),
-    new Channel(Project.get("Author2", "Example-2").get, "Alpha"),
-    new Channel(Project.get("Author2", "Example-2").get, "Beta"),
-    new Channel(Project.get("Author3", "Example-3").get, "Alpha"),
-    new Channel(Project.get("Author3", "Example-3").get, "Beta"),
-    new Channel(Project.get("Author4", "Example-4").get, "Alpha"),
-    new Channel(Project.get("Author4", "Example-4").get, "Beta"),
-    new Channel(Project.get("Author5", "Example-5").get, "Alpha"),
-    new Channel(Project.get("Author5", "Example-5").get, "Beta")
+    new Channel(Author.get("SpongePowered").getProject("Ore").get, "Alpha"),
+    new Channel(Author.get("SpongePowered").getProject("Ore").get, "Beta"),
+    new Channel(Author.get("Author1").getProject("Example-1").get, "Alpha"),
+    new Channel(Author.get("Author1").getProject("Example-1").get, "Beta"),
+    new Channel(Author.get("Author2").getProject("Example-2").get, "Alpha"),
+    new Channel(Author.get("Author2").getProject("Example-2").get, "Beta"),
+    new Channel(Author.get("Author3").getProject("Example-3").get, "Alpha"),
+    new Channel(Author.get("Author3").getProject("Example-3").get, "Beta"),
+    new Channel(Author.get("Author4").getProject("Example-4").get, "Alpha"),
+    new Channel(Author.get("Author4").getProject("Example-4").get, "Beta"),
+    new Channel(Author.get("Author5").getProject("Example-5").get, "Alpha"),
+    new Channel(Author.get("Author5").getProject("Example-5").get, "Beta")
   )
 
   /**

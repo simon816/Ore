@@ -57,7 +57,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
         } else {
           project.setPendingUpload(plugin)
           project.cache() // Cache for use in postUpload
-          Redirect(routes.Projects.postUpload(project.owner.name, project.name))
+          Redirect(routes.Projects.showCreateWithMeta(project.owner.name, project.name))
         }
       }
     }.getOrElse {
@@ -74,7 +74,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     * @param name Name of plugin
     * @return Create project view
     */
-  def postUpload(author: String, name: String) = Action {
+  def showCreateWithMeta(author: String, name: String) = Action {
     // TODO: Check auth here
     val project = Project.getCached(author, name)
     if (project.isDefined) {
@@ -150,7 +150,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     * @return View of project
     */
   def show(author: String, name: String) = Action {
-    val project = Project.get(author, name)
+    val project = Author.get(author).getProject(name)
     if (project.isDefined) {
       // TODO: Check if we should increment 'views' here
       Ok(views.html.projects.docs(project.get))
@@ -167,12 +167,41 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     * @return View of project
     */
   def showVersions(author: String, name: String) = Action {
-    val project = Project.get(author, name)
+    val project = Author.get(author).getProject(name)
     if (project.isDefined) {
       Ok(views.html.projects.versions(project.get))
     } else {
       NotFound("No project found.")
     }
+  }
+
+  /**
+    * Shows the creation form for new versions on existing projects.
+    *
+    * @param author Owner of project
+    * @param name Name of project
+    * @return Version creation view
+    */
+  def showVersionCreate(author: String, name: String) = Action {
+    // TODO: Check auth here
+    val project = Author.get(author).getProject(name)
+    if (project.isDefined) {
+      Ok(views.html.projects.versionCreate(project.get, None))
+    } else {
+      NotFound("No project found.")
+    }
+  }
+
+  def uploadVersion(author: String, name: String) = Action(parse.multipartFormData) { request =>
+    NotFound("TODO")
+  }
+
+  def showVersionCreateWithMeta(author: String, name: String, channel: String, versionString: String) = Action {
+    NotFound("TODO")
+  }
+
+  def createVersion(author: String, name: String, channel: String, versionString: String) = Action {
+    NotFound("TODO")
   }
 
   /**
@@ -185,7 +214,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     * @return Sent file
     */
   def downloadVersion(author: String, name: String, channelName: String, versionString: String) = Action {
-    val project = Project.get(author, name)
+    val project = Author.get(author).getProject(name)
     if (project.isDefined) {
       val model = project.get
       val channel = model.getChannel(channelName)
@@ -213,7 +242,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     * @return View of project
     */
   def showDiscussion(author: String, name: String) = Action {
-    val project = Project.get(author, name)
+    val project = Author.get(author).getProject(name)
     if (project.isDefined) {
       Ok(views.html.projects.discussion(project.get))
     } else {
@@ -238,7 +267,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
           Ok(views.html.projects.team(team))
       }
     } else {
-      NotFound("No project found.")
+      NotFound("No user found.")
     }
   }
 

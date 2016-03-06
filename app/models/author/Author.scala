@@ -1,6 +1,7 @@
 package models.author
 
 import com.google.common.base.{MoreObjects, Objects}
+import models.project.Project
 
 /**
   * Represents an author of a Project. Authors can be either a Team or Dev.
@@ -18,6 +19,21 @@ abstract class Author {
     * @return Name of author
     */
   def name: String
+
+  /**
+    * Returns the Project with the specified name that this Author owns.
+    *
+    * @param name Name of project
+    * @return Owned project, if any, None otherwise
+    */
+  def getProject(name: String): Option[Project] = Project.get(this, name)
+
+  /**
+    * Returns all Projects owned by this Author.
+    *
+    * @return All projects owned by Author
+    */
+  def getProjects: Set[Project] = Project.getAll(this)
 
   /**
     * Returns true if this Author is registered with Ore.

@@ -1,0 +1,51 @@
+@import models.project.Project
+@import views.html.helper.form
+@import models.project.Version
+@(project: Project, version: Option[Version])(implicit messages: Messages)
+
+@core.layout("New version") {
+
+    <div class="container" style="margin-top: 90px">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">New project version</h3>
+                    </div>
+                    <div class="panel-body">
+                        <p>Submit a new version for @(project.name + ".")</p>
+
+                        @* Cond: version uploaded -> display data. *@
+                        @if(version.isDefined) {
+                            @defining(version.get) { version =>
+                                <p><strong>Version:</strong> @version.versionString</p>
+                                <p><strong>Channel:</strong> @version.channel</p>
+                            }
+                        }
+                        @* -------------------------------------- *@
+
+                        @form(action = routes.Projects.uploadVersion(project.owner.name, project.name), 'enctype -> "multipart/form-data") {
+                            <label class="btn btn-primary" for="pluginFile">
+                                <input id="pluginFile" name="pluginFile" type="file" style="display:none ;">
+                                Select file
+                            </label>
+                            <input type="submit" name="submit" value="Upload" class="btn btn-primary" />
+                        }
+
+                        @* Cond: plugin uploaded -> add create button *@
+                        @if(version.isDefined) {
+                            @defining(version.get) { version =>
+                                @form(action = routes.Projects.createVersion(project.owner.name, project.name, version.channel.name, version.versionString)) {
+                                    <input type="submit" name="create" value="Create project" class="btn btn-primary" />
+                                }
+                            }
+                        }
+                        @* ------------------------------------------ *@
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
