@@ -1,6 +1,7 @@
 package models.project
 
 import com.google.common.base.Objects
+import models.project.Channel._
 
 /**
   * Represents a release channel for Project Versions. Each project gets it's
@@ -9,7 +10,9 @@ import com.google.common.base.Objects
   * @param project Project channel belongs to
   * @param name Name of channel
   */
-case class Channel(project: Project, name: String) {
+case class Channel(project: Project, name: String, colorHex: String) {
+
+  def this(project: Project, name: String) = this(project, name, HEX_GREEN)
 
   override def hashCode = Objects.hashCode(this.project, this.name)
 
@@ -28,20 +31,22 @@ case class Channel(project: Project, name: String) {
   */
 object Channel {
 
+  val HEX_GREEN = "#2ECC40"
+
   // TODO: Replace with DB
   val channels = List(
-    Channel(Project.get("SpongePowered", "Ore").get, "Alpha"),
-    Channel(Project.get("SpongePowered", "Ore").get, "Beta"),
-    Channel(Project.get("Author1", "Example-1").get, "Alpha"),
-    Channel(Project.get("Author1", "Example-1").get, "Beta"),
-    Channel(Project.get("Author2", "Example-2").get, "Alpha"),
-    Channel(Project.get("Author2", "Example-2").get, "Beta"),
-    Channel(Project.get("Author3", "Example-3").get, "Alpha"),
-    Channel(Project.get("Author3", "Example-3").get, "Beta"),
-    Channel(Project.get("Author4", "Example-4").get, "Alpha"),
-    Channel(Project.get("Author4", "Example-4").get, "Beta"),
-    Channel(Project.get("Author5", "Example-5").get, "Alpha"),
-    Channel(Project.get("Author5", "Example-5").get, "Beta")
+    new Channel(Project.get("SpongePowered", "Ore").get, "Alpha"),
+    new Channel(Project.get("SpongePowered", "Ore").get, "Beta"),
+    new Channel(Project.get("Author1", "Example-1").get, "Alpha"),
+    new Channel(Project.get("Author1", "Example-1").get, "Beta"),
+    new Channel(Project.get("Author2", "Example-2").get, "Alpha"),
+    new Channel(Project.get("Author2", "Example-2").get, "Beta"),
+    new Channel(Project.get("Author3", "Example-3").get, "Alpha"),
+    new Channel(Project.get("Author3", "Example-3").get, "Beta"),
+    new Channel(Project.get("Author4", "Example-4").get, "Alpha"),
+    new Channel(Project.get("Author4", "Example-4").get, "Beta"),
+    new Channel(Project.get("Author5", "Example-5").get, "Alpha"),
+    new Channel(Project.get("Author5", "Example-5").get, "Beta")
   )
 
   /**
@@ -59,6 +64,19 @@ object Channel {
       }
     }
     None
+  }
+
+  /**
+    * Returns all channels for the specified Project.
+    *
+    * @param project Project to get channels for
+    * @return All channels in project
+    */
+  def getAll(project: Project) = for (
+    channel <- channels
+    if channel.project.equals(project)
+  ) yield {
+    channel
   }
 
 }

@@ -94,12 +94,19 @@ case class Project(id: String, name: String, description: String, owner: Author,
   def getChannel(name: String): Option[Channel] = Channel.get(this, name)
 
   /**
+    * Returns all Channels belonging to this Project.
+    *
+    * @return All channels in project
+    */
+  def getChannels = Channel.getAll(this)
+
+  /**
     * Creates a new Channel for this project with the specified name.
     *
     * @param name Name of channel
     * @return New channel
     */
-  def newChannel(name: String): Channel = Channel(this, name) // TODO: Add channel to DB here
+  def newChannel(name: String): Channel = new Channel(this, name) // TODO: Add channel to DB here
 
   /**
     * Returns the Version with the specified version string in the specified

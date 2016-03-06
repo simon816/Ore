@@ -20,7 +20,7 @@ GET     /:author                                                @controllers.Pro
 POST    /:author/:name                                          @controllers.Projects.create(author, name)
 GET     /:author/:name                                          @controllers.Projects.show(author, name)
 GET     /:author/:name/versions                                 @controllers.Projects.showVersions(author, name)
-GET     /download/:author/:name/:channel/:version               @controllers.Projects.downloadVersion(author, name, channel, version)
+GET     /:author/:name/versions/download/:channel/:version      @controllers.Projects.downloadVersion(author, name, channel, version)
 GET     /:author/:name/dicuss                                   @controllers.Projects.showDiscussion(author, name)
 
 # Map static resources from the /public folder to the /assets URL path
