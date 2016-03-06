@@ -7,6 +7,8 @@ import models.author.{Author, Dev, Team}
 import models.project.Project
 import models.util.PluginFile
 import org.spongepowered.plugin.meta.PluginMetadata
+import play.api.Play
+import play.api.Play.current
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 
@@ -42,21 +44,27 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
       pluginFile.ref.moveTo(plugin.getPath.toFile, replace = true)
 
       var meta: PluginMetadata = null
+      var error : String = null
       try {
         meta = plugin.loadMeta
       } catch {
         case e: Exception =>
-          BadRequest(e.getMessage)
+          error = e.getMessage
       }
 
-      // TODO: More file validation
-      // TODO: Zip "bundle" uploads
+      if (error != null) {
+        BadRequest(error)
+      } else {
 
-      val project = Project.fromMeta(owner, meta)
-      project.setPendingUpload(plugin)
-      project.cache() // Cache for use in postUpload
-      Redirect(routes.Projects.postUpload(project.owner.name, project.name))
+        // TODO: More file validation
+        // TODO: Zip "bundle" uploads
 
+        val project = Project.fromMeta(owner, meta)
+        project.setPendingUpload(plugin)
+        project.cache() // Cache for use in postUpload
+        Redirect(routes.Projects.postUpload(project.owner.name, project.name))
+      }
+      
     }.getOrElse {
       Redirect(routes.Projects.showCreate()).flashing(
         "error" -> "Missing file"
