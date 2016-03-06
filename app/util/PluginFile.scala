@@ -1,10 +1,10 @@
-package models.util
+package util
 
 import java.nio.file.{Files, Path, Paths}
 import java.util.jar.JarFile
 
 import models.author.Author
-import models.util.PluginFile._
+import util.PluginFile._
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 import play.api.Play
 import play.api.Play.current
@@ -17,7 +17,7 @@ import scala.collection.JavaConversions._
   *
   * @param path Path to uploaded file
   */
-case class PluginFile(private var path: Path, private val owner: Author) {
+class PluginFile(private var path: Path, private val owner: Author) {
 
   def this(owner: Author) = this(Paths.get(TEMP_DIR).resolve(owner.name).resolve(TEMP_FILE), owner)
 

@@ -4,7 +4,7 @@ import javax.inject.Inject
 
 import models.author.{Author, Dev, Team}
 import models.project.Project
-import models.util.PluginFile
+import util.PluginFile
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}

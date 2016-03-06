@@ -1,7 +1,7 @@
 package models.project
 
 import models.author.{Team, Author, Dev}
-import models.util.PluginFile
+import util.PluginFile
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
@@ -31,19 +31,19 @@ case class Project(id: String, name: String, description: String, owner: Author,
     *
     * TODO: Unique views?
     */
-  var views: Int = 0
+  val views: Int = 0
 
   /**
     * The amount of times this Project has been downloaded.
     *
     * TODO: Unique downloads?
     */
-  var downloads: Int = 0
+  val downloads: Int = 0
 
   /**
     * The amount of users who have starred this project.
     */
-  var starred: Int = 0
+  val starred: Int = 0
 
   private var pendingUpload: Option[PluginFile] = None
 
@@ -201,7 +201,7 @@ object Project {
     */
   def fromMeta(owner: Author, meta: PluginMetadata): Project = {
     val devs = for (author <- meta.getAuthors.toList) yield Author.get(author)
-    Project(meta.getId, meta.getName, meta.getDescription, owner, devs)
+    new Project(meta.getId, meta.getName, meta.getDescription, owner, devs)
   }
 
 }
