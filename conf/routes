@@ -11,12 +11,13 @@ GET     /api/:version/projects                  @controllers.Api.listProjects(ve
 GET     /                                       @controllers.Application.index
 
 # Projects
-GET     /new                                    @controllers.Projects.create
+GET     /new                                    @controllers.Projects.showCreate
 GET     /new/:author/:name                      @controllers.Projects.postUpload(author, name)
 POST    /new/upload                             @controllers.Projects.upload
 
 GET     /:author                                @controllers.Projects.showAuthor(author)
 
+POST    /:author/:name                          @controllers.Projects.create(author, name)
 GET     /:author/:name                          @controllers.Projects.show(author, name)
 GET     /:author/:name/versions                 @controllers.Projects.showVersions(author, name)
 GET     /:author/:name/dicuss                   @controllers.Projects.showDiscussion(author, name)

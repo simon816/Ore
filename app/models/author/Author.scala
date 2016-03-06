@@ -15,7 +15,7 @@ abstract class Author {
 }
 
 /**
-  * Author data-sote
+  * Author data-store
   */
 object Author {
 

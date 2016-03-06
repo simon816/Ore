@@ -1,13 +1,20 @@
 package models
 
+import controllers.PluginFile
 import models.author.{Author, Dev}
+import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
+import scala.collection.JavaConversions._
 
 /**
   * Represents an Ore package. The specified ID should correspond with the
   * actual plugin id defined in the meta file. (TODO: check meta file in file
   * uploads).
+  *
+  * Note: As a general rule, do not handle actions / results in model classes
+  * TODO: Versions / channels
+  * TODO: Per-version descriptions
   *
   * @param id          Plugin ID
   * @param name        Name of plugin
@@ -20,12 +27,45 @@ case class Project(id: String, name: String, description: String, owner: Author,
   var views = 0
   var downloads = 0
   var starred = 0
+  private var pendingUpload: Option[PluginFile] = None
 
   def this(id: String, name: String, description: String, owner: Author) = this(id, name, description, owner, List(owner))
 
-  def cache() = {
-    Cache.set(this.owner.name + '/' + this.name, this)
-  }
+  /**
+    * Returns how this Project is represented in the Cache.
+    *
+    * @return Key of cache
+    */
+  def getKey = this.owner.name + '/' + this.name
+
+  /**
+    * Adds this Project to the cache, used to pass the model between requests
+    * before the actual project has been created.
+    *
+    * TODO: Expiration
+    */
+  def cache() = Cache.set(getKey, this)
+
+  /**
+    * Removes this Project from the cache.
+    */
+  def free() = Cache.remove(getKey)
+
+  /**
+    * Sets the PluginFile that is waiting to be uploaded.
+    *
+    * TODO: Expiration
+    *
+    * @param file To be uploaded
+    */
+  def setPendingUpload(file: PluginFile) = this.pendingUpload = Some(file)
+
+  /**
+    * Returns the PluginFile that is waiting to be uploaded.
+    *
+    * @return PluginFile waiting to be uploaded
+    */
+  def getPendingUpload = this.pendingUpload
 
   override def toString = "%s - %s".format(this.name, this.description)
 
@@ -61,8 +101,27 @@ object Project {
     None
   }
 
+  /**
+    * Gets the project with the specified owner and name from the Cache.
+    *
+    * @param owner Owner name
+    * @param name project name
+    * @return Project in cache, if any, None otherwise
+    */
   def getCached(owner: String, name: String): Option[Project] = {
     Cache.getAs[Project](owner + '/' + name)
+  }
+
+  /**
+    * Creates a new Project from the specified PluginMetadata.
+    *
+    * @param owner Owner of project
+    * @param meta PluginMetadata object
+    * @return New project
+    */
+  def fromMeta(owner: Author, meta: PluginMetadata): Project = {
+    val devs = for (author <- meta.getAuthors.toList) yield Dev(author)
+    Project(meta.getId, meta.getName, meta.getDescription, owner, devs)
   }
 
 }

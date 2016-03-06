@@ -18,10 +18,10 @@ Page used for uploading and creating new projects.
 
                         @if(project.isDefined) {
                             @defining(project.get) { project =>
-                              <p>ID: @project.id</p>
-                              <p>Name: @project.name</p>
-                              <p>Description: @project.description</p>
-                              <p>Owner: @project.owner.name</p>
+                              <p><strong>ID:</strong> @project.id</p>
+                              <p><strong>Name:</strong> @project.name</p>
+                              <p><strong>Description:</strong> @project.description</p>
+                              <p><strong>Owner:</strong> @project.owner.name</p>
                             }
                         }
 
@@ -30,7 +30,15 @@ Page used for uploading and creating new projects.
                                 <input id="pluginFile" name="pluginFile" type="file" style="display:none ;">
                                 Select file
                             </label>
-                            <input type="submit" name="submit" value="Upload" class="btn btn-primary">
+                            <input type="submit" name="submit" value="Upload" class="btn btn-primary" />
+                        }
+
+                        @if(project.isDefined) {
+                            @defining(project.get) { project =>
+                              @form(action = routes.Projects.create(project.owner.name, project.name)) {
+                                  <input type="submit" name="create" value="Create project" class="btn btn-primary" />
+                              }
+                            }
                         }
                     </div>
                 </div>
