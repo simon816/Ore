@@ -1,45 +1,33 @@
-package controllers
+package models
 
-import java.io.{IOException, File}
-import java.nio.file.{FileAlreadyExistsException, Paths, Files}
+import java.nio.file.{Files, Path, Paths}
 import java.util.jar.JarFile
 
-import models.Project
 import models.author.Author
-import org.spongepowered.plugin.meta.{PluginMetadata, McModInfo}
+import models.PluginFile._
+import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 import play.api.Play
-import play.api.mvc.Result
-import play.api.mvc.Results._
 import play.api.Play.current
+
 import scala.collection.JavaConversions._
 
 /**
   * Represents an uploaded plugin file.
   *
-  * @param file Uploaded file
+  * @param path Path to uploaded file
   */
-case class PluginFile(private val file: File, private val owner: Author) {
+case class PluginFile(private val path: Path, private val owner: Author) {
 
-  val META_FILE_NAME = "mcmod.info"
-  val PLUGIN_FILE_EXTENSION = ".jar"
-  val PLUGIN_DIR = "uploads/plugins"
+  def this(owner: Author) = this(Paths.get(TEMP_DIR).resolve(owner.name).resolve(TEMP_FILE), owner)
 
-  private var result: Option[Result] = None
   private var meta: Option[PluginMetadata] = None
 
   /**
-    * Returns the actual file associated with this plugin.
+    * Returns the actual file path associated with this plugin.
     *
-    * @return File of plugin
+    * @return Path of plugin file
     */
-  def getFile = this.file
-
-  /**
-    * Returns the result, if any, produced by a parse.
-    *
-    * @return Result if present, none otherwise
-    */
-  def getResult = this.result
+  def getPath = this.path
 
   /**
     * Returns the owner of this file.
@@ -56,27 +44,17 @@ case class PluginFile(private val file: File, private val owner: Author) {
     *
     * @return Result of parse
     */
-  def parse: Option[Project] = {
-    this.result = None
-
+  def parse: Project = {
     // Read the JAR
-    var jar : JarFile = null
-    try {
-      jar = new JarFile(this.file)
-    } catch {
-      case ioe: IOException =>
-        this.result = Some(BadRequest("Error reading plugin file."))
-        return None
-    }
+    val jar = new JarFile(this.path.toFile)
     val metaEntry = jar.getEntry(META_FILE_NAME)
     if (metaEntry == null) {
-      this.result = Some(BadRequest("No plugin meta file found."))
-      return None
+      throw new Exception("No plugin meta file found.")
     }
+
     val metaList = McModInfo.DEFAULT.read(jar.getInputStream(metaEntry))
     if (metaList.size() > 1) {
-      this.result = Some(BadRequest("Multiple plugins found."))
-      return None
+      throw new Exception("Multiple plugins found.")
     }
 
     // Parse plugin meta info
@@ -84,31 +62,27 @@ case class PluginFile(private val file: File, private val owner: Author) {
     this.meta = Some(meta)
     val authors = meta.getAuthors.toList
     if (authors.isEmpty) {
-      this.result = Some(BadRequest("No authors found."))
-      return None
+      throw new Exception("No authors found.")
     }
 
     val project = Project.fromMeta(this.owner, meta)
     project.setPendingUpload(this)
-    Some(project)
+    project
   }
 
   /**
     * Uploads this PluginFile to the owner's upload directory.
     */
   def upload = {
-    this.result = None
+    if (this.meta.isEmpty) {
+      throw new Exception("No meta info found for plugin.")
+    }
     val meta = this.meta.get
     val output = getUploadPath(this.owner.name, meta.getName, meta.getVersion)
     if (!Files.exists(output.getParent)) {
       Files.createDirectories(output.getParent)
     }
-    try {
-      Files.move(Paths.get(file.getPath), output)
-    } catch {
-      case e: FileAlreadyExistsException =>
-        this.result = Some(BadRequest("Version already exists."))
-    }
+    Files.move(this.path, output)
   }
 
   private def getUploadPath(owner: String, name: String, version: String) = {
@@ -117,5 +91,15 @@ case class PluginFile(private val file: File, private val owner: Author) {
       .resolve(this.owner.name)
       .resolve(name + "-" + version + PLUGIN_FILE_EXTENSION)
   }
+
+}
+
+object PluginFile {
+
+  val META_FILE_NAME = "mcmod.info"
+  val PLUGIN_FILE_EXTENSION = ".jar"
+  val PLUGIN_DIR = "uploads/plugins"
+  val TEMP_DIR = "tmp"
+  val TEMP_FILE = "plugin" + PLUGIN_FILE_EXTENSION
 
 }

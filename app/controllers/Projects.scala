@@ -1,11 +1,10 @@
 package controllers
 
-import java.io.File
-import java.nio.file.{Files, Paths}
+import java.nio.file.Files
 import javax.inject.Inject
 
-import models.Project
 import models.author.{Author, Dev, Team}
+import models.{PluginFile, Project}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 
@@ -33,26 +32,24 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
   def upload = Action(parse.multipartFormData) { request =>
     request.body.file("pluginFile").map { pluginFile =>
       val owner = Dev.get("Spongie").get // TODO: Get auth'd user here
-      val plugin = PluginFile(new File(Paths.get("tmp").resolve(owner.name).resolve("plugin.jar").toString), owner)
-      val tmpDir = Paths.get(plugin.getFile.getParent)
+      val plugin = new PluginFile(owner)
+      val tmpDir = plugin.getPath.getParent
       if (!Files.exists(tmpDir)) {
         Files.createDirectories(tmpDir)
       }
-      pluginFile.ref.moveTo(plugin.getFile, replace = true)
+      pluginFile.ref.moveTo(plugin.getPath.toFile, replace = true)
 
-      val project = plugin.parse
-      val result = plugin.getResult
-      if (result.isDefined) {
-        result.get
-      } else if (project.isEmpty) {
-        // Note: PluginFile returned None with no Result, this should never
-        // happen
-        BadRequest("An unknown error occurred.")
-      } else {
-        val model = project.get
-        model.cache() // Cache model to retrieve in postUpload
-        Redirect(routes.Projects.postUpload(model.owner.name, model.name))
+      var project: Project = null
+      try {
+        project = plugin.parse
+      } catch {
+        case e: Exception =>
+          BadRequest(e.getMessage)
       }
+
+      project.cache() // Cache for use in postUpload
+      Redirect(routes.Projects.postUpload(project.owner.name, project.name))
+
     }.getOrElse {
       Redirect(routes.Projects.showCreate()).flashing(
         "error" -> "Missing file"
@@ -89,21 +86,23 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     val project = Project.getCached(author, name)
     if (project.isDefined) {
       val model = project.get
-      model.free()
+      model.free() // Release from cache
       val pending = model.getPendingUpload
       if (pending.isEmpty) {
         BadRequest("No file pending.")
       } else {
         val file = pending.get
-        file.upload
-        if (file.getResult.isDefined) {
-          file.getResult.get
-        } else {
-          // TODO: Add to DB here
-          // Note: Until DB integration the below statement will generate a
-          // 404, as desired.
-          Redirect(routes.Projects.show(model.owner.name, model.name))
+        try {
+          file.upload
+        } catch {
+          case e: Exception =>
+            BadRequest(e.getMessage)
         }
+
+        // TODO: Add to DB here
+        // Note: Until DB integration the below statement will generate a 404,
+        // as desired.
+        Redirect(routes.Projects.show(model.owner.name, model.name))
       }
     } else {
       BadRequest("No project to post.")

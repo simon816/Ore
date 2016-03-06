@@ -1,10 +1,10 @@
 package models
 
-import controllers.PluginFile
 import models.author.{Author, Dev}
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
+
 import scala.collection.JavaConversions._
 
 /**
