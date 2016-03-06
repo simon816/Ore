@@ -7,8 +7,6 @@ import models.author.{Author, Dev, Team}
 import models.project.Project
 import models.util.PluginFile
 import org.spongepowered.plugin.meta.PluginMetadata
-import play.api.Play
-import play.api.Play.current
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 
@@ -44,7 +42,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
       pluginFile.ref.moveTo(plugin.getPath.toFile, replace = true)
 
       var meta: PluginMetadata = null
-      var error : String = null
+      var error: String = null
       try {
         meta = plugin.loadMeta
       } catch {
@@ -55,16 +53,14 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
       if (error != null) {
         BadRequest(error)
       } else {
-
         // TODO: More file validation
         // TODO: Zip "bundle" uploads
-
         val project = Project.fromMeta(owner, meta)
         project.setPendingUpload(plugin)
         project.cache() // Cache for use in postUpload
         Redirect(routes.Projects.postUpload(project.owner.name, project.name))
       }
-      
+
     }.getOrElse {
       Redirect(routes.Projects.showCreate()).flashing(
         "error" -> "Missing file"
@@ -111,22 +107,27 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
         if (file.getMeta.isEmpty) {
           BadRequest("No meta info found for plugin.")
         } else {
+          var error: String = null
           try {
             file.upload()
           } catch {
             case e: Exception =>
-              BadRequest(e.getMessage)
+              error = e.getMessage
           }
 
-          // TODO: Add to DB here
-          // Note: Until DB integration the below statement will generate a 404,
-          // as desired.
+          if (error != null) {
+            BadRequest(error)
+          } else {
+            // TODO: Add to DB here
+            // Note: Until DB integration the below statement will generate a 404,
+            // as desired.
 
-          // Add version to project
-          val meta = file.getMeta.get
-          model.newVersion(meta.getVersion, model.newChannel("Alpha")) // TODO: Channel selection (plugin-meta maybe?)
+            // Add version to project
+            val meta = file.getMeta.get
+            model.newVersion(meta.getVersion, model.newChannel("Alpha")) // TODO: Channel selection (plugin-meta maybe?)
 
-          Redirect(routes.Projects.show(model.owner.name, model.name))
+            Redirect(routes.Projects.show(model.owner.name, model.name))
+          }
         }
       }
     } else {
