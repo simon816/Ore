@@ -1,6 +1,6 @@
 package controllers
 
-import models.Project
+import models.project.Project
 import play.api.libs.json._
 import play.api.mvc._
 

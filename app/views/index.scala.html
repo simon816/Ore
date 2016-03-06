@@ -2,13 +2,14 @@
 The main entry point of Ore. This page displays a list of Projects that can be
 sorted according to different criteria.
 *@
-@(projects: Seq[Project])(implicit messages: Messages)
+@import models.project.Project
+@(models: Seq[Project])(implicit messages: Messages)
 
 @core.layout(messages("general.title")) {
 
     <div class="container" style="margin-top: 90px ;">
         @core.controls()
-        @project.table(projects)
+        @projects.table(models)
     </div>
 
 }

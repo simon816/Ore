@@ -1,9 +1,10 @@
 @*
 Versions page within Project overview.
 *@
+@import models.project.Project
 @(model: Project)(implicit messages: Messages)
 
-@project.detail(model) {
+@projects.detail(model) {
 
     <div class="container version-container">
         <div class="row">

@@ -1,6 +1,7 @@
-package models
+package models.project
 
 import models.author.{Author, Dev}
+import models.util.PluginFile
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
@@ -87,7 +88,19 @@ case class Project(id: String, name: String, description: String, owner: Author,
     */
   def getPendingUpload = this.pendingUpload
 
+  def getChannel(name: String): Option[Channel] = Channel.get(this, name)
+
+  def newChannel(name: String): Channel = Channel(this, name) // TODO: Add channel to DB here
+
+  def getVersion(version: String, channel: Channel): Option[Version] = Version.get(this, version, channel)
+
+  def newVersion(version: String, channel: Channel): Version = Version(this, version, channel) // TODO: Add version to DB here
+
   override def toString = "%s - %s".format(this.name, this.description)
+
+  override def hashCode = getKey.hashCode
+
+  override def equals(o: Any) = o.isInstanceOf[Project] && o.asInstanceOf[Project].getKey.equals(getKey)
 
 }
 
@@ -140,7 +153,8 @@ object Project {
     * @return New project
     */
   def fromMeta(owner: Author, meta: PluginMetadata): Project = {
-    val devs = for (author <- meta.getAuthors.toList) yield Dev(author)
+    // TODO: Make sure ID is unique
+    val devs = for (author <- meta.getAuthors.toList) yield Author.get(author)
     Project(meta.getId, meta.getName, meta.getDescription, owner, devs)
   }
 

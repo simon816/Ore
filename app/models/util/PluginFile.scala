@@ -1,10 +1,10 @@
-package models
+package models.util
 
 import java.nio.file.{Files, Path, Paths}
 import java.util.jar.JarFile
 
 import models.author.Author
-import models.PluginFile._
+import models.util.PluginFile._
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 import play.api.Play
 import play.api.Play.current
@@ -36,6 +36,8 @@ case class PluginFile(private var path: Path, private val owner: Author) {
     */
   def getOwner = this.owner
 
+  def getMeta = this.meta
+
   /**
     * Reads the temporary file's plugin meta file and returns a new project
     * from it.
@@ -44,7 +46,7 @@ case class PluginFile(private var path: Path, private val owner: Author) {
     *
     * @return Result of parse
     */
-  def parse: Project = {
+  def loadMeta: PluginMetadata = {
     // Read the JAR
     val jar = new JarFile(this.path.toFile)
     val metaEntry = jar.getEntry(META_FILE_NAME)
@@ -64,18 +66,29 @@ case class PluginFile(private var path: Path, private val owner: Author) {
     if (authors.isEmpty) {
       throw new Exception("No authors found.")
     }
+    meta
+  }
 
-    val project = Project.fromMeta(this.owner, meta)
-    project.setPendingUpload(this)
-    project
+  /**
+    * Returns true if this PluginFile has been uploaded to the appropriate
+    * location.
+    *
+    * @return True if has been uploaded, false otherwise
+    */
+  def isUploaded: Boolean = {
+    if (this.meta.isEmpty) {
+      throw new Exception("No meta info found for plugin.")
+    }
+    val meta = this.meta.get
+    this.path.equals(getUploadPath(this.owner.name, meta.getName, meta.getVersion))
   }
 
   /**
     * Uploads this PluginFile to the owner's upload directory.
     */
   def upload() = {
-    if (this.meta.isEmpty) {
-      throw new Exception("No meta info found for plugin.")
+    if (isUploaded) {
+      throw new Exception("Plugin already uploaded.")
     }
     val meta = this.meta.get
     val output = getUploadPath(this.owner.name, meta.getName, meta.getVersion)

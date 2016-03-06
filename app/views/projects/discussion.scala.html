@@ -1,9 +1,10 @@
 @*
 Discussion page within Project overview.
 *@
+@import models.project.Project
 @(model: Project)(implicit messages: Messages)
 
-@project.detail(model) {
+@projects.detail(model) {
 
     <p>TODO: Discourse embedded discussion</p>
 
