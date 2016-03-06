@@ -49,9 +49,8 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
       if (error != null) {
         BadRequest(error)
       } else {
-        // TODO: More file validation
-        // TODO: Zip "bundle" uploads
-        // TODO: Make sure ID is unique
+        // TODO: Check against Plugin annotation
+        // TODO: Allow ZIPs with Plugin JAR in top level
         val project = Project.fromMeta(owner, meta)
         if (project.exists) {
           BadRequest("A project of that name already exists.")
@@ -61,7 +60,6 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
           Redirect(routes.Projects.postUpload(project.owner.name, project.name))
         }
       }
-
     }.getOrElse {
       Redirect(routes.Projects.showCreate()).flashing(
         "error" -> "Missing file"
@@ -154,6 +152,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
   def show(author: String, name: String) = Action {
     val project = Project.get(author, name)
     if (project.isDefined) {
+      // TODO: Check if we should increment 'views' here
       Ok(views.html.projects.docs(project.get))
     } else {
       NotFound("No project found.")
@@ -193,6 +192,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
       if (channel.isDefined) {
         val version = channel.get.getVersion(versionString)
         if (version.isDefined) {
+          // TODO: Check if we should increment 'downloads' here
           Ok.sendFile(PluginFile.getUploadPath(author, name, versionString, channelName.toUpperCase).toFile)
         } else {
           NotFound("Version not found.")

@@ -7,6 +7,8 @@ import models.project.Channel._
   * Represents a release channel for Project Versions. Each project gets it's
   * own set of channels.
   *
+  * TODO: Max channels per-project
+  *
   * @param project Project channel belongs to
   * @param name Name of channel
   */
