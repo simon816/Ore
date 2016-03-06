@@ -1,6 +1,6 @@
 package models.project
 
-import models.author.{Author, Dev}
+import models.author.{Team, Author, Dev}
 import models.util.PluginFile
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
@@ -9,16 +9,13 @@ import play.api.cache.Cache
 import scala.collection.JavaConversions._
 
 /**
-  * Represents an Ore package. The specified ID should correspond with the
-  * actual plugin id defined in the meta file. (TODO: check meta file in file
-  * uploads).
+  * Represents an Ore package.
   *
   * <p>Note: As a general rule, do not handle actions / results in model classes</p>
   *
   * <p>Note: Instance variables should be private unless they are database
   * properties</p>
   *
-  * TODO: Versions / channels
   * TODO: Per-version descriptions
   *
   * @param id          Plugin ID
@@ -88,12 +85,47 @@ case class Project(id: String, name: String, description: String, owner: Author,
     */
   def getPendingUpload = this.pendingUpload
 
+  /**
+    * Returns the Channel in this project with the specified name.
+    *
+    * @param name Name of channel
+    * @return Channel with name, if present, None otherwise
+    */
   def getChannel(name: String): Option[Channel] = Channel.get(this, name)
 
+  /**
+    * Creates a new Channel for this project with the specified name.
+    *
+    * @param name Name of channel
+    * @return New channel
+    */
   def newChannel(name: String): Channel = Channel(this, name) // TODO: Add channel to DB here
 
+  /**
+    * Returns the Version with the specified version string in the specified
+    * channel.
+    *
+    * @param version Version string
+    * @param channel Channel to get from
+    * @return Version if present, None otherwise
+    */
   def getVersion(version: String, channel: Channel): Option[Version] = Version.get(this, version, channel)
 
+  /**
+    * Returns all Versions belonging to this Project.
+    *
+    * @return All versions in project
+    */
+  def getVersions = Version.getAll(this)
+
+  /**
+    * Cretes a new Version for this project with the specified version string
+    * and channel.
+    *
+    * @param version Version string
+    * @param channel Channel of Version
+    * @return New version
+    */
   def newVersion(version: String, channel: Channel): Version = Version(this, version, channel) // TODO: Add version to DB here
 
   override def toString = "%s - %s".format(this.name, this.description)
@@ -110,7 +142,8 @@ case class Project(id: String, name: String, description: String, owner: Author,
 object Project {
 
   // TODO: Replace with DB
-  var projects = Seq(
+  val projects = List(
+    new Project("org.spongepowered.ore", "Ore", "The Minecraft Package Repository", Team.get("SpongePowered").get),
     new Project("example1", "Example-1", "Description 1", Dev.get("Author1").get),
     new Project("example2", "Example-2", "Description 2", Dev.get("Author2").get),
     new Project("example3", "Example-3", "Description 3", Dev.get("Author3").get),

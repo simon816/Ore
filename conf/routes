@@ -4,23 +4,24 @@
 
 # RESTful API
 # TODO: Ensure no one can be named "api"
-GET     /api/projects                           @controllers.Api.listProjects(version = "v1")
-GET     /api/:version/projects                  @controllers.Api.listProjects(version)
+GET     /api/projects                                           @controllers.Api.listProjects(version = "v1")
+GET     /api/:version/projects                                  @controllers.Api.listProjects(version)
 
 # Home page
-GET     /                                       @controllers.Application.index
+GET     /                                                       @controllers.Application.index
 
 # Projects
-GET     /new                                    @controllers.Projects.showCreate
-GET     /new/:author/:name                      @controllers.Projects.postUpload(author, name)
-POST    /new/upload                             @controllers.Projects.upload
+GET     /new                                                    @controllers.Projects.showCreate
+GET     /new/:author/:name                                      @controllers.Projects.postUpload(author, name)
+POST    /new/upload                                             @controllers.Projects.upload
 
-GET     /:author                                @controllers.Projects.showAuthor(author)
+GET     /:author                                                @controllers.Projects.showAuthor(author)
 
-POST    /:author/:name                          @controllers.Projects.create(author, name)
-GET     /:author/:name                          @controllers.Projects.show(author, name)
-GET     /:author/:name/versions                 @controllers.Projects.showVersions(author, name)
-GET     /:author/:name/dicuss                   @controllers.Projects.showDiscussion(author, name)
+POST    /:author/:name                                          @controllers.Projects.create(author, name)
+GET     /:author/:name                                          @controllers.Projects.show(author, name)
+GET     /:author/:name/versions                                 @controllers.Projects.showVersions(author, name)
+GET     /download/:author/:name/:channel/:version               @controllers.Projects.downloadVersion(author, name, channel, version)
+GET     /:author/:name/dicuss                                   @controllers.Projects.showDiscussion(author, name)
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file                           controllers.Assets.at(path="/public", file)
+GET     /assets/*file                                           controllers.Assets.at(path="/public", file)

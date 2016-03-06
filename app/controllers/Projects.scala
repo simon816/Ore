@@ -7,6 +7,8 @@ import models.author.{Author, Dev, Team}
 import models.project.Project
 import models.util.PluginFile
 import org.spongepowered.plugin.meta.PluginMetadata
+import play.api.Play
+import play.api.Play.current
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 
@@ -33,7 +35,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     */
   def upload = Action(parse.multipartFormData) { request =>
     request.body.file("pluginFile").map { pluginFile =>
-      val owner = Dev.get("Spongie").get // TODO: Get auth'd user here
+      val owner = Team.get("SpongePowered").get // TODO: Get auth'd user here
       val plugin = new PluginFile(owner)
       val tmpDir = plugin.getPath.getParent
       if (!Files.exists(tmpDir)) {
@@ -103,7 +105,6 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
         if (file.getMeta.isEmpty) {
           BadRequest("No meta info found for plugin.")
         } else {
-
           try {
             file.upload()
           } catch {
@@ -156,6 +157,31 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
       Ok(views.html.projects.versions(project.get))
     } else {
       NotFound("No project found.")
+    }
+  }
+
+  def downloadVersion(author: String, name: String, channelName: String, versionString: String) = Action {
+    val project = Project.get(author, name)
+    if (project.isDefined) {
+      val model = project.get
+      val channel = model.getChannel(channelName)
+      if (channel.isDefined) {
+        val version = model.getVersion(versionString, channel.get)
+        if (version.isDefined) {
+          // TODO: Abstraction
+          val path = Play.application.path.toPath
+            .resolve("uploads/plugins")
+            .resolve(author)
+            .resolve("%s-%s-%s.jar".format(name, versionString, channelName.toUpperCase))
+          Ok.sendFile(path.toFile)
+        } else {
+          NotFound("Version not found.")
+        }
+      } else {
+        NotFound("Channel not found.")
+      }
+    } else {
+      NotFound("Project not found.")
     }
   }
 

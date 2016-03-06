@@ -36,11 +36,15 @@ case class PluginFile(private var path: Path, private val owner: Author) {
     */
   def getOwner = this.owner
 
+  /**
+    * Returns the loaded PluginMetadata, if any.
+    *
+    * @return PluginMetadata if present, None otherwise
+    */
   def getMeta = this.meta
 
   /**
-    * Reads the temporary file's plugin meta file and returns a new project
-    * from it.
+    * Reads the temporary file's plugin meta file and returns the result.
     *
     * TODO: Add PluginFiles to existing Projects
     *
@@ -99,11 +103,11 @@ case class PluginFile(private var path: Path, private val owner: Author) {
     this.path = output
   }
 
-  private def getUploadPath(owner: String, name: String, version: String) = {
+  private def getUploadPath(owner: String, name: String, version: String, channel: String = "ALPHA") = {
     Paths.get(Play.application.path.getPath)
       .resolve(PLUGIN_DIR)
       .resolve(this.owner.name)
-      .resolve(name + "-" + version + PLUGIN_FILE_EXTENSION)
+      .resolve("%s-%s-%s.%s".format(name, version, channel.toUpperCase, PLUGIN_FILE_EXTENSION))
   }
 
 }
@@ -111,7 +115,7 @@ case class PluginFile(private var path: Path, private val owner: Author) {
 object PluginFile {
 
   val META_FILE_NAME = "mcmod.info"
-  val PLUGIN_FILE_EXTENSION = ".jar"
+  val PLUGIN_FILE_EXTENSION = "jar"
   val PLUGIN_DIR = "uploads/plugins"
   val TEMP_DIR = "tmp"
   val TEMP_FILE = "plugin" + PLUGIN_FILE_EXTENSION
