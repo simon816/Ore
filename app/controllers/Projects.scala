@@ -33,7 +33,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
   def upload = Action(parse.multipartFormData) { request =>
     request.body.file("pluginFile").map { pluginFile =>
       val owner = Dev.get("Spongie").get // TODO: Get auth'd user here
-    val plugin = PluginFile(new File(Paths.get("tmp").resolve(owner.name).resolve("plugin.jar").toString), owner)
+      val plugin = PluginFile(new File(Paths.get("tmp").resolve(owner.name).resolve("plugin.jar").toString), owner)
       val tmpDir = Paths.get(plugin.getFile.getParent)
       if (!Files.exists(tmpDir)) {
         Files.createDirectories(tmpDir)
