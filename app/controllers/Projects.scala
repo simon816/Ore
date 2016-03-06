@@ -7,8 +7,6 @@ import models.author.{Author, Dev, Team}
 import models.project.Project
 import models.util.PluginFile
 import org.spongepowered.plugin.meta.PluginMetadata
-import play.api.Play
-import play.api.Play.current
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 
@@ -160,6 +158,15 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     }
   }
 
+  /**
+    * Sends the specified Project Version.
+    *
+    * @param author Project owner
+    * @param name Project name
+    * @param channelName Version channel
+    * @param versionString Version string
+    * @return Sent file
+    */
   def downloadVersion(author: String, name: String, channelName: String, versionString: String) = Action {
     val project = Project.get(author, name)
     if (project.isDefined) {
@@ -168,12 +175,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
       if (channel.isDefined) {
         val version = model.getVersion(versionString, channel.get)
         if (version.isDefined) {
-          // TODO: Abstraction
-          val path = Play.application.path.toPath
-            .resolve("uploads/plugins")
-            .resolve(author)
-            .resolve("%s-%s-%s.jar".format(name, versionString, channelName.toUpperCase))
-          Ok.sendFile(path.toFile)
+          Ok.sendFile(PluginFile.getUploadPath(author, name, versionString, channelName.toUpperCase).toFile)
         } else {
           NotFound("Version not found.")
         }

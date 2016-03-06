@@ -4,7 +4,7 @@ Documentation page within Project overview.
 @import models.project.Project
 @(model: Project)(implicit messages: Messages)
 
-    @projects.detail(model) {
+    @projects.detail(model, "#docs") {
 
         <div class="project-wiki">
             <div class="container">

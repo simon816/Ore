@@ -2,7 +2,7 @@
 Base template for Project overview.
 *@
 @import models.project.Project
-@(project: Project)(content: Html)(implicit messages: Messages)
+@(project: Project, active: String)(content: Html)(implicit messages: Messages)
 
 @core.layout(project.owner.name + " / " + project.name) {
 
@@ -16,31 +16,37 @@ Base template for Project overview.
             <div class="navbar navbar-default project-navbar pull-left">
                 <div class="navbar-inner">
                     <ul class="nav navbar-nav">
-                        <li id="docs" class="active">
+                        <li id="docs" class="">
                             <a href="@routes.Projects.show(project.owner.name, project.name)">
                                 <i class="fa fa-book"></i>
                                 Docs
                             </a>
                         </li>
-                        <li id="versions">
+                        <li id="versions" class="">
                             <a href="@routes.Projects.showVersions(project.owner.name, project.name)">
                                 <i class="fa fa-download"></i>
                                 Versions
                             </a>
                         </li>
-                        <li id="discussion">
+                        <li id="discussion" class="">
                             <a href="@routes.Projects.showDiscussion(project.owner.name, project.name)">
                                 <i class="fa fa-users"></i>
                                 Discuss
                             </a>
                         </li>
                     </ul>
+
+                    <script>
+                        $(function() {
+                            $(".nav").find("@active").addClass("active");
+                        });
+                    </script>
                 </div>
             </div>
 
             <div class="pull-right project-controls">
                 <button class="btn btn-default"><i class="fa fa-download"></i>Download</button>
-                <button class="btn btn-default"><i class="fa fa-star"></i>@project.starred</button>
+                <button class="btn btn-default btn-star"><i class="fa fa-star"></i><span class="starred">@project.starred</span></button>
                 <button class="btn btn-default"><i class="fa fa-flag"></i>Flag</button>
                 <button class="btn btn-default"><i class="fa fa-wrench"></i>Manage</button>
             </div>

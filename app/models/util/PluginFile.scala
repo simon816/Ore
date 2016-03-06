@@ -103,13 +103,6 @@ case class PluginFile(private var path: Path, private val owner: Author) {
     this.path = output
   }
 
-  private def getUploadPath(owner: String, name: String, version: String, channel: String = "ALPHA") = {
-    Paths.get(Play.application.path.getPath)
-      .resolve(PLUGIN_DIR)
-      .resolve(this.owner.name)
-      .resolve("%s-%s-%s.%s".format(name, version, channel.toUpperCase, PLUGIN_FILE_EXTENSION))
-  }
-
 }
 
 object PluginFile {
@@ -119,5 +112,21 @@ object PluginFile {
   val PLUGIN_DIR = "uploads/plugins"
   val TEMP_DIR = "tmp"
   val TEMP_FILE = "plugin" + PLUGIN_FILE_EXTENSION
+
+  /**
+    * Returns the Path to where the specified Version should be.
+    *
+    * @param owner Project owner
+    * @param name Project name
+    * @param version Project version
+    * @param channel Project channel
+    * @return Path to supposed file
+    */
+  def getUploadPath(owner: String, name: String, version: String, channel: String = "ALPHA") = {
+    Paths.get(Play.application.path.getPath)
+      .resolve(PLUGIN_DIR)
+      .resolve(owner)
+      .resolve("%s-%s-%s.%s".format(name, version, channel.toUpperCase, PLUGIN_FILE_EXTENSION))
+  }
 
 }
