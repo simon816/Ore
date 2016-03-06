@@ -109,31 +109,11 @@ case class Project(id: String, name: String, description: String, owner: Author,
   def newChannel(name: String): Channel = new Channel(this, name) // TODO: Add channel to DB here
 
   /**
-    * Returns the Version with the specified version string in the specified
-    * channel.
-    *
-    * @param version Version string
-    * @param channel Channel to get from
-    * @return Version if present, None otherwise
-    */
-  def getVersion(version: String, channel: Channel): Option[Version] = Version.get(this, version, channel)
-
-  /**
     * Returns all Versions belonging to this Project.
     *
     * @return All versions in project
     */
   def getVersions = Version.getAll(this)
-
-  /**
-    * Cretes a new Version for this project with the specified version string
-    * and channel.
-    *
-    * @param version Version string
-    * @param channel Channel of Version
-    * @return New version
-    */
-  def newVersion(version: String, channel: Channel): Version = Version(this, version, channel) // TODO: Add version to DB here
 
   override def toString = "%s - %s".format(this.name, this.description)
 

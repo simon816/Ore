@@ -5,21 +5,19 @@ import com.google.common.base.Objects
 /**
   * Represents a single version of a Project.
   *
-  * @param project Project this version belongs to
   * @param versionString Version string
   * @param channel Channel this version is in
   */
-case class Version(project: Project, versionString: String, channel: Channel) {
+case class Version(channel: Channel, versionString: String) {
 
-  override def hashCode = Objects.hashCode(this.project, this.versionString, this.channel)
+  override def hashCode = Objects.hashCode(this.versionString, this.channel)
 
   override def equals(o: Any): Boolean = {
     if (!o.isInstanceOf[Version]) {
       return false
     }
     val that = o.asInstanceOf[Version]
-    (that.project.equals(this.project) && that.versionString.equals(this.versionString)
-      && that.channel.equals(this.channel))
+    that.versionString.equals(this.versionString) && that.channel.equals(this.channel)
   }
 
 }
@@ -30,21 +28,19 @@ case class Version(project: Project, versionString: String, channel: Channel) {
 object Version {
 
   // TODO: Replace with DB
-  val versions = for (project <- Project.projects) yield Version(project, "1.0.0", project.getChannel("Alpha").get)
+  val versions = for (project <- Project.projects) yield Version(project.getChannel("Alpha").get, "1.0.0")
 
   /**
     * Returns the Version belonging to the specified project with the specified
     * version string and channel.
     *
-    * @param project Project version belongs to
     * @param versionString Version string
     * @param channel Channel version is in
     * @return Version, if present, None otherwise
     */
-  def get(project: Project, versionString: String, channel: Channel): Option[Version] = {
+  def get(channel: Channel, versionString: String): Option[Version] = {
     for (version <- versions) {
-      if (version.project.equals(project) && version.versionString.equals(versionString)
-        && version.channel.equals(channel)) {
+      if (version.versionString.equals(versionString) && version.channel.equals(channel)) {
         return Some(version)
       }
     }
@@ -59,7 +55,7 @@ object Version {
     */
   def getAll(project: Project) = for (
     version <- versions
-    if version.project.equals(project)
+    if version.channel.project.equals(project)
   ) yield {
     version
   }

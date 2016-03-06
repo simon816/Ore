@@ -124,8 +124,8 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
 
             // Add version to project
             val meta = file.getMeta.get
-            model.newVersion(meta.getVersion, model.newChannel("Alpha")) // TODO: Channel selection (plugin-meta maybe?)
-
+            val channel = model.newChannel("Alpha") // TODO: Channel selection (plugin-meta maybe?)
+            channel.newVersion(meta.getVersion)
             Redirect(routes.Projects.show(model.owner.name, model.name))
           }
         }
@@ -182,7 +182,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
       val model = project.get
       val channel = model.getChannel(channelName)
       if (channel.isDefined) {
-        val version = model.getVersion(versionString, channel.get)
+        val version = channel.get.getVersion(versionString)
         if (version.isDefined) {
           Ok.sendFile(PluginFile.getUploadPath(author, name, versionString, channelName.toUpperCase).toFile)
         } else {

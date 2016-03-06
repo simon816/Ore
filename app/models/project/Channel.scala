@@ -14,6 +14,22 @@ case class Channel(project: Project, name: String, colorHex: String) {
 
   def this(project: Project, name: String) = this(project, name, HEX_GREEN)
 
+  /**
+    * Returns the Version in this channel with the specified version string.
+    *
+    * @param version Version string
+    * @return Version, if any, None otherwise
+    */
+  def getVersion(version: String): Option[Version] = Version.get(this, version)
+
+  /**
+    * Creates a new version within this Channel.
+    *
+    * @param version Version string
+    * @return New channel
+    */
+  def newVersion(version: String): Version = Version(this, version) // TODO: Add to DB here
+
   override def hashCode = Objects.hashCode(this.project, this.name)
 
   override def equals(o: Any): Boolean = {
