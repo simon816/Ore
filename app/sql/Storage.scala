@@ -5,15 +5,15 @@ import slick.driver.MySQLDriver.api._
 
 class Storage(db: Database) {
 
-  val projects: TableQuery[Projects] = TableQuery[Projects]
+  val projects: TableQuery[ProjectTable] = TableQuery[ProjectTable]
 
-  val channels: TableQuery[Channels] = TableQuery[Channels]
+  val channels: TableQuery[ChannelTable] = TableQuery[ChannelTable]
 
-  val versions: TableQuery[Versions] = TableQuery[Versions]
+  val versions: TableQuery[VersionTable] = TableQuery[VersionTable]
 
-  val teams: TableQuery[Teams] = TableQuery[Teams]
+  val teams: TableQuery[TeamTable] = TableQuery[TeamTable]
 
-  val devs: TableQuery[Devs] = TableQuery[Devs]
+  val devs: TableQuery[DevTable] = TableQuery[DevTable]
 
   val setup = DBIO.seq(
     (versions.schema ++ teams.schema ++ projects.schema ++ devs.schema ++ channels.schema).create,
