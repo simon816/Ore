@@ -16,7 +16,7 @@ import scala.util.{Failure, Success}
   * TODO: Replace NotFounds, BadRequests, etc with pretty views
   * TODO: Localize
   */
-class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
+class Projects @Inject()(override val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
   val user: Author = Team.get("SpongePowered").get // TODO: Replace with auth'd user
 

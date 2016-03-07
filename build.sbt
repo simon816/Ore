@@ -6,7 +6,7 @@ lazy val `pore` = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.11.7"
 
-libraryDependencies ++= Seq( jdbc , cache , ws   , specs2 % Test )
+libraryDependencies ++= Seq( cache , ws   , specs2 % Test )
 
 unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )  
 
@@ -17,4 +17,10 @@ routesGenerator := InjectedRoutesGenerator
 // Additional dependencies
 resolvers += "sponge" at "http://repo.spongepowered.org/maven"
 
-libraryDependencies += "org.spongepowered" % "plugin-meta" % "0.1-SNAPSHOT"
+libraryDependencies ++= Seq(
+  "org.spongepowered" % "plugin-meta" % "0.1-SNAPSHOT",
+  "com.typesafe.play" %% "play-slick" % "1.1.1",
+  "com.typesafe.play" %% "play-slick" % "1.1.1",
+  "com.typesafe.play" %% "play-slick-evolutions" % "1.1.1",
+  "mysql" % "mysql-connector-java" % "5.1.38"
+)
