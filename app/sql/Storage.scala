@@ -3,19 +3,20 @@ package sql
 import models.project.Channel
 import slick.driver.MySQLDriver.api._
 
-class Storage(db: Database) {
+case class Storage(db: Database) {
 
-  val projects: TableQuery[ProjectTable] = TableQuery[ProjectTable]
+  private val projects: TableQuery[ProjectTable] = TableQuery[ProjectTable]
 
-  val channels: TableQuery[ChannelTable] = TableQuery[ChannelTable]
+  private val channels: TableQuery[ChannelTable] = TableQuery[ChannelTable]
 
-  val versions: TableQuery[VersionTable] = TableQuery[VersionTable]
+  private val versions: TableQuery[VersionTable] = TableQuery[VersionTable]
 
-  val teams: TableQuery[TeamTable] = TableQuery[TeamTable]
+  private val teams: TableQuery[TeamTable] = TableQuery[TeamTable]
 
-  val devs: TableQuery[DevTable] = TableQuery[DevTable]
+  private val devs: TableQuery[DevTable] = TableQuery[DevTable]
 
-  val setup = DBIO.seq(
+  // TODO: evolutions integration
+  db.run(DBIO.seq(
     (versions.schema ++ teams.schema ++ projects.schema ++ devs.schema ++ channels.schema).create,
 
     devs ++= Seq(
@@ -41,8 +42,31 @@ class Storage(db: Database) {
     channels += (1, 1, "Alpha", Channel.HEX_GREEN),
 
     projects += (1, "org.spongepowered.ore", "Ore", "The Minecraft Plugin Repository", "Spongie", 0, 0, 0)
-  )
+  ))
 
-  val setupFuture = db.run(setup)
+}
+
+object Storage {
+
+  private var instance: Option[Storage] = None
+
+  def init(db: Database) = this.instance = Some(Storage(db))
+
+  def getInstance: Storage = {
+    instance match {
+      case None => throw new Exception("Storage has not been initialized")
+      case Some(storage) => storage
+    }
+  }
+
+  def getProjects: TableQuery[ProjectTable] = getInstance.projects
+
+  def getChannels: TableQuery[ChannelTable] = getInstance.channels
+
+  def getVersions: TableQuery[VersionTable] = getInstance.versions
+
+  def getTeams: TableQuery[TeamTable] = getInstance.teams
+
+  def getDevs: TableQuery[DevTable] = getInstance.devs
 
 }

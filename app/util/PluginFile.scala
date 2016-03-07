@@ -148,7 +148,7 @@ object PluginFile {
     Paths.get(Play.application.path.getPath)
       .resolve(PLUGIN_DIR)
       .resolve(owner)
-      .resolve("%s-%s-%s.%s".format(name, version, channel.toUpperCase, PLUGIN_FILE_EXTENSION))
+      .resolve("%s-%s-%s.%s".format(name, version, channel.toLowerCase, PLUGIN_FILE_EXTENSION))
   }
 
 }
