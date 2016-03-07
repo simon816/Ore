@@ -16,7 +16,7 @@ class Storage(db: Database) {
   val devs: TableQuery[Devs] = TableQuery[Devs]
 
   val setup = DBIO.seq(
-    (this.projects.schema ++ this.channels.schema ++ this.versions.schema ++ this.teams.schema ++ this.devs.schema).create,
+    (versions.schema ++ teams.schema ++ projects.schema ++ devs.schema ++ channels.schema).create,
 
     devs ++= Seq(
       (1, "Spongie"),
@@ -43,6 +43,6 @@ class Storage(db: Database) {
     projects += (1, "org.spongepowered.ore", "Ore", "The Minecraft Plugin Repository", "Spongie", 0, 0, 0)
   )
 
-  val setupFuture = this.db.run(this.setup)
+  val setupFuture = db.run(setup)
 
 }
