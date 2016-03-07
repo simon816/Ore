@@ -97,6 +97,7 @@ class PluginFile(private var path: Path, private val owner: Author) {
       throw new Exception("Plugin already uploaded.")
     }
     this.meta match {
+      case None => throw new Exception("No plugin meta file found.")
       case Some(data) =>
         val output = getUploadPath(this.owner.name, data.getName, data.getVersion)
         if (!Files.exists(output.getParent)) {
@@ -104,8 +105,6 @@ class PluginFile(private var path: Path, private val owner: Author) {
         }
         Files.move(this.path, output)
         this.path = output
-      case None =>
-        throw new Exception("No plugin meta file found.")
     }
   }
 
