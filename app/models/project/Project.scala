@@ -47,7 +47,9 @@ case class Project(id: String, name: String, description: String, owner: Author,
 
   private var pendingUpload: Option[PluginFile] = None
 
-  def this(id: String, name: String, description: String, owner: Author) = this(id, name, description, owner, List(owner))
+  def this(id: String, name: String, description: String, owner: Author) = {
+    this(id, name, description, owner, List(owner))
+  }
 
   /**
     * Returns how this Project is represented in the Cache.
@@ -160,12 +162,7 @@ object Project {
     * @return Project if exists, None otherwise
     */
   def get(owner: Author, name: String): Option[Project] = {
-    for (project <- projects) {
-      if (project.owner.equals(owner) && project.name.equals(name)) {
-        return Some(project)
-      }
-    }
-    None
+    this.projects.find(project => project.owner.equals(owner) && project.name.equals(name))
   }
 
   /**
@@ -174,12 +171,7 @@ object Project {
     * @param owner Owner of projects
     * @return Set of projects owned by specified author
     */
-  def getAll(owner: Author): Set[Project] = for (
-    project <- projects
-    if project.owner.equals(owner)
-  ) yield {
-    project
-  }
+  def getAll(owner: Author): Set[Project] = this.projects.filter(project => project.owner.equals(owner))
 
   /**
     * Gets the project with the specified owner and name from the Cache.

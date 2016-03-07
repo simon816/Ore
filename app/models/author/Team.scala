@@ -28,13 +28,6 @@ object Team {
     * @param name Team name
     * @return Team if exists, None otherwise
     */
-  def get(name: String): Option[Team] = {
-    for (team <- teams) {
-      if (team.name.equals(name)) {
-        return Some(team)
-      }
-    }
-    None
-  }
+  def get(name: String): Option[Team] = teams.find(team => team.name.equals(name))
 
 }

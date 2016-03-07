@@ -77,12 +77,7 @@ object Channel {
     * @return Channel if present, None otherwise
     */
   def get(project: Project, name: String): Option[Channel] = {
-    for (channel <- channels) {
-      if (channel.project.equals(project) && channel.name.equals(name)) {
-        return Some(channel)
-      }
-    }
-    None
+    this.channels.find(channel => channel.project.equals(project) && channel.name.equals(name))
   }
 
   /**
@@ -91,11 +86,6 @@ object Channel {
     * @param project Project to get channels for
     * @return All channels in project
     */
-  def getAll(project: Project): Set[Channel] = for (
-    channel <- channels
-    if channel.project.equals(project)
-  ) yield {
-    channel
-  }
+  def getAll(project: Project): Set[Channel] = this.channels.filter(channel => channel.project.equals(project))
 
 }

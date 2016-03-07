@@ -7,6 +7,8 @@ import models.project.Project
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 import util.PluginFile
+import routes.{Projects => self}
+import views.{html => views}
 
 import scala.util.{Failure, Success}
 
@@ -25,7 +27,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     */
   def showCreate = Action {
     // TODO: Check auth here
-    Ok(views.html.projects.create(None))
+    Ok(views.projects.create(None))
   }
 
   /**
@@ -35,7 +37,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     */
   def upload = Action(parse.multipartFormData) { request =>
     request.body.file("pluginFile") match {
-      case None => Redirect(routes.Projects.showCreate()).flashing("error" -> "Missing file")
+      case None => Redirect(self.showCreate()).flashing("error" -> "Missing file")
       case Some(pluginFile) =>
         // Initialize PluginFile
         val plugin = PluginFile.init(pluginFile.ref, this.user)
@@ -51,7 +53,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
             } else {
               project.setPendingUpload(plugin)
               project.cache() // Cache for use in postUpload
-              Redirect(routes.Projects.showCreateWithMeta(project.owner.name, project.name))
+              Redirect(self.showCreateWithMeta(project.owner.name, project.name))
             }
         }
     }
@@ -67,8 +69,8 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
   def showCreateWithMeta(author: String, name: String) = Action {
     // TODO: Check auth here
     Project.getCached(author, name) match {
-      case None => Redirect(routes.Projects.showCreate())
-      case Some(project) => Ok(views.html.projects.create(Some(project)))
+      case None => Redirect(self.showCreate())
+      case Some(project) => Ok(views.projects.create(Some(project)))
     }
   }
 
@@ -97,7 +99,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
                     project.create()
                     val channel = project.newChannel("Alpha")
                     channel.newVersion(meta.getVersion)
-                    Redirect(routes.Projects.show(author, name))
+                    Redirect(self.show(author, name))
                 }
             }
         }
@@ -114,7 +116,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
   def show(author: String, name: String) = Action {
     Author.get(author).getProject(name) match {
       case None => NotFound("No project found.")
-      case Some(project) => Ok(views.html.projects.docs(project))
+      case Some(project) => Ok(views.projects.docs(project))
     }
   }
 
@@ -128,7 +130,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
   def showVersions(author: String, name: String) = Action {
     Author.get(author).getProject(name) match {
       case None => NotFound("No project found.")
-      case Some(project) => Ok(views.html.projects.versions(project))
+      case Some(project) => Ok(views.projects.versions(project))
     }
   }
 
@@ -143,7 +145,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     // TODO: Check auth here
     Author.get(author).getProject(name) match {
       case None => NotFound("No project found.")
-      case Some(project) => Ok(views.html.projects.versionCreate(project, None))
+      case Some(project) => Ok(views.projects.versionCreate(project, None))
     }
   }
 
@@ -193,7 +195,7 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
   def showDiscussion(author: String, name: String) = Action {
     Author.get(author).getProject(name) match {
       case None => NotFound("No project found.")
-      case Some(project) => Ok(views.html.projects.discussion(project))
+      case Some(project) => Ok(views.projects.discussion(project))
     }
   }
 
@@ -209,9 +211,9 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     if (author.isRegistered) {
       author match {
         case dev: Dev =>
-          Ok(views.html.projects.dev(dev))
+          Ok(views.projects.dev(dev))
         case team: Team =>
-          Ok(views.html.projects.team(team))
+          Ok(views.projects.team(team))
       }
     } else {
       NotFound("No user found.")

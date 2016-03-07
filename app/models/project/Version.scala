@@ -39,12 +39,7 @@ object Version {
     * @return Version, if present, None otherwise
     */
   def get(channel: Channel, versionString: String): Option[Version] = {
-    for (version <- versions) {
-      if (version.versionString.equals(versionString) && version.channel.equals(channel)) {
-        return Some(version)
-      }
-    }
-    None
+    this.versions.find(version => version.versionString.equals(versionString) && version.channel.equals(channel))
   }
 
   /**
@@ -53,11 +48,6 @@ object Version {
     * @param project Project to get versions for
     * @return All versions of project
     */
-  def getAll(project: Project): Set[Version] = for (
-    version <- versions
-    if version.channel.project.equals(project)
-  ) yield {
-    version
-  }
+  def getAll(project: Project): Set[Version] = this.versions.filter(version => version.channel.project.equals(project))
 
 }

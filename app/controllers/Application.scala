@@ -5,6 +5,7 @@ import javax.inject.Inject
 import models.project.Project
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
+import views.{html => views}
 
 class Application @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
@@ -14,7 +15,7 @@ class Application @Inject()(val messagesApi: MessagesApi) extends Controller wit
     * @return Home page
     */
   def index = Action {
-    Ok(views.html.index(Project.projects))
+    Ok(views.index(Project.projects))
   }
 
 }

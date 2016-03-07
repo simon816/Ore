@@ -30,13 +30,6 @@ object Dev {
     * @param name Dev name
     * @return Dev if exists, None otherwise
     */
-  def get(name: String): Option[Dev] = {
-    for (dev <- devs) {
-      if (dev.name.equals(name)) {
-        return Some(dev)
-      }
-    }
-    None
-  }
+  def get(name: String): Option[Dev] = devs.find(dev => dev.name.equals(name))
 
 }
