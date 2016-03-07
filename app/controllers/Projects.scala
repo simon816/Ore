@@ -4,16 +4,19 @@ import javax.inject.Inject
 
 import models.author.{Author, Dev, Team}
 import models.project.Project
-import util.PluginFile
-import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
+import util.PluginFile
+
+import scala.util.{Failure, Success}
 
 /**
   * TODO: Replace NotFounds, BadRequests, etc with pretty views
   * TODO: Localize
   */
 class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
+
+  val user: Author = Team.get("SpongePowered").get // TODO: Replace with auth'd user
 
   /**
     * Displays the "create project" page.
@@ -31,39 +34,26 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     * @return Result
     */
   def upload = Action(parse.multipartFormData) { request =>
-    request.body.file("pluginFile").map { pluginFile =>
-      // Initialize PluginFile
-      val owner = Team.get("SpongePowered").get // TODO: Get auth'd user here
-      val plugin = PluginFile.init(pluginFile.ref, owner)
-
-      // Load plugin metadata
-      var meta: PluginMetadata = null
-      var error: String = null
-      try {
-        meta = plugin.loadMeta
-      } catch {
-        case e: Exception =>
-          error = e.getMessage
-      }
-
-      if (error != null) {
-        BadRequest(error)
-      } else {
-        // TODO: Check against Plugin annotation
-        // TODO: Allow ZIPs with Plugin JAR in top level
-        val project = Project.fromMeta(owner, meta)
-        if (project.exists) {
-          BadRequest("A project of that name already exists.")
-        } else {
-          project.setPendingUpload(plugin)
-          project.cache() // Cache for use in postUpload
-          Redirect(routes.Projects.showCreateWithMeta(project.owner.name, project.name))
+    request.body.file("pluginFile") match {
+      case None => Redirect(routes.Projects.showCreate()).flashing("error" -> "Missing file")
+      case Some(pluginFile) =>
+        // Initialize PluginFile
+        val plugin = PluginFile.init(pluginFile.ref, this.user)
+        // Load plugin metadata
+        plugin.loadMeta match {
+          case Failure(thrown) => BadRequest(thrown.getMessage)
+          case Success(meta) =>
+            // TODO: Check against Plugin annotation
+            // TODO: Allow ZIPs with Plugin JAR in top level
+            val project = Project.fromMeta(this.user, meta)
+            if (project.exists) {
+              BadRequest("A project of that name already exists.")
+            } else {
+              project.setPendingUpload(plugin)
+              project.cache() // Cache for use in postUpload
+              Redirect(routes.Projects.showCreateWithMeta(project.owner.name, project.name))
+            }
         }
-      }
-    }.getOrElse {
-      Redirect(routes.Projects.showCreate()).flashing(
-        "error" -> "Missing file"
-      )
     }
   }
 
@@ -76,11 +66,9 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     */
   def showCreateWithMeta(author: String, name: String) = Action {
     // TODO: Check auth here
-    val project = Project.getCached(author, name)
-    if (project.isDefined) {
-      Ok(views.html.projects.create(project))
-    } else {
-      Redirect(routes.Projects.showCreate())
+    Project.getCached(author, name) match {
+      case None => Redirect(routes.Projects.showCreate())
+      case Some(project) => Ok(views.html.projects.create(Some(project)))
     }
   }
 
@@ -93,52 +81,26 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     */
   def create(author: String, name: String) = Action {
     // TODO: Check auth here
-    val project = Project.getCached(author, name)
-    if (project.isDefined) {
-      val model = project.get
-      model.free() // Release from cache
-
-      val pending = model.getPendingUpload
-      if (pending.isEmpty) {
-        BadRequest("No file pending.")
-      } else {
-        val file = pending.get
-        if (file.getMeta.isEmpty) {
-          BadRequest("No meta info found for plugin.")
-        } else {
-          var error: String = null
-          try {
-            file.upload()
-          } catch {
-            case e: Exception =>
-              error = e.getMessage
-          }
-
-          if (error != null) {
-            BadRequest(error)
-          } else {
-            error = null
-            try {
-              model.create()
-            } catch {
-              case e: Exception =>
-                error = e.getMessage
+    Project.getCached(author, name) match {
+      case None => BadRequest("No project found.")
+      case Some(project) =>
+        project.free() // Release from cache
+        project.getPendingUpload match {
+          case None => BadRequest("No file pending.")
+          case Some(pluginFile) =>
+            pluginFile.getMeta match {
+              case None => BadRequest("No meta info found for plugin.")
+              case Some(meta) =>
+                pluginFile.upload match {
+                  case Failure(thrown) => BadRequest(thrown.getMessage)
+                  case Success(void) =>
+                    project.create()
+                    val channel = project.newChannel("Alpha")
+                    channel.newVersion(meta.getVersion)
+                    Redirect(routes.Projects.show(author, name))
+                }
             }
-
-            if (error != null) {
-              BadRequest(error)
-            } else {
-              // Add version to project
-              val meta = file.getMeta.get
-              val channel = model.newChannel("Alpha") // TODO: Channel selection (plugin-meta maybe?)
-              channel.newVersion(meta.getVersion)
-              Redirect(routes.Projects.show(model.owner.name, model.name))
-            }
-          }
         }
-      }
-    } else {
-      BadRequest("No project to post.")
     }
   }
 
@@ -150,12 +112,9 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     * @return View of project
     */
   def show(author: String, name: String) = Action {
-    val project = Author.get(author).getProject(name)
-    if (project.isDefined) {
-      // TODO: Check if we should increment 'views' here
-      Ok(views.html.projects.docs(project.get))
-    } else {
-      NotFound("No project found.")
+    Author.get(author).getProject(name) match {
+      case None => NotFound("No project found.")
+      case Some(project) => Ok(views.html.projects.docs(project))
     }
   }
 
@@ -167,11 +126,9 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     * @return View of project
     */
   def showVersions(author: String, name: String) = Action {
-    val project = Author.get(author).getProject(name)
-    if (project.isDefined) {
-      Ok(views.html.projects.versions(project.get))
-    } else {
-      NotFound("No project found.")
+    Author.get(author).getProject(name) match {
+      case None => NotFound("No project found.")
+      case Some(project) => Ok(views.html.projects.versions(project))
     }
   }
 
@@ -184,11 +141,9 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     */
   def showVersionCreate(author: String, name: String) = Action {
     // TODO: Check auth here
-    val project = Author.get(author).getProject(name)
-    if (project.isDefined) {
-      Ok(views.html.projects.versionCreate(project.get, None))
-    } else {
-      NotFound("No project found.")
+    Author.get(author).getProject(name) match {
+      case None => NotFound("No project found.")
+      case Some(project) => Ok(views.html.projects.versionCreate(project, None))
     }
   }
 
@@ -214,23 +169,17 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     * @return Sent file
     */
   def downloadVersion(author: String, name: String, channelName: String, versionString: String) = Action {
-    val project = Author.get(author).getProject(name)
-    if (project.isDefined) {
-      val model = project.get
-      val channel = model.getChannel(channelName)
-      if (channel.isDefined) {
-        val version = channel.get.getVersion(versionString)
-        if (version.isDefined) {
-          // TODO: Check if we should increment 'downloads' here
-          Ok.sendFile(PluginFile.getUploadPath(author, name, versionString, channelName.toUpperCase).toFile)
-        } else {
-          NotFound("Version not found.")
+    Author.get(author).getProject(name) match {
+      case None => NotFound("Project not found.")
+      case Some(project) =>
+        project.getChannel(channelName) match {
+          case None => NotFound("Channel not found.")
+          case Some(channel) =>
+            channel.getVersion(versionString) match {
+              case None => NotFound("Version not found.")
+              case Some(version) => Ok.sendFile(PluginFile.getUploadPath(author, name, versionString, channelName).toFile)
+            }
         }
-      } else {
-        NotFound("Channel not found.")
-      }
-    } else {
-      NotFound("Project not found.")
     }
   }
 
@@ -242,11 +191,9 @@ class Projects @Inject()(val messagesApi: MessagesApi) extends Controller with I
     * @return View of project
     */
   def showDiscussion(author: String, name: String) = Action {
-    val project = Author.get(author).getProject(name)
-    if (project.isDefined) {
-      Ok(views.html.projects.discussion(project.get))
-    } else {
-      NotFound("No project found.")
+    Author.get(author).getProject(name) match {
+      case None => NotFound("No project found.")
+      case Some(project) => Ok(views.html.projects.discussion(project))
     }
   }
 

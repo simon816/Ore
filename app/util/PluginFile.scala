@@ -4,13 +4,14 @@ import java.nio.file.{Files, Path, Paths}
 import java.util.jar.JarFile
 
 import models.author.Author
-import util.PluginFile._
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.Files.TemporaryFile
+import util.PluginFile._
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 /**
   * Represents an uploaded plugin file.
@@ -51,7 +52,7 @@ class PluginFile(private var path: Path, private val owner: Author) {
     *
     * @return Result of parse
     */
-  def loadMeta: PluginMetadata = {
+  def loadMeta: Try[PluginMetadata] = Try {
     // Read the JAR
     val jar = new JarFile(this.path.toFile)
     val metaEntry = jar.getEntry(META_FILE_NAME)
@@ -61,7 +62,7 @@ class PluginFile(private var path: Path, private val owner: Author) {
 
     val metaList = McModInfo.DEFAULT.read(jar.getInputStream(metaEntry))
     if (metaList.size() > 1) {
-      throw new Exception("Multiple plugins found.")
+      throw new Exception("No plugin meta file found.")
     }
 
     // Parse plugin meta info
@@ -82,7 +83,7 @@ class PluginFile(private var path: Path, private val owner: Author) {
     */
   def isUploaded: Boolean = {
     if (this.meta.isEmpty) {
-      throw new Exception("No meta info found for plugin.")
+      return false
     }
     val meta = this.meta.get
     this.path.equals(getUploadPath(this.owner.name, meta.getName, meta.getVersion))
@@ -91,17 +92,21 @@ class PluginFile(private var path: Path, private val owner: Author) {
   /**
     * Uploads this PluginFile to the owner's upload directory.
     */
-  def upload() = {
+  def upload: Try[Unit] = Try {
     if (isUploaded) {
       throw new Exception("Plugin already uploaded.")
     }
-    val meta = this.meta.get
-    val output = getUploadPath(this.owner.name, meta.getName, meta.getVersion)
-    if (!Files.exists(output.getParent)) {
-      Files.createDirectories(output.getParent)
+    this.meta match {
+      case Some(data) =>
+        val output = getUploadPath(this.owner.name, data.getName, data.getVersion)
+        if (!Files.exists(output.getParent)) {
+          Files.createDirectories(output.getParent)
+        }
+        Files.move(this.path, output)
+        this.path = output
+      case None =>
+        throw new Exception("No plugin meta file found.")
     }
-    Files.move(this.path, output)
-    this.path = output
   }
 
 }
