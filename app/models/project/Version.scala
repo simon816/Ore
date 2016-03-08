@@ -13,11 +13,10 @@ case class Version(channel: Channel, versionString: String) {
   override def hashCode: Int = Objects.hashCode(this.versionString, this.channel)
 
   override def equals(o: Any): Boolean = {
-    if (!o.isInstanceOf[Version]) {
-      return false
+    o match {
+      case that: Version => that.versionString.equals(this.versionString) && that.channel.equals(this.channel)
+      case _ => false
     }
-    val that = o.asInstanceOf[Version]
-    that.versionString.equals(this.versionString) && that.channel.equals(this.channel)
   }
 
 }

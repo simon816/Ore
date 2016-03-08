@@ -82,11 +82,10 @@ class PluginFile(private var path: Path, private val owner: Author) {
     * @return True if has been uploaded, false otherwise
     */
   def isUploaded: Boolean = {
-    if (this.meta.isEmpty) {
-      return false
+    this.meta match {
+      case None => false
+      case Some(data) => this.path.equals(getUploadPath(this.owner.name, data.getName, data.getVersion))
     }
-    val meta = this.meta.get
-    this.path.equals(getUploadPath(this.owner.name, meta.getName, meta.getVersion))
   }
 
   /**
@@ -144,7 +143,7 @@ object PluginFile {
     * @param channel Project channel
     * @return Path to supposed file
     */
-  def getUploadPath(owner: String, name: String, version: String, channel: String = "ALPHA"): Path = {
+  def getUploadPath(owner: String, name: String, version: String, channel: String = "alpha"): Path = {
     Paths.get(Play.application.path.getPath)
       .resolve(PLUGIN_DIR)
       .resolve(owner)

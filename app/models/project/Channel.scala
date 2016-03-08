@@ -36,11 +36,10 @@ case class Channel(project: Project, name: String, colorHex: String) {
   override def hashCode: Int = Objects.hashCode(this.project, this.name)
 
   override def equals(o: Any): Boolean = {
-    if (!o.isInstanceOf[Channel]) {
-      return false
+    o match {
+      case that: Channel => that.project.equals(this.project) && that.name.equals(this.name)
+      case _ => false
     }
-    val that = o.asInstanceOf[Channel]
-    that.project.equals(this.project) && that.name.equals(this.name)
   }
 
 }
