@@ -20,7 +20,6 @@ resolvers += "sponge" at "http://repo.spongepowered.org/maven"
 libraryDependencies ++= Seq(
   "org.spongepowered" % "plugin-meta" % "0.1-SNAPSHOT",
   "com.typesafe.play" %% "play-slick" % "1.1.1",
-  "com.typesafe.play" %% "play-slick" % "1.1.1",
   "com.typesafe.play" %% "play-slick-evolutions" % "1.1.1",
-  "mysql" % "mysql-connector-java" % "5.1.38"
+  "org.postgresql" % "postgresql" % "9.4.1208.jre7"
 )

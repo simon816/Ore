@@ -13,9 +13,6 @@ import views.{html => views}
 class Application @Inject()(override val messagesApi: MessagesApi, dbConfigProvider: DatabaseConfigProvider)
   extends Controller with I18nSupport {
 
-  val dbConfig = dbConfigProvider.get[JdbcProfile]
-  Storage.init(dbConfig.db)
-
   /**
     * Display the home page.
     *
