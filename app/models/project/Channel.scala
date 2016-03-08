@@ -75,7 +75,7 @@ object Channel {
     * @param name Channel name
     * @return Channel if present, None otherwise
     */
-  def get(project: Project, name: String): Option[Channel] = {
+  protected[project] def get(project: Project, name: String): Option[Channel] = {
     this.channels.find(channel => channel.project.equals(project) && channel.name.equals(name))
   }
 
@@ -85,6 +85,8 @@ object Channel {
     * @param project Project to get channels for
     * @return All channels in project
     */
-  def getAll(project: Project): Set[Channel] = this.channels.filter(channel => channel.project.equals(project))
+  protected[project] def getAll(project: Project): Set[Channel] = {
+    this.channels.filter(channel => channel.project.equals(project))
+  }
 
 }

@@ -37,7 +37,7 @@ object Version {
     * @param channel Channel version is in
     * @return Version, if present, None otherwise
     */
-  def get(channel: Channel, versionString: String): Option[Version] = {
+  protected[project] def get(channel: Channel, versionString: String): Option[Version] = {
     this.versions.find(version => version.versionString.equals(versionString) && version.channel.equals(channel))
   }
 
@@ -47,6 +47,8 @@ object Version {
     * @param project Project to get versions for
     * @return All versions of project
     */
-  def getAll(project: Project): Set[Version] = this.versions.filter(version => version.channel.project.equals(project))
+  protected[project] def getAll(project: Project): Set[Version] = {
+    this.versions.filter(version => version.channel.project.equals(project))
+  }
 
 }
