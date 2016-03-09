@@ -97,6 +97,7 @@ object Storage {
     this.config.db.run(query).value match {
       case None => throw new Exception("Slick returned None type for Channel insert result.")
       case Some(result) => result
+    }
   }
 
   def getAllVersions(projectId: Int): Seq[Version] = {
