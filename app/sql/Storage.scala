@@ -69,14 +69,9 @@ object Storage {
       } += project
     }
 
-    Try {
-      this.config.db.run(query).value match {
-        case None => throw new Exception("Slick returned None type for Project insert result.")
-        case Some(result) => result match {
-          case Failure(thrown) => throw thrown
-          case Success(p) => p
-        }
-      }
+    this.config.db.run(query).value match {
+      case None => throw new Exception("Slick returned None type for Project insert result.")
+      case Some(result) => result
     }
   }
 
@@ -99,15 +94,9 @@ object Storage {
         c.copy(id=id, createdAt=createdAt)
     } += channel
 
-    Try {
-      this.config.db.run(query).value match {
-        case None => throw new Exception("Slick returned None type for Channel insert result.")
-        case Some(result) => result match {
-          case Failure(thrown) => throw thrown
-          case Success(c) => c
-        }
-      }
-    }
+    this.config.db.run(query).value match {
+      case None => throw new Exception("Slick returned None type for Channel insert result.")
+      case Some(result) => result
   }
 
   def getAllVersions(projectId: Int): Seq[Version] = {
@@ -134,14 +123,9 @@ object Storage {
         v.copy(id=id, createdAt=createdAt)
     } += version
 
-    Try {
-      this.config.db.run(query).value match {
-        case None => throw new Exception("Slick returned None type for Version insert result.")
-        case Some(result) => result match {
-          case Failure(thrown) => throw thrown
-          case Success(c) => c
-        }
-      }
+    this.config.db.run(query).value match {
+      case None => throw new Exception("Slick returned None type for Version insert result.")
+      case Some(result) => result
     }
   }
 
