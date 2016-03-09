@@ -20,10 +20,10 @@ Page used for uploading and creating new projects.
                         @* Cond: plugin uploaded -> display data. *@
                         @if(project.isDefined) {
                             @defining(project.get) { project =>
-                              <p><strong>ID:</strong> @project.id</p>
+                              <p><strong>ID:</strong> @project.pluginId</p>
                               <p><strong>Name:</strong> @project.name</p>
                               <p><strong>Description:</strong> @project.description</p>
-                              <p><strong>Owner:</strong> @project.owner.name</p>
+                              <p><strong>Owner:</strong> @project.owner</p>
                             }
                         }
                         @* -------------------------------------- *@
@@ -39,7 +39,7 @@ Page used for uploading and creating new projects.
                         @* Cond: plugin uploaded -> add create button *@
                         @if(project.isDefined) {
                             @defining(project.get) { project =>
-                              @form(action = routes.Projects.create(project.owner.name, project.name)) {
+                              @form(action = routes.Projects.create(project.owner, project.name)) {
                                   <input type="submit" name="create" value="Create project" class="btn btn-primary" />
                               }
                             }

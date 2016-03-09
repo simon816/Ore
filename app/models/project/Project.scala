@@ -1,12 +1,15 @@
 package models.project
 
-import models.author.{Team, Author, Dev}
-import util.PluginFile
+import java.sql.Timestamp
+
+import models.author.Author
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
+import sql.Storage
+import util.PluginFile
 
-import scala.collection.JavaConversions._
+import scala.util.Try
 
 /**
   * Represents an Ore package.
@@ -16,47 +19,65 @@ import scala.collection.JavaConversions._
   * <p>Note: Instance variables should be private unless they are database
   * properties</p>
   *
-  * TODO: Per-version descriptions
-  *
-  * @param id          Plugin ID
+  * @param id          Unique identifier
+  * @param createdAt   Instant of creation
+  * @param pluginId    Plugin ID
   * @param name        Name of plugin
   * @param description Short description of plugin
   * @param owner       The owner Author for this project
-  * @param authors     List of addition authors on this project
+  * @param views       How many times this project has been views
+  * @param downloads   How many times this project has been downloaded in total
+  * @param starred     How many times this project has been starred
   */
-case class Project(id: String, name: String, description: String, owner: Author, authors: List[Author]) {
-
-  /**
-    * The amount of times this Project has been viewed.
-    *
-    * TODO: Unique views?
-    */
-  val views: Int = 0
-
-  /**
-    * The amount of times this Project has been downloaded.
-    *
-    * TODO: Unique downloads?
-    */
-  val downloads: Int = 0
-
-  /**
-    * The amount of users who have starred this project.
-    */
-  val starred: Int = 0
+case class Project(id: Int, createdAt: Timestamp, pluginId: String, name: String, description: String,
+                   owner: String, views: Int, downloads: Int, starred: Int) {
 
   private var pendingUpload: Option[PluginFile] = None
 
-  def this(id: String, name: String, description: String, owner: Author) = {
-    this(id, name, description, owner, List(owner))
+  def this(pluginId: String, name: String, description: String, owner: String) = {
+    this(-1, null, pluginId, name, description, owner, 0, 0, 0)
   }
+
+  def getOwner: Author = Storage.getAuthor(this.owner)
+
+  /**
+    * Returns all Channels belonging to this Project.
+    *
+    * @return All channels in project
+    */
+  def getChannels: Seq[Channel] = Storage.getChannels(this.id)
+
+  /**
+    * Returns the Channel in this project with the specified name.
+    *
+    * @param name Name of channel
+    * @return Channel with name, if present, None otherwise
+    */
+  def getChannel(name: String): Option[Channel] = Storage.getChannel(this.id, name)
+
+  /**
+    * Creates a new Channel for this project with the specified name.
+    *
+    * @param name Name of channel
+    * @return New channel
+    */
+  def newChannel(name: String): Try[Channel] = {
+    Storage.createChannel(new Channel(this.id, name))
+  }
+
+  /**
+    * Returns all Versions belonging to this Project.
+    *
+    * @return All versions in project
+    */
+  def getVersions: Seq[Version] = Storage.getAllVersions(this.id)
 
   /**
     * Returns how this Project is represented in the Cache.
     *
     * @return Key of cache
     */
-  def getKey: String = this.owner.name + '/' + this.name
+  def getKey: String = this.owner + '/' + this.name
 
   /**
     * Adds this Project to the cache, used to pass the model between requests
@@ -76,14 +97,7 @@ case class Project(id: String, name: String, description: String, owner: Author,
     *
     * @return True if project exists, false otherwise
     */
-  def exists: Boolean = false // TODO
-
-  /**
-    * Creates this Project
-    *
-    * TODO: Add to DB here
-    */
-  def create() = if (exists) throw new Exception("This project already exists.")
+  def exists: Boolean = Storage.getProject(this.name, this.owner).isDefined
 
   /**
     * Sets the PluginFile that is waiting to be uploaded.
@@ -101,77 +115,15 @@ case class Project(id: String, name: String, description: String, owner: Author,
     */
   def getPendingUpload: Option[PluginFile] = this.pendingUpload
 
-  /**
-    * Returns the Channel in this project with the specified name.
-    *
-    * @param name Name of channel
-    * @return Channel with name, if present, None otherwise
-    */
-  def getChannel(name: String): Option[Channel] = Channel.get(this, name)
-
-  /**
-    * Returns all Channels belonging to this Project.
-    *
-    * @return All channels in project
-    */
-  def getChannels: Set[Channel] = Channel.getAll(this)
-
-  /**
-    * Creates a new Channel for this project with the specified name.
-    *
-    * @param name Name of channel
-    * @return New channel
-    */
-  def newChannel(name: String): Channel = new Channel(this, name) // TODO: Add channel to DB here
-
-  /**
-    * Returns all Versions belonging to this Project.
-    *
-    * @return All versions in project
-    */
-  def getVersions: Set[Version] = Version.getAll(this)
-
   override def toString: String = "%s - %s".format(this.name, this.description)
 
-  override def hashCode: Int = getKey.hashCode
+  override def hashCode: Int = this.id.hashCode
 
-  override def equals(o: Any): Boolean = o.isInstanceOf[Project] && o.asInstanceOf[Project].getKey.equals(getKey)
+  override def equals(o: Any): Boolean = o.isInstanceOf[Project] && o.asInstanceOf[Project].id == this.id
 
 }
 
-/**
-  * Project data-store
-  */
 object Project {
-
-  // TODO: Replace with DB
-  val projects = Set[Project](
-    new Project("org.spongepowered.ore", "Ore", "The Minecraft Package Repository", Team.get("SpongePowered").get),
-    new Project("example1", "Example-1", "Description 1", Dev.get("Author1").get),
-    new Project("example2", "Example-2", "Description 2", Dev.get("Author2").get),
-    new Project("example3", "Example-3", "Description 3", Dev.get("Author3").get),
-    new Project("example4", "Example-4", "Description 4", Dev.get("Author4").get),
-    new Project("example5", "Example-5", "Description 5", Dev.get("Author5").get)
-  )
-
-  /**
-    * Returns the project with the specified owner and name.
-    *
-    * @param owner Project owner
-    * @param name Project name
-    * @return Project if exists, None otherwise
-    */
-  def get(owner: Author, name: String): Option[Project] = {
-    this.projects.find(project => project.owner.equals(owner) && project.name.equals(name))
-  }
-
-  /**
-    * Returns all Projects by the specified Author.
-    *
-    * @param owner Owner of projects
-    * @return Set of projects owned by specified author
-    */
-  def getAll(owner: Author): Set[Project] = this.projects.filter(project => project.owner.equals(owner))
 
   /**
     * Gets the project with the specified owner and name from the Cache.
@@ -191,9 +143,8 @@ object Project {
     * @param meta PluginMetadata object
     * @return New project
     */
-  def fromMeta(owner: Author, meta: PluginMetadata): Project = {
-    val devs = for (author <- meta.getAuthors.toList) yield Author.get(author)
-    new Project(meta.getId, meta.getName, meta.getDescription, owner, devs)
+  def fromMeta(owner: String, meta: PluginMetadata): Project = {
+    new Project(meta.getId, meta.getName, meta.getDescription, owner)
   }
 
 }

@@ -4,32 +4,32 @@ Base template for Project overview.
 @import models.project.Project
 @(project: Project, active: String)(content: Html)(implicit messages: Messages)
 
-@core.layout(project.owner.name + " / " + project.name) {
+@core.layout(project.owner + " / " + project.name) {
 
     <div class="project-header-container">
         <div class="container">
             <h1 class="project-header pull-left">
-                <a class="plaintext" href="@routes.Projects.showAuthor(project.owner.name)">@project.owner.name</a>
-                / <strong><a class="plaintext" href="@routes.Projects.show(project.owner.name, project.name)">@project.name</a></strong>
+                <a class="plaintext" href="@routes.Projects.showAuthor(project.owner)">@project.owner</a>
+                / <strong><a class="plaintext" href="@routes.Projects.show(project.owner, project.name)">@project.name</a></strong>
             </h1>
 
             <div class="navbar navbar-default project-navbar pull-left">
                 <div class="navbar-inner">
                     <ul class="nav navbar-nav">
                         <li id="docs" class="">
-                            <a href="@routes.Projects.show(project.owner.name, project.name)">
+                            <a href="@routes.Projects.show(project.owner, project.name)">
                                 <i class="fa fa-book"></i>
                                 Docs
                             </a>
                         </li>
                         <li id="versions" class="">
-                            <a href="@routes.Projects.showVersions(project.owner.name, project.name)">
+                            <a href="@routes.Projects.showVersions(project.owner, project.name)">
                                 <i class="fa fa-download"></i>
                                 Versions
                             </a>
                         </li>
                         <li id="discussion" class="">
-                            <a href="@routes.Projects.showDiscussion(project.owner.name, project.name)">
+                            <a href="@routes.Projects.showDiscussion(project.owner, project.name)">
                                 <i class="fa fa-users"></i>
                                 Discuss
                             </a>

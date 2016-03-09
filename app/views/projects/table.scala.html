@@ -2,7 +2,7 @@
 Collection of all projects.
 *@
 @import models.project.Project
-@(models: Set[Project])(implicit messages: Messages)
+@(models: Seq[Project])(implicit messages: Messages)
 
 <div class="contents">
     <table class="topic-list">
@@ -19,9 +19,9 @@ Collection of all projects.
         @models.map { project =>
             <tr class="topic-list-item">
                 <td class="main-link clearfix" colspan="1">
-                    <a class="title" href="@routes.Projects.show(project.owner.name, project.name)">@project.toString</a>
+                    <a class="title" href="@routes.Projects.show(project.owner, project.name)">@project.toString</a>
                 </td>
-                <td>@project.owner.name</td>
+                <td>@project.owner</td>
                 <td>@project.views</td>
                 <td>@project.downloads</td>
                 <td>@project.starred</td>

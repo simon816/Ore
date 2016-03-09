@@ -25,7 +25,7 @@ Versions page within Project overview.
                                           @version.versionString
                                       </td>
                                       <td class="pull-right">
-                                          <a href="@routes.Projects.downloadVersion(model.owner.name, model.name, version.channel.name, version.versionString)">
+                                          <a href="@routes.Projects.downloadVersion(model.owner, model.name, version.getChannel.name, version.versionString)">
                                               <i class="fa fa-download"></i>
                                           </a>
                                       </td>
@@ -36,7 +36,7 @@ Versions page within Project overview.
 
                     </div>
                     <div class="col-md-3">
-                        <a href="@routes.Projects.showVersionCreate(model.owner.name, model.name)" class="btn btn-block btn-primary btn-panel btn-version">
+                        <a href="@routes.Projects.showVersionCreate(model.owner, model.name)" class="btn btn-block btn-primary btn-panel btn-version">
                             <i class="fa fa-plus"></i>Create version
                         </a>
                         <div class="panel panel-default channels">

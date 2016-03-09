@@ -19,12 +19,12 @@
                         @if(version.isDefined) {
                             @defining(version.get) { version =>
                                 <p><strong>Version:</strong> @version.versionString</p>
-                                <p><strong>Channel:</strong> @version.channel</p>
+                                <p><strong>Channel:</strong> @version.getChannel</p>
                             }
                         }
                         @* -------------------------------------- *@
 
-                        @form(action = routes.Projects.uploadVersion(project.owner.name, project.name), 'enctype -> "multipart/form-data") {
+                        @form(action = routes.Projects.uploadVersion(project.owner, project.name), 'enctype -> "multipart/form-data") {
                             <label class="btn btn-primary" for="pluginFile">
                                 <input id="pluginFile" name="pluginFile" type="file" style="display:none ;">
                                 Select file
@@ -35,7 +35,7 @@
                         @* Cond: plugin uploaded -> add create button *@
                         @if(version.isDefined) {
                             @defining(version.get) { version =>
-                                @form(action = routes.Projects.createVersion(project.owner.name, project.name, version.channel.name, version.versionString)) {
+                                @form(action = routes.Projects.createVersion(project.owner, project.name, version.getChannel.name, version.versionString)) {
                                     <input type="submit" name="create" value="Create project" class="btn btn-primary" />
                                 }
                             }

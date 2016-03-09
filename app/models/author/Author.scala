@@ -1,7 +1,11 @@
 package models.author
 
+import java.sql.Timestamp
+
 import com.google.common.base.{MoreObjects, Objects}
+import models.author.Author.Unknown
 import models.project.Project
+import sql.Storage
 
 /**
   * Represents an author of a Project. Authors can be either a Team or Dev.
@@ -12,6 +16,10 @@ import models.project.Project
   * same name as a Team and vice-versa.
   */
 abstract class Author {
+
+  def id: Int
+
+  def createdAt: Timestamp
 
   /**
     * Returns the name of this Author
@@ -26,33 +34,30 @@ abstract class Author {
     * @param name Name of project
     * @return Owned project, if any, None otherwise
     */
-  def getProject(name: String): Option[Project] = Project.get(this, name)
+  def getProject(name: String): Option[Project] = Storage.getProject(name, this.name)
 
   /**
     * Returns all Projects owned by this Author.
     *
     * @return All projects owned by Author
     */
-  def getProjects: Set[Project] = Project.getAll(this)
+  def getProjects: Seq[Project] = Storage.getProjectsBy(this.name)
 
   /**
     * Returns true if this Author is registered with Ore.
     *
     * @return True if registered, false otherwise
     */
-  def isRegistered: Boolean = !isInstanceOf[Author.Unknown]
+  def isRegistered: Boolean = !isInstanceOf[Unknown]
 
   override def toString: String = MoreObjects.toStringHelper(this).add("name", this.name).toString
 
-  override def hashCode: Int = Objects.hashCode(this.name)
+  override def hashCode: Int = this.id.hashCode
 
   override def equals(o: Any): Boolean = o.isInstanceOf[Author] && o.asInstanceOf[Author].name.equals(this.name)
 
 }
 
-/**
-  * Author data-store
-  */
 object Author {
 
   /**
@@ -60,16 +65,8 @@ object Author {
     *
     * @param name Name of author
     */
-  case class Unknown(override val name: String) extends Author {
+  case class Unknown(id: Int = -1, createdAt: Timestamp = null, override val name: String) extends Author {
 
   }
-
-  /**
-    * Returns the Author with the specified name.
-    *
-    * @param name Author name
-    * @return Author if exists, Unknown author otherwise
-    */
-  def get(name: String): Author = Dev.get(name).getOrElse(Team.get(name).getOrElse(Unknown(name)))
 
 }

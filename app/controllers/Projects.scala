@@ -6,6 +6,7 @@ import models.author.{Author, Dev, Team}
 import models.project.Project
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
+import sql.Storage
 import util.PluginFile
 import routes.{Projects => self}
 import views.{html => views}
@@ -18,7 +19,7 @@ import scala.util.{Failure, Success}
   */
 class Projects @Inject()(override val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
-  val user: Author = Team.get("SpongePowered").get // TODO: Replace with auth'd user
+  val user: Author = Storage.getAuthor("SpongePowered") // TODO: Replace with auth'd user
 
   /**
     * Displays the "create project" page.
@@ -45,15 +46,14 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         plugin.loadMeta match {
           case Failure(thrown) => BadRequest(thrown.getMessage)
           case Success(meta) =>
-            // TODO: Check against Plugin annotation
             // TODO: Allow ZIPs with Plugin JAR in top level
-            val project = Project.fromMeta(this.user, meta)
+            val project = Project.fromMeta(this.user.name, meta)
             if (project.exists) {
               BadRequest("A project of that name already exists.")
             } else {
               project.setPendingUpload(plugin)
               project.cache() // Cache for use in postUpload
-              Redirect(self.showCreateWithMeta(project.owner.name, project.name))
+              Redirect(self.showCreateWithMeta(project.owner, project.name))
             }
         }
     }
@@ -96,8 +96,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
                 pluginFile.upload match {
                   case Failure(thrown) => BadRequest(thrown.getMessage)
                   case Success(void) =>
-                    project.create()
-                    val channel = project.newChannel("Alpha")
+                    // TODO: Handle tries here
+                    val newProject = Storage.createProject(project).get
+                    val channel = newProject.newChannel("Alpha").get
                     channel.newVersion(meta.getVersion)
                     Redirect(self.show(author, name))
                 }
@@ -114,7 +115,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return View of project
     */
   def show(author: String, name: String) = Action {
-    Author.get(author).getProject(name) match {
+    Storage.getAuthor(author).getProject(name) match {
       case None => NotFound("No project found.")
       case Some(project) => Ok(views.projects.docs(project))
     }
@@ -128,7 +129,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return View of project
     */
   def showVersions(author: String, name: String) = Action {
-    Author.get(author).getProject(name) match {
+    Storage.getAuthor(author).getProject(name) match {
       case None => NotFound("No project found.")
       case Some(project) => Ok(views.projects.versions(project))
     }
@@ -143,7 +144,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def showVersionCreate(author: String, name: String) = Action {
     // TODO: Check auth here
-    Author.get(author).getProject(name) match {
+    Storage.getAuthor(author).getProject(name) match {
       case None => NotFound("No project found.")
       case Some(project) => Ok(views.projects.versionCreate(project, None))
     }
@@ -171,7 +172,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return Sent file
     */
   def downloadVersion(author: String, name: String, channelName: String, versionString: String) = Action {
-    Author.get(author).getProject(name) match {
+    Storage.getAuthor(author).getProject(name) match {
       case None => NotFound("Project not found.")
       case Some(project) =>
         project.getChannel(channelName) match {
@@ -193,7 +194,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return View of project
     */
   def showDiscussion(author: String, name: String) = Action {
-    Author.get(author).getProject(name) match {
+    Storage.getAuthor(author).getProject(name) match {
       case None => NotFound("No project found.")
       case Some(project) => Ok(views.projects.discussion(project))
     }
@@ -207,7 +208,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return View of author
     */
   def showAuthor(name: String) = Action {
-    val author = Author.get(name)
+    val author = Storage.getAuthor(name)
     if (author.isRegistered) {
       author match {
         case dev: Dev =>

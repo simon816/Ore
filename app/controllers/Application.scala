@@ -10,8 +10,7 @@ import slick.driver.JdbcProfile
 import sql.Storage
 import views.{html => views}
 
-class Application @Inject()(override val messagesApi: MessagesApi, dbConfigProvider: DatabaseConfigProvider)
-  extends Controller with I18nSupport {
+class Application @Inject()(override val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
   /**
     * Display the home page.
@@ -19,7 +18,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, dbConfigProvi
     * @return Home page
     */
   def index = Action {
-    Ok(views.index(Project.projects))
+    Ok(views.index(Storage.getProjects))
   }
 
 }

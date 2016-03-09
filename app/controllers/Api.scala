@@ -3,15 +3,16 @@ package controllers
 import models.project.Project
 import play.api.libs.json._
 import play.api.mvc._
+import sql.Storage
 
 class Api extends Controller {
 
   implicit val projectWrites = new Writes[Project] {
     def writes(project: Project) = Json.obj(
-      "id" -> project.id,
+      "id" -> project.pluginId,
       "name" -> project.name,
       "description" -> project.description,
-      "owner" -> project.owner.name,
+      "owner" -> project.owner,
       "views" -> project.views,
       "downloads" -> project.downloads,
       "starred" -> project.starred
@@ -26,7 +27,7 @@ class Api extends Controller {
     */
   def listProjects(version: String) = Action {
     version match {
-      case "v1" => Ok(Json.toJson(Project.projects))
+      case "v1" => Ok(Json.toJson(Storage.getProjects))
       case zoinks => NotFound
     }
   }

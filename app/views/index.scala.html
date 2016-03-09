@@ -3,7 +3,7 @@ The main entry point of Ore. This page displays a list of Projects that can be
 sorted according to different criteria.
 *@
 @import models.project.Project
-@(models: Set[Project])(implicit messages: Messages)
+@(models: Seq[Project])(implicit messages: Messages)
 
 @core.layout(messages("general.title")) {
 

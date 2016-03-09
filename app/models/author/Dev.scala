@@ -1,35 +1,14 @@
 package models.author
 
+import java.sql.Timestamp
+
 /**
   * Represents a single developer on a project.
   *
-  * @param name Name of developer
+  * @param id         Unique identifier
+  * @param createdAt  Instant of creation
+  * @param name       Name of developer
   */
-case class Dev(override val name: String) extends Author {
-
-}
-
-/**
-  * Dev data-store
-  */
-object Dev {
-
-  // TODO: Replace with DB
-  val devs = Set[Dev](
-    Dev("Spongie"),
-    Dev("Author1"),
-    Dev("Author2"),
-    Dev("Author3"),
-    Dev("Author4"),
-    Dev("Author5")
-  )
-
-  /**
-    * Returns the Dev with the specified name.
-    *
-    * @param name Dev name
-    * @return Dev if exists, None otherwise
-    */
-  def get(name: String): Option[Dev] = devs.find(dev => dev.name.equals(name))
+case class Dev(override val id: Int, override val createdAt: Timestamp, override val name: String) extends Author {
 
 }
