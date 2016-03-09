@@ -9,8 +9,7 @@ import play.api.cache.Cache
 import sql.Storage
 import util.PluginFile
 
-import scala.concurrent.{Future, Promise}
-import scala.util.{Failure, Success}
+import scala.concurrent.Future
 
 /**
   * Represents an Ore package.
@@ -30,23 +29,23 @@ import scala.util.{Failure, Success}
   * @param downloads   How many times this project has been downloaded in total
   * @param starred     How many times this project has been starred
   */
-case class Project(id: Int, createdAt: Timestamp, pluginId: String, name: String, description: String,
+case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: String, name: String, description: String,
                    owner: String, views: Int, downloads: Int, starred: Int) {
 
   private var pendingUpload: Option[PluginFile] = None
 
   def this(pluginId: String, name: String, description: String, owner: String) = {
-    this(-1, null, pluginId, name, description, owner, 0, 0, 0)
+    this(None, None, pluginId, name, description, owner, 0, 0, 0)
   }
 
-  def getOwner: Author = null // TODO
+  def getOwner: Author = throw new NotImplementedError // TODO
 
   /**
     * Returns all Channels belonging to this Project.
     *
     * @return All channels in project
     */
-  def getChannels: Future[Seq[Channel]] = Storage.getChannels(this.id)
+  def getChannels: Future[Seq[Channel]] = Storage.getChannels(this.id.get)
 
   /**
     * Returns the Channel in this project with the specified name.
@@ -54,7 +53,7 @@ case class Project(id: Int, createdAt: Timestamp, pluginId: String, name: String
     * @param name Name of channel
     * @return Channel with name, if present, None otherwise
     */
-  def getChannel(name: String): Future[Option[Channel]] = Storage.optChannel(this.id, name)
+  def getChannel(name: String): Future[Option[Channel]] = Storage.optChannel(this.id.get, name)
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -63,7 +62,7 @@ case class Project(id: Int, createdAt: Timestamp, pluginId: String, name: String
     * @return New channel
     */
   def newChannel(name: String): Future[Channel] = {
-    Storage.createChannel(new Channel(this.id, name))
+    Storage.createChannel(new Channel(this.id.get, name))
   }
 
   /**
@@ -71,7 +70,7 @@ case class Project(id: Int, createdAt: Timestamp, pluginId: String, name: String
     *
     * @return All versions in project
     */
-  def getVersions: Future[Seq[Version]] = Storage.getAllVersions(this.id)
+  def getVersions: Future[Seq[Version]] = Storage.getAllVersions(this.id.get)
 
   /**
     * Returns how this Project is represented in the Cache.
@@ -98,14 +97,7 @@ case class Project(id: Int, createdAt: Timestamp, pluginId: String, name: String
     *
     * @return True if project exists, false otherwise
     */
-  def exists: Future[Boolean] = {
-    val p = Promise[Boolean]
-    Storage.getProject(this.name, this.owner).onComplete {
-      case Failure(thrown) => p.failure(thrown)
-      case Success(pr) => p.success(true)
-    }
-    p.future
-  }
+  def exists: Boolean = Storage.now(Storage.isDefined(Storage.getProject(this.name, this.owner))).isSuccess
 
   /**
     * Sets the PluginFile that is waiting to be uploaded.
@@ -125,9 +117,9 @@ case class Project(id: Int, createdAt: Timestamp, pluginId: String, name: String
 
   override def toString: String = "%s - %s".format(this.name, this.description)
 
-  override def hashCode: Int = this.id.hashCode
+  override def hashCode: Int = this.id.get.hashCode
 
-  override def equals(o: Any): Boolean = o.isInstanceOf[Project] && o.asInstanceOf[Project].id == this.id
+  override def equals(o: Any): Boolean = o.isInstanceOf[Project] && o.asInstanceOf[Project].id.get == this.id.get
 
 }
 
@@ -152,7 +144,8 @@ object Project {
     * @return New project
     */
   def fromMeta(owner: String, meta: PluginMetadata): Project = {
-    new Project(meta.getId, meta.getName, meta.getDescription, owner)
+    val desc = if (meta.getDescription != null) meta.getDescription else "" // TODO: Disallow null descriptions
+    new Project(meta.getId, meta.getName, desc, owner)
   }
 
 }

@@ -2,13 +2,12 @@ package controllers
 
 import javax.inject.Inject
 
-import models.project.Project
-import play.api.db.slick.DatabaseConfigProvider
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import slick.driver.JdbcProfile
 import sql.Storage
 import views.{html => views}
+
+import scala.util.{Failure, Success}
 
 class Application @Inject()(override val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
@@ -18,7 +17,10 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends Contr
     * @return Home page
     */
   def index = Action {
-    Ok(views.index(Storage.getProjects))
+    Storage.now(Storage.getProjects) match {
+      case Failure(thrown) => throw thrown
+      case Success(projects) => Ok(views.index(projects))
+    }
   }
 
 }

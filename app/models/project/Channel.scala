@@ -20,13 +20,13 @@ import scala.util.{Success, Failure, Try}
   * @param name       Name of channel
   * @param colorHex   Hex color
   */
-case class Channel(id: Int, createdAt: Timestamp, projectId: Int, name: String, colorHex: String) {
+case class Channel(id: Option[Int], var createdAt: Option[Timestamp], projectId: Int, name: String, colorHex: String) {
 
-  def this(projectId: Int, name: String) = this(-1, null, projectId, name, HEX_GREEN)
+  def this(projectId: Int, name: String) = this(None, None, projectId, name, HEX_GREEN)
 
   def getProject: Future[Project] = Storage.getProject(this.projectId)
 
-  def getVersions: Future[Seq[Version]] = Storage.getVersions(this.id)
+  def getVersions: Future[Seq[Version]] = Storage.getVersions(this.id.get)
 
   /**
     * Returns the Version in this channel with the specified version string.
@@ -34,7 +34,7 @@ case class Channel(id: Int, createdAt: Timestamp, projectId: Int, name: String, 
     * @param version Version string
     * @return Version, if any, None otherwise
     */
-  def getVersion(version: String): Future[Option[Version]] = Storage.optVersion(this.id, version)
+  def getVersion(version: String): Future[Option[Version]] = Storage.optVersion(this.id.get, version)
 
   /**
     * Creates a new version within this Channel.
@@ -43,12 +43,12 @@ case class Channel(id: Int, createdAt: Timestamp, projectId: Int, name: String, 
     * @return New channel
     */
   def newVersion(version: String): Future[Version] = {
-    Storage.createVersion(new Version(this.projectId, this.id, version))
+    Storage.createVersion(new Version(this.projectId, this.id.get, version))
   }
 
-  override def hashCode: Int = this.id.hashCode
+  override def hashCode: Int = this.id.get.hashCode
 
-  override def equals(o: Any): Boolean = o.isInstanceOf[Channel] && o.asInstanceOf[Channel].id == this.id
+  override def equals(o: Any): Boolean = o.isInstanceOf[Channel] && o.asInstanceOf[Channel].id.get == this.id.get
 
 }
 

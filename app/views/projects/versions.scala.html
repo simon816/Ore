@@ -19,18 +19,16 @@ Versions page within Project overview.
                                 </tr>
                             </thead>
                             <tbody>
-                                @model.getVersions.map { version =>
-                                  <tr class="topic-list-item">
-                                      <td class="main-link clearfix" colspan="1">
-                                          @version.versionString
-                                      </td>
-                                      <td class="pull-right">
-                                          <a href="@routes.Projects.downloadVersion(model.owner, model.name, version.getChannel.name, version.versionString)">
-                                              <i class="fa fa-download"></i>
-                                          </a>
-                                      </td>
-                                  </tr>
-                                }
+                              <tr class="topic-list-item">
+                                  <td class="main-link clearfix" colspan="1">
+                                      TODO
+                                  </td>
+                                  <td class="pull-right">
+                                      <a href="#">
+                                          <i class="fa fa-download"></i>
+                                      </a>
+                                  </td>
+                              </tr>
                             </tbody>
                         </table>
 
@@ -45,11 +43,9 @@ Versions page within Project overview.
                             </div>
                             <ul class="list-group">
 
-                                @model.getChannels.map { channel =>
-                                  <li class="list-group-item">
-                                      <span class="channel" style="background-color: @channel.colorHex">@channel.name</span>
-                                  </li>
-                                }
+                              <li class="list-group-item">
+                                  <span class="channel" style="background-color: green;">TODO</span>
+                              </li>
 
                                 <li class="list-group-item text-right">
                                     <a href="#">

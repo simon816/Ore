@@ -5,6 +5,8 @@ import play.api.libs.json._
 import play.api.mvc._
 import sql.Storage
 
+import scala.util.{Failure, Success}
+
 class Api extends Controller {
 
   implicit val projectWrites = new Writes[Project] {
@@ -26,9 +28,12 @@ class Api extends Controller {
     * @return JSON view of projects
     */
   def listProjects(version: String) = Action {
-    version match {
-      case "v1" => Ok(Json.toJson(Storage.getProjects))
-      case zoinks => NotFound
+    Storage.now(Storage.getProjects) match {
+      case Failure(thrown) => throw thrown
+      case Success(projects) => version match {
+        case "v1" => Ok(Json.toJson(projects))
+        case zoinks => NotFound
+      }
     }
   }
 

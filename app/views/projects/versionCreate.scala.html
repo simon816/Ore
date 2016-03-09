@@ -35,7 +35,7 @@
                         @* Cond: plugin uploaded -> add create button *@
                         @if(version.isDefined) {
                             @defining(version.get) { version =>
-                                @form(action = routes.Projects.createVersion(project.owner, project.name, version.getChannel.name, version.versionString)) {
+                                @form(action = routes.Projects.createVersion(project.owner, project.name, "channelName", version.versionString)) {
                                     <input type="submit" name="create" value="Create project" class="btn btn-primary" />
                                 }
                             }

@@ -14,9 +14,9 @@ import scala.concurrent.Future
   * @param channelId      ID of channel this version belongs to
   * @param versionString  Version string
   */
-case class Version(id: Int, createdAt: Timestamp, projectId: Int, channelId: Int, versionString: String) {
+case class Version(id: Option[Int], var createdAt: Option[Timestamp], projectId: Int, channelId: Int, versionString: String) {
 
-  def this(projectId: Int, channelId: Int, versionString: String) = this(-1, null, projectId, channelId, versionString)
+  def this(projectId: Int, channelId: Int, versionString: String) = this(None, None, projectId, channelId, versionString)
 
   def getProject: Future[Project] = Storage.getProject(this.projectId)
 
@@ -24,6 +24,6 @@ case class Version(id: Int, createdAt: Timestamp, projectId: Int, channelId: Int
 
   override def hashCode: Int = this.id.hashCode
 
-  override def equals(o: Any): Boolean = o.isInstanceOf[Version] && o.asInstanceOf[Version].id == this.id
+  override def equals(o: Any): Boolean = o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get
 
 }

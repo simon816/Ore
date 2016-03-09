@@ -19,9 +19,9 @@ import scala.concurrent.Future
   */
 abstract class Author {
 
-  def id: Int
+  def id: Option[Int]
 
-  def createdAt: Timestamp
+  def createdAt: Option[Timestamp]
 
   /**
     * Returns the name of this Author
@@ -54,7 +54,7 @@ abstract class Author {
 
   override def toString: String = MoreObjects.toStringHelper(this).add("name", this.name).toString
 
-  override def hashCode: Int = this.id.hashCode
+  override def hashCode: Int = this.name.hashCode
 
   override def equals(o: Any): Boolean = o.isInstanceOf[Author] && o.asInstanceOf[Author].name.equals(this.name)
 
@@ -67,7 +67,7 @@ object Author {
     *
     * @param name Name of author
     */
-  case class Unknown(id: Int = -1, createdAt: Timestamp = null, override val name: String) extends Author {
+  case class Unknown(id: Option[Int] = None, createdAt: Option[Timestamp] = None, override val name: String) extends Author {
 
   }
 

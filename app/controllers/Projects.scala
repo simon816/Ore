@@ -2,13 +2,14 @@ package controllers
 
 import javax.inject.Inject
 
-import models.author.{Author, Dev, Team}
+import controllers.routes.{Projects => self}
+import models.author.Author
+import models.author.Author.Unknown
 import models.project.Project
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 import sql.Storage
 import util.PluginFile
-import routes.{Projects => self}
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -19,7 +20,8 @@ import scala.util.{Failure, Success}
   */
 class Projects @Inject()(override val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
-  val user: Author = Storage.getAuthor("SpongePowered") // TODO: Replace with auth'd user
+  // TODO: Replace with auth'd user
+  val user: Author = Unknown(name="SpongePowered")
 
   /**
     * Displays the "create project" page.
@@ -44,7 +46,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         val plugin = PluginFile.init(pluginFile.ref, this.user)
         // Load plugin metadata
         plugin.loadMeta match {
-          case Failure(thrown) => BadRequest(thrown.getMessage)
+          case Failure(thrown) => throw thrown
           case Success(meta) =>
             // TODO: Allow ZIPs with Plugin JAR in top level
             val project = Project.fromMeta(this.user.name, meta)
@@ -83,6 +85,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def create(author: String, name: String) = Action {
     // TODO: Check auth here
+    // TODO: Encapsulate this mess
     Project.getCached(author, name) match {
       case None => BadRequest("No project found.")
       case Some(project) =>
@@ -94,13 +97,20 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
               case None => BadRequest("No meta info found for plugin.")
               case Some(meta) =>
                 pluginFile.upload match {
-                  case Failure(thrown) => BadRequest(thrown.getMessage)
+                  case Failure(thrown) => throw thrown
                   case Success(void) =>
-                    // TODO: Handle tries here
-                    val newProject = Storage.createProject(project).get
-                    val channel = newProject.newChannel("Alpha").get
-                    channel.newVersion(meta.getVersion)
-                    Redirect(self.show(author, name))
+                    Storage.now(Storage.createProject(project)) match {
+                      case Failure(thrown) => throw thrown
+                      case Success(newProject) =>
+                        Storage.now(newProject.newChannel("Alpha")) match {
+                          case Failure(thrown) => throw thrown
+                          case Success(channel) =>
+                            Storage.now(channel.newVersion(meta.getVersion)) match {
+                              case Failure(thrown) => throw thrown
+                              case Success(version) => Redirect(self.show(author, name))
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -115,9 +125,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return View of project
     */
   def show(author: String, name: String) = Action {
-    Storage.getAuthor(author).getProject(name) match {
-      case None => NotFound("No project found.")
-      case Some(project) => Ok(views.projects.docs(project))
+    Storage.now(Storage.getProject(author, name)) match {
+      case Failure(thrown) => throw thrown
+      case Success(project) => Ok(views.projects.docs(project))
     }
   }
 
@@ -129,9 +139,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return View of project
     */
   def showVersions(author: String, name: String) = Action {
-    Storage.getAuthor(author).getProject(name) match {
-      case None => NotFound("No project found.")
-      case Some(project) => Ok(views.projects.versions(project))
+    Storage.now(Storage.getProject(author, name)) match {
+      case Failure(thrown) => throw thrown
+      case Success(project) => Ok(views.projects.versions(project))
     }
   }
 
@@ -144,9 +154,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def showVersionCreate(author: String, name: String) = Action {
     // TODO: Check auth here
-    Storage.getAuthor(author).getProject(name) match {
-      case None => NotFound("No project found.")
-      case Some(project) => Ok(views.projects.versionCreate(project, None))
+    Storage.now(Storage.getProject(author, name)) match {
+      case Failure(thrown) => throw thrown
+      case Success(project) => Ok(views.projects.versionCreate(project, None))
     }
   }
 
@@ -172,16 +182,22 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return Sent file
     */
   def downloadVersion(author: String, name: String, channelName: String, versionString: String) = Action {
-    Storage.getAuthor(author).getProject(name) match {
-      case None => NotFound("Project not found.")
-      case Some(project) =>
-        project.getChannel(channelName) match {
-          case None => NotFound("Channel not found.")
-          case Some(channel) =>
-            channel.getVersion(versionString) match {
-              case None => NotFound("Version not found.")
-              case Some(version) => Ok.sendFile(PluginFile.getUploadPath(author, name, versionString, channelName).toFile)
-            }
+    Storage.now(Storage.getProject(author, name)) match {
+      case Failure(thrown) => throw thrown
+      case Success(project) =>
+        Storage.now(project.getChannel(channelName)) match {
+          case Failure(thrown) => throw thrown
+          case Success(channelOpt) => channelOpt match {
+            case None => NotFound("Channel not found.")
+            case Some(channel) =>
+              Storage.now(channel.getVersion(versionString)) match {
+                case Failure(thrown) => throw thrown
+                case Success(versionOpt) => versionOpt match {
+                  case None => NotFound("Version not found.")
+                  case Some(version) => Ok.sendFile(PluginFile.getUploadPath(author, name, versionString, channelName).toFile)
+                }
+              }
+          }
         }
     }
   }
@@ -194,9 +210,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return View of project
     */
   def showDiscussion(author: String, name: String) = Action {
-    Storage.getAuthor(author).getProject(name) match {
-      case None => NotFound("No project found.")
-      case Some(project) => Ok(views.projects.discussion(project))
+    Storage.now(Storage.getProject(author, name)) match {
+      case Failure(thrown) => throw thrown
+      case Success(project) => Ok(views.projects.discussion(project))
     }
   }
 
@@ -208,17 +224,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return View of author
     */
   def showAuthor(name: String) = Action {
-    val author = Storage.getAuthor(name)
-    if (author.isRegistered) {
-      author match {
-        case dev: Dev =>
-          Ok(views.projects.dev(dev))
-        case team: Team =>
-          Ok(views.projects.team(team))
-      }
-    } else {
-      NotFound("No user found.")
-    }
+    NotFound("TODO")
   }
 
 }
