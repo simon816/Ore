@@ -7,6 +7,8 @@ import models.author.Author.Unknown
 import models.project.Project
 import sql.Storage
 
+import scala.concurrent.Future
+
 /**
   * Represents an author of a Project. Authors can be either a Team or Dev.
   * Every project has a single Author designated as the "owner" and then a list
@@ -34,14 +36,14 @@ abstract class Author {
     * @param name Name of project
     * @return Owned project, if any, None otherwise
     */
-  def getProject(name: String): Option[Project] = Storage.getProject(name, this.name)
+  def getProject(name: String): Future[Option[Project]] = Storage.optProject(name, this.name)
 
   /**
     * Returns all Projects owned by this Author.
     *
     * @return All projects owned by Author
     */
-  def getProjects: Seq[Project] = Storage.getProjectsBy(this.name)
+  def getProjects: Future[Seq[Project]] = Storage.getProjectsBy(this.name)
 
   /**
     * Returns true if this Author is registered with Ore.

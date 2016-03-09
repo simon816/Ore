@@ -4,6 +4,8 @@ import java.sql.Timestamp
 
 import sql.Storage
 
+import scala.concurrent.Future
+
 /**
   * Represents a single version of a Project.
   *
@@ -16,9 +18,9 @@ case class Version(id: Int, createdAt: Timestamp, projectId: Int, channelId: Int
 
   def this(projectId: Int, channelId: Int, versionString: String) = this(-1, null, projectId, channelId, versionString)
 
-  def getProject: Project = Storage.getProject(this.projectId).get
+  def getProject: Future[Project] = Storage.getProject(this.projectId)
 
-  def getChannel: Channel = Storage.getChannel(this.channelId).get
+  def getChannel: Future[Channel] = Storage.getChannel(this.channelId)
 
   override def hashCode: Int = this.id.hashCode
 

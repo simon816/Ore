@@ -9,7 +9,8 @@ import play.api.cache.Cache
 import sql.Storage
 import util.PluginFile
 
-import scala.util.Try
+import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success}
 
 /**
   * Represents an Ore package.
@@ -38,14 +39,14 @@ case class Project(id: Int, createdAt: Timestamp, pluginId: String, name: String
     this(-1, null, pluginId, name, description, owner, 0, 0, 0)
   }
 
-  def getOwner: Author = Storage.getAuthor(this.owner)
+  def getOwner: Author = null // TODO
 
   /**
     * Returns all Channels belonging to this Project.
     *
     * @return All channels in project
     */
-  def getChannels: Seq[Channel] = Storage.getChannels(this.id)
+  def getChannels: Future[Seq[Channel]] = Storage.getChannels(this.id)
 
   /**
     * Returns the Channel in this project with the specified name.
@@ -53,7 +54,7 @@ case class Project(id: Int, createdAt: Timestamp, pluginId: String, name: String
     * @param name Name of channel
     * @return Channel with name, if present, None otherwise
     */
-  def getChannel(name: String): Option[Channel] = Storage.getChannel(this.id, name)
+  def getChannel(name: String): Future[Option[Channel]] = Storage.optChannel(this.id, name)
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -61,7 +62,7 @@ case class Project(id: Int, createdAt: Timestamp, pluginId: String, name: String
     * @param name Name of channel
     * @return New channel
     */
-  def newChannel(name: String): Try[Channel] = {
+  def newChannel(name: String): Future[Channel] = {
     Storage.createChannel(new Channel(this.id, name))
   }
 
@@ -70,7 +71,7 @@ case class Project(id: Int, createdAt: Timestamp, pluginId: String, name: String
     *
     * @return All versions in project
     */
-  def getVersions: Seq[Version] = Storage.getAllVersions(this.id)
+  def getVersions: Future[Seq[Version]] = Storage.getAllVersions(this.id)
 
   /**
     * Returns how this Project is represented in the Cache.
@@ -97,7 +98,14 @@ case class Project(id: Int, createdAt: Timestamp, pluginId: String, name: String
     *
     * @return True if project exists, false otherwise
     */
-  def exists: Boolean = Storage.getProject(this.name, this.owner).isDefined
+  def exists: Future[Boolean] = {
+    val p = Promise[Boolean]
+    Storage.getProject(this.name, this.owner).onComplete {
+      case Failure(thrown) => p.failure(thrown)
+      case Success(pr) => p.success(true)
+    }
+    p.future
+  }
 
   /**
     * Sets the PluginFile that is waiting to be uploaded.

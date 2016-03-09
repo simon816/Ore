@@ -5,7 +5,8 @@ import java.sql.Timestamp
 import models.project.Channel._
 import sql.Storage
 
-import scala.util.Try
+import scala.concurrent.{Promise, Future}
+import scala.util.{Success, Failure, Try}
 
 /**
   * Represents a release channel for Project Versions. Each project gets it's
@@ -23,9 +24,9 @@ case class Channel(id: Int, createdAt: Timestamp, projectId: Int, name: String, 
 
   def this(projectId: Int, name: String) = this(-1, null, projectId, name, HEX_GREEN)
 
-  def getProject: Project = Storage.getProject(projectId).get
+  def getProject: Future[Project] = Storage.getProject(this.projectId)
 
-  def getVersions: Seq[Version] = Storage.getVersions(this.id)
+  def getVersions: Future[Seq[Version]] = Storage.getVersions(this.id)
 
   /**
     * Returns the Version in this channel with the specified version string.
@@ -33,7 +34,7 @@ case class Channel(id: Int, createdAt: Timestamp, projectId: Int, name: String, 
     * @param version Version string
     * @return Version, if any, None otherwise
     */
-  def getVersion(version: String): Option[Version] = Storage.getVersion(this.id, version)
+  def getVersion(version: String): Future[Option[Version]] = Storage.optVersion(this.id, version)
 
   /**
     * Creates a new version within this Channel.
@@ -41,7 +42,7 @@ case class Channel(id: Int, createdAt: Timestamp, projectId: Int, name: String, 
     * @param version Version string
     * @return New channel
     */
-  def newVersion(version: String): Try[Version] = {
+  def newVersion(version: String): Future[Version] = {
     Storage.createVersion(new Version(this.projectId, this.id, version))
   }
 
