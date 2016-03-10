@@ -9,7 +9,7 @@ import models.project.Project
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 import sql.Storage
-import util.PluginFile
+import util.{PluginManager, PluginFile}
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -41,21 +41,24 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   def upload = Action(parse.multipartFormData) { request =>
     request.body.file("pluginFile") match {
       case None => Redirect(self.showCreate()).flashing("error" -> "Missing file")
-      case Some(pluginFile) =>
-        // Initialize PluginFile
-        val plugin = PluginFile.init(pluginFile.ref, this.user)
-        // Load plugin metadata
-        plugin.loadMeta match {
+      case Some(tmpFile) =>
+        // Initialize plugin file
+        PluginManager.initUpload(tmpFile.ref, this.user) match {
           case Failure(thrown) => throw thrown
-          case Success(meta) =>
-            // TODO: Allow ZIPs with Plugin JAR in top level
-            val project = Project.fromMeta(this.user.name, meta)
-            if (project.exists) {
-              BadRequest("A project of that name already exists.")
-            } else {
-              project.setPendingUpload(plugin)
-              project.cache() // Cache for use in postUpload
-              Redirect(self.showCreateWithMeta(project.owner, project.name))
+          case Success(plugin) =>
+            // Load plugin meta file
+            plugin.loadMeta match {
+              case Failure(thrown) => throw thrown
+              case Success(meta) =>
+                // Cache project for later use
+                // TODO: Allow ZIPs with Plugin JAR in top level
+                val project = Project.fromMeta(this.user.name, meta)
+                if (project.exists) {
+                  BadRequest("You already have a project named " + meta.getName + "!")
+                } else {
+                  Project.setPending(project, plugin)
+                  Redirect(self.showCreateWithMeta(project.owner, project.name))
+                }
             }
         }
     }
@@ -70,9 +73,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def showCreateWithMeta(author: String, name: String) = Action {
     // TODO: Check auth here
-    Project.getCached(author, name) match {
+    Project.getPending(author, name) match {
       case None => Redirect(self.showCreate())
-      case Some(project) => Ok(views.projects.create(Some(project)))
+      case Some(pending) => Ok(views.projects.create(Some(pending)))
     }
   }
 
@@ -85,30 +88,32 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def create(author: String, name: String) = Action {
     // TODO: Check auth here
-    // TODO: Encapsulate this mess
-    Project.getCached(author, name) match {
-      case None => BadRequest("No project found.")
-      case Some(project) =>
-        project.free() // Release from cache
-        project.getPendingUpload match {
-          case None => BadRequest("No file pending.")
-          case Some(pluginFile) =>
-            pluginFile.getMeta match {
-              case None => BadRequest("No meta info found for plugin.")
-              case Some(meta) =>
-                pluginFile.upload match {
-                  case Failure(thrown) => throw thrown
-                  case Success(void) =>
-                    Storage.now(Storage.createProject(project)) match {
+    // TODO: Encapsulation
+    Project.getPending(author, name) match {
+      case None => BadRequest("No project to create.")
+      case Some(pending) =>
+        pending.free() // Release from cache
+        pending.firstVersion.getMeta match {
+          case None => BadRequest("No meta info found for plugin.")
+          case Some(meta) =>
+            // Move plugin from tmp dir to user dir
+            PluginManager.uploadPlugin(pending.firstVersion) match {
+              case Failure(thrown) => throw thrown
+              case Success(void) =>
+                // Create project
+                Storage.now(Storage.createProject(pending.project)) match {
+                  case Failure(thrown) =>
+                    pending.firstVersion.delete()
+                    throw thrown
+                  case Success(newProject) =>
+                    // Create first channel
+                    Storage.now(newProject.newChannel("Alpha")) match {
                       case Failure(thrown) => throw thrown
-                      case Success(newProject) =>
-                        Storage.now(newProject.newChannel("Alpha")) match {
+                      case Success(channel) =>
+                        // Create first version
+                        Storage.now(channel.newVersion(meta.getVersion)) match {
                           case Failure(thrown) => throw thrown
-                          case Success(channel) =>
-                            Storage.now(channel.newVersion(meta.getVersion)) match {
-                              case Failure(thrown) => throw thrown
-                              case Success(version) => Redirect(self.show(author, name))
-                            }
+                          case Success(version) => Redirect(self.show(author, name))
                         }
                     }
                 }
@@ -194,7 +199,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
                 case Failure(thrown) => throw thrown
                 case Success(versionOpt) => versionOpt match {
                   case None => NotFound("Version not found.")
-                  case Some(version) => Ok.sendFile(PluginFile.getUploadPath(author, name, versionString, channelName).toFile)
+                  case Some(version) => Ok.sendFile(PluginManager.getUploadPath(author, name, versionString, channelName).toFile)
                 }
               }
           }

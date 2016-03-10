@@ -32,8 +32,6 @@ import scala.concurrent.Future
 case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: String, name: String, description: String,
                    owner: String, views: Int, downloads: Int, starred: Int) {
 
-  private var pendingUpload: Option[PluginFile] = None
-
   def this(pluginId: String, name: String, description: String, owner: String) = {
     this(None, None, pluginId, name, description, owner, 0, 0, 0)
   }
@@ -80,40 +78,11 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
   def getKey: String = this.owner + '/' + this.name
 
   /**
-    * Adds this Project to the cache, used to pass the model between requests
-    * before the actual project has been created.
-    *
-    * TODO: Expiration
-    */
-  def cache() = Cache.set(getKey, this)
-
-  /**
-    * Removes this Project from the cache.
-    */
-  def free() = Cache.remove(getKey)
-
-  /**
     * Returns true if this Project already exists.
     *
     * @return True if project exists, false otherwise
     */
-  def exists: Boolean = Storage.now(Storage.isDefined(Storage.getProject(this.name, this.owner))).isSuccess
-
-  /**
-    * Sets the PluginFile that is waiting to be uploaded.
-    *
-    * TODO: Expiration
-    *
-    * @param file To be uploaded
-    */
-  def setPendingUpload(file: PluginFile) = this.pendingUpload = Some(file)
-
-  /**
-    * Returns the PluginFile that is waiting to be uploaded.
-    *
-    * @return PluginFile waiting to be uploaded
-    */
-  def getPendingUpload: Option[PluginFile] = this.pendingUpload
+  def exists: Boolean = Storage.now(Storage.isDefined(Storage.getProject(this.owner, this.name))).isSuccess
 
   override def toString: String = "%s - %s".format(this.name, this.description)
 
@@ -125,15 +94,18 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
 
 object Project {
 
-  /**
-    * Gets the project with the specified owner and name from the Cache.
-    *
-    * @param owner Owner name
-    * @param name project name
-    * @return Project in cache, if any, None otherwise
-    */
-  def getCached(owner: String, name: String): Option[Project] = {
-    Cache.getAs[Project](owner + '/' + name)
+  case class PendingProject(project: Project, firstVersion: PluginFile) {
+
+    def free() = Cache.remove(project.getKey)
+
+  }
+
+  def setPending(project: Project, firstVersion: PluginFile) =  {
+    Cache.set(project.getKey, PendingProject(project, firstVersion))
+  }
+
+  def getPending(author: String, name: String): Option[PendingProject] = {
+    Cache.getAs[PendingProject](author + '/' + name)
   }
 
   /**

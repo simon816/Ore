@@ -1,9 +1,9 @@
 @*
 Page used for uploading and creating new projects.
 *@
-@import models.project.Project
+@import models.project.Project.PendingProject
 @import views.html.helper.form
-@(project: Option[Project])(implicit messages: Messages)
+@(pending: Option[PendingProject])(implicit messages: Messages)
 
 @core.layout(messages("project.create")) {
 
@@ -18,8 +18,8 @@ Page used for uploading and creating new projects.
                         <p>A project contains your downloads and the documentation for your plugin.</p>
 
                         @* Cond: plugin uploaded -> display data. *@
-                        @if(project.isDefined) {
-                            @defining(project.get) { project =>
+                        @if(pending.isDefined) {
+                            @defining(pending.get.project) { project =>
                               <p><strong>ID:</strong> @project.pluginId</p>
                               <p><strong>Name:</strong> @project.name</p>
                               <p><strong>Description:</strong> @project.description</p>
@@ -37,8 +37,8 @@ Page used for uploading and creating new projects.
                         }
 
                         @* Cond: plugin uploaded -> add create button *@
-                        @if(project.isDefined) {
-                            @defining(project.get) { project =>
+                        @if(pending.isDefined) {
+                            @defining(pending.get.project) { project =>
                               @form(action = routes.Projects.create(project.owner, project.name)) {
                                   <input type="submit" name="create" value="Create project" class="btn btn-primary" />
                               }

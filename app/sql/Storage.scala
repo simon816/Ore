@@ -19,7 +19,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object Storage {
 
-  private val config = DatabaseConfigProvider.get[JdbcProfile](Play.current)
+  private lazy val config = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   val DEFAULT_TIMEOUT: Duration = Duration(10, TimeUnit.SECONDS)
 
@@ -66,7 +66,8 @@ object Storage {
   }
 
   private def getAll[T <: Table[M], M](clazz: Class[_]): Future[Seq[M]] = {
-    filter[T, M](clazz, t => true)
+    val query = q[T](clazz)
+    this.config.db.run(query.result)
   }
 
   private def optOne[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]): Future[Option[M]] = {
@@ -80,7 +81,7 @@ object Storage {
 
   private def getOne[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]): Future[M] = {
     val p = Promise[M]
-    optOne(clazz, predicate).onComplete {
+    optOne[T, M](clazz, predicate).onComplete {
       case Failure(thrown) => p.failure(thrown)
       case Success(opt) => opt match {
         case None => p.failure(new Exception("Could not retrieve required row"))
@@ -116,13 +117,13 @@ object Storage {
     filter[ProjectTable, Project](classOf[Project], p => p.ownerName === ownerName)
   }
 
-  def optProject(name: String, owner: String): Future[Option[Project]] = {
+  def optProject(owner: String, name: String): Future[Option[Project]] = {
     optOne[ProjectTable, Project](classOf[Project], p => p.name === name && p.ownerName === owner)
   }
   
   def optProject(id: Int): Future[Option[Project]] = optOne[ProjectTable, Project](classOf[Project], p => p.id === id)
 
-  def getProject(name: String, owner: String): Future[Project] = {
+  def getProject(owner: String, name: String): Future[Project] = {
     getOne[ProjectTable, Project](classOf[Project], p => p.name === name && p.ownerName === owner)
   }
 

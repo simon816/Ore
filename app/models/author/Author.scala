@@ -36,7 +36,7 @@ abstract class Author {
     * @param name Name of project
     * @return Owned project, if any, None otherwise
     */
-  def getProject(name: String): Future[Option[Project]] = Storage.optProject(name, this.name)
+  def getProject(name: String): Future[Option[Project]] = Storage.optProject(this.name, name)
 
   /**
     * Returns all Projects owned by this Author.
@@ -67,8 +67,6 @@ object Author {
     *
     * @param name Name of author
     */
-  case class Unknown(id: Option[Int] = None, createdAt: Option[Timestamp] = None, override val name: String) extends Author {
-
-  }
+  case class Unknown(id: Option[Int] = None, createdAt: Option[Timestamp] = None, override val name: String) extends Author
 
 }
