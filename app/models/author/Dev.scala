@@ -9,7 +9,5 @@ import java.sql.Timestamp
   * @param createdAt  Instant of creation
   * @param name       Name of developer
   */
-case class Dev(override val id: Option[Int], override val createdAt: Option[Timestamp], override val name: String)
-  extends Author {
-
-}
+case class Dev(override val id: Option[Int], override val createdAt: Option[Timestamp],
+               override val name: String) extends Author

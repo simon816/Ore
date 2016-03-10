@@ -35,7 +35,13 @@ object Storage {
     Await.ready(f, timeout).value.get
   }
 
-  def isDefined[M](f: Future[M]): Future[Boolean] = {
+  /**
+    * Returns true if the specified future has a value.
+    *
+    * @param f Future to check
+    * @return
+    */
+  def isDefined(f: Future[_]): Future[Boolean] = {
     val p = Promise[Boolean]
     f.onComplete {
       case Failure(thrown) => p.failure(thrown)
@@ -59,6 +65,8 @@ object Storage {
       throw new Exception("No table found for class: " + clazz.toString)
     }
   }
+
+  // Generic queries
 
   private def filter[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]): Future[Seq[M]] = {
     val query = q[T](clazz).filter(predicate)
@@ -91,6 +99,8 @@ object Storage {
     p.future
   }
 
+  // Dev queries
+
   def getDevs: Future[Seq[Dev]] = getAll[DevTable, Dev](classOf[Dev])
 
   def optDev(name: String): Future[Option[Dev]] = optOne[DevTable, Dev](classOf[Dev], d => d.name === name)
@@ -101,6 +111,8 @@ object Storage {
 
   def getDev(id: Int): Future[Dev] = getOne[DevTable, Dev](classOf[Dev], d => d.id === id)
 
+  // Team queries
+
   def getTeams: Future[Seq[Team]] = getAll[TeamTable, Team](classOf[Team])
 
   def optTeam(name: String): Future[Option[Team]] = optOne[TeamTable, Team](classOf[Team], t => t.name === name)
@@ -110,6 +122,8 @@ object Storage {
   def getTeam(name: String): Future[Team] = getOne[TeamTable, Team](classOf[Team], t => t.name === name)
 
   def getTeam(id: Int): Future[Team] = getOne[TeamTable, Team](classOf[Team], t => t.id === id)
+
+  // Project queries
 
   def getProjects: Future[Seq[Project]] = getAll[ProjectTable, Project](classOf[Project])
 
@@ -142,6 +156,8 @@ object Storage {
     this.config.db.run(query)
   }
 
+  // Channel queries
+
   def getChannels(projectId: Int): Future[Seq[Channel]] = {
     filter[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId)
   }
@@ -170,6 +186,8 @@ object Storage {
     }
     this.config.db.run(query)
   }
+
+  // Version queries
 
   def getAllVersions(projectId: Int): Future[Seq[Version]] = {
     filter[VersionTable, Version](classOf[Version], v => v.projectId === projectId)

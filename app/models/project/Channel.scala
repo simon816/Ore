@@ -24,8 +24,18 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], projectId:
 
   def this(projectId: Int, name: String) = this(None, None, projectId, name, HEX_GREEN)
 
+  /**
+    * Returns the Project this Channel belongs to.
+    *
+    * @return Project the Channel belongs to
+    */
   def getProject: Future[Project] = Storage.getProject(this.projectId)
 
+  /**
+    * Returns all Versions in this channel.
+    *
+    * @return All versions
+    */
   def getVersions: Future[Seq[Version]] = Storage.getVersions(this.id.get)
 
   /**

@@ -9,6 +9,9 @@ import play.api.Play.current
 
 import scala.util.Try
 
+/**
+  * Handles file management of uploaded plugins.
+  */
 object PluginManager {
 
   val UPLOADS_DIR = Play.application.path.toPath.resolve("uploads")
@@ -32,6 +35,12 @@ object PluginManager {
     plugin
   }
 
+  /**
+    * Uploads the specified PluginFile to it's appropriate location.
+    *
+    * @param plugin PluginFile to upload
+    * @return Result
+    */
   def uploadPlugin(plugin: PluginFile): Try[Unit] = Try {
     plugin.getMeta match {
       case None => throw new IllegalArgumentException("Specified PluginFile has no meta loaded.")

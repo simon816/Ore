@@ -19,12 +19,22 @@ import scala.concurrent.Future
   */
 abstract class Author {
 
+  /**
+    * Returns this Author's unique identifier.
+    *
+    * @return Unique ID
+    */
   def id: Option[Int]
 
+  /**
+    * Returns the Timestamp of when this Author was created.
+    *
+    * @return Creation of author
+    */
   def createdAt: Option[Timestamp]
 
   /**
-    * Returns the name of this Author
+    * Returns the name of this Author.
     *
     * @return Name of author
     */

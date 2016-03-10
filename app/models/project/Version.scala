@@ -18,8 +18,18 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], projectId:
 
   def this(projectId: Int, channelId: Int, versionString: String) = this(None, None, projectId, channelId, versionString)
 
+  /**
+    * Returns the project this version belongs to.
+    *
+    * @return Project
+    */
   def getProject: Future[Project] = Storage.getProject(this.projectId)
 
+  /**
+    * Returns the channel this version belongs to.
+    *
+    * @return Channel
+    */
   def getChannel: Future[Channel] = Storage.getChannel(this.channelId)
 
   override def hashCode: Int = this.id.hashCode

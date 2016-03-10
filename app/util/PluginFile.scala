@@ -27,6 +27,9 @@ class PluginFile(private var path: Path, private val owner: Author) {
     */
   def getPath: Path = this.path
 
+  /**
+    * Deletes the File at this PluginFile's Path
+    */
   def delete() = Files.delete(this.path)
 
   /**
