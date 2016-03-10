@@ -8,7 +8,7 @@ import models.author.Author.Unknown
 import models.project.Project
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
-import sql.Storage
+import db.Storage
 import util.{PluginManager, PluginFile}
 import views.{html => views}
 

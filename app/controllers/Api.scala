@@ -3,7 +3,7 @@ package controllers
 import models.project.Project
 import play.api.libs.json._
 import play.api.mvc._
-import sql.Storage
+import db.Storage
 
 import scala.util.{Failure, Success}
 

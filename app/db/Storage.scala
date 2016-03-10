@@ -1,4 +1,4 @@
-package sql
+package db
 
 import java.sql.Timestamp
 import java.util.Date

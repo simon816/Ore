@@ -2,7 +2,7 @@ package models.project
 
 import java.sql.Timestamp
 
-import sql.Storage
+import db.Storage
 
 import scala.concurrent.Future
 

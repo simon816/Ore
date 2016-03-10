@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import com.google.common.base.{MoreObjects, Objects}
 import models.author.Author.Unknown
 import models.project.Project
-import sql.Storage
+import db.Storage
 
 import scala.concurrent.Future
 

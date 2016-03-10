@@ -6,7 +6,7 @@ import models.author.Author
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
-import sql.Storage
+import db.Storage
 import util.PluginFile
 
 import scala.concurrent.Future

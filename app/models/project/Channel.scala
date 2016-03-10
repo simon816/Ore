@@ -3,7 +3,7 @@ package models.project
 import java.sql.Timestamp
 
 import models.project.Channel._
-import sql.Storage
+import db.Storage
 
 import scala.concurrent.{Promise, Future}
 import scala.util.{Success, Failure, Try}

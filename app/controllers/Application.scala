@@ -4,7 +4,7 @@ import javax.inject.Inject
 
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import sql.Storage
+import db.Storage
 import views.{html => views}
 
 import scala.util.{Failure, Success}
