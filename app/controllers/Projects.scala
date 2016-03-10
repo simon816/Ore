@@ -9,7 +9,7 @@ import models.project.Project
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 import db.Storage
-import util.{PluginManager, PluginFile}
+import plugin.{PluginManager, PluginFile}
 import views.{html => views}
 
 import scala.util.{Failure, Success}

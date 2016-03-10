@@ -1,4 +1,4 @@
-package util
+package plugin
 
 import java.nio.file.{Files, Path}
 
