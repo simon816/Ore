@@ -147,8 +147,7 @@ object Version {
     * @param plugin Uploaded plugin
     */
   def setPending(owner: String, name: String, channel: String, version: Version, plugin: PluginFile): Unit = {
-    val pending = PendingVersion(owner, name, channel, version, plugin)
-    Cache.set(pending.getKey, pending)
+    PendingVersion(owner, name, channel, version, plugin).cache()
   }
 
   /**
