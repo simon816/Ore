@@ -7,9 +7,11 @@ import models.author.Author
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
-import plugin.PluginFile
+import plugin.{PluginManager, PluginFile}
+import util.{PendingAction, Cacheable}
 
 import scala.concurrent.Future
+import scala.util.{Success, Failure, Try}
 
 /**
   * Represents an Ore package.
@@ -113,19 +115,51 @@ object Project {
     * @param project Pending project
     * @param firstVersion Uploaded plugin
     */
-  case class PendingProject(project: Project, firstVersion: PluginFile) {
+  case class PendingProject(project: Project, firstVersion: PluginFile) extends PendingAction with Cacheable {
 
-    /**
-      * Removes this PendingProject from the Cache.
-      */
-    def free() = Cache.remove(getKey)
+    override def complete: Try[Unit] = Try {
+      free()
+      // Upload plugin
+      PluginManager.uploadPlugin(this.firstVersion) match {
+        case Failure(thrown) =>
+          cancel()
+          throw thrown
+        case Success(void) =>
+          // Create project
+          val meta = this.firstVersion.getMeta.get
+          Storage.now(Storage.createProject(this.project)) match {
+            case Failure(thrown) =>
+              cancel()
+              throw thrown
+            case Success(newProject) =>
+              // Create first channel
+              val channelName = Channel.getSuggestedNameForVersion(meta.getVersion)
+              Storage.now(newProject.newChannel(channelName)) match {
+                case Failure(thrown) =>
+                  cancel()
+                  throw thrown
+                case Success(channel) =>
+                  // Create first version
+                  Storage.now(channel.newVersion(meta.getVersion)) match {
+                    case Failure(thrown) =>
+                      cancel()
+                      throw thrown
+                    case Success(newVersion) =>
+                      newProject.setRecommendedVersion(newVersion)
+                  }
+              }
+          }
+      }
+    }
 
-    /**
-      * Returns how this Project is represented in the Cache.
-      *
-      * @return Key of cache
-      */
-    def getKey: String = project.owner + '/' + project.name
+    override def cancel() = {
+      this.firstVersion.delete()
+      if (project.exists) {
+        // TODO: Delete project
+      }
+    }
+
+    override def getKey: String = this.project.owner + '/' + this.project.name
 
   }
 
@@ -136,8 +170,7 @@ object Project {
     * @param firstVersion Uploaded plugin
     */
   def setPending(project: Project, firstVersion: PluginFile) =  {
-    val pending = PendingProject(project, firstVersion)
-    Cache.set(pending.getKey, PendingProject(project, firstVersion))
+    PendingProject(project, firstVersion).cache()
   }
 
   /**

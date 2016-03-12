@@ -6,10 +6,11 @@ import db.Storage
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
-import plugin.PluginFile
+import plugin.{PluginManager, PluginFile}
+import util.{Cacheable, PendingAction}
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.{Success, Failure, Try}
 
 /**
   * Represents a single version of a Project.
@@ -22,6 +23,8 @@ import scala.util.{Failure, Success}
 case class Version(id: Option[Int], var createdAt: Option[Timestamp], projectId: Int, var channelId: Int, versionString: String) {
 
   def this(projectId: Int, channelId: Int, versionString: String) = this(None, None, projectId, channelId, versionString)
+
+  def this(projectId: Int, versionString: String) = this(projectId, -1, versionString)
 
   /**
     * Returns the project this version belongs to.
@@ -72,21 +75,65 @@ object Version {
     * @param version Version that is pending
     * @param plugin Uploaded plugin
     */
-  case class PendingVersion(owner: String, projectName: String, channelName: String, version: Version, plugin: PluginFile) {
+  case class PendingVersion(owner: String, projectName: String, channelName: String,
+                            version: Version, plugin: PluginFile) extends PendingAction with Cacheable {
 
-    /**
-      * Removes this PendingVersion from the cache.
-      */
-    def free() = {
-      Cache.remove(getKey)
+    override def complete: Try[Unit] = Try {
+      free()
+      // Get project
+      Storage.now(Storage.getProject(this.owner, this.projectName)) match {
+        case Failure(thrown) =>
+          cancel()
+          throw thrown
+        case Success(project) =>
+          // Get channel
+          var channel: Channel = null
+          Storage.now(project.getChannel(this.channelName)) match {
+            case Failure(thrown) =>
+              cancel()
+              throw thrown
+            case Success(channelOpt) => channelOpt match {
+              case None =>
+                // Create new channel
+                Storage.now(project.newChannel(this.channelName)) match {
+                  case Failure(thrown) =>
+                    cancel()
+                    throw thrown
+                  case Success(newChannel) => channel = newChannel
+                }
+              case Some(existing) => channel = existing
+            }
+          }
+
+          // Upload plugin
+          PluginManager.uploadPlugin(this.plugin) match {
+            case Failure(thrown) =>
+              cancel()
+              throw thrown
+            case Success(void) =>
+              // Create version
+              this.version.channelId = channel.id.get
+              Storage.now(Storage.createVersion(this.version)) match {
+                case Failure(thrown) =>
+                  cancel()
+                  throw thrown
+                case _ => ;
+              }
+          }
+      }
     }
 
-    /**
-      * Returns how this PendingVersion is represented in the Cache.
-      *
-      * @return Cache representation
-      */
-    def getKey: String = owner + '/' + projectName + '/' + channelName + '/' + version.versionString
+    override def cancel() = {
+      this.plugin.delete()
+      Storage.now(Storage.isDefined(Storage.getProject(owner, projectName))) match {
+        case Failure(thrown) => throw thrown
+        case Success(exists) => // TODO: Delete project
+      }
+    }
+
+    override def getKey: String = {
+      this.owner + '/' + this.projectName + '/' + this.channelName + '/' + this.version.versionString
+    }
 
   }
 
@@ -126,19 +173,7 @@ object Version {
     * @return New Version
     */
   def fromMeta(project: Project, meta: PluginMetadata): Version = {
-    val desc = if (meta.getDescription != null) meta.getDescription else "" // TODO: Disallow null descriptions
-
-    val channelName = Channel.getNameFromVersion(meta.getVersion)
-    var channelId: Int = -1
-    Storage.now(project.getChannel(channelName)) match {
-      case Failure(thrown) => throw thrown
-      case Success(channelOpt) => channelOpt match {
-        case Some(channel) => channelId = channel.id.get
-        case _ => ;
-      }
-    }
-
-    new Version(project.id.get, channelId, meta.getVersion)
+    new Version(project.id.get, meta.getVersion)
   }
 
 }

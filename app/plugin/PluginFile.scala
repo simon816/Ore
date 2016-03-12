@@ -58,12 +58,12 @@ class PluginFile(private var path: Path, private val owner: Author) {
     val jar = new JarFile(this.path.toFile)
     val metaEntry = jar.getEntry(META_FILE_NAME)
     if (metaEntry == null) {
-      throw new Exception("No plugin meta file found.")
+      throw new InvalidPluginFileException("No plugin meta file found.")
     }
 
     val metaList = McModInfo.DEFAULT.read(jar.getInputStream(metaEntry))
     if (metaList.size() > 1) {
-      throw new Exception("No plugin meta file found.")
+      throw new InvalidPluginFileException("No plugin meta file found.")
     }
 
     // Parse plugin meta info
@@ -71,7 +71,7 @@ class PluginFile(private var path: Path, private val owner: Author) {
     this.meta = Some(meta)
     val authors = meta.getAuthors.toList
     if (authors.isEmpty) {
-      throw new Exception("No authors found.")
+      throw new InvalidPluginFileException("No authors found.")
     }
     meta
   }

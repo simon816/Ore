@@ -36,7 +36,7 @@ class ChannelTable(tag: Tag) extends Table[Channel](tag, "channels") {
   def createdAt   =   column[Timestamp]("created_at")
   def projectId   =   column[Int]("project_id")
   def name        =   column[String]("name")
-  def colorHex    =   column[String]("color_hex", O.Default(Channel.HEX_GREEN))
+  def colorHex    =   column[String]("color_hex", O.Default(Channel.DEFAULT_COLOR))
 
   override def * = (id.?, createdAt.?, projectId, name, colorHex) <> ((Channel.apply _).tupled, Channel.unapply)
 }

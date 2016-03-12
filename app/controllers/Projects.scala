@@ -21,7 +21,7 @@ import scala.util.{Failure, Success}
 class Projects @Inject()(override val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
   // TODO: Replace with auth'd user
-  val user: Author = Unknown(name="SpongePowered")
+  val user: Author = Unknown(name = "SpongePowered")
 
   /**
     * Displays the "create project" page.
@@ -39,6 +39,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return Result
     */
   def upload = Action(parse.multipartFormData) { request =>
+    // TODO: Check auth here
     request.body.file("pluginFile") match {
       case None => Redirect(self.showCreate()).flashing("error" -> "Missing file")
       case Some(tmpFile) =>
@@ -47,7 +48,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
           case Failure(thrown) => throw thrown
           case Success(plugin) =>
             // Cache pending project for later use
-            val meta = plugin.getMeta.get // Would have failed if None
+            val meta = plugin.getMeta.get
             val project = Project.fromMeta(this.user.name, meta)
             if (project.exists) {
               BadRequest("You already have a project named " + meta.getName + "!")
@@ -85,40 +86,10 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     // TODO: Check auth here
     Project.getPending(author, name) match {
       case None => BadRequest("No project to create.")
-      case Some(pending) =>
-        pending.free()
-        // Move plugin from tmp dir to user dir
-        PluginManager.uploadPlugin(pending.firstVersion) match {
-          case Failure(thrown) => throw thrown
-          case Success(void) =>
-            // Create project
-            val meta = pending.firstVersion.getMeta.get
-            Storage.now(Storage.createProject(pending.project)) match {
-              case Failure(thrown) =>
-                pending.firstVersion.delete()
-                throw thrown
-              case Success(newProject) =>
-                // Create first channel
-                val channelName = Channel.getNameFromVersion(meta.getVersion)
-                Storage.now(newProject.newChannel(channelName)) match {
-                  case Failure(thrown) =>
-                    pending.firstVersion.delete()
-                    // TODO: Delete project
-                    throw thrown
-                  case Success(channel) =>
-                    // Create first version
-                    Storage.now(channel.newVersion(meta.getVersion)) match {
-                      case Failure(thrown) =>
-                        pending.firstVersion.delete()
-                        // TODO: Delete project
-                        throw thrown
-                      case Success(version) =>
-                        newProject.setRecommendedVersion(version)
-                        Redirect(self.show(author, name))
-                    }
-                }
-            }
-        }
+      case Some(pending) => pending.complete match {
+        case Failure(thrown) => throw thrown
+        case Success(void) => Redirect(self.show(author, name))
+      }
     }
   }
 
@@ -174,6 +145,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   }
 
   def uploadVersion(author: String, name: String) = Action(parse.multipartFormData) { request =>
+    // TODO: Check auth here
     request.body.file("pluginFile") match {
       case None => Redirect(self.showVersionCreate(author, name)).flashing("error" -> "Missing file")
       case Some(tmpFile) =>
@@ -191,7 +163,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
                 if (version.exists) {
                   BadRequest("You already have a version of that description.")
                 } else {
-                  val channelName = Channel.getNameFromVersion(version.versionString)
+                  val channelName = Channel.getSuggestedNameForVersion(version.versionString)
                   Version.setPending(author, name, channelName, version, plugin)
                   Redirect(self.showVersionCreateWithMeta(author, name, channelName, version.versionString))
                 }
@@ -201,6 +173,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   }
 
   def showVersionCreateWithMeta(author: String, name: String, channelName: String, versionString: String) = Action {
+    // TODO: Check auth here
     // Get project
     Storage.now(Storage.getProject(author, name)) match {
       case Failure(thrown) => throw thrown
@@ -214,45 +187,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   }
 
   def createVersion(author: String, name: String, channelName: String, versionString: String) = Action {
-    // Get project
-    Storage.now(Storage.getProject(author, name)) match {
-      case Failure(thrown) => throw thrown
-      case Success(project) =>
-        // Get channel
-        var channel: Channel = null
-        Storage.now(project.getChannel(channelName)) match {
-          case Failure(thrown) => throw thrown
-          case Success(channelOpt) => channelOpt match {
-            case None =>
-              // Create new channel
-              Storage.now(project.newChannel(channelName)) match {
-                case Failure(thrown) => throw thrown
-                case Success(newChannel) => channel = newChannel
-              }
-            case Some(existing) => channel = existing
-          }
-        }
-
-        // Get pending version
-        Version.getPending(author, name, channelName, versionString) match {
-          case None => BadRequest("No version to create.")
-          case Some(pending) =>
-            pending.free()
-            // Upload plugin
-            PluginManager.uploadPlugin(pending.plugin) match {
-              case Failure(thrown) => throw thrown
-              case Success(void) =>
-                // Create version
-                pending.version.channelId = channel.id.get
-                Storage.now(Storage.createVersion(pending.version)) match {
-                  case Failure(thrown) =>
-                    pending.plugin.delete()
-                    throw thrown
-                  case Success(newVersion) =>
-                    Redirect(self.show(author, name))
-                }
-            }
-        }
+    // TODO: Check auth here
+    Version.getPending(author, name, channelName, versionString) match {
+      case None => BadRequest("No version to create.")
+      case Some(pending) => pending.complete match {
+        case Failure(thrown) => throw thrown
+        case Success(void) => Redirect(self.show(author, name))
+      }
     }
   }
 

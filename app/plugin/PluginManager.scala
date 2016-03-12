@@ -29,7 +29,7 @@ object PluginManager {
   def initUpload(tmp: TemporaryFile, owner: Author): Try[PluginFile] = Try {
     val tmpPath = TEMP_DIR.resolve(owner.name).resolve("plugin.jar")
     val plugin = new PluginFile(tmpPath, owner)
-    if (!Files.exists(tmpPath.getParent)) {
+    if (Files.notExists(tmpPath.getParent)) {
       Files.createDirectories(tmpPath.getParent)
     }
     tmp.moveTo(plugin.getPath.toFile, replace = true)
@@ -47,7 +47,7 @@ object PluginManager {
     plugin.getMeta match {
       case None => throw new IllegalArgumentException("Specified PluginFile has no meta loaded.")
       case Some(meta) =>
-        val channel = Channel.getNameFromVersion(meta.getVersion)
+        val channel = Channel.getSuggestedNameForVersion(meta.getVersion)
         val oldPath = plugin.getPath
         val newPath = getUploadPath(plugin.getOwner.name, meta.getName, meta.getVersion, channel)
         if (!Files.exists(newPath.getParent)) {

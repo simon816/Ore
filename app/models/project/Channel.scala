@@ -23,7 +23,7 @@ import scala.concurrent.Future
   */
 case class Channel(id: Option[Int], var createdAt: Option[Timestamp], projectId: Int, name: String, colorHex: String) {
 
-  def this(projectId: Int, name: String) = this(None, None, projectId, name, HEX_GREEN)
+  def this(projectId: Int, name: String) = this(None, None, projectId, name, DEFAULT_COLOR)
 
   /**
     * Returns the Project this Channel belongs to.
@@ -65,9 +65,28 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], projectId:
 
 object Channel {
 
-  val HEX_GREEN: String = "#2ECC40"
+  /**
+    * The default color used for Channels.
+    */
+  val DEFAULT_COLOR: String = "#2ECC40"
 
+  /**
+    * The default name used for Channels.
+    */
   val DEFAULT_CHANNEL: String = "Release"
+
+  /**
+    * Attempts to determine a Channel name from the specified version string.
+    * This is attained using a ComparableVersion and finding the first
+    * StringItem within the parsed version. (e.g. 1.0.0-alpha) would return
+    * "alpha".
+    *
+    * @param version Version string to parse
+    * @return Suggested channel name
+    */
+  def getSuggestedNameForVersion(version: String): String = {
+    firstString(new ComparableVersion(version).getItems).getOrElse(DEFAULT_CHANNEL)
+  }
 
   private def firstString(items: ListItem): Option[String] = {
     var str: Option[String] = None
@@ -81,10 +100,6 @@ object Channel {
       i += 1
     }
     str
-  }
-
-  def getNameFromVersion(version: String): String = {
-    firstString(new ComparableVersion(version).getItems).getOrElse(DEFAULT_CHANNEL)
   }
 
 }
