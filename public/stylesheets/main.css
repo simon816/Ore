@@ -1,25 +1,28 @@
-.nav-pills>li.active>a, .nav-pills>li>a.active {
-    color: black; !important;
+.logo {
+    width: 50%;
 }
 
-.nav-pills>li>a:hover, .nav-pills>li.active>a:hover {
-    color: black; !important;
-    background-color: #dfbe58; !important;
+.table-controls {
+    padding-bottom: 50px;
 }
 
-.btn, .btn-primary[href], .btn:hover {
-    color: black; !important;
+.project-table > tbody > tr > td {
+    font-size: 140%;
+}
+
+.project-header-container {
+    margin-top: 90px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
 }
 
 .btn-version {
-    width: 100%;
+    margin-bottom: 20px;
 }
 
 .project-header {
     font-size: 20px;
     font-weight: normal;
-    margin-right: 15px;
-    margin-top: 10px;
 }
 
 .project-navbar {
@@ -38,46 +41,8 @@
     border-bottom: 1px solid black;
 }
 
-.project-header-container {
-    margin-top: 65px;
-    border-bottom: 1px solid #ddd;
-}
-
-.project-controls {
-    margin-top: 10px;
-}
-
-.project-wiki {
-    margin-top: 15px;
-}
-
-.badge-category:hover, .title:hover, .btn:hover, .plaintext:hover {
-    text-decoration: none;
-}
-
-.version-container {
-    padding: 20px;
-}
-
 .channel {
     border-radius: 6px;
     padding: 4px 6px;
     font-weight: bold;
-}
-
-.text-right {
-    text-align: right;
-}
-
-.channels {
-    margin-top: 15px;
-}
-
-.list-group {
-    margin: 0;
-    width: 100%;
-}
-
-.channel-id {
-    font-size: 75%;
 }

@@ -1,28 +1,15 @@
-@*
-Container for website header
-*@
-<header class="d-header clearfix">
-    <div class="wrap">
-        <div class="contents clearfix">
-            <div class="title">
-                <a data-auto-route="true" href="/">
-                    <img id="site-logo" class="logo-big" src="https://cdn.spongepowered.org/uploads/default/original/2X/7/77fa5f82289385db14561fac384ddea2a84a0070.png" alt="Sponge">
-                </a>
-            </div>
-            <div class="panel clearfix">
-                <button class="btn-primary btn-small sign-up-button btn">Sign Up</button>
-                <button class="btn-primary btn-small login-button btn"><i class="fa fa-user"></i> Log In</button>
-                <ul class="icons clearfix" role="navigation">
-                    <li class="header-dropdown-toggle">
-                        <a class="icon" href="#" title="search topics, posts, users, or categories" aria-label="search packages" id="search-button">
-                            <i class="fa fa-search"></i>
-                        </a>
-                    </li>
-                </ul>
-                <div class="user-menu"><div class="menu-panel hidden drop-down"></div></div>
-                <div class="hamburger-panel"><div class="menu-panel hidden drop-down"></div></div>
-                <div class="search-menu"><div class="menu-panel hidden drop-down"></div></div>
-            </div>
+<nav class="navbar navbar-fixed-top navbar-inverse">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" style="margin: 0 auto;" href="@routes.Application.index">
+                <img class="logo"
+                     src="https://cdn.spongepowered.org/uploads/default/original/2X/7/77fa5f82289385db14561fac384ddea2a84a0070.png"
+                     alt="Sponge">
+            </a>
+        </div>
+        <div class="collapse navbar-collapse">
+            <a href="#" class="navbar-right btn btn-primary navbar-btn">Sign up</a>
+            <a href="#" class="navbar-right btn btn-primary navbar-btn">Log in</a>
         </div>
     </div>
-</header>
+</nav>

@@ -35,6 +35,9 @@ GET     /:author/:name/versions/download/recommended            @controllers.Pro
 # Discussion
 GET     /:author/:name/dicuss                                   @controllers.Projects.showDiscussion(author, name)
 
+# Admin
+GET     /:author/:name/manage                                   @controllers.Projects.showManager(author, name)
+
 # User
 GET     /:author                                                @controllers.Projects.showAuthor(author)
 

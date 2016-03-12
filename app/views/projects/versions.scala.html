@@ -11,8 +11,7 @@ Versions page within Project overview.
             <div class="col-md-12">
                 <div class="row">
                     <div class="col-md-9">
-
-                        <table class="topic-list">
+                        <table class="table">
                             <thead>
                                 <tr>
                                     <th>Version</th>
@@ -21,13 +20,13 @@ Versions page within Project overview.
                             <tbody>
                                 @versions.map { version =>
                                   @defining(version.getChannelFrom(channels).get) { channel =>
-                                    <tr class="topic-list-item">
-                                        <td class="main-link clearfix" colspan="1">
+                                    <tr>
+                                        <td>
                                             <i class="fa fa-circle channel-id" style="color: @channel.colorHex"></i> @version.versionString
                                         </td>
-                                        <td class="pull-right">
+                                        <td>
                                             <a href="@routes.Projects.downloadVersion(model.owner, model.name, channel.name, version.versionString)">
-                                                <i class="fa fa-download"></i>
+                                                <i class="pull-right fa fa-download"></i>
                                             </a>
                                         </td>
                                     </tr>
@@ -39,7 +38,7 @@ Versions page within Project overview.
                     </div>
                     <div class="col-md-3">
                         <a href="@routes.Projects.showVersionCreate(model.owner, model.name)" class="btn btn-block btn-primary btn-panel btn-version">
-                            <i class="fa fa-plus"></i>Create version
+                            <i class="fa fa-plus"></i> Create version
                         </a>
                         <div class="panel panel-default channels">
                             <div class="panel-heading">

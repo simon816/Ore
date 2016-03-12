@@ -4,8 +4,11 @@ Collection of all projects.
 @import models.project.Project
 @(models: Seq[Project])(implicit messages: Messages)
 
-<div class="contents">
-    <table class="topic-list">
+<div class="container">
+    <div class="table-controls">
+        <a href="@routes.Projects.showCreate" class="btn btn-primary pull-right">New project</a>
+    </div>
+    <table class="table project-table">
         <thead>
             <tr>
                 <th>@messages("project.package")</th>
@@ -17,9 +20,9 @@ Collection of all projects.
         </thead>
         <tbody>
         @models.map { project =>
-            <tr class="topic-list-item">
-                <td class="main-link clearfix" colspan="1">
-                    <a class="title" href="@routes.Projects.show(project.owner, project.name)">@project.toString</a>
+            <tr class="">
+                <td class="" colspan="1">
+                    <strong><a class="" href="@routes.Projects.show(project.owner, project.name)">@project.toString</a></strong>
                 </td>
                 <td>@project.owner</td>
                 <td>@project.views</td>
