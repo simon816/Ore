@@ -2,11 +2,11 @@ package models.project
 
 import java.sql.Timestamp
 
+import db.Storage
 import models.author.Author
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
-import db.Storage
 import plugin.PluginFile
 
 import scala.concurrent.Future

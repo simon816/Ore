@@ -1,9 +1,9 @@
 package controllers
 
+import db.Storage
 import models.project.Project
 import play.api.libs.json._
 import play.api.mvc._
-import db.Storage
 
 import scala.util.{Failure, Success}
 

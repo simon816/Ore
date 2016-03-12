@@ -6,7 +6,7 @@ import controllers.routes.{Projects => self}
 import db.Storage
 import models.author.Author
 import models.author.Author.Unknown
-import models.project.{Version, Project}
+import models.project.{Channel, Project, Version}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 import plugin.PluginManager
@@ -92,20 +92,22 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
           case Failure(thrown) => throw thrown
           case Success(void) =>
             // Create project
+            val meta = pending.firstVersion.getMeta.get
             Storage.now(Storage.createProject(pending.project)) match {
               case Failure(thrown) =>
                 pending.firstVersion.delete()
                 throw thrown
               case Success(newProject) =>
                 // Create first channel
-                Storage.now(newProject.newChannel("alpha")) match {
+                val channelName = Channel.getNameFromVersion(meta.getVersion)
+                Storage.now(newProject.newChannel(channelName)) match {
                   case Failure(thrown) =>
                     pending.firstVersion.delete()
                     // TODO: Delete project
                     throw thrown
                   case Success(channel) =>
                     // Create first version
-                    Storage.now(channel.newVersion(pending.firstVersion.getMeta.get.getVersion)) match {
+                    Storage.now(channel.newVersion(meta.getVersion)) match {
                       case Failure(thrown) =>
                         pending.firstVersion.delete()
                         // TODO: Delete project
@@ -189,8 +191,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
                 if (version.exists) {
                   BadRequest("You already have a version of that description.")
                 } else {
-                  Version.setPending(author, name, "alpha", version, plugin)
-                  Redirect(self.showVersionCreateWithMeta(author, name, "alpha", version.versionString))
+                  val channelName = Channel.getNameFromVersion(version.versionString)
+                  Version.setPending(author, name, channelName, version, plugin)
+                  Redirect(self.showVersionCreateWithMeta(author, name, channelName, version.versionString))
                 }
             }
         }
@@ -202,15 +205,10 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     Storage.now(Storage.getProject(author, name)) match {
       case Failure(thrown) => throw thrown
       case Success(project) =>
-        // Get channel
-        Storage.now(project.getChannel(channelName)) match {
-          case Failure(thrown) => throw thrown
-          case Success(channel) =>
-            // Get pending version
-            Version.getPending(author, name, channelName, versionString) match {
-              case None => Redirect(self.showVersionCreate(author, name))
-              case Some(pending) => Ok(views.projects.versionCreate(project, Some(pending)))
-            }
+        // Get pending version
+        Version.getPending(author, name, channelName, versionString) match {
+          case None => Redirect(self.showVersionCreate(author, name))
+          case Some(pending) => Ok(views.projects.versionCreate(project, Some(pending)))
         }
     }
   }
@@ -221,31 +219,37 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
       case Failure(thrown) => throw thrown
       case Success(project) =>
         // Get channel
+        var channel: Channel = null
         Storage.now(project.getChannel(channelName)) match {
           case Failure(thrown) => throw thrown
-          case Success(channelOpt) =>
-            channelOpt match {
-              case None => NotFound("Channel not found.")
-              case Some(channel) =>
-                // Get pending version
-                Version.getPending(author, name, channelName, versionString) match {
-                  case None => BadRequest("No version to create.")
-                  case Some(pending) =>
-                    pending.free()
-                    // Upload plugin
-                    PluginManager.uploadPlugin(pending.plugin) match {
-                      case Failure(thrown) => throw thrown
-                      case Success(void) =>
-                        // TODO: Create channel if needed
-                        // Create version
-                        Storage.now(Storage.createVersion(pending.version)) match {
-                          case Failure(thrown) =>
-                            pending.plugin.delete()
-                            throw thrown
-                          case Success(newVersion) =>
-                            Redirect(self.show(author, name))
-                        }
-                    }
+          case Success(channelOpt) => channelOpt match {
+            case None =>
+              // Create new channel
+              Storage.now(project.newChannel(channelName)) match {
+                case Failure(thrown) => throw thrown
+                case Success(newChannel) => channel = newChannel
+              }
+            case Some(existing) => channel = existing
+          }
+        }
+
+        // Get pending version
+        Version.getPending(author, name, channelName, versionString) match {
+          case None => BadRequest("No version to create.")
+          case Some(pending) =>
+            pending.free()
+            // Upload plugin
+            PluginManager.uploadPlugin(pending.plugin) match {
+              case Failure(thrown) => throw thrown
+              case Success(void) =>
+                // Create version
+                pending.version.channelId = channel.id.get
+                Storage.now(Storage.createVersion(pending.version)) match {
+                  case Failure(thrown) =>
+                    pending.plugin.delete()
+                    throw thrown
+                  case Success(newVersion) =>
+                    Redirect(self.show(author, name))
                 }
             }
         }

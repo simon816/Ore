@@ -9,6 +9,7 @@ import play.api.cache.Cache
 import plugin.PluginFile
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 /**
   * Represents a single version of a Project.
@@ -18,7 +19,7 @@ import scala.concurrent.Future
   * @param channelId      ID of channel this version belongs to
   * @param versionString  Version string
   */
-case class Version(id: Option[Int], var createdAt: Option[Timestamp], projectId: Int, channelId: Int, versionString: String) {
+case class Version(id: Option[Int], var createdAt: Option[Timestamp], projectId: Int, var channelId: Int, versionString: String) {
 
   def this(projectId: Int, channelId: Int, versionString: String) = this(None, None, projectId, channelId, versionString)
 
@@ -126,7 +127,17 @@ object Version {
     */
   def fromMeta(project: Project, meta: PluginMetadata): Version = {
     val desc = if (meta.getDescription != null) meta.getDescription else "" // TODO: Disallow null descriptions
-    val channelId = Storage.now(project.getChannels).get.headOption.get.id.get // TODO: Determine channel
+
+    val channelName = Channel.getNameFromVersion(meta.getVersion)
+    var channelId: Int = -1
+    Storage.now(project.getChannel(channelName)) match {
+      case Failure(thrown) => throw thrown
+      case Success(channelOpt) => channelOpt match {
+        case Some(channel) => channelId = channel.id.get
+        case _ => ;
+      }
+    }
+
     new Version(project.id.get, channelId, meta.getVersion)
   }
 

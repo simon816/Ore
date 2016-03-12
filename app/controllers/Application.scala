@@ -2,9 +2,9 @@ package controllers
 
 import javax.inject.Inject
 
+import db.Storage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import db.Storage
 import views.{html => views}
 
 import scala.util.{Failure, Success}

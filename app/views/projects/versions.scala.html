@@ -1,9 +1,7 @@
 @*
 Versions page within Project overview.
 *@
-@import models.project.Project
-@import models.project.Version
-@import models.project.Channel
+@import models.project.{Channel, Project, Version}
 @(model: Project, channels: Seq[Channel], versions: Seq[Version])(implicit messages: Messages)
 
 @projects.detail(model, "#versions") {
@@ -47,21 +45,19 @@ Versions page within Project overview.
                             <div class="panel-heading">
                                 <h3 class="panel-title">Channels</h3>
                             </div>
+
                             <ul class="list-group">
-
-                              <li class="list-group-item">
-                                  @channels.map { channel =>
-                                    <span class="channel" style="background-color: @channel.colorHex;">@channel.name</span>
-                                    <a href="#" class="pull-right"><i class="fa fa-eye"></i></a>
-                                  }
-                              </li>
-
+                                @channels.map { channel =>
+                                  <li class="list-group-item">
+                                      <span class="channel" style="background-color: @channel.colorHex;">@channel.name</span>
+                                      <a href="#" class="pull-right"><i class="fa fa-eye"></i></a>
+                                  </li>
+                                }
                                 <li class="list-group-item text-right">
-                                    <a href="#">
-                                        <i class="fa fa-cog"></i> Edit
-                                    </a>
+                                    <a href="#"><i class="fa fa-cog"></i> Edit</a>
                                 </li>
                             </ul>
+
                         </div>
                     </div>
                 </div>

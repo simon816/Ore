@@ -1,7 +1,6 @@
 @import models.project.Project
-@import views.html.helper.form
-@import models.project.Version
 @import models.project.Version.PendingVersion
+@import views.html.helper.form
 @(project: Project, pending: Option[PendingVersion])(implicit messages: Messages)
 
 @core.layout("Release a new version") {

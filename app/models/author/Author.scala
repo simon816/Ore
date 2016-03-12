@@ -2,10 +2,10 @@ package models.author
 
 import java.sql.Timestamp
 
-import com.google.common.base.{MoreObjects, Objects}
+import com.google.common.base.MoreObjects
+import db.Storage
 import models.author.Author.Unknown
 import models.project.Project
-import db.Storage
 
 import scala.concurrent.Future
 

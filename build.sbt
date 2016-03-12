@@ -15,10 +15,13 @@ resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 routesGenerator := InjectedRoutesGenerator
 
 // Additional dependencies
-resolvers += "plugin" at "http://repo.spongepowered.org/maven"
+resolvers ++= Seq(
+  "maven local" at "file://" + Path.userHome.absolutePath + "/.m2/repository"
+  //"sponge" at "http://repo.spongepowered.org/maven"
+)
 
 libraryDependencies ++= Seq(
-  "org.spongepowered" % "plugin-meta" % "0.1-SNAPSHOT",
+  "org.spongepowered" % "plugin-meta" % "0.2-SNAPSHOT",
   "com.typesafe.play" %% "play-slick" % "1.1.1",
   "com.typesafe.play" %% "play-slick-evolutions" % "1.1.1",
   "org.postgresql" % "postgresql" % "9.4.1208.jre7"

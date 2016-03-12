@@ -2,11 +2,12 @@ package models.project
 
 import java.sql.Timestamp
 
-import models.project.Channel._
 import db.Storage
+import models.project.Channel._
+import org.spongepowered.plugin.meta.version.ComparableVersion
+import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
 
-import scala.concurrent.{Promise, Future}
-import scala.util.{Success, Failure, Try}
+import scala.concurrent.Future
 
 /**
   * Represents a release channel for Project Versions. Each project gets it's
@@ -65,5 +66,25 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], projectId:
 object Channel {
 
   val HEX_GREEN: String = "#2ECC40"
+
+  val DEFAULT_CHANNEL: String = "Release"
+
+  private def firstString(items: ListItem): Option[String] = {
+    var str: Option[String] = None
+    var i = 0
+    while (str.isEmpty) {
+      items.get(i) match {
+        case item: StringItem => str = Some(item.getValue)
+        case item: ListItem => str = firstString(item)
+        case _ => ;
+      }
+      i += 1
+    }
+    str
+  }
+
+  def getNameFromVersion(version: String): String = {
+    firstString(new ComparableVersion(version).getItems).getOrElse(DEFAULT_CHANNEL)
+  }
 
 }

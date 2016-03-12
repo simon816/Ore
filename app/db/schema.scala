@@ -2,8 +2,8 @@ package db
 
 import java.sql.Timestamp
 
-import models.author.{Team, Dev}
-import models.project.{Version, Project, Channel}
+import models.author.{Dev, Team}
+import models.project.{Channel, Project, Version}
 import slick.driver.PostgresDriver.api._
 
 /*

@@ -3,9 +3,10 @@ package plugin
 import java.nio.file.{Files, Path}
 
 import models.author.Author
+import models.project.Channel
 import play.api.Play
-import play.api.libs.Files.TemporaryFile
 import play.api.Play.current
+import play.api.libs.Files.TemporaryFile
 
 import scala.util.Try
 
@@ -46,7 +47,7 @@ object PluginManager {
     plugin.getMeta match {
       case None => throw new IllegalArgumentException("Specified PluginFile has no meta loaded.")
       case Some(meta) =>
-        val channel = "alpha" // TODO: Determine release channel from version string
+        val channel = Channel.getNameFromVersion(meta.getVersion)
         val oldPath = plugin.getPath
         val newPath = getUploadPath(plugin.getOwner.name, meta.getName, meta.getVersion, channel)
         if (!Files.exists(newPath.getParent)) {
