@@ -21,9 +21,9 @@ Versions page within Project overview.
                                 </tr>
                             </thead>
                             <tbody>
-                              <tr class="topic-list-item">
-                                  @versions.map { version =>
-                                    @defining(version.getChannelFrom(channels).get) { channel =>
+                                @versions.map { version =>
+                                  @defining(version.getChannelFrom(channels).get) { channel =>
+                                    <tr class="topic-list-item">
                                         <td class="main-link clearfix" colspan="1">
                                             <i class="fa fa-circle channel-id" style="color: @channel.colorHex"></i> @version.versionString
                                         </td>
@@ -32,9 +32,9 @@ Versions page within Project overview.
                                                 <i class="fa fa-download"></i>
                                             </a>
                                         </td>
-                                    }
+                                    </tr>
                                   }
-                              </tr>
+                                }
                             </tbody>
                         </table>
 
@@ -52,6 +52,7 @@ Versions page within Project overview.
                               <li class="list-group-item">
                                   @channels.map { channel =>
                                     <span class="channel" style="background-color: @channel.colorHex;">@channel.name</span>
+                                    <a href="#" class="pull-right"><i class="fa fa-eye"></i></a>
                                   }
                               </li>
 

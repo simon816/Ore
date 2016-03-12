@@ -32,6 +32,7 @@ object PluginManager {
       Files.createDirectories(tmpPath.getParent)
     }
     tmp.moveTo(plugin.getPath.toFile, replace = true)
+    plugin.loadMeta
     plugin
   }
 

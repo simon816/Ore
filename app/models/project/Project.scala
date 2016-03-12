@@ -90,13 +90,6 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
   def getVersions: Future[Seq[Version]] = Storage.getAllVersions(this.id.get)
 
   /**
-    * Returns how this Project is represented in the Cache.
-    *
-    * @return Key of cache
-    */
-  def getKey: String = this.owner + '/' + this.name
-
-  /**
     * Returns true if this Project already exists.
     *
     * @return True if project exists, false otherwise
@@ -125,7 +118,14 @@ object Project {
     /**
       * Removes this PendingProject from the Cache.
       */
-    def free() = Cache.remove(project.getKey)
+    def free() = Cache.remove(getKey)
+
+    /**
+      * Returns how this Project is represented in the Cache.
+      *
+      * @return Key of cache
+      */
+    def getKey: String = project.owner + '/' + project.name
 
   }
 
@@ -136,7 +136,8 @@ object Project {
     * @param firstVersion Uploaded plugin
     */
   def setPending(project: Project, firstVersion: PluginFile) =  {
-    Cache.set(project.getKey, PendingProject(project, firstVersion))
+    val pending = PendingProject(project, firstVersion)
+    Cache.set(pending.getKey, PendingProject(project, firstVersion))
   }
 
   /**

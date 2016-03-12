@@ -3,6 +3,10 @@ package models.project
 import java.sql.Timestamp
 
 import db.Storage
+import org.spongepowered.plugin.meta.PluginMetadata
+import play.api.Play.current
+import play.api.cache.Cache
+import plugin.PluginFile
 
 import scala.concurrent.Future
 
@@ -41,8 +45,89 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], projectId:
     */
   def getChannelFrom(channels: Seq[Channel]): Option[Channel] = channels.find(_.id.get == this.channelId)
 
+  /**
+    * Returns true if this version already exists.
+    *
+    * @return True if version already exists, false otherwise
+    */
+  def exists: Boolean = {
+    Storage.now(Storage.isDefined(Storage.getVersion(this.channelId, this.versionString))).isSuccess
+  }
+
   override def hashCode: Int = this.id.hashCode
 
   override def equals(o: Any): Boolean = o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get
+
+}
+
+object Version {
+
+  /**
+    * Represents a pending version to be created later.
+    *
+    * @param owner Name of project owner
+    * @param projectName Name of project
+    * @param channelName Name of channel this version will be in
+    * @param version Version that is pending
+    * @param plugin Uploaded plugin
+    */
+  case class PendingVersion(owner: String, projectName: String, channelName: String, version: Version, plugin: PluginFile) {
+
+    /**
+      * Removes this PendingVersion from the cache.
+      */
+    def free() = {
+      Cache.remove(getKey)
+    }
+
+    /**
+      * Returns how this PendingVersion is represented in the Cache.
+      *
+      * @return Cache representation
+      */
+    def getKey: String = owner + '/' + projectName + '/' + channelName + '/' + version.versionString
+
+  }
+
+  /**
+    * Marks the specified Version as pending and caches it for later use.
+    *
+    * @param owner Name of owner
+    * @param name Name of project
+    * @param channel Name of channel
+    * @param version Name of version
+    * @param plugin Uploaded plugin
+    */
+  def setPending(owner: String, name: String, channel: String, version: Version, plugin: PluginFile): Unit = {
+    val pending = PendingVersion(owner, name, channel, version, plugin)
+    Cache.set(pending.getKey, pending)
+  }
+
+  /**
+    * Returns the pending version for the specified owner, name, channel, and
+    * version string.
+    *
+    * @param owner Name of owner
+    * @param name Name of project
+    * @param channel Name of channel
+    * @param version Name of version
+    * @return PendingVersion, if present, None otherwise
+    */
+  def getPending(owner: String, name: String, channel: String, version: String) = {
+    Cache.getAs[PendingVersion](owner + '/' + name + '/' + channel + '/' + version)
+  }
+
+  /**
+    * Creates a new Version from the specified PluginMetadata.
+    *
+    * @param project Project this version belongs to
+    * @param meta PluginMetadata
+    * @return New Version
+    */
+  def fromMeta(project: Project, meta: PluginMetadata): Version = {
+    val desc = if (meta.getDescription != null) meta.getDescription else "" // TODO: Disallow null descriptions
+    val channelId = Storage.now(project.getChannels).get.headOption.get.id.get // TODO: Determine channel
+    new Version(project.id.get, channelId, meta.getVersion)
+  }
 
 }

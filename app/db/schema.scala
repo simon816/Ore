@@ -49,7 +49,7 @@ class VersionTable(tag: Tag) extends Table[Version](tag, "versions") {
   def channelId       =   column[Int]("channel_id")
   def versionString   =   column[String]("version_string")
 
-  override def * = (id.?, createdAt.?, projectId, channelId, versionString) <> (Version.tupled, Version.unapply)
+  override def * = (id.?, createdAt.?, projectId, channelId, versionString) <> ((Version.apply _).tupled, Version.unapply)
 }
 
 class DevTable(tag: Tag) extends Table[Dev](tag, "devs") {

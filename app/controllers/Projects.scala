@@ -6,7 +6,7 @@ import controllers.routes.{Projects => self}
 import db.Storage
 import models.author.Author
 import models.author.Author.Unknown
-import models.project.Project
+import models.project.{Version, Project}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 import plugin.PluginManager
@@ -46,19 +46,14 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         PluginManager.initUpload(tmpFile.ref, this.user) match {
           case Failure(thrown) => throw thrown
           case Success(plugin) =>
-            // Load plugin meta file
-            plugin.loadMeta match {
-              case Failure(thrown) => throw thrown
-              case Success(meta) =>
-                // Cache project for later use
-                // TODO: Allow ZIPs with Plugin JAR in top level
-                val project = Project.fromMeta(this.user.name, meta)
-                if (project.exists) {
-                  BadRequest("You already have a project named " + meta.getName + "!")
-                } else {
-                  Project.setPending(project, plugin)
-                  Redirect(self.showCreateWithMeta(project.owner, project.name))
-                }
+            // Cache pending project for later use
+            val meta = plugin.getMeta.get // Would have failed if None
+            val project = Project.fromMeta(this.user.name, meta)
+            if (project.exists) {
+              BadRequest("You already have a project named " + meta.getName + "!")
+            } else {
+              Project.setPending(project, plugin)
+              Redirect(self.showCreateWithMeta(project.owner, project.name))
             }
         }
     }
@@ -91,31 +86,33 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     Project.getPending(author, name) match {
       case None => BadRequest("No project to create.")
       case Some(pending) =>
-        pending.free() // Release from cache
-        pending.firstVersion.getMeta match {
-          case None => BadRequest("No meta info found for plugin.")
-          case Some(meta) =>
-            // Move plugin from tmp dir to user dir
-            PluginManager.uploadPlugin(pending.firstVersion) match {
-              case Failure(thrown) => throw thrown
-              case Success(void) =>
-                // Create project
-                Storage.now(Storage.createProject(pending.project)) match {
+        pending.free()
+        // Move plugin from tmp dir to user dir
+        PluginManager.uploadPlugin(pending.firstVersion) match {
+          case Failure(thrown) => throw thrown
+          case Success(void) =>
+            // Create project
+            Storage.now(Storage.createProject(pending.project)) match {
+              case Failure(thrown) =>
+                pending.firstVersion.delete()
+                throw thrown
+              case Success(newProject) =>
+                // Create first channel
+                Storage.now(newProject.newChannel("alpha")) match {
                   case Failure(thrown) =>
                     pending.firstVersion.delete()
+                    // TODO: Delete project
                     throw thrown
-                  case Success(newProject) =>
-                    // TODO: Create first channel
-                    Storage.now(newProject.newChannel("Alpha")) match {
-                      case Failure(thrown) => throw thrown
-                      case Success(channel) =>
-                        // Create first version
-                        Storage.now(channel.newVersion(meta.getVersion)) match {
-                          case Failure(thrown) => throw thrown
-                          case Success(version) =>
-                            newProject.setRecommendedVersion(version)
-                            Redirect(self.show(author, name))
-                        }
+                  case Success(channel) =>
+                    // Create first version
+                    Storage.now(channel.newVersion(pending.firstVersion.getMeta.get.getVersion)) match {
+                      case Failure(thrown) =>
+                        pending.firstVersion.delete()
+                        // TODO: Delete project
+                        throw thrown
+                      case Success(version) =>
+                        newProject.setRecommendedVersion(version)
+                        Redirect(self.show(author, name))
                     }
                 }
             }
@@ -175,15 +172,84 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   }
 
   def uploadVersion(author: String, name: String) = Action(parse.multipartFormData) { request =>
-    NotFound("TODO")
+    request.body.file("pluginFile") match {
+      case None => Redirect(self.showVersionCreate(author, name)).flashing("error" -> "Missing file")
+      case Some(tmpFile) =>
+        // Get project
+        Storage.now(Storage.getProject(author, name)) match {
+          case Failure(thrown) => throw thrown
+          case Success(project) =>
+            // Initialize plugin file
+            PluginManager.initUpload(tmpFile.ref, this.user) match {
+              case Failure(thrown) => throw thrown
+              case Success(plugin) =>
+                // Cache version for later use
+                val meta = plugin.getMeta.get
+                val version = Version.fromMeta(project, meta)
+                if (version.exists) {
+                  BadRequest("You already have a version of that description.")
+                } else {
+                  Version.setPending(author, name, "alpha", version, plugin)
+                  Redirect(self.showVersionCreateWithMeta(author, name, "alpha", version.versionString))
+                }
+            }
+        }
+    }
   }
 
-  def showVersionCreateWithMeta(author: String, name: String, channel: String, versionString: String) = Action {
-    NotFound("TODO")
+  def showVersionCreateWithMeta(author: String, name: String, channelName: String, versionString: String) = Action {
+    // Get project
+    Storage.now(Storage.getProject(author, name)) match {
+      case Failure(thrown) => throw thrown
+      case Success(project) =>
+        // Get channel
+        Storage.now(project.getChannel(channelName)) match {
+          case Failure(thrown) => throw thrown
+          case Success(channel) =>
+            // Get pending version
+            Version.getPending(author, name, channelName, versionString) match {
+              case None => Redirect(self.showVersionCreate(author, name))
+              case Some(pending) => Ok(views.projects.versionCreate(project, Some(pending)))
+            }
+        }
+    }
   }
 
-  def createVersion(author: String, name: String, channel: String, versionString: String) = Action {
-    NotFound("TODO")
+  def createVersion(author: String, name: String, channelName: String, versionString: String) = Action {
+    // Get project
+    Storage.now(Storage.getProject(author, name)) match {
+      case Failure(thrown) => throw thrown
+      case Success(project) =>
+        // Get channel
+        Storage.now(project.getChannel(channelName)) match {
+          case Failure(thrown) => throw thrown
+          case Success(channelOpt) =>
+            channelOpt match {
+              case None => NotFound("Channel not found.")
+              case Some(channel) =>
+                // Get pending version
+                Version.getPending(author, name, channelName, versionString) match {
+                  case None => BadRequest("No version to create.")
+                  case Some(pending) =>
+                    pending.free()
+                    // Upload plugin
+                    PluginManager.uploadPlugin(pending.plugin) match {
+                      case Failure(thrown) => throw thrown
+                      case Success(void) =>
+                        // TODO: Create channel if needed
+                        // Create version
+                        Storage.now(Storage.createVersion(pending.version)) match {
+                          case Failure(thrown) =>
+                            pending.plugin.delete()
+                            throw thrown
+                          case Success(newVersion) =>
+                            Redirect(self.show(author, name))
+                        }
+                    }
+                }
+            }
+        }
+    }
   }
 
   /**
