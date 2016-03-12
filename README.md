@@ -7,20 +7,20 @@ by separating application and database logic from abstract concepts wherever pos
  
 ore-play is written in Scala using the [Play](https://www.playframework.com/) framework.
 
-# Running
+## Running
 
 Running ore-play is relatively simple. If you are using IntelliJ you should be able to import the `build.sbt` file and
 just run it. Dependencies will be automatically resolved.
 
 **With Activator:**
-    * Download and install the latest [Activator](https://www.lightbend.com/activator/download) distribution.
-    * Execute `activator run` in the project root.
+* Download and install the latest [Activator](https://www.lightbend.com/activator/download) distribution.
+* Execute `activator run` in the project root.
 
-# Contributing
+## Contributing
 
 ore-play's code-style is not unlike the rest of the Sponge projects code-style with some leniency for readability.
 Namely, the differences include:
-    * Non-uniform whitespace (see [schema.sql](app/models/db/schema.scala)
-    * Inline conditionals / statements
-    * Public fields permitted on database properties in models
+* Non-uniform whitespace (see [schema.sql](app/models/db/schema.scala))
+* Inline conditionals / statements
+* Public fields permitted on database properties in models
     
