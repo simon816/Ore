@@ -1,21 +1,22 @@
 # --- !Ups
 
 CREATE TABLE projects (
-  id            serial        NOT NULL PRIMARY KEY,
-  created_at    timestamp     NOT NULL,
-  plugin_id     varchar(255)  NOT NULL,
-  name          varchar(255)  NOT NULL,
-  description   varchar(255)  NOT NULL,
-  owner_name    varchar(255)  NOT NULL,
-  views         bigint        NOT NULL,
-  downloads     bigint        NOT NULL,
-  starred       bigint        NOT NULL
+  id                      serial        NOT NULL PRIMARY KEY,
+  created_at              timestamp     NOT NULL,
+  plugin_id               varchar(255)  NOT NULL UNIQUE,
+  name                    varchar(255)  NOT NULL,
+  description             varchar(255)  NOT NULL,
+  owner_name              varchar(255)  NOT NULL,
+  recommended_version_id  bigint        ,
+  views                   bigint        NOT NULL CHECK (views >= 0),
+  downloads               bigint        NOT NULL CHECK (downloads >= 0),
+  starred                 bigint        NOT NULL CHECK (starred >= 0)
 );
 
 CREATE TABLE channels (
   id          serial        NOT NULL PRIMARY KEY,
   created_at  timestamp     NOT NULL,
-  project_id  bigint        NOT NULL,
+  project_id  bigint        NOT NULL REFERENCES projects ON DELETE CASCADE,
   name        varchar(255)  NOT NULL,
   color_hex   varchar(255)  NOT NULL
 );
@@ -23,8 +24,8 @@ CREATE TABLE channels (
 CREATE TABLE versions (
   id              serial        NOT NULL PRIMARY KEY,
   created_at      timestamp     NOT NULL,
-  project_id      BIGINT        NOT NULL,
-  channel_id      bigint        NOT NULL,
+  project_id      BIGINT        NOT NULL REFERENCES projects ON DELETE CASCADE,
+  channel_id      bigint        NOT NULL REFERENCES channels ON DELETE CASCADE,
   version_string  varchar(255)  NOT NULL
 );
 

@@ -77,3 +77,7 @@
     margin: 0;
     width: 100%;
 }
+
+.channel-id {
+    font-size: 75%;
+}

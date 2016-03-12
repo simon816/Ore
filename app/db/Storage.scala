@@ -17,10 +17,16 @@ import scala.util.{Try, Failure, Success}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
+/**
+  * Contains all queries for retrieving models from the database.
+  */
 object Storage {
 
   private lazy val config = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
+  /**
+    * The default timeout when awaiting a query result.
+    */
   val DEFAULT_TIMEOUT: Duration = Duration(10, TimeUnit.SECONDS)
 
   /**
@@ -154,6 +160,17 @@ object Storage {
       } += project
     }
     this.config.db.run(query)
+  }
+
+  def updateProjectInt(project: Project, key: ProjectTable => Rep[Int], value: Int, sync: Int => Unit): Future[Int] = {
+    val projects = q[ProjectTable](classOf[Project])
+    val query = for { p <- projects if p.id === project.id } yield key(p)
+    val action = query.update(value)
+    val future = this.config.db.run(action)
+    future.onSuccess {
+      case newId => sync(newId)
+    }
+    future
   }
 
   // Channel queries

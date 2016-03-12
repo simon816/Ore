@@ -6,21 +6,26 @@ import models.author.{Team, Dev}
 import models.project.{Version, Project, Channel}
 import slick.driver.PostgresDriver.api._
 
+/*
+ * Database schema definitions
+ */
+
 class ProjectTable(tag: Tag) extends Table[Project](tag, "projects") {
 
-  def id            =   column[Int]("id", O.PrimaryKey, O.AutoInc)
-  def createdAt     =   column[Timestamp]("created_at")
-  def pluginId      =   column[String]("plugin_id")
-  def name          =   column[String]("name")
-  def description   =   column[String]("description")
-  def ownerName     =   column[String]("owner_name")
-  def views         =   column[Int]("views", O.Default(0))
-  def downloads     =   column[Int]("downloads", O.Default(0))
-  def starred       =   column[Int]("starred", O.Default(0))
+  def id                    =   column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def createdAt             =   column[Timestamp]("created_at")
+  def pluginId              =   column[String]("plugin_id")
+  def name                  =   column[String]("name")
+  def description           =   column[String]("description")
+  def ownerName             =   column[String]("owner_name")
+  def recommendedVersionId  =   column[Int]("recommended_version_id")
+  def views                 =   column[Int]("views", O.Default(0))
+  def downloads             =   column[Int]("downloads", O.Default(0))
+  def starred               =   column[Int]("starred", O.Default(0))
 
   override def * = {
     (id.?, createdAt.?, pluginId, name, description,
-      ownerName, views, downloads, starred) <> ((Project.apply _).tupled, Project.unapply)
+      ownerName, recommendedVersionId.?, views, downloads, starred) <> ((Project.apply _).tupled, Project.unapply)
   }
 
 }

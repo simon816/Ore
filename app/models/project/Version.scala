@@ -32,6 +32,15 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], projectId:
     */
   def getChannel: Future[Channel] = Storage.getChannel(this.channelId)
 
+  /**
+    * Returns the channel this version belongs to from the specified collection
+    * of channels if present.
+    *
+    * @param channels Channels to search
+    * @return Channel if present, None otherwise
+    */
+  def getChannelFrom(channels: Seq[Channel]): Option[Channel] = channels.find(_.id.get == this.channelId)
+
   override def hashCode: Int = this.id.hashCode
 
   override def equals(o: Any): Boolean = o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get

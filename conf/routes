@@ -30,6 +30,7 @@ POST    /:author/:name/versions/:channel/:version               @controllers.Pro
 
 # Downloads
 GET     /:author/:name/versions/download/:channel/:version      @controllers.Projects.downloadVersion(author, name, channel, version)
+GET     /:author/:name/versions/download/recommended            @controllers.Projects.downloadRecommendedVersion(author, name)
 
 # Discussion
 GET     /:author/:name/dicuss                                   @controllers.Projects.showDiscussion(author, name)

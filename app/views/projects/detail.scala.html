@@ -45,7 +45,9 @@ Base template for Project overview.
             </div>
 
             <div class="pull-right project-controls">
-                <button class="btn btn-default"><i class="fa fa-download"></i>Download</button>
+                <a href="@routes.Projects.downloadRecommendedVersion(project.owner, project.name)" class="btn btn-default">
+                    <i class="fa fa-download"></i>Download
+                </a>
                 <button class="btn btn-default btn-star"><i class="fa fa-star"></i><span class="starred">@project.starred</span></button>
                 <button class="btn btn-default"><i class="fa fa-flag"></i>Flag</button>
                 <button class="btn btn-default"><i class="fa fa-wrench"></i>Manage</button>

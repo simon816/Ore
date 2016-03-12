@@ -2,7 +2,9 @@
 Versions page within Project overview.
 *@
 @import models.project.Project
-@(model: Project)(implicit messages: Messages)
+@import models.project.Version
+@import models.project.Channel
+@(model: Project, channels: Seq[Channel], versions: Seq[Version])(implicit messages: Messages)
 
 @projects.detail(model, "#versions") {
 
@@ -20,14 +22,18 @@ Versions page within Project overview.
                             </thead>
                             <tbody>
                               <tr class="topic-list-item">
-                                  <td class="main-link clearfix" colspan="1">
-                                      TODO
-                                  </td>
-                                  <td class="pull-right">
-                                      <a href="#">
-                                          <i class="fa fa-download"></i>
-                                      </a>
-                                  </td>
+                                  @versions.map { version =>
+                                    @defining(version.getChannelFrom(channels).get) { channel =>
+                                        <td class="main-link clearfix" colspan="1">
+                                            <i class="fa fa-circle channel-id" style="color: @channel.colorHex"></i> @version.versionString
+                                        </td>
+                                        <td class="pull-right">
+                                            <a href="@routes.Projects.downloadVersion(model.owner, model.name, channel.name, version.versionString)">
+                                                <i class="fa fa-download"></i>
+                                            </a>
+                                        </td>
+                                    }
+                                  }
                               </tr>
                             </tbody>
                         </table>
@@ -44,7 +50,9 @@ Versions page within Project overview.
                             <ul class="list-group">
 
                               <li class="list-group-item">
-                                  <span class="channel" style="background-color: green;">TODO</span>
+                                  @channels.map { channel =>
+                                    <span class="channel" style="background-color: @channel.colorHex;">@channel.name</span>
+                                  }
                               </li>
 
                                 <li class="list-group-item text-right">

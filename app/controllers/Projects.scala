@@ -3,13 +3,13 @@ package controllers
 import javax.inject.Inject
 
 import controllers.routes.{Projects => self}
+import db.Storage
 import models.author.Author
 import models.author.Author.Unknown
 import models.project.Project
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
-import db.Storage
-import plugin.{PluginManager, PluginFile}
+import plugin.PluginManager
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -88,7 +88,6 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def create(author: String, name: String) = Action {
     // TODO: Check auth here
-    // TODO: Encapsulation
     Project.getPending(author, name) match {
       case None => BadRequest("No project to create.")
       case Some(pending) =>
@@ -106,14 +105,16 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
                     pending.firstVersion.delete()
                     throw thrown
                   case Success(newProject) =>
-                    // Create first channel
+                    // TODO: Create first channel
                     Storage.now(newProject.newChannel("Alpha")) match {
                       case Failure(thrown) => throw thrown
                       case Success(channel) =>
                         // Create first version
                         Storage.now(channel.newVersion(meta.getVersion)) match {
                           case Failure(thrown) => throw thrown
-                          case Success(version) => Redirect(self.show(author, name))
+                          case Success(version) =>
+                            newProject.setRecommendedVersion(version)
+                            Redirect(self.show(author, name))
                         }
                     }
                 }
@@ -146,7 +147,15 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   def showVersions(author: String, name: String) = Action {
     Storage.now(Storage.getProject(author, name)) match {
       case Failure(thrown) => throw thrown
-      case Success(project) => Ok(views.projects.versions(project))
+      case Success(project) =>
+        Storage.now(project.getChannels) match {
+          case Failure(thrown) => throw thrown
+          case Success(channels) =>
+            Storage.now(project.getVersions) match {
+              case Failure(thrown) => throw thrown
+              case Success(versions) => Ok(views.projects.versions(project, channels, versions));
+            }
+        }
     }
   }
 
@@ -203,6 +212,22 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
                 }
               }
           }
+        }
+    }
+  }
+
+  def downloadRecommendedVersion(author: String, name: String) = Action {
+    Storage.now(Storage.getProject(author, name)) match {
+      case Failure(thrown) => throw thrown
+      case Success(project) =>
+        Storage.now(project.getRecommendedVersion) match {
+          case Failure(thrown) => throw thrown
+          case Success(version) =>
+            Storage.now(version.getChannel) match {
+              case Failure(thrown) => throw thrown
+              case Success(channel) =>
+                Ok.sendFile(PluginManager.getUploadPath(author, name, version.versionString, channel.name).toFile)
+            }
         }
     }
   }

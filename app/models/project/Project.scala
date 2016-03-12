@@ -30,10 +30,10 @@ import scala.concurrent.Future
   * @param starred     How many times this project has been starred
   */
 case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: String, name: String, description: String,
-                   owner: String, views: Int, downloads: Int, starred: Int) {
+                   owner: String, var recommendedVersionId: Option[Int], views: Int, downloads: Int, starred: Int) {
 
   def this(pluginId: String, name: String, description: String, owner: String) = {
-    this(None, None, pluginId, name, description, owner, 0, 0, 0)
+    this(None, None, pluginId, name, description, owner, None, 0, 0, 0)
   }
 
   def getOwner: Author = throw new NotImplementedError // TODO
@@ -61,6 +61,25 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
     */
   def newChannel(name: String): Future[Channel] = {
     Storage.createChannel(new Channel(this.id.get, name))
+  }
+
+  /**
+    * Returns this Project's recommended version.
+    *
+    * @return Recommended version
+    */
+  def getRecommendedVersion: Future[Version] = Storage.getVersion(this.recommendedVersionId.get)
+
+  /**
+    * Updates this project's recommended version.
+    *
+    * @param version Version to set
+    * @return Result
+    */
+  def setRecommendedVersion(version: Version): Future[Int] = {
+    Storage.updateProjectInt(this, table => table.recommendedVersionId, version.id.get, newId => {
+      this.recommendedVersionId = Some(newId)
+    })
   }
 
   /**
@@ -94,18 +113,41 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
 
 object Project {
 
+  /**
+    * Represents a Project with an uploaded plugin that has not yet been
+    * created.
+    *
+    * @param project Pending project
+    * @param firstVersion Uploaded plugin
+    */
   case class PendingProject(project: Project, firstVersion: PluginFile) {
 
+    /**
+      * Removes this PendingProject from the Cache.
+      */
     def free() = Cache.remove(project.getKey)
 
   }
 
+  /**
+    * Marks the specified Project as pending for later use.
+    *
+    * @param project Project that is pending
+    * @param firstVersion Uploaded plugin
+    */
   def setPending(project: Project, firstVersion: PluginFile) =  {
     Cache.set(project.getKey, PendingProject(project, firstVersion))
   }
 
-  def getPending(author: String, name: String): Option[PendingProject] = {
-    Cache.getAs[PendingProject](author + '/' + name)
+  /**
+    * Returns the PendingProject of the specified owner and name, if any.
+    *
+    * @param owner Project owner
+    * @param name Project name
+    * @return PendingProject if present, None otherwise
+    */
+  def getPending(owner: String, name: String): Option[PendingProject] = {
+    Cache.getAs[PendingProject](owner + '/' + name)
   }
 
   /**
