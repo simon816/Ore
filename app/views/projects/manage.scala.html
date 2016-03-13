@@ -16,6 +16,9 @@
                                 <input id="name" name="name" class="form-control" type="text" value="@project.name">
                             </div>
                         }
+                        @form(action = routes.Projects.delete(project.owner, project.name)) {
+                            <input type="submit" name="delete" value="Delete" class="btn btn-danger">
+                        }
                     </div>
                 </div>
             </div>

@@ -73,9 +73,12 @@ object Storage {
 
   // Generic queries
 
+  private def _filter[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]) = {
+    q[T](clazz).filter(predicate)
+  }
+
   private def filter[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]): Future[Seq[M]] = {
-    val query = q[T](clazz).filter(predicate)
-    this.config.db.run(query.result)
+    this.config.db.run(_filter[T, M](clazz, predicate).result)
   }
 
   private def getAll[T <: Table[M], M](clazz: Class[_]): Future[Seq[M]] = {
@@ -159,6 +162,12 @@ object Storage {
       } += project
     }
     this.config.db.run(query)
+  }
+
+  def deleteProject(project: Project) = {
+    val query = _filter[ProjectTable, Project](classOf[Project], p => p.id === project.id.get)
+    val action = query.delete
+    this.config.db.run(action)
   }
 
   def updateProjectInt(project: Project, key: ProjectTable => Rep[Int], value: Int): Future[Int] = {

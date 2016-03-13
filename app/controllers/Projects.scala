@@ -255,8 +255,19 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   def rename(author: String, name: String) = Action { implicit request =>
     val newName = renameForm.bindFromRequest.get
     withProject(author, name, project => {
-      project.setName(newName)
-      Redirect(self.show(author, newName))
+      Storage.now(project.setName(newName)) match {
+        case Failure(thrown) => throw thrown
+        case Success(i) => Redirect(self.show(author, newName))
+      }
+    })
+  }
+
+  def delete(author: String, name: String) = Action {
+    withProject(author, name, project => {
+      project.delete() match {
+        case Failure(thrown) => throw thrown
+        case Success(i) => Redirect(routes.Application.index())
+      }
     })
   }
 

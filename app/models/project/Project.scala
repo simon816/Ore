@@ -45,10 +45,12 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
 
   def getOwner: Author = UnknownAuthor(owner)
 
-  def setName(name: String) = {
-    Storage.updateProjectString(this, table => table.name, name).onSuccess {
+  def setName(name: String): Future[Int] = {
+    val f = Storage.updateProjectString(this, table => table.name, name)
+    f.onSuccess {
       case i => this.name = name
     }
+    f
   }
 
   /**
@@ -109,6 +111,8 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
     */
   def exists: Boolean = Storage.now(Storage.isDefined(Storage.getProject(this.owner, this.name))).isSuccess
 
+  def delete(): Try[Int] = Storage.now(Storage.deleteProject(this))
+
   override def hashCode: Int = this.id.get.hashCode
 
   override def equals(o: Any): Boolean = o.isInstanceOf[Project] && o.asInstanceOf[Project].id.get == this.id.get
@@ -164,7 +168,7 @@ object Project {
     override def cancel() = {
       this.firstVersion.delete()
       if (project.exists) {
-        // TODO: Delete project
+        project.delete()
       }
     }
 

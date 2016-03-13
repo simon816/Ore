@@ -38,6 +38,7 @@ GET     /:author/:name/dicuss                                   @controllers.Pro
 # Admin
 GET     /:author/:name/manage                                   @controllers.Projects.showManager(author, name)
 POST    /:author/:name/manage/rename                            @controllers.Projects.rename(author, name)
+POST    /:author/:name/delete                                   @controllers.Projects.delete(author, name)
 
 # User
 GET     /:author                                                @controllers.Projects.showAuthor(author)
