@@ -25,5 +25,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick" % "1.1.1",
   "com.typesafe.play" %% "play-slick-evolutions" % "1.1.1",
   "org.postgresql" % "postgresql" % "9.4.1208.jre7",
-  "com.github.tminglei" %% "slick-pg" % "0.12.0"
+  "com.github.tminglei" %% "slick-pg" % "0.12.0",
+  "org.apache.commons" % "commons-io" % "1.3.2"
 )

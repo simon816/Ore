@@ -2,7 +2,7 @@ package plugin
 
 import java.nio.file.{Files, Path}
 
-import models.author.{Author, AbstractAuthor$}
+import models.author.Author
 import models.project.Channel
 import play.api.Play
 import play.api.Play.current
@@ -11,9 +11,9 @@ import play.api.libs.Files.TemporaryFile
 import scala.util.Try
 
 /**
-  * Handles file management of uploaded plugins.
+  * Handles file management of uploaded projects.
   */
-object PluginManager {
+object ProjectManager {
 
   val UPLOADS_DIR = Play.application.path.toPath.resolve("uploads")
   val PLUGIN_DIR = UPLOADS_DIR.resolve("plugins")
@@ -68,7 +68,21 @@ object PluginManager {
     * @return Path to supposed file
     */
   def getUploadPath(owner: String, name: String, version: String, channel: String): Path = {
-    PLUGIN_DIR.resolve(owner).resolve(name).resolve(channel).resolve("%s-%s.jar".format(name, version.toLowerCase))
+    getProjectDir(owner, name).resolve(channel).resolve("%s-%s.jar".format(name, version.toLowerCase))
+  }
+
+  def getProjectDir(owner: String, name: String): Path = {
+    getUserDir(owner).resolve(name)
+  }
+
+  def getUserDir(owner: String): Path = {
+    PLUGIN_DIR.resolve(owner)
+  }
+
+  def renameProject(owner: String, oldName: String, newName: String): Try[Unit] = Try {
+    val newPath = getProjectDir(owner, newName)
+    Files.move(getProjectDir(owner, oldName), newPath)
+    // TODO: Rename plugin files
   }
 
 }

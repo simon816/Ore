@@ -9,7 +9,7 @@ import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Result, Action, Controller}
 import play.api.data.Forms._
-import plugin.PluginManager
+import plugin.ProjectManager
 import views.{html => views}
 import controllers.routes.{Projects => self}
 
@@ -52,7 +52,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
       case None => Redirect(self.showCreate()).flashing("error" -> "Missing file")
       case Some(tmpFile) =>
         // Initialize plugin file
-        PluginManager.initUpload(tmpFile.ref, this.user) match {
+        ProjectManager.initUpload(tmpFile.ref, this.user) match {
           case Failure(thrown) => throw thrown
           case Success(plugin) =>
             // Cache pending project for later use
@@ -152,7 +152,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         // Get project
         withProject(author, name, project => {
           // Initialize plugin file
-          PluginManager.initUpload(tmpFile.ref, this.user) match {
+          ProjectManager.initUpload(tmpFile.ref, this.user) match {
             case Failure(thrown) => throw thrown
             case Success(plugin) =>
               // Cache version for later use
@@ -213,7 +213,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
               case Failure(thrown) => throw thrown
               case Success(versionOpt) => versionOpt match {
                 case None => NotFound("Version not found.")
-                case Some(version) => Ok.sendFile(PluginManager.getUploadPath(author, name, versionString, channelName).toFile)
+                case Some(version) => Ok.sendFile(ProjectManager.getUploadPath(author, name, versionString, channelName).toFile)
               }
             }
         }
@@ -229,7 +229,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
           Storage.now(version.getChannel) match {
             case Failure(thrown) => throw thrown
             case Success(channel) =>
-              Ok.sendFile(PluginManager.getUploadPath(author, name, version.versionString, channel.name).toFile)
+              Ok.sendFile(ProjectManager.getUploadPath(author, name, version.versionString, channel.name).toFile)
           }
       }
     })

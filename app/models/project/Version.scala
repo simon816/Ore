@@ -6,7 +6,7 @@ import db.Storage
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
-import plugin.{PluginFile, PluginManager}
+import plugin.{PluginFile, ProjectManager}
 import util.{Cacheable, PendingAction}
 
 import scala.concurrent.Future
@@ -112,7 +112,7 @@ object Version {
           }
 
           // Upload plugin
-          PluginManager.uploadPlugin(this.plugin) match {
+          ProjectManager.uploadPlugin(this.plugin) match {
             case Failure(thrown) =>
               cancel()
               throw thrown

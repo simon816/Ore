@@ -5,10 +5,11 @@ import java.sql.Timestamp
 import db.Storage
 import models.author.Author
 import models.author.UnknownAuthor
+import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
-import plugin.{PluginManager, PluginFile}
+import plugin.{ProjectManager, PluginFile}
 import util.{PendingAction, Cacheable}
 
 import scala.concurrent.Future
@@ -48,7 +49,10 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
   def setName(name: String): Future[Int] = {
     val f = Storage.updateProjectString(this, table => table.name, name)
     f.onSuccess {
-      case i => this.name = name
+      case i => {
+        this.name = name
+        ProjectManager.getUserDir(this.owner)
+      }
     }
     f
   }
@@ -111,7 +115,12 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
     */
   def exists: Boolean = Storage.now(Storage.isDefined(Storage.getProject(this.owner, this.name))).isSuccess
 
-  def delete(): Try[Int] = Storage.now(Storage.deleteProject(this))
+  def delete(): Try[Unit] = Try {
+    Storage.now(Storage.deleteProject(this)) match {
+      case Failure(thrown) => throw thrown
+      case Success(i) => FileUtils.deleteDirectory(ProjectManager.getProjectDir(this.owner, this.name).toFile)
+    }
+  }
 
   override def hashCode: Int = this.id.get.hashCode
 
@@ -133,7 +142,7 @@ object Project {
     override def complete: Try[Unit] = Try {
       free()
       // Upload plugin
-      PluginManager.uploadPlugin(this.firstVersion) match {
+      ProjectManager.uploadPlugin(this.firstVersion) match {
         case Failure(thrown) =>
           cancel()
           throw thrown
