@@ -21,9 +21,10 @@ import scala.concurrent.Future
   * @param name       Name of channel
   * @param colorHex   Hex color
   */
-case class Channel(id: Option[Int], var createdAt: Option[Timestamp], projectId: Int, name: String, colorHex: String) {
+case class Channel(id: Option[Int], var createdAt: Option[Timestamp], name: String,
+                   colorHex: String, projectId: Int) {
 
-  def this(projectId: Int, name: String) = this(None, None, projectId, name, DEFAULT_COLOR)
+  def this(name: String, projectId: Int) = this(None, None, name, DEFAULT_COLOR, projectId)
 
   /**
     * Returns the Project this Channel belongs to.
@@ -53,8 +54,8 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], projectId:
     * @param version Version string
     * @return New channel
     */
-  def newVersion(version: String, description: String): Future[Version] = {
-    Storage.createVersion(new Version(this.projectId, this.id.get, version, description))
+  def newVersion(version: String, dependencies: List[String], description: String, assets: String): Future[Version] = {
+    Storage.createVersion(new Version(version, dependencies, description, assets, this.projectId, this.id.get))
   }
 
   override def hashCode: Int = this.id.get.hashCode

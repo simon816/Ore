@@ -9,7 +9,7 @@ import models.project.{Channel, Project, Version}
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
-import slick.driver.PostgresDriver.api._
+import pg.OrePostgresDriver.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration

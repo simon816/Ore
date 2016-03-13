@@ -24,5 +24,6 @@ libraryDependencies ++= Seq(
   "org.spongepowered" % "plugin-meta" % "0.2-SNAPSHOT",
   "com.typesafe.play" %% "play-slick" % "1.1.1",
   "com.typesafe.play" %% "play-slick-evolutions" % "1.1.1",
-  "org.postgresql" % "postgresql" % "9.4.1208.jre7"
+  "org.postgresql" % "postgresql" % "9.4.1208.jre7",
+  "com.github.tminglei" %% "slick-pg" % "0.12.0"
 )

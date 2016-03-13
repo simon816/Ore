@@ -2,7 +2,7 @@ package plugin
 
 import java.nio.file.{Files, Path}
 
-import models.author.Author
+import models.author.{Author, AbstractAuthor$}
 import models.project.Channel
 import play.api.Play
 import play.api.Play.current

@@ -3,8 +3,7 @@ package controllers
 import javax.inject.Inject
 
 import db.Storage
-import models.author.Author
-import models.author.Author.Unknown
+import models.author.{UnknownAuthor, Author}
 import models.project.{Channel, Project, Version}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Result, Action, Controller}
@@ -21,7 +20,7 @@ import scala.util.{Failure, Success}
 class Projects @Inject()(override val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
   // TODO: Replace with auth'd user
-  val user: Author = Unknown(name = "SpongePowered")
+  val user: Author = UnknownAuthor("SpongePowered")
 
   private def withProject(author: String, name: String, f: Project => Result): Result = {
     Storage.now(Storage.getProject(author, name)) match {

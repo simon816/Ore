@@ -4,6 +4,7 @@ import java.sql.Timestamp
 
 import db.Storage
 import models.author.Author
+import models.author.UnknownAuthor
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
@@ -12,6 +13,8 @@ import util.{PendingAction, Cacheable}
 
 import scala.concurrent.Future
 import scala.util.{Success, Failure, Try}
+
+import collection.JavaConversions._
 
 /**
   * Represents an Ore package.
@@ -30,14 +33,16 @@ import scala.util.{Success, Failure, Try}
   * @param downloads   How many times this project has been downloaded in total
   * @param starred     How many times this project has been starred
   */
-case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: String, name: String, owner: String,
-                   var recommendedVersionId: Option[Int], views: Int, downloads: Int, starred: Int) {
+case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: String,
+                   name: String, owner: String, authors: List[String], homepage: Option[String],
+                   var recommendedVersionId: Option[Int], views: Int, downloads: Int,
+                   starred: Int) {
 
-  def this(pluginId: String, name: String, description: String, owner: String) = {
-    this(None, None, pluginId, name, owner, None, 0, 0, 0)
+  def this(pluginId: String, name: String, owner: String, authors: List[String], homepage: String) = {
+    this(None, None, pluginId, name, owner, authors, Option(homepage), None, 0, 0, 0)
   }
 
-  def getOwner: Author = throw new NotImplementedError // TODO
+  def getOwner: Author = UnknownAuthor(owner)
 
   /**
     * Returns all Channels belonging to this Project.
@@ -61,7 +66,7 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
     * @return New channel
     */
   def newChannel(name: String): Future[Channel] = {
-    Storage.createChannel(new Channel(this.id.get, name))
+    Storage.createChannel(new Channel(name, this.id.get))
   }
 
   /**
@@ -137,7 +142,7 @@ object Project {
                   throw thrown
                 case Success(channel) =>
                   // Create first version
-                  Storage.now(channel.newVersion(meta.getVersion, meta.getDescription)) match {
+                  Storage.now(channel.newVersion(meta.getVersion, List(), "", meta.getDescription)) match {
                     case Failure(thrown) =>
                       cancel()
                       throw thrown
@@ -189,8 +194,7 @@ object Project {
     * @return New project
     */
   def fromMeta(owner: String, meta: PluginMetadata): Project = {
-    val desc = if (meta.getDescription != null) meta.getDescription else "" // TODO: Disallow null descriptions
-    new Project(meta.getId, meta.getName, desc, owner)
+    new Project(meta.getId, meta.getName, owner, meta.getAuthors.toList, meta.getUrl)
   }
 
 }

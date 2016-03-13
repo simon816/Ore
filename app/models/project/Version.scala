@@ -6,11 +6,11 @@ import db.Storage
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
-import plugin.{PluginManager, PluginFile}
+import plugin.{PluginFile, PluginManager}
 import util.{Cacheable, PendingAction}
 
 import scala.concurrent.Future
-import scala.util.{Success, Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 /**
   * Represents a single version of a Project.
@@ -20,14 +20,17 @@ import scala.util.{Success, Failure, Try}
   * @param channelId      ID of channel this version belongs to
   * @param versionString  Version string
   */
-case class Version(id: Option[Int], var createdAt: Option[Timestamp], projectId: Int,
-                   var channelId: Int, downloads: Int, versionString: String, description: Option[String]) {
+case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionString: String,
+                   dependencies: List[String], description: Option[String], assets: Option[String],
+                   downloads: Int, projectId: Int, var channelId: Int) {
 
-  def this(projectId: Int, channelId: Int, versionString: String, description: String) = {
-    this(None, None, projectId, channelId, 0, versionString, Option(description))
+  def this(versionString: String, dependencies: List[String], description: String, assets: String, projectId: Int, channelId: Int) = {
+    this(None, None, versionString, dependencies, Option(description), Option(assets), 0, projectId, channelId)
   }
 
-  def this(projectId: Int, versionString: String, description: String) = this(projectId, -1, versionString, description)
+  def this(versionString: String, dependencies: List[String], description: String, assets: String, projectId: Int) = {
+    this(versionString, dependencies, description, assets, projectId, -1)
+  }
 
   /**
     * Returns the project this version belongs to.
@@ -175,7 +178,9 @@ object Version {
     * @return New Version
     */
   def fromMeta(project: Project, meta: PluginMetadata): Version = {
-    new Version(project.id.get, meta.getVersion, meta.getDescription)
+    // TODO: Dependency parsing
+    // TOOD: asset parsing
+    new Version(meta.getVersion, List(), meta.getDescription, "", project.id.get)
   }
 
 }

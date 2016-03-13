@@ -36,7 +36,7 @@
                         @if(pending.isDefined) {
                             @defining(pending.get.version) { version =>
                                 @form(action = routes.Projects.createVersion(project.owner, project.name, pending.get.channelName, version.versionString)) {
-                                    <input type="submit" name="create" value="Release" class="btn btn-primary" />
+                                    <input type="submit" name="create" value="Publish" class="btn btn-primary" />
                                 }
                             }
                         }
