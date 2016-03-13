@@ -7,3 +7,7 @@ $(document).ready(function() {
         increment *= -1;
     });
 });
+
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+});
