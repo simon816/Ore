@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import models.author.{Dev, Team}
 import models.project.{Channel, Project, Version}
-import pg.OrePostgresDriver.api._
+import OrePostgresDriver.api._
 
 /*
  * Database schema definitions

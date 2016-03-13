@@ -264,7 +264,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
 
   def delete(author: String, name: String) = Action {
     withProject(author, name, project => {
-      project.delete() match {
+      project.delete match {
         case Failure(thrown) => throw thrown
         case Success(i) => Redirect(routes.Application.index())
       }

@@ -49,10 +49,9 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
   def setName(name: String): Future[Int] = {
     val f = Storage.updateProjectString(this, table => table.name, name)
     f.onSuccess {
-      case i => {
+      case i =>
+        ProjectManager.renameProject(this.owner, this.name, name)
         this.name = name
-        ProjectManager.getUserDir(this.owner)
-      }
     }
     f
   }
@@ -115,7 +114,7 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
     */
   def exists: Boolean = Storage.now(Storage.isDefined(Storage.getProject(this.owner, this.name))).isSuccess
 
-  def delete(): Try[Unit] = Try {
+  def delete: Try[Unit] = Try {
     Storage.now(Storage.deleteProject(this)) match {
       case Failure(thrown) => throw thrown
       case Success(i) => FileUtils.deleteDirectory(ProjectManager.getProjectDir(this.owner, this.name).toFile)
@@ -177,7 +176,7 @@ object Project {
     override def cancel() = {
       this.firstVersion.delete()
       if (project.exists) {
-        project.delete()
+        project.delete
       }
     }
 
