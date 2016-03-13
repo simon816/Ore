@@ -68,7 +68,7 @@ object PluginManager {
     * @return Path to supposed file
     */
   def getUploadPath(owner: String, name: String, version: String, channel: String): Path = {
-    PLUGIN_DIR.resolve(owner).resolve(name).resolve("%s-%s-%s.jar".format(name, version, channel.toLowerCase))
+    PLUGIN_DIR.resolve(owner).resolve(name).resolve(channel).resolve("%s-%s.jar".format(name, version.toLowerCase))
   }
 
 }

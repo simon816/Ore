@@ -5,8 +5,10 @@ import javax.inject.Inject
 import db.Storage
 import models.author.{UnknownAuthor, Author}
 import models.project.{Channel, Project, Version}
+import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Result, Action, Controller}
+import play.api.data.Forms._
 import plugin.PluginManager
 import views.{html => views}
 import controllers.routes.{Projects => self}
@@ -244,8 +246,18 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     withProject(author, name, project => Ok(views.projects.discussion(project)))
   }
 
+  val renameForm = Form(single("name" -> text))
+
   def showManager(author: String, name: String) = Action {
     withProject(author, name, project => Ok(views.projects.manage(project)))
+  }
+
+  def rename(author: String, name: String) = Action { implicit request =>
+    val newName = renameForm.bindFromRequest.get
+    withProject(author, name, project => {
+      project.setName(newName)
+      Redirect(self.show(author, newName))
+    })
   }
 
   /**

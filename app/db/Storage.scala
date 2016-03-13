@@ -161,15 +161,18 @@ object Storage {
     this.config.db.run(query)
   }
 
-  def updateProjectInt(project: Project, key: ProjectTable => Rep[Int], value: Int, sync: Int => Unit): Future[Int] = {
+  def updateProjectInt(project: Project, key: ProjectTable => Rep[Int], value: Int): Future[Int] = {
     val projects = q[ProjectTable](classOf[Project])
     val query = for { p <- projects if p.id === project.id } yield key(p)
     val action = query.update(value)
-    val future = this.config.db.run(action)
-    future.onSuccess {
-      case newId => sync(newId)
-    }
-    future
+    this.config.db.run(action)
+  }
+
+  def updateProjectString(project: Project, key: ProjectTable => Rep[String], value: String): Future[Int] = {
+    val projects = q[ProjectTable](classOf[Project])
+    val query = for { p <- projects if p.id === project.id } yield key(p)
+    val action = query.update(value)
+    this.config.db.run(action)
   }
 
   // Channel queries

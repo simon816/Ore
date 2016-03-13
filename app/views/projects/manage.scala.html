@@ -1,4 +1,5 @@
 @import models.project.Project
+@import views.html.helper.form
 @(project: Project)(implicit messages: Messages)
 
 @projects.detail(project, "#settings") {
@@ -9,6 +10,12 @@
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">Settings</h3>
+                        @form(action = routes.Projects.rename(project.owner, project.name)) {
+                            <div class="form-group">
+                                <label for="name">Project name</label>
+                                <input id="name" name="name" class="form-control" type="text" value="@project.name">
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

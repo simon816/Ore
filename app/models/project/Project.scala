@@ -13,6 +13,7 @@ import util.{PendingAction, Cacheable}
 
 import scala.concurrent.Future
 import scala.util.{Success, Failure, Try}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import collection.JavaConversions._
 
@@ -34,15 +35,21 @@ import collection.JavaConversions._
   * @param starred     How many times this project has been starred
   */
 case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: String,
-                   name: String, owner: String, authors: List[String], homepage: Option[String],
-                   var recommendedVersionId: Option[Int], views: Int, downloads: Int,
-                   starred: Int) {
+                   var name: String, owner: String, authors: List[String],
+                   homepage: Option[String], var recommendedVersionId: Option[Int],
+                   views: Int, downloads: Int, starred: Int) {
 
   def this(pluginId: String, name: String, owner: String, authors: List[String], homepage: String) = {
     this(None, None, pluginId, name, owner, authors, Option(homepage), None, 0, 0, 0)
   }
 
   def getOwner: Author = UnknownAuthor(owner)
+
+  def setName(name: String) = {
+    Storage.updateProjectString(this, table => table.name, name).onSuccess {
+      case i => this.name = name
+    }
+  }
 
   /**
     * Returns all Channels belonging to this Project.
@@ -82,10 +89,10 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
     * @param version Version to set
     * @return Result
     */
-  def setRecommendedVersion(version: Version): Future[Int] = {
-    Storage.updateProjectInt(this, table => table.recommendedVersionId, version.id.get, newId => {
-      this.recommendedVersionId = Some(newId)
-    })
+  def setRecommendedVersion(version: Version) = {
+    Storage.updateProjectInt(this, table => table.recommendedVersionId, version.id.get).onSuccess {
+      case i => this.recommendedVersionId = version.id
+    }
   }
 
   /**
