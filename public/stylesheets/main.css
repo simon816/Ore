@@ -1,5 +1,7 @@
 .logo {
     width: 50%;
+    margin-bottom: 30px; !important;
+    transform: translateY(-10px);
 }
 
 .table-controls {
@@ -7,22 +9,28 @@
 }
 
 .project-table > tbody > tr > td {
-    font-size: 140%;
+    font-size: 20px;
 }
 
 .project-header-container {
-    margin-top: 90px;
+    margin-top: 75px;
     border-bottom: 1px solid #ddd;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+}
+
+.project-controls {
+    margin-top: 20px;
 }
 
 .btn-version {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .project-header {
     font-size: 20px;
     font-weight: normal;
+    margin-top: 25px;
+    margin-right: 15px;
 }
 
 .project-navbar {
