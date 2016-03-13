@@ -5,7 +5,6 @@ CREATE TABLE projects (
   created_at              timestamp     NOT NULL,
   plugin_id               varchar(255)  NOT NULL UNIQUE,
   name                    varchar(255)  NOT NULL,
-  description             varchar(255)  NOT NULL,
   owner_name              varchar(255)  NOT NULL,
   recommended_version_id  bigint        ,
   views                   bigint        NOT NULL CHECK (views >= 0),
@@ -24,9 +23,11 @@ CREATE TABLE channels (
 CREATE TABLE versions (
   id              serial        NOT NULL PRIMARY KEY,
   created_at      timestamp     NOT NULL,
-  project_id      BIGINT        NOT NULL REFERENCES projects ON DELETE CASCADE,
+  project_id      bigint        NOT NULL REFERENCES projects ON DELETE CASCADE,
   channel_id      bigint        NOT NULL REFERENCES channels ON DELETE CASCADE,
-  version_string  varchar(255)  NOT NULL
+  downloads       bigint        NOT NULL CHECK (downloads >= 0),
+  version_string  varchar(255)  NOT NULL,
+  description     varchar(255)
 );
 
 CREATE TABLE devs (

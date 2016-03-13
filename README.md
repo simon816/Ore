@@ -2,8 +2,7 @@ ore-play
 ========
 
 ore-play is a WIP port of the Sponge [Ore](https://github.com/SpongePowered/Ore) project, originally written in Python
-using Django. This implementation emphasizes readability, good OOP practices, and encapsulated polymorphic structures 
-by separating application and database logic from abstract concepts wherever possible.
+using Django.
  
 ore-play is written in Scala using the [Play](https://www.playframework.com/) framework.
 

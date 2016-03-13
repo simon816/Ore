@@ -16,7 +16,6 @@ class ProjectTable(tag: Tag) extends Table[Project](tag, "projects") {
   def createdAt             =   column[Timestamp]("created_at")
   def pluginId              =   column[String]("plugin_id")
   def name                  =   column[String]("name")
-  def description           =   column[String]("description")
   def ownerName             =   column[String]("owner_name")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
   def views                 =   column[Int]("views", O.Default(0))
@@ -24,8 +23,8 @@ class ProjectTable(tag: Tag) extends Table[Project](tag, "projects") {
   def starred               =   column[Int]("starred", O.Default(0))
 
   override def * = {
-    (id.?, createdAt.?, pluginId, name, description,
-      ownerName, recommendedVersionId.?, views, downloads, starred) <> ((Project.apply _).tupled, Project.unapply)
+    (id.?, createdAt.?, pluginId, name, ownerName, recommendedVersionId.?, views,
+      downloads, starred) <> ((Project.apply _).tupled, Project.unapply)
   }
 
 }
@@ -47,9 +46,12 @@ class VersionTable(tag: Tag) extends Table[Version](tag, "versions") {
   def createdAt       =   column[Timestamp]("created_at")
   def projectId       =   column[Int]("project_id")
   def channelId       =   column[Int]("channel_id")
+  def downloads       =   column[Int]("downloads")
   def versionString   =   column[String]("version_string")
+  def description     =   column[String]("description")
 
-  override def * = (id.?, createdAt.?, projectId, channelId, versionString) <> ((Version.apply _).tupled, Version.unapply)
+  override def * = (id.?, createdAt.?, projectId, channelId, downloads,
+    versionString, description.?) <> ((Version.apply _).tupled, Version.unapply)
 }
 
 class DevTable(tag: Tag) extends Table[Dev](tag, "devs") {

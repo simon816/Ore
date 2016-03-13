@@ -13,7 +13,6 @@ class Api extends Controller {
     def writes(project: Project) = Json.obj(
       "id" -> project.pluginId,
       "name" -> project.name,
-      "description" -> project.description,
       "owner" -> project.owner,
       "views" -> project.views,
       "downloads" -> project.downloads,

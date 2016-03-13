@@ -22,7 +22,7 @@ Collection of all projects.
         @models.map { project =>
             <tr class="">
                 <td class="" colspan="1">
-                    <strong><a class="" href="@routes.Projects.show(project.owner, project.name)">@project.toString</a></strong>
+                    <strong><a class="" href="@routes.Projects.show(project.owner, project.name)">@project.name</a></strong>
                 </td>
                 <td>@project.owner</td>
                 <td>@project.views</td>

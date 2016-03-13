@@ -53,8 +53,8 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], projectId:
     * @param version Version string
     * @return New channel
     */
-  def newVersion(version: String): Future[Version] = {
-    Storage.createVersion(new Version(this.projectId, this.id.get, version))
+  def newVersion(version: String, description: String): Future[Version] = {
+    Storage.createVersion(new Version(this.projectId, this.id.get, version, description))
   }
 
   override def hashCode: Int = this.id.get.hashCode

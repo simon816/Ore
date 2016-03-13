@@ -25,17 +25,16 @@ import scala.util.{Success, Failure, Try}
   * @param createdAt   Instant of creation
   * @param pluginId    Plugin ID
   * @param name        Name of plugin
-  * @param description Short description of plugin
   * @param owner       The owner Author for this project
   * @param views       How many times this project has been views
   * @param downloads   How many times this project has been downloaded in total
   * @param starred     How many times this project has been starred
   */
-case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: String, name: String, description: String,
-                   owner: String, var recommendedVersionId: Option[Int], views: Int, downloads: Int, starred: Int) {
+case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: String, name: String, owner: String,
+                   var recommendedVersionId: Option[Int], views: Int, downloads: Int, starred: Int) {
 
   def this(pluginId: String, name: String, description: String, owner: String) = {
-    this(None, None, pluginId, name, description, owner, None, 0, 0, 0)
+    this(None, None, pluginId, name, owner, None, 0, 0, 0)
   }
 
   def getOwner: Author = throw new NotImplementedError // TODO
@@ -98,8 +97,6 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
     */
   def exists: Boolean = Storage.now(Storage.isDefined(Storage.getProject(this.owner, this.name))).isSuccess
 
-  override def toString: String = "%s - %s".format(this.name, this.description)
-
   override def hashCode: Int = this.id.get.hashCode
 
   override def equals(o: Any): Boolean = o.isInstanceOf[Project] && o.asInstanceOf[Project].id.get == this.id.get
@@ -140,7 +137,7 @@ object Project {
                   throw thrown
                 case Success(channel) =>
                   // Create first version
-                  Storage.now(channel.newVersion(meta.getVersion)) match {
+                  Storage.now(channel.newVersion(meta.getVersion, meta.getDescription)) match {
                     case Failure(thrown) =>
                       cancel()
                       throw thrown

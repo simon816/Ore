@@ -20,11 +20,14 @@ import scala.util.{Success, Failure, Try}
   * @param channelId      ID of channel this version belongs to
   * @param versionString  Version string
   */
-case class Version(id: Option[Int], var createdAt: Option[Timestamp], projectId: Int, var channelId: Int, versionString: String) {
+case class Version(id: Option[Int], var createdAt: Option[Timestamp], projectId: Int,
+                   var channelId: Int, downloads: Int, versionString: String, description: Option[String]) {
 
-  def this(projectId: Int, channelId: Int, versionString: String) = this(None, None, projectId, channelId, versionString)
+  def this(projectId: Int, channelId: Int, versionString: String, description: String) = {
+    this(None, None, projectId, channelId, 0, versionString, Option(description))
+  }
 
-  def this(projectId: Int, versionString: String) = this(projectId, -1, versionString)
+  def this(projectId: Int, versionString: String, description: String) = this(projectId, -1, versionString, description)
 
   /**
     * Returns the project this version belongs to.
@@ -172,7 +175,7 @@ object Version {
     * @return New Version
     */
   def fromMeta(project: Project, meta: PluginMetadata): Version = {
-    new Version(project.id.get, meta.getVersion)
+    new Version(project.id.get, meta.getVersion, meta.getDescription)
   }
 
 }
