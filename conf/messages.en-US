@@ -9,7 +9,7 @@ general.forums = Forums
 general.chat = Chat
 general.all-cats = all categories
 
-project.package = Package
+project.name = Name
 project.author = Author
 project.views = Views
 project.downloads = Downloads

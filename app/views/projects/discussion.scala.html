@@ -2,7 +2,6 @@
 Discussion page within Project overview.
 *@
 @import models.project.Project
-@import controllers.Secured.Context
 @(model: Project)(implicit messages: Messages, session: Session)
 
 @projects.detail(model, "#discussion") {

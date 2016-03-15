@@ -2,7 +2,6 @@
 Base template for Project overview.
 *@
 @import models.project.Project
-@import controllers.Secured.Context
 @(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session)
 
 @core.layout(project.owner + " / " + project.name) {
@@ -35,12 +34,14 @@ Base template for Project overview.
                                 Discuss
                             </a>
                         </li>
-                        <li id="settings" class="">
-                            <a href="@routes.Projects.showManager(project.owner, project.name)">
-                                <i class="fa fa-cog"></i>
-                                Settings
-                            </a>
-                        </li>
+                        @if(session.get("username").isDefined && session.get("username").get.equals(project.owner)) {
+                            <li id="settings" class="">
+                                <a href="@routes.Projects.showManager(project.owner, project.name)">
+                                    <i class="fa fa-cog"></i>
+                                    Settings
+                                </a>
+                            </li>
+                        }
                     </ul>
 
                     <script>
@@ -60,9 +61,11 @@ Base template for Project overview.
                 <button class="btn btn-default btn-star">
                     <i class="fa fa-star"></i><span class="starred"> @project.starred</span>
                 </button>
-                <button class="btn btn-default">
-                    <i class="fa fa-flag"></i> Flag
-                </button>
+                @if(session.get("username").isEmpty || !session.get("username").get.equals(project.owner)) {
+                    <button class="btn btn-default">
+                        <i class="fa fa-flag"></i> Flag
+                    </button>
+                }
             </div>
 
         </div>

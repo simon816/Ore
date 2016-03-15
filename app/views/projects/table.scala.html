@@ -2,7 +2,6 @@
 Collection of all projects.
 *@
 @import models.project.Project
-@import controllers.Secured.Context
 @(models: Seq[Project])(implicit messages: Messages, session: Session)
 
 <div class="container">
@@ -16,7 +15,7 @@ Collection of all projects.
     <table class="table project-table">
         <thead>
             <tr>
-                <th>@messages("project.package")</th>
+                <th>@messages("project.name")</th>
                 <th>@messages("project.author")</th>
                 <th>@messages("project.views")</th>
                 <th>@messages("project.downloads")</th>

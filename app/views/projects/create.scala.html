@@ -3,7 +3,6 @@ Page used for uploading and creating new projects.
 *@
 @import models.project.Project.PendingProject
 @import views.html.helper.form
-@import controllers.Secured.Context
 @(pending: Option[PendingProject])(implicit messages: Messages, session: Session)
 
 @core.layout(messages("project.create")) {

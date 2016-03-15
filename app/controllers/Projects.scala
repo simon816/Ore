@@ -2,17 +2,16 @@ package controllers
 
 import javax.inject.Inject
 
+import controllers.routes.{Projects => self}
 import db.Storage
-import models.author.{UnknownAuthor, Author}
 import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Result, Action, Controller}
 import play.api.data.Forms._
+import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.mvc._
 import plugin.ProjectManager
 import views.{html => views}
-import controllers.routes.{Projects => self}
 
 import scala.util.{Failure, Success}
 
@@ -21,9 +20,6 @@ import scala.util.{Failure, Success}
   * TODO: Localize
   */
 class Projects @Inject()(override val messagesApi: MessagesApi) extends Controller with I18nSupport with Secured {
-
-  // TODO: Replace with auth'd user
-  val user: Author = UnknownAuthor("SpongePowered")
 
   private def withProject(author: String, name: String, f: Project => Result): Result = {
     Storage.now(Storage.getProject(author, name)) match {
@@ -38,7 +34,6 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return Create project view
     */
   def showCreate = withAuth { context => implicit request =>
-    // TODO: Check auth here
     Ok(views.projects.create(None))
   }
 
@@ -47,19 +42,18 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     *
     * @return Result
     */
-  def upload = Action(parse.multipartFormData) { implicit request =>
-    // TODO: Check auth here
-    request.body.file("pluginFile") match {
+  def upload = { withUser(None, user => implicit request =>
+    request.body.asMultipartFormData.get.file("pluginFile") match {
       case None => Redirect(self.showCreate()).flashing("error" -> "Missing file")
       case Some(tmpFile) =>
         // Initialize plugin file
-        ProjectManager.initUpload(tmpFile.ref, this.user) match {
+        ProjectManager.initUpload(tmpFile.ref, user) match {
           case Failure(thrown) => throw thrown
           case Success(plugin) =>
             // Cache pending project for later use
             val meta = plugin.getMeta.get
             println("meta = " + meta)
-            val project = Project.fromMeta(this.user.name, meta)
+            val project = Project.fromMeta(user.username, meta)
             if (project.exists) {
               BadRequest("You already have a project named " + meta.getName + "!")
             } else {
@@ -67,7 +61,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
               Redirect(self.showCreateWithMeta(project.owner, project.name))
             }
         }
-    }
+    })
   }
 
   /**
@@ -77,12 +71,11 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param name Name of plugin
     * @return Create project view
     */
-  def showCreateWithMeta(author: String, name: String) = Action { implicit request =>
-    // TODO: Check auth here
+  def showCreateWithMeta(author: String, name: String) = { withUser(Some(author), user => implicit request =>
     Project.getPending(author, name) match {
       case None => Redirect(self.showCreate())
       case Some(pending) => Ok(views.projects.create(Some(pending)))
-    }
+    })
   }
 
   /**
@@ -93,14 +86,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param name Name of project
     * @return Redirection to project page if successful
     */
-  def showFirstVersionCreate(author: String, name: String) = Action { implicit request =>
-    // TODO: Check auth here
+  def showFirstVersionCreate(author: String, name: String) = { withUser(Some(author), user => implicit request =>
     Project.getPending(author, name) match {
       case None => BadRequest("No project to create.")
       case Some(pendingProject) =>
         val pendingVersion = pendingProject.initFirstVersion
         Redirect(self.showVersionCreateWithMeta(author, name, pendingVersion.channelName, pendingVersion.version.versionString))
-    }
+    })
   }
 
   /**
@@ -141,20 +133,18 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param name Name of project
     * @return Version creation view
     */
-  def showVersionCreate(author: String, name: String) = Action { implicit request =>
-    // TODO: Check auth here
-    withProject(author, name, project => Ok(views.projects.versionCreate(project, None, showFileControls = true)))
+  def showVersionCreate(author: String, name: String) = { withUser(Some(author), user => implicit request =>
+    withProject(author, name, project => Ok(views.projects.versionCreate(project, None, showFileControls = true))))
   }
 
-  def uploadVersion(author: String, name: String) = Action(parse.multipartFormData) { implicit request =>
-    // TODO: Check auth here
-    request.body.file("pluginFile") match {
+  def uploadVersion(author: String, name: String) = { withUser(Some(author), user => implicit request =>
+    request.body.asMultipartFormData.get.file("pluginFile") match {
       case None => Redirect(self.showVersionCreate(author, name)).flashing("error" -> "Missing file")
       case Some(tmpFile) =>
         // Get project
         withProject(author, name, project => {
           // Initialize plugin file
-          ProjectManager.initUpload(tmpFile.ref, this.user) match {
+          ProjectManager.initUpload(tmpFile.ref, user) match {
             case Failure(thrown) => throw thrown
             case Success(plugin) =>
               // Cache version for later use
@@ -165,7 +155,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
               Redirect(self.showVersionCreateWithMeta(author, name, channelName, version.versionString))
           }
         })
-    }
+    })
   }
 
   private def pendingOrReal(author: String, name: String): Option[Any] = {
@@ -179,8 +169,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   }
 
   def showVersionCreateWithMeta(author: String, name: String,
-                                channelName: String, versionString: String) = Action { implicit request =>
-    // TODO: Check auth here
+                                channelName: String, versionString: String) = {
+                                withUser(Some(author), user => implicit request =>
     // Get pending version
     Version.getPending(author, name, channelName, versionString) match {
       case None => Redirect(routes.Application.index())
@@ -195,11 +185,11 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
               Ok(views.projects.versionCreate(real, Some(pendingVersion), showFileControls = true))
           }
         }
-    }
+    })
   }
 
-  def createVersion(author: String, name: String, channelName: String, versionString: String) = Action { implicit request =>
-    // TODO: Check auth here
+  def createVersion(author: String, name: String, channelName: String, versionString: String) = {
+                    withUser(Some(author), user => implicit request =>
     Version.getPending(author, name, channelName, versionString) match {
       case None => BadRequest("No version to create.")
       case Some(pendingVersion) =>
@@ -214,7 +204,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
             case Success(void) => Redirect(self.show(author, name))
           }
       }
-    }
+    })
   }
 
   /**
@@ -272,27 +262,27 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
 
   val renameForm = Form(single("name" -> text))
 
-  def showManager(author: String, name: String) = Action { implicit request =>
-    withProject(author, name, project => Ok(views.projects.manage(project)))
+  def showManager(author: String, name: String) = { withUser(Some(author), user => implicit request =>
+    withProject(author, name, project => Ok(views.projects.manage(project))))
   }
 
-  def rename(author: String, name: String) = Action { implicit request =>
-    val newName = renameForm.bindFromRequest.get
+  def rename(author: String, name: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
+      val newName = this.renameForm.bindFromRequest.get
       Storage.now(project.setName(newName)) match {
         case Failure(thrown) => throw thrown
         case Success(i) => Redirect(self.show(author, newName))
       }
-    })
+    }))
   }
 
-  def delete(author: String, name: String) = Action { implicit request =>
+  def delete(author: String, name: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
       project.delete match {
         case Failure(thrown) => throw thrown
         case Success(i) => Redirect(routes.Application.index())
       }
-    })
+    }))
   }
 
   /**

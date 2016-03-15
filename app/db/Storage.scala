@@ -4,13 +4,13 @@ import java.sql.Timestamp
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
+import db.OrePostgresDriver.api._
 import models.auth.User
 import models.author.{Dev, Team}
 import models.project.{Channel, Project, Version}
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
-import OrePostgresDriver.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration

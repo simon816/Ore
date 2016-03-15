@@ -3,7 +3,6 @@ The main entry point of Ore. This page displays a list of Projects that can be
 sorted according to different criteria.
 *@
 @import models.project.Project
-@import controllers.Secured.Context
 @(models: Seq[Project])(implicit messages: Messages, session: Session)
 
 @core.layout(messages("general.title")) {

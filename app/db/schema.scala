@@ -2,10 +2,10 @@ package db
 
 import java.sql.Timestamp
 
+import db.OrePostgresDriver.api._
 import models.auth.User
 import models.author.{Dev, Team}
 import models.project.{Channel, Project, Version}
-import OrePostgresDriver.api._
 
 /*
  * Database schema definitions

@@ -3,15 +3,15 @@ package plugin
 import java.nio.file.{Files, Path}
 
 import db.Storage
-import models.author.Author
+import models.auth.User
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
-import models.project.{Project, Version, Channel}
+import models.project.{Channel, Project, Version}
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.Files.TemporaryFile
 
-import scala.util.{Success, Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 /**
   * Handles file management of uploaded projects.
@@ -29,7 +29,7 @@ object ProjectManager {
     * @param owner Project owner
     * @return New plugin file
     */
-  def initUpload(tmp: TemporaryFile, owner: Author): Try[PluginFile] = Try {
+  def initUpload(tmp: TemporaryFile, owner: User): Try[PluginFile] = Try {
     val tmpPath = TEMP_DIR.resolve(owner.name).resolve("plugin.jar")
     val plugin = new PluginFile(tmpPath, owner)
     if (Files.notExists(tmpPath.getParent)) {
@@ -51,7 +51,7 @@ object ProjectManager {
       case None => throw new IllegalArgumentException("Specified PluginFile has no meta loaded.")
       case Some(meta) =>
         val oldPath = plugin.getPath
-        val newPath = getUploadPath(plugin.getOwner.name, meta.getName, meta.getVersion, channel.name)
+        val newPath = getUploadPath(plugin.getOwner.username, meta.getName, meta.getVersion, channel.name)
         if (!Files.exists(newPath.getParent)) {
           Files.createDirectories(newPath.getParent)
         }

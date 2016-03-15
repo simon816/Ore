@@ -3,21 +3,19 @@ package models.project
 import java.sql.Timestamp
 
 import db.Storage
-import models.author.Author
-import models.author.UnknownAuthor
+import models.author.{Author, UnknownAuthor}
 import models.project.Version.PendingVersion
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
-import plugin.{ProjectManager, PluginFile}
-import util.{PendingAction, Cacheable}
+import plugin.{PluginFile, ProjectManager}
+import util.{Cacheable, PendingAction}
 
-import scala.concurrent.Future
-import scala.util.{Success, Failure, Try}
+import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext.Implicits.global
-
-import collection.JavaConversions._
+import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 /**
   * Represents an Ore package.

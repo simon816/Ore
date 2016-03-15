@@ -2,7 +2,6 @@
 Documentation page within Project overview.
 *@
 @import models.project.Project
-@import controllers.Secured.Context
 @(model: Project)(implicit messages: Messages, session: Session)
 
     @projects.detail(model, "#docs") {
@@ -12,7 +11,9 @@ Documentation page within Project overview.
                 <div class="row">
                     <div class="col-md-12">
                         <h1 class="pull-left">Home</h1>
-                        <button class="btn btn-default pull-right"><i class="fa fa-edit"></i>Edit</button>
+                        @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {
+                            <button class="btn btn-default pull-right"><i class="fa fa-edit"></i>Edit</button>
+                        }
                         <div class="clearfix"></div>
                         <div class="row">
                             <div class="col-md-9">

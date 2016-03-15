@@ -2,7 +2,6 @@
 Versions page within Project overview.
 *@
 @import models.project.{Channel, Project, Version}
-@import controllers.Secured.Context
 @(model: Project, channels: Seq[Channel], versions: Seq[Version])(implicit messages: Messages, session: Session)
 
 @projects.detail(model, "#versions") {
@@ -56,9 +55,11 @@ Versions page within Project overview.
                                       <a href="#" class="pull-right"><i class="fa fa-eye"></i></a>
                                   </li>
                                 }
-                                <li class="list-group-item text-right">
-                                    <a href="#"><i class="fa fa-cog"></i> Edit</a>
-                                </li>
+                                @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {
+                                    <li class="list-group-item text-right">
+                                        <a href="#"><i class="fa fa-cog"></i> Edit</a>
+                                    </li>
+                                }
                             </ul>
 
                         </div>

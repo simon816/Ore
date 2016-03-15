@@ -5,7 +5,7 @@ import db.Storage
 import models.auth.User
 import play.api.mvc._
 
-import scala.util.{Success, Failure}
+import scala.util.{Failure, Success}
 
 trait Secured {
 
@@ -19,10 +19,14 @@ trait Secured {
     }
   }
 
-  def withUser(f: User => Request[AnyContent] => Result) = withAuth { context => implicit request =>
-    Storage.now(Storage.getUser(context.username)) match {
-      case Failure(thrown) => throw thrown
-      case Success(user) => f(user)(request)
+  def withUser(username: Option[String] = None, f: User => Request[AnyContent] => Result) = withAuth { context => implicit request =>
+    if (username.isDefined && !username.get.equals(context.username)) {
+      onUnauthorized(request)
+    } else {
+      Storage.now(Storage.getUser(context.username)) match {
+        case Failure(thrown) => throw thrown
+        case Success(user) => f(user)(request)
+      }
     }
   }
 

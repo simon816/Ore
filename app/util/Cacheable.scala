@@ -1,7 +1,7 @@
 package util
 
-import play.api.cache.Cache
 import play.api.Play.current
+import play.api.cache.Cache
 
 /**
   * Represents something that can be added to the Cache.

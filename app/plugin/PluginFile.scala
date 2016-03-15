@@ -3,7 +3,7 @@ package plugin
 import java.nio.file.{Files, Path}
 import java.util.jar.JarFile
 
-import models.author.Author
+import models.auth.User
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 
 import scala.collection.JavaConversions._
@@ -14,7 +14,7 @@ import scala.util.Try
   *
   * @param path Path to uploaded file
   */
-class PluginFile(private var path: Path, private val owner: Author) {
+class PluginFile(private var path: Path, private val owner: User) {
 
   val META_FILE_NAME = "mcmod.info"
 
@@ -37,7 +37,7 @@ class PluginFile(private var path: Path, private val owner: Author) {
     *
     * @return Owner of file
     */
-  def getOwner: Author = this.owner
+  def getOwner: User = this.owner
 
   /**
     * Returns the loaded PluginMetadata, if any.
