@@ -1,6 +1,7 @@
 @import models.project.Project
 @import views.html.helper.form
-@(project: Project)(implicit messages: Messages)
+@import controllers.Secured.Context
+@(project: Project)(implicit messages: Messages, session: Session)
 
 @projects.detail(project, "#settings") {
 

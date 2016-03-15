@@ -2,7 +2,8 @@
 Base template for Project overview.
 *@
 @import models.project.Project
-@(project: Project, active: String)(content: Html)(implicit messages: Messages)
+@import controllers.Secured.Context
+@(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session)
 
 @core.layout(project.owner + " / " + project.name) {
 

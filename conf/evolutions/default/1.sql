@@ -34,6 +34,14 @@ CREATE TABLE versions (
   channel_id      bigint          NOT NULL REFERENCES channels ON DELETE CASCADE
 );
 
+CREATE TABLE users (
+  external_id  bigint        NOT NULL PRIMARY KEY,
+  created_at   timestamp     NOT NULL,
+  name         varchar(255)  NOT NULL,
+  username     varchar(255)  NOT NULL,
+  email        varchar(255)  NOT NULL
+);
+
 CREATE TABLE devs (
   id          serial        NOT NULL PRIMARY KEY,
   created_at  timestamp     NOT NULL,

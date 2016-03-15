@@ -4,6 +4,7 @@ import java.sql.Timestamp
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
+import models.auth.User
 import models.author.{Dev, Team}
 import models.project.{Channel, Project, Version}
 import play.api.Play
@@ -66,6 +67,8 @@ object Storage {
       TableQuery(tag => new ChannelTable(tag).asInstanceOf[T])
     } else if (clazz.equals(classOf[Version])) {
       TableQuery(tag => new VersionTable(tag).asInstanceOf[T])
+    } else if (clazz.equals(classOf[User])) {
+      TableQuery(tag => new UserTable(tag).asInstanceOf[T])
     } else {
       throw new Exception("No table found for class: " + clazz.toString)
     }
@@ -105,6 +108,31 @@ object Storage {
       }
     }
     p.future
+  }
+
+  // User queries
+
+  def getUser(username: String): Future[User] = getOne[UserTable, User](classOf[User], u => u.username === username)
+
+  def optUser(username: String): Future[Option[User]] = optOne[UserTable, User](classOf[User], u => u.username === username)
+
+  def createUser(user: User): Future[Unit] = {
+    val users = q[UserTable](classOf[User])
+    val action = DBIO.seq(users += user)
+    this.config.db.run(action)
+  }
+
+  def findOrCreate(user: User): User = {
+    Storage.now(optUser(user.username)) match {
+      case Failure(thrown) => throw thrown
+      case Success(userOpt) => userOpt match {
+        case None => Storage.now(createUser(user)) match {
+          case Failure(thrown) => throw thrown
+          case Success(void) => user
+        }
+        case Some(user) => user
+      }
+    }
   }
 
   // Dev queries

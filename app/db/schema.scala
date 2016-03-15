@@ -2,6 +2,7 @@ package db
 
 import java.sql.Timestamp
 
+import models.auth.User
 import models.author.{Dev, Team}
 import models.project.{Channel, Project, Version}
 import OrePostgresDriver.api._
@@ -54,6 +55,18 @@ class VersionTable(tag: Tag) extends Table[Version](tag, "versions") {
 
   override def * = (id.?, createdAt.?, versionString, dependencies, description.?,
                     assets.?, downloads, projectId, channelId) <> ((Version.apply _).tupled, Version.unapply)
+}
+
+class UserTable(tag: Tag) extends Table[User](tag, "users") {
+
+  def externalId  =   column[Int]("external_id", O.PrimaryKey)
+  def createdAt   =   column[Timestamp]("created_at")
+  def name        =   column[String]("name")
+  def username    =   column[String]("username")
+  def email       =   column[String]("email")
+
+  override def * = (externalId, createdAt, name, username, email) <> (User.tupled, User.unapply)
+
 }
 
 class DevTable(tag: Tag) extends Table[Dev](tag, "devs") {

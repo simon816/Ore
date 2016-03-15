@@ -20,7 +20,7 @@ import scala.util.{Failure, Success}
   * TODO: Replace NotFounds, BadRequests, etc with pretty views
   * TODO: Localize
   */
-class Projects @Inject()(override val messagesApi: MessagesApi) extends Controller with I18nSupport {
+class Projects @Inject()(override val messagesApi: MessagesApi) extends Controller with I18nSupport with Secured {
 
   // TODO: Replace with auth'd user
   val user: Author = UnknownAuthor("SpongePowered")
@@ -37,7 +37,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     *
     * @return Create project view
     */
-  def showCreate = Action {
+  def showCreate = withAuth { context => implicit request =>
     // TODO: Check auth here
     Ok(views.projects.create(None))
   }
@@ -47,7 +47,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     *
     * @return Result
     */
-  def upload = Action(parse.multipartFormData) { request =>
+  def upload = Action(parse.multipartFormData) { implicit request =>
     // TODO: Check auth here
     request.body.file("pluginFile") match {
       case None => Redirect(self.showCreate()).flashing("error" -> "Missing file")
@@ -77,7 +77,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param name Name of plugin
     * @return Create project view
     */
-  def showCreateWithMeta(author: String, name: String) = Action {
+  def showCreateWithMeta(author: String, name: String) = Action { implicit request =>
     // TODO: Check auth here
     Project.getPending(author, name) match {
       case None => Redirect(self.showCreate())
@@ -93,7 +93,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param name Name of project
     * @return Redirection to project page if successful
     */
-  def showFirstVersionCreate(author: String, name: String) = Action {
+  def showFirstVersionCreate(author: String, name: String) = Action { implicit request =>
     // TODO: Check auth here
     Project.getPending(author, name) match {
       case None => BadRequest("No project to create.")
@@ -110,7 +110,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param name   Name of project
     * @return View of project
     */
-  def show(author: String, name: String) = Action {
+  def show(author: String, name: String) = Action { implicit request =>
     withProject(author, name, project => Ok(views.projects.docs(project)))
   }
 
@@ -121,7 +121,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param name   Name of project
     * @return View of project
     */
-  def showVersions(author: String, name: String) = Action {
+  def showVersions(author: String, name: String) = Action { implicit request =>
     withProject(author, name, project => {
       Storage.now(project.getChannels) match {
         case Failure(thrown) => throw thrown
@@ -141,12 +141,12 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param name Name of project
     * @return Version creation view
     */
-  def showVersionCreate(author: String, name: String) = Action {
+  def showVersionCreate(author: String, name: String) = Action { implicit request =>
     // TODO: Check auth here
     withProject(author, name, project => Ok(views.projects.versionCreate(project, None, showFileControls = true)))
   }
 
-  def uploadVersion(author: String, name: String) = Action(parse.multipartFormData) { request =>
+  def uploadVersion(author: String, name: String) = Action(parse.multipartFormData) { implicit request =>
     // TODO: Check auth here
     request.body.file("pluginFile") match {
       case None => Redirect(self.showVersionCreate(author, name)).flashing("error" -> "Missing file")
@@ -178,7 +178,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     }
   }
 
-  def showVersionCreateWithMeta(author: String, name: String, channelName: String, versionString: String) = Action {
+  def showVersionCreateWithMeta(author: String, name: String,
+                                channelName: String, versionString: String) = Action { implicit request =>
     // TODO: Check auth here
     // Get pending version
     Version.getPending(author, name, channelName, versionString) match {
@@ -197,7 +198,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     }
   }
 
-  def createVersion(author: String, name: String, channelName: String, versionString: String) = Action {
+  def createVersion(author: String, name: String, channelName: String, versionString: String) = Action { implicit request =>
     // TODO: Check auth here
     Version.getPending(author, name, channelName, versionString) match {
       case None => BadRequest("No version to create.")
@@ -265,13 +266,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param name   Name of project
     * @return View of project
     */
-  def showDiscussion(author: String, name: String) = Action {
+  def showDiscussion(author: String, name: String) = Action { implicit request =>
     withProject(author, name, project => Ok(views.projects.discussion(project)))
   }
 
   val renameForm = Form(single("name" -> text))
 
-  def showManager(author: String, name: String) = Action {
+  def showManager(author: String, name: String) = Action { implicit request =>
     withProject(author, name, project => Ok(views.projects.manage(project)))
   }
 
@@ -285,7 +286,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     })
   }
 
-  def delete(author: String, name: String) = Action {
+  def delete(author: String, name: String) = Action { implicit request =>
     withProject(author, name, project => {
       project.delete match {
         case Failure(thrown) => throw thrown
@@ -301,7 +302,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param name Name of author
     * @return View of author
     */
-  def showAuthor(name: String) = Action {
+  def showAuthor(name: String) = Action { implicit request =>
     NotFound("TODO")
   }
 

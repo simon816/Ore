@@ -1,3 +1,6 @@
+@import util.Gravatar
+@()(implicit session: Session)
+
 <nav class="navbar navbar-fixed-top navbar-inverse">
     <div class="container">
         <div class="navbar-header">
@@ -8,8 +11,27 @@
             </a>
         </div>
         <div class="collapse navbar-collapse">
-            <a href="#" class="navbar-right btn btn-primary navbar-btn">Sign up</a>
-            <a href="#" class="navbar-right btn btn-primary navbar-btn">Log in</a>
+            @session.get("email").map { email =>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="#" class="drop-down-toggle" style="padding: 15px;" data-toggle="dropdown">
+                            <img class="user-avatar" style="background: url(@Gravatar.getAvatar(email));" />
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu" aria-label="dropdownMenu1">
+                            <li><a href="#">@session.get("username").get <i class="pull-right fa fa-user"></i></a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="http://forums.spongepowered.org">Forums <i class="pull-right fa fa-home"></i></a></li>
+                            <li><a href="@routes.Application.logOut">Sign out <i class="pull-right fa fa-sign-out"></i></a></li>
+                        </ul>
+                    </li>
+                </ul>
+            }.getOrElse {
+                <div class="nav navbar-nav navbar-right">
+                    <a href="@routes.Application.logIn(None, None)" class="btn btn-primary navbar-btn">Sign up</a>
+                    <a href="@routes.Application.logIn(None, None)" class="btn btn-primary navbar-btn">Log in</a>
+                </div>
+            }
         </div>
     </div>
 </nav>

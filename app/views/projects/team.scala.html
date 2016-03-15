@@ -2,7 +2,8 @@
 User page for Teams.
 *@
 @import models.author.Team
-@(team: Team)(implicit messages: Messages)
+@import controllers.Secured.Context
+@(team: Team)(implicit messages: Messages, session: Session)
 
 @core.layout(team.name) {
 

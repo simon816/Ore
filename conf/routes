@@ -9,6 +9,8 @@ GET     /api/:version/projects                                  @controllers.Api
 
 # Home page
 GET     /                                                       @controllers.Application.index
+GET     /login                                                  @controllers.Application.logIn(sso: Option[String], sig: Option[String])
+GET     /logout                                                 @controllers.Application.logOut
 
 # Projects
 GET     /:author/:name                                          @controllers.Projects.show(author, name)

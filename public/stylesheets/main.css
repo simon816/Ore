@@ -54,3 +54,14 @@
     padding: 4px 6px;
     font-weight: bold;
 }
+
+.user-avatar {
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    -webkit-background-size: 45px;
+    background-size: 45px;
+    background-position: right;
+}

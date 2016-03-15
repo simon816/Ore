@@ -2,14 +2,15 @@
 Collection of all projects.
 *@
 @import models.project.Project
-@(models: Seq[Project])(implicit messages: Messages)
+@import controllers.Secured.Context
+@(models: Seq[Project])(implicit messages: Messages, session: Session)
 
 <div class="container">
     <div class="table-controls">
         <a href="@routes.Projects.showCreate"
            title="Submit a new project to Ore." data-toggle="tooltip"
            data-placement="bottom" class="btn btn-primary pull-right">
-            New project
+            <i class="fa fa-plus"></i> New project
         </a>
     </div>
     <table class="table project-table">
