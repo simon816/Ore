@@ -25,9 +25,12 @@ Versions page within Project overview.
                                             <i class="fa fa-circle channel-id" style="color: @channel.colorHex"></i> @version.versionString
                                         </td>
                                         <td>
-                                            <a href="@routes.Projects.downloadVersion(model.owner, model.name, channel.name, version.versionString)">
-                                                <i class="pull-right fa fa-download"></i>
-                                            </a>
+                                            <div class="pull-right">
+                                                <a href="#"><i class="fa fa-info-circle"></i></a>
+                                                <a href="@routes.Projects.downloadVersion(model.owner, model.name, channel.name, version.versionString)">
+                                                    <i class="fa fa-download"></i>
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                   }
