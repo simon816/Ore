@@ -92,7 +92,7 @@ object Channel {
   private def firstString(items: ListItem): Option[String] = {
     var str: Option[String] = None
     var i = 0
-    while (str.isEmpty) {
+    while (str.isEmpty && i < items.size()) {
       items.get(i) match {
         case item: StringItem => str = Some(item.getValue)
         case item: ListItem => str = firstString(item)

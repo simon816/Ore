@@ -4,6 +4,7 @@ import javax.inject.Inject
 
 import db.Storage
 import models.author.{UnknownAuthor, Author}
+import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -42,7 +43,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   }
 
   /**
-    * Uploads a new project for review.
+    * Uploads a Project's first plugin file.
     *
     * @return Result
     */
@@ -57,6 +58,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
           case Success(plugin) =>
             // Cache pending project for later use
             val meta = plugin.getMeta.get
+            println("meta = " + meta)
             val project = Project.fromMeta(this.user.name, meta)
             if (project.exists) {
               BadRequest("You already have a project named " + meta.getName + "!")
@@ -84,20 +86,20 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   }
 
   /**
-    * Creates the cached project with the specified author and name.
+    * Continues on to the second step of Project creation where the user
+    * publishes their Project
     *
     * @param author Author of project
     * @param name Name of project
     * @return Redirection to project page if successful
     */
-  def create(author: String, name: String) = Action {
+  def showFirstVersionCreate(author: String, name: String) = Action {
     // TODO: Check auth here
     Project.getPending(author, name) match {
       case None => BadRequest("No project to create.")
-      case Some(pending) => pending.complete match {
-        case Failure(thrown) => throw thrown
-        case Success(void) => Redirect(self.show(author, name))
-      }
+      case Some(pendingProject) =>
+        val pendingVersion = pendingProject.initFirstVersion
+        Redirect(self.showVersionCreateWithMeta(author, name, pendingVersion.channelName, pendingVersion.version.versionString))
     }
   }
 
@@ -158,37 +160,58 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
               // Cache version for later use
               val meta = plugin.getMeta.get
               val version = Version.fromMeta(project, meta)
-              if (version.exists) {
-                BadRequest("You already have a version of that description.")
-              } else {
-                val channelName = Channel.getSuggestedNameForVersion(version.versionString)
-                Version.setPending(author, name, channelName, version, plugin)
-                Redirect(self.showVersionCreateWithMeta(author, name, channelName, version.versionString))
-              }
+              val channelName = Channel.getSuggestedNameForVersion(version.versionString)
+              Version.setPending(author, name, channelName, version, plugin)
+              Redirect(self.showVersionCreateWithMeta(author, name, channelName, version.versionString))
           }
         })
     }
   }
 
+  private def pendingOrReal(author: String, name: String): Option[Any] = {
+    Storage.now(Storage.optProject(author, name)) match {
+      case Failure(thrown) => throw thrown
+      case Success(projectOpt) => projectOpt match {
+        case None => Project.getPending(author, name)
+        case Some(project) => Some(project)
+      }
+    }
+  }
+
   def showVersionCreateWithMeta(author: String, name: String, channelName: String, versionString: String) = Action {
     // TODO: Check auth here
-    // Get project
-    withProject(author, name, project => {
-      // Get pending version
-      Version.getPending(author, name, channelName, versionString) match {
-        case None => Redirect(self.showVersionCreate(author, name))
-        case Some(pending) => Ok(views.projects.versionCreate(project, Some(pending)))
-      }
-    })
+    // Get pending version
+    Version.getPending(author, name, channelName, versionString) match {
+      case None => Redirect(routes.Application.index())
+      case Some(pendingVersion) =>
+        // Get project
+        var project: Project = null
+        pendingOrReal(author, name) match {
+          case None => Redirect(routes.Application.index())
+          case Some(p) => p match {
+            case pending: PendingProject => project = pending.project
+            case real: Project => project = real
+          }
+        }
+        Ok(views.projects.versionCreate(project, Some(pendingVersion)))
+    }
   }
 
   def createVersion(author: String, name: String, channelName: String, versionString: String) = Action {
     // TODO: Check auth here
     Version.getPending(author, name, channelName, versionString) match {
       case None => BadRequest("No version to create.")
-      case Some(pending) => pending.complete match {
-        case Failure(thrown) => throw thrown
-        case Success(void) => Redirect(self.show(author, name))
+      case Some(pendingVersion) =>
+        // Check for pending project
+        Project.getPending(author, name) match {
+          case None => pendingVersion.complete match {
+            case Failure(thrown) => throw thrown
+            case Success(void) => Redirect(self.show(author, name))
+          }
+          case Some(pendingProject) => pendingProject.complete match {
+            case Failure(thrown) => throw thrown
+            case Success(void) => Redirect(self.show(author, name))
+          }
       }
     }
   }

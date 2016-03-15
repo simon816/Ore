@@ -5,6 +5,7 @@ import java.sql.Timestamp
 import db.Storage
 import models.author.Author
 import models.author.UnknownAuthor
+import models.project.Version.PendingVersion
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
@@ -136,40 +137,31 @@ object Project {
     * @param project Pending project
     * @param firstVersion Uploaded plugin
     */
-  case class PendingProject(project: Project, firstVersion: PluginFile) extends PendingAction with Cacheable {
+  case class PendingProject(project: Project, firstVersion: PluginFile) extends PendingAction[Project] with Cacheable {
 
-    override def complete: Try[Unit] = Try {
+    var pendingVersion: Option[PendingVersion] = None
+
+    def initFirstVersion: PendingVersion = {
+      val meta = this.firstVersion.getMeta.get
+      val version = Version.fromMeta(this.project, meta)
+      val pending = Version.setPending(project.owner, project.name,
+        Channel.getSuggestedNameForVersion(version.versionString), version, this.firstVersion)
+      this.pendingVersion = Some(pending)
+      pending
+    }
+
+    def getPendingVersion: Option[PendingVersion] = this.pendingVersion
+
+    override def complete: Try[Project] = Try {
       free()
-      // Upload plugin
-      ProjectManager.uploadPlugin(this.firstVersion) match {
-        case Failure(thrown) =>
-          cancel()
-          throw thrown
-        case Success(void) =>
-          // Create project
-          val meta = this.firstVersion.getMeta.get
-          Storage.now(Storage.createProject(this.project)) match {
-            case Failure(thrown) =>
-              cancel()
-              throw thrown
-            case Success(newProject) =>
-              // Create first channel
-              val channelName = Channel.getSuggestedNameForVersion(meta.getVersion)
-              Storage.now(newProject.newChannel(channelName)) match {
-                case Failure(thrown) =>
-                  cancel()
-                  throw thrown
-                case Success(channel) =>
-                  // Create first version
-                  Storage.now(channel.newVersion(meta.getVersion, List(), "", meta.getDescription)) match {
-                    case Failure(thrown) =>
-                      cancel()
-                      throw thrown
-                    case Success(newVersion) =>
-                      newProject.setRecommendedVersion(newVersion)
-                  }
-              }
-          }
+      ProjectManager.createProject(this) match {
+        case Failure(thrown) => throw thrown
+        case Success(newProject) => ProjectManager.createVersion(this.pendingVersion.get) match {
+          case Failure(thrown) => throw thrown
+          case Success(newVersion) =>
+            newProject.setRecommendedVersion(newVersion)
+            newProject
+        }
       }
     }
 

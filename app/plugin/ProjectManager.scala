@@ -2,13 +2,16 @@ package plugin
 
 import java.nio.file.{Files, Path}
 
+import db.Storage
 import models.author.Author
-import models.project.Channel
+import models.project.Project.PendingProject
+import models.project.Version.PendingVersion
+import models.project.{Project, Version, Channel}
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.Files.TemporaryFile
 
-import scala.util.Try
+import scala.util.{Success, Failure, Try}
 
 /**
   * Handles file management of uploaded projects.
@@ -43,18 +46,72 @@ object ProjectManager {
     * @param plugin PluginFile to upload
     * @return Result
     */
-  def uploadPlugin(plugin: PluginFile): Try[Unit] = Try {
+  def uploadPlugin(channel: Channel, plugin: PluginFile): Try[Unit] = Try {
     plugin.getMeta match {
       case None => throw new IllegalArgumentException("Specified PluginFile has no meta loaded.")
       case Some(meta) =>
-        val channel = Channel.getSuggestedNameForVersion(meta.getVersion)
         val oldPath = plugin.getPath
-        val newPath = getUploadPath(plugin.getOwner.name, meta.getName, meta.getVersion, channel)
+        val newPath = getUploadPath(plugin.getOwner.name, meta.getName, meta.getVersion, channel.name)
         if (!Files.exists(newPath.getParent)) {
           Files.createDirectories(newPath.getParent)
         }
         Files.move(oldPath, newPath)
         Files.delete(oldPath.getParent)
+    }
+  }
+
+  def createProject(pending: PendingProject): Try[Project] = Try[Project] {
+    Storage.now(Storage.createProject(pending.project)) match {
+      case Failure(thrown) =>
+        pending.cancel()
+        throw thrown
+      case Success(newProject) => newProject
+    }
+  }
+
+  def createVersion(pending: PendingVersion): Try[Version] = Try[Version] {
+    // Get project
+    Storage.now(Storage.getProject(pending.owner, pending.projectName)) match {
+      case Failure(thrown) =>
+        pending.cancel()
+        throw thrown
+      case Success(project) =>
+        var channel: Channel = null
+        // Create channel if not exists
+        Storage.now(project.getChannel(pending.channelName)) match {
+          case Failure(thrown) =>
+            pending.cancel()
+            throw thrown
+          case Success(channelOpt) => channelOpt match {
+            case None =>
+              Storage.now(project.newChannel(pending.channelName)) match {
+                case Failure(thrown) =>
+                  pending.cancel()
+                  throw thrown
+                case Success(newChannel) => channel = newChannel
+              }
+            case Some(existingChannel) => channel = existingChannel
+          }
+        }
+
+        // Create version
+        val version = pending.version
+        Storage.now(Storage.isDefined(Storage.getVersion(channel.id.get, version.versionString))) match {
+          case Failure(ignored) => ;
+          case Success(m) => throw new Exception("Version already exists.")
+        }
+
+        val versionResult = Storage.now(channel.newVersion(version.versionString, version.dependencies,
+          version.description.orNull, version.assets.orNull))
+        versionResult match {
+          case Failure(thrown) =>
+            pending.cancel()
+            throw thrown
+          case Success(newVersion) =>
+            // Upload plugin file
+            uploadPlugin(channel, pending.plugin)
+            newVersion
+        }
     }
   }
 

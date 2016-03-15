@@ -17,7 +17,7 @@ GET     /:author/:name                                          @controllers.Pro
 GET     /new                                                    @controllers.Projects.showCreate
 GET     /new/:author/:name                                      @controllers.Projects.showCreateWithMeta(author, name)
 POST    /new/upload                                             @controllers.Projects.upload
-POST    /:author/:name                                          @controllers.Projects.create(author, name)
+POST    /:author/:name                                          @controllers.Projects.showFirstVersionCreate(author, name)
 
 # Versions
 GET     /:author/:name/versions                                 @controllers.Projects.showVersions(author, name)

@@ -55,15 +55,6 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
     */
   def getChannelFrom(channels: Seq[Channel]): Option[Channel] = channels.find(_.id.get == this.channelId)
 
-  /**
-    * Returns true if this version already exists.
-    *
-    * @return True if version already exists, false otherwise
-    */
-  def exists: Boolean = {
-    Storage.now(Storage.isDefined(Storage.getVersion(this.channelId, this.versionString))).isSuccess
-  }
-
   override def hashCode: Int = this.id.hashCode
 
   override def equals(o: Any): Boolean = o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get
@@ -82,51 +73,11 @@ object Version {
     * @param plugin Uploaded plugin
     */
   case class PendingVersion(owner: String, projectName: String, channelName: String,
-                            version: Version, plugin: PluginFile) extends PendingAction with Cacheable {
+                            version: Version, plugin: PluginFile) extends PendingAction[Version] with Cacheable {
 
-    override def complete: Try[Unit] = Try {
+    override def complete: Try[Version] = Try {
       free()
-      // Get project
-      Storage.now(Storage.getProject(this.owner, this.projectName)) match {
-        case Failure(thrown) =>
-          cancel()
-          throw thrown
-        case Success(project) =>
-          // Get channel
-          var channel: Channel = null
-          Storage.now(project.getChannel(this.channelName)) match {
-            case Failure(thrown) =>
-              cancel()
-              throw thrown
-            case Success(channelOpt) => channelOpt match {
-              case None =>
-                // Create new channel
-                Storage.now(project.newChannel(this.channelName)) match {
-                  case Failure(thrown) =>
-                    cancel()
-                    throw thrown
-                  case Success(newChannel) => channel = newChannel
-                }
-              case Some(existing) => channel = existing
-            }
-          }
-
-          // Upload plugin
-          ProjectManager.uploadPlugin(this.plugin) match {
-            case Failure(thrown) =>
-              cancel()
-              throw thrown
-            case Success(void) =>
-              // Create version
-              this.version.channelId = channel.id.get
-              Storage.now(Storage.createVersion(this.version)) match {
-                case Failure(thrown) =>
-                  cancel()
-                  throw thrown
-                case _ => ;
-              }
-          }
-      }
+      return ProjectManager.createVersion(this)
     }
 
     override def cancel() = {
@@ -152,8 +103,10 @@ object Version {
     * @param version Name of version
     * @param plugin Uploaded plugin
     */
-  def setPending(owner: String, name: String, channel: String, version: Version, plugin: PluginFile): Unit = {
-    PendingVersion(owner, name, channel, version, plugin).cache()
+  def setPending(owner: String, name: String, channel: String, version: Version, plugin: PluginFile): PendingVersion = {
+    val pending = PendingVersion(owner, name, channel, version, plugin)
+    pending.cache()
+    pending
   }
 
   /**
@@ -166,7 +119,7 @@ object Version {
     * @param version Name of version
     * @return PendingVersion, if present, None otherwise
     */
-  def getPending(owner: String, name: String, channel: String, version: String) = {
+  def getPending(owner: String, name: String, channel: String, version: String): Option[PendingVersion] = {
     Cache.getAs[PendingVersion](owner + '/' + name + '/' + channel + '/' + version)
   }
 
@@ -179,8 +132,8 @@ object Version {
     */
   def fromMeta(project: Project, meta: PluginMetadata): Version = {
     // TODO: Dependency parsing
-    // TOOD: asset parsing
-    new Version(meta.getVersion, List(), meta.getDescription, "", project.id.get)
+    // TODO: asset parsing
+    new Version(meta.getVersion, List(), meta.getDescription, "", project.id.getOrElse(-1))
   }
 
 }

@@ -5,12 +5,12 @@ import scala.util.Try
 /**
   * Represents an action pending completion.
   */
-trait PendingAction {
+trait PendingAction[R] {
 
   /**
     * Completes the action.
     */
-  def complete: Try[Unit]
+  def complete: Try[R]
 
   /**
     * Cancels the action.

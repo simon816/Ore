@@ -38,8 +38,8 @@ Page used for uploading and creating new projects.
                         @* Cond: plugin uploaded -> add create button *@
                         @if(pending.isDefined) {
                             @defining(pending.get.project) { project =>
-                              @form(action = routes.Projects.create(project.owner, project.name)) {
-                                  <input type="submit" name="create" value="Create project" class="btn btn-primary" />
+                              @form(action = routes.Projects.showFirstVersionCreate(project.owner, project.name)) {
+                                  <input type="submit" name="create" value="Continue" class="btn btn-primary" />
                               }
                             }
                         }
