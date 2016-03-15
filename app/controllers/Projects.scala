@@ -143,7 +143,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def showVersionCreate(author: String, name: String) = Action {
     // TODO: Check auth here
-    withProject(author, name, project => Ok(views.projects.versionCreate(project, None)))
+    withProject(author, name, project => Ok(views.projects.versionCreate(project, None, showFileControls = true)))
   }
 
   def uploadVersion(author: String, name: String) = Action(parse.multipartFormData) { request =>
@@ -185,15 +185,15 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
       case None => Redirect(routes.Application.index())
       case Some(pendingVersion) =>
         // Get project
-        var project: Project = null
         pendingOrReal(author, name) match {
           case None => Redirect(routes.Application.index())
           case Some(p) => p match {
-            case pending: PendingProject => project = pending.project
-            case real: Project => project = real
+            case pending: PendingProject =>
+              Ok(views.projects.versionCreate(pending.project, Some(pendingVersion), showFileControls = false))
+            case real: Project =>
+              Ok(views.projects.versionCreate(real, Some(pendingVersion), showFileControls = true))
           }
         }
-        Ok(views.projects.versionCreate(project, Some(pendingVersion)))
     }
   }
 
