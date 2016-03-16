@@ -1,6 +1,7 @@
 package models.project
 
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
 
 import db.Storage
 import org.spongepowered.plugin.meta.PluginMetadata
@@ -23,6 +24,8 @@ import scala.util.{Failure, Success, Try}
 case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionString: String,
                    dependencies: List[String], description: Option[String], assets: Option[String],
                    downloads: Int, projectId: Int, var channelId: Int) {
+
+  private val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
 
   def this(versionString: String, dependencies: List[String], description: String, assets: String, projectId: Int, channelId: Int) = {
     this(None, None, versionString, dependencies, Option(description), Option(assets), 0, projectId, channelId)
@@ -54,6 +57,10 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
     * @return Channel if present, None otherwise
     */
   def getChannelFrom(channels: Seq[Channel]): Option[Channel] = channels.find(_.id.get == this.channelId)
+
+  def prettyDate: String = {
+    this.dateFormat.format(this.createdAt.get)
+  }
 
   override def hashCode: Int = this.id.hashCode
 

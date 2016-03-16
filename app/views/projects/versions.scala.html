@@ -13,9 +13,7 @@ Versions page within Project overview.
                     <div class="col-md-9">
                         <table class="table">
                             <thead>
-                                <tr>
-                                    <th>Version</th>
-                                </tr>
+                                <tr><th>Version</th></tr>
                             </thead>
                             <tbody>
                                 @versions.map { version =>
@@ -26,6 +24,7 @@ Versions page within Project overview.
                                         </td>
                                         <td>
                                             <div class="pull-right">
+                                                <span class="date">@version.prettyDate</span>
                                                 <a href="#"><i class="fa fa-info-circle"></i></a>
                                                 <a href="@routes.Projects.downloadVersion(model.owner, model.name, channel.name, version.versionString)">
                                                     <i class="fa fa-download"></i>

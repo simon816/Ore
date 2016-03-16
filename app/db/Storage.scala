@@ -173,6 +173,10 @@ object Storage {
   
   def optProject(id: Int): Future[Option[Project]] = optOne[ProjectTable, Project](classOf[Project], p => p.id === id)
 
+  def optProject(pluginId: String): Future[Option[Project]] = {
+    optOne[ProjectTable, Project](classOf[Project], p => p.pluginId === pluginId)
+  }
+
   def getProject(owner: String, name: String): Future[Project] = {
     getOne[ProjectTable, Project](classOf[Project], p => p.name === name && p.ownerName === owner)
   }

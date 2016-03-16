@@ -23,7 +23,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
 
   private def withProject(author: String, name: String, f: Project => Result): Result = {
     Storage.now(Storage.getProject(author, name)) match {
-      case Failure(thrown) => throw thrown
+      case Failure(thrown) => NotFound
       case Success(project) => f(project)
     }
   }
@@ -54,12 +54,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
             val meta = plugin.getMeta.get
             println("meta = " + meta)
             val project = Project.fromMeta(user.username, meta)
-            if (project.exists) {
-              BadRequest("You already have a project named " + meta.getName + "!")
-            } else {
-              Project.setPending(project, plugin)
-              Redirect(self.showCreateWithMeta(project.owner, project.name))
-            }
+            Project.setPending(project, plugin)
+            Redirect(self.showCreateWithMeta(project.owner, project.name))
         }
     })
   }

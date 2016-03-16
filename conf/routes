@@ -3,8 +3,8 @@
 # ~~~~
 
 # RESTful API
-# TODO: Ensure no one can be named "api"
 GET     /api/projects                                           @controllers.Api.listProjects(version = "v1")
+GET     /api/projects/search                                    @controllers.Api.search(pluginId: Option[String])
 GET     /api/:version/projects                                  @controllers.Api.listProjects(version)
 
 # Home page
@@ -40,7 +40,7 @@ GET     /:author/:name/dicuss                                   @controllers.Pro
 # Admin
 GET     /:author/:name/manage                                   @controllers.Projects.showManager(author, name)
 POST    /:author/:name/manage/rename                            @controllers.Projects.rename(author, name)
-POST    /:author/:name/delete                                   @controllers.Projects.delete(author, name)
+POST    /:author/:name/manage/delete                            @controllers.Projects.delete(author, name)
 
 # User
 GET     /:author                                                @controllers.Projects.showAuthor(author)

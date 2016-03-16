@@ -65,3 +65,21 @@
     background-size: 45px;
     background-position: right;
 }
+
+.date {
+    color: gray;
+    margin-right: 10px;
+}
+
+form {
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.fa-check-circle {
+    color: green;
+}
+
+.fa-times-circle {
+    color: red;
+}

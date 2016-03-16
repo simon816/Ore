@@ -36,4 +36,15 @@ class Api extends Controller {
     }
   }
 
+  def search(pluginId: Option[String]) = Action {
+    // TODO: version control here
+    Storage.now(Storage.optProject(pluginId.get)) match {
+      case Failure(thrown) => throw thrown
+      case Success(optProject) => optProject match {
+        case None => NotFound
+        case Some(project) => Ok(Json.toJson(project))
+      }
+    }
+  }
+
 }
