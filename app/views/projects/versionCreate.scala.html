@@ -1,6 +1,7 @@
 @import models.project.Project
 @import models.project.Version.PendingVersion
 @import views.html.helper.form
+@import models.project.Channel
 @(project: Project, pending: Option[PendingVersion], showFileControls: Boolean)(implicit messages: Messages, session: Session)
 
 @core.layout("Release a new version") {
@@ -20,7 +21,36 @@
                             @defining(pending.get.version) { version =>
                                 <p><strong>Version:</strong> @version.versionString</p>
                                 <p><strong>Description:</strong> @version.description</p>
-                                <p><strong>Channel:</strong> @pending.get.channelName</p>
+                                <p>
+                                    <strong>Channel:</strong>
+                                    <span class="channel" style="background-color: @Channel.DEFAULT_COLOR;">@pending.get.channelName</span>
+                                    <a href="#" data-toggle="modal" data-target="#channel-edit"><i class="fa fa-edit"></i></a>
+                                </p>
+                                <div class="modal fade" id="channel-edit" tabindex="-1" role="dialog" aria-labelledBy="edit-label">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                                <h4 class="modal-title" id="edit-label">Edit channel</h4>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="form-inline">
+                                                    <label for="channel">Channel name</label>
+                                                    <input class="form-control" id="channel" name="channel" type="text"
+                                                           value="@pending.get.channelName" />
+                                                    <input class="pull-right color-input" type="color" id="color" name="color"
+                                                           value="@Channel.DEFAULT_COLOR"/>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                <button type="button" class="btn btn-primary">Save changes</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             }
                         }
                         @* -------------------------------------- *@

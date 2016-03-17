@@ -5,35 +5,95 @@ Collection of all projects.
 @(models: Seq[Project])(implicit messages: Messages, session: Session)
 
 <div class="container">
-    <div class="table-controls">
-        <a href="@routes.Projects.showCreate"
-           title="Submit a new project to Ore." data-toggle="tooltip"
-           data-placement="bottom" class="btn btn-primary pull-right">
-            <i class="fa fa-plus"></i> New project
-        </a>
+    <div class="row index-header">
+        <div class="col-md-12">
+            <h3 class="pull-left">Welcome to Ore! <i class="date">A Minecraft Package Repository</i></h3>
+            <div class="table-controls">
+                <a href="@routes.Projects.showCreate"
+                title="Submit a new project to Ore." data-toggle="tooltip"
+                data-placement="bottom" class="btn-create btn btn-primary pull-right">
+                    <i class="fa fa-plus"></i> New project
+                </a>
+            </div>
+        </div>
     </div>
-    <table class="table project-table">
-        <thead>
-            <tr>
-                <th>@messages("project.name")</th>
-                <th>@messages("project.author")</th>
-                <th>@messages("project.views")</th>
-                <th>@messages("project.downloads")</th>
-                <th>@messages("project.starred")</th>
-            </tr>
-        </thead>
-        <tbody>
-        @models.map { project =>
-            <tr class="">
-                <td class="" colspan="1">
-                    <strong><a class="" href="@routes.Projects.show(project.owner, project.name)">@project.name</a></strong>
-                </td>
-                <td>@project.owner</td>
-                <td>@project.views</td>
-                <td>@project.downloads</td>
-                <td>@project.starred</td>
-            </tr>
-        }
-        </tbody>
-    </table>
+    <div class="row">
+        <div class="col-md-9">
+            <table class="table project-table">
+                <thead>
+                    <tr>
+                        <th>@messages("project.name")</th>
+                        <th>@messages("project.author")</th>
+                        <th>@messages("project.views")</th>
+                        <th>@messages("project.downloads")</th>
+                        <th>@messages("project.starred")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @models.map { project =>
+                    <tr class="">
+                        <td class="" colspan="1">
+                            <strong><a class="" href="@routes.Projects.show(project.owner, project.name)">@project.name</a></strong>
+                        </td>
+                        <td><a href="#">@project.owner</a></td>
+                        <td>@project.views</td>
+                        <td>@project.downloads</td>
+                        <td>@project.starred</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Categories</h3>
+                </div>
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <td class="cat-icon"><i class="fa fa-bomb"></i></td>
+                            <td><strong><a href="#">Admin Tools</a></strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-wrench"></i></td>
+                            <td><strong><a href="#">Developer Tools</a></strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-comment"></i></td>
+                            <td><strong><a href="#">Chat</a></strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-money"></i></td>
+                            <td><strong><a href="#">Economy</a></strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-lock"></i></td>
+                            <td><strong><a href="#">Protection</a></strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-gamepad"></i></td>
+                            <td><strong><a href="#">Games</a></strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-magic"></i></td>
+                            <td><strong><a href="#">Role Playing</a></strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-globe"></i></td>
+                            <td><strong><a href="#">World Management</a></strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-puzzle-piece"></i></td>
+                            <td><strong><a href="#">Gameplay</a></strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-asterisk"></i></td>
+                            <td><strong><a href="#">Miscellaneous</a></strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>

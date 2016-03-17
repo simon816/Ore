@@ -13,8 +13,8 @@
                     </div>
                     <div class="panel-body">
                         @form(action = routes.Projects.rename(project.owner, project.name)) {
-                            <div class="form-group">
-                                <label for="name">Project name</label>
+                            <label for="name">Project name</label>
+                            <div class="form-inline">
                                 <input id="name" name="name" class="form-control" type="text" value="@project.name">
                                 <input type="submit" name="rename" value="Rename" class="btn btn-warning">
                             </div>
