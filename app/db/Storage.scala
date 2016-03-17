@@ -282,4 +282,10 @@ object Storage {
     this.config.db.run(query)
   }
 
+  def deleteVersion(version: Version) = {
+    val query = _filter[VersionTable, Version](classOf[Version], v => v.id === version.id.get)
+    val action = query.delete
+    this.config.db.run(action)
+  }
+
 }

@@ -102,6 +102,24 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     withProject(author, name, project => Ok(views.projects.docs(project)))
   }
 
+  def showVersion(author: String, name: String, channelName: String, versionString: String) = Action { implicit request =>
+    withProject(author, name, project => {
+      Storage.now(project.getChannel(channelName)) match {
+        case Failure(thrown) => throw thrown
+        case Success(channelOpt) => channelOpt match {
+          case None => NotFound
+          case Some(channel) => Storage.now(channel.getVersion(versionString)) match {
+            case Failure(thrown) => throw thrown
+            case Success(versionOpt) => versionOpt match {
+              case None => NotFound
+              case Some(version) => Ok(views.projects.versionDetail(project, channel, version))
+            }
+          }
+        }
+      }
+    })
+  }
+
   /**
     * Displays the "versions" tab within a Project view.
     *

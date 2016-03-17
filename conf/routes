@@ -23,6 +23,7 @@ POST    /:author/:name                                          @controllers.Pro
 
 # Versions
 GET     /:author/:name/versions                                 @controllers.Projects.showVersions(author, name)
+GET     /:author/:name/versions/:channel/:version               @controllers.Projects.showVersion(author, name, channel, version)
 
 # New Version
 GET     /:author/:name/versions/new                             @controllers.Projects.showVersionCreate(author, name)

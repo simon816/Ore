@@ -25,7 +25,9 @@ Versions page within Project overview.
                                         <td>
                                             <div class="pull-right">
                                                 <span class="date">@version.prettyDate</span>
-                                                <a href="#"><i class="fa fa-info-circle"></i></a>
+                                                <a href="@routes.Projects.showVersion(model.owner, model.name, channel.name, version.versionString)">
+                                                    <i class="fa fa-info-circle"></i>
+                                                </a>
                                                 <a href="@routes.Projects.downloadVersion(model.owner, model.name, channel.name, version.versionString)">
                                                     <i class="fa fa-download"></i>
                                                 </a>

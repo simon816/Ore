@@ -13,6 +13,8 @@ import util.{Cacheable, PendingAction}
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
+import scala.collection.JavaConversions._
+
 /**
   * Represents a single version of a Project.
   *
@@ -57,6 +59,10 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
     * @return Channel if present, None otherwise
     */
   def getChannelFrom(channels: Seq[Channel]): Option[Channel] = channels.find(_.id.get == this.channelId)
+
+  def getDependencies: List[Dependency] = {
+    for (depend <- this.dependencies) yield Dependency(depend.split(":")(0), depend.split(":")(1))
+  }
 
   def prettyDate: String = {
     this.dateFormat.format(this.createdAt.get)
@@ -138,9 +144,9 @@ object Version {
     * @return New Version
     */
   def fromMeta(project: Project, meta: PluginMetadata): Version = {
-    // TODO: Dependency parsing
     // TODO: asset parsing
-    new Version(meta.getVersion, List(), meta.getDescription, "", project.id.getOrElse(-1))
+    val depends = for (depend <- meta.getRequiredDependencies) yield depend.getId + ":" + depend.getVersion
+    new Version(meta.getVersion, depends.toList, meta.getDescription, "", project.id.getOrElse(-1))
   }
 
 }

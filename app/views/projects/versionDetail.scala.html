@@ -1,0 +1,73 @@
+@import models.project.Project
+@import models.project.Channel
+@import models.project.Version
+@import plugin.ProjectManager
+@(project: Project, channel: Channel, version: Version)(implicit messages: Messages, session: Session)
+
+@projects.detail(project, "#versions") {
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 version-header">
+                <div class="clearfix">
+                    <h1 class="pull-left">@version.versionString</h1>
+                    <span class="channel channel-head" style="background-color: @channel.colorHex;">@channel.name</span>
+                </div>
+                <p class="date pull-left"><a href="#"><strong>@project.owner</strong></a> released this version on @version.prettyDate</p>
+                <a href="#" class="version-delete pull-right"><i class="fa fa-trash"></i></a>
+            </div>
+        </div>
+        <div class="row version-description">
+            <div class="col-md-12">
+                <p>@version.description</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading"><h3 class="panel-title">Downloads</h3></div>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <i class="fa fa-file-archive"></i>
+                            <a href="@routes.Projects.downloadVersion(project.owner, project.name, channel.name, version.versionString)">
+                                <strong>
+                                    @ProjectManager.getUploadPath(project.owner, project.name, version.versionString, channel.name).getFileName
+                                </strong>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            @if(version.getDependencies.nonEmpty) {
+                <div class="col-md-6">
+                    <div class="panel panel-default">
+                        <div class="panel-heading"><h3 class="panel-title">Dependencies</h3></div>
+                        <ul class="list-group">
+                        @version.getDependencies.map { depend =>
+                            <li class="list-group-item">
+                                @defining(depend.getProject) { project =>
+                                  @if(project.isDefined) {
+                                      <a href="@routes.Projects.show(project.get.owner, project.get.name)">
+                                          <strong>@project.get.name</strong>
+                                      </a>
+                                      <div class="pull-right">
+                                          <a href="#"><i class="fa fa-info-circle"></i></a>
+                                          <a href="#"><i class="fa fa-download"></i></a>
+                                      </div>
+                                  } else {
+                                      <div class="unknown">
+                                          @depend.pluginId
+                                          <i class="pull-right fa fa-question-circle"></i>
+                                      </div>
+                                  }
+                                }
+                            </li>
+                        }
+                        </ul>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+}
