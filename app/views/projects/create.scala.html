@@ -6,6 +6,7 @@ Page used for uploading and creating new projects.
 @import db.Storage
 @import scala.util.Failure
 @import scala.util.Success
+@import models.project.Category
 @(pending: Option[PendingProject])(implicit messages: Messages, session: Session)
 
 @core.layout(messages("project.create")) {
@@ -23,12 +24,38 @@ Page used for uploading and creating new projects.
                         @* Cond: plugin uploaded -> display data. *@
                         @if(pending.isDefined) {
                             @defining(pending.get.project) { project =>
-                              <p><strong>ID:</strong> @project.pluginId <i class="id-status fa fa-spinner fa-spin"></i></p>
-                              <p><strong>Name:</strong> @project.name <i class="name-status fa fa-spinner fa-spin"></i></p>
-                              <p><strong>Owner:</strong> @project.owner</p>
-                              <script type="text/javascript" src="@routes.Assets.at("javascripts/projectCreateValidate.js")"></script>
-                              <script>$(function() { validate("@project.pluginId", "@project.owner", "@project.name"); });</script>
+                                <div class="plugin-meta">
+                                    <table class="plugin-meta-table">
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Unique ID</strong></td>
+                                                <td>@project.pluginId <i class="id-status fa fa-spinner fa-spin"></i></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Name</strong></td>
+                                                <td>@project.name <i class="name-status fa fa-spinner fa-spin"></i></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Owner</strong></td>
+                                                <td>@project.owner</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    <script type="text/javascript" src="@routes.Assets.at("javascripts/projectCreateValidate.js")"></script>
+                                    <script>$(function() { validate("@project.pluginId", "@project.owner", "@project.name"); });</script>
+                                </div>
                             }
+
+                            <div class="form-group">
+                                <label for="category">Category</label>
+                                <select class="form-control" id="category" name="category" form="continue">
+                                @for(category <- Category.values) {
+                                    <option>@category.title</option>
+                                }
+                                </select>
+                            </div>
+
                         }
                         @* -------------------------------------- *@
 
@@ -43,7 +70,7 @@ Page used for uploading and creating new projects.
                         @* Cond: plugin uploaded -> add create button *@
                         @if(pending.isDefined) {
                             @defining(pending.get.project) { project =>
-                              @form(action = routes.Projects.showFirstVersionCreate(project.owner, project.name)) {
+                              @form(action = routes.Projects.showFirstVersionCreate(project.owner, project.name), 'id -> "continue") {
                                   <input type="submit" name="create" value="Continue" class="continue-btn btn btn-primary" disabled="disabled" />
                               }
                             }

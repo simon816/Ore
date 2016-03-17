@@ -37,10 +37,10 @@ import scala.util.{Failure, Success, Try}
 case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: String,
                    var name: String, owner: String, authors: List[String],
                    homepage: Option[String], var recommendedVersionId: Option[Int],
-                   views: Int, downloads: Int, starred: Int) {
+                   var categoryId: Int = -1, views: Int, downloads: Int, starred: Int) {
 
   def this(pluginId: String, name: String, owner: String, authors: List[String], homepage: String) = {
-    this(None, None, pluginId, name, owner, authors, Option(homepage), None, 0, 0, 0)
+    this(None, None, pluginId, name, owner, authors, Option(homepage), None, 0, 0, 0, 0)
   }
 
   def getOwner: Author = UnknownAuthor(owner)
@@ -137,7 +137,7 @@ object Project {
     */
   case class PendingProject(project: Project, firstVersion: PluginFile) extends PendingAction[Project] with Cacheable {
 
-    var pendingVersion: Option[PendingVersion] = None
+    private var pendingVersion: Option[PendingVersion] = None
 
     def initFirstVersion: PendingVersion = {
       val meta = this.firstVersion.getMeta.get

@@ -9,6 +9,7 @@ CREATE TABLE projects (
   authors                 varchar(255)[]  NOT NULL,
   homepage                text            ,
   recommended_version_id  bigint          ,
+  category_id             int             NOT NULL CHECK (category_id >= 0),
   views                   bigint          NOT NULL CHECK (views >= 0),
   downloads               bigint          NOT NULL CHECK (downloads >= 0),
   starred                 bigint          NOT NULL CHECK (starred >= 0)

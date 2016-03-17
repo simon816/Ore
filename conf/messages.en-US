@@ -1,8 +1,8 @@
 # Strings localized for en-US locale
 
 general.name = Ore
-general.description = The Minecraft Package Repository
-general.title = Ore - The Minecraft Package Repository
+general.description = A Minecraft Package Repository
+general.title = Ore - A Minecraft Package Repository
 general.about = About Us
 general.docs = Docs
 general.forums = Forums

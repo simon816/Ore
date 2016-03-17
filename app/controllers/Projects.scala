@@ -5,7 +5,7 @@ import javax.inject.Inject
 import controllers.routes.{Projects => self}
 import db.Storage
 import models.project.Project.PendingProject
-import models.project.{Channel, Project, Version}
+import models.project.{Category, Channel, Project, Version}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -74,6 +74,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     })
   }
 
+  val continueForm = Form(single("category" -> text))
+
   /**
     * Continues on to the second step of Project creation where the user
     * publishes their Project
@@ -86,6 +88,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     Project.getPending(author, name) match {
       case None => BadRequest("No project to create.")
       case Some(pendingProject) =>
+        val categoryId = Category.withName(this.continueForm.bindFromRequest.get).id
+        pendingProject.project.categoryId = categoryId
         val pendingVersion = pendingProject.initFirstVersion
         Redirect(self.showVersionCreateWithMeta(author, name, pendingVersion.channelName, pendingVersion.version.versionString))
     })
