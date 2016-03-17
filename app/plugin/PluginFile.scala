@@ -16,7 +16,7 @@ import scala.util.Try
   */
 class PluginFile(private var path: Path, private val owner: User) {
 
-  val META_FILE_NAME = "mcmod.info"
+  private val META_FILE_NAME = "mcmod.info"
 
   private var meta: Option[PluginMetadata] = None
 

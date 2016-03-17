@@ -35,8 +35,8 @@ abstract class AbstractAuthor extends Author {
   /**
     * Returns the Project with the specified name that this Author owns.
     *
-    * @param name Name of project
-    * @return Owned project, if any, None otherwise
+    * @param name   Name of project
+    * @return       Owned project, if any, None otherwise
     */
   def getProject(name: String): Future[Option[Project]] = Storage.optProject(this.name, name)
 

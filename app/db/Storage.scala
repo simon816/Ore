@@ -32,10 +32,10 @@ object Storage {
   /**
     * Awaits the result of the specified future and returns the result.
     *
-    * @param f Future to await
-    * @param timeout Timeout duration
-    * @tparam M Return type
-    * @return Try of return type
+    * @param f        Future to await
+    * @param timeout  Timeout duration
+    * @tparam M       Return type
+    * @return         Try of return type
     */
   def now[M](f: Future[M], timeout: Duration = DEFAULT_TIMEOUT): Try[M] = {
     Await.ready(f, timeout).value.get
@@ -44,8 +44,8 @@ object Storage {
   /**
     * Returns true if the specified future has a value.
     *
-    * @param f Future to check
-    * @return
+    * @param f  Future to check
+    * @return   Future
     */
   def isDefined(f: Future[_]): Future[Boolean] = {
     val p = Promise[Boolean]
@@ -57,6 +57,7 @@ object Storage {
   }
 
   private def q[T <: Table[_]](clazz: Class[_]): TableQuery[T] = {
+    // Table mappings
     if (clazz.equals(classOf[Project])) {
       TableQuery(tag => new ProjectTable(tag).asInstanceOf[T])
     } else if (clazz.equals(classOf[Dev])) {
@@ -77,10 +78,12 @@ object Storage {
   // Generic queries
 
   private def _filter[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]) = {
+    // Raw filter query
     q[T](clazz).filter(predicate)
   }
 
   private def filter[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]): Future[Seq[M]] = {
+    // Filter action
     this.config.db.run(_filter[T, M](clazz, predicate).result)
   }
 
@@ -122,7 +125,7 @@ object Storage {
     this.config.db.run(action)
   }
 
-  def findOrCreate(user: User): User = {
+  def findOrCreateUser(user: User): User = {
     Storage.now(optUser(user.username)) match {
       case Failure(thrown) => throw thrown
       case Success(userOpt) => userOpt match {
@@ -130,7 +133,7 @@ object Storage {
           case Failure(thrown) => throw thrown
           case Success(void) => user
         }
-        case Some(user) => user
+        case Some(u) => u
       }
     }
   }

@@ -2,6 +2,9 @@ package db
 
 import com.github.tminglei.slickpg._
 
+/**
+  * Custom Postgres driver to support array data types.
+  */
 trait OrePostgresDriver extends ExPostgresDriver with PgArraySupport {
 
   override val api = OreDriver

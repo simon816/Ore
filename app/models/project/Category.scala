@@ -1,5 +1,8 @@
 package models.project
 
+/**
+  * Represents a project category.
+  */
 object Category extends Enumeration {
 
   val AdminTools  =   CategoryVal(0, "Admin Tools",       "fa-server")

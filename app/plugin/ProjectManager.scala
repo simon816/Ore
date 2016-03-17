@@ -1,6 +1,5 @@
 package plugin
 
-import java.nio.charset.Charset
 import java.nio.file.{Files, Path}
 
 import db.Storage
@@ -15,7 +14,7 @@ import play.api.libs.Files.TemporaryFile
 import scala.util.{Failure, Success, Try}
 
 /**
-  * Handles file management of uploaded projects.
+  * Handles management of uploaded projects.
   */
 object ProjectManager {
 
@@ -29,9 +28,9 @@ object ProjectManager {
   /**
     * Initializes a new PluginFile with the specified owner and temporary file.
     *
-    * @param tmp Temporary file
-    * @param owner Project owner
-    * @return New plugin file
+    * @param tmp    Temporary file
+    * @param owner  Project owner
+    * @return       New plugin file
     */
   def initUpload(tmp: TemporaryFile, owner: User): Try[PluginFile] = Try {
     val tmpPath = TEMP_DIR.resolve(owner.name).resolve("plugin.jar")
@@ -47,8 +46,8 @@ object ProjectManager {
   /**
     * Uploads the specified PluginFile to it's appropriate location.
     *
-    * @param plugin PluginFile to upload
-    * @return Result
+    * @param plugin   PluginFile to upload
+    * @return         Result
     */
   def uploadPlugin(channel: Channel, plugin: PluginFile): Try[Unit] = Try {
     plugin.getMeta match {
@@ -64,6 +63,12 @@ object ProjectManager {
     }
   }
 
+  /**
+    * Creates a new Project from the specified PendingProject
+    *
+    * @param pending  PendingProject
+    * @return         New Project
+    */
   def createProject(pending: PendingProject): Try[Project] = Try[Project] {
     Storage.now(Storage.createProject(pending.project)) match {
       case Failure(thrown) =>
@@ -79,6 +84,12 @@ object ProjectManager {
     }
   }
 
+  /**
+    * Creates a new version from the specified PendingVersion.
+    *
+    * @param pending  PendingVersion
+    * @return         New version
+    */
   def createVersion(pending: PendingVersion): Try[Version] = Try[Version] {
     // Get project
     Storage.now(Storage.getProject(pending.owner, pending.projectName)) match {
@@ -125,6 +136,17 @@ object ProjectManager {
     }
   }
 
+  /**
+    * Updates the specified documentation page to the specified new name and
+    * new content.
+    *
+    * @param owner        Project owner
+    * @param projectName  Project name
+    * @param oldName      Old page name
+    * @param newName      New page name
+    * @param content      Page content
+    * @return             New page Path
+    */
   def updatePage(owner: String, projectName: String, oldName: String, newName: String, content: String) = {
     val docsDir = getDocsDir(owner, projectName)
     Files.deleteIfExists(docsDir.resolve(oldName + ".md"))
@@ -133,6 +155,14 @@ object ProjectManager {
     Files.write(path, content.getBytes("UTF-8"))
   }
 
+  /**
+    * Returns the specified page's contents.
+    *
+    * @param owner        Owner name
+    * @param projectName  Project name
+    * @param page         Page name
+    * @return             Page contents
+    */
   def getPageContents(owner: String, projectName: String, page: String): Option[String] = {
     val path = getDocsDir(owner, projectName).resolve(page + ".md")
     if (Files.exists(path)) {
@@ -145,28 +175,56 @@ object ProjectManager {
   /**
     * Returns the Path to where the specified Version should be.
     *
-    * @param owner Project owner
-    * @param name Project name
-    * @param version Project version
-    * @param channel Project channel
-    * @return Path to supposed file
+    * @param owner    Project owner
+    * @param name     Project name
+    * @param version  Project version
+    * @param channel  Project channel
+    * @return         Path to supposed file
     */
   def getUploadPath(owner: String, name: String, version: String, channel: String): Path = {
     getProjectDir(owner, name).resolve(channel).resolve("%s-%s.jar".format(name, version.toLowerCase))
   }
 
+  /**
+    * Returns the specified project's plugin directory.
+    *
+    * @param owner  Owner name
+    * @param name   Project name
+    * @return       Plugin directory
+    */
   def getProjectDir(owner: String, name: String): Path = {
     getUserDir(owner).resolve(name)
   }
 
+  /**
+    * Returns the specified user's plugin directory.
+    *
+    * @param owner  Owner name
+    * @return       Plugin directory
+    */
   def getUserDir(owner: String): Path = {
     PLUGIN_DIR.resolve(owner)
   }
 
+  /**
+    * Returns the specified project's documentation directory.
+    *
+    * @param owner        Owner name
+    * @param projectName  Project name
+    * @return             Documentation directory
+    */
   def getDocsDir(owner: String, projectName: String): Path = {
     DOCS_DIR.resolve(owner).resolve(projectName)
   }
 
+  /**
+    * Renames this specified project in the file system.
+    *
+    * @param owner    Owner name
+    * @param oldName  Old project name
+    * @param newName  New project name
+    * @return         New path
+    */
   def renameProject(owner: String, oldName: String, newName: String): Try[Unit] = Try {
     val newPath = getProjectDir(owner, newName)
     Files.move(getProjectDir(owner, oldName), newPath)

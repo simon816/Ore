@@ -5,7 +5,7 @@
 @projects.detail(model, "#docs") {
 
     <div class="container">
-        @form(action = routes.Projects.editPage(model.owner, model.name, "home")) {
+        @form(action = routes.Projects.savePage(model.owner, model.name, "home")) {
             <div class="form-group form-inline">
                 <input class="form-control" type="text" name="name" value="@page" />
                 <button class="btn btn-default">Cancel</button>

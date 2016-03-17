@@ -22,8 +22,8 @@ POST    /:author/:name                                          @controllers.Pro
 GET     /:author/:name                                          @controllers.Projects.show(author, name)
 
 # Pages
-GET     /:author/:name/pages/:page/edit                         @controllers.Projects.showEditPage(author, name, page)
-POST    /:author/:name/pages/:page/edit                         @controllers.Projects.editPage(author, name, page)
+GET     /:author/:name/pages/:page/edit                         @controllers.Projects.showPageEdit(author, name, page)
+POST    /:author/:name/pages/:page/edit                         @controllers.Projects.savePage(author, name, page)
 
 # Delete version
 GET     /:author/:name/versions/:channel/:version/delete        @controllers.Projects.deleteVersion(author, name, channel, version)
@@ -49,9 +49,6 @@ GET     /:author/:name/dicuss                                   @controllers.Pro
 GET     /:author/:name/manage                                   @controllers.Projects.showManager(author, name)
 POST    /:author/:name/manage/rename                            @controllers.Projects.rename(author, name)
 POST    /:author/:name/manage/delete                            @controllers.Projects.delete(author, name)
-
-# User
-GET     /:author                                                @controllers.Projects.showAuthor(author)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                                           controllers.Assets.at(path="/public", file)

@@ -7,6 +7,9 @@ import play.api.mvc._
 
 import scala.util.{Failure, Success}
 
+/**
+  * Represents a controller with user authentication / authorization.
+  */
 trait Secured {
 
   def username(request: RequestHeader) = request.session.get(Security.username)
@@ -34,6 +37,11 @@ trait Secured {
 
 object Secured {
 
+  /**
+    * Raw contextual data associated with authentication.
+    *
+    * @param username User username
+    */
   case class Context(username: String)
 
 }

@@ -45,7 +45,6 @@ object DiscourseSSO {
 
     // decode payload
     val decoded = URLDecoder.decode(new String(Base64.getMimeDecoder.decode(sso)), "UTF-8")
-    println("decoded = " + decoded)
 
     // extract info
     val params = decoded.split('&')

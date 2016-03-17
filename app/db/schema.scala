@@ -8,7 +8,10 @@ import models.author.{Dev, Team}
 import models.project.{Channel, Project, Version}
 
 /*
- * Database schema definitions
+ * Database schema definitions. Changes must be first applied as an evolutions
+ * SQL script in "conf/evolutions/default", then here, then in the associated
+ * model. Tables should have their columns defined in the order in which they
+ * appear in the DB.
  */
 
 class ProjectTable(tag: Tag) extends Table[Project](tag, "projects") {

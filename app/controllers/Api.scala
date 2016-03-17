@@ -23,8 +23,8 @@ class Api extends Controller {
   /**
     * Returns a JSON view of all projects.
     *
-    * @param version API version
-    * @return JSON view of projects
+    * @param version  API version
+    * @return         JSON view of projects
     */
   def listProjects(version: String) = Action {
     Storage.now(Storage.getProjects) match {

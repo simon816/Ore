@@ -1,6 +1,5 @@
 package models.project
 
-import java.nio.file.Files
 import java.sql.Timestamp
 
 import db.Storage
@@ -26,14 +25,18 @@ import scala.util.{Failure, Success, Try}
   * <p>Note: Instance variables should be private unless they are database
   * properties</p>
   *
-  * @param id          Unique identifier
-  * @param createdAt   Instant of creation
-  * @param pluginId    Plugin ID
-  * @param name        Name of plugin
-  * @param owner       The owner Author for this project
-  * @param views       How many times this project has been views
-  * @param downloads   How many times this project has been downloaded in total
-  * @param starred     How many times this project has been starred
+  * @param id                     Unique identifier
+  * @param createdAt              Instant of creation
+  * @param pluginId               Plugin ID
+  * @param name                   Name of plugin
+  * @param owner                  The owner Author for this project
+  * @param authors                Authors who work on this project
+  * @param homepage               The external project URL
+  * @param recommendedVersionId   The ID of this project's recommended version
+  * @param categoryId             The ID of this project's category
+  * @param views                  How many times this project has been views
+  * @param downloads              How many times this project has been downloaded in total
+  * @param starred                How many times this project has been starred
   */
 case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: String,
                    var name: String, owner: String, authors: List[String],
@@ -44,8 +47,14 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
     this(None, None, pluginId, name, owner, authors, Option(homepage), None, 0, 0, 0, 0)
   }
 
-  def getOwner: Author = UnknownAuthor(owner)
+  def getOwner: Author = UnknownAuthor(owner) // TODO
 
+  /**
+    * Sets the name of this project and performs all the necessary renames.
+    *
+    * @param name   New name
+    * @return       Future result
+    */
   def setName(name: String): Future[Int] = {
     val f = Storage.updateProjectString(this, table => table.name, name)
     f.onSuccess {
@@ -66,16 +75,16 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
   /**
     * Returns the Channel in this project with the specified name.
     *
-    * @param name Name of channel
-    * @return Channel with name, if present, None otherwise
+    * @param name   Name of channel
+    * @return       Channel with name, if present, None otherwise
     */
   def getChannel(name: String): Future[Option[Channel]] = Storage.optChannel(this.id.get, name)
 
   /**
     * Creates a new Channel for this project with the specified name.
     *
-    * @param name Name of channel
-    * @return New channel
+    * @param name   Name of channel
+    * @return       New channel
     */
   def newChannel(name: String): Future[Channel] = {
     Storage.createChannel(new Channel(name, this.id.get))
@@ -91,8 +100,8 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
   /**
     * Updates this project's recommended version.
     *
-    * @param version Version to set
-    * @return Result
+    * @param version  Version to set
+    * @return         Result
     */
   def setRecommendedVersion(version: Version) = {
     Storage.updateProjectInt(this, table => table.recommendedVersionId, version.id.get).onSuccess {
@@ -114,6 +123,11 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
     */
   def exists: Boolean = Storage.now(Storage.isDefined(Storage.getProject(this.owner, this.name))).isSuccess
 
+  /**
+    * Immediately deletes this projects and any associated files.
+    *
+    * @return Result
+    */
   def delete: Try[Unit] = Try {
     Storage.now(Storage.deleteProject(this)) match {
       case Failure(thrown) => throw thrown
@@ -135,13 +149,18 @@ object Project {
     * Represents a Project with an uploaded plugin that has not yet been
     * created.
     *
-    * @param project Pending project
-    * @param firstVersion Uploaded plugin
+    * @param project        Pending project
+    * @param firstVersion   Uploaded plugin
     */
   case class PendingProject(project: Project, firstVersion: PluginFile) extends PendingAction[Project] with Cacheable {
 
     private var pendingVersion: Option[PendingVersion] = None
 
+    /**
+      * Creates a new PendingVersion for this PendingProject
+      *
+      * @return New PendingVersion
+      */
     def initFirstVersion: PendingVersion = {
       val meta = this.firstVersion.getMeta.get
       val version = Version.fromMeta(this.project, meta)
@@ -151,6 +170,11 @@ object Project {
       pending
     }
 
+    /**
+      * Returns this PendingProject's PendingVersion
+      *
+      * @return PendingVersion
+      */
     def getPendingVersion: Option[PendingVersion] = this.pendingVersion
 
     override def complete: Try[Project] = Try {
@@ -167,6 +191,7 @@ object Project {
     }
 
     override def cancel() = {
+      free()
       this.firstVersion.delete()
       if (project.exists) {
         project.delete
@@ -180,8 +205,8 @@ object Project {
   /**
     * Marks the specified Project as pending for later use.
     *
-    * @param project Project that is pending
-    * @param firstVersion Uploaded plugin
+    * @param project        Project that is pending
+    * @param firstVersion   Uploaded plugin
     */
   def setPending(project: Project, firstVersion: PluginFile) =  {
     PendingProject(project, firstVersion).cache()
@@ -190,9 +215,9 @@ object Project {
   /**
     * Returns the PendingProject of the specified owner and name, if any.
     *
-    * @param owner Project owner
-    * @param name Project name
-    * @return PendingProject if present, None otherwise
+    * @param owner  Project owner
+    * @param name   Project name
+    * @return       PendingProject if present, None otherwise
     */
   def getPending(owner: String, name: String): Option[PendingProject] = {
     Cache.getAs[PendingProject](owner + '/' + name)
@@ -201,9 +226,9 @@ object Project {
   /**
     * Creates a new Project from the specified PluginMetadata.
     *
-    * @param owner Owner of project
-    * @param meta PluginMetadata object
-    * @return New project
+    * @param owner  Owner of project
+    * @param meta   PluginMetadata object
+    * @return       New project
     */
   def fromMeta(owner: String, meta: PluginMetadata): Project = {
     new Project(meta.getId, meta.getName, owner, meta.getAuthors.toList, meta.getUrl)

@@ -1,3 +1,6 @@
+@*
+The main header displayed on each layout.
+*@
 @import util.Gravatar
 @()(implicit session: Session)
 
@@ -12,10 +15,11 @@
         </div>
         <div class="collapse navbar-collapse">
             @session.get("email").map { email =>
+                @* Show user controls *@
                 <ul class="nav navbar-nav navbar-right">
                     <li class="dropdown">
                         <a href="#" class="drop-down-toggle" style="padding: 15px;" data-toggle="dropdown">
-                            <img class="user-avatar" style="background: url(@Gravatar.getAvatar(email));" />
+                            <img class="user-avatar" style="background: url(@Gravatar.getAvatar(email, 45));" />
                             <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu" aria-label="dropdownMenu1">
@@ -27,6 +31,7 @@
                     </li>
                 </ul>
             }.getOrElse {
+                @* Show login controls *@
                 <div class="nav navbar-nav navbar-right">
                     <a href="@routes.Application.logIn(None, None)" class="btn btn-primary navbar-btn">Sign up</a>
                     <a href="@routes.Application.logIn(None, None)" class="btn btn-primary navbar-btn">Log in</a>

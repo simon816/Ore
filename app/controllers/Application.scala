@@ -26,17 +26,29 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends Contr
     }
   }
 
+  /**
+    * Redirect to forums for SSO authentication and then back here again.
+    *
+    * @param sso  Incoming payload from forums
+    * @param sig  Incoming signature from forums
+    * @return     Logged in home
+    */
   def logIn(sso: Option[String], sig: Option[String]) = Action {
     if (sso.isEmpty || sig.isEmpty) {
       Redirect(getRedirect)
     } else {
       val userData = authenticate(sso.get, sig.get)
       var user = new User(userData._1, userData._2, userData._3, userData._4)
-      user = Storage.findOrCreate(user)
+      user = Storage.findOrCreateUser(user)
       Redirect(routes.Application.index(None)).withSession(Security.username -> user.username, "email" -> user.email)
     }
   }
 
+  /**
+    * Clears the current session.
+    *
+    * @return Home page
+    */
   def logOut = Action { implicit request =>
     Redirect(routes.Application.index(None)).withNewSession
   }

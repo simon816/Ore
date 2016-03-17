@@ -20,9 +20,9 @@ import scala.util.{Failure, Success, Try}
   *
   * @param id         Unique identifier
   * @param createdAt  Instant of creation
-  * @param projectId  ID of project this channel belongs to
   * @param name       Name of channel
   * @param colorHex   Hex color
+  * @param projectId  ID of project this channel belongs to
   */
 case class Channel(id: Option[Int], var createdAt: Option[Timestamp], name: String,
                    colorHex: String, projectId: Int) {
@@ -46,23 +46,29 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], name: Stri
   /**
     * Returns the Version in this channel with the specified version string.
     *
-    * @param version Version string
-    * @return Version, if any, None otherwise
+    * @param version  Version string
+    * @return         Version, if any, None otherwise
     */
   def getVersion(version: String): Future[Option[Version]] = Storage.optVersion(this.id.get, version)
 
   /**
     * Creates a new version within this Channel.
     *
-    * @param version Version string
-    * @return New channel
+    * @param version  Version string
+    * @return         New channel
     */
   def newVersion(version: String, dependencies: List[String], description: String, assets: String): Future[Version] = {
     Storage.createVersion(new Version(version, dependencies, description, assets, this.projectId, this.id.get))
   }
 
+  /**
+    * Deletes the specified Version within this channel.
+    *
+    * @param version  Version to delete
+    * @param context  Project for context
+    * @return         Result
+    */
   def deleteVersion(version: Version, context: Project): Try[Unit] = Try {
-    println("delete()")
     Storage.now(Storage.deleteVersion(version)) match {
       case Failure(thrown) => throw thrown
       case Success(i) =>
@@ -94,14 +100,15 @@ object Channel {
     * StringItem within the parsed version. (e.g. 1.0.0-alpha) would return
     * "alpha".
     *
-    * @param version Version string to parse
-    * @return Suggested channel name
+    * @param version  Version string to parse
+    * @return         Suggested channel name
     */
   def getSuggestedNameForVersion(version: String): String = {
     firstString(new ComparableVersion(version).getItems).getOrElse(DEFAULT_CHANNEL)
   }
 
   private def firstString(items: ListItem): Option[String] = {
+    // Get the first non-number component in the version string
     var str: Option[String] = None
     var i = 0
     while (str.isEmpty && i < items.size()) {
