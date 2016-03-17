@@ -1,7 +1,4 @@
-@import models.project.Project
-@import models.project.Channel
-@import models.project.Version
-@import plugin.ProjectManager
+@import models.project.{Channel, Project, Version}
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages, session: Session)
 
 @projects.detail(project, "#versions") {

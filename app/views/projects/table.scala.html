@@ -1,8 +1,7 @@
 @*
 Collection of all projects.
 *@
-@import models.project.Project
-@import models.project.Category
+@import models.project.{Category, Project}
 @(models: Seq[Project])(implicit messages: Messages, session: Session)
 
 <div class="container">

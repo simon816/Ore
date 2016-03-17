@@ -2,7 +2,7 @@ package models.project
 
 import db.Storage
 
-import scala.util.{Success, Failure}
+import scala.util.{Failure, Success}
 
 /**
   * Represents a dependency to another plugin. Either on or not on Ore.

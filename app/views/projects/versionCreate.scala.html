@@ -1,7 +1,6 @@
-@import models.project.Project
+@import models.project.{Channel, Project}
 @import models.project.Version.PendingVersion
 @import views.html.helper.form
-@import models.project.Channel
 @(project: Project, pending: Option[PendingVersion], showFileControls: Boolean)(implicit messages: Messages, session: Session)
 
 @core.layout("Release a new version") {

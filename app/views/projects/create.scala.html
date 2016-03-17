@@ -1,12 +1,9 @@
 @*
 Page used for uploading and creating new projects.
 *@
+@import models.project.Category
 @import models.project.Project.PendingProject
 @import views.html.helper.form
-@import db.Storage
-@import scala.util.Failure
-@import scala.util.Success
-@import models.project.Category
 @(pending: Option[PendingProject])(implicit messages: Messages, session: Session)
 
 @core.layout(messages("project.create")) {
