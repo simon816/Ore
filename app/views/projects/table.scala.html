@@ -59,7 +59,7 @@ Collection of all projects.
                         @for(category <- Category.values) {
                             <tr>
                                 <td class="cat-icon"><i class="fa @category.icon"></i></td>
-                                <td><strong><a href="#">@category.title</a></strong></td>
+                                <td><strong><a href="@routes.Application.index(Some(category.id))">@category.title</a></strong></td>
                             </tr>
                         }
                     </tbody>

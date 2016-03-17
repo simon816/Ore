@@ -163,6 +163,10 @@ object Storage {
 
   def getProjects: Future[Seq[Project]] = getAll[ProjectTable, Project](classOf[Project])
 
+  def getProjects(categoryId: Int): Future[Seq[Project]] = {
+    filter[ProjectTable, Project](classOf[Project], p => p.categoryId === categoryId)
+  }
+
   def getProjectsBy(ownerName: String): Future[Seq[Project]] = {
     filter[ProjectTable, Project](classOf[Project], p => p.ownerName === ownerName)
   }

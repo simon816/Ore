@@ -8,12 +8,9 @@ GET     /api/projects/search                                    @controllers.Api
 GET     /api/:version/projects                                  @controllers.Api.listProjects(version)
 
 # Home page
-GET     /                                                       @controllers.Application.index
+GET     /                                                       @controllers.Application.index(category: Option[Int])
 GET     /login                                                  @controllers.Application.logIn(sso: Option[String], sig: Option[String])
 GET     /logout                                                 @controllers.Application.logOut
-
-# Projects
-GET     /:author/:name                                          @controllers.Projects.show(author, name)
 
 # New Project
 GET     /new                                                    @controllers.Projects.showCreate
@@ -21,9 +18,19 @@ GET     /new/:author/:name                                      @controllers.Pro
 POST    /new/upload                                             @controllers.Projects.upload
 POST    /:author/:name                                          @controllers.Projects.showFirstVersionCreate(author, name)
 
-# Versions
-GET     /:author/:name/versions                                 @controllers.Projects.showVersions(author, name)
-GET     /:author/:name/versions/:channel/:version               @controllers.Projects.showVersion(author, name, channel, version)
+# Projects
+GET     /:author/:name                                          @controllers.Projects.show(author, name)
+
+# Pages
+GET     /:author/:name/pages/:page/edit                         @controllers.Projects.showEditPage(author, name, page)
+POST    /:author/:name/pages/:page/edit                         @controllers.Projects.editPage(author, name, page)
+
+# Delete version
+GET     /:author/:name/versions/:channel/:version/delete        @controllers.Projects.deleteVersion(author, name, channel, version)
+
+# Downloads
+GET     /:author/:name/versions/download/:channel/:version      @controllers.Projects.downloadVersion(author, name, channel, version)
+GET     /:author/:name/versions/download/recommended            @controllers.Projects.downloadRecommendedVersion(author, name)
 
 # New Version
 GET     /:author/:name/versions/new                             @controllers.Projects.showVersionCreate(author, name)
@@ -31,9 +38,9 @@ GET     /:author/:name/versions/new/:channel/:version           @controllers.Pro
 POST    /:author/:name/versions/new/upload                      @controllers.Projects.uploadVersion(author, name)
 POST    /:author/:name/versions/:channel/:version               @controllers.Projects.createVersion(author, name, channel, version)
 
-# Downloads
-GET     /:author/:name/versions/download/:channel/:version      @controllers.Projects.downloadVersion(author, name, channel, version)
-GET     /:author/:name/versions/download/recommended            @controllers.Projects.downloadRecommendedVersion(author, name)
+# Versions
+GET     /:author/:name/versions                                 @controllers.Projects.showVersions(author, name)
+GET     /:author/:name/versions/:channel/:version               @controllers.Projects.showVersion(author, name, channel, version)
 
 # Discussion
 GET     /:author/:name/dicuss                                   @controllers.Projects.showDiscussion(author, name)

@@ -16,7 +16,10 @@
                 <p class="date pull-left"><a href="#"><strong>@project.owner</strong></a> released this version on @version.prettyDate</p>
                 <div class="pull-right version-buttons">
                     @if(session.get("username").isDefined && session.get("username").get.equals(project.owner)) {
-                        <a class="btn btn-danger" href="#">Delete</a>
+                        <a class="btn btn-danger"
+                           href="@routes.Projects.deleteVersion(project.owner, project.name, channel.name, version.versionString)">
+                            Delete
+                        </a>
                     }
                     <a class="btn btn-primary"
                        href="@routes.Projects.downloadVersion(project.owner, project.name, channel.name, version.versionString)">

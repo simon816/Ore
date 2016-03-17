@@ -11,6 +11,7 @@ import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import plugin.ProjectManager
+import util.Markdown
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -103,7 +104,29 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return View of project
     */
   def show(author: String, name: String) = Action { implicit request =>
-    withProject(author, name, project => Ok(views.projects.docs(project)))
+    withProject(author, name, project => {
+      Ok(views.projects.docs(project, Markdown.process(ProjectManager.getPageContents(author, name, "home").get)))
+    })
+  }
+
+  def showEditPage(author: String, name: String, page: String) = { withUser(Some(author), user => implicit request =>
+    withProject(author, name, project => {
+      ProjectManager.getPageContents(author, name, page) match {
+        case None => NotFound
+        case Some(contents) => Ok(views.projects.pageEdit(project, page, contents))
+      }
+    }))
+  }
+
+  val pageEditForm = Form(tuple(
+    "name" -> text,
+    "content" -> text
+  ))
+
+  def editPage(author: String, name: String, page: String) = Action { implicit request =>
+    val pageForm = this.pageEditForm.bindFromRequest.get
+    ProjectManager.updatePage(author, name, page, pageForm._1, pageForm._2)
+    Redirect(self.show(author, name))
   }
 
   def showVersion(author: String, name: String, channelName: String, versionString: String) = Action { implicit request =>
@@ -191,11 +214,11 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
                                 withUser(Some(author), user => implicit request =>
     // Get pending version
     Version.getPending(author, name, channelName, versionString) match {
-      case None => Redirect(routes.Application.index())
+      case None => Redirect(routes.Application.index(None))
       case Some(pendingVersion) =>
         // Get project
         pendingOrReal(author, name) match {
-          case None => Redirect(routes.Application.index())
+          case None => Redirect(routes.Application.index(None))
           case Some(p) => p match {
             case pending: PendingProject =>
               Ok(views.projects.versionCreate(pending.project, Some(pendingVersion), showFileControls = false))
@@ -223,6 +246,29 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
           }
       }
     })
+  }
+
+  def deleteVersion(author: String, name: String, channelName: String, versionString: String) = {
+                    withUser(Some(author), user => implicit request =>
+    withProject(author, name, project => {
+      println("project = " + project.name)
+      Storage.now(project.getChannel(channelName)) match {
+        case Failure(thrown) => throw thrown
+        case Success(channelOpt) => channelOpt match {
+          case None => NotFound("Channel not found.")
+          case Some(channel) => Storage.now(channel.getVersion(versionString)) match {
+            case Failure(thrown) => throw thrown
+            case Success(versionOpt) => versionOpt match {
+              case None => NotFound("Version not found.")
+              case Some(version) => channel.deleteVersion(version, project) match {
+                case Failure(thrown) => throw thrown
+                case Success(void) => Redirect(self.showVersions(author, name))
+              }
+            }
+          }
+        }
+      }
+    }))
   }
 
   /**
@@ -254,6 +300,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   }
 
   def downloadRecommendedVersion(author: String, name: String) = Action {
+    println("downloadRecommendedVersion()")
     withProject(author, name, project => {
       Storage.now(project.getRecommendedVersion) match {
         case Failure(thrown) => throw thrown
@@ -298,7 +345,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     withProject(author, name, project => {
       project.delete match {
         case Failure(thrown) => throw thrown
-        case Success(i) => Redirect(routes.Application.index())
+        case Success(i) => Redirect(routes.Application.index(None))
       }
     }))
   }

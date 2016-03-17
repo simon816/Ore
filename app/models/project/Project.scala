@@ -1,5 +1,6 @@
 package models.project
 
+import java.nio.file.Files
 import java.sql.Timestamp
 
 import db.Storage
@@ -116,7 +117,9 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
   def delete: Try[Unit] = Try {
     Storage.now(Storage.deleteProject(this)) match {
       case Failure(thrown) => throw thrown
-      case Success(i) => FileUtils.deleteDirectory(ProjectManager.getProjectDir(this.owner, this.name).toFile)
+      case Success(i) =>
+        FileUtils.deleteDirectory(ProjectManager.getProjectDir(this.owner, this.name).toFile)
+        FileUtils.deleteDirectory(ProjectManager.getDocsDir(this.owner, this.name).toFile)
     }
   }
 

@@ -1,13 +1,16 @@
 package models.project
 
+import java.nio.file.Files
 import java.sql.Timestamp
 
 import db.Storage
 import models.project.Channel._
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
+import plugin.ProjectManager
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 /**
   * Represents a release channel for Project Versions. Each project gets it's
@@ -56,6 +59,15 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], name: Stri
     */
   def newVersion(version: String, dependencies: List[String], description: String, assets: String): Future[Version] = {
     Storage.createVersion(new Version(version, dependencies, description, assets, this.projectId, this.id.get))
+  }
+
+  def deleteVersion(version: Version, context: Project): Try[Unit] = Try {
+    println("delete()")
+    Storage.now(Storage.deleteVersion(version)) match {
+      case Failure(thrown) => throw thrown
+      case Success(i) =>
+        Files.delete(ProjectManager.getUploadPath(context.owner, context.name, version.versionString, this.name))
+    }
   }
 
   override def hashCode: Int = this.id.get.hashCode

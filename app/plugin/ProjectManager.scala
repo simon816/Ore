@@ -1,5 +1,6 @@
 package plugin
 
+import java.nio.charset.Charset
 import java.nio.file.{Files, Path}
 
 import db.Storage
@@ -18,7 +19,10 @@ import scala.util.{Failure, Success, Try}
   */
 object ProjectManager {
 
-  val UPLOADS_DIR = Play.application.path.toPath.resolve("uploads")
+  val ROOT_DIR = Play.application.path.toPath
+  val CONF_DIR = ROOT_DIR.resolve("conf")
+  val UPLOADS_DIR = ROOT_DIR.resolve("uploads")
+  val DOCS_DIR = UPLOADS_DIR.resolve("docs")
   val PLUGIN_DIR = UPLOADS_DIR.resolve("plugins")
   val TEMP_DIR = UPLOADS_DIR.resolve("tmp")
 
@@ -65,7 +69,13 @@ object ProjectManager {
       case Failure(thrown) =>
         pending.cancel()
         throw thrown
-      case Success(newProject) => newProject
+      case Success(newProject) =>
+        val docsDir = getDocsDir(newProject.owner, newProject.name)
+        if (Files.notExists(docsDir)) {
+          Files.createDirectories(docsDir)
+        }
+        Files.copy(CONF_DIR.resolve("default.md"), docsDir.resolve("home.md"))
+        newProject
     }
   }
 
@@ -115,6 +125,23 @@ object ProjectManager {
     }
   }
 
+  def updatePage(owner: String, projectName: String, oldName: String, newName: String, content: String) = {
+    val docsDir = getDocsDir(owner, projectName)
+    Files.deleteIfExists(docsDir.resolve(oldName + ".md"))
+    val path = docsDir.resolve(newName + ".md")
+    Files.createFile(path)
+    Files.write(path, content.getBytes("UTF-8"))
+  }
+
+  def getPageContents(owner: String, projectName: String, page: String): Option[String] = {
+    val path = getDocsDir(owner, projectName).resolve(page + ".md")
+    if (Files.exists(path)) {
+      Some(new String(Files.readAllBytes(path)))
+    } else {
+      None
+    }
+  }
+
   /**
     * Returns the Path to where the specified Version should be.
     *
@@ -134,6 +161,10 @@ object ProjectManager {
 
   def getUserDir(owner: String): Path = {
     PLUGIN_DIR.resolve(owner)
+  }
+
+  def getDocsDir(owner: String, projectName: String): Path = {
+    DOCS_DIR.resolve(owner).resolve(projectName)
   }
 
   def renameProject(owner: String, oldName: String, newName: String): Try[Unit] = Try {

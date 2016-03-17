@@ -1,0 +1,31 @@
+@import models.project.Project
+@import views.html.helper.form
+@(model: Project, page: String, content: String)(implicit messages: Messages, session: Session)
+
+@projects.detail(model, "#docs") {
+
+    <div class="container">
+        @form(action = routes.Projects.editPage(model.owner, model.name, "home")) {
+            <div class="form-group form-inline">
+                <input class="form-control" type="text" name="name" value="@page" />
+                <button class="btn btn-default">Cancel</button>
+                <input type="submit" title="Save" class="btn btn-primary">
+            </div>
+            <ul class="nav nav-tabs" role="tablist">
+                <li role="presentation" class="active">
+                    <a href="#edit" aria-controls="edit" role="tab" data-toggle="tab">Edit page</a>
+                </li>
+                <li role="presentation">
+                    <a href="#preview" aria-controls="edit" role="tab" data-toggle="tab">Preview changes</a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="edit">
+                    <textarea name="content" class="form-control" rows="20">@content</textarea>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="preview"></div>
+            </div>
+        }
+    </div>
+
+}

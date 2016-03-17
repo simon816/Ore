@@ -18,8 +18,9 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends Contr
     *
     * @return Home page
     */
-  def index = Action { implicit request =>
-    Storage.now(Storage.getProjects) match {
+  def index(category: Option[Int]) = Action { implicit request =>
+    val future = if (category.isDefined) Storage.getProjects(category.get) else Storage.getProjects
+    Storage.now(future) match {
       case Failure(thrown) => throw thrown
       case Success(projects) => Ok(views.index(projects))
     }
@@ -32,12 +33,12 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends Contr
       val userData = authenticate(sso.get, sig.get)
       var user = new User(userData._1, userData._2, userData._3, userData._4)
       user = Storage.findOrCreate(user)
-      Redirect(routes.Application.index()).withSession(Security.username -> user.username, "email" -> user.email)
+      Redirect(routes.Application.index(None)).withSession(Security.username -> user.username, "email" -> user.email)
     }
   }
 
   def logOut = Action { implicit request =>
-    Redirect(routes.Application.index()).withNewSession
+    Redirect(routes.Application.index(None)).withNewSession
   }
 
 }
