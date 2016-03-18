@@ -73,15 +73,6 @@ class UserTable(tag: Tag) extends Table[User](tag, "users") {
 
 }
 
-class DevTable(tag: Tag) extends Table[Dev](tag, "devs") {
-
-  def id          =   column[Int]("id", O.PrimaryKey, O.AutoInc)
-  def createdAt   =   column[Timestamp]("created_at")
-  def name        =   column[String]("name")
-
-  override def * = (id.?, createdAt.?, name) <> (Dev.tupled, Dev.unapply)
-}
-
 class TeamTable(tag: Tag) extends Table[Team](tag, "teams") {
 
   def id          =   column[Int]("id", O.PrimaryKey, O.AutoInc)

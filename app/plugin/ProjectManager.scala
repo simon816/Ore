@@ -1,5 +1,6 @@
 package plugin
 
+import java.io.File
 import java.nio.file.{Files, Path}
 
 import db.Storage
@@ -70,6 +71,10 @@ object ProjectManager {
     * @return         New Project
     */
   def createProject(pending: PendingProject): Try[Project] = Try[Project] {
+    if (pending.project.exists) {
+      throw new IllegalArgumentException("Project already exists.")
+    }
+
     Storage.now(Storage.createProject(pending.project)) match {
       case Failure(thrown) =>
         pending.cancel()
@@ -79,7 +84,7 @@ object ProjectManager {
         if (Files.notExists(docsDir)) {
           Files.createDirectories(docsDir)
         }
-        Files.copy(CONF_DIR.resolve("default.md"), docsDir.resolve("home.md"))
+        Files.copy(CONF_DIR.resolve("markdown/home.md"), docsDir.resolve("home.md"))
         newProject
     }
   }
@@ -153,6 +158,20 @@ object ProjectManager {
     val path = docsDir.resolve(newName + ".md")
     Files.createFile(path)
     Files.write(path, content.getBytes("UTF-8"))
+  }
+
+  def pageExists(owner: String, projectName: String, page: String): Boolean = {
+    println("pageExists(): " + page)
+    Files.exists(getDocsDir(owner, projectName).resolve(page + ".md"))
+  }
+
+  def deletePage(owner: String, projectName: String, page: String) = {
+    Files.deleteIfExists(getDocsDir(owner, projectName).resolve(page + ".md"))
+  }
+
+  def getPageNames(owner: String, projectName: String): Array[String] = {
+    for (file <- getDocsDir(owner, projectName).toFile.listFiles)
+      yield file.getName.substring(0, file.getName.lastIndexOf('.'))
   }
 
   /**

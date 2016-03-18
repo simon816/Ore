@@ -62,8 +62,27 @@ Versions page within Project overview.
                                     </li>
                                 }
                             </ul>
-
                         </div>
+                        @if(model.getAuthors.nonEmpty) {
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">Developers</h3>
+                                </div>
+                                <ul class="list-group">
+                                @model.getAuthors.map { author =>
+                                    <li class="list-group-item">
+                                        @defining(author.getUser) { userOpt =>
+                                            @if(userOpt.isDefined) {
+                                                <a href="#">@author.name</a>
+                                            } else {
+                                                <p class="unknown">@author.name</p>
+                                            }
+                                        }
+                                    </li>
+                                }
+                                </ul>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

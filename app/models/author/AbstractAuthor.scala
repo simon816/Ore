@@ -1,7 +1,5 @@
 package models.author
 
-import java.sql.Timestamp
-
 import com.google.common.base.MoreObjects
 import db.Storage
 import models.project.Project
@@ -17,20 +15,6 @@ import scala.concurrent.Future
   * same name as a Team and vice-versa.
   */
 abstract class AbstractAuthor extends Author {
-
-  /**
-    * Returns this Author's unique identifier.
-    *
-    * @return Unique ID
-    */
-  def id: Option[Int]
-
-  /**
-    * Returns the Timestamp of when this Author was created.
-    *
-    * @return Creation of author
-    */
-  def createdAt: Option[Timestamp]
 
   /**
     * Returns the Project with the specified name that this Author owns.

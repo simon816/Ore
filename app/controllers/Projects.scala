@@ -115,10 +115,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def showPageEdit(author: String, name: String, page: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
-      ProjectManager.getPageContents(author, name, page) match {
-        case None => NotFound
-        case Some(contents) => Ok(views.projects.pageEdit(project, page, contents))
-      }
+      Ok(views.projects.pageEdit(project, page, ProjectManager.getPageContents(author, name, page)))
     }))
   }
 
@@ -136,6 +133,20 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     val pageForm = Forms.PageEdit.bindFromRequest.get
     ProjectManager.updatePage(author, name, page, pageForm._1, pageForm._2)
     Redirect(self.show(author, name))
+  }
+
+  def deletePage(author: String, name: String, page: String) = Action { implicit request =>
+    ProjectManager.deletePage(author, name, page)
+    Redirect(self.show(author, name))
+  }
+
+  def showPage(author: String, name: String, page: String) = Action { implicit request =>
+    withProject(author, name, project => {
+      ProjectManager.getPageContents(author, name, page) match {
+        case None => NotFound
+        case Some(contents) => Ok(views.projects.docs(project, Markdown.process(contents)))
+      }
+    })
   }
 
   /**
@@ -177,10 +188,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
       Storage.now(project.getChannels) match {
         case Failure(thrown) => throw thrown
         case Success(channels) =>
-          Storage.now(project.getVersions) match {
-            case Failure(thrown) => throw thrown
-            case Success(versions) => Ok(views.projects.versions(project, channels, versions));
-          }
+          Ok(views.projects.versions(project, channels, project.getVersions));
       }
     })
   }

@@ -14,8 +14,8 @@ GET     /logout                                                 @controllers.App
 
 # New Project
 GET     /new                                                    @controllers.Projects.showCreate
-GET     /new/:author/:name                                      @controllers.Projects.showCreateWithMeta(author, name)
 POST    /new/upload                                             @controllers.Projects.upload
+GET     /new/:author/:name                                      @controllers.Projects.showCreateWithMeta(author, name)
 POST    /:author/:name                                          @controllers.Projects.showFirstVersionCreate(author, name)
 
 # Projects
@@ -24,6 +24,8 @@ GET     /:author/:name                                          @controllers.Pro
 # Pages
 GET     /:author/:name/pages/:page/edit                         @controllers.Projects.showPageEdit(author, name, page)
 POST    /:author/:name/pages/:page/edit                         @controllers.Projects.savePage(author, name, page)
+GET     /:author/:name/pages/:page/delete                       @controllers.Projects.deletePage(author, name, page)
+GET     /:author/:name/pages/:page                              @controllers.Projects.showPage(author, name, page)
 
 # Delete version
 GET     /:author/:name/versions/:channel/:version/delete        @controllers.Projects.deleteVersion(author, name, channel, version)
@@ -34,8 +36,8 @@ GET     /:author/:name/versions/download/recommended            @controllers.Pro
 
 # New Version
 GET     /:author/:name/versions/new                             @controllers.Projects.showVersionCreate(author, name)
-GET     /:author/:name/versions/new/:channel/:version           @controllers.Projects.showVersionCreateWithMeta(author, name, channel, version)
 POST    /:author/:name/versions/new/upload                      @controllers.Projects.uploadVersion(author, name)
+GET     /:author/:name/versions/new/:channel/:version           @controllers.Projects.showVersionCreateWithMeta(author, name, channel, version)
 POST    /:author/:name/versions/:channel/:version               @controllers.Projects.createVersion(author, name, channel, version)
 
 # Versions

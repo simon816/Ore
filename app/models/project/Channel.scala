@@ -69,6 +69,10 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], name: Stri
     * @return         Result
     */
   def deleteVersion(version: Version, context: Project): Try[Unit] = Try {
+    if (context.getVersions.size == 1) {
+      throw new IllegalArgumentException("Cannot delete project's lone version.")
+    }
+
     Storage.now(Storage.deleteVersion(version)) match {
       case Failure(thrown) => throw thrown
       case Success(i) =>

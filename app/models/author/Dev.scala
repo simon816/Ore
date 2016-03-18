@@ -1,13 +1,27 @@
 package models.author
 
-import java.sql.Timestamp
+import db.Storage
+import models.auth.User
+
+import scala.util.{Failure, Success}
 
 /**
   * Represents a single developer on a project.
   *
-  * @param id         Unique identifier
-  * @param createdAt  Instant of creation
   * @param name       Name of developer
   */
-case class Dev(override val id: Option[Int], override val createdAt: Option[Timestamp],
-               override val name: String) extends AbstractAuthor
+case class Dev(override val name: String) extends AbstractAuthor {
+
+  /**
+    * Tries to resolve this Dev to a registered User.
+    *
+    * @return User if present, None otherwise
+    */
+  def getUser: Option[User] = {
+    Storage.now(Storage.optUser(name)) match {
+      case Failure(thrown) => throw thrown
+      case Success(userOpt) => userOpt
+    }
+  }
+
+}

@@ -3,7 +3,7 @@ package models.project
 import java.sql.Timestamp
 
 import db.Storage
-import models.author.{Author, UnknownAuthor}
+import models.author.Dev
 import models.project.Version.PendingVersion
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
@@ -47,7 +47,9 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
     this(None, None, pluginId, name, owner, authors, Option(homepage), None, 0, 0, 0, 0)
   }
 
-  def getOwner: Author = UnknownAuthor(owner) // TODO
+  def getOwner: Dev = Dev(owner) // TODO: Teams
+
+  def getAuthors: List[Dev] = for (author <- authors) yield Dev(author) // TODO: Teams
 
   /**
     * Sets the name of this project and performs all the necessary renames.
@@ -114,7 +116,10 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
     *
     * @return All versions in project
     */
-  def getVersions: Future[Seq[Version]] = Storage.getAllVersions(this.id.get)
+  def getVersions: Seq[Version] = Storage.now(Storage.getAllVersions(this.id.get)) match {
+    case Failure(thrown) =>  throw thrown
+    case Success(versions) => versions
+  }
 
   /**
     * Returns true if this Project already exists.

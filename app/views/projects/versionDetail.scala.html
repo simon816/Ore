@@ -14,7 +14,12 @@
                 <div class="pull-right version-buttons">
                     @if(session.get("username").isDefined && session.get("username").get.equals(project.owner)) {
                         <a class="btn btn-danger"
-                           href="@routes.Projects.deleteVersion(project.owner, project.name, channel.name, version.versionString)">
+                           href="@routes.Projects.deleteVersion(project.owner, project.name, channel.name, version.versionString)"
+                           @if(project.getVersions.size == 1) {
+                               disabled="disabled" data-toggle="tooltip" data-placement="top"
+                               title="Every project must have at least one version"
+                           }
+                        >
                             Delete
                         </a>
                     }

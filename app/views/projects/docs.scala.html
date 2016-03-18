@@ -2,20 +2,39 @@
 Documentation page within Project overview.
 *@
 @import models.project.Project
-@(model: Project, homePageContent: String)(implicit messages: Messages, session: Session)
+@import plugin.ProjectManager
+@(model: Project, pageContent: String)(implicit messages: Messages, session: Session)
 
 @projects.detail(model, "#docs") {
 
     <div class="project-wiki">
         <div class="container">
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-9">
                     @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {
                         <a href="@routes.Projects.showPageEdit(model.owner, model.name, "home")"
                            class="btn btn-default pull-right"><i class="fa fa-edit"></i> Edit</a>
                     }
                     @* Rendered markdown *@
-                    <p>@Html(homePageContent)</p>
+                    <p class="pull-left">@Html(pageContent)</p>
+                </div>
+                <div class="col-md-3">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Pages</h3>
+                        </div>
+                        <ul class="list-group">
+                            @for(page <- ProjectManager.getPageNames(model.owner, model.name)) {
+                                <li class="list-group-item">
+                                    <a href="@routes.Projects.showPage(model.owner, model.name, page)">@page</a>
+                                    @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {
+                                        <a href="@routes.Projects.showPageEdit(model.owner, model.name, page)"
+                                           class="pull-right"><i class="fa fa-edit"></i></a>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

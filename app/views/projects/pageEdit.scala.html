@@ -1,17 +1,63 @@
 @import models.project.Project
 @import views.html.helper.form
-@(model: Project, page: String, content: String)(implicit messages: Messages, session: Session)
+@import plugin.ProjectManager
+@(model: Project, page: String, content: Option[String])(implicit messages: Messages, session: Session)
 
 @projects.detail(model, "#docs") {
 
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/pageEdit.js")"></script>
+    <script>
+    var onNewPage = function(newPage) {
+        window.location = "@routes.Projects.show(model.owner, model.name)/pages/" + newPage + "/edit"
+    }
+    </script>
+
     <div class="container">
-        @form(action = routes.Projects.savePage(model.owner, model.name, "home")) {
+        @form(action = routes.Projects.savePage(model.owner, model.name, page)) {
             <div class="form-group form-inline">
-                <input class="form-control" type="text" name="name" value="@page" />
-                <button class="btn btn-default">Cancel</button>
-                <input type="submit" title="Save" class="btn btn-primary">
+                <input class="form-control" type="text" name="name" value="@page"
+                    @if(page.equals("home")) {
+                        readonly
+                    }
+                >
+                <a href="@routes.Projects.show(model.owner, model.name)" class="btn btn-default">Cancel</a>
+                <input type="submit" title="Save" value="Save" class="btn btn-primary">
+                <div class="pull-right input-group">
+                    @if(ProjectManager.pageExists(model.owner, model.name, page)) {
+                        <a href="@routes.Projects.deletePage(model.owner, model.name, page)"
+                           class="btn btn-danger"
+                            @if(page.equals("home")) {
+                                disabled="disabled" data-toggle="tooltip" data-placement="bottom"
+                                title="Your project's homepage cannot be deleted"
+                            }
+                        >Delete</a>
+                        <a class="pull-right btn btn-primary" data-toggle="modal" data-target="#new-page">
+                            <i class="fa fa-plus"></i> New page
+                        </a>
+                    }
+                    <div class="modal fade" id="new-page" tabindex="-1" role="dialog" aria-labelledby="new-page-label">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                    <h4 class="modal-title" id="new-page-label">Create a new page</h4>
+                                </div>
+                                <div class="modal-body input-group">
+                                    <label for="page-name">Name</label>
+                                    <input class="form-control" type="text" id="page-name" name="page-name">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    <button id="continue-page" type="button" class="btn btn-primary">Continue</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <ul class="nav nav-tabs" role="tablist">
+            <ul class="nav nav-tabs page-editor-tabs" role="tablist">
                 <li role="presentation" class="active">
                     <a href="#edit" aria-controls="edit" role="tab" data-toggle="tab">Edit page</a>
                 </li>
@@ -21,11 +67,12 @@
             </ul>
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="edit">
-                    <textarea name="content" class="form-control" rows="20">@content</textarea>
+                    <textarea name="content" class="form-control" rows="20">@content.getOrElse("")</textarea>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="preview"></div>
             </div>
         }
     </div>
+
 
 }

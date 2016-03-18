@@ -60,8 +60,6 @@ object Storage {
     // Table mappings
     if (clazz.equals(classOf[Project])) {
       TableQuery(tag => new ProjectTable(tag).asInstanceOf[T])
-    } else if (clazz.equals(classOf[Dev])) {
-      TableQuery(tag => new DevTable(tag).asInstanceOf[T])
     } else if (clazz.equals(classOf[Team])) {
       TableQuery(tag => new TeamTable(tag).asInstanceOf[T])
     } else if (clazz.equals(classOf[Channel])) {
@@ -137,18 +135,6 @@ object Storage {
       }
     }
   }
-
-  // Dev queries
-
-  def getDevs: Future[Seq[Dev]] = getAll[DevTable, Dev](classOf[Dev])
-
-  def optDev(name: String): Future[Option[Dev]] = optOne[DevTable, Dev](classOf[Dev], d => d.name === name)
-
-  def optDev(id: Int): Future[Option[Dev]] = optOne[DevTable, Dev](classOf[Dev], d => d.id === id)
-
-  def getDev(name: String): Future[Dev] = getOne[DevTable, Dev](classOf[Dev], d => d.name === name)
-
-  def getDev(id: Int): Future[Dev] = getOne[DevTable, Dev](classOf[Dev], d => d.id === id)
 
   // Team queries
 

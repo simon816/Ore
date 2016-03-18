@@ -43,12 +43,6 @@ CREATE TABLE users (
   email        varchar(255)  NOT NULL
 );
 
-CREATE TABLE devs (
-  id          serial        NOT NULL PRIMARY KEY,
-  created_at  timestamp     NOT NULL,
-  name        varchar(255)  NOT NULL
-);
-
 CREATE TABLE teams (
   id          serial        NOT NULL PRIMARY KEY,
   created_at  timestamp     NOT NULL,

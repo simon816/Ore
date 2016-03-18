@@ -150,3 +150,7 @@ form {
     border-top: 1px solid #ddd;
     margin-bottom: 10px;
 }
+
+.page-editor-tabs {
+    margin-bottom: 15px;
+}

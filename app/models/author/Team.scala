@@ -9,5 +9,5 @@ import java.sql.Timestamp
   * @param createdAt  Instant of creation
   * @param name       Name of team
   */
-case class Team(override val id: Option[Int], override val createdAt: Option[Timestamp],
+case class Team(id: Option[Int], createdAt: Option[Timestamp],
                 override val name: String) extends AbstractAuthor
