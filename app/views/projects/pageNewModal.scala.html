@@ -1,0 +1,30 @@
+@import models.project.Project
+@(model: Project)
+
+<script type="text/javascript" src="@routes.Assets.at("javascripts/pageEdit.js")"></script>
+<script>
+var onNewPage = function(newPage) {
+    window.location = "@routes.Projects.show(model.owner, model.name)/pages/" + newPage + "/edit"
+}
+</script>
+
+<div class="modal fade" id="new-page" tabindex="-1" role="dialog" aria-labelledby="new-page-label">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="new-page-label">Create a new page</h4>
+            </div>
+            <div class="modal-body input-group">
+                <label for="page-name">Name</label>
+                <input class="form-control" type="text" id="page-name" name="page-name">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button id="continue-page" type="button" class="btn btn-primary">Continue</button>
+            </div>
+        </div>
+    </div>
+</div>

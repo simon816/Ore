@@ -1,5 +1,5 @@
-@import models.project.{Channel, Project}
 @import models.project.Version.PendingVersion
+@import models.project.{Channel, Project}
 @import views.html.helper.form
 @(project: Project, pending: Option[PendingVersion], showFileControls: Boolean)(implicit messages: Messages, session: Session)
 
@@ -13,7 +13,9 @@
                         <h3 class="panel-title">New project release</h3>
                     </div>
                     <div class="panel-body">
-                        <p>Release a new version for @(project.name + ".")</p>
+                        <p class="unknown create-blurb">
+                            Release a new version for <strong>@project.name</strong>.
+                        </p>
 
                         @if(pending.isDefined) {
                             @* Show plugin meta *@
@@ -90,6 +92,7 @@
                                     <input type="submit" name="create" value="Publish" class="btn btn-primary" />
                                 }
                             }
+                            <span class="tos"><i>By clicking "Publish" you are agreeing to Ore's</i> <a href="#">Terms of Service</a>.</span>
                         }
 
                     </div>

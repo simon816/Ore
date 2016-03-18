@@ -147,10 +147,25 @@ form {
 
 .plugin-meta {
     border-bottom: 1px solid #ddd;
-    border-top: 1px solid #ddd;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
 }
 
 .page-editor-tabs {
     margin-bottom: 15px;
+}
+
+.new-page {
+    margin-top: -13px;
+}
+
+.create-blurb {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.tos {
+    font-size: 11px;
+    color: gray;
 }

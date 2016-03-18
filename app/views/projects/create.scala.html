@@ -16,7 +16,12 @@ Page used for uploading and creating new projects.
                         <h3 class="panel-title">Create a new project</h3>
                     </div>
                     <div class="panel-body">
-                        <p>A project contains your downloads and the documentation for your plugin.</p>
+                        <p class="unknown create-blurb">
+                            A project contains your downloads and the documentation for your plugin. Begin by uploading
+                            your plugin JAR file with a valid <i>mcmod.info</i> file in the first level or a ZIP file with
+                            your valid plugin JAR in the first level. Plugins with missing or incomplete metadata files
+                            will not be accepted.
+                        </p>
 
                         @if(pending.isDefined) {
                             @* Display plugin metadata *@

@@ -1,5 +1,6 @@
 package plugin
 
+import java.io.IOException
 import java.nio.file.{Files, Path}
 import java.util.jar.JarFile
 
@@ -51,9 +52,15 @@ class PluginFile(private var path: Path, private val owner: User) {
     *
     * @return Result of parse
     */
-  def loadMeta: Try[PluginMetadata] = Try {
+  def loadMeta: PluginMetadata = {
     // Read the JAR
-    val jar = new JarFile(this.path.toFile)
+    var jar: JarFile = null
+    try {
+      jar = new JarFile(this.path.toFile)
+    } catch {
+      case ioe: IOException => throw new InvalidPluginFileException(cause = ioe)
+    }
+
     val metaEntry = jar.getEntry(META_FILE_NAME)
     if (metaEntry == null) {
       throw new InvalidPluginFileException("No plugin meta file found.")

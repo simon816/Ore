@@ -3,4 +3,6 @@ package plugin
 /**
   * Exception thrown when an uploaded PluginFile is invalid.
   */
-class InvalidPluginFileException(message: String) extends Exception(message)
+case class InvalidPluginFileException(message: String = null, cause: Throwable = null)
+  extends Exception(message, cause)
+

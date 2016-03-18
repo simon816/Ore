@@ -2,7 +2,7 @@
 Documentation page within Project overview.
 *@
 @import models.project.Project
-@import plugin.ProjectManager
+@import plugin.Pages
 @(model: Project, page: String, pageContent: String)(implicit messages: Messages, session: Session)
 
 @projects.detail(model, "#docs") {
@@ -22,9 +22,15 @@ Documentation page within Project overview.
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h3 class="panel-title">Pages</h3>
+                            @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {
+                                <a data-toggle="modal" data-target="#new-page">
+                                    <i class="new-page pull-right fa fa-plus"></i>
+                                </a>
+                                @projects.pageNewModal(model)
+                            }
                         </div>
                         <ul class="list-group">
-                            @for(page <- ProjectManager.getPageNames(model.owner, model.name)) {
+                            @for(page <- Pages.getNames(model.owner, model.name)) {
                                 <li class="list-group-item">
                                     <a href="@routes.Projects.showPage(model.owner, model.name, page)">@page</a>
                                     @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {

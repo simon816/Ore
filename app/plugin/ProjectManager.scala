@@ -7,9 +7,8 @@ import models.auth.User
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
 import models.project.{Channel, Project, Version}
-import play.api.Play
-import play.api.Play.current
 import play.api.libs.Files.TemporaryFile
+import util.F._
 
 import scala.util.{Failure, Success, Try}
 
@@ -17,13 +16,6 @@ import scala.util.{Failure, Success, Try}
   * Handles management of uploaded projects.
   */
 object ProjectManager {
-
-  val ROOT_DIR = Play.application.path.toPath
-  val CONF_DIR = ROOT_DIR.resolve("conf")
-  val UPLOADS_DIR = ROOT_DIR.resolve("uploads")
-  val DOCS_DIR = UPLOADS_DIR.resolve("docs")
-  val PLUGIN_DIR = UPLOADS_DIR.resolve("plugins")
-  val TEMP_DIR = UPLOADS_DIR.resolve("tmp")
 
   /**
     * Initializes a new PluginFile with the specified owner and temporary file.
@@ -68,12 +60,12 @@ object ProjectManager {
     *
     * @param pending  PendingProject
     * @return         New Project
+    * @throws         IllegalArgumentException if the project already exists
     */
   def createProject(pending: PendingProject): Try[Project] = Try[Project] {
     if (pending.project.exists) {
       throw new IllegalArgumentException("Project already exists.")
     }
-
     Storage.now(Storage.createProject(pending.project)) match {
       case Failure(thrown) =>
         pending.cancel()
@@ -138,60 +130,6 @@ object ProjectManager {
             newVersion
         }
     }
-  }
-
-  /**
-    * Updates the specified documentation page to the specified new name and
-    * new content.
-    *
-    * @param owner        Project owner
-    * @param projectName  Project name
-    * @param oldName      Old page name
-    * @param newName      New page name
-    * @param content      Page content
-    * @return             New page Path
-    */
-  def updatePage(owner: String, projectName: String, oldName: String, newName: String, content: String) = {
-    val docsDir = getDocsDir(owner, projectName)
-    Files.deleteIfExists(docsDir.resolve(oldName + ".md"))
-    val path = docsDir.resolve(newName + ".md")
-    Files.createFile(path)
-    Files.write(path, content.getBytes("UTF-8"))
-  }
-
-  def pageExists(owner: String, projectName: String, page: String): Boolean = {
-    println("pageExists(): " + page)
-    Files.exists(getDocsDir(owner, projectName).resolve(page + ".md"))
-  }
-
-  def deletePage(owner: String, projectName: String, page: String) = {
-    Files.deleteIfExists(getDocsDir(owner, projectName).resolve(page + ".md"))
-  }
-
-  def getPageNames(owner: String, projectName: String): Array[String] = {
-    for (file <- getDocsDir(owner, projectName).toFile.listFiles)
-      yield file.getName.substring(0, file.getName.lastIndexOf('.'))
-  }
-
-  /**
-    * Returns the specified page's contents.
-    *
-    * @param owner        Owner name
-    * @param projectName  Project name
-    * @param page         Page name
-    * @return             Page contents
-    */
-  def getPageContents(owner: String, projectName: String, page: String): Option[String] = {
-    val path = getDocsDir(owner, projectName).resolve(page + ".md")
-    if (Files.exists(path)) {
-      Some(new String(Files.readAllBytes(path)))
-    } else {
-      None
-    }
-  }
-
-  def fillPageTemplate(title: String): String = {
-    new String(Files.readAllBytes(CONF_DIR.resolve("markdown/default.md"))).format(title)
   }
 
   /**

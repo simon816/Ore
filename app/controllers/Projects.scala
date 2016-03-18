@@ -8,8 +8,8 @@ import models.project.Project.PendingProject
 import models.project.{Category, Channel, Project, Version}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import plugin.ProjectManager
-import util.{Forms, Markdown}
+import plugin.{Pages, ProjectManager}
+import util.Forms
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -100,7 +100,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def show(author: String, name: String) = Action { implicit request =>
     withProject(author, name, project => {
-      Ok(views.projects.docs(project, "home", Markdown.process(ProjectManager.getPageContents(author, name, "home").get)))
+      Ok(views.projects.docs(project, "Home", Pages.toHtml(author, name, "Home").get))
     })
   }
 
@@ -115,8 +115,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def showPageEdit(author: String, name: String, page: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
-      Ok(views.projects.pageEdit(project, page, ProjectManager.getPageContents(author, name, page)
-        .getOrElse(ProjectManager.fillPageTemplate(page))))
+      Ok(views.projects.pageEdit(project, page, Pages.getContents(author, name, page)
+        .getOrElse(Pages.fillTemplate(page))))
     }))
   }
 
@@ -128,24 +128,24 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param page     Page name
     * @return         Project home
     */
-  def savePage(author: String, name: String, page: String) = Action { implicit request =>
+  def savePage(author: String, name: String, page: String) = withUser(Some(author), user => implicit request => {
     // TODO: Validate content size and title
     // TODO: Limit number of pages allowed
     val pageForm = Forms.PageEdit.bindFromRequest.get
-    ProjectManager.updatePage(author, name, page, pageForm._1, pageForm._2)
+    Pages.update(author, name, page, pageForm._1, pageForm._2)
     Redirect(self.showPage(author, name, page))
-  }
+  })
 
-  def deletePage(author: String, name: String, page: String) = Action { implicit request =>
-    ProjectManager.deletePage(author, name, page)
+  def deletePage(author: String, name: String, page: String) = withUser(Some(author), user => implicit request => {
+    Pages.delete(author, name, page)
     Redirect(self.show(author, name))
-  }
+  })
 
   def showPage(author: String, name: String, page: String) = Action { implicit request =>
     withProject(author, name, project => {
-      ProjectManager.getPageContents(author, name, page) match {
+      Pages.toHtml(author, name, page) match {
         case None => NotFound
-        case Some(contents) => Ok(views.projects.docs(project, page, Markdown.process(contents)))
+        case Some(content) => Ok(views.projects.docs(project, page, content))
       }
     })
   }
