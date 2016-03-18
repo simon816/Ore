@@ -100,7 +100,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def show(author: String, name: String) = Action { implicit request =>
     withProject(author, name, project => {
-      Ok(views.projects.docs(project, Markdown.process(ProjectManager.getPageContents(author, name, "home").get)))
+      Ok(views.projects.docs(project, "home", Markdown.process(ProjectManager.getPageContents(author, name, "home").get)))
     })
   }
 
@@ -115,14 +115,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def showPageEdit(author: String, name: String, page: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
-      Ok(views.projects.pageEdit(project, page, ProjectManager.getPageContents(author, name, page)))
+      Ok(views.projects.pageEdit(project, page, ProjectManager.getPageContents(author, name, page)
+        .getOrElse(ProjectManager.fillPageTemplate(page))))
     }))
   }
 
   /**
     * Saves changes made on a documentation page.
-    *
-    * TODO: Redirect to page view
     *
     * @param author   Owner name
     * @param name     Project name
@@ -130,9 +129,11 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return         Project home
     */
   def savePage(author: String, name: String, page: String) = Action { implicit request =>
+    // TODO: Validate content size and title
+    // TODO: Limit number of pages allowed
     val pageForm = Forms.PageEdit.bindFromRequest.get
     ProjectManager.updatePage(author, name, page, pageForm._1, pageForm._2)
-    Redirect(self.show(author, name))
+    Redirect(self.showPage(author, name, page))
   }
 
   def deletePage(author: String, name: String, page: String) = Action { implicit request =>
@@ -144,7 +145,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     withProject(author, name, project => {
       ProjectManager.getPageContents(author, name, page) match {
         case None => NotFound
-        case Some(contents) => Ok(views.projects.docs(project, Markdown.process(contents)))
+        case Some(contents) => Ok(views.projects.docs(project, page, Markdown.process(contents)))
       }
     })
   }

@@ -49,8 +49,6 @@ class PluginFile(private var path: Path, private val owner: User) {
   /**
     * Reads the temporary file's plugin meta file and returns the result.
     *
-    * TODO: Add PluginFiles to existing Projects
-    *
     * @return Result of parse
     */
   def loadMeta: Try[PluginMetadata] = Try {

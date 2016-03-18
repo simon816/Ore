@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(function() {
     var increment = 1;
     $(".btn-star").click(function() {
         // TODO: Increment / Decrement 'starred' accordingly via Ajax
@@ -6,8 +6,6 @@ $(document).ready(function() {
         starred.text(parseInt(starred.text()) + increment);
         increment *= -1;
     });
-});
 
-$(function () {
-    $('[data-toggle="tooltip"]').tooltip()
+    $('[data-toggle="tooltip"]').tooltip();
 });

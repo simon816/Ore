@@ -1,7 +1,7 @@
 @import models.project.Project
 @import views.html.helper.form
 @import plugin.ProjectManager
-@(model: Project, page: String, content: Option[String])(implicit messages: Messages, session: Session)
+@(model: Project, page: String, content: String)(implicit messages: Messages, session: Session)
 
 @projects.detail(model, "#docs") {
 
@@ -16,17 +16,18 @@
         @form(action = routes.Projects.savePage(model.owner, model.name, page)) {
             <div class="form-group form-inline">
                 <input class="form-control" type="text" name="name" value="@page"
-                    @if(page.equals("home")) {
+                    @if(page.equals("Home")) {
                         readonly
                     }
                 >
                 <a href="@routes.Projects.show(model.owner, model.name)" class="btn btn-default">Cancel</a>
                 <input type="submit" title="Save" value="Save" class="btn btn-primary">
+
                 <div class="pull-right input-group">
                     @if(ProjectManager.pageExists(model.owner, model.name, page)) {
                         <a href="@routes.Projects.deletePage(model.owner, model.name, page)"
                            class="btn btn-danger"
-                            @if(page.equals("home")) {
+                            @if(page.equals("Home")) {
                                 disabled="disabled" data-toggle="tooltip" data-placement="bottom"
                                 title="Your project's homepage cannot be deleted"
                             }
@@ -57,6 +58,7 @@
                     </div>
                 </div>
             </div>
+
             <ul class="nav nav-tabs page-editor-tabs" role="tablist">
                 <li role="presentation" class="active">
                     <a href="#edit" aria-controls="edit" role="tab" data-toggle="tab">Edit page</a>
@@ -67,7 +69,7 @@
             </ul>
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="edit">
-                    <textarea name="content" class="form-control" rows="20">@content.getOrElse("")</textarea>
+                    <textarea name="content" class="form-control" rows="20">@content</textarea>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="preview"></div>
             </div>

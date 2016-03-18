@@ -18,13 +18,33 @@
                         @if(pending.isDefined) {
                             @* Show plugin meta *@
                             @defining(pending.get.version) { version =>
-                                <p><strong>Version:</strong> @version.versionString</p>
-                                <p><strong>Description:</strong> @version.description</p>
-                                <p>
-                                    <strong>Channel:</strong>
-                                    <span class="channel" style="background-color: @Channel.DEFAULT_COLOR;">@pending.get.channelName</span>
-                                    <a href="#" data-toggle="modal" data-target="#channel-edit"><i class="fa fa-edit"></i></a>
-                                </p>
+
+                                <div class="plugin-meta">
+                                    <table class="plugin-meta-table">
+                                        <tr>
+                                            <td><strong>Version</strong></td>
+                                            <td>@version.versionString</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Description</strong></td>
+                                            <td>
+                                                @version.description.map { description =>
+                                                  @description
+                                                }.getOrElse {
+                                                  <i class="unknown">No description given</i>
+                                                }
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Channel</strong></td>
+                                            <td>
+                                                <span class="channel" style="background-color: @Channel.DEFAULT_COLOR;">@pending.get.channelName</span>
+                                                <a href="#" data-toggle="modal" data-target="#channel-edit"><i class="fa fa-edit"></i></a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+
                                 <div class="modal fade" id="channel-edit" tabindex="-1" role="dialog" aria-labelledBy="edit-label">
                                     <div class="modal-dialog" role="document">
                                         <div class="modal-content">

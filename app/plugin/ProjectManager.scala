@@ -1,6 +1,5 @@
 package plugin
 
-import java.io.File
 import java.nio.file.{Files, Path}
 
 import db.Storage
@@ -84,7 +83,7 @@ object ProjectManager {
         if (Files.notExists(docsDir)) {
           Files.createDirectories(docsDir)
         }
-        Files.copy(CONF_DIR.resolve("markdown/home.md"), docsDir.resolve("home.md"))
+        Files.copy(CONF_DIR.resolve("markdown/Home.md"), docsDir.resolve("Home.md"))
         newProject
     }
   }
@@ -191,6 +190,10 @@ object ProjectManager {
     }
   }
 
+  def fillPageTemplate(title: String): String = {
+    new String(Files.readAllBytes(CONF_DIR.resolve("markdown/default.md"))).format(title)
+  }
+
   /**
     * Returns the Path to where the specified Version should be.
     *
@@ -246,7 +249,8 @@ object ProjectManager {
     */
   def renameProject(owner: String, oldName: String, newName: String): Try[Unit] = Try {
     val newPath = getProjectDir(owner, newName)
-    Files.move(getProjectDir(owner, oldName), newPath)
+    val oldPath = getProjectDir(owner, oldName)
+    Files.move(oldPath, newPath)
     // TODO: Rename plugin files
   }
 
