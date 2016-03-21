@@ -12,15 +12,15 @@
                         <h3 class="panel-title">Settings</h3>
                     </div>
                     <div class="panel-body">
-                        @form(action = routes.Projects.rename(project.owner, project.name)) {
+                        @form(action = routes.Projects.rename(project.owner, project.getName)) {
                             <label for="name">Project name</label>
                             <div class="form-inline">
-                                <input id="name" name="name" class="form-control" type="text" value="@project.name">
+                                <input id="name" name="name" class="form-control" type="text" value="@project.getName">
                                 <input type="submit" name="rename" value="Rename" class="btn btn-warning">
                             </div>
                         }
 
-                        @form(action = routes.Projects.delete(project.owner, project.name)) {
+                        @form(action = routes.Projects.delete(project.owner, project.getName)) {
                             <input type="submit" name="delete" value="Delete" class="btn btn-danger">
                         }
                     </div>

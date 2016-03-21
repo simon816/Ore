@@ -35,7 +35,7 @@ Page used for uploading and creating new projects.
                                             </tr>
                                             <tr>
                                                 <td><strong>Name</strong></td>
-                                                <td>@project.name <i class="name-status fa fa-spinner fa-spin"></i></td>
+                                                <td>@project.getName <i class="name-status fa fa-spinner fa-spin"></i></td>
                                             </tr>
                                             <tr>
                                                 <td><strong>Owner</strong></td>
@@ -45,7 +45,7 @@ Page used for uploading and creating new projects.
                                     </table>
 
                                     <script type="text/javascript" src="@routes.Assets.at("javascripts/projectCreateValidate.js")"></script>
-                                    <script>$(function() { validate("@project.pluginId", "@project.owner", "@project.name"); });</script>
+                                    <script>$(function() { validate("@project.pluginId", "@project.owner", "@project.getName"); });</script>
                                 </div>
                             }
 
@@ -73,7 +73,7 @@ Page used for uploading and creating new projects.
                         @* Continue to next step *@
                         @if(pending.isDefined) {
                             @defining(pending.get.project) { project =>
-                              @form(action = routes.Projects.showFirstVersionCreate(project.owner, project.name), 'id -> "continue") {
+                              @form(action = routes.Projects.showFirstVersionCreate(project.owner, project.getName), 'id -> "continue") {
                                   <input type="submit" name="create" value="Continue" class="continue-btn btn btn-primary" disabled="disabled" />
                               }
                             }

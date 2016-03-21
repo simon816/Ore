@@ -25,10 +25,10 @@ Versions page within Project overview.
                                         <td>
                                             <div class="pull-right">
                                                 <span class="date">@version.prettyDate</span>
-                                                <a href="@routes.Projects.showVersion(model.owner, model.name, channel.name, version.versionString)">
+                                                <a href="@routes.Projects.showVersion(model.owner, model.getName, channel.name, version.versionString)">
                                                     <i class="fa fa-info-circle"></i>
                                                 </a>
-                                                <a href="@routes.Projects.downloadVersion(model.owner, model.name, channel.name, version.versionString)">
+                                                <a href="@routes.Projects.downloadVersion(model.owner, model.getName, channel.name, version.versionString)">
                                                     <i class="fa fa-download"></i>
                                                 </a>
                                             </div>
@@ -41,7 +41,7 @@ Versions page within Project overview.
 
                     </div>
                     <div class="col-md-3">
-                        <a href="@routes.Projects.showVersionCreate(model.owner, model.name)" class="btn btn-block btn-primary btn-panel btn-version">
+                        <a href="@routes.Projects.showVersionCreate(model.owner, model.getName)" class="btn btn-block btn-primary btn-panel btn-version">
                             <i class="fa fa-plus"></i> Create version
                         </a>
                         <div class="panel panel-default channels">

@@ -4,36 +4,36 @@ Base template for Project overview.
 @import models.project.Project
 @(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session)
 
-@core.layout(project.owner + " / " + project.name) {
+@core.layout(project.owner + " / " + project.getName) {
 
     <div class="project-header-container">
         <div class="container">
             <h1 class="project-header pull-left">
                 <a href="#">@project.owner</a>
-                / <strong><a href="@routes.Projects.show(project.owner, project.name)">@project.name</a></strong>
+                / <strong><a href="@routes.Projects.show(project.owner, project.getName)">@project.getName</a></strong>
             </h1>
 
             <div class="navbar navbar-default project-navbar pull-left">
                 <div class="navbar-inner">
                     <ul class="nav navbar-nav">
                         <li id="docs" class="">
-                            <a href="@routes.Projects.show(project.owner, project.name)">
+                            <a href="@routes.Projects.show(project.owner, project.getName)">
                                 <i class="fa fa-book"></i> Docs</a>
                         </li>
                         <li id="versions" class="">
-                            <a href="@routes.Projects.showVersions(project.owner, project.name)">
+                            <a href="@routes.Projects.showVersions(project.owner, project.getName)">
                                 <i class="fa fa-download"></i> Versions
                             </a>
                         </li>
                         <li id="discussion" class="">
-                            <a href="@routes.Projects.showDiscussion(project.owner, project.name)">
+                            <a href="@routes.Projects.showDiscussion(project.owner, project.getName)">
                                 <i class="fa fa-users"></i> Discuss
                             </a>
                         </li>
                         @if(session.get("username").isDefined && session.get("username").get.equals(project.owner)) {
                             @* Show manager if permitted *@
                             <li id="settings" class="">
-                                <a href="@routes.Projects.showManager(project.owner, project.name)">
+                                <a href="@routes.Projects.showManager(project.owner, project.getName)">
                                     <i class="fa fa-cog"></i> Settings
                                 </a>
                             </li>
@@ -50,7 +50,7 @@ Base template for Project overview.
             </div>
 
             <div class="pull-right project-controls">
-                <a href="@routes.Projects.downloadRecommendedVersion(project.owner, project.name)"
+                <a href="@routes.Projects.downloadRecommendedVersion(project.owner, project.getName)"
                    title="Download the latest recommended version" data-toggle="tooltip"
                    data-placement="bottom" class="btn btn-default">
                     <i class="fa fa-download"></i> Download

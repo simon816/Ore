@@ -72,17 +72,18 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], name: Stri
     if (context.getVersions.size == 1) {
       throw new IllegalArgumentException("Cannot delete project's lone version.")
     }
-
     Storage.now(Storage.deleteVersion(version)) match {
       case Failure(thrown) => throw thrown
       case Success(i) =>
-        Files.delete(ProjectManager.getUploadPath(context.owner, context.name, version.versionString, this.name))
+        Files.delete(ProjectManager.getUploadPath(context.owner, context.getName, version.versionString, this.name))
     }
   }
 
   override def hashCode: Int = this.id.get.hashCode
 
-  override def equals(o: Any): Boolean = o.isInstanceOf[Channel] && o.asInstanceOf[Channel].id.get == this.id.get
+  override def equals(o: Any): Boolean = {
+    o.isInstanceOf[Channel] && o.asInstanceOf[Channel].id.get == this.id.get
+  }
 
 }
 

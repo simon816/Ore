@@ -1,6 +1,7 @@
 package models.project
 
 import java.sql.Timestamp
+import java.util.Date
 
 import db.Storage
 import models.author.Dev
@@ -9,7 +10,7 @@ import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
-import plugin.{PluginFile, ProjectManager}
+import plugin.{Pages, PluginFile, ProjectManager}
 import util.{Cacheable, PendingAction}
 
 import scala.collection.JavaConversions._
@@ -38,9 +39,9 @@ import scala.util.{Failure, Success, Try}
   * @param downloads              How many times this project has been downloaded in total
   * @param starred                How many times this project has been starred
   */
-case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: String,
-                   var name: String, owner: String, authors: List[String],
-                   homepage: Option[String], var recommendedVersionId: Option[Int],
+case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pluginId: String,
+                   private var name: String, owner: String, authors: List[String],
+                   homepage: Option[String], private var recommendedVersionId: Option[Int],
                    var categoryId: Int = -1, views: Int, downloads: Int, starred: Int) {
 
   def this(pluginId: String, name: String, owner: String, authors: List[String], homepage: String) = {
@@ -50,6 +51,12 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
   def getOwner: Dev = Dev(owner) // TODO: Teams
 
   def getAuthors: List[Dev] = for (author <- authors) yield Dev(author) // TODO: Teams
+
+  def getCreatedAt = this.createdAt
+
+  def onCreate() = this.createdAt = Some(new Timestamp(new Date().getTime))
+
+  def getName: String = this.name
 
   /**
     * Sets the name of this project and performs all the necessary renames.
@@ -126,7 +133,9 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
     *
     * @return True if project exists, false otherwise
     */
-  def exists: Boolean = Storage.now(Storage.isDefined(Storage.getProject(this.owner, this.name))).isSuccess
+  def exists: Boolean = {
+    Storage.now(Storage.isDefined(Storage.getProject(this.owner, this.name))).isSuccess
+  }
 
   /**
     * Immediately deletes this projects and any associated files.
@@ -138,13 +147,15 @@ case class Project(id: Option[Int], var createdAt: Option[Timestamp], pluginId: 
       case Failure(thrown) => throw thrown
       case Success(i) =>
         FileUtils.deleteDirectory(ProjectManager.getProjectDir(this.owner, this.name).toFile)
-        FileUtils.deleteDirectory(ProjectManager.getDocsDir(this.owner, this.name).toFile)
+        FileUtils.deleteDirectory(Pages.getDocsDir(this.owner, this.name).toFile)
     }
   }
 
   override def hashCode: Int = this.id.get.hashCode
 
-  override def equals(o: Any): Boolean = o.isInstanceOf[Project] && o.asInstanceOf[Project].id.get == this.id.get
+  override def equals(o: Any): Boolean = {
+    o.isInstanceOf[Project] && o.asInstanceOf[Project].id.get == this.id.get
+  }
 
 }
 

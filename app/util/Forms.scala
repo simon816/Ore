@@ -9,19 +9,18 @@ import play.api.data.Forms._
 object Forms {
 
   /**
-    * Continue on from the "project create" page to the first "version create"
-    * page.
+    * Selects a Category for a project.
     */
-  lazy val ProjectCreateContinue = Form(single("category" -> text))
-
-  /**
-    * Submits changes on a documentation page.
-    */
-  lazy val PageEdit = Form(tuple("name" -> text, "content" -> text))
+  lazy val ProjectCategory = Form(single("category" -> text))
 
   /**
     * Submits a name change for a project.
     */
   lazy val ProjectRename = Form(single("name" -> text))
+
+  /**
+    * Submits changes on a documentation page.
+    */
+  lazy val PageEdit = Form(tuple("name" -> text, "content" -> text))
 
 }

@@ -14,7 +14,7 @@
                     </div>
                     <div class="panel-body">
                         <p class="unknown create-blurb">
-                            Release a new version for <strong>@project.name</strong>.
+                            Release a new version for <strong>@project.getName</strong>.
                         </p>
 
                         @if(pending.isDefined) {
@@ -76,7 +76,7 @@
                         }
 
                         @if(showFileControls) {
-                            @form(action = routes.Projects.uploadVersion(project.owner, project.name), 'enctype -> "multipart/form-data") {
+                            @form(action = routes.Projects.uploadVersion(project.owner, project.getName), 'enctype -> "multipart/form-data") {
                                 <label class="btn btn-primary" for="pluginFile">
                                     <input id="pluginFile" name="pluginFile" type="file" style="display:none ;">
                                     Select file
@@ -88,7 +88,7 @@
                         @if(pending.isDefined) {
                             @* Ready to go! *@
                             @defining(pending.get.version) { version =>
-                                @form(action = routes.Projects.createVersion(project.owner, project.name, pending.get.channelName, version.versionString)) {
+                                @form(action = routes.Projects.createVersion(project.owner, project.getName, pending.get.channelName, version.versionString)) {
                                     <input type="submit" name="create" value="Publish" class="btn btn-primary" />
                                 }
                             }

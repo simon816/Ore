@@ -7,6 +7,7 @@ import db.Storage
 import models.auth.User
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
+import routes.{Application => self}
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -40,7 +41,7 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends Contr
       val userData = authenticate(sso.get, sig.get)
       var user = new User(userData._1, userData._2, userData._3, userData._4)
       user = Storage.findOrCreateUser(user)
-      Redirect(routes.Application.index(None)).withSession(Security.username -> user.username, "email" -> user.email)
+      Redirect(self.index(None)).withSession(Security.username -> user.username, "email" -> user.email)
     }
   }
 
@@ -50,7 +51,7 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends Contr
     * @return Home page
     */
   def logOut = Action { implicit request =>
-    Redirect(routes.Application.index(None)).withNewSession
+    Redirect(self.index(None)).withNewSession
   }
 
 }

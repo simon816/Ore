@@ -35,6 +35,8 @@ abstract class AbstractAuthor extends Author {
 
   override def hashCode: Int = this.name.hashCode
 
-  override def equals(o: Any): Boolean = o.isInstanceOf[AbstractAuthor] && o.asInstanceOf[AbstractAuthor].name.equals(this.name)
+  override def equals(o: Any): Boolean = {
+    o.isInstanceOf[AbstractAuthor] && o.asInstanceOf[AbstractAuthor].name.equals(this.name)
+  }
 
 }

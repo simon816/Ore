@@ -53,7 +53,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
             val meta = plugin.getMeta.get
             val project = Project.fromMeta(user.username, meta)
             Project.setPending(project, plugin)
-            Redirect(self.showCreateWithMeta(project.owner, project.name))
+            Redirect(self.showCreateWithMeta(project.owner, project.getName))
         }
     })
   }
@@ -84,7 +84,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     Project.getPending(author, name) match {
       case None => BadRequest("No project to create.")
       case Some(pendingProject) =>
-        val categoryId = Category.withName(Forms.ProjectCreateContinue.bindFromRequest.get).id
+        val categoryId = Category.withName(Forms.ProjectCategory.bindFromRequest.get).id
         pendingProject.project.categoryId = categoryId
         val pendingVersion = pendingProject.initFirstVersion
         Redirect(self.showVersionCreateWithMeta(author, name, pendingVersion.channelName, pendingVersion.version.versionString))
@@ -100,7 +100,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def show(author: String, name: String) = Action { implicit request =>
     withProject(author, name, project => {
-      Ok(views.projects.docs(project, "Home", Pages.toHtml(author, name, "Home").get))
+      Ok(views.projects.docs(project, Pages.getHome(author, name)))
     })
   }
 
@@ -115,8 +115,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def showPageEdit(author: String, name: String, page: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
-      Ok(views.projects.pageEdit(project, page, Pages.getContents(author, name, page)
-        .getOrElse(Pages.fillTemplate(page))))
+      Ok(views.projects.pageEdit(project, page, Pages.getOrCreate(author, name, page).getContents))
     }))
   }
 
@@ -132,7 +131,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     // TODO: Validate content size and title
     // TODO: Limit number of pages allowed
     val pageForm = Forms.PageEdit.bindFromRequest.get
-    Pages.update(author, name, page, pageForm._1, pageForm._2)
+    Pages.getOrCreate(author, name, page).update(pageForm._1, pageForm._2)
     Redirect(self.showPage(author, name, page))
   })
 
@@ -143,9 +142,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
 
   def showPage(author: String, name: String, page: String) = Action { implicit request =>
     withProject(author, name, project => {
-      Pages.toHtml(author, name, page) match {
+      Pages.get(author, name, page) match {
         case None => NotFound
-        case Some(content) => Ok(views.projects.docs(project, page, content))
+        case Some(page) => Ok(views.projects.docs(project, page))
       }
     })
   }
@@ -234,6 +233,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   }
 
   private def pendingOrReal(author: String, name: String): Option[Any] = {
+    // Returns either a PendingProject or existing Project
     Storage.now(Storage.optProject(author, name)) match {
       case Failure(thrown) => throw thrown
       case Success(projectOpt) => projectOpt match {
@@ -313,7 +313,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   def deleteVersion(author: String, name: String, channelName: String, versionString: String) = {
                     withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
-      println("project = " + project.name)
+      println("project = " + project.getName)
       Storage.now(project.getChannel(channelName)) match {
         case Failure(thrown) => throw thrown
         case Success(channelOpt) => channelOpt match {

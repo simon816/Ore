@@ -178,7 +178,7 @@ object Storage {
 
   def createProject(project: Project): Future[Project] = {
     // copy new vals into old project
-    project.createdAt = Some(new Timestamp(new Date().getTime))
+    project.onCreate()
     val projects = q[ProjectTable](classOf[Project])
     val query = {
       projects returning projects.map(_.id) into {

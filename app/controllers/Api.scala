@@ -12,7 +12,7 @@ class Api extends Controller {
   implicit val projectWrites = new Writes[Project] {
     def writes(project: Project) = Json.obj(
       "id" -> project.pluginId,
-      "name" -> project.name,
+      "name" -> project.getName,
       "owner" -> project.owner,
       "views" -> project.views,
       "downloads" -> project.downloads,

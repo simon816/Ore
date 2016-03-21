@@ -8,7 +8,7 @@ import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
 import models.project.{Channel, Project, Version}
 import play.api.libs.Files.TemporaryFile
-import util.F._
+import util.P._
 
 import scala.util.{Failure, Success, Try}
 
@@ -71,11 +71,7 @@ object ProjectManager {
         pending.cancel()
         throw thrown
       case Success(newProject) =>
-        val docsDir = getDocsDir(newProject.owner, newProject.name)
-        if (Files.notExists(docsDir)) {
-          Files.createDirectories(docsDir)
-        }
-        Files.copy(CONF_DIR.resolve("markdown/Home.md"), docsDir.resolve("Home.md"))
+        Pages.createHomePage(newProject.owner, newProject.getName)
         newProject
     }
   }
@@ -164,17 +160,6 @@ object ProjectManager {
     */
   def getUserDir(owner: String): Path = {
     PLUGIN_DIR.resolve(owner)
-  }
-
-  /**
-    * Returns the specified project's documentation directory.
-    *
-    * @param owner        Owner name
-    * @param projectName  Project name
-    * @return             Documentation directory
-    */
-  def getDocsDir(owner: String, projectName: String): Path = {
-    DOCS_DIR.resolve(owner).resolve(projectName)
   }
 
   /**

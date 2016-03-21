@@ -34,11 +34,13 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
 
   private val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
 
-  def this(versionString: String, dependencies: List[String], description: String, assets: String, projectId: Int, channelId: Int) = {
+  def this(versionString: String, dependencies: List[String], description: String,
+           assets: String, projectId: Int, channelId: Int) = {
     this(None, None, versionString, dependencies, Option(description), Option(assets), 0, projectId, channelId)
   }
 
-  def this(versionString: String, dependencies: List[String], description: String, assets: String, projectId: Int) = {
+  def this(versionString: String, dependencies: List[String],
+           description: String, assets: String, projectId: Int) = {
     this(versionString, dependencies, description, assets, projectId, -1)
   }
 
@@ -85,7 +87,9 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
 
   override def hashCode: Int = this.id.hashCode
 
-  override def equals(o: Any): Boolean = o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get
+  override def equals(o: Any): Boolean = {
+    o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get
+  }
 
 }
 

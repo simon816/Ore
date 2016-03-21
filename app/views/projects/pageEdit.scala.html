@@ -6,15 +6,15 @@
 @projects.detail(model, "#docs") {
 
     <div class="container">
-        @form(action = routes.Projects.savePage(model.owner, model.name, page)) {
+        @form(action = routes.Projects.savePage(model.owner, model.getName, page)) {
             <div class="form-group form-inline">
                 <input class="form-control" type="text" name="name" value="@page" readonly>
-                <a href="@routes.Projects.show(model.owner, model.name)" class="btn btn-default">Cancel</a>
+                <a href="@routes.Projects.show(model.owner, model.getName)" class="btn btn-default">Cancel</a>
                 <input type="submit" title="Save" value="Save" class="btn btn-primary">
 
                 <div class="pull-right input-group">
-                    @if(Pages.exists(model.owner, model.name, page)) {
-                        <a href="@routes.Projects.deletePage(model.owner, model.name, page)"
+                    @if(Pages.exists(model.owner, model.getName, page)) {
+                        <a href="@routes.Projects.deletePage(model.owner, model.getName, page)"
                            class="btn btn-danger"
                             @if(page.equals("Home")) {
                                 disabled="disabled" data-toggle="tooltip" data-placement="bottom"
