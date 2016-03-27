@@ -9,6 +9,16 @@ import play.api.data.Forms._
 object Forms {
 
   /**
+    * Submits a new Channel for a Project.
+    */
+  lazy val ChannelCreate = Form(tuple("channel-input" -> text, "channel-color-input" -> text))
+
+  /**
+    * Submits changes on a documentation page.
+    */
+  lazy val PageEdit = Form(tuple("name" -> text, "content" -> text))
+
+  /**
     * Selects a Category for a project.
     */
   lazy val ProjectCategory = Form(single("category" -> text))
@@ -17,10 +27,5 @@ object Forms {
     * Submits a name change for a project.
     */
   lazy val ProjectRename = Form(single("name" -> text))
-
-  /**
-    * Submits changes on a documentation page.
-    */
-  lazy val PageEdit = Form(tuple("name" -> text, "content" -> text))
 
 }

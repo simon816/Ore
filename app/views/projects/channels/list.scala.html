@@ -20,12 +20,10 @@
                             <tbody>
                                 @channels.map { channel =>
                                   <tr>
-                                      <td class="channel @if(channel.getColor.isDark) { channel-dark }"
+                                      <td class="channel channel-flat"
                                           style="background-color: @channel.getColor.hex;">
                                         @channel.name
-                                        <div class="pull-right
-                                             @if(channel.getColor.isDark) { channel-dark }
-                                             @if(!channel.getColor.isDark) { channel-light }">
+                                        <div class="pull-right white">
                                             <a href="#"><i class="fa fa-edit"></i></a>
                                             <a href="#"><i class="fa fa-trash"></i></a>
                                         </div>
@@ -34,10 +32,20 @@
                                 }
                             </tbody>
                         </table>
-                        <a href="#" class="pull-right btn btn-primary" data-toggle="modal" data-target="#channel-edit">
-                            New channel
+                        <a href="@routes.Projects.showVersions(project.owner, project.getName)" class="pull-left btn btn-default">
+                            <i class="fa fa-arrow-left"></i>
                         </a>
-                        @projects.channels.modalCreate("", Channel.DEFAULT_COLOR, "New channel")
+                        <a href="#" class="pull-right btn btn-primary"
+                           @if(channels.size >= 5) {
+                               disabled data-toggle="tooltip" data-placement="left"
+                               title="You have reached the maximum amount of channels permitted."
+                           } else {
+                               data-toggle="modal" data-target="#channel-edit"
+                           }
+                        >
+                            <i class="fa fa-plus"></i>
+                        </a>
+                        @projects.channels.modalCreate(project, "", Channel.DEFAULT_COLOR, "New channel")
                     </div>
                 </div>
             </div>

@@ -5,7 +5,7 @@ import javax.inject.Inject
 import controllers.routes.{Projects => self}
 import db.Storage
 import models.project.Project.PendingProject
-import models.project.{Categories, Channel, Project, Version}
+import models.project._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import plugin.{Pages, ProjectManager}
@@ -393,6 +393,22 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     withProject(author, name, project => Storage.now(project.getChannels) match {
       case Failure(thrown) => throw thrown;
       case Success(channels) => Ok(views.projects.channels.list(project, channels))
+    }))
+  }
+
+  def createChannel(author: String, name: String) = { withUser(Some(author), user => implicit request =>
+    withProject(author, name, project => {
+      val form = Forms.ChannelCreate.bindFromRequest.get
+      ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
+        case None => BadRequest("No color with hex found.")
+        case Some(color) => Storage.now(project.newChannel(form._1, color)) match {
+          case Failure(thrown) => throw thrown
+          case Success(channel) => Storage.now(project.getChannels) match {
+            case Failure(thrown) => throw thrown
+            case Success(channels) => Redirect(self.showChannels(author, name))
+          }
+        }
+      }
     }))
   }
 

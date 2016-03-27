@@ -1,5 +1,7 @@
 @import models.project.ChannelColors.ChannelColor
-@(channelName: String, channelColor: ChannelColor, title: String)(implicit messages: Messages, session: Session)
+@import models.project.Project
+@import views.html.helper.form
+@(project: Project, channelName: String, channelColor: ChannelColor, title: String)(implicit messages: Messages, session: Session)
 
 <div class="modal fade" id="channel-edit" tabindex="-1" role="dialog" aria-labelledBy="edit-label">
     <div class="modal-dialog" role="document">
@@ -10,22 +12,25 @@
                 </button>
                 <h4 class="modal-title" id="edit-label">@title</h4>
             </div>
-            <div class="modal-body">
-                <div class="form-inline">
-                    <label for="channel">@messages("channel.name")</label>
-                    <input class="form-control" id="channel" name="channel" type="text"
-                    value="@channelName" />
-                    <i id="color-picker" class="fa fa-circle channel-id" style="color: @channelColor;"
-                       data-toggle="popover" data-placement="right" data-trigger="hover"></i>
-                    @projects.channels.popoverColorPicker()
+            @form(action = routes.Projects.createChannel(project.owner, project.getName)) {
+                <div class="modal-body">
+                    <div class="form-inline">
+                        <label for="channel-input">@messages("channel.name")</label>
+                        <input class="form-control" id="channel-input" name="channel-input" type="text" value="@channelName" />
+                        <input type="hidden" name="channel-color-input" id="channel-color-input" value="@channelColor" />
+                        <i id="color-picker" class="fa fa-circle channel-id" style="color: @channelColor;"
+                           data-toggle="popover" data-placement="right" data-trigger="hover"></i>
+                        @projects.channels.popoverColorPicker()
+                        <span id="preview" class="pull-right channel" style="background-color: @channelColor; display: none;"></span>
+                    </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">
-                @messages("channel.edit.close")
-                </button>
-                <button type="button" class="btn btn-primary">Create channel</button>
-            </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                    @messages("channel.edit.close")
+                    </button>
+                    <button type="submit" class="btn btn-primary">Create channel</button>
+                </div>
+            }
         </div>
     </div>
 </div>

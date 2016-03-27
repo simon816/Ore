@@ -5,6 +5,7 @@ import java.util.Date
 
 import db.Storage
 import models.author.Dev
+import models.project.ChannelColors.ChannelColor
 import models.project.Version.PendingVersion
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
@@ -95,8 +96,8 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @param name   Name of channel
     * @return       New channel
     */
-  def newChannel(name: String): Future[Channel] = {
-    Storage.createChannel(new Channel(name, this.id.get))
+  def newChannel(name: String, color: ChannelColor): Future[Channel] = {
+    Storage.createChannel(new Channel(name, color, this.id.get))
   }
 
   /**

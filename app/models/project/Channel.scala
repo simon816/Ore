@@ -28,7 +28,7 @@ import scala.util.{Failure, Success, Try}
 case class Channel(id: Option[Int], var createdAt: Option[Timestamp], name: String,
                    colorId: Int, projectId: Int) {
 
-  def this(name: String, projectId: Int) = this(None, None, name, DEFAULT_COLOR.id, projectId)
+  def this(name: String, color: ChannelColor, projectId: Int) = this(None, None, name, color.id, projectId)
 
   def getColor: ChannelColor = ChannelColors(this.colorId)
 

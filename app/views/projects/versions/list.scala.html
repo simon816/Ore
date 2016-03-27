@@ -52,7 +52,7 @@ Versions page within Project overview.
                             <ul class="list-group">
                                 @channels.map { channel =>
                                   <li class="list-group-item">
-                                      <span class="channel @if(channel.getColor.isDark) { channel-dark }"
+                                      <span class="channel"
                                             style="background-color: @channel.getColor.hex;">@channel.name</span>
                                       <a href="#" class="pull-right"><i class="fa fa-eye"></i></a>
                                   </li>

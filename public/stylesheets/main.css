@@ -54,18 +54,7 @@
     padding: 4px 6px;
     font-weight: bold;
     text-align: center;
-}
-
-.channel-dark {
     color: white;
-}
-
-.channel-dark > a {
-    color: white;
-}
-
-.channel-light > a {
-    color: black;
 }
 
 .channel-head {
@@ -73,6 +62,14 @@
     display: inline-block;
     margin-top: 23px;
     margin-left: 15px;
+}
+
+.channel-flat {
+    border-radius: 0; !important;
+}
+
+.white > * {
+    color: white;
 }
 
 .no-border > tbody > tr > td {

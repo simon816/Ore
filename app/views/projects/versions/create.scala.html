@@ -53,7 +53,9 @@
                                         </tr>
                                     </table>
                                 </div>
-                                @projects.channels.modalCreate(pending.get.channelName, Channel.DEFAULT_COLOR, messages("channel.edit.title"))
+                                @projects.channels.modalCreate(
+                                    project, pending.get.channelName, Channel.DEFAULT_COLOR, messages("channel.edit.title")
+                                )
                             }
                         }
 
