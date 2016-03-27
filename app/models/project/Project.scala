@@ -53,10 +53,24 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
 
   def getAuthors: List[Dev] = for (author <- authors) yield Dev(author) // TODO: Teams
 
-  def getCreatedAt = this.createdAt
+  /**
+    * Returns the Timestamp instant that this Project was created or None if it
+    * has not yet been created.
+    *
+    * @return Instant of creation or None if has not been created
+    */
+  def getCreatedAt: Option[Timestamp] = this.createdAt
 
+  /**
+    * Method called when this Project is created in the database.
+    */
   def onCreate() = this.createdAt = Some(new Timestamp(new Date().getTime))
 
+  /**
+    * Returns the name of this project.
+    *
+    * @return Name of project
+    */
   def getName: String = this.name
 
   /**

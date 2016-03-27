@@ -25,7 +25,7 @@ object ProjectManager {
     * @return       New plugin file
     */
   def initUpload(tmp: TemporaryFile, owner: User): Try[PluginFile] = Try {
-    val tmpPath = TEMP_DIR.resolve(owner.name).resolve("plugin.jar")
+    val tmpPath = TEMP_DIR.resolve(owner.username).resolve("plugin.jar")
     val plugin = new PluginFile(tmpPath, owner)
     if (Files.notExists(tmpPath.getParent)) {
       Files.createDirectories(tmpPath.getParent)
@@ -51,7 +51,7 @@ object ProjectManager {
           Files.createDirectories(newPath.getParent)
         }
         Files.move(oldPath, newPath)
-        Files.delete(oldPath.getParent)
+        Files.delete(oldPath)
     }
   }
 

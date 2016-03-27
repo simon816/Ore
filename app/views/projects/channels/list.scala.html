@@ -4,6 +4,17 @@
 
 @core.layout("Channels | " + project.owner + "/public " + project.getName) {
 
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/channelManage.js")"></script>
+    <script>
+        $(function() {
+            channelManage(
+                    "#channel-new", "", "@Channel.DEFAULT_COLOR.hex", "New channel",
+                    "@routes.Projects.createChannel(project.owner, project.getName)",
+                    "post", "Create channel"
+            );
+        });
+    </script>
+
     <div class="container" style="margin-top: 90px">
         <div class="row">
             <div class="col-md-6 col-md-offset-3">
@@ -24,28 +35,39 @@
                                           style="background-color: @channel.getColor.hex;">
                                         @channel.name
                                         <div class="pull-right white">
-                                            <a href="#"><i class="fa fa-edit"></i></a>
+                                            <a href="#">
+                                                <i data-toggle="modal" data-target="#channel-manage"
+                                                   id="channel-edit-@channel.name" class="fa fa-edit"></i>
+                                            </a>
                                             <a href="#"><i class="fa fa-trash"></i></a>
                                         </div>
                                       </td>
                                   </tr>
+                                  <script>
+                                      $(function() {
+                                          channelManage(
+                                                  "#channel-edit-@channel.name", "@channel.name", "@channel.getColor.hex",
+                                                  "Edit channel", "#", "get", "Save changes"
+                                          );
+                                      });
+                                  </script>
                                 }
                             </tbody>
                         </table>
                         <a href="@routes.Projects.showVersions(project.owner, project.getName)" class="pull-left btn btn-default">
                             <i class="fa fa-arrow-left"></i>
                         </a>
-                        <a href="#" class="pull-right btn btn-primary"
-                           @if(channels.size >= 5) {
+                        <a href="#" id="channel-new" class="pull-right btn btn-primary"
+                           @if(channels.size >= Channel.MAX_AMOUNT) {
                                disabled data-toggle="tooltip" data-placement="left"
                                title="You have reached the maximum amount of channels permitted."
                            } else {
-                               data-toggle="modal" data-target="#channel-edit"
+                               data-toggle="modal" data-target="#channel-manage"
                            }
                         >
                             <i class="fa fa-plus"></i>
                         </a>
-                        @projects.channels.modalCreate(project, "", Channel.DEFAULT_COLOR, "New channel")
+                        @projects.channels.modalManage()
                     </div>
                 </div>
             </div>

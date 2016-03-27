@@ -1,7 +1,8 @@
 @import models.project.Version.PendingVersion
 @import models.project.{Channel, Project}
 @import views.html.helper.form
-@(project: Project, pending: Option[PendingVersion], showFileControls: Boolean)(implicit messages: Messages, session: Session)
+@(project: Project, pending: Option[PendingVersion],
+  channels: Option[Seq[Channel]], showFileControls: Boolean)(implicit messages: Messages, session: Session)
 
 @core.layout("Release a new version") {
 
@@ -44,18 +45,24 @@
                                         </tr>
                                         <tr>
                                             <td><strong>Channel</strong></td>
-                                            <td>
-                                                <span class="channel" style="background-color: @Channel.DEFAULT_COLOR.hex;">
-                                                    @pending.get.channelName
-                                                </span>
-                                                <a href="#" data-toggle="modal" data-target="#channel-edit"><i class="fa fa-edit"></i></a>
+                                            <td class="form-inline">
+                                                @if(showFileControls) {
+                                                    <select class="form-control" size="@channels.get.size">
+                                                        @channels.get.map { channel =>
+                                                          <option>@channel.name</option>
+                                                        }
+                                                    </select>
+                                                    <a href="#"><i class="fa fa-plus"></i></a>
+                                                } else {
+                                                    <span class="channel" style="background-color: @Channel.DEFAULT_COLOR.hex;">
+                                                        @pending.get.channelName
+                                                    </span>
+                                                    <a href="#"><i class="fa fa-edit"></i></a>
+                                                }
                                             </td>
                                         </tr>
                                     </table>
                                 </div>
-                                @projects.channels.modalCreate(
-                                    project, pending.get.channelName, Channel.DEFAULT_COLOR, messages("channel.edit.title")
-                                )
                             }
                         }
 

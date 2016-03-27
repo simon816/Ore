@@ -5,6 +5,9 @@ import java.nio.file.{Path, Files}
 import org.pegdown.PegDownProcessor
 import util.Dirs._
 
+/**
+  * Handles management of project documentation pages.
+  */
 object Pages {
 
   val FILE_EXTENSION      =   ".md"
@@ -15,16 +18,43 @@ object Pages {
 
   private val markdownProcessor = new PegDownProcessor
 
+  /**
+    * Represents a documentation Page for a project.
+    *
+    * @param owner        Project owner
+    * @param projectName  Project name
+    * @param name         Page name
+    */
   case class Page(private val owner: String, private val projectName: String, private var name: String) {
 
     private val docsDir = getDocsDir(owner, projectName)
 
+    /**
+      * Returns the Project owner for this Page.
+      *
+      * @return Project owner
+      */
     def getOwner: String = this.owner
 
+    /**
+      * Returns the name of the Project that this Page belongs to.
+      *
+      * @return Name of Project this Page belongs to
+      */
     def getProjectName: String = this.projectName
 
+    /**
+      * Returns the name of this Page.
+      *
+      * @return Name of page
+      */
     def getName: String = this.name
 
+    /**
+      * Returns the Path to this Page's markdown contents.
+      *
+      * @return Path to markdown contents
+      */
     def getPath: Path = this.docsDir.resolve(this.name + FILE_EXTENSION)
 
     /**
@@ -42,7 +72,12 @@ object Pages {
       Files.write(getPath, newContent.getBytes(FILE_ENCODING))
     }
 
-    def setContent(newContent: String) = {
+    /**
+      * Sets the markdown content of this page.
+      *
+      * @param newContent Content to set
+      */
+    def setContent(newContent: String): Unit = {
       Files.deleteIfExists(getPath)
       Files.createFile(getPath)
       Files.write(getPath, newContent.getBytes(FILE_ENCODING))
@@ -57,6 +92,11 @@ object Pages {
       new String(Files.readAllBytes(getPath))
     }
 
+    /**
+      * Converts this Page's markdown contents to HTML.
+      *
+      * @return HTML representation of markdown contents
+      */
     def toHtml: String = markdownProcessor.markdownToHtml(getContents)
 
   }
@@ -72,6 +112,15 @@ object Pages {
     DOCS_DIR.resolve(owner).resolve(projectName)
   }
 
+  /**
+    * Returns or creates, if not exists, the page with the specified owner,
+    * project name, and page name.
+    *
+    * @param owner        Project owner
+    * @param projectName  Project name
+    * @param name         Page name
+    * @return             Existing or new page
+    */
   def getOrCreate(owner: String, projectName: String, name: String): Page = {
     val page = Page(owner, projectName, name)
     val path = page.getPath
@@ -83,6 +132,15 @@ object Pages {
     page
   }
 
+  /**
+    * Returns the page with the specified owner, project name, and page name,
+    * or None if the page does not exist.
+    *
+    * @param owner        Project owner
+    * @param projectName  Project name
+    * @param name         Page name
+    * @return             Page if exists, None otherwise
+    */
   def get(owner: String, projectName: String, name: String): Option[Page] = {
     val page = Page(owner, projectName, name)
     if (notExists(owner, projectName, name)) {
@@ -92,21 +150,61 @@ object Pages {
     }
   }
 
+  /**
+    * Returns the home page for the specified Project.
+    *
+    * @param owner        Project owner
+    * @param projectName  Project name
+    * @return             Home page
+    */
   def getHome(owner: String, projectName: String): Page = get(owner, projectName, HOME_PAGE).get
 
+  /**
+    * Returns all of the Pages for the specified Project.
+    *
+    * @param owner        Project owner
+    * @param projectName  Project name
+    * @return             All pages for project
+    */
   def getAll(owner: String, projectName: String): Array[Page] = {
     for (file <- getDocsDir(owner, projectName).toFile.listFiles)
       yield Page(owner, projectName, file.getName.substring(0, file.getName.lastIndexOf('.')))
   }
 
+  /**
+    * Returns true if the specified page for the specified project exists,
+    * false otherwise.
+    *
+    * @param owner        Project owner
+    * @param projectName  Project name
+    * @param page         Page name
+    * @return             True if exists, false otherwise
+    */
   def exists(owner: String, projectName: String, page: String): Boolean = {
     Files.exists(getDocsDir(owner, projectName).resolve(page + FILE_EXTENSION))
   }
 
+  /**
+    * Returns true if the specified page for the specified project does not
+    * exists.
+    *
+    * @param owner        Project owner
+    * @param projectName  Project name
+    * @param page         Page name
+    * @return             True if does not exists, false otherwise
+    */
   def notExists(owner: String, projectName: String, page: String): Boolean = {
     Files.notExists(getDocsDir(owner, projectName).resolve(page + FILE_EXTENSION))
   }
 
+  /**
+    * Deletes the specified page for the specified project if it exists.
+    *
+    * @param owner        Project owner
+    * @param projectName  Project name
+    * @param page         Page name
+    * @return             True if a Page was deleted, false if it didn't exists
+    */
   def delete(owner: String, projectName: String, page: String) = {
     Files.deleteIfExists(getDocsDir(owner, projectName).resolve(page + FILE_EXTENSION))
   }

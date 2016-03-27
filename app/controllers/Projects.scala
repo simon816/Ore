@@ -135,11 +135,27 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     Redirect(self.showPage(author, name, page))
   })
 
+  /**
+    * Irreversibly deletes the specified Page from the specified Project.
+    *
+    * @param author   Project owner
+    * @param name     Project name
+    * @param page     Page name
+    * @return         Redirect to Project homepage
+    */
   def deletePage(author: String, name: String, page: String) = withUser(Some(author), user => implicit request => {
     Pages.delete(author, name, page)
     Redirect(self.show(author, name))
   })
 
+  /**
+    * Displays the specified page.
+    *
+    * @param author   Project owner
+    * @param name     Project name
+    * @param page     Page name
+    * @return         View of page
+    */
   def showPage(author: String, name: String, page: String) = Action { implicit request =>
     withProject(author, name, project => {
       Pages.get(author, name, page) match {
@@ -201,7 +217,12 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return         Version creation view
     */
   def showVersionCreate(author: String, name: String) = { withUser(Some(author), user => implicit request =>
-    withProject(author, name, project => Ok(views.projects.versions.create(project, None, showFileControls = true))))
+    withProject(author, name, project => {
+      Storage.now(project.getChannels) match {
+        case Failure(thrown) => throw thrown
+        case Success(channels) => Ok(views.projects.versions.create(project, None, Some(channels), showFileControls = true))
+      }
+    }))
   }
 
   /**
@@ -264,9 +285,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
           case None => Redirect(routes.Application.index(None))
           case Some(p) => p match {
             case pending: PendingProject =>
-              Ok(views.projects.versions.create(pending.project, Some(pendingVersion), showFileControls = false))
+              Ok(views.projects.versions.create(pending.project, Some(pendingVersion), None, showFileControls = false))
             case real: Project =>
-              Ok(views.projects.versions.create(real, Some(pendingVersion), showFileControls = true))
+              Storage.now(real.getChannels) match {
+                case Failure(thrown) => throw thrown
+                case Success(channels) =>
+                  Ok(views.projects.versions.create(real, Some(pendingVersion), Some(channels), showFileControls = true))
+              }
           }
         }
     })
@@ -396,6 +421,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     }))
   }
 
+  /**
+    * Creates a submitted channel for the specified Project.
+    *
+    * @param author   Project owner
+    * @param name     Project name
+    * @return         Redirect to view of channels
+    */
   def createChannel(author: String, name: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
       val form = Forms.ChannelCreate.bindFromRequest.get

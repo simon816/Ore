@@ -30,6 +30,11 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], name: Stri
 
   def this(name: String, color: ChannelColor, projectId: Int) = this(None, None, name, color.id, projectId)
 
+  /**
+    * Returns the ChannelColor that this Channel is represented by.
+    *
+    * @return Color channel is represented by
+    */
   def getColor: ChannelColor = ChannelColors(this.colorId)
 
   /**
@@ -91,6 +96,11 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], name: Stri
 }
 
 object Channel {
+
+  /**
+    * The maximum amount of Channels permitted in a single Project.
+    */
+  val MAX_AMOUNT = 5;
 
   /**
     * The default color used for Channels.

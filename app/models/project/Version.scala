@@ -73,7 +73,10 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
     * @return Plugin dependencies
     */
   def getDependencies: List[Dependency] = {
-    for (depend <- this.dependencies) yield Dependency(depend.split(":")(0), depend.split(":")(1))
+    for (depend <- this.dependencies) yield {
+      val data = depend.split(":")
+      Dependency(data(0), data(1))
+    }
   }
 
   /**
