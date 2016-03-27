@@ -3,7 +3,7 @@ package models.project
 /**
   * Represents a project category.
   */
-object Category extends Enumeration {
+object Categories extends Enumeration {
 
   val AdminTools  =   Category(0, "Admin Tools",       "fa-server")
   val DevTools    =   Category(1, "Developer Tools",   "fa-wrench")

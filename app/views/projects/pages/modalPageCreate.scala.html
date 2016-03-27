@@ -1,7 +1,7 @@
 @import models.project.Project
 @(model: Project)(implicit messages: Messages)
 
-<script type="text/javascript" src="@routes.Assets.at("../../../../public/javascripts/pageEdit.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/pageEdit.js")"></script>
 <script>
 var onNewPage = function(newPage) {
     window.location = "@routes.Projects.show(model.owner, model.getName)/pages/" + newPage + "/edit"

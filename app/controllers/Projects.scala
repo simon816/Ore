@@ -5,7 +5,7 @@ import javax.inject.Inject
 import controllers.routes.{Projects => self}
 import db.Storage
 import models.project.Project.PendingProject
-import models.project.{Category, Channel, Project, Version}
+import models.project.{Categories, Channel, Project, Version}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import plugin.{Pages, ProjectManager}
@@ -84,7 +84,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     Project.getPending(author, name) match {
       case None => BadRequest("No project to create.")
       case Some(pendingProject) =>
-        val categoryId = Category.withName(Forms.ProjectCategory.bindFromRequest.get).id
+        val categoryId = Categories.withName(Forms.ProjectCategory.bindFromRequest.get).id
         pendingProject.project.categoryId = categoryId
         val pendingVersion = pendingProject.initFirstVersion
         Redirect(self.showVersionCreateWithMeta(author, name, pendingVersion.channelName, pendingVersion.version.versionString))

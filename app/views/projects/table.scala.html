@@ -1,7 +1,7 @@
 @*
 Collection of all projects.
 *@
-@import models.project.{Category, Project}
+@import models.project.{Categories, Project}
 @(models: Seq[Project])(implicit messages: Messages, session: Session)
 
 <div class="container">
@@ -34,7 +34,7 @@ Collection of all projects.
                 <tbody>
                 @models.map { project =>
                     <tr class="">
-                        @defining(Category(project.categoryId)) { category =>
+                        @defining(Categories(project.categoryId)) { category =>
                           <td><i title="@category.title" class="fa @category.icon"></i></td>
                         }
                         <td class="" colspan="1">
@@ -57,7 +57,7 @@ Collection of all projects.
                 </div>
                 <table class="table">
                     <tbody>
-                        @for(category <- Category.values) {
+                        @for(category <- Categories.values) {
                             <tr>
                                 <td class="cat-icon"><i class="fa @category.icon"></i></td>
                                 <td><strong><a href="@routes.Application.index(Some(category.id))">@category.title</a></strong></td>
