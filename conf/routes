@@ -49,6 +49,7 @@ GET     /:author/:name/versions/:channel/:version               @controllers.Pro
 GET     /:author/:name/channels                                 @controllers.Projects.showChannels(author, name)
 POST    /:author/:name/channels                                 @controllers.Projects.createChannel(author, name)
 POST    /:author/:name/channels/:channel                        @controllers.Projects.editChannel(author, name, channel)
+GET     /:author/:name/channels/:channel/delete                 @controllers.Projects.deleteChannel(author, name, channel)
 
 # Discussion
 GET     /:author/:name/dicuss                                   @controllers.Projects.showDiscussion(author, name)

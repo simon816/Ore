@@ -444,6 +444,14 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     }))
   }
 
+  /**
+    * Submits changes to an existing channel.
+    *
+    * @param author       Project owner
+    * @param name         Project name
+    * @param channelName  Channel name
+    * @return             View of channels
+    */
   def editChannel(author: String, name: String, channelName: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
       val form = Forms.ChannelEdit.bindFromRequest.get
@@ -468,6 +476,30 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
                 }
               }
               Redirect(self.showChannels(author, name))
+          }
+        }
+      }
+    }))
+  }
+
+  /**
+    * Irreversibly deletes the specified channel and all version associated
+    * with it.
+    *
+    * @param author       Project owner
+    * @param name         Project name
+    * @param channelName  Channel name
+    * @return             View of channels
+    */
+  def deleteChannel(author: String, name: String, channelName: String) = { withUser(Some(author), user => implicit request =>
+    withProject(author, name, project => {
+      Storage.now(project.getChannel(channelName)) match {
+        case Failure(thrown) => throw thrown
+        case Success(channelOpt) => channelOpt match {
+          case None => NotFound
+          case Some(channel) => channel.delete(project) match {
+            case Failure(thrown) => throw thrown
+            case Success(void) => Redirect(self.showChannels(author, name))
           }
         }
       }

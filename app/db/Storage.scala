@@ -240,6 +240,12 @@ object Storage {
     this.config.db.run(query)
   }
 
+  def deleteChannel(channel: Channel) = {
+    val query = _filter[ChannelTable, Channel](classOf[Channel], c => c.id === channel.id.get)
+    val action = query.delete
+    this.config.db.run(action)
+  }
+
   def updateChannelString(channel: Channel, key: ChannelTable => Rep[String], value: String): Future[Int] = {
     val channels = q[ChannelTable](classOf[Channel])
     val query = for { c <- channels if c.id === channel.id } yield key(c)

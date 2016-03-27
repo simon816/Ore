@@ -5,6 +5,7 @@ import java.sql.Timestamp
 
 import db.Storage
 import models.project.ChannelColors.ChannelColor
+import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
 import plugin.ProjectManager
@@ -122,6 +123,20 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
       case Failure(thrown) => throw thrown
       case Success(i) =>
         Files.delete(ProjectManager.getUploadPath(context.owner, context.getName, version.versionString, this.name))
+    }
+  }
+
+  /**
+    * Irreversibly deletes this channel and all version associated with it.
+    *
+    * @param context  Project context
+    * @return         Result
+    */
+  def delete(context: Project): Try[Unit] = Try {
+    Storage.now(Storage.deleteChannel(this)) match {
+      case Failure(thrown) => throw thrown
+      case Success(i) =>
+        FileUtils.deleteDirectory(ProjectManager.getProjectDir(context.owner, context.getName).resolve(this.name).toFile)
     }
   }
 

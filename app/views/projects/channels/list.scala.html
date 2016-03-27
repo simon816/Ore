@@ -39,7 +39,9 @@
                                                 <i data-toggle="modal" data-target="#channel-manage"
                                                    id="channel-edit-@channel.id" class="fa fa-edit"></i>
                                             </a>
-                                            <a href="#"><i class="fa fa-trash"></i></a>
+                                            <a href="@routes.Projects.deleteChannel(project.owner, project.getName, channel.getName)">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
                                         </div>
                                       </td>
                                   </tr>
