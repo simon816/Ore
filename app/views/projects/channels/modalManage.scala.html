@@ -16,8 +16,10 @@
                         <label for="channel-input">@messages("channel.name")</label>
                         <input class="form-control" id="channel-input" name="channel-input" type="text" value="" />
                         <input type="hidden" name="channel-color-input" id="channel-color-input" value="" />
-                        <i id="color-picker" class="fa fa-circle channel-id" style=""
-                           data-toggle="popover" data-placement="right" data-trigger="hover"></i>
+                        <a href="#">
+                            <i id="color-picker" class="fa fa-circle channel-id" style=""
+                               data-toggle="popover" data-placement="right" data-trigger="hover"></i>
+                        </a>
                         @projects.channels.popoverColorPicker()
                         <span id="preview" class="pull-right channel" style="display: none;"></span>
                     </div>

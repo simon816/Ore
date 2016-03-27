@@ -33,11 +33,11 @@
                                   <tr>
                                       <td class="channel channel-flat"
                                           style="background-color: @channel.getColor.hex;">
-                                        @channel.name
+                                        @channel.getName
                                         <div class="pull-right white">
                                             <a href="#">
                                                 <i data-toggle="modal" data-target="#channel-manage"
-                                                   id="channel-edit-@channel.name" class="fa fa-edit"></i>
+                                                   id="channel-edit-@channel.id" class="fa fa-edit"></i>
                                             </a>
                                             <a href="#"><i class="fa fa-trash"></i></a>
                                         </div>
@@ -46,8 +46,9 @@
                                   <script>
                                       $(function() {
                                           channelManage(
-                                                  "#channel-edit-@channel.name", "@channel.name", "@channel.getColor.hex",
-                                                  "Edit channel", "#", "get", "Save changes"
+                                                  "#channel-edit-@channel.id", "@channel.getName", "@channel.getColor.hex",
+                                                  "Edit channel", "@routes.Projects.editChannel(project.owner, project.getName, channel.getName)",
+                                                  "post", "Save changes"
                                           );
                                       });
                                   </script>

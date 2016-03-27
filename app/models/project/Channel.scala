@@ -4,7 +4,6 @@ import java.nio.file.Files
 import java.sql.Timestamp
 
 import db.Storage
-import models.project.Channel._
 import models.project.ChannelColors.ChannelColor
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
@@ -12,6 +11,7 @@ import plugin.ProjectManager
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Represents a release channel for Project Versions. Each project gets it's
@@ -25,10 +25,34 @@ import scala.util.{Failure, Success, Try}
   * @param colorId    ID of ChannelColor used to represent this Channel
   * @param projectId  ID of project this channel belongs to
   */
-case class Channel(id: Option[Int], var createdAt: Option[Timestamp], name: String,
-                   colorId: Int, projectId: Int) {
+case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private var name: String,
+                   private var colorId: Int, projectId: Int) {
 
   def this(name: String, color: ChannelColor, projectId: Int) = this(None, None, name, color.id, projectId)
+
+  /**
+    * Returns this Channel's name.
+    *
+    * @return Channel name
+    */
+  def getName: String = this.name
+
+  /**
+    * Sets the name of this channel for.
+    *
+    * @param context  Project for context
+    * @param name     New channel name
+    * @return         Future result
+    */
+  def setName(context: Project, name: String): Future[Int] = {
+    val f = Storage.updateChannelString(this, table => table.name, name)
+    f.onSuccess {
+      case i =>
+        ProjectManager.renameChannel(context.owner, context.getName, this.name, name)
+        this.name = name
+    }
+    f
+  }
 
   /**
     * Returns the ChannelColor that this Channel is represented by.
@@ -36,6 +60,20 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], name: Stri
     * @return Color channel is represented by
     */
   def getColor: ChannelColor = ChannelColors(this.colorId)
+
+  /**
+    * Sets the color of this channel.
+    *
+    * @param color  Color of channel
+    * @return       Future result
+    */
+  def setColor(color: ChannelColor): Future[Int] = {
+    val f = Storage.updateChannelInt(this, table => table.colorId, color.id)
+    f.onSuccess {
+      case i => this.colorId = color.id
+    }
+    f
+  }
 
   /**
     * Returns the Project this Channel belongs to.

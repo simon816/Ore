@@ -401,7 +401,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
           Storage.now(version.getChannel) match {
             case Failure(thrown) => throw thrown
             case Success(channel) =>
-              Ok.sendFile(ProjectManager.getUploadPath(author, name, version.versionString, channel.name).toFile)
+              Ok.sendFile(ProjectManager.getUploadPath(author, name, version.versionString, channel.getName).toFile)
           }
       }
     })
@@ -430,7 +430,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def createChannel(author: String, name: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
-      val form = Forms.ChannelCreate.bindFromRequest.get
+      val form = Forms.ChannelEdit.bindFromRequest.get
       ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
         case None => BadRequest("No color with hex found.")
         case Some(color) => Storage.now(project.newChannel(form._1, color)) match {
@@ -438,6 +438,36 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
           case Success(channel) => Storage.now(project.getChannels) match {
             case Failure(thrown) => throw thrown
             case Success(channels) => Redirect(self.showChannels(author, name))
+          }
+        }
+      }
+    }))
+  }
+
+  def editChannel(author: String, name: String, channelName: String) = { withUser(Some(author), user => implicit request =>
+    withProject(author, name, project => {
+      val form = Forms.ChannelEdit.bindFromRequest.get
+      ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
+        case None => BadRequest("No color with hex found.")
+        case Some(color) => Storage.now(project.getChannel(channelName)) match {
+          case Failure(thrown) => throw thrown
+          case Success(channelOpt) => channelOpt match {
+            case None => BadRequest("Channel not found.")
+            case Some(channel) =>
+              val newName = form._1
+              if (!channelName.equals(newName)) {
+                Storage.now(channel.setName(project, newName)) match {
+                  case Failure(thrown) => throw thrown
+                  case Success(i) => ;
+                }
+              }
+              if (channel.getColor.id != color.id) {
+                Storage.now(channel.setColor(color)) match {
+                  case Failure(thrown) => throw thrown
+                  case Success(i) => ;
+                }
+              }
+              Redirect(self.showChannels(author, name))
           }
         }
       }

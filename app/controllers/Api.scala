@@ -21,13 +21,13 @@ class Api extends Controller {
             case Failure(thrown) => throw thrown
             case Success(channel) =>
               rvPath = ProjectManager.getUploadPath(
-                project.owner, project.getName, version.versionString, channel.name
+                project.owner, project.getName, version.versionString, channel.getName
               ).toString
           }
       }
       Storage.now(project.getChannels) match {
         case Failure(thrown) => throw thrown
-        case Success(channels) => channelNames = for (channel <- channels) yield channel.name
+        case Success(channels) => channelNames = for (channel <- channels) yield channel.getName
       }
       Json.obj(
         "pluginId" -> project.pluginId,

@@ -46,7 +46,7 @@ object ProjectManager {
       case None => throw new IllegalArgumentException("Specified PluginFile has no meta loaded.")
       case Some(meta) =>
         val oldPath = plugin.getPath
-        val newPath = getUploadPath(plugin.getOwner.username, meta.getName, meta.getVersion, channel.name)
+        val newPath = getUploadPath(plugin.getOwner.username, meta.getName, meta.getVersion, channel.getName)
         if (!Files.exists(newPath.getParent)) {
           Files.createDirectories(newPath.getParent)
         }
@@ -175,6 +175,21 @@ object ProjectManager {
     val oldPath = getProjectDir(owner, oldName)
     Files.move(oldPath, newPath)
     // TODO: Rename plugin files
+  }
+
+  /**
+    * Renames the specified channel in the file system.
+    *
+    * @param owner        Project owner
+    * @param projectName  Project name
+    * @param oldName      Old channel name
+    * @param newName      New channel name
+    * @return             New path
+    */
+  def renameChannel(owner: String, projectName: String, oldName: String, newName: String): Try[Unit] = Try {
+    val newPath = getProjectDir(owner, projectName).resolve(newName)
+    val oldPath = getProjectDir(owner, projectName).resolve(oldName)
+    Files.move(oldPath, newPath)
   }
 
 }

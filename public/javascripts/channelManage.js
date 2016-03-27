@@ -14,6 +14,8 @@ function channelManage(toggle, channelName, channelHex, title, call, method, sub
         var preview = $("#preview");
         if (channelName.length > 0) {
             preview.show();
+        } else {
+            preview.hide();
         }
         $("#channel-input").val(channelName);
         $("#channel-color-input").val(channelHex);

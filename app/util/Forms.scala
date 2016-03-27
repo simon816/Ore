@@ -11,7 +11,7 @@ object Forms {
   /**
     * Submits a new Channel for a Project.
     */
-  lazy val ChannelCreate = Form(tuple("channel-input" -> text, "channel-color-input" -> text))
+  lazy val ChannelEdit = Form(tuple("channel-input" -> text, "channel-color-input" -> text))
 
   /**
     * Submits changes on a documentation page.

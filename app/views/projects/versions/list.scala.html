@@ -25,10 +25,10 @@ Versions page within Project overview.
                                         <td>
                                             <div class="pull-right">
                                                 <span class="date">@version.prettyDate</span>
-                                                <a href="@routes.Projects.showVersion(model.owner, model.getName, channel.name, version.versionString)">
+                                                <a href="@routes.Projects.showVersion(model.owner, model.getName, channel.getName, version.versionString)">
                                                     <i class="fa fa-info-circle"></i>
                                                 </a>
-                                                <a href="@routes.Projects.downloadVersion(model.owner, model.getName, channel.name, version.versionString)">
+                                                <a href="@routes.Projects.downloadVersion(model.owner, model.getName, channel.getName, version.versionString)">
                                                     <i class="fa fa-download"></i>
                                                 </a>
                                             </div>
@@ -53,7 +53,7 @@ Versions page within Project overview.
                                 @channels.map { channel =>
                                   <li class="list-group-item">
                                       <span class="channel"
-                                            style="background-color: @channel.getColor.hex;">@channel.name</span>
+                                            style="background-color: @channel.getColor.hex;">@channel.getName</span>
                                       <a href="#" class="pull-right"><i class="fa fa-eye"></i></a>
                                   </li>
                                 }

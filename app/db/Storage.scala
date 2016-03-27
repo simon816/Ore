@@ -240,6 +240,20 @@ object Storage {
     this.config.db.run(query)
   }
 
+  def updateChannelString(channel: Channel, key: ChannelTable => Rep[String], value: String): Future[Int] = {
+    val channels = q[ChannelTable](classOf[Channel])
+    val query = for { c <- channels if c.id === channel.id } yield key(c)
+    val action = query.update(value)
+    this.config.db.run(action)
+  }
+
+  def updateChannelInt(channel: Channel, key: ChannelTable => Rep[Int], value: Int): Future[Int] = {
+    val channels = q[ChannelTable](classOf[Channel])
+    val query = for { c <- channels if c.id === channel.id } yield key(c)
+    val action = query.update(value)
+    this.config.db.run(action)
+  }
+
   // Version queries
 
   def getAllVersions(projectId: Int): Future[Seq[Version]] = {
