@@ -14,7 +14,7 @@ Documentation page within Project overview.
                 <div class="col-md-9">
                     @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {
                         <a href="@routes.Projects.showPageEdit(model.owner, model.getName, page.getName)"
-                           class="btn btn-default pull-right"><i class="fa fa-edit"></i> Edit</a>
+                           class="btn btn-default pull-right"><i class="fa fa-edit"></i> @messages("page.edit")</a>
                     }
                     @* Rendered markdown *@
                     <p class="pull-left">@Html(page.toHtml)</p>
@@ -22,12 +22,12 @@ Documentation page within Project overview.
                 <div class="col-md-3">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 class="panel-title">Pages</h3>
+                            <h3 class="panel-title">@messages("page.plural")</h3>
                             @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {
                                 <a data-toggle="modal" data-target="#new-page">
                                     <i class="new-page pull-right fa fa-plus"></i>
                                 </a>
-                                @projects.pageNewModal(model)
+                                @projects.pages.modalPageCreate(model)
                             }
                         </div>
                         <ul class="list-group">

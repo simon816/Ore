@@ -53,6 +53,19 @@
     border-radius: 6px;
     padding: 4px 6px;
     font-weight: bold;
+    text-align: center;
+}
+
+.channel-dark {
+    color: white;
+}
+
+.channel-dark > a {
+    color: white;
+}
+
+.channel-light > a {
+    color: black;
 }
 
 .channel-head {
@@ -60,6 +73,10 @@
     display: inline-block;
     margin-top: 23px;
     margin-left: 15px;
+}
+
+.no-border > tbody > tr > td {
+    border: none;
 }
 
 .user-avatar {

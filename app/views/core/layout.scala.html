@@ -2,7 +2,8 @@
 Base layout template for website. Most templates within the project will extend
 this.
 *@
-@(title: String)(content: Html)(implicit session: Session)
+@import play.api.Play
+@(title: String)(content: Html)(implicit messages: Messages, session: Session)
 
 <!DOCTYPE html>
 <html>
@@ -13,7 +14,7 @@ this.
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="icon" type="image/png" href="https://cdn.spongepowered.org/uploads/default/original/2X/9/9ba706a80e45cf427617525ee2a19fad7bb6b109.png">
+        <link rel="icon" type="image/png" href="@Play.current.configuration.getString("sponge.icon")">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("bootstrap/css/bootstrap.min.css")" />
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/main.css")" />

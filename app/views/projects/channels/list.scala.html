@@ -1,0 +1,47 @@
+@import models.project.Project
+@import models.project.Channel
+@(project: Project, channels: Seq[Channel])(implicit messages: Messages, session: Session)
+
+@core.layout("Channels | " + project.owner + "/public " + project.getName) {
+
+    <div class="container" style="margin-top: 90px">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Release channels</h3>
+                    </div>
+                    <div class="panel-body">
+                        <p class="unknown create-blurb">
+                            Release channels represent the state of a plugin release. A project may have up to five
+                            release channels.
+                        </p>
+                        <table class="table no-border">
+                            <tbody>
+                                @channels.map { channel =>
+                                  <tr>
+                                      <td class="channel @if(channel.getColor.isDark) { channel-dark }"
+                                          style="background-color: @channel.getColor.hex;">
+                                        @channel.name
+                                        <div class="pull-right
+                                             @if(channel.getColor.isDark) { channel-dark }
+                                             @if(!channel.getColor.isDark) { channel-light }">
+                                            <a href="#"><i class="fa fa-edit"></i></a>
+                                            <a href="#"><i class="fa fa-trash"></i></a>
+                                        </div>
+                                      </td>
+                                  </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <a href="#" class="pull-right btn btn-primary" data-toggle="modal" data-target="#channel-edit">
+                            New channel
+                        </a>
+                        @projects.channels.modalCreate("", Channel.DEFAULT_COLOR, "New channel")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}

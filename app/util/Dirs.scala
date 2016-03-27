@@ -3,7 +3,7 @@ package util
 import play.api.Play
 import play.api.Play.current
 
-object P {
+object Dirs {
 
   lazy val ROOT_DIR      =   Play.application.path.toPath
   lazy val CONF_DIR      =   ROOT_DIR.resolve("conf")

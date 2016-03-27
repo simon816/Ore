@@ -19,7 +19,7 @@ CREATE TABLE channels (
   id          serial        NOT NULL PRIMARY KEY,
   created_at  timestamp     NOT NULL,
   name        varchar(255)  NOT NULL,
-  color_hex   varchar(255)  NOT NULL,
+  color_id    int           NOT NULL,
   project_id  bigint        NOT NULL REFERENCES projects ON DELETE CASCADE
 );
 

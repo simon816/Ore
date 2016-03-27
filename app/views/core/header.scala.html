@@ -2,14 +2,15 @@
 The main header displayed on each layout.
 *@
 @import util.Gravatar
-@()(implicit session: Session)
+@import play.api.Play
+@()(implicit messages: Messages, session: Session)
 
 <nav class="navbar navbar-fixed-top navbar-inverse">
     <div class="container">
         <div class="navbar-header">
             <a class="navbar-brand" href="@routes.Application.index(None)">
                 <img class="logo"
-                     src="https://cdn.spongepowered.org/uploads/default/original/2X/7/77fa5f82289385db14561fac384ddea2a84a0070.png"
+                     src="@Play.current.configuration.getString("sponge.logo").get"
                      alt="Sponge">
             </a>
         </div>
@@ -25,16 +26,16 @@ The main header displayed on each layout.
                         <ul class="dropdown-menu" aria-label="dropdownMenu1">
                             <li><a href="#">@session.get("username").get <i class="pull-right fa fa-user"></i></a></li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="http://forums.spongepowered.org">Forums <i class="pull-right fa fa-home"></i></a></li>
-                            <li><a href="@routes.Application.logOut">Sign out <i class="pull-right fa fa-sign-out"></i></a></li>
+                            <li><a href="http://forums.spongepowered.org">@messages("general.forums") <i class="pull-right fa fa-home"></i></a></li>
+                            <li><a href="@routes.Application.logOut">@messages("general.signout") <i class="pull-right fa fa-sign-out"></i></a></li>
                         </ul>
                     </li>
                 </ul>
             }.getOrElse {
                 @* Show login controls *@
                 <div class="nav navbar-nav navbar-right">
-                    <a href="@routes.Application.logIn(None, None)" class="btn btn-primary navbar-btn">Sign up</a>
-                    <a href="@routes.Application.logIn(None, None)" class="btn btn-primary navbar-btn">Log in</a>
+                    <a href="@routes.Application.logIn(None, None)" class="btn btn-primary navbar-btn">@messages("general.signup")</a>
+                    <a href="@routes.Application.logIn(None, None)" class="btn btn-primary navbar-btn">@messages("general.login")</a>
                 </div>
             }
         </div>

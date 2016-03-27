@@ -39,10 +39,10 @@ class ChannelTable(tag: Tag) extends Table[Channel](tag, "channels") {
   def id          =   column[Int]("id", O.PrimaryKey, O.AutoInc)
   def createdAt   =   column[Timestamp]("created_at")
   def name        =   column[String]("name")
-  def colorHex    =   column[String]("color_hex", O.Default(Channel.DEFAULT_COLOR))
+  def colorId     =   column[Int]("color_id")
   def projectId   =   column[Int]("project_id")
 
-  override def * = (id.?, createdAt.?, name, colorHex, projectId) <> ((Channel.apply _).tupled, Channel.unapply)
+  override def * = (id.?, createdAt.?, name, colorId, projectId) <> ((Channel.apply _).tupled, Channel.unapply)
 }
 
 class VersionTable(tag: Tag) extends Table[Version](tag, "versions") {

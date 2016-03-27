@@ -4,6 +4,7 @@ Page used for uploading and creating new projects.
 @import models.project.Category
 @import models.project.Project.PendingProject
 @import views.html.helper.form
+@import play.api.Play
 @(pending: Option[PendingProject])(implicit messages: Messages, session: Session)
 
 @core.layout(messages("project.create")) {
@@ -13,7 +14,7 @@ Page used for uploading and creating new projects.
             <div class="col-md-6 col-md-offset-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h3 class="panel-title">Create a new project</h3>
+                        <h3 class="panel-title">@messages("project.create.title") <span class="pull-right unknown">Step 1/2</span></h3>
                     </div>
                     <div class="panel-body">
                         <p class="unknown create-blurb">
@@ -30,28 +31,33 @@ Page used for uploading and creating new projects.
                                     <table class="plugin-meta-table">
                                         <tbody>
                                             <tr>
-                                                <td><strong>Unique ID</strong></td>
+                                                <td><strong>@messages("project.create.uid")</strong></td>
                                                 <td>@project.pluginId <i class="id-status fa fa-spinner fa-spin"></i></td>
                                             </tr>
                                             <tr>
-                                                <td><strong>Name</strong></td>
+                                                <td><strong>@messages("project.name")</strong></td>
                                                 <td>@project.getName <i class="name-status fa fa-spinner fa-spin"></i></td>
                                             </tr>
                                             <tr>
-                                                <td><strong>Owner</strong></td>
+                                                <td><strong>@messages("project.owner")</strong></td>
                                                 <td>@project.owner</td>
                                             </tr>
                                         </tbody>
                                     </table>
 
                                     <script type="text/javascript" src="@routes.Assets.at("javascripts/projectCreateValidate.js")"></script>
-                                    <script>$(function() { validate("@project.pluginId", "@project.owner", "@project.getName"); });</script>
+                                    <script>
+                                    $(function() {
+                                        validateMeta("@project.pluginId", "@project.owner", "@project.getName",
+                                                      "@Play.current.configuration.getString("application.baseUrl").get");
+                                    });
+                                    </script>
                                 </div>
                             }
 
                             @* Category select *@
                             <div class="form-group">
-                                <label for="category">Category</label>
+                                <label for="category">@messages("project.category")</label>
                                 <select class="form-control" id="category" name="category" form="continue">
                                 @for(category <- Category.values) {
                                     <option>@category.title</option>
@@ -64,17 +70,18 @@ Page used for uploading and creating new projects.
                         @* File controls *@
                         @form(action = routes.Projects.upload, 'enctype -> "multipart/form-data") {
                             <label class="btn btn-primary" for="pluginFile">
-                                <input id="pluginFile" name="pluginFile" type="file" style="display:none ;">
-                                Select file
+                                <input id="pluginFile" name="pluginFile" type="file" style="display:none;">
+                                @messages("project.create.select-file")
                             </label>
-                            <input type="submit" name="submit" value="Upload" class="btn btn-primary" />
+                            <input type="submit" name="submit" value="@messages("project.create.upload")" class="btn btn-primary" />
                         }
 
                         @* Continue to next step *@
                         @if(pending.isDefined) {
                             @defining(pending.get.project) { project =>
                               @form(action = routes.Projects.showFirstVersionCreate(project.owner, project.getName), 'id -> "continue") {
-                                  <input type="submit" name="create" value="Continue" class="continue-btn btn btn-primary" disabled="disabled" />
+                                  <input type="submit" name="create" value="@messages("project.create.continue")"
+                                         class="continue-btn btn btn-primary" disabled />
                               }
                             }
                         }

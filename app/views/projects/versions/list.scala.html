@@ -20,7 +20,7 @@ Versions page within Project overview.
                                   @defining(version.getChannelFrom(channels).get) { channel =>
                                     <tr>
                                         <td>
-                                            <i class="fa fa-circle channel-id" style="color: @channel.colorHex"></i> @version.versionString
+                                            <i class="fa fa-circle channel-id" style="color: @channel.getColor.hex"></i> @version.versionString
                                         </td>
                                         <td>
                                             <div class="pull-right">
@@ -52,13 +52,16 @@ Versions page within Project overview.
                             <ul class="list-group">
                                 @channels.map { channel =>
                                   <li class="list-group-item">
-                                      <span class="channel" style="background-color: @channel.colorHex;">@channel.name</span>
+                                      <span class="channel @if(channel.getColor.isDark) { channel-dark }"
+                                            style="background-color: @channel.getColor.hex;">@channel.name</span>
                                       <a href="#" class="pull-right"><i class="fa fa-eye"></i></a>
                                   </li>
                                 }
                                 @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {
                                     <li class="list-group-item text-right">
-                                        <a href="#"><i class="fa fa-cog"></i> Edit</a>
+                                        <a href="@routes.Projects.showChannels(model.owner, model.getName)">
+                                            <i class="fa fa-cog"></i> Edit
+                                        </a>
                                     </li>
                                 }
                             </ul>

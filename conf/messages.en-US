@@ -1,22 +1,66 @@
 # Strings localized for en-US locale
 
-general.name = Ore
-general.description = A Minecraft Package Repository
-general.title = Ore - A Minecraft Package Repository
-general.about = About Us
-general.docs = Docs
-general.forums = Forums
-general.chat = Chat
-general.all-cats = all categories
+general.name                    =   Ore
+general.description             =   A Minecraft Package Repository
+general.title                   =   Ore - A Minecraft Package Repository
+general.forums                  =   Forums
+general.signout                 =   Sign out
+general.signup                  =   Sign up
+general.login                   =   Log in
 
-project.name = Name
-project.author = Author
-project.views = Views
-project.downloads = Downloads
-project.starred = Starred
-project.create = New Project
-project.top = Top
-project.hot = Hot
-project.new = New
-project.latest = Latest
+page.edit                       =   Edit
+page.edit.cancel                =   Cancel
+page.edit.save                  =   Save
+page.edit.delete                =   Delete
+page.edit.title                 =   Edit page
+page.edit.preview               =   Preview changes
+page.new.title                  =   Create a new page
+page.new.name                   =   Name
+page.new.close                  =   Close
+page.new.continue               =   Continue
+page.plural                     =   Pages
+
+project.author                  =   Author
+project.category                =   Category
+project.category.plural         =   Categories
+project.delete                  =   Delete
+project.download                =   Download
+project.flag                    =   Flag
+project.name                    =   Name
+project.create                  =   New Project
+project.owner                   =   Owner
+project.rename                  =   Rename
+
+project.discuss                 =   Discuss
+project.docs                    =   Docs
+project.settings                =   Settings
+project.versions                =   Versions
+
+project.downloads               =   Downloads
+project.starred                 =   Starred
+project.views                   =   Views
+
+project.top                     =   Top
+project.hot                     =   Hot
+project.new                     =   New
+project.latest                  =   Latest
+
+project.create.title            =   Create a new project
+project.create.uid              =   Unique ID
+project.create.select-file      =   Select file
+project.create.upload           =   Upload
+project.create.continue         =   Continue
+
+version                         =   Version
+version.description             =   Description
+version.create.title            =   New project release
+version.create.no-description   =   No description given.
+version.create.upload           =   Upload
+version.create.select-file      =   Select file
+version.create.publish          =   Publish
+
+channel.name                    =   Channel name
+channel.edit.title              =   Edit channel
+channel.edit.close              =   Close
+channel.edit.save               =   Save changes
 

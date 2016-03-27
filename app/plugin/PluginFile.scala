@@ -74,10 +74,6 @@ class PluginFile(private var path: Path, private val owner: User) {
     // Parse plugin meta info
     val meta = metaList.get(0)
     this.meta = Some(meta)
-    val authors = meta.getAuthors.toList
-    if (authors.isEmpty) {
-      throw new InvalidPluginFileException("No authors found.")
-    }
     meta
   }
 

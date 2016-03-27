@@ -8,12 +8,13 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 import org.apache.commons.codec.binary.Hex
-import play.api.Play
+import play.api.Play.{current => my}
 
 object DiscourseSSO {
 
-  private val url = Play.current.configuration.getString("discourse.sso.url").get
-  private val secret = Play.current.configuration.getString("discourse.sso.secret").get.getBytes("UTF-8")
+  private val url = my.configuration.getString("discourse.sso.url").get
+  private val returnUrl = my.configuration.getString("application.baseUrl").get + "/login"
+  private val secret = my.configuration.getString("discourse.sso.secret").get.getBytes("UTF-8")
   private val random = new SecureRandom
   private val algo = "HmacSHA256"
 
@@ -29,7 +30,7 @@ object DiscourseSSO {
   }
 
   def getRedirect: String = {
-    val payload = "require_validation=true&return_sso_url=http://localhost:9000/login&nonce=" + nonce
+    val payload = "require_validation=true&return_sso_url=" + this.returnUrl + "&nonce=" + nonce
     val encoded = new String(Base64.getEncoder.encode(payload.getBytes("UTF-8")))
     val urlEncoded = URLEncoder.encode(encoded, "UTF-8")
     val hmac = hmac_sha256(encoded.getBytes("UTF-8"))

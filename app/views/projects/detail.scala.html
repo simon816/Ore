@@ -18,23 +18,23 @@ Base template for Project overview.
                     <ul class="nav navbar-nav">
                         <li id="docs" class="">
                             <a href="@routes.Projects.show(project.owner, project.getName)">
-                                <i class="fa fa-book"></i> Docs</a>
+                                <i class="fa fa-book"></i> @messages("project.docs")</a>
                         </li>
                         <li id="versions" class="">
                             <a href="@routes.Projects.showVersions(project.owner, project.getName)">
-                                <i class="fa fa-download"></i> Versions
+                                <i class="fa fa-download"></i> @messages("project.versions")
                             </a>
                         </li>
                         <li id="discussion" class="">
                             <a href="@routes.Projects.showDiscussion(project.owner, project.getName)">
-                                <i class="fa fa-users"></i> Discuss
+                                <i class="fa fa-users"></i> @messages("project.discuss")
                             </a>
                         </li>
                         @if(session.get("username").isDefined && session.get("username").get.equals(project.owner)) {
                             @* Show manager if permitted *@
                             <li id="settings" class="">
                                 <a href="@routes.Projects.showManager(project.owner, project.getName)">
-                                    <i class="fa fa-cog"></i> Settings
+                                    <i class="fa fa-cog"></i> @messages("project.settings")
                                 </a>
                             </li>
                         }
@@ -53,14 +53,14 @@ Base template for Project overview.
                 <a href="@routes.Projects.downloadRecommendedVersion(project.owner, project.getName)"
                    title="Download the latest recommended version" data-toggle="tooltip"
                    data-placement="bottom" class="btn btn-default">
-                    <i class="fa fa-download"></i> Download
+                    <i class="fa fa-download"></i> @messages("project.download")
                 </a>
                 <button class="btn btn-default btn-star">
                     <i class="fa fa-star"></i><span class="starred"> @project.starred</span>
                 </button>
                 @if(session.get("username").isEmpty || !session.get("username").get.equals(project.owner)) {
                     <button class="btn btn-default">
-                        <i class="fa fa-flag"></i> Flag
+                        <i class="fa fa-flag"></i> @messages("project.flag")
                     </button>
                 }
             </div>

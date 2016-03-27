@@ -8,7 +8,7 @@ import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
 import models.project.{Channel, Project, Version}
 import play.api.libs.Files.TemporaryFile
-import util.P._
+import util.Dirs._
 
 import scala.util.{Failure, Success, Try}
 

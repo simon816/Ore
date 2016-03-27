@@ -100,7 +100,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def show(author: String, name: String) = Action { implicit request =>
     withProject(author, name, project => {
-      Ok(views.projects.docs(project, Pages.getHome(author, name)))
+      Ok(views.projects.pages.home(project, Pages.getHome(author, name)))
     })
   }
 
@@ -115,7 +115,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def showPageEdit(author: String, name: String, page: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
-      Ok(views.projects.pageEdit(project, page, Pages.getOrCreate(author, name, page).getContents))
+      Ok(views.projects.pages.edit(project, page, Pages.getOrCreate(author, name, page).getContents))
     }))
   }
 
@@ -144,7 +144,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     withProject(author, name, project => {
       Pages.get(author, name, page) match {
         case None => NotFound
-        case Some(page) => Ok(views.projects.docs(project, page))
+        case Some(p) => Ok(views.projects.pages.home(project, p))
       }
     })
   }
@@ -168,7 +168,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
             case Failure(thrown) => throw thrown
             case Success(versionOpt) => versionOpt match {
               case None => NotFound
-              case Some(version) => Ok(views.projects.versionDetail(project, channel, version))
+              case Some(version) => Ok(views.projects.versions.detail(project, channel, version))
             }
           }
         }
@@ -188,7 +188,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
       Storage.now(project.getChannels) match {
         case Failure(thrown) => throw thrown
         case Success(channels) =>
-          Ok(views.projects.versions(project, channels, project.getVersions));
+          Ok(views.projects.versions.list(project, channels, project.getVersions));
       }
     })
   }
@@ -201,7 +201,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return         Version creation view
     */
   def showVersionCreate(author: String, name: String) = { withUser(Some(author), user => implicit request =>
-    withProject(author, name, project => Ok(views.projects.versionCreate(project, None, showFileControls = true))))
+    withProject(author, name, project => Ok(views.projects.versions.create(project, None, showFileControls = true))))
   }
 
   /**
@@ -264,9 +264,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
           case None => Redirect(routes.Application.index(None))
           case Some(p) => p match {
             case pending: PendingProject =>
-              Ok(views.projects.versionCreate(pending.project, Some(pendingVersion), showFileControls = false))
+              Ok(views.projects.versions.create(pending.project, Some(pendingVersion), showFileControls = false))
             case real: Project =>
-              Ok(views.projects.versionCreate(real, Some(pendingVersion), showFileControls = true))
+              Ok(views.projects.versions.create(real, Some(pendingVersion), showFileControls = true))
           }
         }
     })
@@ -380,6 +380,20 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
           }
       }
     })
+  }
+
+  /**
+    * Displays a view of the specified Project's Channels.
+    *
+    * @param author   Project owner
+    * @param name     Project name
+    * @return         View of channels
+    */
+  def showChannels(author: String, name: String) = { withUser(Some(author), user => implicit request =>
+    withProject(author, name, project => Storage.now(project.getChannels) match {
+      case Failure(thrown) => throw thrown;
+      case Success(channels) => Ok(views.projects.channels.list(project, channels))
+    }))
   }
 
   /**

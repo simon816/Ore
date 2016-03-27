@@ -44,6 +44,9 @@ POST    /:author/:name/versions/:channel/:version               @controllers.Pro
 GET     /:author/:name/versions                                 @controllers.Projects.showVersions(author, name)
 GET     /:author/:name/versions/:channel/:version               @controllers.Projects.showVersion(author, name, channel, version)
 
+# Channels
+GET     /:author/:name/channels                                 @controllers.Projects.showChannels(author, name)
+
 # Discussion
 GET     /:author/:name/dicuss                                   @controllers.Projects.showDiscussion(author, name)
 

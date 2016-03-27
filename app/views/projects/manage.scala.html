@@ -9,19 +9,19 @@
             <div class="col-md-9">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h3 class="panel-title">Settings</h3>
+                        <h3 class="panel-title">@messages("project.settings")</h3>
                     </div>
                     <div class="panel-body">
                         @form(action = routes.Projects.rename(project.owner, project.getName)) {
                             <label for="name">Project name</label>
                             <div class="form-inline">
                                 <input id="name" name="name" class="form-control" type="text" value="@project.getName">
-                                <input type="submit" name="rename" value="Rename" class="btn btn-warning">
+                                <input type="submit" name="rename" value="@messages("project.rename")" class="btn btn-warning">
                             </div>
                         }
 
                         @form(action = routes.Projects.delete(project.owner, project.getName)) {
-                            <input type="submit" name="delete" value="Delete" class="btn btn-danger">
+                            <input type="submit" name="delete" value="@messages("project.delete")" class="btn btn-danger">
                         }
                     </div>
                 </div>

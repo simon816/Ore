@@ -5,6 +5,7 @@ import java.sql.Timestamp
 
 import db.Storage
 import models.project.Channel._
+import models.project.ChannelColors.ChannelColor
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
 import plugin.ProjectManager
@@ -21,13 +22,15 @@ import scala.util.{Failure, Success, Try}
   * @param id         Unique identifier
   * @param createdAt  Instant of creation
   * @param name       Name of channel
-  * @param colorHex   Hex color
+  * @param colorId    ID of ChannelColor used to represent this Channel
   * @param projectId  ID of project this channel belongs to
   */
 case class Channel(id: Option[Int], var createdAt: Option[Timestamp], name: String,
-                   colorHex: String, projectId: Int) {
+                   colorId: Int, projectId: Int) {
 
-  def this(name: String, projectId: Int) = this(None, None, name, DEFAULT_COLOR, projectId)
+  def this(name: String, projectId: Int) = this(None, None, name, DEFAULT_COLOR.id, projectId)
+
+  def getColor: ChannelColor = ChannelColors(this.colorId)
 
   /**
     * Returns the Project this Channel belongs to.
@@ -92,7 +95,7 @@ object Channel {
   /**
     * The default color used for Channels.
     */
-  val DEFAULT_COLOR: String = "#2ECC40"
+  val DEFAULT_COLOR: ChannelColor = ChannelColors.Green
 
   /**
     * The default name used for Channels.

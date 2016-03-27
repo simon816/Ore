@@ -3,7 +3,7 @@ package plugin
 import java.nio.file.{Path, Files}
 
 import org.pegdown.PegDownProcessor
-import util.P._
+import util.Dirs._
 
 object Pages {
 

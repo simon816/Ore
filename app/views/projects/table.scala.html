@@ -12,7 +12,7 @@ Collection of all projects.
                 <a href="@routes.Projects.showCreate"
                    title="Submit a new project to Ore." data-toggle="tooltip"
                    data-placement="bottom" class="btn-create btn btn-primary pull-right">
-                    <i class="fa fa-plus"></i> New project
+                    <i class="fa fa-plus"></i> @messages("project.create")
                 </a>
             </div>
         </div>
@@ -53,7 +53,7 @@ Collection of all projects.
             @* Category table *@
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Categories</h3>
+                    <h3 class="panel-title">@messages("project.category.plural")</h3>
                 </div>
                 <table class="table">
                     <tbody>
