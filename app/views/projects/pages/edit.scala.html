@@ -16,11 +16,12 @@
 
                 <div class="pull-right input-group">
                     @if(Pages.exists(model.owner, model.getName, page)) {
-                        <a href="@routes.Projects.deletePage(model.owner, model.getName, page)"
-                           class="btn btn-danger"
+                        <a class="btn btn-danger"
                             @if(page.equals(Pages.HOME_PAGE)) {
                                 disabled data-toggle="tooltip" data-placement="bottom"
                                 title="Your project's homepage cannot be deleted"
+                            } else {
+                                href="@routes.Projects.deletePage(model.owner, model.getName, page)"
                             }
                         >@messages("page.edit.delete")</a>
                         <a class="pull-right btn btn-primary" data-toggle="modal" data-target="#new-page">

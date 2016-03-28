@@ -2,7 +2,7 @@
 @import models.project.{Channel, Project}
 @import views.html.helper.form
 @(project: Project, pending: Option[PendingVersion],
-  channels: Option[Seq[Channel]], showFileControls: Boolean)(implicit messages: Messages, session: Session)
+  channels: Option[Seq[Channel]], showFileControls: Boolean)(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout("Release a new version") {
 
@@ -24,6 +24,15 @@
                         <p class="unknown create-blurb">
                             Release a new version for <strong>@project.getName</strong>.
                         </p>
+
+                        @if(flash.get("error").isDefined) {
+                            <div class="alert alert-danger alert-dismissable" role="alert">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <strong>Whoops!</strong> @flash.get("error").get
+                            </div>
+                        }
 
                         @if(pending.isDefined) {
                             @* Show plugin meta *@

@@ -53,9 +53,7 @@ class PluginFile(private var path: Path, private val owner: User) {
 
   def zip: Path = {
     val path = this.path.toString
-    println("path = " + path)
     val zipPath = path.substring(0, path.lastIndexOf('.')) + ".zip"
-    println("zipPath = " + zipPath)
     val out = new ZipOutputStream(new FileOutputStream(zipPath))
     val entry = new ZipEntry(this.path.getFileName.toString)
     out.putNextEntry(entry)
@@ -90,8 +88,6 @@ class PluginFile(private var path: Path, private val owner: User) {
       }
     }
 
-    println("zip = " + zip)
-
     // Find plugin JAR
     var jarIn: JarInputStream = null
     try {
@@ -102,7 +98,6 @@ class PluginFile(private var path: Path, private val owner: User) {
           while (entries.hasMoreElements) {
             val entry = entries.nextElement()
             val name = entry.getName
-            println("entry = " + name)
             if (!entry.isDirectory && name.split("/").length == 1 && name.endsWith(".jar")) {
               pluginEntry = entry
               break
@@ -125,7 +120,6 @@ class PluginFile(private var path: Path, private val owner: User) {
     var metaFound: Boolean = false
     breakable {
       while ({ entry = jarIn.getNextJarEntry; entry } != null) {
-        println(entry.getName)
         if (entry.getName.equals(META_FILE_NAME)) {
           metaFound = true
           break

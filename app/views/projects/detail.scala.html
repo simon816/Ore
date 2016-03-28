@@ -50,14 +50,14 @@ Base template for Project overview.
             </div>
 
             <div class="pull-right project-controls">
-                <a href="@routes.Projects.downloadRecommendedVersion(project.owner, project.getName)"
-                   title="Download the latest recommended version" data-toggle="tooltip"
-                   data-placement="bottom" class="btn btn-default">
-                    <i class="fa fa-download"></i> @messages("project.download")
-                </a>
                 <button class="btn btn-default btn-star">
                     <i class="fa fa-star"></i><span class="starred"> @project.starred</span>
                 </button>
+                <a href="@routes.Projects.downloadRecommendedVersion(project.owner, project.getName)"
+                   title="Download the latest recommended version" data-toggle="tooltip"
+                   data-placement="bottom" class="btn btn-primary">
+                    <i class="fa fa-download"></i> @messages("project.download")
+                </a>
                 @if(session.get("username").isEmpty || !session.get("username").get.equals(project.owner)) {
                     <button class="btn btn-default">
                         <i class="fa fa-flag"></i> @messages("project.flag")

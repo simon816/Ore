@@ -48,7 +48,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         // Initialize plugin file
         ProjectManager.initUpload(tmpFile.ref, tmpFile.filename, user) match {
           case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
-            thrown.printStackTrace()
+            // PEBKAC
             Redirect(self.showCreate()).flashing("error" -> "Invalid plugin file.")
           } else {
             throw thrown
@@ -92,7 +92,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         val categoryId = Categories.withName(Forms.ProjectCategory.bindFromRequest.get).id
         pendingProject.project.categoryId = categoryId
         val pendingVersion = pendingProject.initFirstVersion
-        Redirect(self.showVersionCreateWithMeta(author, name, pendingVersion.getChannelName, pendingVersion.version.versionString))
+        Redirect(self.showVersionCreateWithMeta(
+          author, name, pendingVersion.getChannelName, pendingVersion.version.versionString
+        ))
     })
   }
 
@@ -225,7 +227,10 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     withProject(author, name, project => {
       Storage.now(project.getChannels) match {
         case Failure(thrown) => throw thrown
-        case Success(channels) => Ok(views.projects.versions.create(project, None, Some(channels), showFileControls = true))
+        case Success(channels) =>
+          Ok(views.projects.versions.create(
+            project, None, Some(channels), showFileControls = true
+          ))
       }
     }))
   }
@@ -245,7 +250,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         withProject(author, name, project => {
           // Initialize plugin file
           ProjectManager.initUpload(tmpFile.ref, tmpFile.filename, user) match {
-            case Failure(thrown) => throw thrown
+            case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
+              // PEBKAC
+              Redirect(self.showVersionCreate(author, name))
+                .flashing("error" -> "Invalid plugin file.")
+            } else {
+              throw thrown
+            }
             case Success(plugin) =>
               // Cache version for later use
               val meta = plugin.getMeta.get
@@ -290,12 +301,16 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
           case None => Redirect(routes.Application.index(None))
           case Some(p) => p match {
             case pending: PendingProject =>
-              Ok(views.projects.versions.create(pending.project, Some(pendingVersion), None, showFileControls = false))
+              Ok(views.projects.versions.create(
+                pending.project, Some(pendingVersion), None, showFileControls = false
+              ))
             case real: Project =>
               Storage.now(real.getChannels) match {
                 case Failure(thrown) => throw thrown
                 case Success(channels) =>
-                  Ok(views.projects.versions.create(real, Some(pendingVersion), Some(channels), showFileControls = true))
+                  Ok(views.projects.versions.create(
+                    real, Some(pendingVersion), Some(channels), showFileControls = true
+                  ))
               }
           }
         }
@@ -321,12 +336,15 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         Project.getPending(author, name) match {
           case None => pendingVersion.complete match {
             case Failure(thrown) => throw thrown
-            case Success(void) => Redirect(self.showVersion(author, name, channelName, versionString))
+            case Success(void) =>
+              // No pending project, just create the version for the existing project
+              Redirect(self.showVersion(author, name, channelName, versionString))
           }
           case Some(pendingProject) =>
+            // Found a pending project, create the project and it's first version
             val form = Forms.ChannelNewProject.bindFromRequest.get
             ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
-              case None => BadRequest("No color of hex found.")
+              case None => BadRequest("Invalid channel color.")
               case Some(color) => pendingVersion.setChannelColor(color)
             }
             pendingVersion.setChannelName(form._1)
@@ -351,7 +369,6 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   def deleteVersion(author: String, name: String, channelName: String, versionString: String) = {
                     withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
-      println("project = " + project.getName)
       Storage.now(project.getChannel(channelName)) match {
         case Failure(thrown) => throw thrown
         case Success(channelOpt) => channelOpt match {
@@ -443,33 +460,34 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def createChannel(author: String, name: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
+      // Get all channels
       Storage.now(project.getChannels) match {
         case Failure(thrown) => throw thrown
         case Success(channels) => if (channels.size > Channel.MAX_AMOUNT) {
+          // Maximum reached
           Redirect(self.showChannels(author, name))
             .flashing("error" -> "A project may only have up to five channels.")
         } else {
           val form = Forms.ChannelEdit.bindFromRequest.get
           val channelName = form._1
+          // Find submitted color
           ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
-            case None => BadRequest("No color with hex found.")
-            case Some(color) => Storage.now(project.getChannel(color)) match {
-              case Failure(thrown) => throw thrown
-              case Success(colorChan) => colorChan match {
-                case None => Storage.now(project.getChannel(channelName)) match {
+            case None => BadRequest("Invalid channel color.")
+            case Some(color) => channels.find(c => c.getColor.equals(color)) match {
+              case None => channels.find(c => c.getName.equals(channelName)) match {
+                case None => project.newChannel(channelName, color) match {
                   case Failure(thrown) => throw thrown
-                  case Success(nameChan) => nameChan match {
-                    case None => project.newChannel(channelName, color) match {
-                      case Failure(thrown) => throw thrown
-                      case Success(channel) => Redirect(self.showChannels(author, name))
-                    }
-                    case Some(channel) => Redirect(self.showChannels(author, name))
-                      .flashing("error" -> "A channel with that name already exists.")
-                  }
+                  case Success(channel) => Redirect(self.showChannels(author, name))
                 }
-                case Some(channel) => Redirect(self.showChannels(author, name))
-                  .flashing("error" -> "A channel with that color already exists.")
+                case Some(channel) =>
+                  // Channel name taken
+                  Redirect(self.showChannels(author, name))
+                    .flashing("error" -> "A channel with that name already exists.")
               }
+              case Some(channel) =>
+                // Channel color taken
+                Redirect(self.showChannels(author, name))
+                  .flashing("error" -> "A channel with that color already exists.")
             }
           }
         }
@@ -487,30 +505,53 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def editChannel(author: String, name: String, channelName: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
-      val form = Forms.ChannelEdit.bindFromRequest.get
-      ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
-        case None => BadRequest("No color with hex found.")
-        case Some(color) => Storage.now(project.getChannel(channelName)) match {
-          case Failure(thrown) => throw thrown
-          case Success(channelOpt) => channelOpt match {
-            case None => BadRequest("Channel not found.")
-            case Some(channel) =>
-              val newName = form._1
-              if (!channelName.equals(newName)) {
-                Storage.now(channel.setName(project, newName)) match {
-                  case Failure(thrown) => throw thrown
-                  case Success(i) => ;
+      // Get all channels
+      Storage.now(project.getChannels) match {
+        case Failure(thrown) => throw thrown
+        case Success(channels) =>
+          val form = Forms.ChannelEdit.bindFromRequest.get
+          val newName = form._1
+          // Find submitted channel by old name
+          channels.find(c => c.getName.equals(channelName)) match {
+            case None => NotFound("Channel not found.")
+            case Some(channel) => ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
+              case None => BadRequest("Invalid channel color.")
+              case Some(color) =>
+                // Check if color is taken by different channel
+                val colorChan = channels.find(c => c.getColor.equals(color))
+                val colorTaken = colorChan.isDefined && !colorChan.get.equals(channel)
+
+                // Check if name taken by different channel
+                val nameChan = channels.find(c => c.getName.equals(newName))
+                val nameTaken = nameChan.isDefined && !nameChan.get.equals(channel)
+
+                if (colorTaken) {
+                  Redirect(self.showChannels(author, name))
+                    .flashing("error" -> "A channel with that color already exists.")
+                } else if (nameTaken) {
+                  Redirect(self.showChannels(author, name))
+                    .flashing("error" -> "A channel with that name already exists.")
+                } else {
+                  // Change name if different
+                  if (!channelName.equals(newName)) {
+                    Storage.now(channel.setName(project, newName)) match {
+                      case Failure(thrown) => throw thrown
+                      case Success(i) => ;
+                    }
+                  }
+
+                  // Change color if different
+                  if (!channel.getColor.equals(color)) {
+                    Storage.now(channel.setColor(color)) match {
+                      case Failure(thrown) => throw thrown
+                      case Success(i) => ;
+                    }
+                  }
+
+                  Redirect(self.showChannels(author, name))
                 }
-              }
-              if (channel.getColor.id != color.id) {
-                Storage.now(channel.setColor(color)) match {
-                  case Failure(thrown) => throw thrown
-                  case Success(i) => ;
-                }
-              }
-              Redirect(self.showChannels(author, name))
+            }
           }
-        }
       }
     }))
   }
