@@ -8,7 +8,7 @@ import models.project.Project.PendingProject
 import models.project._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import plugin.{Pages, ProjectManager}
+import plugin.{InvalidPluginFileException, Pages, ProjectManager}
 import util.Forms
 import views.{html => views}
 
@@ -43,11 +43,16 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def upload = { withUser(None, user => implicit request =>
     request.body.asMultipartFormData.get.file("pluginFile") match {
-      case None => Redirect(self.showCreate()).flashing("error" -> "Missing file")
+      case None => Redirect(self.showCreate()).flashing("error" -> "No file submitted.")
       case Some(tmpFile) =>
         // Initialize plugin file
-        ProjectManager.initUpload(tmpFile.ref, user) match {
-          case Failure(thrown) => throw thrown
+        ProjectManager.initUpload(tmpFile.ref, tmpFile.filename, user) match {
+          case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
+            thrown.printStackTrace()
+            Redirect(self.showCreate()).flashing("error" -> "Invalid plugin file.")
+          } else {
+            throw thrown
+          }
           case Success(plugin) =>
             // Cache pending project for later use
             val meta = plugin.getMeta.get
@@ -239,7 +244,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         // Get project
         withProject(author, name, project => {
           // Initialize plugin file
-          ProjectManager.initUpload(tmpFile.ref, user) match {
+          ProjectManager.initUpload(tmpFile.ref, tmpFile.filename, user) match {
             case Failure(thrown) => throw thrown
             case Success(plugin) =>
               // Cache version for later use

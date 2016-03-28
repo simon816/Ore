@@ -24,8 +24,8 @@ object ProjectManager {
     * @param owner  Project owner
     * @return       New plugin file
     */
-  def initUpload(tmp: TemporaryFile, owner: User): Try[PluginFile] = Try {
-    val tmpPath = TEMP_DIR.resolve(owner.username).resolve("plugin.jar")
+  def initUpload(tmp: TemporaryFile, name: String, owner: User): Try[PluginFile] = Try {
+    val tmpPath = TEMP_DIR.resolve(owner.username).resolve(name)
     val plugin = new PluginFile(tmpPath, owner)
     if (Files.notExists(tmpPath.getParent)) {
       Files.createDirectories(tmpPath.getParent)
@@ -45,7 +45,10 @@ object ProjectManager {
     plugin.getMeta match {
       case None => throw new IllegalArgumentException("Specified PluginFile has no meta loaded.")
       case Some(meta) =>
-        val oldPath = plugin.getPath
+        var oldPath = plugin.getPath
+        if (!plugin.isZipped) {
+          oldPath = plugin.zip
+        }
         val newPath = getUploadPath(plugin.getOwner.username, meta.getName, meta.getVersion, channel.getName)
         if (!Files.exists(newPath.getParent)) {
           Files.createDirectories(newPath.getParent)
@@ -138,7 +141,7 @@ object ProjectManager {
     * @return         Path to supposed file
     */
   def getUploadPath(owner: String, name: String, version: String, channel: String): Path = {
-    getProjectDir(owner, name).resolve(channel).resolve("%s-%s.jar".format(name, version.toLowerCase))
+    getProjectDir(owner, name).resolve(channel).resolve("%s-%s.zip".format(name, version.toLowerCase))
   }
 
   /**

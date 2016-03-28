@@ -1,14 +1,14 @@
 package plugin
 
-import java.io.IOException
-import java.nio.file.{Files, Path}
-import java.util.jar.JarFile
+import java.io.{FileInputStream, FileOutputStream, IOException}
+import java.nio.file.{Paths, Files, Path}
+import java.util.jar.{JarEntry, JarInputStream}
+import java.util.zip.{ZipOutputStream, ZipEntry, ZipFile}
 
 import models.auth.User
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 
-import scala.collection.JavaConversions._
-import scala.util.Try
+import scala.util.control.Breaks._
 
 /**
   * Represents an uploaded plugin file.
@@ -47,26 +47,97 @@ class PluginFile(private var path: Path, private val owner: User) {
     */
   def getMeta: Option[PluginMetadata] = this.meta
 
+  def isZipped: Boolean = {
+    this.path.toString.endsWith(".zip")
+  }
+
+  def zip: Path = {
+    val path = this.path.toString
+    println("path = " + path)
+    val zipPath = path.substring(0, path.lastIndexOf('.')) + ".zip"
+    println("zipPath = " + zipPath)
+    val out = new ZipOutputStream(new FileOutputStream(zipPath))
+    val entry = new ZipEntry(this.path.getFileName.toString)
+    out.putNextEntry(entry)
+
+    val in = new FileInputStream(this.path.toString)
+    var len: Int = 0
+    val buffer: Array[Byte] = new Array[Byte](4096)
+    while ({ len = in.read(buffer); len } > 0) {
+      out.write(buffer, 0, len)
+    }
+
+    in.close()
+    out.close()
+
+    this.path = Paths.get(zipPath)
+    this.path
+  }
+
   /**
     * Reads the temporary file's plugin meta file and returns the result.
     *
     * @return Result of parse
     */
   def loadMeta: PluginMetadata = {
-    // Read the JAR
-    var jar: JarFile = null
+    // Try to read ZIP first
+    var zip: ZipFile = null
+    if (this.path.toString.endsWith(".zip")) {
+      try {
+        zip = new ZipFile(this.path.toFile)
+      } catch {
+        case ignored: IOException => ;
+      }
+    }
+
+    println("zip = " + zip)
+
+    // Find plugin JAR
+    var jarIn: JarInputStream = null
     try {
-      jar = new JarFile(this.path.toFile)
+      if (zip != null) {
+        var pluginEntry: ZipEntry = null
+        val entries = zip.entries()
+        breakable {
+          while (entries.hasMoreElements) {
+            val entry = entries.nextElement()
+            val name = entry.getName
+            println("entry = " + name)
+            if (!entry.isDirectory && name.split("/").length == 1 && name.endsWith(".jar")) {
+              pluginEntry = entry
+              break
+            }
+          }
+        }
+        if (pluginEntry == null) {
+          throw new InvalidPluginFileException("Could not find a JAR file in the top level of ZIP file.")
+        }
+        jarIn = new JarInputStream(zip.getInputStream(pluginEntry))
+      } else {
+        jarIn = new JarInputStream(Files.newInputStream(this.path))
+      }
     } catch {
       case ioe: IOException => throw new InvalidPluginFileException(cause = ioe)
     }
 
-    val metaEntry = jar.getEntry(META_FILE_NAME)
-    if (metaEntry == null) {
+    // Find plugin meta file
+    var entry: JarEntry = null
+    var metaFound: Boolean = false
+    breakable {
+      while ({ entry = jarIn.getNextJarEntry; entry } != null) {
+        println(entry.getName)
+        if (entry.getName.equals(META_FILE_NAME)) {
+          metaFound = true
+          break
+        }
+      }
+    }
+
+    if (!metaFound) {
       throw new InvalidPluginFileException("No plugin meta file found.")
     }
 
-    val metaList = McModInfo.DEFAULT.read(jar.getInputStream(metaEntry))
+    val metaList = McModInfo.DEFAULT.read(jarIn)
     if (metaList.size() > 1) {
       throw new InvalidPluginFileException("No plugin meta file found.")
     }

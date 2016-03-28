@@ -5,7 +5,7 @@ Page used for uploading and creating new projects.
 @import models.project.Project.PendingProject
 @import views.html.helper.form
 @import play.api.Play
-@(pending: Option[PendingProject])(implicit messages: Messages, session: Session)
+@(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout(messages("project.create")) {
 
@@ -23,6 +23,15 @@ Page used for uploading and creating new projects.
                             your valid plugin JAR in the first level. Plugins with missing or incomplete metadata files
                             will not be accepted.
                         </p>
+
+                        @if(flash.get("error").isDefined) {
+                            <div class="alert alert-danger alert-dismissable" role="alert">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <strong>Whoops!</strong> @flash.get("error").get
+                            </div>
+                        }
 
                         @if(pending.isDefined) {
                             @* Display plugin metadata *@
