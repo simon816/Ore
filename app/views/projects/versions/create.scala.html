@@ -6,6 +6,8 @@
 
 @core.layout("Release a new version") {
 
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/channelManage.js")"></script>
+
     <div class="container" style="margin-top: 90px">
         <div class="row">
             <div class="col-md-6 col-md-offset-3">
@@ -54,10 +56,21 @@
                                                     </select>
                                                     <a href="#"><i class="fa fa-plus"></i></a>
                                                 } else {
-                                                    <span class="channel" style="background-color: @Channel.DEFAULT_COLOR.hex;">
-                                                        @pending.get.channelName
+                                                    <span id="channel-name" class="channel" style="background-color: @Channel.DEFAULT_COLOR.hex;">
+                                                        @pending.get.getChannelName
                                                     </span>
-                                                    <a href="#"><i class="fa fa-edit"></i></a>
+                                                    <a href="#">
+                                                        <i id="channel-edit" class="fa fa-edit"
+                                                           data-toggle="modal" data-target="#channel-manage"></i>
+                                                    </a>
+                                                    <script>
+                                                        $(function() {
+                                                            channelManage(
+                                                                    "#channel-edit", "@pending.get.getChannelName", "@Channel.DEFAULT_COLOR.hex",
+                                                                    "Edit channel", null, null, "Save changes"
+                                                            );
+                                                        });
+                                                    </script>
                                                 }
                                             </td>
                                         </tr>
@@ -79,7 +92,10 @@
                         @if(pending.isDefined) {
                             @* Ready to go! *@
                             @defining(pending.get.version) { version =>
-                                @form(action = routes.Projects.createVersion(project.owner, project.getName, pending.get.channelName, version.versionString)) {
+                                @form(action = routes.Projects.createVersion(
+                                    project.owner, project.getName, pending.get.getChannelName, version.versionString)) {
+                                    <input type="hidden" id="chan-input" name="chan-input" value="@pending.get.getChannelName" />
+                                    <input type="hidden" id="chan-color-input" name="chan-color-input" value="@Channel.DEFAULT_COLOR.hex" />
                                     <input type="submit" name="create" value="@messages("version.create.publish")" class="btn btn-primary" />
                                 }
                             }
@@ -91,5 +107,7 @@
             </div>
         </div>
     </div>
+
+    @projects.channels.modalManage()
 
 }

@@ -87,7 +87,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         val categoryId = Categories.withName(Forms.ProjectCategory.bindFromRequest.get).id
         pendingProject.project.categoryId = categoryId
         val pendingVersion = pendingProject.initFirstVersion
-        Redirect(self.showVersionCreateWithMeta(author, name, pendingVersion.channelName, pendingVersion.version.versionString))
+        Redirect(self.showVersionCreateWithMeta(author, name, pendingVersion.getChannelName, pendingVersion.version.versionString))
     })
   }
 
@@ -318,9 +318,17 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
             case Failure(thrown) => throw thrown
             case Success(void) => Redirect(self.showVersion(author, name, channelName, versionString))
           }
-          case Some(pendingProject) => pendingProject.complete match {
-            case Failure(thrown) => throw thrown
-            case Success(void) => Redirect(self.show(author, name))
+          case Some(pendingProject) =>
+            val form = Forms.ChannelNewProject.bindFromRequest.get
+            ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
+              case None => BadRequest("No color of hex found.")
+              case Some(color) => pendingVersion.setChannelColor(color)
+            }
+            pendingVersion.setChannelName(form._1)
+
+            pendingProject.complete match {
+              case Failure(thrown) => throw thrown
+              case Success(void) => Redirect(self.show(author, name))
           }
       }
     })

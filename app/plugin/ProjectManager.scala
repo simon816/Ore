@@ -91,13 +91,13 @@ object ProjectManager {
       case Success(project) =>
         var channel: Channel = null
         // Create channel if not exists
-        Storage.now(project.getChannel(pending.channelName)) match {
+        Storage.now(project.getChannel(pending.getChannelName)) match {
           case Failure(thrown) =>
             pending.cancel()
             throw thrown
           case Success(channelOpt) => channelOpt match {
             case None =>
-              Storage.now(project.newChannel(pending.channelName, Channel.DEFAULT_COLOR)) match {
+              Storage.now(project.newChannel(pending.getChannelName, pending.getChannelColor)) match {
                 case Failure(thrown) =>
                   pending.cancel()
                   throw thrown

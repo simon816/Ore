@@ -4,6 +4,7 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
 import db.Storage
+import models.project.ChannelColors.ChannelColor
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
@@ -101,14 +102,24 @@ object Version {
   /**
     * Represents a pending version to be created later.
     *
-    * @param owner        Name of project owner
-    * @param projectName  Name of project
-    * @param channelName  Name of channel this version will be in
-    * @param version      Version that is pending
-    * @param plugin       Uploaded plugin
+    * @param owner          Name of project owner
+    * @param projectName    Name of project
+    * @param channelName    Name of channel this version will be in
+    * @param channelColor   Color of channel for this version
+    * @param version        Version that is pending
+    * @param plugin         Uploaded plugin
     */
-  case class PendingVersion(owner: String, projectName: String, channelName: String,
-                            version: Version, plugin: PluginFile) extends PendingAction[Version] with Cacheable {
+  case class PendingVersion(owner: String, projectName: String, private var channelName: String,
+                            private var channelColor: ChannelColor, version: Version,
+                            plugin: PluginFile) extends PendingAction[Version] with Cacheable {
+
+    def getChannelName: String = this.channelName
+
+    def setChannelName(channelName: String) = this.channelName = channelName
+
+    def getChannelColor: ChannelColor = this.channelColor
+
+    def setChannelColor(channelColor: ChannelColor) = this.channelColor = channelColor
 
     override def complete: Try[Version] = Try {
       free()
@@ -136,7 +147,7 @@ object Version {
     * @param plugin   Uploaded plugin
     */
   def setPending(owner: String, name: String, channel: String, version: Version, plugin: PluginFile): PendingVersion = {
-    val pending = PendingVersion(owner, name, channel, version, plugin)
+    val pending = PendingVersion(owner, name, channel, Channel.DEFAULT_COLOR, version, plugin)
     pending.cache()
     pending
   }

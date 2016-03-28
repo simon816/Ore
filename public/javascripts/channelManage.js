@@ -8,22 +8,46 @@ function rgbToHex(colorval) {
     return '#' + parts.join('');
 }
 
+var onCustomSubmit = function(toggle, channelName, channelHex, title, submit) {
+    $("#channel-name").text(channelName).css("background-color", channelHex);
+    $("#chan-input").val(channelName);
+    $("#chan-color-input").val(channelHex);
+    $("#channel-manage").modal("hide");
+    channelManage(toggle, channelName, channelHex, title, null, null, submit);
+};
+
 function channelManage(toggle, channelName, channelHex, title, call, method, submit) {
     // Set attributes for current channel that is being managed
     $(toggle).click(function() {
         var preview = $("#preview");
+        var submitInput = $("#channel-submit");
+
         if (channelName.length > 0) {
             preview.show();
         } else {
             preview.hide();
         }
+
         $("#channel-input").val(channelName);
         $("#channel-color-input").val(channelHex);
         $("#color-picker").css("color", channelHex);
-        preview.css("background-color", channelHex).text(channelName);
         $("#manage-label").text(title);
-        $("#channel-manage-form").attr("action", call).attr("method", method);
-        $("#channel-submit").val(submit);
+
+        preview.css("background-color", channelHex).text(channelName);
+        submitInput.val(submit);
+
+        if (call == null && method == null) {
+            submitInput.click(function(event) {
+                event.preventDefault();
+                submitInput.submit();
+            });
+            submitInput.submit(function(event) {
+                event.preventDefault();
+                onCustomSubmit(toggle, $("#channel-input").val(), $("#channel-color-input").val(), title, submit);
+            });
+        } else {
+            $("#channel-manage-form").attr("action", call).attr("method", method);
+        }
     });
 }
 
