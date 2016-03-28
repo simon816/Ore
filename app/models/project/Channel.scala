@@ -133,6 +133,12 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
     * @return         Result
     */
   def delete(context: Project): Try[Unit] = Try {
+    Storage.now(context.getChannels) match {
+      case Failure(thrown) => throw thrown
+      case Success(channels) => if (channels.size == 1) {
+        throw new IllegalArgumentException("Cannot delete project's lone channel.")
+      }
+    }
     Storage.now(Storage.deleteChannel(this)) match {
       case Failure(thrown) => throw thrown
       case Success(i) =>

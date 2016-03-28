@@ -218,6 +218,10 @@ object Storage {
   def optChannel(projectId: Int, name: String): Future[Option[Channel]] = {
     optOne[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId && c.name === name)
   }
+
+  def optChannel(projectId: Int, colorId: Int): Future[Option[Channel]] = {
+    optOne[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId && c.colorId === colorId)
+  }
   
   def optChannel(id: Int): Future[Option[Channel]] = optOne[ChannelTable, Channel](classOf[Channel], c => c.id === id)
 

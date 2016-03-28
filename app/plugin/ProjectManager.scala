@@ -97,7 +97,7 @@ object ProjectManager {
             throw thrown
           case Success(channelOpt) => channelOpt match {
             case None =>
-              Storage.now(project.newChannel(pending.getChannelName, pending.getChannelColor)) match {
+              project.newChannel(pending.getChannelName, pending.getChannelColor) match {
                 case Failure(thrown) =>
                   pending.cancel()
                   throw thrown

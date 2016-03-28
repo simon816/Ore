@@ -104,14 +104,25 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     */
   def getChannel(name: String): Future[Option[Channel]] = Storage.optChannel(this.id.get, name)
 
+  def getChannel(color: ChannelColor): Future[Option[Channel]] = Storage.optChannel(this.id.get, color.id)
+
   /**
     * Creates a new Channel for this project with the specified name.
     *
     * @param name   Name of channel
     * @return       New channel
     */
-  def newChannel(name: String, color: ChannelColor): Future[Channel] = {
-    Storage.createChannel(new Channel(name, color, this.id.get))
+  def newChannel(name: String, color: ChannelColor): Try[Channel] = Try {
+    Storage.now(getChannels) match {
+      case Failure(thrown) => throw thrown
+      case Success(channels) => if (channels.size >= Channel.MAX_AMOUNT) {
+        throw new IllegalArgumentException("Project has reached maximum channel capacity.")
+      }
+    }
+    Storage.now(Storage.createChannel(new Channel(name, color, this.id.get))) match {
+      case Failure(thrown) => throw thrown
+      case Success(channel) => channel
+    }
   }
 
   /**

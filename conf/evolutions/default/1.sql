@@ -20,7 +20,9 @@ CREATE TABLE channels (
   created_at  timestamp     NOT NULL,
   name        varchar(255)  NOT NULL,
   color_id    int           NOT NULL,
-  project_id  bigint        NOT NULL REFERENCES projects ON DELETE CASCADE
+  project_id  bigint        NOT NULL REFERENCES projects ON DELETE CASCADE,
+  UNIQUE (project_id, name),
+  UNIQUE (project_id, color_id)
 );
 
 CREATE TABLE versions (
@@ -32,7 +34,8 @@ CREATE TABLE versions (
   assets          varchar(510)    ,
   downloads       bigint          NOT NULL CHECK (downloads >= 0),
   project_id      bigint          NOT NULL REFERENCES projects ON DELETE CASCADE,
-  channel_id      bigint          NOT NULL REFERENCES channels ON DELETE CASCADE
+  channel_id      bigint          NOT NULL REFERENCES channels ON DELETE CASCADE,
+  UNIQUE (channel_id, version_string)
 );
 
 CREATE TABLE users (
@@ -54,5 +57,5 @@ CREATE TABLE teams (
 DROP TABLE projects;
 DROP TABLE channels;
 DROP TABLE versions;
-DROP TABLE devs;
+DROP TABLE users;
 DROP TABLE teams;

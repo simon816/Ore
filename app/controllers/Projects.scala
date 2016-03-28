@@ -438,14 +438,34 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def createChannel(author: String, name: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
-      val form = Forms.ChannelEdit.bindFromRequest.get
-      ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
-        case None => BadRequest("No color with hex found.")
-        case Some(color) => Storage.now(project.newChannel(form._1, color)) match {
-          case Failure(thrown) => throw thrown
-          case Success(channel) => Storage.now(project.getChannels) match {
-            case Failure(thrown) => throw thrown
-            case Success(channels) => Redirect(self.showChannels(author, name))
+      Storage.now(project.getChannels) match {
+        case Failure(thrown) => throw thrown
+        case Success(channels) => if (channels.size > Channel.MAX_AMOUNT) {
+          Redirect(self.showChannels(author, name))
+            .flashing("error" -> "A project may only have up to five channels.")
+        } else {
+          val form = Forms.ChannelEdit.bindFromRequest.get
+          val channelName = form._1
+          ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
+            case None => BadRequest("No color with hex found.")
+            case Some(color) => Storage.now(project.getChannel(color)) match {
+              case Failure(thrown) => throw thrown
+              case Success(colorChan) => colorChan match {
+                case None => Storage.now(project.getChannel(channelName)) match {
+                  case Failure(thrown) => throw thrown
+                  case Success(nameChan) => nameChan match {
+                    case None => project.newChannel(channelName, color) match {
+                      case Failure(thrown) => throw thrown
+                      case Success(channel) => Redirect(self.showChannels(author, name))
+                    }
+                    case Some(channel) => Redirect(self.showChannels(author, name))
+                      .flashing("error" -> "A channel with that name already exists.")
+                  }
+                }
+                case Some(channel) => Redirect(self.showChannels(author, name))
+                  .flashing("error" -> "A channel with that color already exists.")
+              }
+            }
           }
         }
       }
@@ -501,13 +521,18 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def deleteChannel(author: String, name: String, channelName: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
-      Storage.now(project.getChannel(channelName)) match {
+      Storage.now(project.getChannels) match {
         case Failure(thrown) => throw thrown
-        case Success(channelOpt) => channelOpt match {
-          case None => NotFound
-          case Some(channel) => channel.delete(project) match {
-            case Failure(thrown) => throw thrown
-            case Success(void) => Redirect(self.showChannels(author, name))
+        case Success(channels) => if (channels.size == 1) {
+          Redirect(self.showChannels(author, name))
+            .flashing("error" -> "You cannot delete your only channel.")
+        } else {
+          channels.find(c => c.getName.equals(channelName)) match {
+            case None => NotFound
+            case Some(channel) => channel.delete(project) match {
+              case Failure(thrown) => throw thrown
+              case Success(void) => Redirect(self.showChannels(author, name))
+            }
           }
         }
       }
