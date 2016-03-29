@@ -37,4 +37,4 @@ ln -s ore*.tgz ore.tgz
 popd
 
 echo Building output tar.gz into dockerfile...
-docker build -f $DIR/docker/Dockerfile .
+exec docker build -f $DIR/docker/Dockerfile "$@" .
