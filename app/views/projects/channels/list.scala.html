@@ -39,7 +39,7 @@
 
                         <table class="table no-border">
                             <tbody>
-                                @channels.map { channel =>
+                                @channels.sorted.map { channel =>
                                   <tr>
                                       <td class="channel channel-flat"
                                           style="background-color: @channel.getColor.hex;">

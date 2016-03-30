@@ -17,5 +17,3 @@ trait Author {
   def isRegistered: Boolean = !isInstanceOf[UnknownAuthor]
 
 }
-
-

@@ -29,7 +29,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
   * @param projectId  ID of project this channel belongs to
   */
 case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private var name: String,
-                   private var colorId: Int, projectId: Int) {
+                   private var colorId: Int, projectId: Int) extends Ordered[Channel] {
 
   def this(name: String, color: ChannelColor, projectId: Int) = this(None, None, name, color.id, projectId)
 
@@ -141,6 +141,8 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
   def newVersion(version: String, dependencies: List[String], description: String, assets: String): Future[Version] = {
     Storage.createVersion(new Version(version, dependencies, description, assets, this.projectId, this.id.get))
   }
+
+  override def compare(that: Channel): Int = this.name compare that.name
 
   override def hashCode: Int = this.id.get.hashCode
 
