@@ -24,7 +24,7 @@ Namely, the differences include:
 
 ### Setup
 
-In production, Ore currently requires the DISCOURSE_SSO_SECRET and DISCOURSE_SSO_URL environment variables to be set.
+In production, Ore currently requires the `DISCOURSE_SSO_SECRET` and `DISCOURSE_SSO_URL` environment variables to be set.
 If you don't have access to these, you can bypass the standard authentication method by setting the 
 `application.fakeUser` setting to `true` in `conf/application.conf`. This will allow you to work with Ore in a 
 development environment without requiring authentication to Sponge services.

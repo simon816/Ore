@@ -41,9 +41,12 @@ Versions page within Project overview.
 
                     </div>
                     <div class="col-md-3">
-                        <a href="@routes.Projects.showVersionCreate(model.owner, model.getName)" class="btn btn-block btn-primary btn-panel btn-version">
-                            <i class="fa fa-plus"></i> Create version
-                        </a>
+                        @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {
+                            <a href="@routes.Projects.showVersionCreate(model.owner, model.getName)"
+                            class="btn btn-block btn-primary btn-panel btn-version">
+                                <i class="fa fa-plus"></i> Create version
+                            </a>
+                        }
                         <div class="panel panel-default channels">
                             <div class="panel-heading">
                                 <h3 class="panel-title">Channels</h3>
