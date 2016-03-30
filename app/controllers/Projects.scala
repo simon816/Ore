@@ -122,7 +122,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def showPageEdit(author: String, name: String, page: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, name, project => {
-      Ok(views.projects.pages.edit(project, page, Pages.getOrCreate(author, name, page).getContents))
+      Ok(views.projects.pages.edit(project, page, Pages.getOrCreate(project, page).getContents))
     }))
   }
 
@@ -134,13 +134,15 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param page     Page name
     * @return         Project home
     */
-  def savePage(author: String, name: String, page: String) = withUser(Some(author), user => implicit request => {
+  def savePage(author: String, name: String, page: String) = { withUser(Some(author), user => implicit request =>
     // TODO: Validate content size and title
     // TODO: Limit number of pages allowed
-    val pageForm = Forms.PageEdit.bindFromRequest.get
-    Pages.getOrCreate(author, name, page).update(pageForm._1, pageForm._2)
-    Redirect(self.showPage(author, name, page))
-  })
+    withProject(author, name, project => {
+      val pageForm = Forms.PageEdit.bindFromRequest.get
+      Pages.getOrCreate(project, page).update(pageForm._1, pageForm._2)
+      Redirect(self.showPage(author, name, page))
+    }))
+  }
 
   /**
     * Irreversibly deletes the specified Page from the specified Project.

@@ -2,6 +2,9 @@ package plugin
 
 import java.nio.file.{Path, Files}
 
+import com.google.common.base.Preconditions
+import com.google.common.base.Preconditions._
+import models.project.Project
 import org.pegdown.PegDownProcessor
 import util.Dirs._
 
@@ -15,6 +18,7 @@ object Pages {
   val DEFAULT_HOME_PAGE   =   MD_DIR.resolve(HOME_PAGE + FILE_EXTENSION)
   val DEFAULT_NEW_PAGE    =   MD_DIR.resolve("default" + FILE_EXTENSION)
   val FILE_ENCODING       =   "UTF-8"
+  val MAX_PAGES           =   10
 
   private val markdownProcessor = new PegDownProcessor
 
@@ -116,15 +120,15 @@ object Pages {
     * Returns or creates, if not exists, the page with the specified owner,
     * project name, and page name.
     *
-    * @param owner        Project owner
-    * @param projectName  Project name
+    * @param project      Project page is being added to
     * @param name         Page name
     * @return             Existing or new page
     */
-  def getOrCreate(owner: String, projectName: String, name: String): Page = {
-    val page = Page(owner, projectName, name)
+  def getOrCreate(project: Project, name: String): Page = {
+    val page = Page(project.owner, project.getName, name)
     val path = page.getPath
-    if (notExists(owner, projectName, name)) {
+    if (notExists(project.owner, project.getName, name)) {
+      checkArgument(getAll(project.owner, project.getName).length < MAX_PAGES, "no more pages allowed", "")
       Files.createDirectories(path.getParent)
       Files.createFile(path)
       page.setContent(fillTemplate(page.getName))

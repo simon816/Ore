@@ -37,6 +37,7 @@ You must also set some other environment variables:
 | JDBC_DATABASE_URL      | PostgreSQL JDBC Database URL                         | jdbc:postgresql://localhost/ore | Yes      |
 | JDBC_DATABASE_USERNAME | PostgreSQL Database username                         | root                            | Yes      |
 | JDBC_DATABASE_PASSWORD | PostgreSQL Database password                         | hunter2                         | No       |
+| FAKE_USER              | Whether a "fake" user should be used for auth        | true                            | No       |
 | APPLICATION_SECRET     | The application secret for cryptography              | `REDACTED`                      | No       |
 | DISCOURSE_SSO_SECRET   | The secret key for authentication against the forums | `REDACTED`                      | No       |
 | DISCOURSE_SSO_URL      | The URL to redirect to for authentication            | `REDACTED`                      | No       |

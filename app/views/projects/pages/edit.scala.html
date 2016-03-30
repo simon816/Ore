@@ -24,7 +24,15 @@
                                 href="@routes.Projects.deletePage(model.owner, model.getName, page)"
                             }
                         >@messages("page.edit.delete")</a>
-                        <a class="pull-right btn btn-primary" data-toggle="modal" data-target="#new-page">
+
+                        <a class="pull-right btn btn-primary"
+                           @if(Pages.getAll(model.owner, model.getName).length < Pages.MAX_PAGES) {
+                               data-toggle="modal" data-target="#new-page"
+                           } else {
+                               disabled data-toggle="tooltip" data-placement="bottom"
+                               title="You have reached the maximum amount of allowed pages."
+                           }
+                        >
                             <i class="fa fa-plus"></i> New page
                         </a>
                     }
