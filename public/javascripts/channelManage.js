@@ -1,5 +1,5 @@
-function rgbToHex(colorval) {
-    var parts = colorval.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+function rgbToHex(rgb) {
+    var parts = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
     delete(parts[0]);
     for (var i = 1; i <= 3; ++i) {
         parts[i] = parseInt(parts[i]).toString(16);
@@ -8,15 +8,24 @@ function rgbToHex(colorval) {
     return '#' + parts.join('');
 }
 
+/**
+ * Called when a non-existing channel is edited on project creation.
+ *
+ * @param toggle        Editor toggle selector
+ * @param channelName   New channel name
+ * @param channelHex    New channel color
+ * @param title         Editor title
+ * @param submit        Submit button value
+ */
 var onCustomSubmit = function(toggle, channelName, channelHex, title, submit) {
     $("#channel-name").text(channelName).css("background-color", channelHex);
     $("#chan-input").val(channelName);
     $("#chan-color-input").val(channelHex);
     $("#channel-manage").modal("hide");
-    channelManage(toggle, channelName, channelHex, title, null, null, submit);
+    initChannelManager(toggle, channelName, channelHex, title, null, null, submit);
 };
 
-function channelManage(toggle, channelName, channelHex, title, call, method, submit) {
+function initChannelManager(toggle, channelName, channelHex, title, call, method, submit) {
     // Set attributes for current channel that is being managed
     $(toggle).click(function() {
         var preview = $("#preview");

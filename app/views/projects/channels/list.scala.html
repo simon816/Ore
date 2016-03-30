@@ -7,7 +7,7 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/channelManage.js")"></script>
     <script>
         $(function() {
-            channelManage(
+            initChannelManager(
                     "#channel-new", "", "@Channel.DEFAULT_COLOR.hex", "New channel",
                     "@routes.Projects.createChannel(project.owner, project.getName)",
                     "post", "Create channel"
@@ -62,7 +62,7 @@
                                   </tr>
                                   <script>
                                       $(function() {
-                                          channelManage(
+                                          initChannelManager(
                                                   "#channel-edit-@channel.id", "@channel.getName", "@channel.getColor.hex",
                                                   "Edit channel", "@routes.Projects.editChannel(project.owner, project.getName, channel.getName)",
                                                   "post", "Save changes"

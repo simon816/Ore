@@ -33,7 +33,7 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
                    dependencies: List[String], description: Option[String], assets: Option[String],
                    downloads: Int, projectId: Int, var channelId: Int) {
 
-  private val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
+  private lazy val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
 
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int) = {
@@ -113,12 +113,36 @@ object Version {
                             private var channelColor: ChannelColor, version: Version,
                             plugin: PluginFile) extends PendingAction[Version] with Cacheable {
 
+    /**
+      * Returns the Channel name that this Version will be assigned to or created
+      * if it does not exist.
+      *
+      * @return Pending channel name
+      */
     def getChannelName: String = this.channelName
 
+    /**
+      * Sets the Channel name that this Version will be assigned to or created
+      * if it does not exist.
+      *
+      * @param channelName Pending channel name
+      */
     def setChannelName(channelName: String) = this.channelName = channelName
 
+    /**
+      * Returns the Channel color to use if a Channel needs to be created to
+      * create this Version.
+      *
+      * @return Channel color to user
+      */
     def getChannelColor: ChannelColor = this.channelColor
 
+    /**
+      * Sets the Channel color to use if a Channel needs to be created to
+      * create this Version.
+      *
+      * @param channelColor Channel color to user
+      */
     def setChannelColor(channelColor: ChannelColor) = this.channelColor = channelColor
 
     override def complete: Try[Version] = Try {

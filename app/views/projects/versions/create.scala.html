@@ -14,10 +14,10 @@
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">
-                        @messages("version.create.title")
-                        @if(!showFileControls) {
-                            <span class="pull-right unknown">Step 2/2</span>
-                        }
+                            @messages("version.create.title")
+                            @if(!showFileControls) {
+                                <span class="pull-right unknown">Step 2/2</span>
+                            }
                         </h3>
                     </div>
                     <div class="panel-body">
@@ -37,7 +37,6 @@
                         @if(pending.isDefined) {
                             @* Show plugin meta *@
                             @defining(pending.get.version) { version =>
-
                                 <div class="plugin-meta">
                                     <table class="plugin-meta-table">
                                         <tr>
@@ -57,6 +56,7 @@
                                         <tr>
                                             <td><strong>Channel</strong></td>
                                             <td class="form-inline">
+                                                @* Show channel selector if old project, editor if new project *@
                                                 @if(showFileControls) {
                                                     <select class="form-control" size="@channels.get.size">
                                                         @channels.get.map { channel =>
@@ -65,7 +65,7 @@
                                                     </select>
                                                     <a href="#"><i class="fa fa-plus"></i></a>
                                                 } else {
-                                                    <span id="channel-name" class="channel" style="background-color: @Channel.DEFAULT_COLOR.hex;">
+                                                    <span id="channel-name" class="channel" style="background-color: @pending.get.getChannelColor;">
                                                         @pending.get.getChannelName
                                                     </span>
                                                     <a href="#">
@@ -74,8 +74,9 @@
                                                     </a>
                                                     <script>
                                                         $(function() {
-                                                            channelManage(
-                                                                    "#channel-edit", "@pending.get.getChannelName", "@Channel.DEFAULT_COLOR.hex",
+                                                            // Setup editor
+                                                            initChannelManager(
+                                                                    "#channel-edit", "@pending.get.getChannelName", "@pending.get.getChannelColor",
                                                                     "Edit channel", null, null, "Save changes"
                                                             );
                                                         });

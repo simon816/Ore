@@ -3,6 +3,8 @@ package models.project
 import java.nio.file.Files
 import java.sql.Timestamp
 
+import com.google.common.base.Preconditions
+import com.google.common.base.Preconditions._
 import db.Storage
 import models.project.ChannelColors.ChannelColor
 import org.apache.commons.io.FileUtils
@@ -46,6 +48,8 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
     * @return         Future result
     */
   def setName(context: Project, name: String): Future[Int] = {
+    // TODO: Validation
+    checkArgument(context.id.get == this.projectId, "invalid context id", "")
     val f = Storage.updateChannelString(this, table => table.name, name)
     f.onSuccess {
       case i =>
@@ -99,16 +103,6 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
   def getVersion(version: String): Future[Option[Version]] = Storage.optVersion(this.id.get, version)
 
   /**
-    * Creates a new version within this Channel.
-    *
-    * @param version  Version string
-    * @return         New channel
-    */
-  def newVersion(version: String, dependencies: List[String], description: String, assets: String): Future[Version] = {
-    Storage.createVersion(new Version(version, dependencies, description, assets, this.projectId, this.id.get))
-  }
-
-  /**
     * Deletes the specified Version within this channel.
     *
     * @param version  Version to delete
@@ -116,9 +110,8 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
     * @return         Result
     */
   def deleteVersion(version: Version, context: Project): Try[Unit] = Try {
-    if (context.getVersions.size == 1) {
-      throw new IllegalArgumentException("Cannot delete project's lone version.")
-    }
+    checkArgument(context.getVersions.size > 1, "only one version", "")
+    checkArgument(context.id.get == this.projectId, "invalid context id", "")
     Storage.now(Storage.deleteVersion(version)) match {
       case Failure(thrown) => throw thrown
       case Success(i) =>
@@ -133,17 +126,20 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
     * @return         Result
     */
   def delete(context: Project): Try[Unit] = Try {
+    checkArgument(context.id.get == this.projectId, "invalid context id", "")
     Storage.now(context.getChannels) match {
       case Failure(thrown) => throw thrown
-      case Success(channels) => if (channels.size == 1) {
-        throw new IllegalArgumentException("Cannot delete project's lone channel.")
-      }
+      case Success(channels) => checkArgument(channels.size > 1, "only one channel", "")
     }
     Storage.now(Storage.deleteChannel(this)) match {
       case Failure(thrown) => throw thrown
       case Success(i) =>
         FileUtils.deleteDirectory(ProjectManager.getProjectDir(context.owner, context.getName).resolve(this.name).toFile)
     }
+  }
+
+  def newVersion(version: String, dependencies: List[String], description: String, assets: String): Future[Version] = {
+    Storage.createVersion(new Version(version, dependencies, description, assets, this.projectId, this.id.get))
   }
 
   override def hashCode: Int = this.id.get.hashCode
@@ -159,12 +155,12 @@ object Channel {
   /**
     * The maximum amount of Channels permitted in a single Project.
     */
-  val MAX_AMOUNT = 5;
+  val MAX_AMOUNT = 5
 
   /**
     * The default color used for Channels.
     */
-  val DEFAULT_COLOR: ChannelColor = ChannelColors.Green
+  val DEFAULT_COLOR: ChannelColor = ChannelColors.DarkGreen
 
   /**
     * The default name used for Channels.

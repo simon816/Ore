@@ -13,8 +13,8 @@ import play.api.Play.{current => my}
 object DiscourseSSO {
 
   private val url = my.configuration.getString("discourse.sso.url").get
-  private val returnUrl = my.configuration.getString("application.baseUrl").get + "/login"
   private val secret = my.configuration.getString("discourse.sso.secret").get.getBytes("UTF-8")
+  private val returnUrl = my.configuration.getString("application.baseUrl").get + "/login"
   private val random = new SecureRandom
   private val algo = "HmacSHA256"
 

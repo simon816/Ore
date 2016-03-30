@@ -4,7 +4,8 @@ import javax.inject.Inject
 
 import auth.DiscourseSSO._
 import db.Storage
-import models.auth.User
+import models.auth.{FakeUser, User}
+import play.api.Play
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import routes.{Application => self}
@@ -35,7 +36,9 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends Contr
     * @return     Logged in home
     */
   def logIn(sso: Option[String], sig: Option[String]) = Action {
-    if (sso.isEmpty || sig.isEmpty) {
+    if (FakeUser.ENABLED) {
+      Redirect(self.index(None)).withSession(Security.username -> FakeUser.username, "email" -> FakeUser.email)
+    } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(getRedirect)
     } else {
       val userData = authenticate(sso.get, sig.get)

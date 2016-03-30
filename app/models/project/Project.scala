@@ -25,7 +25,8 @@ import scala.util.{Failure, Success, Try}
   * <p>Note: As a general rule, do not handle actions / results in model classes</p>
   *
   * <p>Note: Instance variables should be private unless they are database
-  * properties</p>
+  * properties unless they are vars instead of vals in which case accessors
+  * and mutators must be used.</p>
   *
   * @param id                     Unique identifier
   * @param createdAt              Instant of creation
@@ -80,6 +81,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @return       Future result
     */
   def setName(name: String): Future[Int] = {
+    // TODO: Validation
     val f = Storage.updateProjectString(this, table => table.name, name)
     f.onSuccess {
       case i =>
@@ -104,6 +106,13 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     */
   def getChannel(name: String): Future[Option[Channel]] = Storage.optChannel(this.id.get, name)
 
+  /**
+    * Returns the Channel in this project with the specified color. Colors are
+    * unique to Channels within Projects.
+    *
+    * @param color  Color of channel
+    * @return       Channel with color, if present, None otherwise
+    */
   def getChannel(color: ChannelColor): Future[Option[Channel]] = Storage.optChannel(this.id.get, color.id)
 
   /**
@@ -113,6 +122,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @return       New channel
     */
   def newChannel(name: String, color: ChannelColor): Try[Channel] = Try {
+    // TODO: Validation
     Storage.now(getChannels) match {
       case Failure(thrown) => throw thrown
       case Success(channels) => if (channels.size >= Channel.MAX_AMOUNT) {
