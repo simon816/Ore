@@ -17,7 +17,7 @@ routesGenerator := InjectedRoutesGenerator
 // Additional dependencies
 resolvers ++= Seq(
   //"maven local" at "file://" + Path.userHome.absolutePath + "/.m2/repository"
-  "sponge" at "http://repo.spongepowered.org/maven"
+  "sponge" at "https://repo.spongepowered.org/maven"
 )
 
 libraryDependencies ++= Seq(
