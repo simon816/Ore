@@ -36,7 +36,7 @@ You must also set some other environment variables:
 | BASE_URL               | The full root URL of the instance                    | http://localhost:9000           | Yes      |
 | JDBC_DATABASE_URL      | PostgreSQL JDBC Database URL                         | jdbc:postgresql://localhost/ore | Yes      |
 | JDBC_DATABASE_USERNAME | PostgreSQL Database username                         | root                            | Yes      |
-| APPLICATION_SECRET     | The application secret for cryptography              | `REDACTED`                      | No       |
 | JDBC_DATABASE_PASSWORD | PostgreSQL Database password                         | hunter2                         | No       |
+| APPLICATION_SECRET     | The application secret for cryptography              | `REDACTED`                      | No       |
 | DISCOURSE_SSO_SECRET   | The secret key for authentication against the forums | `REDACTED`                      | No       |
 | DISCOURSE_SSO_URL      | The URL to redirect to for authentication            | `REDACTED`                      | No       |
