@@ -6,7 +6,7 @@ import org.apache.commons.codec.binary.Hex
 
 object Gravatar {
 
-  val URL = "http://www.gravatar.com/avatar/"
+  val URL = "https://www.gravatar.com/avatar/"
 
   /**
     * Returns the "Gravatar" avatar for the specified email.
