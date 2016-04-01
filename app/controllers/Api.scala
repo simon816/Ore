@@ -4,7 +4,6 @@ import db.Storage
 import models.project.{Categories, Project}
 import play.api.libs.json._
 import play.api.mvc._
-import plugin.ProjectManager
 
 import scala.util.{Failure, Success}
 
@@ -13,29 +12,17 @@ class Api extends Controller {
   implicit val projectWrites = new Writes[Project] {
     def writes(project: Project) = {
       var channelNames: Seq[String] = null
-      var rvPath: String = null
-      Storage.now(project.getRecommendedVersion) match {
-        case Failure(thrown) => throw thrown
-        case Success(version) =>
-          Storage.now(version.getChannel) match {
-            case Failure(thrown) => throw thrown
-            case Success(channel) =>
-              rvPath = ProjectManager.getUploadPath(
-                project.owner, project.getName, version.versionString, channel.getName
-              ).toString
-          }
-      }
       Storage.now(project.getChannels) match {
         case Failure(thrown) => throw thrown
         case Success(channels) => channelNames = for (channel <- channels) yield channel.getName
       }
+
       Json.obj(
         "pluginId" -> project.pluginId,
-        "createdAt" -> project.getCreatedAt.get,
+        "createdAt" -> project.prettyDate,
         "name" -> project.getName,
         "owner" -> project.owner,
         "authors" -> project.authors,
-        "recommendedVersion" -> rvPath,
         "channels" -> channelNames,
         "category" -> Categories(project.categoryId).title,
         "views" -> project.views,
@@ -61,14 +48,24 @@ class Api extends Controller {
     }
   }
 
+  /**
+    * Returns a JSON view of a Project meeting the specified criteria.
+    *
+    * @param version    API version
+    * @param pluginId   Plugin ID of Project to find
+    * @return           JSON view of project if found, 404 otherwise
+    */
   def search(version: String, pluginId: Option[String]) = Action {
-    Storage.now(Storage.optProject(pluginId.get)) match {
-      case Failure(thrown) => throw thrown
-      case Success(optProject) => optProject match {
-        case None => NotFound
-        case Some(project) => version match {
-          case "v1" => Ok(Json.toJson(project))
-          case yikes => NotFound
+    pluginId match {
+      case None => NotFound
+      case Some(id) => Storage.now(Storage.optProject(id)) match {
+        case Failure(thrown) => throw thrown
+        case Success(optProject) => optProject match {
+          case None => NotFound
+          case Some(project) => version match {
+            case "v1" => Ok(Json.toJson(project))
+            case yikes => NotFound
+          }
         }
       }
     }

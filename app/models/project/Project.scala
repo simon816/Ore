@@ -1,6 +1,7 @@
 package models.project
 
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
 import java.util.Date
 
 import db.Storage
@@ -45,6 +46,8 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
                    private var name: String, owner: String, authors: List[String],
                    homepage: Option[String], private var recommendedVersionId: Option[Int],
                    var categoryId: Int = -1, views: Int, downloads: Int, starred: Int) {
+
+  private lazy val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
 
   def this(pluginId: String, name: String, owner: String, authors: List[String], homepage: String) = {
     this(None, None, pluginId, name, owner, authors, Option(homepage), None, 0, 0, 0, 0)
@@ -185,6 +188,15 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
         FileUtils.deleteDirectory(ProjectManager.getProjectDir(this.owner, this.name).toFile)
         FileUtils.deleteDirectory(Pages.getDocsDir(this.owner, this.name).toFile)
     }
+  }
+
+  /**
+    * Returns a presentable date string of this version's creation date.
+    *
+    * @return Creation date string
+    */
+  def prettyDate: String = {
+    this.dateFormat.format(this.createdAt.get)
   }
 
   override def hashCode: Int = this.id.get.hashCode
