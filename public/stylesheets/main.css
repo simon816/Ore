@@ -178,6 +178,10 @@ form {
     margin-right: -4px;
 }
 
+.channel-reset {
+    margin-top: -15px;
+}
+
 .create-blurb {
     margin-bottom: 15px;
     padding-bottom: 15px;

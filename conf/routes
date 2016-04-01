@@ -42,7 +42,7 @@ GET     /:author/:name/versions/new/:channel/:version           @controllers.Pro
 POST    /:author/:name/versions/:channel/:version               @controllers.Projects.createVersion(author, name, channel, version)
 
 # Versions
-GET     /:author/:name/versions                                 @controllers.Projects.showVersions(author, name)
+GET     /:author/:name/versions                                 @controllers.Projects.showVersions(author, name, channels: Option[String])
 GET     /:author/:name/versions/:channel/:version               @controllers.Projects.showVersion(author, name, channel, version)
 
 # Channels

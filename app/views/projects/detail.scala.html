@@ -21,7 +21,7 @@ Base template for Project overview.
                                 <i class="fa fa-book"></i> @messages("project.docs")</a>
                         </li>
                         <li id="versions" class="">
-                            <a href="@routes.Projects.showVersions(project.owner, project.getName)">
+                            <a href="@routes.Projects.showVersions(project.owner, project.getName, None)">
                                 <i class="fa fa-download"></i> @messages("project.versions")
                             </a>
                         </li>

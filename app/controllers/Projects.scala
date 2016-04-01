@@ -204,16 +204,30 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   /**
     * Displays the "versions" tab within a Project view.
     *
-    * @param author   Owner of project
-    * @param name     Name of project
-    * @return         View of project
+    * @param author     Owner of project
+    * @param name       Name of project
+    * @param channels   Visible channels
+    * @return           View of project
     */
-  def showVersions(author: String, name: String) = Action { implicit request =>
+  def showVersions(author: String, name: String, channels: Option[String]) = Action { implicit request =>
     withProject(author, name, project => {
       Storage.now(project.getChannels) match {
         case Failure(thrown) => throw thrown
-        case Success(channels) =>
-          Ok(views.projects.versions.list(project, channels, project.getVersions));
+        case Success(chans) =>
+          val channelNames = if (channels.isDefined) Some(channels.get.split(",")) else None
+          var visibleChannels = chans
+          if (channelNames.isDefined) {
+            visibleChannels = chans.filter(c => channelNames.get.contains(c.getName))
+          }
+
+          val versions: Seq[Version] = (for (c <- visibleChannels) yield {
+            Storage.now(c.getVersions) match {
+              case Failure(thrown) => throw thrown
+              case Success(versionSeq) => versionSeq
+            }
+          }).flatten
+
+          Ok(views.projects.versions.list(project, chans, versions, channelNames));
       }
     })
   }
@@ -381,7 +395,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
               case None => NotFound("Version not found.")
               case Some(version) => channel.deleteVersion(version, project) match {
                 case Failure(thrown) => throw thrown
-                case Success(void) => Redirect(self.showVersions(author, name))
+                case Success(void) => Redirect(self.showVersions(author, name, None))
               }
             }
           }

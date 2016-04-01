@@ -220,6 +220,15 @@ object Storage {
     filter[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId)
   }
 
+  def getChannels(projectId: Int, names: Array[String]): Future[Seq[Channel]] = {
+    val query = for {
+      channel <- q[ChannelTable](classOf[Channel])
+      if channel.projectId === projectId
+      if channel.name inSetBind names
+    } yield channel
+    this.config.db.run(query.result)
+  }
+
   def optChannel(projectId: Int, name: String): Future[Option[Channel]] = {
     optOne[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId && c.name === name)
   }

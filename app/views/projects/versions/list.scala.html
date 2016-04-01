@@ -2,7 +2,8 @@
 Versions page within Project overview.
 *@
 @import models.project.{Channel, Project, Version}
-@(model: Project, channels: Seq[Channel], versions: Seq[Version])(implicit messages: Messages, session: Session)
+@(model: Project, channels: Seq[Channel], versions: Seq[Version],
+  visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session)
 
 @projects.detail(model, "#versions") {
 
@@ -50,6 +51,11 @@ Versions page within Project overview.
                         <div class="panel panel-default channels">
                             <div class="panel-heading">
                                 <h3 class="panel-title">Channels</h3>
+                                @if(visibleChannels.isDefined) {
+                                    <a href="@routes.Projects.showVersions(model.owner, model.getName, None)">
+                                        <i class="pull-right channel-reset fa fa-times"></i>
+                                    </a>
+                                }
                             </div>
 
                             <ul class="list-group">
@@ -57,7 +63,30 @@ Versions page within Project overview.
                                   <li class="list-group-item">
                                       <span class="channel"
                                             style="background-color: @channel.getColor.hex;">@channel.getName</span>
-                                      <a href="#" class="pull-right"><i class="fa fa-eye"></i></a>
+                                      @if(visibleChannels.isDefined) {
+                                          @if(!visibleChannels.get.contains(channel.getName)) {
+                                              <a class="pull-right"
+                                                 href="@routes.Projects.showVersions(model.owner, model.getName, Some(
+                                                     (visibleChannels.get :+ channel.getName).mkString(",")
+                                                 ))"
+                                              >
+                                                  <i class="fa fa-eye-slash"></i>
+                                              </a>
+                                          } else {
+                                              <a class="pull-right"
+                                                 href="@routes.Projects.showVersions(model.owner, model.getName, Some(
+                                                     visibleChannels.get.filterNot(c => c.equals(channel.getName)).mkString(",")
+                                                 ))"
+                                              >
+                                                  <i class="fa fa-eye"></i>
+                                              </a>
+                                          }
+                                      } else {
+                                          <a href="@routes.Projects.showVersions(model.owner, model.getName, Some(channel.getName))"
+                                             class="pull-right">
+                                              <i class="fa fa-eye"></i>
+                                          </a>
+                                      }
                                   </li>
                                 }
                                 @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {

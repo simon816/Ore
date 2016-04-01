@@ -102,6 +102,14 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
   def getChannels: Future[Seq[Channel]] = Storage.getChannels(this.id.get)
 
   /**
+    * Returns the Channels with the specified names.
+    *
+    * @param names Names of channels to get
+    * @return      Channels with specified names
+    */
+  def getChannels(names: Array[String]): Future[Seq[Channel]] = Storage.getChannels(this.id.get, names)
+
+  /**
     * Returns the Channel in this project with the specified name.
     *
     * @param name   Name of channel
