@@ -5,6 +5,8 @@ import javax.inject.Inject
 import auth.DiscourseSSO._
 import db.Storage
 import models.auth.{FakeUser, User}
+import models.project.Categories
+import models.project.Categories.Category
 import play.api.Play
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -20,11 +22,18 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends Contr
     *
     * @return Home page
     */
-  def index(category: Option[Int]) = Action { implicit request =>
-    val future = if (category.isDefined) Storage.getProjects(category.get) else Storage.getProjects
-    Storage.now(future) match {
-      case Failure(thrown) => throw thrown
-      case Success(projects) => Ok(views.index(projects))
+  def index(categories: Option[String]) = Action { implicit request =>
+    categories match {
+      case None => Storage.now(Storage.getProjects) match {
+        case Failure(thrown) => throw thrown
+        case Success(projects) => Ok(views.index(projects, None))
+      }
+      case Some(csv) =>
+        val categoryArray = Categories.fromString(csv)
+        Storage.now(Storage.getProjects(categoryArray.map(_.id))) match {
+          case Failure(thrown) => throw thrown
+          case Success(projects) => Ok(views.index(projects, Some(categoryArray)))
+        }
     }
   }
 

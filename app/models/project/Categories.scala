@@ -16,6 +16,27 @@ object Categories extends Enumeration {
   val Gameplay    =   Category(8, "Gameplay",          "fa-puzzle-piece")
   val Misc        =   Category(9, "Miscellaneous",     "fa-asterisk")
 
+  /**
+    * Returns an Array of categories from a comma separated string of IDs.
+    *
+    * @param str  Comma separated string of IDs
+    * @return     Array of Categories
+    */
+  def fromString(str: String): Array[Category] = (for (idStr <- str.split(",")) yield {
+    var id: Int = -1
+    try {
+      id = Integer.parseInt(idStr)
+    } catch {
+      case nfe: NumberFormatException => ;
+      case e: Exception => throw e
+    }
+    if (id >= 0 && id < Categories.values.size) {
+      Some(Categories(id).asInstanceOf[Category])
+    } else {
+      None
+    }
+  }).flatten
+
   case class Category(i: Int, title: String, icon: String) extends super.Val(i, title)
   implicit def convert(value: Value): Category = value.asInstanceOf[Category]
 

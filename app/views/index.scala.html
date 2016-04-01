@@ -3,12 +3,13 @@ The main entry point of Ore. This page displays a list of Projects that can be
 sorted according to different criteria.
 *@
 @import models.project.Project
-@(models: Seq[Project])(implicit messages: Messages, session: Session)
+@import models.project.Categories.Category
+@(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages, session: Session)
 
 @core.layout(messages("general.title")) {
 
     <div class="container" style="margin-top: 90px ;">
-        @projects.table(models)
+        @projects.table(models, visibleCategories)
     </div>
 
 }

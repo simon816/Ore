@@ -3,7 +3,7 @@ Collection of all projects.
 *@
 @import models.project.{Categories, Project}
 @import models.project.Categories.Category
-@(models: Seq[Project])(implicit messages: Messages, session: Session)
+@(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages, session: Session)
 
 <div class="container">
     <div class="row index-header">
@@ -55,13 +55,37 @@ Collection of all projects.
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">@messages("project.category.plural")</h3>
+                    @if(visibleCategories.isDefined) {
+                        <a href="@routes.Application.index(None)"><i class="pull-right category-reset fa fa-times"></i></a>
+                    }
                 </div>
                 <table class="table">
                     <tbody>
                         @for(i <- 0 until Categories.values.size) {
                             <tr>
                                 <td class="cat-icon"><i class="fa @Categories(i).icon"></i></td>
-                                <td><strong><a href="@routes.Application.index(Some(Categories(i).id))">@Categories(i).title</a></strong></td>
+                                <td><strong class="unknown">@Categories(i).title</strong></td>
+                                <td class="pull-right">
+                                    @if(visibleCategories.isDefined) {
+                                        @if(!visibleCategories.get.contains(Categories(i).asInstanceOf[Category])) {
+                                            <a href="@routes.Application.index(Some(
+                                                (visibleCategories.get.map(_.id) :+ i).mkString("\u002c")
+                                            ))">
+                                                <i class="fa fa-eye-slash"></i>
+                                            </a>
+                                        } else {
+                                            <a href="@routes.Application.index(Some(
+                                                visibleCategories.get.map(_.id).filterNot(id => id == i).mkString("\u002c")
+                                            ))">
+                                                <i class="fa fa-eye"></i>
+                                            </a>
+                                        }
+                                    } else {
+                                        <a href="@routes.Application.index(Some(Integer.toString(i)))">
+                                            <i class="fa fa-eye"></i>
+                                        </a>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>

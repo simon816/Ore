@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit
 import db.OrePostgresDriver.api._
 import models.auth.User
 import models.author.Team
+import models.project.Categories.Category
 import models.project.{Channel, Project, Version}
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
@@ -152,8 +153,12 @@ object Storage {
 
   def getProjects: Future[Seq[Project]] = getAll[ProjectTable, Project](classOf[Project])
 
-  def getProjects(categoryId: Int): Future[Seq[Project]] = {
-    filter[ProjectTable, Project](classOf[Project], p => p.categoryId === categoryId)
+  def getProjects(categories: Array[Int]): Future[Seq[Project]] = {
+    val query = for {
+      project <- q[ProjectTable](classOf[Project])
+      if project.categoryId inSetBind categories
+    } yield project
+    this.config.db.run(query.result)
   }
 
   def getProjectsBy(ownerName: String): Future[Seq[Project]] = {

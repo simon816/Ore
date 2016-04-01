@@ -9,7 +9,7 @@ GET     /api/:version/projects                                  @controllers.Api
 GET     /api/:version/projects/search                           @controllers.Api.search(version, pluginId: Option[String])
 
 # Home page
-GET     /                                                       @controllers.Application.index(category: Option[Int])
+GET     /                                                       @controllers.Application.index(categories: Option[String])
 GET     /login                                                  @controllers.Application.logIn(sso: Option[String], sig: Option[String])
 GET     /logout                                                 @controllers.Application.logOut
 
