@@ -220,15 +220,6 @@ object Storage {
     filter[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId)
   }
 
-  def getChannels(projectId: Int, names: Array[String]): Future[Seq[Channel]] = {
-    val query = for {
-      channel <- q[ChannelTable](classOf[Channel])
-      if channel.projectId === projectId
-      if channel.name inSetBind names
-    } yield channel
-    this.config.db.run(query.result)
-  }
-
   def optChannel(projectId: Int, name: String): Future[Option[Channel]] = {
     optOne[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId && c.name === name)
   }
@@ -286,6 +277,15 @@ object Storage {
 
   def getVersions(channelId: Int): Future[Seq[Version]] = {
     filter[VersionTable, Version](classOf[Version], v => v.channelId === channelId)
+  }
+
+  def getVersions(projectId: Int, channelIds: Seq[Int]): Future[Seq[Version]] = {
+    val query = for {
+      version <- q[VersionTable](classOf[Version])
+      if version.projectId === projectId
+      if version.channelId inSetBind channelIds
+    } yield version
+    this.config.db.run(query.result)
   }
 
   def optVersion(channelId: Int, versionString: String): Future[Option[Version]] = {

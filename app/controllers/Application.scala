@@ -32,7 +32,10 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends Contr
         val categoryArray = Categories.fromString(csv)
         Storage.now(Storage.getProjects(categoryArray.map(_.id))) match {
           case Failure(thrown) => throw thrown
-          case Success(projects) => Ok(views.index(projects, Some(categoryArray)))
+          case Success(projects) =>
+            // Don't pass "visible categories" if all categories are visible
+            val allCategories = Categories.values.subsetOf(categoryArray.toSet)
+            Ok(views.index(projects, if (allCategories) None else Some(categoryArray)))
         }
     }
   }

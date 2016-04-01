@@ -4,6 +4,8 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Date
 
+import com.google.common.base.Preconditions
+import com.google.common.base.Preconditions._
 import db.Storage
 import models.author.Dev
 import models.project.ChannelColors.ChannelColor
@@ -102,14 +104,6 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
   def getChannels: Future[Seq[Channel]] = Storage.getChannels(this.id.get)
 
   /**
-    * Returns the Channels with the specified names.
-    *
-    * @param names Names of channels to get
-    * @return      Channels with specified names
-    */
-  def getChannels(names: Array[String]): Future[Seq[Channel]] = Storage.getChannels(this.id.get, names)
-
-  /**
     * Returns the Channel in this project with the specified name.
     *
     * @param name   Name of channel
@@ -173,6 +167,20 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
   def getVersions: Seq[Version] = Storage.now(Storage.getAllVersions(this.id.get)) match {
     case Failure(thrown) =>  throw thrown
     case Success(versions) => versions
+  }
+
+  /**
+    * Returns all Versions belonging to the specified channels.
+    *
+    * @param channels   Channels to get versions for
+    * @return           All versions in channels
+    */
+  def getVersions(channels: Seq[Channel]): Seq[Version] = {
+    channels.foreach(c => checkArgument(c.projectId == this.id.get, "channel doesn't belong to project", ""))
+    Storage.now(Storage.getVersions(this.id.get, channels.map(_.id.get))) match {
+      case Failure(thrown) => throw thrown
+      case Success(versions) => versions
+    }
   }
 
   /**

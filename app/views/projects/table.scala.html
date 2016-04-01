@@ -69,13 +69,13 @@ Collection of all projects.
                                     @if(visibleCategories.isDefined) {
                                         @if(!visibleCategories.get.contains(Categories(i).asInstanceOf[Category])) {
                                             <a href="@routes.Application.index(Some(
-                                                (visibleCategories.get.map(_.id) :+ i).mkString("\u002c")
+                                                (visibleCategories.get.map(_.id) :+ i).mkString(",")
                                             ))">
                                                 <i class="fa fa-eye-slash"></i>
                                             </a>
                                         } else {
                                             <a href="@routes.Application.index(Some(
-                                                visibleCategories.get.map(_.id).filterNot(id => id == i).mkString("\u002c")
+                                                visibleCategories.get.map(_.id).filterNot(id => id == i).mkString(",")
                                             ))">
                                                 <i class="fa fa-eye"></i>
                                             </a>

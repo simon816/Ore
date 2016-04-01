@@ -214,18 +214,17 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
       Storage.now(project.getChannels) match {
         case Failure(thrown) => throw thrown
         case Success(chans) =>
-          val channelNames = if (channels.isDefined) Some(channels.get.split(",")) else None
+          var channelNames = if (channels.isDefined) Some(channels.get.split(",")) else None
           var visibleChannels = chans
           if (channelNames.isDefined) {
             visibleChannels = chans.filter(c => channelNames.get.contains(c.getName))
           }
 
-          val versions: Seq[Version] = (for (c <- visibleChannels) yield {
-            Storage.now(c.getVersions) match {
-              case Failure(thrown) => throw thrown
-              case Success(versionSeq) => versionSeq
-            }
-          }).flatten
+          // Don't pass "visible channels" if all channels are visible
+          val versions = if (chans.equals(visibleChannels)) project.getVersions else project.getVersions(visibleChannels)
+          if (channelNames.isDefined && chans.map(_.getName).toSet.subsetOf(channelNames.get.toSet)) {
+            channelNames = None
+          }
 
           Ok(views.projects.versions.list(project, chans, versions, channelNames));
       }
