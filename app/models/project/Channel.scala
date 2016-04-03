@@ -3,7 +3,6 @@ package models.project
 import java.nio.file.Files
 import java.sql.Timestamp
 
-import com.google.common.base.Preconditions
 import com.google.common.base.Preconditions._
 import db.Storage
 import models.project.ChannelColors.ChannelColor
@@ -12,9 +11,9 @@ import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
 import plugin.ProjectManager
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Represents a release channel for Project Versions. Each project gets it's
@@ -50,7 +49,7 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
   def setName(context: Project, name: String): Future[Int] = {
     // TODO: Validation
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
-    val f = Storage.updateChannelString(this, table => table.name, name)
+    val f = Storage.updateChannelString(this, _.name, name)
     f.onSuccess {
       case i =>
         ProjectManager.renameChannel(context.owner, context.getName, this.name, name)
@@ -73,7 +72,7 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
     * @return       Future result
     */
   def setColor(color: ChannelColor): Future[Int] = {
-    val f = Storage.updateChannelInt(this, table => table.colorId, color.id)
+    val f = Storage.updateChannelInt(this, _.colorId, color.id)
     f.onSuccess {
       case i => this.colorId = color.id
     }

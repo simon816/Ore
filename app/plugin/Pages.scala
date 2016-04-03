@@ -1,8 +1,7 @@
 package plugin
 
-import java.nio.file.{Path, Files}
+import java.nio.file.{Files, Path}
 
-import com.google.common.base.Preconditions
 import com.google.common.base.Preconditions._
 import models.project.Project
 import org.pegdown.PegDownProcessor

@@ -4,11 +4,11 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import com.google.common.base.Preconditions
 import com.google.common.base.Preconditions._
 import db.Storage
 import models.auth.User
 import models.author.Dev
+import models.project.Categories.Category
 import models.project.ChannelColors.ChannelColor
 import models.project.Version.PendingVersion
 import org.apache.commons.io.FileUtils
@@ -48,7 +48,7 @@ import scala.util.{Failure, Success, Try}
 case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pluginId: String,
                    private var name: String, owner: String, authors: List[String],
                    homepage: Option[String], private var recommendedVersionId: Option[Int],
-                   var categoryId: Int = -1, private var views: Int, private var downloads: Int,
+                   private var categoryId: Int = -1, private var views: Int, private var downloads: Int,
                    private var starred: Int) {
 
   private lazy val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
@@ -89,7 +89,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     */
   def setName(name: String): Future[Int] = {
     // TODO: Validation
-    val f = Storage.updateProjectString(this, table => table.name, name)
+    val f = Storage.updateProjectString(this, _.name, name)
     f.onSuccess {
       case i =>
         ProjectManager.renameProject(this.owner, this.name, name)
@@ -156,7 +156,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @return         Result
     */
   def setRecommendedVersion(version: Version) = {
-    Storage.updateProjectInt(this, table => table.recommendedVersionId, version.id.get).onSuccess {
+    Storage.updateProjectInt(this, _.recommendedVersionId, version.id.get).onSuccess {
       case i => this.recommendedVersionId = version.id
     }
   }
@@ -186,6 +186,28 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
   }
 
   /**
+    * Returns this Project's category.
+    *
+    * @return Project category
+    */
+  def getCategory: Category = Categories(this.categoryId)
+
+  /**
+    * Sets this Project's category.
+    *
+    * @param category Category to set
+    */
+  def setCategory(category: Category) = {
+    if (exists) {
+      Storage.now(Storage.updateProjectInt(this, _.categoryId, category.id)) match {
+        case Failure(thrown) => throw thrown
+        case Success(i) => ;
+      }
+    }
+    this.categoryId = category.id
+  }
+
+  /**
     * Returns the amount of unique views on this Project.
     *
     * @return Unique views on project
@@ -198,7 +220,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @return Future result
     */
   def addView(): Future[Int] = {
-    val f = Storage.updateProjectInt(this, table => table.views, this.views + 1)
+    val f = Storage.updateProjectInt(this, _.views, this.views + 1)
     f.onSuccess {
       case i => this.views += 1
     }
@@ -218,7 +240,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @return Future result
     */
   def addDownload(): Future[Int] = {
-    val f = Storage.updateProjectInt(this, table => table.downloads, this.downloads + 1)
+    val f = Storage.updateProjectInt(this, _.downloads, this.downloads + 1)
     f.onSuccess {
       case i => this.downloads += 1
     }
@@ -269,7 +291,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     val f = Storage.starProjectFor(this, user)
     f.onSuccess {
       case i =>
-        Storage.updateProjectInt(this, table => table.starred, this.starred + 1).onSuccess {
+        Storage.updateProjectInt(this, _.starred, this.starred + 1).onSuccess {
           case j => this.starred += 1
         }
     }
@@ -286,7 +308,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     val f = Storage.unstarProjectFor(this, user)
     f.onSuccess {
       case i =>
-        Storage.updateProjectInt(this, table => table.starred, this.starred - 1).onSuccess {
+        Storage.updateProjectInt(this, _.starred, this.starred - 1).onSuccess {
           case j => this.starred -= 1
         }
     }

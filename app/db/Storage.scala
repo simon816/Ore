@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit
 import db.OrePostgresDriver.api._
 import models.auth.User
 import models.author.Team
-import models.project.Categories.Category
 import models.project.{Channel, Project, Version}
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
@@ -127,7 +126,7 @@ object Storage {
     this.config.db.run(action)
   }
 
-  def findOrCreateUser(user: User): User = {
+  def getOrCreateUser(user: User): User = {
     Storage.now(optUser(user.username)) match {
       case Failure(thrown) => throw thrown
       case Success(userOpt) => userOpt match {

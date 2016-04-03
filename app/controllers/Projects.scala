@@ -9,7 +9,7 @@ import models.project._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import plugin.{InvalidPluginFileException, Pages, ProjectManager}
-import util.{Statistics, Forms}
+import util.{Forms, Statistics}
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -89,8 +89,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     Project.getPending(author, name) match {
       case None => BadRequest("No project to create.")
       case Some(pendingProject) =>
-        val categoryId = Categories.withName(Forms.ProjectCategory.bindFromRequest.get).id
-        pendingProject.project.categoryId = categoryId
+        val category = Categories.withName(Forms.ProjectCategory.bindFromRequest.get)
+        pendingProject.project.setCategory(category)
         val pendingVersion = pendingProject.initFirstVersion
         Redirect(self.showVersionCreateWithMeta(
           author, name, pendingVersion.getChannelName, pendingVersion.version.versionString
@@ -110,6 +110,23 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
       Statistics.projectViewed(project, request)
       Ok(views.projects.pages.home(project, Pages.getHome(author, name)))
     })
+  }
+
+  /**
+    * Saves the specified Project from the settings manager.
+    *
+    * @param author   Project owner
+    * @param name     Project name
+    * @return         View of project
+    */
+  def save(author: String, name: String) = { withUser(Some(author), user => implicit request =>
+    withProject(author, name, project => {
+      val category = Categories.withName(Forms.ProjectCategory.bindFromRequest.get)
+      if (!category.equals(project.getCategory)) {
+        project.setCategory(category)
+      }
+      Redirect(self.show(author, name))
+    }))
   }
 
   /**
@@ -165,7 +182,6 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def savePage(author: String, name: String, page: String) = { withUser(Some(author), user => implicit request =>
     // TODO: Validate content size and title
-    // TODO: Limit number of pages allowed
     withProject(author, name, project => {
       val pageForm = Forms.PageEdit.bindFromRequest.get
       Pages.getOrCreate(project, page).update(pageForm._1, pageForm._2)

@@ -1,0 +1,14 @@
+@import models.project.Categories
+@import models.project.Categories.Category
+@(form: String, selected: Option[Category] = None)(implicit messages: Messages)
+
+<div class="form-group">
+    <label for="category">@messages("project.category")</label>
+    <select class="form-control" id="category" name="category" form="@form">
+    @for(category <- Categories.values) {
+        <option @if(selected.isDefined && selected.get.equals(category)) { selected }>
+            @category.title
+        </option>
+    }
+    </select>
+</div>

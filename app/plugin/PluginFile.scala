@@ -1,9 +1,9 @@
 package plugin
 
 import java.io.{FileInputStream, FileOutputStream, IOException}
-import java.nio.file.{Paths, Files, Path}
+import java.nio.file.{Files, Path, Paths}
 import java.util.jar.{JarEntry, JarInputStream}
-import java.util.zip.{ZipOutputStream, ZipEntry, ZipFile}
+import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
 import models.auth.User
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}

@@ -3,14 +3,12 @@ package controllers
 import javax.inject.Inject
 
 import auth.DiscourseSSO._
+import controllers.routes.{Application => self}
 import db.Storage
 import models.auth.{FakeUser, User}
 import models.project.Categories
-import models.project.Categories.Category
-import play.api.Play
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import routes.{Application => self}
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -49,14 +47,14 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends Contr
     */
   def logIn(sso: Option[String], sig: Option[String]) = Action {
     if (FakeUser.ENABLED) {
-      Storage.findOrCreateUser(FakeUser)
+      Storage.getOrCreateUser(FakeUser)
       Redirect(self.index(None)).withSession(Security.username -> FakeUser.username, "email" -> FakeUser.email)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(getRedirect)
     } else {
       val userData = authenticate(sso.get, sig.get)
       var user = new User(userData._1, userData._2, userData._3, userData._4)
-      user = Storage.findOrCreateUser(user)
+      user = Storage.getOrCreateUser(user)
       Redirect(self.index(None)).withSession(Security.username -> user.username, "email" -> user.email)
     }
   }

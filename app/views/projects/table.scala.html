@@ -1,8 +1,8 @@
 @*
 Collection of all projects.
 *@
-@import models.project.{Categories, Project}
 @import models.project.Categories.Category
+@import models.project.{Categories, Project}
 @(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages, session: Session)
 
 <div class="container">
@@ -35,7 +35,7 @@ Collection of all projects.
                 <tbody>
                 @models.map { project =>
                     <tr class="">
-                        @defining(Categories(project.categoryId)) { category =>
+                        @defining(project.getCategory) { category =>
                           <td><i title="@category.title" class="fa @category.icon"></i></td>
                         }
                         <td class="" colspan="1">

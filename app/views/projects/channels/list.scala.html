@@ -1,5 +1,4 @@
-@import models.project.Project
-@import models.project.Channel
+@import models.project.{Channel, Project}
 @(project: Project, channels: Seq[Channel])(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout("Channels | " + project.owner + "/public " + project.getName) {

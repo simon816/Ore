@@ -3,8 +3,8 @@ Page used for uploading and creating new projects.
 *@
 @import models.project.Categories
 @import models.project.Project.PendingProject
-@import views.html.helper.form
 @import play.api.Play
+@import views.html.helper.form
 @(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout(messages("project.create")) {
@@ -65,14 +65,7 @@ Page used for uploading and creating new projects.
                             }
 
                             @* Category select *@
-                            <div class="form-group">
-                                <label for="category">@messages("project.category")</label>
-                                <select class="form-control" id="category" name="category" form="continue">
-                                @for(category <- Categories.values) {
-                                    <option>@category.title</option>
-                                }
-                                </select>
-                            </div>
+                            @projects.categorySelect("continue")
 
                         }
 

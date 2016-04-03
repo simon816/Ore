@@ -94,7 +94,7 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
     * @return Future result
     */
   def addDownload(): Future[Int] = {
-    val f = Storage.updateVersionInt(this, table => table.downloads, this.downloads + 1)
+    val f = Storage.updateVersionInt(this, _.downloads, this.downloads + 1)
     f.onSuccess {
       case i => this.downloads += 1;
     }

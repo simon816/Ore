@@ -24,7 +24,7 @@ class Api extends Controller {
         "owner" -> project.owner,
         "authors" -> project.authors,
         "channels" -> channelNames,
-        "category" -> Categories(project.categoryId).title,
+        "category" -> Categories(project.getCategory.id).title,
         "views" -> project.getViews,
         "downloads" -> project.getDownloads,
         "starred" -> project.getStars
