@@ -39,7 +39,7 @@
                     <a href="#" class="pull-right btn btn-default"><i class="fa fa-edit"></i> Edit</a>
                 }
                 @if(version.description.isEmpty) {
-                    <p class="unknown"><i>No description given</i></p>
+                    <p class="minor"><i>No description given</i></p>
                 } else {
                     <p>@version.description</p>
                 }
@@ -57,7 +57,7 @@
                                             <strong>@project.get.getName</strong>
                                         </a>
                                     } else {
-                                        <div class="unknown">
+                                        <div class="minor">
                                             @depend.pluginId
                                             <i class="fa fa-question-circle" title="This plugin is not available for download on Ore"
                                                data-toggle="tooltip" data-placement="right"></i>
@@ -71,7 +71,7 @@
                     </div>
                 </div>
             } else {
-                <p class="unknown text-center"><i>This release has no dependencies</i></p>
+                <p class="minor text-center"><i>This release has no dependencies</i></p>
             }
         </div>
     </div>

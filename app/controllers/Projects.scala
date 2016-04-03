@@ -699,6 +699,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
       project.delete match {
         case Failure(thrown) => throw thrown
         case Success(i) => Redirect(routes.Application.index(None))
+          .flashing("success" -> ("Project \"" + project.getName + "\" deleted."))
       }
     }))
   }

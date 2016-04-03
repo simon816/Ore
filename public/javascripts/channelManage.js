@@ -45,7 +45,7 @@ function initChannelManager(toggle, channelName, channelHex, title, call, method
         preview.css("background-color", channelHex).text(channelName);
         submitInput.val(submit);
 
-        if (call == null && method == null) {
+        if (call === null && method === null) {
             submitInput.click(function(event) {
                 event.preventDefault();
                 submitInput.submit();

@@ -118,7 +118,7 @@ form {
     margin-bottom: 15px;
 }
 
-.unknown {
+.minor {
     color: gray;
 }
 
@@ -191,4 +191,8 @@ form {
 .tos {
     font-size: 11px;
     color: gray;
+}
+
+.form-rename {
+    margin-bottom: 10px;
 }

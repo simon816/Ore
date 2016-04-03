@@ -1,5 +1,6 @@
 package plugin
 
+import java.io.{File, FilenameFilter}
 import java.nio.file.{Files, Path}
 
 import db.Storage
@@ -174,10 +175,19 @@ object ProjectManager {
     * @return         New path
     */
   def renameProject(owner: String, oldName: String, newName: String): Try[Unit] = Try {
-    val newPath = getProjectDir(owner, newName)
-    val oldPath = getProjectDir(owner, oldName)
-    Files.move(oldPath, newPath)
-    // TODO: Rename plugin files
+    val newProjectDir = getProjectDir(owner, newName)
+    Files.move(getProjectDir(owner, oldName), newProjectDir)
+    Files.move(Pages.getDocsDir(owner, oldName), Pages.getDocsDir(owner, newName))
+    for (channelDir <- newProjectDir.toFile.listFiles()) {
+      if (channelDir.isDirectory) {
+        val channelName = channelDir.getName
+        for (pluginFile <- channelDir.listFiles()) {
+          val fileName = pluginFile.getName
+          val versionString = fileName.substring(fileName.indexOf('-') + 1, fileName.lastIndexOf('.'))
+          Files.move(pluginFile.toPath, getUploadPath(owner, newName, versionString, channelName))
+        }
+      }
+    }
   }
 
   /**

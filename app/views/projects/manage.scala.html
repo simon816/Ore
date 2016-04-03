@@ -4,6 +4,9 @@
 
 @projects.detail(project, "#settings") {
 
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/projectManage.js")"></script>
+    <script>var projectName = "@project.getName";</script>
+
     <div class="container">
         <div class="row">
             <div class="col-md-9">
@@ -14,17 +17,68 @@
                     <div class="panel-body">
                         @projects.categorySelect("save", Some(project.getCategory))
 
-                        @form(action = routes.Projects.rename(project.owner, project.getName)) {
-                            <label for="name">Project name</label>
-                            <div class="form-inline">
-                                <input id="name" name="name" class="form-control" type="text" value="@project.getName">
-                                <input type="submit" name="rename" value="@messages("project.rename")" class="btn btn-warning">
-                            </div>
-                        }
+                        <label for="name">Project name</label>
+                        <div class="form-inline form-rename">
+                            <input form="rename" id="name" name="name" class="form-control" type="text" value="@project.getName">
+                            <button id="btn-rename" data-toggle="modal" data-target="#modal-rename" class="btn btn-warning" disabled>
+                                @messages("project.rename")
+                            </button>
+                        </div>
 
-                        @form(action = routes.Projects.delete(project.owner, project.getName)) {
-                            <input type="submit" name="delete" value="@messages("project.delete")" class="btn btn-danger">
-                        }
+                        <div class="modal fade" id="modal-rename" tabindex="-1" role="dialog" aria-labelledby="label-rename">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                        <h4 class="modal-title" id="label-delete">Rename project</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        Are you sure you want to rename your Project? This can have unintended side
+                                        effects as we will not set up any redirects for you.
+                                    </div>
+                                    <div class="modal-footer">
+                                        <div class="form-inline">
+                                        @form(action = routes.Projects.rename(project.owner, project.getName), 'id -> "rename") {
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                @messages("channel.edit.close")
+                                            </button>
+                                            <input type="submit" name="rename" value="@messages("project.rename")" class="btn btn-warning">
+                                        }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-danger" data-toggle="modal" data-target="#modal-delete">@messages("project.delete")</button>
+
+                        <div class="modal fade" id="modal-delete" tabindex="-1" role="dialog" aria-labelledby="label-delete">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                        <h4 class="modal-title" id="label-delete">Delete project</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        Are you sure you want to delete your Project? This action cannot be undone.
+                                    </div>
+                                    <div class="modal-footer">
+                                        <div class="form-inline">
+                                            @form(action = routes.Projects.delete(project.owner, project.getName)) {
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                    @messages("channel.edit.close")
+                                                </button>
+                                                <input type="submit" name="delete" value="@messages("project.delete")" class="btn btn-danger">
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         @form(action = routes.Projects.save(project.owner, project.getName), 'id -> "save") {
                             <input type="submit" name="save" value="Save changes" class="btn btn-success">

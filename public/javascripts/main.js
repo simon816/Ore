@@ -9,7 +9,7 @@ $(function() {
 
     $('[data-toggle="tooltip"]').tooltip();
 
-    if (Cookies.get('uid') == null) {
+    if (Cookies.get('uid') === null) {
         Cookies.set('uid', uid());
     }
 

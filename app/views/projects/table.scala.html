@@ -3,9 +3,19 @@ Collection of all projects.
 *@
 @import models.project.Categories.Category
 @import models.project.{Categories, Project}
-@(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages, session: Session)
+@(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages,
+        session: Session, flash: Flash)
 
 <div class="container">
+    @if(flash.get("success").isDefined) {
+        <div class="alert alert-success alert-dismissable" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            @flash.get("success").get
+        </div>
+    }
+
     <div class="row index-header">
         <div class="col-md-12">
             <h3 class="pull-left">Welcome to Ore! <i class="date">A Minecraft Package Repository</i></h3>
@@ -18,38 +28,42 @@ Collection of all projects.
             </div>
         </div>
     </div>
+
     <div class="row">
         <div class="col-md-9">
             @* Project table *@
-            <table class="table project-table">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>@messages("project.name")</th>
-                        <th>@messages("project.author")</th>
-                        <th>@messages("project.views")</th>
-                        <th>@messages("project.downloads")</th>
-                        <th>@messages("project.starred")</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @models.map { project =>
-                    <tr class="">
-                        @defining(project.getCategory) { category =>
-                          <td><i title="@category.title" class="fa @category.icon"></i></td>
+            <div class="panel panel-default">
+                <table class="table project-table">
+                    <thead class="panel-heading">
+                        <tr class="panel-title">
+                            <th></th>
+                            <th>@messages("project.name")</th>
+                            <th>@messages("project.author")</th>
+                            <th>@messages("project.views")</th>
+                            <th>@messages("project.downloads")</th>
+                            <th>@messages("project.starred")</th>
+                        </tr>
+                    </thead>
+                    <tbody class="panel-body">
+                        @models.map { project =>
+                            <tr>
+                                @defining(project.getCategory) { category =>
+                                  <td><i title="@category.title" class="fa @category.icon"></i></td>
+                                }
+                                <td class="" colspan="1">
+                                    <strong><a class="" href="@routes.Projects.show(project.owner, project.getName)">@project.getName</a></strong>
+                                </td>
+                                <td><a href="#">@project.owner</a></td>
+                                <td class="minor">@project.getViews</td>
+                                <td class="minor">@project.getDownloads</td>
+                                <td class="minor">@project.getStars</td>
+                            </tr>
                         }
-                        <td class="" colspan="1">
-                            <strong><a class="" href="@routes.Projects.show(project.owner, project.getName)">@project.getName</a></strong>
-                        </td>
-                        <td><a href="#">@project.owner</a></td>
-                        <td>@project.getViews</td>
-                        <td>@project.getDownloads</td>
-                        <td>@project.getStars</td>
-                    </tr>
-                }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
+
         <div class="col-md-3">
             @* Category table *@
             <div class="panel panel-default">
@@ -59,12 +73,12 @@ Collection of all projects.
                         <a href="@routes.Application.index(None)"><i class="pull-right category-reset fa fa-times"></i></a>
                     }
                 </div>
-                <table class="table">
+                <table class="table panel-body">
                     <tbody>
                         @for(i <- 0 until Categories.values.size) {
                             <tr>
                                 <td class="cat-icon"><i class="fa @Categories(i).icon"></i></td>
-                                <td><strong class="unknown">@Categories(i).title</strong></td>
+                                <td><strong class="minor">@Categories(i).title</strong></td>
                                 <td class="pull-right">
                                     @if(visibleCategories.isDefined) {
                                         @if(!visibleCategories.get.contains(Categories(i).asInstanceOf[Category])) {

@@ -4,7 +4,8 @@ sorted according to different criteria.
 *@
 @import models.project.Categories.Category
 @import models.project.Project
-@(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages, session: Session)
+@(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages,
+        session: Session, flash: Flash)
 
 @core.layout(messages("general.title")) {
 
