@@ -184,7 +184,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     // TODO: Validate content size and title
     withProject(author, name, project => {
       val pageForm = Forms.PageEdit.bindFromRequest.get
-      Pages.getOrCreate(project, page).update(pageForm._1, pageForm._2)
+      val newName = if (page.equals(Pages.HOME_PAGE)) Pages.HOME_PAGE else pageForm._1
+      Pages.getOrCreate(project, page).update(newName, pageForm._2)
       Redirect(self.showPage(author, name, page))
     }))
   }
