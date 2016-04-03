@@ -12,6 +12,7 @@ import plugin.{PluginFile, ProjectManager}
 import util.{Cacheable, PendingAction}
 
 import scala.collection.JavaConversions._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Try
 
@@ -31,7 +32,7 @@ import scala.util.Try
   */
 case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionString: String,
                    dependencies: List[String], description: Option[String], assets: Option[String],
-                   downloads: Int, projectId: Int, var channelId: Int) {
+                   private var downloads: Int, projectId: Int, var channelId: Int) {
 
   private lazy val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
 
@@ -78,6 +79,26 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
       val data = depend.split(":")
       Dependency(data(0), data(1))
     }
+  }
+
+  /**
+    * Returns the amount of unique downloads this Version has.
+    *
+    * @return Amount of unique downloads
+    */
+  def getDownloads: Int = this.downloads
+
+  /**
+    * Increments this Version's download count by one.
+    *
+    * @return Future result
+    */
+  def addDownload(): Future[Int] = {
+    val f = Storage.updateVersionInt(this, table => table.downloads, this.downloads + 1)
+    f.onSuccess {
+      case i => this.downloads += 1;
+    }
+    f
   }
 
   /**

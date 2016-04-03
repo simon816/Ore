@@ -47,7 +47,7 @@ import scala.util.{Failure, Success, Try}
 case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pluginId: String,
                    private var name: String, owner: String, authors: List[String],
                    homepage: Option[String], private var recommendedVersionId: Option[Int],
-                   var categoryId: Int = -1, views: Int, downloads: Int, starred: Int) {
+                   var categoryId: Int = -1, private var views: Int, var downloads: Int, starred: Int) {
 
   private lazy val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
 
@@ -181,6 +181,46 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
       case Failure(thrown) => throw thrown
       case Success(versions) => versions
     }
+  }
+
+  /**
+    * Returns the amount of unique views on this Project.
+    *
+    * @return Unique views on project
+    */
+  def getViews: Int = this.views
+
+  /**
+    * Increments this Project's view count by one.
+    *
+    * @return Future result
+    */
+  def addView(): Future[Int] = {
+    val f = Storage.updateProjectInt(this, table => table.views, this.views + 1)
+    f.onSuccess {
+      case i => this.views += 1
+    }
+    f
+  }
+
+  /**
+    * Returns the amount of unique downloads this Project has.
+    *
+    * @return Amount of unique downloads
+    */
+  def getDownloads: Int = this.downloads
+
+  /**
+    * Increments this Project's downloadc count by one.
+    *
+    * @return Future result
+    */
+  def addDownload(): Future[Int] = {
+    val f = Storage.updateProjectInt(this, table => table.downloads, this.downloads + 1)
+    f.onSuccess {
+      case i => this.downloads += 1
+    }
+    f
   }
 
   /**

@@ -29,8 +29,22 @@ class ProjectTable(tag: Tag) extends Table[Project](tag, "projects") {
   def downloads             =   column[Int]("downloads", O.Default(0))
   def starred               =   column[Int]("starred", O.Default(0))
 
-  override def * = (id.?, createdAt.?, pluginId, name, ownerName, authors, homepage.?,
-                    recommendedVersionId.?, categoryId, views, downloads, starred) <> ((Project.apply _).tupled, Project.unapply)
+  override def * = (id.?, createdAt.?, pluginId, name, ownerName,
+                    authors, homepage.?, recommendedVersionId.?,
+                    categoryId, views, downloads, starred) <> ((Project.apply _).tupled,
+                    Project.unapply)
+
+}
+
+class ProjectViewsTable(tag: Tag) extends Table[(Option[Int], Option[String],
+                                                 Option[Int], Int)](tag, "project_views") {
+
+  def id          =   column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def cookie      =   column[String]("cookie")
+  def userId      =   column[Int]("user_id")
+  def projectId   =   column[Int]("project_id")
+
+  override def * = (id.?, cookie.?, userId.?, projectId)
 
 }
 
@@ -59,6 +73,18 @@ class VersionTable(tag: Tag) extends Table[Version](tag, "versions") {
 
   override def * = (id.?, createdAt.?, versionString, dependencies, description.?,
                     assets.?, downloads, projectId, channelId) <> ((Version.apply _).tupled, Version.unapply)
+}
+
+class VersionDownloadsTable(tag: Tag) extends Table[(Option[Int], Option[String],
+                                                     Option[Int], Int)](tag, "version_downloads") {
+
+  def id          =   column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def cookie      =   column[String]("cookie")
+  def userId      =   column[Int]("user_id")
+  def versionId   =   column[Int]("version_id")
+
+  override def * = (id.?, cookie.?, userId.?, versionId)
+
 }
 
 class UserTable(tag: Tag) extends Table[User](tag, "users") {

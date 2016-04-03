@@ -24,6 +24,8 @@ import scala.util.{Failure, Success, Try}
 object Storage {
 
   private lazy val config = DatabaseConfigProvider.get[JdbcProfile](Play.current)
+  private lazy val projectViews = TableQuery[ProjectViewsTable]
+  private lazy val versionDownloads = TableQuery[VersionDownloadsTable]
 
   /**
     * The default timeout when awaiting a query result.
@@ -202,16 +204,36 @@ object Storage {
 
   def updateProjectInt(project: Project, key: ProjectTable => Rep[Int], value: Int): Future[Int] = {
     val projects = q[ProjectTable](classOf[Project])
-    val query = for { p <- projects if p.id === project.id } yield key(p)
+    val query = for { p <- projects if p.id === project.id.get } yield key(p)
     val action = query.update(value)
     this.config.db.run(action)
   }
 
   def updateProjectString(project: Project, key: ProjectTable => Rep[String], value: String): Future[Int] = {
     val projects = q[ProjectTable](classOf[Project])
-    val query = for { p <- projects if p.id === project.id } yield key(p)
+    val query = for { p <- projects if p.id === project.id.get } yield key(p)
     val action = query.update(value)
     this.config.db.run(action)
+  }
+
+  def hasProjectBeenViewedBy(project: Project, cookie: String): Future[Boolean] = {
+    val query = this.projectViews.filter(pv => pv.projectId === project.id.get && pv.cookie === cookie).size > 0
+    this.config.db.run(query.result)
+  }
+
+  def setProjectViewedBy(project: Project, cookie: String) = {
+    val query = this.projectViews += (None, Some(cookie), None, project.id.get)
+    this.config.db.run(query)
+  }
+
+  def hasProjectBeenViewedBy(project: Project, user: User): Future[Boolean] = {
+    val query = this.projectViews.filter(pv => pv.projectId === project.id.get && pv.userId === user.externalId).size > 0
+    this.config.db.run(query.result)
+  }
+
+  def setProjectViewedBy(project: Project, user: User) = {
+    val query = this.projectViews += (None, None, Some(user.externalId), project.id.get)
+    this.config.db.run(query)
   }
 
   // Channel queries
@@ -257,14 +279,14 @@ object Storage {
 
   def updateChannelString(channel: Channel, key: ChannelTable => Rep[String], value: String): Future[Int] = {
     val channels = q[ChannelTable](classOf[Channel])
-    val query = for { c <- channels if c.id === channel.id } yield key(c)
+    val query = for { c <- channels if c.id === channel.id.get } yield key(c)
     val action = query.update(value)
     this.config.db.run(action)
   }
 
   def updateChannelInt(channel: Channel, key: ChannelTable => Rep[Int], value: Int): Future[Int] = {
     val channels = q[ChannelTable](classOf[Channel])
-    val query = for { c <- channels if c.id === channel.id } yield key(c)
+    val query = for { c <- channels if c.id === channel.id.get } yield key(c)
     val action = query.update(value)
     this.config.db.run(action)
   }
@@ -316,6 +338,33 @@ object Storage {
   def deleteVersion(version: Version) = {
     val query = _filter[VersionTable, Version](classOf[Version], v => v.id === version.id.get)
     val action = query.delete
+    this.config.db.run(action)
+  }
+
+  def hasVersionBeenDownloadedBy(version: Version, cookie: String): Future[Boolean] = {
+    val query = this.versionDownloads.filter(vd => vd.versionId === version.id.get && vd.cookie === cookie).size > 0
+    this.config.db.run(query.result)
+  }
+
+  def setVersionDownloadedBy(version: Version, cookie: String) = {
+    val query = this.versionDownloads += (None, Some(cookie), None, version.id.get)
+    this.config.db.run(query)
+  }
+
+  def hasVersionBeenDownloadedBy(version: Version, user: User): Future[Boolean] = {
+    val query = this.versionDownloads.filter(vd => vd.versionId === version.id.get && vd.userId === user.externalId).size > 0
+    this.config.db.run(query.result)
+  }
+
+  def setVersionDownloadedBy(version: Version, user: User) = {
+    val query = this.versionDownloads += (None, None, Some(user.externalId), version.id.get)
+    this.config.db.run(query)
+  }
+
+  def updateVersionInt(version: Version, key: VersionTable => Rep[Int], value: Int): Future[Int] = {
+    val versions = q[VersionTable](classOf[Version])
+    val query = for { v <- versions if v.id === version.id.get } yield key(v)
+    val action = query.update(value)
     this.config.db.run(action)
   }
 

@@ -9,7 +9,7 @@ import models.project._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import plugin.{InvalidPluginFileException, Pages, ProjectManager}
-import util.Forms
+import util.{Statistics, Forms}
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -107,6 +107,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def show(author: String, name: String) = Action { implicit request =>
     withProject(author, name, project => {
+      Statistics.projectViewed(project, request)
       Ok(views.projects.pages.home(project, Pages.getHome(author, name)))
     })
   }
@@ -412,7 +413,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param versionString  Version string
     * @return               Sent file
     */
-  def downloadVersion(author: String, name: String, channelName: String, versionString: String) = Action {
+  def downloadVersion(author: String, name: String, channelName: String, versionString: String) = Action { implicit request =>
     withProject(author, name, project => {
       Storage.now(project.getChannel(channelName)) match {
         case Failure(thrown) => throw thrown
@@ -423,7 +424,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
               case Failure(thrown) => throw thrown
               case Success(versionOpt) => versionOpt match {
                 case None => NotFound("Version not found.")
-                case Some(version) => Ok.sendFile(ProjectManager.getUploadPath(author, name, versionString, channelName).toFile)
+                case Some(version) =>
+                  Statistics.versionDownloaded(project, version, request)
+                  Ok.sendFile(ProjectManager.getUploadPath(author, name, versionString, channelName).toFile)
               }
             }
         }
@@ -438,7 +441,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @param name     Project name
     * @return         Sent file
     */
-  def downloadRecommendedVersion(author: String, name: String) = Action {
+  def downloadRecommendedVersion(author: String, name: String) = Action { implicit request =>
     withProject(author, name, project => {
       Storage.now(project.getRecommendedVersion) match {
         case Failure(thrown) => throw thrown
@@ -446,6 +449,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
           Storage.now(version.getChannel) match {
             case Failure(thrown) => throw thrown
             case Success(channel) =>
+              Statistics.versionDownloaded(project, version, request)
               Ok.sendFile(ProjectManager.getUploadPath(author, name, version.versionString, channel.getName).toFile)
           }
       }
