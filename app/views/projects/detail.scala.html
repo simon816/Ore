@@ -54,15 +54,21 @@ Base template for Project overview.
 
             <div class="pull-right project-controls">
                 @if(session.get("username").isDefined) {
-                    <button class="btn btn-default btn-star">
-                        <i class="fa fa-star"></i><span class="starred"> @project.getStars</span>
+                    @defining(project.isStarredBy(session.get("username").get)) { alreadyStarred =>
+                        <button class="btn btn-default btn-star">
+                            <i id="icon-star" @if(alreadyStarred) {
+                                class="fa fa-star"
+                            } else {
+                                class="fa fa-star-o" }></i>
+                            <span class="starred"> @project.getStars</span>
+                        </button>
                         <script>
-                            var baseUrl = "@Play.current.configuration.getString("application.baseUrl")";
-                            var projectOwner = "@project.owner";
-                            var projectName = "@project.getName";
-                            var alreadyStarred = @project.isStarredBy(session.get("username").get);
+                                var baseUrl = "@Play.current.configuration.getString("application.baseUrl")";
+                                var projectOwner = "@project.owner";
+                                var projectName = "@project.getName";
+                                var alreadyStarred = @alreadyStarred;
                         </script>
-                    </button>
+                    }
                 }
                 @if(session.get("username").isEmpty || !session.get("username").get.equals(project.owner)) {
                     <button class="btn btn-default">

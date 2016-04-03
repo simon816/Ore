@@ -5,6 +5,9 @@
 
 @projects.detail(model, "#docs") {
 
+    <script type="text/javascript" src="@routes.Assets.at("node_modules/markdown/lib/markdown.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/pagePreview.js")"></script>
+
     <div class="container">
         @form(action = routes.Projects.savePage(model.owner, model.getName, page)) {
             <div class="form-group form-inline">
@@ -50,9 +53,11 @@
             </ul>
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="edit">
-                    <textarea name="content" class="form-control" rows="20">@content</textarea>
+                    <textarea id="content" name="content" class="form-control" rows="20">@content</textarea>
                 </div>
-                <div role="tabpanel" class="tab-pane" id="preview"></div>
+                <div role="tabpanel" class="tab-pane" id="preview">
+
+                </div>
             </div>
         }
     </div>
