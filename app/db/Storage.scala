@@ -26,6 +26,7 @@ object Storage {
   private lazy val config = DatabaseConfigProvider.get[JdbcProfile](Play.current)
   private lazy val projectViews = TableQuery[ProjectViewsTable]
   private lazy val versionDownloads = TableQuery[VersionDownloadsTable]
+  private lazy val starredProjects = TableQuery[StarredProjectsTable]
 
   /**
     * The default timeout when awaiting a query result.
@@ -233,6 +234,23 @@ object Storage {
 
   def setProjectViewedBy(project: Project, user: User) = {
     val query = this.projectViews += (None, None, Some(user.externalId), project.id.get)
+    this.config.db.run(query)
+  }
+
+  def isProjectStarredBy(project: Project, user: User): Future[Boolean] = {
+    val query = this.starredProjects.filter(sp => sp.userId === user.externalId
+      && sp.projectId === project.id.get).size > 0
+    this.config.db.run(query.result)
+  }
+
+  def starProjectFor(project: Project, user: User): Future[Int] = {
+    val query = this.starredProjects += (user.externalId, project.id.get)
+    this.config.db.run(query)
+  }
+
+  def unstarProjectFor(project: Project, user: User): Future[Int] = {
+    val query = this.starredProjects.filter(sp => sp.userId === user.externalId
+      && sp.projectId === project.id.get).delete
     this.config.db.run(query)
   }
 

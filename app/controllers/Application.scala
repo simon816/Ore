@@ -49,6 +49,7 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends Contr
     */
   def logIn(sso: Option[String], sig: Option[String]) = Action {
     if (FakeUser.ENABLED) {
+      Storage.findOrCreateUser(FakeUser)
       Redirect(self.index(None)).withSession(Security.username -> FakeUser.username, "email" -> FakeUser.email)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(getRedirect)

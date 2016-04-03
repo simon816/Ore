@@ -21,6 +21,7 @@ POST    /:author/:name                                          @controllers.Pro
 
 # Projects
 GET     /:author/:name                                          @controllers.Projects.show(author, name)
+GET     /:author/:name/star/:starred                            @controllers.Projects.setStarred(author, name, starred: Boolean)
 
 # Pages
 GET     /:author/:name/pages/:page/edit                         @controllers.Projects.showPageEdit(author, name, page)

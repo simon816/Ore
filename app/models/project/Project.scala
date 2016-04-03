@@ -7,6 +7,7 @@ import java.util.Date
 import com.google.common.base.Preconditions
 import com.google.common.base.Preconditions._
 import db.Storage
+import models.auth.User
 import models.author.Dev
 import models.project.ChannelColors.ChannelColor
 import models.project.Version.PendingVersion
@@ -47,7 +48,8 @@ import scala.util.{Failure, Success, Try}
 case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pluginId: String,
                    private var name: String, owner: String, authors: List[String],
                    homepage: Option[String], private var recommendedVersionId: Option[Int],
-                   var categoryId: Int = -1, private var views: Int, var downloads: Int, starred: Int) {
+                   var categoryId: Int = -1, private var views: Int, private var downloads: Int,
+                   private var starred: Int) {
 
   private lazy val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
 
@@ -219,6 +221,74 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     val f = Storage.updateProjectInt(this, table => table.downloads, this.downloads + 1)
     f.onSuccess {
       case i => this.downloads += 1
+    }
+    f
+  }
+
+  /**
+    * Returns the amount of times this Project has been starred.
+    *
+    * @return Amount of stars
+    */
+  def getStars: Int = this.starred
+
+  /**
+    * Returns true if this Project is starred by the specified User.
+    *
+    * @param user   User to check if starred for
+    * @return       True if starred by User
+    */
+  def isStarredBy(user: User): Boolean = {
+    Storage.now(Storage.isProjectStarredBy(this, user)) match {
+      case Failure(thrown) => throw thrown
+      case Success(isStarred) => isStarred
+    }
+  }
+
+  /**
+    * Returns true if this Project is starred by the User with the specified
+    * username.
+    *
+    * @param username   To get User of
+    * @return           True if starred by User
+    */
+  def isStarredBy(username: String): Boolean = {
+    Storage.now(Storage.getUser(username)) match {
+      case Failure(thrown) => throw thrown
+      case Success(user) => isStarredBy(user)
+    }
+  }
+
+  /**
+    * Sets this Project as starred for the specified User.
+    *
+    * @param user   User to star for
+    * @return       Future result
+    */
+  def starFor(user: User): Future[Int] = {
+    val f = Storage.starProjectFor(this, user)
+    f.onSuccess {
+      case i =>
+        Storage.updateProjectInt(this, table => table.starred, this.starred + 1).onSuccess {
+          case j => this.starred += 1
+        }
+    }
+    f
+  }
+
+  /**
+    * Removes a star for this Project for the specified User.
+    *
+    * @param user   User to unstar for
+    * @return       Future result
+    */
+  def unstarFor(user: User): Future[Int] = {
+    val f = Storage.unstarProjectFor(this, user)
+    f.onSuccess {
+      case i =>
+        Storage.updateProjectInt(this, table => table.starred, this.starred - 1).onSuccess {
+          case j => this.starred -= 1
+        }
     }
     f
   }

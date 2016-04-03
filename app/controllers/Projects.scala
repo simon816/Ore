@@ -113,6 +113,34 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   }
 
   /**
+    * Sets the "starred" status of a Project for the current user.
+    *
+    * @param author   Project owner
+    * @param name     Project name
+    * @param starred  True if should set to starred
+    * @return         Result code
+    */
+  def setStarred(author: String, name: String, starred: Boolean) = { withUser(None, user => implicit request =>
+    withProject(author, name, project => {
+      val alreadyStarred = project.isStarredBy(user)
+      if (starred) {
+        if (!alreadyStarred) {
+          Storage.now(project.starFor(user)) match {
+            case Failure(thrown) => throw thrown
+            case Success(i) => ;
+          }
+        }
+      } else if (alreadyStarred) {
+        Storage.now(project.unstarFor(user)) match {
+          case Failure(thrown) => throw thrown
+          case Success(i) => ;
+        }
+      }
+      Ok
+    }))
+  }
+
+  /**
     * Displays the documentation page editor for the specified project and page
     * name.
     *

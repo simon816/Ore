@@ -8,7 +8,7 @@ import play.api.mvc.RequestHeader
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
-  * Helper class for handling tracking of statistics statistic. All operations
+  * Helper class for handling tracking of statistics. All operations
   * within this class are handled asynchronously as to not block the request.
   */
 object Statistics {

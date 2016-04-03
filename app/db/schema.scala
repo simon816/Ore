@@ -48,6 +48,15 @@ class ProjectViewsTable(tag: Tag) extends Table[(Option[Int], Option[String],
 
 }
 
+class StarredProjectsTable(tag: Tag) extends Table[(Int, Int)](tag, "starred_projects") {
+
+  def userId      =   column[Int]("user_id")
+  def projectId   =   column[Int]("project_id")
+
+  override def * = (userId, projectId)
+
+}
+
 class ChannelTable(tag: Tag) extends Table[Channel](tag, "channels") {
 
   def id          =   column[Int]("id", O.PrimaryKey, O.AutoInc)

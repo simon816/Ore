@@ -26,8 +26,8 @@ class Api extends Controller {
         "channels" -> channelNames,
         "category" -> Categories(project.categoryId).title,
         "views" -> project.getViews,
-        "downloads" -> project.downloads,
-        "starred" -> project.starred
+        "downloads" -> project.getDownloads,
+        "starred" -> project.getStars
       )
     }
   }

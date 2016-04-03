@@ -2,9 +2,12 @@
 Base template for Project overview.
 *@
 @import models.project.Project
+@import play.api.Play
 @(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session)
 
 @core.layout(project.owner + " / " + project.getName) {
+
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/projectDetail.js")"></script>
 
     <div class="project-header-container">
         <div class="container">
@@ -50,9 +53,17 @@ Base template for Project overview.
             </div>
 
             <div class="pull-right project-controls">
-                <button class="btn btn-default btn-star">
-                    <i class="fa fa-star"></i><span class="starred"> @project.starred</span>
-                </button>
+                @if(session.get("username").isDefined) {
+                    <button class="btn btn-default btn-star">
+                        <i class="fa fa-star"></i><span class="starred"> @project.getStars</span>
+                        <script>
+                            var baseUrl = "@Play.current.configuration.getString("application.baseUrl")";
+                            var projectOwner = "@project.owner";
+                            var projectName = "@project.getName";
+                            var alreadyStarred = @project.isStarredBy(session.get("username").get);
+                        </script>
+                    </button>
+                }
                 @if(session.get("username").isEmpty || !session.get("username").get.equals(project.owner)) {
                     <button class="btn btn-default">
                         <i class="fa fa-flag"></i> @messages("project.flag")
