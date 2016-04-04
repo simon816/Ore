@@ -248,6 +248,43 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   }
 
   /**
+    * Saves the specified Version's description.
+    *
+    * @param author         Project owner
+    * @param name           Project name
+    * @param channelName    Version channel
+    * @param versionString  Version name
+    * @return               View of Version
+    */
+  def saveVersionDescription(author: String, name: String, channelName: String, versionString: String) = {
+                             withUser(Some(author), user => implicit request =>
+    withProject(author, name, project => {
+      Storage.now(project.getChannel(channelName)) match {
+        case Failure(thrown) => throw thrown
+        case Success(channelOpt) => channelOpt match {
+          case None => NotFound("Channel not found.")
+          case Some(channel) => Storage.now(channel.getVersion(versionString)) match {
+            case Failure(thrown) => throw thrown
+            case Success(versionOpt) => versionOpt match {
+              case None => NotFound("Version not found.")
+              case Some(version) =>
+                val oldDesc = version.getDescription
+                val newDesc = Forms.VersionDescription.bindFromRequest.get.trim()
+                if ((oldDesc.isEmpty && !newDesc.isEmpty) || (!oldDesc.get.equals(newDesc))) {
+                  Storage.now(version.setDescription(newDesc)) match {
+                    case Failure(thrown) => throw thrown
+                    case Success(i) => ;
+                  }
+                }
+                Redirect(self.showVersion(author, name, channelName, versionString))
+            }
+          }
+        }
+      }
+    }))
+  }
+
+  /**
     * Displays the "versions" tab within a Project view.
     *
     * @param author     Owner of project

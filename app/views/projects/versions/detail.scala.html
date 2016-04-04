@@ -1,7 +1,12 @@
 @import models.project.{Channel, Project, Version}
+@import views.html.helper.form
+@import plugin.Pages
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages, session: Session)
 
 @projects.detail(project, "#versions") {
+
+    <script type="text/javascript" src="@routes.Assets.at("node_modules/markdown/lib/markdown.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/versionEdit.js")"></script>
 
     <div class="container">
         <div class="row">
@@ -34,16 +39,53 @@
             </div>
         </div>
         <div class="row version-description">
-            <div class="col-md-8">
+            <div id="description" class="col-md-8"></div>
+
+            <div id="description-view" style="display: none;">
                 @if(session.get("username").isDefined && session.get("username").get.equals(project.owner)) {
-                    <a href="#" class="pull-right btn btn-default"><i class="fa fa-edit"></i> Edit</a>
+                    <a href="#" id="description-edit" class="pull-right btn btn-default">
+                        <i class="fa fa-edit"></i> Edit
+                    </a>
                 }
-                @if(version.description.isEmpty) {
-                    <p class="minor"><i>No description given</i></p>
+                @if(version.getDescription.isEmpty) {
+                    <p class="minor"><i>No description given.</i></p>
                 } else {
-                    <p>@version.description</p>
+                    <p>@Html(Pages.MD.markdownToHtml(version.getDescription.get))</p>
                 }
             </div>
+
+            <div id="editor" style="display: none;">
+                <div class="form-inline">
+                    <ul class="version-edit-tabs pull-left nav nav-tabs nav-stacked" role="tablist">
+                        <li role="presentation" class="active">
+                            <a href="#edit" aria-controls="edit" role="tab" data-toggle="tab">
+                                <i class="fa fa-edit"></i>
+                            </a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#preview" aria-controls="preview" role="tab" data-toggle="tab">
+                                <i class="fa fa-eye"></i>
+                            </a>
+                        </li>
+                        <li><a id="description-save" href="#"><i class="fa fa-save"></i></a></li>
+                        <li><a id="description-cancel" href="#"><i class="fa fa-times"></i></a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="edit">
+                        @form(action = routes.Projects.saveVersionDescription(
+                            project.owner, project.getName, channel.getName, version.versionString), 'id -> "form-save") {
+                            <textarea id="version-editor"
+                                      name="description"
+                                      class="form-control"
+                                      rows="20"
+                                      style="width: 100% ;">@version.getDescription.getOrElse("")</textarea>
+                        }
+                        </div>
+                        <div role="tabpanel" class="tab-pane version-preview" id="preview"></div>
+                    </div>
+                </div>
+            </div>
+
             @if(version.getDependencies.nonEmpty) {
                 <div class="col-md-4">
                     <div class="panel panel-default">

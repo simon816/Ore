@@ -46,7 +46,7 @@
                                         <tr>
                                             <td><strong>@messages("version.description")</strong></td>
                                             <td>
-                                                @version.description.map { description =>
+                                                @version.getDescription.map { description =>
                                                   @description
                                                 }.getOrElse {
                                                   <i class="minor">@messages("version.create.no-description")</i>

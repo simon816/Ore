@@ -31,8 +31,9 @@ import scala.util.Try
   * @param channelId      ID of channel this version belongs to
   */
 case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionString: String,
-                   dependencies: List[String], description: Option[String], assets: Option[String],
-                   private var downloads: Int, projectId: Int, var channelId: Int) {
+                   dependencies: List[String], private var description: Option[String],
+                   assets: Option[String], private var downloads: Int, projectId: Int,
+                   var channelId: Int) {
 
   private lazy val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
 
@@ -68,6 +69,26 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
     * @return           Channel if present, None otherwise
     */
   def getChannelFrom(channels: Seq[Channel]): Option[Channel] = channels.find(_.id.get == this.channelId)
+
+  /**
+    * Returns this Version's description.
+    *
+    * @return Version description
+    */
+  def getDescription: Option[String] = this.description
+
+  /**
+    * Sets this Version's description.
+    *
+    * @param description Version description
+    */
+  def setDescription(description: String): Future[Int] = {
+    val f = Storage.updateVersionString(this, _.description, description)
+    f.onComplete {
+      case i => this.description = Some(description)
+    }
+    f
+  }
 
   /**
     * Returns this Versions plugin dependencies.

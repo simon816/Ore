@@ -5,6 +5,6 @@ $(function() {
     });
 
     $('[href="#preview"]').on('shown.bs.tab', function() {
-        $('#preview').html(markdown.toHTML($('#content').val()))
+        $('#preview').html(markdown.toHTML($('#content').val()));
     });
 });

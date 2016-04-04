@@ -33,4 +33,9 @@ object Forms {
     */
   lazy val ProjectRename = Form(single("name" -> text))
 
+  /**
+    * Submits a change to a Version's description.
+    */
+  lazy val VersionDescription = Form(single("description" -> text))
+
 }

@@ -385,4 +385,11 @@ object Storage {
     this.config.db.run(action)
   }
 
+  def updateVersionString(version: Version, key: VersionTable => Rep[String], value: String): Future[Int] = {
+    val versions = q[VersionTable](classOf[Version])
+    val query = for { v <- versions if v.id === version.id.get } yield key(v)
+    val action = query.update(value)
+    this.config.db.run(action)
+  }
+
 }

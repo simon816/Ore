@@ -45,6 +45,7 @@ POST    /:author/:name/versions/:channel/:version               @controllers.Pro
 # Versions
 GET     /:author/:name/versions                                 @controllers.Projects.showVersions(author, name, channels: Option[String])
 GET     /:author/:name/versions/:channel/:version               @controllers.Projects.showVersion(author, name, channel, version)
+POST    /:author/:name/versions/:channel/:version/save          @controllers.Projects.saveVersionDescription(author, name, channel, version)
 
 # Channels
 GET     /:author/:name/channels                                 @controllers.Projects.showChannels(author, name)

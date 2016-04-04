@@ -119,7 +119,7 @@ object ProjectManager {
         }
 
         val versionResult = Storage.now(channel.newVersion(version.versionString, version.dependencies,
-          version.description.orNull, version.assets.orNull))
+          version.getDescription.orNull, version.assets.orNull))
         versionResult match {
           case Failure(thrown) =>
             pending.cancel()

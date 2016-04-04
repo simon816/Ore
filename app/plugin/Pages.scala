@@ -12,14 +12,14 @@ import util.Dirs._
   */
 object Pages {
 
-  val FILE_EXTENSION      =   ".md"
-  val HOME_PAGE           =   "Home"
-  val DEFAULT_HOME_PAGE   =   MD_DIR.resolve(HOME_PAGE + FILE_EXTENSION)
-  val DEFAULT_NEW_PAGE    =   MD_DIR.resolve("default" + FILE_EXTENSION)
-  val FILE_ENCODING       =   "UTF-8"
-  val MAX_PAGES           =   10
+  val FILE_EXTENSION:     String  =   ".md"
+  val HOME_PAGE:          String  =   "Home"
+  val DEFAULT_HOME_PAGE:  Path    =   MD_DIR.resolve(HOME_PAGE + FILE_EXTENSION)
+  val DEFAULT_NEW_PAGE:   Path    =   MD_DIR.resolve("default" + FILE_EXTENSION)
+  val FILE_ENCODING:      String  =   "UTF-8"
+  val MAX_PAGES:          Int     =   10
 
-  private val markdownProcessor = new PegDownProcessor
+  val MD: PegDownProcessor = new PegDownProcessor
 
   /**
     * Represents a documentation Page for a project.
@@ -100,7 +100,7 @@ object Pages {
       *
       * @return HTML representation of markdown contents
       */
-    def toHtml: String = markdownProcessor.markdownToHtml(getContents)
+    def toHtml: String = MD.markdownToHtml(getContents)
 
   }
 
