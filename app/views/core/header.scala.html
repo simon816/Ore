@@ -5,12 +5,12 @@ The main header displayed on each layout.
 @import util.Gravatar
 @()(implicit messages: Messages, session: Session)
 
-<nav class="navbar navbar-fixed-top navbar-inverse">
+<nav class="navbar-main navbar navbar-fixed-top navbar-inverse">
     <div class="container">
         <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav navbar-left">
                 <li class="dropdown">
-                    <a href="#" class="drop-down-toggle" style="padding: 15px;" data-toggle="dropdown">
+                    <a href="#" class="drop-down-toggle" data-toggle="dropdown">
                         <img class="logo" src="@Play.current.configuration.getString("sponge.logo").get" />
                         <span class="caret"></span>
                     </a>
@@ -30,7 +30,7 @@ The main header displayed on each layout.
                 <ul class="nav navbar-nav navbar-right">
                     <li class="dropdown">
                         <a href="#" class="drop-down-toggle" style="padding: 15px;" data-toggle="dropdown">
-                            <img class="user-avatar" src="@Gravatar.getAvatar(email, 45)" />
+                            <img class="user-avatar" src="@Gravatar.getAvatar(email, 32)" />
                             <span class="caret"></span>
                         </a>
                         <ul class="user-dropdown dropdown-menu" aria-label="dropdownMenu1">
