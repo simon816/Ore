@@ -1,7 +1,13 @@
 .logo {
-    width: 50%;
-    margin-bottom: 30px; !important;
-    transform: translateY(-10px);
+    height: 45px;
+}
+
+.main-dropdown  li .fa {
+    margin-right: 10px;
+}
+
+.main-dropdown > li > a {
+    padding: 10px 20px;
 }
 
 .table-controls {
@@ -9,7 +15,7 @@
 }
 
 .project-table > tbody > tr > td {
-    font-size: 20px;
+    font-size: 18px;
 }
 
 .project-header-container {
