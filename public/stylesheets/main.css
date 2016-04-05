@@ -9,15 +9,23 @@
 
 .navbar-main > .container > .collapse > ul > li > a, .navbar-main > .container > .collapse > .navbar-nav {
     padding-top: 5px; !important;
-    height: 60px;
+    height: 54px;
 }
 
-.navbar-main > .container > .collapse > .navbar-right {
+.navbar-main > .container > .collapse > ul.navbar-right {
+    padding-top: 10px;
+}
+
+.navbar-main > .container > .collapse > div.navbar-right {
     padding-top: 13px;
 }
 
-.navbar-main > .container > .collapse > .navbar-nav > a {
+.navbar-main > .container > .collapse > div.navbar-right > a {
     margin: 0 auto;
+}
+
+.navbar-main > .container > .collapse > ul.navbar-right > li > a {
+    height: 50px;
 }
 
 .navbar-main li.dropdown:hover > ul.dropdown-menu {
