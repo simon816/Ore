@@ -209,6 +209,7 @@ object Pages {
     * @return             True if a Page was deleted, false if it didn't exists
     */
   def delete(owner: String, projectName: String, page: String) = {
+    checkArgument(!page.equals(HOME_PAGE), "cannot delete homepage", "")
     Files.deleteIfExists(getDocsDir(owner, projectName).resolve(page + FILE_EXTENSION))
   }
 

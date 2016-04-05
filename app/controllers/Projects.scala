@@ -184,8 +184,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     // TODO: Validate content size and title
     withProject(author, name, project => {
       val pageForm = Forms.PageEdit.bindFromRequest.get
-      val newName = if (page.equals(Pages.HOME_PAGE)) Pages.HOME_PAGE else pageForm._1
-      Pages.getOrCreate(project, page).update(newName, pageForm._2)
+      Pages.getOrCreate(project, page).update(page, pageForm._2)
       Redirect(self.showPage(author, name, page))
     }))
   }
@@ -270,7 +269,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
               case Some(version) =>
                 val oldDesc = version.getDescription
                 val newDesc = Forms.VersionDescription.bindFromRequest.get.trim()
-                if ((oldDesc.isEmpty && !newDesc.isEmpty) || (!oldDesc.get.equals(newDesc))) {
+                if ((oldDesc.isEmpty && !newDesc.isEmpty) || !oldDesc.get.equals(newDesc)) {
                   Storage.now(version.setDescription(newDesc)) match {
                     case Failure(thrown) => throw thrown
                     case Success(i) => ;
