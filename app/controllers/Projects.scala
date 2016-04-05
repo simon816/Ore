@@ -570,24 +570,29 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         } else {
           val form = Forms.ChannelEdit.bindFromRequest.get
           val channelName = form._1
-          // Find submitted color
-          ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
-            case None => BadRequest("Invalid channel color.")
-            case Some(color) => channels.find(c => c.getColor.equals(color)) match {
-              case None => channels.find(c => c.getName.equals(channelName)) match {
-                case None => project.newChannel(channelName, color) match {
-                  case Failure(thrown) => throw thrown
-                  case Success(channel) => Redirect(self.showChannels(author, name))
+          if (!Channel.isValidName(channelName)) {
+            Redirect(self.showChannels(author, name))
+              .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
+          } else {
+            // Find submitted color
+            ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
+              case None => BadRequest("Invalid channel color.")
+              case Some(color) => channels.find(c => c.getColor.equals(color)) match {
+                case None => channels.find(c => c.getName.equals(channelName)) match {
+                  case None => project.newChannel(channelName, color) match {
+                    case Failure(thrown) => throw thrown
+                    case Success(channel) => Redirect(self.showChannels(author, name))
+                  }
+                  case Some(channel) =>
+                    // Channel name taken
+                    Redirect(self.showChannels(author, name))
+                      .flashing("error" -> "A channel with that name already exists.")
                 }
                 case Some(channel) =>
-                  // Channel name taken
+                  // Channel color taken
                   Redirect(self.showChannels(author, name))
-                    .flashing("error" -> "A channel with that name already exists.")
+                    .flashing("error" -> "A channel with that color already exists.")
               }
-              case Some(channel) =>
-                // Channel color taken
-                Redirect(self.showChannels(author, name))
-                  .flashing("error" -> "A channel with that color already exists.")
             }
           }
         }
@@ -611,45 +616,50 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         case Success(channels) =>
           val form = Forms.ChannelEdit.bindFromRequest.get
           val newName = form._1
-          // Find submitted channel by old name
-          channels.find(c => c.getName.equals(channelName)) match {
-            case None => NotFound("Channel not found.")
-            case Some(channel) => ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
-              case None => BadRequest("Invalid channel color.")
-              case Some(color) =>
-                // Check if color is taken by different channel
-                val colorChan = channels.find(c => c.getColor.equals(color))
-                val colorTaken = colorChan.isDefined && !colorChan.get.equals(channel)
+          if (!Channel.isValidName(newName)) {
+            Redirect(self.showChannels(author, name))
+              .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
+          } else {
+            // Find submitted channel by old name
+            channels.find(c => c.getName.equals(channelName)) match {
+              case None => NotFound("Channel not found.")
+              case Some(channel) => ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
+                case None => BadRequest("Invalid channel color.")
+                case Some(color) =>
+                  // Check if color is taken by different channel
+                  val colorChan = channels.find(c => c.getColor.equals(color))
+                  val colorTaken = colorChan.isDefined && !colorChan.get.equals(channel)
 
-                // Check if name taken by different channel
-                val nameChan = channels.find(c => c.getName.equals(newName))
-                val nameTaken = nameChan.isDefined && !nameChan.get.equals(channel)
+                  // Check if name taken by different channel
+                  val nameChan = channels.find(c => c.getName.equals(newName))
+                  val nameTaken = nameChan.isDefined && !nameChan.get.equals(channel)
 
-                if (colorTaken) {
-                  Redirect(self.showChannels(author, name))
-                    .flashing("error" -> "A channel with that color already exists.")
-                } else if (nameTaken) {
-                  Redirect(self.showChannels(author, name))
-                    .flashing("error" -> "A channel with that name already exists.")
-                } else {
-                  // Change name if different
-                  if (!channelName.equals(newName)) {
-                    Storage.now(channel.setName(project, newName)) match {
-                      case Failure(thrown) => throw thrown
-                      case Success(i) => ;
+                  if (colorTaken) {
+                    Redirect(self.showChannels(author, name))
+                      .flashing("error" -> "A channel with that color already exists.")
+                  } else if (nameTaken) {
+                    Redirect(self.showChannels(author, name))
+                      .flashing("error" -> "A channel with that name already exists.")
+                  } else {
+                    // Change name if different
+                    if (!channelName.equals(newName)) {
+                      Storage.now(channel.setName(project, newName)) match {
+                        case Failure(thrown) => throw thrown
+                        case Success(i) => ;
+                      }
                     }
-                  }
 
-                  // Change color if different
-                  if (!channel.getColor.equals(color)) {
-                    Storage.now(channel.setColor(color)) match {
-                      case Failure(thrown) => throw thrown
-                      case Success(i) => ;
+                    // Change color if different
+                    if (!channel.getColor.equals(color)) {
+                      Storage.now(channel.setColor(color)) match {
+                        case Failure(thrown) => throw thrown
+                        case Success(i) => ;
+                      }
                     }
-                  }
 
-                  Redirect(self.showChannels(author, name))
-                }
+                    Redirect(self.showChannels(author, name))
+                  }
+              }
             }
           }
       }

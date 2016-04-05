@@ -49,8 +49,7 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
     */
   def setName(context: Project, name: String): Future[Int] = {
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
-    checkArgument(name.length >= 1 && name.length < MAX_NAME_LENGTH, "size must be between 1 and " + MAX_NAME_LENGTH, "")
-    checkArgument(name.matches(NAME_REGEX), "name must be alphanumeric", "")
+    checkArgument(isValidName(name), "invalid name", "")
     val f = Storage.updateChannelString(this, _.name, name)
     f.onSuccess {
       case i =>
@@ -179,6 +178,16 @@ object Channel {
     * The default name used for Channels.
     */
   val DEFAULT_CHANNEL: String = "Release"
+
+  /**
+    * Returns true if the specified string is a valid channel name.
+    *
+    * @param name   Name to check
+    * @return       True if valid channel name
+    */
+  def isValidName(name: String): Boolean = {
+    name.length >= 1 && name.length <= MAX_NAME_LENGTH && name.matches(NAME_REGEX);
+  }
 
   /**
     * Attempts to determine a Channel name from the specified version string.
