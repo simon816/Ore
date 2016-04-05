@@ -1,10 +1,14 @@
 @import models.project.{Channel, Project}
+@import play.api.Play
 @(project: Project, channels: Seq[Channel])(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout("Channels | " + project.owner + "/public " + project.getName) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/channelManage.js")"></script>
     <script>
+        var NAME_REGEX = /@Channel.NAME_REGEX/g;
+        var BASE_URL = "@Play.current.configuration.getString("application.baseUrl")";
+        var PLUGIN_ID = "@project.pluginId";
         $(function() {
             initChannelManager(
                     "#channel-new", "", "@Channel.DEFAULT_COLOR.hex", "New channel",

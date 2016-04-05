@@ -4,9 +4,10 @@
 
 # RESTful API
 GET     /api/projects                                           @controllers.Api.listProjects(version = "v1")
-GET     /api/projects/search                                    @controllers.Api.search(version = "v1", pluginId: Option[String])
 GET     /api/:version/projects                                  @controllers.Api.listProjects(version)
-GET     /api/:version/projects/search                           @controllers.Api.search(version, pluginId: Option[String])
+
+GET     /api/project                                            @controllers.Api.getProject(version = "v1", pluginId: Option[String])
+GET     /api/:version/project                                   @controllers.Api.getProject(version, pluginId: Option[String])
 
 # Home page
 GET     /                                                       @controllers.Application.index(categories: Option[String])

@@ -1,33 +1,32 @@
-var validateMeta = function(pluginId, owner, name, baseUrl) {
+function validateMeta(pluginId, owner, name, baseUrl) {
     checkId(pluginId, owner, name, baseUrl)
-};
+}
 
-var tooltip = function(selector, title) {
-    $(selector)
-        .attr('data-toggle', 'tooltip')
-        .attr('data-placement', 'right')
-        .attr('title', title);
-    $('[data-toggle="tooltip"]').tooltip();
-};
+function tooltip(selector, title) {
+    $(selector).tooltip({
+        placement: 'right',
+        title: title
+    });
+}
 
-var removeSpinner = function(selector) {
+function removeSpinner(selector) {
     $(selector).removeClass('fa-spinner fa-spin');
-};
+}
 
-var success = function(selector) {
+function success(selector) {
     removeSpinner(selector);
     $(selector).addClass('fa-check-circle');
-};
+}
 
-var failed = function(selector, message) {
+function failed(selector, message) {
     removeSpinner(selector);
     $(selector).addClass('fa-times-circle');
     tooltip(selector, message);
-};
+}
 
-var checkId = function(pluginId, owner, name, baseUrl) {
+function checkId(pluginId, owner, name, baseUrl) {
     $.ajax({
-        url: baseUrl + '/api/projects/search?pluginId=' + pluginId,
+        url: baseUrl + '/api/project?pluginId=' + pluginId,
         statusCode: {
             404: function() {
                 success('.id-status');
@@ -39,9 +38,9 @@ var checkId = function(pluginId, owner, name, baseUrl) {
             }
         }
     })
-};
+}
 
-var checkName = function(owner, name, idSuccess, baseUrl) {
+function checkName(owner, name, idSuccess, baseUrl) {
     if (name.length > 25) {
         failed('.name-status', 'This name is too long. Please rename your project to something under 25 characters.');
         updateContinueButton(idSuccess, false);
@@ -61,9 +60,9 @@ var checkName = function(owner, name, idSuccess, baseUrl) {
             }
         }
     });
-};
+}
 
-var updateContinueButton = function(idSuccess, nameSuccess) {
+function updateContinueButton(idSuccess, nameSuccess) {
     if (idSuccess && nameSuccess) {
         $('.continue-btn').prop('disabled', false);
     }

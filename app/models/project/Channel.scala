@@ -5,6 +5,7 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.Storage
+import models.project.Channel._
 import models.project.ChannelColors.ChannelColor
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.version.ComparableVersion
@@ -47,8 +48,9 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
     * @return         Future result
     */
   def setName(context: Project, name: String): Future[Int] = {
-    // TODO: Validation
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
+    checkArgument(name.length >= 1 && name.length < MAX_NAME_LENGTH, "size must be between 1 and " + MAX_NAME_LENGTH, "")
+    checkArgument(name.matches(NAME_REGEX), "name must be alphanumeric", "")
     val f = Storage.updateChannelString(this, _.name, name)
     f.onSuccess {
       case i =>
@@ -157,6 +159,16 @@ object Channel {
     * The maximum amount of Channels permitted in a single Project.
     */
   val MAX_AMOUNT = 5
+
+  /**
+    * The maximum name size of a Channel.
+    */
+  val MAX_NAME_LENGTH = 15
+
+  /**
+    * Regular expression for permitted Channel characters.
+    */
+  val NAME_REGEX = "^[a-zA-Z0-9]+$"
 
   /**
     * The default color used for Channels.
