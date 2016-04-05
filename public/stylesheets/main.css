@@ -2,6 +2,10 @@
     height: 45px;
 }
 
+.main-dropdown {
+    width: 100%;
+}
+
 .main-dropdown  li .fa {
     margin-right: 10px;
 }
