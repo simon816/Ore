@@ -8,10 +8,19 @@
 
 .main-dropdown  li .fa {
     margin-right: 10px;
+    min-width: 18px;
 }
 
 .main-dropdown > li > a {
     padding: 10px 20px;
+}
+
+.user-dropdown > li > a {
+    overflow: hidden;
+}
+
+.user-dropdown > li > a > i {
+    transform: translateY(4px);
 }
 
 .table-controls {

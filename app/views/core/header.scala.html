@@ -33,10 +33,20 @@ The main header displayed on each layout.
                             <img class="user-avatar" src="@Gravatar.getAvatar(email, 45)" />
                             <span class="caret"></span>
                         </a>
-                        <ul class="dropdown-menu" aria-label="dropdownMenu1">
-                            <li><a href="#">@session.get("username").get <i class="pull-right fa fa-user"></i></a></li>
+                        <ul class="user-dropdown dropdown-menu" aria-label="dropdownMenu1">
+                            <li>
+                                <a href="#">
+                                    <span class="pull-left">@session.get("username").get</span>
+                                    <i class="pull-right fa fa-user"></i>
+                                </a>
+                            </li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="@routes.Application.logOut">@messages("general.signout") <i class="pull-right fa fa-sign-out"></i></a></li>
+                            <li>
+                                <a href="@routes.Application.logOut">
+                                    <span class="pull-left">@messages("general.signout")</span>
+                                    <i class="pull-right fa fa-sign-out"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </ul>
