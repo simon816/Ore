@@ -260,7 +260,7 @@ object Storage {
   }
 
   def optChannel(projectId: Int, name: String): Future[Option[Channel]] = {
-    optOne[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId && c.name === name)
+    optOne[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId && c.name.toLowerCase === name.toLowerCase)
   }
 
   def optChannel(projectId: Int, colorId: Int): Future[Option[Channel]] = {

@@ -355,12 +355,25 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
               throw thrown
             }
             case Success(plugin) =>
-              // Cache version for later use
               val meta = plugin.getMeta.get
-              val version = Version.fromMeta(project, meta)
-              val channelName = Channel.getSuggestedNameForVersion(version.versionString)
-              Version.setPending(author, name, channelName, version, plugin)
-              Redirect(self.showVersionCreateWithMeta(author, name, channelName, version.versionString))
+              if (!meta.getId.equals(project.pluginId)) {
+                Redirect(self.showVersionCreate(author, name))
+                  .flashing("error" -> "The uploaded plugin ID must match your project's plugin ID.")
+              } else {
+                // Create version from meta file
+                val version = Version.fromMeta(project, meta)
+
+                // Get first channel for default
+                var channelName: String = null
+                Storage.now(project.getChannels) match {
+                  case Failure(thrown) => throw thrown
+                  case Success(channels) => channelName = channels.head.getName
+                }
+
+                // Cache for later use
+                Version.setPending(author, name, channelName, version, plugin)
+                Redirect(self.showVersionCreateWithMeta(author, name, channelName, version.versionString))
+              }
           }
         })
     })
@@ -425,30 +438,35 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     * @return               New version view
     */
   def createVersion(author: String, name: String, channelName: String, versionString: String) = {
-                    withUser(Some(author), user => implicit request =>
-    Version.getPending(author, name, channelName, versionString) match {
-      case None => BadRequest("No version to create.")
-      case Some(pendingVersion) =>
-        // Check for pending project
-        Project.getPending(author, name) match {
-          case None => pendingVersion.complete match {
-            case Failure(thrown) => throw thrown
-            case Success(void) =>
-              // No pending project, just create the version for the existing project
-              Redirect(self.showVersion(author, name, channelName, versionString))
+    withUser(Some(author), user => implicit request => {
+      Version.getPending(author, name, channelName, versionString) match {
+        case None => BadRequest("No version to create.")
+        case Some(pendingVersion) =>
+          // Gather form data
+          val form = Forms.ChannelEdit.bindFromRequest.get
+          pendingVersion.setChannelName(form._1)
+          println(pendingVersion.getChannelName)
+          ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
+            case None => BadRequest("Invalid channel color.")
+            case Some(color) => pendingVersion.setChannelColor(color)
           }
-          case Some(pendingProject) =>
-            // Found a pending project, create the project and it's first version
-            val form = Forms.ChannelNewProject.bindFromRequest.get
-            ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
-              case None => BadRequest("Invalid channel color.")
-              case Some(color) => pendingVersion.setChannelColor(color)
-            }
-            pendingVersion.setChannelName(form._1)
 
-            pendingProject.complete match {
-              case Failure(thrown) => throw thrown
-              case Success(void) => Redirect(self.show(author, name))
+          // Check for pending project
+          Project.getPending(author, name) match {
+            case None =>
+              pendingVersion.complete match {
+                case Failure(thrown) => throw thrown
+                case Success(void) =>
+                  // No pending project, just create the version for the existing project
+                  Redirect(self.showVersion(author, name, channelName, versionString))
+              }
+
+            case Some(pendingProject) =>
+              // Found a pending project, create the project and it's first version
+              pendingProject.complete match {
+                case Failure(thrown) => throw thrown
+                case Success(void) => Redirect(self.show(author, name))
+              }
           }
       }
     })
