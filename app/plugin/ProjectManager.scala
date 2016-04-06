@@ -2,6 +2,8 @@ package plugin
 
 import java.nio.file.{Files, Path}
 
+import com.google.common.base.Preconditions
+import com.google.common.base.Preconditions._
 import db.Storage
 import models.auth.User
 import models.project.Project.PendingProject
@@ -66,9 +68,9 @@ object ProjectManager {
     * @throws         IllegalArgumentException if the project already exists
     */
   def createProject(pending: PendingProject): Try[Project] = Try[Project] {
-    if (pending.project.exists) {
-      throw new IllegalArgumentException("Project already exists.")
-    }
+    checkArgument(!pending.project.exists, "project already exists", "")
+    val nameLen = pending.project.getName.length
+    checkArgument(nameLen >= 1 && nameLen <= Project.MAX_NAME_LENGTH, "invalid name", "")
     Storage.now(Storage.createProject(pending.project)) match {
       case Failure(thrown) =>
         pending.cancel()

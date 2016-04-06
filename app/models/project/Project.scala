@@ -8,6 +8,7 @@ import com.google.common.base.Preconditions._
 import db.Storage
 import models.auth.User
 import models.author.Dev
+import models.project.Project._
 import models.project.Categories.Category
 import models.project.ChannelColors.ChannelColor
 import models.project.Version.PendingVersion
@@ -88,7 +89,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @return       Future result
     */
   def setName(name: String): Future[Int] = {
-    // TODO: Validation
+    checkArgument(name.length >= 1 && name.length <= MAX_NAME_LENGTH, "invalid name", "")
     val f = Storage.updateProjectString(this, _.name, name)
     f.onSuccess {
       case i =>
@@ -356,6 +357,11 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
 }
 
 object Project {
+
+  /**
+    * The maximum length for a Project name.
+    */
+  val MAX_NAME_LENGTH: Int = 25
 
   /**
     * Represents a Project with an uploaded plugin that has not yet been
