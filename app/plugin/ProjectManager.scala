@@ -1,6 +1,5 @@
 package plugin
 
-import java.io.{File, FilenameFilter}
 import java.nio.file.{Files, Path}
 
 import db.Storage

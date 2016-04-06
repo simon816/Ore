@@ -129,7 +129,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @return       New channel
     */
   def newChannel(name: String, color: ChannelColor): Try[Channel] = Try {
-    // TODO: Validation
+    checkArgument(Channel.isValidName(name), "invalid name", "")
     Storage.now(getChannels) match {
       case Failure(thrown) => throw thrown
       case Success(channels) => if (channels.size >= Channel.MAX_AMOUNT) {

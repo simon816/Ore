@@ -207,6 +207,11 @@ form {
     margin-bottom: 15px;
 }
 
+.index-header .alert {
+    margin-top: 20px;
+    margin-bottom: 0;
+}
+
 .btn-create {
     margin-top: 15px;
 }

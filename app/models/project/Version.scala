@@ -191,7 +191,7 @@ object Version {
       free()
       return ProjectManager.createVersion(this)
     }
-
+    
     override def cancel() = {
       free()
       this.plugin.delete()

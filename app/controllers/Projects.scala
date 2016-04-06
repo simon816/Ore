@@ -53,6 +53,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
           } else {
             throw thrown
           }
+
           case Success(plugin) =>
             // Cache pending project for later use
             val meta = plugin.getMeta.get
@@ -404,11 +405,11 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
                                 withUser(Some(author), user => implicit request =>
     // Get pending version
     Version.getPending(author, name, channelName, versionString) match {
-      case None => Redirect(routes.Application.index(None))
+      case None => Redirect(self.showVersionCreate(author, name))
       case Some(pendingVersion) =>
         // Get project
         pendingOrReal(author, name) match {
-          case None => Redirect(routes.Application.index(None))
+          case None => Redirect(self.showVersionCreate(author, name))
           case Some(p) => p match {
             case pending: PendingProject =>
               Ok(views.projects.versions.create(
@@ -440,33 +441,85 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
   def createVersion(author: String, name: String, channelName: String, versionString: String) = {
     withUser(Some(author), user => implicit request => {
       Version.getPending(author, name, channelName, versionString) match {
-        case None => BadRequest("No version to create.")
+        case None => Redirect(self.showVersionCreate(author, name))
         case Some(pendingVersion) =>
           // Gather form data
           val form = Forms.ChannelEdit.bindFromRequest.get
-          pendingVersion.setChannelName(form._1)
-          println(pendingVersion.getChannelName)
+          val submittedName = form._1
+          pendingVersion.setChannelName(submittedName)
           ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
             case None => BadRequest("Invalid channel color.")
             case Some(color) => pendingVersion.setChannelColor(color)
           }
 
-          // Check for pending project
-          Project.getPending(author, name) match {
-            case None =>
-              pendingVersion.complete match {
-                case Failure(thrown) => throw thrown
-                case Success(void) =>
-                  // No pending project, just create the version for the existing project
-                  Redirect(self.showVersion(author, name, channelName, versionString))
-              }
+          // Validate channel name
+          if (!Channel.isValidName(submittedName)) {
+            Redirect(routes.Application.index(None))
+              .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
+          } else {
+            // Check for pending project
+            Project.getPending(author, name) match {
+              case None =>
+                // No pending project, just create the version for the existing project
+                withProject(author, name, project => {
+                  // Check if creating a new channel
+                  var existingChannel: Channel = null
+                  Storage.now(project.getChannel(submittedName)) match {
+                    case Failure(thrown) => throw thrown
+                    case Success(optChannel) => optChannel match {
+                      case Some(channel) => existingChannel = channel
+                      case None => ;
+                    }
+                  }
 
-            case Some(pendingProject) =>
-              // Found a pending project, create the project and it's first version
-              pendingProject.complete match {
-                case Failure(thrown) => throw thrown
-                case Success(void) => Redirect(self.show(author, name))
-              }
+                  // Check if color is available
+                  var colorTaken: Boolean = false
+                  if (existingChannel == null) {
+                    Storage.now(project.getChannel(pendingVersion.getChannelColor)) match {
+                      case Failure(thrown) => throw thrown
+                      case Success(channelOpt) => channelOpt match {
+                        case Some(channel) => colorTaken = true
+                        case None => ;
+                      }
+                    }
+                  }
+
+                  if (colorTaken) {
+                    pendingVersion.cache()
+                    Redirect(self.showVersionCreateWithMeta(author, name, channelName, versionString))
+                      .flashing("error" -> "A channel with that color already exists.")
+                  } else {
+                    // Check for existing version
+                    var existingVersion: Version = null
+                    if (existingChannel != null) {
+                      Storage.now(existingChannel.getVersion(versionString)) match {
+                        case Failure(thrown) => throw thrown
+                        case Success(versionOpt) => versionOpt match {
+                          case None => ;
+                          case Some(version) => existingVersion = version
+                        }
+                      }
+                    }
+
+                    if (existingVersion != null) {
+                      Redirect(self.showVersionCreateWithMeta(author, name, channelName, versionString))
+                        .flashing("error" -> "Version already exists.")
+                    } else {
+                      pendingVersion.complete match {
+                        case Failure(thrown) => throw thrown
+                        case Success(void) =>
+                          Redirect(self.showVersion(author, name, submittedName, versionString))
+                      }
+                    }
+                  }
+                })
+              case Some(pendingProject) =>
+                // Found a pending project, create the project and it's first version
+                pendingProject.complete match {
+                  case Failure(thrown) => throw thrown
+                  case Success(void) => Redirect(self.show(author, name))
+                }
+            }
           }
       }
     })
@@ -596,7 +649,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
             ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
               case None => BadRequest("Invalid channel color.")
               case Some(color) => channels.find(c => c.getColor.equals(color)) match {
-                case None => channels.find(c => c.getName.equals(channelName)) match {
+                case None => channels.find(c => c.getName.equalsIgnoreCase(channelName)) match {
                   case None => project.newChannel(channelName, color) match {
                     case Failure(thrown) => throw thrown
                     case Success(channel) => Redirect(self.showChannels(author, name))

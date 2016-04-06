@@ -23,16 +23,7 @@ $(function() {
     initChannelNew(DEFAULT_COLOR);
 
     getSelect().change(function() {
-        var selected = $(this).find(':selected');
-        setColorInput(selected.data('color'));
-        // Update form action
-        var form = getForm();
-        var action = form.attr('action');
-        var version = action.substr(action.lastIndexOf('/') + 1, action.length);
-        var actionBase = action.substr(0, action.lastIndexOf('/'));
-        actionBase = actionBase.substr(0, actionBase.lastIndexOf('/'));
-        var newAction = actionBase + '/' + selected.val() + '/' + version;
-        form.attr('action', newAction);
+        setColorInput($(this).find(':selected').data('color'));
     });
 
     onCustomSubmit = function(toggle, channelName, channelHex, title, submit) {
