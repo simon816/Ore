@@ -756,10 +756,16 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         } else {
           channels.find(c => c.getName.equals(channelName)) match {
             case None => NotFound
-            case Some(channel) => channel.delete(project) match {
-              case Failure(thrown) => throw thrown
-              case Success(void) => Redirect(self.showChannels(author, name))
-            }
+            case Some(channel) =>
+              if (!channel.isEmpty && channels.count(c => c.versionCount > 0) == 1) {
+                Redirect(self.showChannels(author, name))
+                  .flashing("error" -> "You cannot delete your only non-empty channel.")
+              } else {
+                channel.delete(project) match {
+                  case Failure(thrown) => throw thrown
+                  case Success(void) => Redirect(self.showChannels(author, name))
+                }
+              }
           }
         }
       }
