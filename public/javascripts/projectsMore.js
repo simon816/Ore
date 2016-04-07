@@ -34,7 +34,7 @@ $(function() {
                     );
                 }
                 currentlyLoaded += data.length;
-                $('.btn-more').html('More');
+                $('.btn-more').html('<strong>More</strong>');
             }
         });
     });
