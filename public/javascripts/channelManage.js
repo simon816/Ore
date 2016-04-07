@@ -1,3 +1,7 @@
+var BASE_URL = null;
+var PROJECT_OWNER = null;
+var PROJECT_NAME = null;
+
 function rgbToHex(rgb) {
     var parts = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
     delete(parts[0]);
@@ -23,6 +27,16 @@ var onCustomSubmit = function(toggle, channelName, channelHex, title, submit) {
     getModal().modal('hide');
     initChannelManager(toggle, channelName, channelHex, title, null, null, submit);
 };
+
+function initChannelDelete(toggle, channelName, versionCount) {
+    $(toggle).off('click');
+    $(toggle).click(function() {
+        var url = BASE_URL + '/' + PROJECT_OWNER + '/' + PROJECT_NAME + '/channels/' + channelName + '/delete';
+        var modal = $('#modal-delete');
+        modal.find('.modal-footer').find('a').attr('href', url);
+        modal.find('.version-count').text(versionCount);
+    });
+}
 
 function initChannelManager(toggle, channelName, channelHex, title, call, method, submit) {
     $(toggle).off('click'); // Unbind previous click handlers

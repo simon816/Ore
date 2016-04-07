@@ -12,7 +12,6 @@ object Gravatar {
     * Returns the "Gravatar" avatar for the specified email.
     *
     * @param email  Email to get avatar for
-    * @param size   Size of avatar to get
     * @return       Avatar of email, or default avatar if not found
     */
   def getAvatar(email: String): String = {
