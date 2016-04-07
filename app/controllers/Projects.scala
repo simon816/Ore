@@ -274,7 +274,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
               case None => NotFound("Version not found.")
               case Some(version) =>
                 val oldDesc = version.getDescription
-                val newDesc = Forms.VersionDescription.bindFromRequest.get.trim()
+                val newDesc = Forms.VersionDescription.bindFromRequest.get.trim
                 if ((oldDesc.isEmpty && !newDesc.isEmpty) || !oldDesc.get.equals(newDesc)) {
                   Storage.now(version.setDescription(newDesc)) match {
                     case Failure(thrown) => throw thrown
@@ -302,10 +302,10 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
       Storage.now(project.getChannels) match {
         case Failure(thrown) => throw thrown
         case Success(chans) =>
-          var channelNames = if (channels.isDefined) Some(channels.get.split(",")) else None
+          var channelNames = if (channels.isDefined) Some(channels.get.toLowerCase.split(",")) else None
           var visibleChannels = chans
           if (channelNames.isDefined) {
-            visibleChannels = chans.filter(c => channelNames.get.contains(c.getName))
+            visibleChannels = chans.filter(c => channelNames.get.contains(c.getName.toLowerCase))
           }
 
           // Don't pass "visible channels" if all channels are visible
@@ -450,7 +450,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         case Some(pendingVersion) =>
           // Gather form data
           val form = Forms.ChannelEdit.bindFromRequest.get
-          val submittedName = form._1
+          val submittedName = form._1.trim
           pendingVersion.setChannelName(submittedName)
           ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
             case None => BadRequest("Invalid channel color.")
@@ -645,7 +645,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
             .flashing("error" -> "A project may only have up to five channels.")
         } else {
           val form = Forms.ChannelEdit.bindFromRequest.get
-          val channelName = form._1
+          val channelName = form._1.trim
           if (!Channel.isValidName(channelName)) {
             Redirect(self.showChannels(author, slug))
               .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
@@ -691,7 +691,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
         case Failure(thrown) => throw thrown
         case Success(channels) =>
           val form = Forms.ChannelEdit.bindFromRequest.get
-          val newName = form._1
+          val newName = form._1.trim
           if (!Channel.isValidName(newName)) {
             Redirect(self.showChannels(author, slug))
               .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
@@ -808,7 +808,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def rename(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
-      val newName = Forms.ProjectRename.bindFromRequest.get
+      val newName = Forms.ProjectRename.bindFromRequest.get.trim
       if (!Project.isNamespaceAvailable(author, Project.slugify(newName))) {
         Redirect(self.showManager(author, slug)).flashing("error" -> "That name is not available.")
       } else {
