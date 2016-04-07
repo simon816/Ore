@@ -6,7 +6,6 @@ var currentlyLoaded = 0;
 
 $(function() {
     $('.btn-more').click(function() {
-        console.log(BASE_URL + '/api/projects?limit=' + PROJECTS_PER_CLICK + '&offset=' + currentlyLoaded);
         var ajaxUrl = BASE_URL + '/api/projects?limit=' + PROJECTS_PER_CLICK + '&offset=' + currentlyLoaded;
         if (CATEGORY_STRING) {
             ajaxUrl += '&categories=' + CATEGORY_STRING;
@@ -16,7 +15,6 @@ $(function() {
             url: ajaxUrl,
             dataType: 'json',
             success: function(data) {
-                console.log(data);
                 for (var i in data) {
                     if (!data.hasOwnProperty(i)) {
                         continue;
