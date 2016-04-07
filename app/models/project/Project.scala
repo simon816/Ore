@@ -21,7 +21,7 @@ import util.{Cacheable, PendingAction}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Promise, Future}
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -47,15 +47,16 @@ import scala.util.{Failure, Success, Try}
   * @param starred                How many times this project has been starred
   */
 case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pluginId: String,
-                   private var name: String, owner: String, authors: List[String],
-                   homepage: Option[String], private var recommendedVersionId: Option[Int],
-                   private var categoryId: Int = -1, private var views: Int, private var downloads: Int,
-                   private var starred: Int) {
+                   private var name: String, private var slug: String, owner: String,
+                   authors: List[String], homepage: Option[String],
+                   private var recommendedVersionId: Option[Int],
+                   private var categoryId: Int = -1, private var views: Int,
+                   private var downloads: Int, private var starred: Int) {
 
   private lazy val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
 
   def this(pluginId: String, name: String, owner: String, authors: List[String], homepage: String) = {
-    this(None, None, pluginId, name, owner, authors, Option(homepage), None, 0, 0, 0, 0)
+    this(None, None, pluginId, name, slugify(name), owner, authors, Option(homepage), None, 0, 0, 0, 0)
   }
 
   def getOwner: Dev = Dev(owner) // TODO: Teams
@@ -83,20 +84,34 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
   def getName: String = this.name
 
   /**
+    * Returns this Project's URL slug.
+    *
+    * @return URL slug
+    */
+  def getSlug: String = this.slug
+
+  /**
     * Sets the name of this project and performs all the necessary renames.
     *
     * @param name   New name
     * @return       Future result
     */
-  def setName(name: String): Future[Int] = {
-    checkArgument(name.length >= 1 && name.length <= MAX_NAME_LENGTH, "invalid name", "")
-    val f = Storage.updateProjectString(this, _.name, name)
-    f.onSuccess {
-      case i =>
+  def setName(name: String) = {
+    checkArgument(Project.isNamespaceAvailable(this.owner, name), "slug not available", "")
+    checkArgument(isValidName(name), "invalid name", "")
+    Storage.now(Storage.updateProjectString(this, _.name, name)) match {
+      case Failure(thrown) => throw thrown
+      case Success(i) =>
         ProjectManager.renameProject(this.owner, this.name, name)
         this.name = name
+        println("name set")
+        Storage.now(Storage.updateProjectString(this, _.slug, slugify(this))) match {
+          case Failure(thrown) => throw thrown
+          case Success(j) =>
+            println("slug set")
+            this.slug = slugify(this)
+        }
     }
-    f
   }
 
   /**
@@ -326,6 +341,13 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
   }
 
   /**
+    * Returns true if the Project's desired slug is available.
+    *
+    * @return True if slug is available
+    */
+  def isNamespaceAvailable: Boolean = Project.isNamespaceAvailable(this.owner, this.slug)
+
+  /**
     * Immediately deletes this projects and any associated files.
     *
     * @return Result
@@ -382,7 +404,7 @@ object Project {
     def initFirstVersion: PendingVersion = {
       val meta = this.firstVersion.getMeta.get
       val version = Version.fromMeta(this.project, meta)
-      val pending = Version.setPending(project.owner, project.name,
+      val pending = Version.setPending(project.owner, project.slug,
         Channel.getSuggestedNameForVersion(version.versionString), version, this.firstVersion)
       this.pendingVersion = Some(pending)
       pending
@@ -416,9 +438,39 @@ object Project {
       }
     }
 
-    override def getKey: String = this.project.owner + '/' + this.project.name
+    override def getKey: String = this.project.owner + '/' + this.project.slug
 
   }
+
+  /**
+    * Returns a URL slug that should be used for the project.
+    *
+    * @return URL slug
+    */
+  def slugify(project: Project): String = slugify(project.getName)
+
+  /**
+    * Returns true if the Project's desired slug is available.
+    *
+    * @return True if slug is available
+    */
+  def isNamespaceAvailable(owner: String, slug: String): Boolean = {
+    Storage.now(Storage.optProjectOfSlug(owner, slug)) match {
+      case Failure(thrown) => throw thrown
+      case Success(optProject) => optProject.isEmpty
+    }
+  }
+
+  def isValidName(name: String): Boolean = {
+    name.length >= 1 && name.length <= MAX_NAME_LENGTH
+  }
+
+  /**
+    * Returns a URL slug that should be used for the project.
+    *
+    * @return URL slug
+    */
+  def slugify(name: String) = name.replace(' ', '-')
 
   /**
     * Marks the specified Project as pending for later use.
@@ -434,11 +486,11 @@ object Project {
     * Returns the PendingProject of the specified owner and name, if any.
     *
     * @param owner  Project owner
-    * @param name   Project name
+    * @param slug   Project slug
     * @return       PendingProject if present, None otherwise
     */
-  def getPending(owner: String, name: String): Option[PendingProject] = {
-    Cache.getAs[PendingProject](owner + '/' + name)
+  def getPending(owner: String, slug: String): Option[PendingProject] = {
+    Cache.getAs[PendingProject](owner + '/' + slug)
   }
 
   /**

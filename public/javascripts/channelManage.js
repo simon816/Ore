@@ -1,6 +1,6 @@
 var BASE_URL = null;
 var PROJECT_OWNER = null;
-var PROJECT_NAME = null;
+var PROJECT_SLUG = null;
 
 function rgbToHex(rgb) {
     var parts = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
@@ -31,7 +31,7 @@ var onCustomSubmit = function(toggle, channelName, channelHex, title, submit) {
 function initChannelDelete(toggle, channelName, versionCount) {
     $(toggle).off('click');
     $(toggle).click(function() {
-        var url = BASE_URL + '/' + PROJECT_OWNER + '/' + PROJECT_NAME + '/channels/' + channelName + '/delete';
+        var url = BASE_URL + '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/channels/' + channelName + '/delete';
         var modal = $('#modal-delete');
         modal.find('.modal-footer').find('a').attr('href', url);
         modal.find('.version-count').text(versionCount);

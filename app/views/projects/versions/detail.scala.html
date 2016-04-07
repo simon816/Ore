@@ -25,14 +25,14 @@
                                disabled data-toggle="tooltip" data-placement="top"
                                title="Every project must have at least one version"
                            } else {
-                               href="@routes.Projects.deleteVersion(project.owner, project.getName, channel.getName, version.versionString)"
+                               href="@routes.Projects.deleteVersion(project.owner, project.getSlug, channel.getName, version.versionString)"
                            }
                         >
                             Delete
                         </a>
                     }
                     <a class="btn btn-primary"
-                       href="@routes.Projects.downloadVersion(project.owner, project.getName, channel.getName, version.versionString)">
+                       href="@routes.Projects.downloadVersion(project.owner, project.getSlug, channel.getName, version.versionString)">
                         Download
                     </a>
                 </div>
@@ -73,7 +73,7 @@
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane active" id="edit">
                         @form(action = routes.Projects.saveVersionDescription(
-                            project.owner, project.getName, channel.getName, version.versionString), 'id -> "form-save") {
+                            project.owner, project.getSlug, channel.getName, version.versionString), 'id -> "form-save") {
                             <textarea id="version-editor"
                                       name="description"
                                       class="form-control"
@@ -95,7 +95,7 @@
                             <li class="list-group-item">
                                 @defining(depend.getProject) { project =>
                                     @if(project.isDefined) {
-                                        <a href="@routes.Projects.show(project.get.owner, project.get.getName)">
+                                        <a href="@routes.Projects.show(project.get.owner, project.get.getSlug)">
                                             <strong>@project.get.getName</strong>
                                         </a>
                                     } else {

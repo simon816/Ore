@@ -71,7 +71,7 @@ Collection of all projects.
                                   <td><i title="@category.title" class="fa @category.icon"></i></td>
                                 }
                                 <td class="" colspan="1">
-                                    <strong><a class="" href="@routes.Projects.show(project.owner, project.getName)">@project.getName</a></strong>
+                                    <strong><a class="" href="@routes.Projects.show(project.owner, project.getSlug)">@project.getName</a></strong>
                                 </td>
                                 <td><a href="#">@project.owner</a></td>
                                 <td class="minor">@project.getViews</td>

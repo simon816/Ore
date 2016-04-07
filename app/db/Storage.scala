@@ -193,6 +193,14 @@ object Storage {
     getOne[ProjectTable, Project](classOf[Project], p => p.name === name && p.ownerName === owner)
   }
 
+  def getProjectBySlug(owner: String, slug: String): Future[Project] = {
+    getOne[ProjectTable, Project](classOf[Project], p => p.ownerName === owner && p.slug.toLowerCase === slug.toLowerCase)
+  }
+
+  def optProjectOfSlug(owner: String, slug: String): Future[Option[Project]] = {
+    optOne[ProjectTable, Project](classOf[Project], p => p.ownerName === owner && p.slug.toLowerCase === slug.toLowerCase)
+  }
+
   def getProject(id: Int): Future[Project] = getOne[ProjectTable, Project](classOf[Project], p => p.id === id)
 
   def createProject(project: Project): Future[Project] = {
