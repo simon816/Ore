@@ -56,7 +56,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
   private lazy val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
 
   def this(pluginId: String, name: String, owner: String, authors: List[String], homepage: String) = {
-    this(None, None, pluginId, name, slugify(name), owner, authors, Option(homepage), None, 0, 0, 0, 0)
+    this(None, None, pluginId, sanitizeName(name), slugify(name), owner, authors, Option(homepage), None, 0, 0, 0, 0)
   }
 
   def getOwner: Dev = Dev(owner) // TODO: Teams
@@ -97,18 +97,17 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @return       Future result
     */
   def setName(name: String) = {
-    checkArgument(Project.isNamespaceAvailable(this.owner, name), "slug not available", "")
-    checkArgument(isValidName(name), "invalid name", "")
-    Storage.now(Storage.updateProjectString(this, _.name, name)) match {
+    val newName = sanitizeName(name)
+    checkArgument(Project.isNamespaceAvailable(this.owner, newName), "slug not available", "")
+    checkArgument(isValidName(newName), "invalid name", "")
+    Storage.now(Storage.updateProjectString(this, _.name, newName)) match {
       case Failure(thrown) => throw thrown
       case Success(i) =>
-        ProjectManager.renameProject(this.owner, this.name, name)
-        this.name = name
-        println("name set")
+        ProjectManager.renameProject(this.owner, this.name, newName)
+        this.name = newName
         Storage.now(Storage.updateProjectString(this, _.slug, slugify(this))) match {
           case Failure(thrown) => throw thrown
           case Success(j) =>
-            println("slug set")
             this.slug = slugify(this)
         }
     }
@@ -443,13 +442,6 @@ object Project {
   }
 
   /**
-    * Returns a URL slug that should be used for the project.
-    *
-    * @return URL slug
-    */
-  def slugify(project: Project): String = slugify(project.getName)
-
-  /**
     * Returns true if the Project's desired slug is available.
     *
     * @return True if slug is available
@@ -462,15 +454,25 @@ object Project {
   }
 
   def isValidName(name: String): Boolean = {
-    name.length >= 1 && name.length <= MAX_NAME_LENGTH
+    val sanitized = sanitizeName(name)
+    sanitized.length >= 1 && sanitized.length <= MAX_NAME_LENGTH
   }
+
+  def sanitizeName(name: String): String = name.trim.replaceAll(" +", " ")
 
   /**
     * Returns a URL slug that should be used for the project.
     *
     * @return URL slug
     */
-  def slugify(name: String) = name.replace(' ', '-')
+  def slugify(project: Project): String = slugify(project.getName)
+
+  /**
+    * Returns a URL slug that should be used for the project.
+    *
+    * @return URL slug
+    */
+  def slugify(name: String) = sanitizeName(name).replace(' ', '-')
 
   /**
     * Marks the specified Project as pending for later use.

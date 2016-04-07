@@ -808,7 +808,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends Controll
     */
   def rename(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
-      val newName = Forms.ProjectRename.bindFromRequest.get.trim
+      val newName = Project.sanitizeName(Forms.ProjectRename.bindFromRequest.get)
       if (!Project.isNamespaceAvailable(author, Project.slugify(newName))) {
         Redirect(self.showManager(author, slug)).flashing("error" -> "That name is not available.")
       } else {
