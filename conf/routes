@@ -3,8 +3,8 @@
 # ~~~~
 
 # RESTful API
-GET     /api/projects                                           @controllers.Api.listProjects(version = "v1")
-GET     /api/:version/projects                                  @controllers.Api.listProjects(version)
+GET     /api/projects                                           @controllers.Api.listProjects(version = "v1", categories: Option[String], limit:Option[Int], offset: Option[Int])
+GET     /api/:version/projects                                  @controllers.Api.listProjects(version, categories: Option[String], limit:Option[Int], offset: Option[Int])
 
 GET     /api/project                                            @controllers.Api.getProject(version = "v1", pluginId: Option[String])
 GET     /api/:version/project                                   @controllers.Api.getProject(version, pluginId: Option[String])

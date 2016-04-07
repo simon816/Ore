@@ -216,6 +216,10 @@ form {
     margin-top: 15px;
 }
 
+.btn-more {
+    width: 100%;
+}
+
 .plugin-meta-table {
     border-collapse: separate;
     border-spacing: 10px;

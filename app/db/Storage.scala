@@ -93,6 +93,11 @@ object Storage {
     this.config.db.run(query.result)
   }
 
+  private def getN[T <: Table[M], M](clazz: Class[_], n: Int): Future[Seq[M]] = {
+    val query = q[T](clazz).take(n)
+    this.config.db.run(query.result)
+  }
+
   private def optOne[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]): Future[Option[M]] = {
     val p = Promise[Option[M]]
     filter[T, M](clazz, predicate).onComplete {
@@ -153,13 +158,20 @@ object Storage {
 
   // Project queries
 
-  def getProjects: Future[Seq[Project]] = getAll[ProjectTable, Project](classOf[Project])
-
-  def getProjects(categories: Array[Int]): Future[Seq[Project]] = {
-    val query = for {
-      project <- q[ProjectTable](classOf[Project])
-      if project.categoryId inSetBind categories
-    } yield project
+  def getProjects(categories: Array[Int] = null, limit: Int = -1, offset: Int = -1): Future[Seq[Project]] = {
+    var query: Query[ProjectTable, Project, Seq] = q[ProjectTable](classOf[Project])
+    if (categories != null) {
+      query = for {
+        project <- query
+        if project.categoryId inSetBind categories
+      } yield project
+    }
+    if (offset > -1) {
+      query = query.drop(offset)
+    }
+    if (limit > -1) {
+      query = query.take(limit)
+    }
     this.config.db.run(query.result)
   }
 

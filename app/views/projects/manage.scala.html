@@ -19,7 +19,8 @@
 
                         <label for="name">Project name</label>
                         <div class="form-inline form-rename">
-                            <input form="rename" id="name" name="name" class="form-control" type="text" value="@project.getName" maxlength="25">
+                            <input form="rename" id="name" name="name" class="form-control" type="text" value="@project.getName"
+                                   maxlength="@Project.MAX_NAME_LENGTH">
                             <button id="btn-rename" data-toggle="modal" data-target="#modal-rename" class="btn btn-warning" disabled>
                                 @messages("project.rename")
                             </button>

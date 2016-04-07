@@ -3,8 +3,18 @@ Collection of all projects.
 *@
 @import models.project.Categories.Category
 @import models.project.{Categories, Project}
+@import play.api.Play
 @(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages,
         session: Session, flash: Flash)
+
+<script type="text/javascript" src="@routes.Assets.at("javascripts/projectsMore.js")"></script>
+<script>
+    @if(visibleCategories.isDefined) {
+      CATEGORY_STRING = "@visibleCategories.get.map(_.id).mkString(",")";
+    }
+    BASE_URL = '@Play.current.configuration.getString("application.baseUrl")';
+    currentlyLoaded = @models.size;
+</script>
 
 <div class="container">
     <div class="row index-header">
@@ -71,6 +81,7 @@ Collection of all projects.
                         }
                     </tbody>
                 </table>
+                <button class="btn btn-default btn-more">More</button>
             </div>
         </div>
 
