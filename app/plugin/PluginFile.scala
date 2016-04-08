@@ -13,52 +13,52 @@ import scala.util.control.Breaks._
 /**
   * Represents an uploaded plugin file.
   *
-  * @param path Path to uploaded file
+  * @param _path Path to uploaded file
   */
-class PluginFile(private var path: Path, private val owner: User) {
+class PluginFile(private var _path: Path, private val _owner: User) {
 
   private val META_FILE_NAME = "mcmod.info"
 
-  private var meta: Option[PluginMetadata] = None
+  private var _meta: Option[PluginMetadata] = None
 
   /**
     * Returns the actual file path associated with this plugin.
     *
     * @return Path of plugin file
     */
-  def getPath: Path = this.path
+  def path: Path = this._path
 
   /**
     * Deletes the File at this PluginFile's Path
     */
-  def delete() = Files.delete(this.path)
+  def delete() = Files.delete(this._path)
 
   /**
     * Returns the owner of this file.
     *
     * @return Owner of file
     */
-  def getOwner: User = this.owner
+  def owner: User = this._owner
 
   /**
     * Returns the loaded PluginMetadata, if any.
     *
     * @return PluginMetadata if present, None otherwise
     */
-  def getMeta: Option[PluginMetadata] = this.meta
+  def meta: Option[PluginMetadata] = this._meta
 
   def isZipped: Boolean = {
-    this.path.toString.endsWith(".zip")
+    this._path.toString.endsWith(".zip")
   }
 
   def zip: Path = {
-    val path = this.path.toString
+    val path = this._path.toString
     val zipPath = path.substring(0, path.lastIndexOf('.')) + ".zip"
     val out = new ZipOutputStream(new FileOutputStream(zipPath))
-    val entry = new ZipEntry(this.path.getFileName.toString)
+    val entry = new ZipEntry(this._path.getFileName.toString)
     out.putNextEntry(entry)
 
-    val in = new FileInputStream(this.path.toString)
+    val in = new FileInputStream(this._path.toString)
     var len: Int = 0
     val buffer: Array[Byte] = new Array[Byte](4096)
     while ({ len = in.read(buffer); len } > 0) {
@@ -68,8 +68,8 @@ class PluginFile(private var path: Path, private val owner: User) {
     in.close()
     out.close()
 
-    this.path = Paths.get(zipPath)
-    this.path
+    this._path = Paths.get(zipPath)
+    this._path
   }
 
   /**
@@ -80,9 +80,9 @@ class PluginFile(private var path: Path, private val owner: User) {
   def loadMeta: PluginMetadata = {
     // Try to read ZIP first
     var zip: ZipFile = null
-    if (this.path.toString.endsWith(".zip")) {
+    if (this._path.toString.endsWith(".zip")) {
       try {
-        zip = new ZipFile(this.path.toFile)
+        zip = new ZipFile(this._path.toFile)
       } catch {
         case ignored: IOException => ;
       }
@@ -109,7 +109,7 @@ class PluginFile(private var path: Path, private val owner: User) {
         }
         jarIn = new JarInputStream(zip.getInputStream(pluginEntry))
       } else {
-        jarIn = new JarInputStream(Files.newInputStream(this.path))
+        jarIn = new JarInputStream(Files.newInputStream(this._path))
       }
     } catch {
       case ioe: IOException => throw new InvalidPluginFileException(cause = ioe)
@@ -138,7 +138,7 @@ class PluginFile(private var path: Path, private val owner: User) {
 
     // Parse plugin meta info
     val meta = metaList.get(0)
-    this.meta = Some(meta)
+    this._meta = Some(meta)
     meta
   }
 

@@ -5,38 +5,38 @@ Base template for Project overview.
 @import play.api.Play
 @(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session)
 
-@core.layout(project.owner + " / " + project.getName) {
+@core.layout(project.ownerName + " / " + project.name) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/projectDetail.js")"></script>
 
     <div class="project-header-container">
         <div class="container">
             <h1 class="project-header pull-left">
-                <a href="#">@project.owner</a>
-                / <strong><a href="@routes.Projects.show(project.owner, project.getSlug)">@project.getName</a></strong>
+                <a href="#">@project.ownerName</a>
+                / <strong><a href="@routes.Projects.show(project.ownerName, project.slug)">@project.name</a></strong>
             </h1>
 
             <div class="navbar navbar-default project-navbar pull-left">
                 <div class="navbar-inner">
                     <ul class="nav navbar-nav">
                         <li id="docs" class="">
-                            <a href="@routes.Projects.show(project.owner, project.getSlug)">
+                            <a href="@routes.Projects.show(project.ownerName, project.slug)">
                                 <i class="fa fa-book"></i> @messages("project.docs")</a>
                         </li>
                         <li id="versions" class="">
-                            <a href="@routes.Projects.showVersions(project.owner, project.getSlug, None)">
+                            <a href="@routes.Projects.showVersions(project.ownerName, project.slug, None)">
                                 <i class="fa fa-download"></i> @messages("project.versions")
                             </a>
                         </li>
                         <li id="discussion" class="">
-                            <a href="@routes.Projects.showDiscussion(project.owner, project.getSlug)">
+                            <a href="@routes.Projects.showDiscussion(project.ownerName, project.slug)">
                                 <i class="fa fa-users"></i> @messages("project.discuss")
                             </a>
                         </li>
-                        @if(session.get("username").isDefined && session.get("username").get.equals(project.owner)) {
+                        @if(session.get("username").isDefined && session.get("username").get.equals(project.ownerName)) {
                             @* Show manager if permitted *@
                             <li id="settings" class="">
-                                <a href="@routes.Projects.showManager(project.owner, project.getSlug)">
+                                <a href="@routes.Projects.showManager(project.ownerName, project.slug)">
                                     <i class="fa fa-cog"></i> @messages("project.settings")
                                 </a>
                             </li>
@@ -60,22 +60,22 @@ Base template for Project overview.
                                 class="fa fa-star"
                             } else {
                                 class="fa fa-star-o" }></i>
-                            <span class="starred"> @project.getStars</span>
+                            <span class="starred"> @project.stars</span>
                         </button>
                         <script>
                                 var baseUrl = "@Play.current.configuration.getString("application.baseUrl")";
-                                var projectOwner = "@project.owner";
-                                var projectSlug = "@project.getSlug";
+                                var projectOwner = "@project.ownerName";
+                                var projectSlug = "@project.slug";
                                 var alreadyStarred = @alreadyStarred;
                         </script>
                     }
                 }
-                @if(session.get("username").isEmpty || !session.get("username").get.equals(project.owner)) {
+                @if(session.get("username").isEmpty || !session.get("username").get.equals(project.ownerName)) {
                     <button class="btn btn-default">
                         <i class="fa fa-flag"></i> @messages("project.flag")
                     </button>
                 }
-                <a href="@routes.Projects.downloadRecommendedVersion(project.owner, project.getSlug)"
+                <a href="@routes.Projects.downloadRecommendedVersion(project.ownerName, project.slug)"
                    title="Download the latest recommended version" data-toggle="tooltip"
                    data-placement="bottom" class="btn btn-primary">
                     <i class="fa fa-download"></i> @messages("project.download")

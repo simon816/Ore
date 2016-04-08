@@ -39,6 +39,18 @@ CREATE TABLE starred_projects (
   PRIMARY KEY (user_id, project_id)
 );
 
+CREATE TABLE pages (
+  id            serial        NOT NULL PRIMARY KEY,
+  created_at    timestamp     NOT NULL,
+  project_id    bigint        NOT NULL REFERENCES projects ON DELETE CASCADE,
+  name          varchar(255)  NOT NULL,
+  slug          varchar(255)  NOT NULL,
+  contents      text          NOT NULL DEFAULT '',
+  is_deletable  boolean       NOT NULL DEFAULT true,
+  UNIQUE (project_id, name),
+  UNIQUE (project_id, slug)
+);
+
 CREATE TABLE channels (
   id          serial        NOT NULL PRIMARY KEY,
   created_at  timestamp     NOT NULL,

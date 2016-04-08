@@ -1,9 +1,6 @@
 package models.author
 
-import db.Storage
 import models.auth.User
-
-import scala.util.{Failure, Success}
 
 /**
   * Represents a single developer on a project. A developer is not necessarily
@@ -18,11 +15,6 @@ case class Dev(override val name: String) extends AbstractAuthor {
     *
     * @return User if present, None otherwise
     */
-  def getUser: Option[User] = {
-    Storage.now(Storage.optUser(name)) match {
-      case Failure(thrown) => throw thrown
-      case Success(userOpt) => userOpt
-    }
-  }
+  def user: Option[User] = User.withName(this.name)
 
 }

@@ -1,10 +1,7 @@
 package models.author
 
 import com.google.common.base.MoreObjects
-import db.Storage
 import models.project.Project
-
-import scala.concurrent.Future
 
 /**
   * Represents an author of a Project. Authors can be either a Team or Dev.
@@ -22,14 +19,14 @@ abstract class AbstractAuthor extends Author {
     * @param name   Name of project
     * @return       Owned project, if any, None otherwise
     */
-  def getProject(name: String): Future[Option[Project]] = Storage.optProject(this.name, name)
+  def project(name: String): Option[Project] = Project.withName(this.name, name)
 
   /**
     * Returns all Projects owned by this Author.
     *
     * @return All projects owned by Author
     */
-  def getProjects: Future[Seq[Project]] = Storage.getProjectsBy(this.name)
+  def projects: Seq[Project] = Project.by(this.name)
 
   override def toString: String = MoreObjects.toStringHelper(this).add("name", this.name).toString
 

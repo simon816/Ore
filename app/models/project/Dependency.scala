@@ -1,9 +1,5 @@
 package models.project
 
-import db.Storage
-
-import scala.util.{Failure, Success}
-
 /**
   * Represents a dependency to another plugin. Either on or not on Ore.
   *
@@ -17,9 +13,6 @@ case class Dependency(pluginId: String, version: String) {
     *
     * @return Project if dependency is on Ore, empty otherwise.
     */
-  def getProject: Option[Project] = Storage.now(Storage.optProject(this.pluginId)) match {
-    case Failure(thrown) => throw thrown
-    case Success(projectOpt) => projectOpt
-  }
+  def project: Option[Project] = Project.withPluginId(this.pluginId)
 
 }

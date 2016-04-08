@@ -1,11 +1,8 @@
 package controllers
 
 import controllers.Secured.Context
-import db.Storage
 import models.auth.{FakeUser, User}
 import play.api.mvc._
-
-import scala.util.{Failure, Success}
 
 /**
   * Represents a controller with user authentication / authorization.
@@ -43,10 +40,7 @@ trait Secured {
     } else if (FakeUser.ENABLED) {
       f(FakeUser)(request)
     } else {
-      Storage.now(Storage.getUser(context.username)) match {
-        case Failure(thrown) => throw thrown
-        case Success(user) => f(user)(request)
-      }
+      f(User.withName(context.username).get)(request)
     }
   }
 

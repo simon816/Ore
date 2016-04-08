@@ -13,20 +13,20 @@ trait Cacheable {
     *
     * @return Key
     */
-  def getKey: String
+  def key: String
 
   /**
     * Caches this.
     */
   def cache() = {
-    Cache.set(getKey, this)
+    Cache.set(this.key, this)
   }
 
   /**
     * Removes this from the Cache.
     */
   def free() = {
-    Cache.remove(getKey)
+    Cache.remove(this.key)
   }
 
 }

@@ -1,6 +1,6 @@
 @import models.project.{Channel, Project, Version}
 @import views.html.helper.form
-@import plugin.Pages
+@import models.project.Page
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages, session: Session)
 
 @projects.detail(project, "#versions") {
@@ -13,26 +13,26 @@
             <div class="col-md-12 version-header">
                 <div class="clearfix">
                     <h1 class="pull-left">@version.versionString</h1>
-                    <span class="channel channel-head" style="background-color: @channel.getColor.hex;">@channel.getName</span>
+                    <span class="channel channel-head" style="background-color: @channel.color.hex;">@channel.name</span>
                 </div>
                 <p class="date pull-left">
-                    <a href="#"><strong>@project.owner</strong></a> released this version on @version.prettyDate
+                    <a href="#"><strong>@project.ownerName</strong></a> released this version on @version.prettyDate
                 </p>
                 <div class="pull-right version-buttons">
-                    @if(session.get("username").isDefined && session.get("username").get.equals(project.owner)) {
+                    @if(session.get("username").isDefined && session.get("username").get.equals(project.ownerName)) {
                         <a class="btn btn-danger"
-                           @if(project.getVersions.size == 1) {
+                           @if(project.versions.size == 1) {
                                disabled data-toggle="tooltip" data-placement="top"
                                title="Every project must have at least one version"
                            } else {
-                               href="@routes.Projects.deleteVersion(project.owner, project.getSlug, channel.getName, version.versionString)"
+                               href="@routes.Projects.deleteVersion(project.ownerName, project.slug, channel.name, version.versionString)"
                            }
                         >
                             Delete
                         </a>
                     }
                     <a class="btn btn-primary"
-                       href="@routes.Projects.downloadVersion(project.owner, project.getSlug, channel.getName, version.versionString)">
+                       href="@routes.Projects.downloadVersion(project.ownerName, project.slug, channel.name, version.versionString)">
                         Download
                     </a>
                 </div>
@@ -42,15 +42,15 @@
             <div id="description" class="col-md-8"></div>
 
             <div id="description-view" style="display: none;">
-                @if(session.get("username").isDefined && session.get("username").get.equals(project.owner)) {
+                @if(session.get("username").isDefined && session.get("username").get.equals(project.ownerName)) {
                     <a href="#" id="description-edit" class="pull-right btn btn-default">
                         <i class="fa fa-edit"></i> Edit
                     </a>
                 }
-                @if(version.getDescription.isEmpty) {
+                @if(version.description.isEmpty) {
                     <p class="minor"><i>No description given.</i></p>
                 } else {
-                    <p>@Html(Pages.MD.markdownToHtml(version.getDescription.get))</p>
+                    <p>@Html(Page.MD.markdownToHtml(version.description.get))</p>
                 }
             </div>
 
@@ -73,12 +73,12 @@
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane active" id="edit">
                         @form(action = routes.Projects.saveVersionDescription(
-                            project.owner, project.getSlug, channel.getName, version.versionString), 'id -> "form-save") {
+                            project.ownerName, project.slug, channel.name, version.versionString), 'id -> "form-save") {
                             <textarea id="version-editor"
                                       name="description"
                                       class="form-control"
                                       rows="20"
-                                      style="width: 100% ;">@version.getDescription.getOrElse("")</textarea>
+                                      style="width: 100% ;">@version.description.getOrElse("")</textarea>
                         }
                         </div>
                         <div role="tabpanel" class="tab-pane version-preview" id="preview"></div>
@@ -86,17 +86,17 @@
                 </div>
             </div>
 
-            @if(version.getDependencies.nonEmpty) {
+            @if(version.dependencies.nonEmpty) {
                 <div class="col-md-4">
                     <div class="panel panel-default">
                         <div class="panel-heading"><h3 class="panel-title">Dependencies</h3></div>
                         <ul class="list-group">
-                        @version.getDependencies.map { depend =>
+                        @version.dependencies.map { depend =>
                             <li class="list-group-item">
-                                @defining(depend.getProject) { project =>
+                                @defining(depend.project) { project =>
                                     @if(project.isDefined) {
-                                        <a href="@routes.Projects.show(project.get.owner, project.get.getSlug)">
-                                            <strong>@project.get.getName</strong>
+                                        <a href="@routes.Projects.show(project.get.ownerName, project.get.slug)">
+                                            <strong>@project.get.name</strong>
                                         </a>
                                     } else {
                                         <div class="minor">

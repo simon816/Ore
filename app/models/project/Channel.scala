@@ -2,9 +2,11 @@ package models.project
 
 import java.nio.file.Files
 import java.sql.Timestamp
+import java.util.Date
 
 import com.google.common.base.Preconditions._
 import db.Storage
+import db.Storage.now
 import models.project.Channel._
 import models.project.ChannelColors.ChannelColor
 import org.apache.commons.io.FileUtils
@@ -12,9 +14,7 @@ import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
 import plugin.ProjectManager
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 /**
   * Represents a release channel for Project Versions. Each project gets it's
@@ -22,41 +22,50 @@ import scala.util.{Failure, Success, Try}
   *
   * TODO: Max channels per-project
   *
-  * @param id         Unique identifier
-  * @param createdAt  Instant of creation
-  * @param name       Name of channel
-  * @param colorId    ID of ChannelColor used to represent this Channel
-  * @param projectId  ID of project this channel belongs to
+  * @param id           Unique identifier
+  * @param _createdAt   Instant of creation
+  * @param _name         Name of channel
+  * @param colorId      ID of ChannelColor used to represent this Channel
+  * @param projectId    ID of project this channel belongs to
   */
-case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private var name: String,
-                   private var colorId: Int, projectId: Int) extends Ordered[Channel] {
+case class Channel(id: Option[Int], private var _createdAt: Option[Timestamp],
+                   private var _name: String, private var colorId: Int,
+                   projectId: Int) extends Ordered[Channel] {
 
   def this(name: String, color: ChannelColor, projectId: Int) = this(None, None, name, color.id, projectId)
+
+  /**
+    * Returns the Timestamp instant that this channel was created.
+    *
+    * @return Instant of creation, empty if not created
+    */
+  def createdAt: Option[Timestamp] = this._createdAt
+
+  /**
+    * Called when a Channel is created.
+    */
+  def onCreate() = this._createdAt = Some(new Timestamp(new Date().getTime))
 
   /**
     * Returns this Channel's name.
     *
     * @return Channel name
     */
-  def getName: String = this.name
+  def name: String = this._name
 
   /**
     * Sets the name of this channel for.
     *
     * @param context  Project for context
-    * @param name     New channel name
+    * @param _name     New channel name
     * @return         Future result
     */
-  def setName(context: Project, name: String): Future[Int] = {
+  def name_=(_name: String)(implicit context: Project) = {
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
     checkArgument(isValidName(name), "invalid name", "")
-    val f = Storage.updateChannelString(this, _.name, name)
-    f.onSuccess {
-      case i =>
-        ProjectManager.renameChannel(context.owner, context.getName, this.name, name)
-        this.name = name
-    }
-    f
+    now(Storage.updateChannelString(this, _.name, name)).get
+    ProjectManager.renameChannel(context.ownerName, context.name, this._name, name)
+    this._name = name
   }
 
   /**
@@ -64,20 +73,17 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
     *
     * @return Color channel is represented by
     */
-  def getColor: ChannelColor = ChannelColors(this.colorId)
+  def color: ChannelColor = ChannelColors(this.colorId)
 
   /**
     * Sets the color of this channel.
     *
-    * @param color  Color of channel
+    * @param _color  Color of channel
     * @return       Future result
     */
-  def setColor(color: ChannelColor): Future[Int] = {
-    val f = Storage.updateChannelInt(this, _.colorId, color.id)
-    f.onSuccess {
-      case i => this.colorId = color.id
-    }
-    f
+  def color_=(_color: ChannelColor) = {
+    now(Storage.updateChannelInt(this, _.colorId, _color.id))
+    this.colorId = _color.id
   }
 
   /**
@@ -85,14 +91,14 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
     *
     * @return Project the Channel belongs to
     */
-  def getProject: Future[Project] = Storage.getProject(this.projectId)
+  def project: Project = now(Storage.projectWithId(this.projectId)).get.get
 
   /**
     * Returns all Versions in this channel.
     *
     * @return All versions
     */
-  def getVersions: Future[Seq[Version]] = Storage.getVersions(this.id.get)
+  def versions: Seq[Version] = now(Storage.versionsInChannel(this.id.get)).get
 
   /**
     * Returns the Version in this channel with the specified version string.
@@ -100,19 +106,7 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
     * @param version  Version string
     * @return         Version, if any, None otherwise
     */
-  def getVersion(version: String): Future[Option[Version]] = Storage.optVersion(this.id.get, version)
-
-  /**
-    * Returns the amount of versions in this Channel.
-    *
-    * @return Amount of versions
-    */
-  def versionCount: Int = Storage.now(getVersions) match {
-    case Failure(thrown) => throw thrown
-    case Success(versions) => versions.size
-  }
-
-  def isEmpty: Boolean = versionCount == 0
+  def version(version: String): Option[Version] = now(Storage.versionWithName(this.id.get, version)).get
 
   /**
     * Deletes the specified Version within this channel.
@@ -122,13 +116,10 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
     * @return         Result
     */
   def deleteVersion(version: Version, context: Project): Try[Unit] = Try {
-    checkArgument(context.getVersions.size > 1, "only one version", "")
+    checkArgument(context.versions.size > 1, "only one version", "")
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
-    Storage.now(Storage.deleteVersion(version)) match {
-      case Failure(thrown) => throw thrown
-      case Success(i) =>
-        Files.delete(ProjectManager.getUploadPath(context.owner, context.getName, version.versionString, this.name))
-    }
+    now(Storage.deleteVersion(version)).get
+    Files.delete(ProjectManager.uploadPath(context.ownerName, context.name, version.versionString, this._name))
   }
 
   /**
@@ -139,24 +130,20 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
     */
   def delete(context: Project): Try[Unit] = Try {
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
-    Storage.now(context.getChannels) match {
-      case Failure(thrown) => throw thrown
-      case Success(channels) =>
-        checkArgument(channels.size > 1, "only one channel", "")
-        checkArgument(isEmpty || channels.count(c => c.versionCount > 0) > 1, "last non-empty channel", "")
-    }
-    Storage.now(Storage.deleteChannel(this)) match {
-      case Failure(thrown) => throw thrown
-      case Success(i) =>
-        FileUtils.deleteDirectory(ProjectManager.getProjectDir(context.owner, context.getName).resolve(this.name).toFile)
-    }
+
+    val channels = context.channels
+    checkArgument(channels.size > 1, "only one channel", "")
+    checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
+
+    now(Storage.deleteChannel(this)).get
+    FileUtils.deleteDirectory(ProjectManager.projectDir(context.ownerName, context.name).resolve(this._name).toFile)
   }
 
-  def newVersion(version: String, dependencies: List[String], description: String, assets: String): Future[Version] = {
-    Storage.createVersion(new Version(version, dependencies, description, assets, this.projectId, this.id.get))
+  def newVersion(version: String, dependencies: List[String], description: String, assets: String): Version = {
+    now(Storage.createVersion(new Version(version, dependencies, description, assets, this.projectId, this.id.get))).get
   }
 
-  override def compare(that: Channel): Int = this.name compare that.name
+  override def compare(that: Channel): Int = this._name compare that._name
 
   override def hashCode: Int = this.id.get.hashCode
 
@@ -167,11 +154,6 @@ case class Channel(id: Option[Int], var createdAt: Option[Timestamp], private va
 }
 
 object Channel {
-
-  /**
-    * The maximum amount of Channels permitted in a single Project.
-    */
-  val MAX_AMOUNT = 5
 
   /**
     * The maximum name size of a Channel.
@@ -200,7 +182,7 @@ object Channel {
     * @return       True if valid channel name
     */
   def isValidName(name: String): Boolean = {
-    name.length >= 1 && name.length <= MAX_NAME_LENGTH && name.matches(NAME_REGEX);
+    name.length >= 1 && name.length <= MAX_NAME_LENGTH && name.matches(NAME_REGEX)
   }
 
   /**

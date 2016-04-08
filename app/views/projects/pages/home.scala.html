@@ -2,8 +2,7 @@
 Documentation page within Project overview.
 *@
 @import models.project.Project
-@import plugin.Pages
-@import plugin.Pages.Page
+@import models.project.Page
 @(model: Project, page: Page)(implicit messages: Messages, session: Session)
 
 @projects.detail(model, "#docs") {
@@ -12,19 +11,19 @@ Documentation page within Project overview.
         <div class="container">
             <div class="row">
                 <div class="col-md-9">
-                    @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {
-                        <a href="@routes.Projects.showPageEdit(model.owner, model.getSlug, page.getName)"
+                    @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)) {
+                        <a href="@routes.Projects.showPageEdit(model.ownerName, model.slug, page.name)"
                            class="btn btn-default pull-right"><i class="fa fa-edit"></i> @messages("page.edit")</a>
                     }
                     @* Rendered markdown *@
-                    <p class="pull-left">@Html(page.toHtml)</p>
+                    <p class="pull-left">@Html(page.html)</p>
                 </div>
                 <div class="col-md-3">
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h3 class="panel-title">@messages("page.plural")</h3>
-                            @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)
-                                    && Pages.getAll(model.owner, model.getName).length < Pages.MAX_PAGES) {
+                            @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)
+                                    && model.pages.size < Project.MAX_PAGES) {
                                 <a data-toggle="modal" data-target="#new-page">
                                     <i class="new-page pull-right fa fa-plus"></i>
                                 </a>
@@ -32,11 +31,11 @@ Documentation page within Project overview.
                             }
                         </div>
                         <ul class="list-group">
-                            @for(page <- Pages.getAll(model.owner, model.getName)) {
+                            @for(page <- model.pages) {
                                 <li class="list-group-item">
-                                    <a href="@routes.Projects.showPage(model.owner, model.getSlug, page.getName)">@page.getName</a>
-                                    @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {
-                                        <a href="@routes.Projects.showPageEdit(model.owner, model.getSlug, page.getName)"
+                                    <a href="@routes.Projects.showPage(model.ownerName, model.slug, page.name)">@page.name</a>
+                                    @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)) {
+                                        <a href="@routes.Projects.showPageEdit(model.ownerName, model.slug, page.name)"
                                            class="pull-right"><i class="fa fa-edit"></i></a>
                                     }
                                 </li>

@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import db.OrePostgresDriver.api._
 import models.auth.User
 import models.author.Team
-import models.project.{Channel, Project, Version}
+import models.project.{Channel, Project, Page, Version}
 
 /*
  * Database schema definitions. Changes must be first applied as an evolutions
@@ -58,6 +58,21 @@ class StarredProjectsTable(tag: Tag) extends Table[(Int, Int)](tag, "starred_pro
 
 }
 
+class PagesTable(tag: Tag) extends Table[Page](tag, "pages") {
+
+  def id            =   column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def createdAt     =   column[Timestamp]("created_at")
+  def projectId     =   column[Int]("project_id")
+  def name          =   column[String]("name")
+  def slug          =   column[String]("slug")
+  def contents      =   column[String]("contents")
+  def isDeletable   =   column[Boolean]("is_deletable")
+
+  override def * = (id.?, createdAt.?, projectId,
+                    name, slug, contents, isDeletable) <> ((Page.apply _).tupled, Page.unapply)
+
+}
+
 class ChannelTable(tag: Tag) extends Table[Channel](tag, "channels") {
 
   def id          =   column[Int]("id", O.PrimaryKey, O.AutoInc)
@@ -105,7 +120,7 @@ class UserTable(tag: Tag) extends Table[User](tag, "users") {
   def username    =   column[String]("username")
   def email       =   column[String]("email")
 
-  override def * = (externalId, createdAt, name, username, email) <> (User.tupled, User.unapply)
+  override def * = (externalId, createdAt, name, username, email) <> ((User.apply _).tupled, User.unapply)
 
 }
 

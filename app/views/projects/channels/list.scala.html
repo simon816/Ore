@@ -1,19 +1,18 @@
 @import models.project.{Channel, Project}
 @import play.api.Play
-@import views.html.helper.form
 @(project: Project, channels: Seq[Channel])(implicit messages: Messages, session: Session, flash: Flash)
 
-@core.layout("Channels | " + project.owner + " / " + project.getSlug) {
+@core.layout("Channels | " + project.ownerName + " / " + project.slug) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/channelManage.js")"></script>
     <script>
         BASE_URL = '@Play.current.configuration.getString("application.baseUrl")';
-        PROJECT_OWNER = '@project.owner';
-        PROJECT_SLUG = '@project.getSlug';
+        PROJECT_OWNER = '@project.ownerName';
+        PROJECT_SLUG = '@project.slug';
         $(function() {
             initChannelManager(
                     "#channel-new", "", "@Channel.DEFAULT_COLOR.hex", "New channel",
-                    "@routes.Projects.createChannel(project.owner, project.getSlug)",
+                    "@routes.Projects.createChannel(project.ownerName, project.slug)",
                     "post", "Create channel"
             );
         });
@@ -46,8 +45,8 @@
                                 @channels.sorted.map { channel =>
                                     <tr>
                                       <td class="channel channel-flat"
-                                          style="background-color: @channel.getColor.hex;">
-                                        @channel.getName
+                                          style="background-color: @channel.color.hex;">
+                                        @channel.name
                                         <div class="pull-right white">
                                             <a href="#">
                                                 <i data-toggle="modal" data-target="#channel-manage"
@@ -57,10 +56,10 @@
                                               @if(channels.size == 1) {
                                                   data-toggle="tooltip" data-placement="top" title="You cannot delete your last channel."
                                               } else {
-                                                @if(channel.versionCount > 0) {
+                                                @if(channel.versions.nonEmpty) {
                                                     data-toggle="modal" data-target="#modal-delete"
                                                 } else {
-                                                    href="@routes.Projects.deleteChannel(project.owner, project.getSlug, channel.getName)"
+                                                    href="@routes.Projects.deleteChannel(project.ownerName, project.slug, channel.name)"
                                                 }
                                               }
                                             >
@@ -71,10 +70,10 @@
                                   </tr>
                                     <script>
                                       $(function() {
-                                          initChannelDelete('#channel-delete-@channel.id', '@channel.getName', @channel.versionCount);
+                                          initChannelDelete('#channel-delete-@channel.id', '@channel.name', @channel.versions.size);
                                           initChannelManager(
-                                                  "#channel-edit-@channel.id", "@channel.getName", "@channel.getColor.hex",
-                                                  "Edit channel", "@routes.Projects.editChannel(project.owner, project.getSlug, channel.getName)",
+                                                  "#channel-edit-@channel.id", "@channel.name", "@channel.color.hex",
+                                                  "Edit channel", "@routes.Projects.editChannel(project.ownerName, project.slug, channel.name)",
                                                   "post", "Save changes"
                                           );
                                       });
@@ -82,11 +81,11 @@
                                 }
                             </tbody>
                         </table>
-                        <a href="@routes.Projects.showVersions(project.owner, project.getSlug, None)" class="pull-left btn btn-default">
+                        <a href="@routes.Projects.showVersions(project.ownerName, project.slug, None)" class="pull-left btn btn-default">
                             <i class="fa fa-arrow-left"></i>
                         </a>
                         <a href="#" id="channel-new" class="pull-right btn btn-primary"
-                           @if(channels.size >= Channel.MAX_AMOUNT) {
+                           @if(channels.size >= Project.MAX_CHANNELS) {
                                disabled data-toggle="tooltip" data-placement="left"
                                title="You have reached the maximum amount of channels permitted."
                            } else {

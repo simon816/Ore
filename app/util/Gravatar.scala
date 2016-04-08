@@ -14,7 +14,7 @@ object Gravatar {
     * @param email  Email to get avatar for
     * @return       Avatar of email, or default avatar if not found
     */
-  def getAvatar(email: String): String = {
+  def get(email: String): String = {
     val hash = Hex.encodeHexString(MessageDigest.getInstance("MD5").digest(email.trim().toLowerCase.getBytes("UTF-8")))
     this.URL + hash
   }

@@ -18,20 +18,20 @@ Versions page within Project overview.
                             </thead>
                             <tbody>
                                 @versions.map { version =>
-                                  @defining(version.getChannelFrom(channels).get) { channel =>
+                                  @defining(version.findChannelFrom(channels).get) { channel =>
                                     <tr>
                                         <td>
-                                            <i class="fa fa-circle channel-id" style="color: @channel.getColor.hex"></i> @version.versionString
+                                            <i class="fa fa-circle channel-id" style="color: @channel.color.hex"></i> @version.versionString
                                         </td>
                                         <td>
                                             <div class="pull-right">
                                                 <span class="date">@version.prettyDate</span>
                                                 <a href="@routes.Projects.showVersion(
-                                                    model.owner, model.getSlug, channel.getName, version.versionString)">
+                                                    model.ownerName, model.slug, channel.name, version.versionString)">
                                                     <i class="fa fa-info-circle"></i>
                                                 </a>
                                                 <a href="@routes.Projects.downloadVersion(
-                                                    model.owner, model.getSlug, channel.getName, version.versionString)">
+                                                    model.ownerName, model.slug, channel.name, version.versionString)">
                                                     <i class="fa fa-download"></i>
                                                 </a>
                                             </div>
@@ -44,8 +44,8 @@ Versions page within Project overview.
 
                     </div>
                     <div class="col-md-3">
-                        @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {
-                            <a href="@routes.Projects.showVersionCreate(model.owner, model.getSlug)"
+                        @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)) {
+                            <a href="@routes.Projects.showVersionCreate(model.ownerName, model.slug)"
                             class="btn btn-block btn-primary btn-panel btn-version">
                                 <i class="fa fa-plus"></i> Create version
                             </a>
@@ -54,7 +54,7 @@ Versions page within Project overview.
                             <div class="panel-heading">
                                 <h3 class="panel-title">Channels</h3>
                                 @if(visibleChannels.isDefined) {
-                                    <a href="@routes.Projects.showVersions(model.owner, model.getSlug, None)">
+                                    <a href="@routes.Projects.showVersions(model.ownerName, model.slug, None)">
                                         <i class="pull-right channel-reset fa fa-times"></i>
                                     </a>
                                 }
@@ -64,51 +64,51 @@ Versions page within Project overview.
                                 @channels.sorted.map { channel =>
                                   <li class="list-group-item">
                                       <span class="channel"
-                                            style="background-color: @channel.getColor.hex;">@channel.getName</span>
+                                            style="background-color: @channel.color.hex;">@channel.name</span>
                                       @if(visibleChannels.isDefined) {
-                                          @if(!visibleChannels.get.contains(channel.getName)) {
+                                          @if(!visibleChannels.get.contains(channel.name)) {
                                               <a class="pull-right"
-                                                 href="@routes.Projects.showVersions(model.owner, model.getSlug, Some(
-                                                     (visibleChannels.get :+ channel.getName).mkString(",")
+                                                 href="@routes.Projects.showVersions(model.ownerName, model.slug, Some(
+                                                     (visibleChannels.get :+ channel.name).mkString(",")
                                                  ))"
                                               >
                                                   <i class="fa fa-eye-slash"></i>
                                               </a>
                                           } else {
                                               <a class="pull-right"
-                                                 href="@routes.Projects.showVersions(model.owner, model.getSlug, Some(
-                                                     visibleChannels.get.filterNot(c => c.equals(channel.getName)).mkString(",")
+                                                 href="@routes.Projects.showVersions(model.ownerName, model.slug, Some(
+                                                     visibleChannels.get.filterNot(c => c.equals(channel.name)).mkString(",")
                                                  ))"
                                               >
                                                   <i class="fa fa-eye"></i>
                                               </a>
                                           }
                                       } else {
-                                          <a href="@routes.Projects.showVersions(model.owner, model.getSlug, Some(channel.getName))"
+                                          <a href="@routes.Projects.showVersions(model.ownerName, model.slug, Some(channel.name))"
                                              class="pull-right">
                                               <i class="fa fa-eye"></i>
                                           </a>
                                       }
                                   </li>
                                 }
-                                @if(session.get("username").isDefined && session.get("username").get.equals(model.owner)) {
+                                @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)) {
                                     <li class="list-group-item text-right">
-                                        <a href="@routes.Projects.showChannels(model.owner, model.getSlug)">
+                                        <a href="@routes.Projects.showChannels(model.ownerName, model.slug)">
                                             <i class="fa fa-cog"></i> Edit
                                         </a>
                                     </li>
                                 }
                             </ul>
                         </div>
-                        @if(model.getAuthors.nonEmpty) {
+                        @if(model.authors.nonEmpty) {
                             <div class="panel panel-default">
                                 <div class="panel-heading">
                                     <h3 class="panel-title">Developers</h3>
                                 </div>
                                 <ul class="list-group">
-                                @model.getAuthors.map { author =>
+                                @model.authors.map { author =>
                                     <li class="list-group-item">
-                                        @defining(author.getUser) { userOpt =>
+                                        @defining(author.user) { userOpt =>
                                             @if(userOpt.isDefined) {
                                                 <a href="#">@author.name</a>
                                             } else {

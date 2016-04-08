@@ -1,7 +1,6 @@
 @import models.project.Version.PendingVersion
 @import models.project.{Channel, Project}
 @import views.html.helper.form
-@import play.api.Play
 @(project: Project, pending: Option[PendingVersion],
   channels: Option[Seq[Channel]], showFileControls: Boolean)(implicit messages: Messages, session: Session, flash: Flash)
 
@@ -24,7 +23,7 @@
 
                     <div class="create-body panel-body">
                         <p class="minor create-blurb">
-                            Release a new version for <strong>@project.getName</strong>.
+                            Release a new version for <strong>@project.name</strong>.
                         </p>
 
                         @if(flash.get("error").isDefined) {
@@ -48,7 +47,7 @@
                                         <tr>
                                             <td><strong>@messages("version.description")</strong></td>
                                             <td>
-                                                @version.getDescription.map { description =>
+                                                @version.description.map { description =>
                                                   @description
                                                 }.getOrElse {
                                                   <i class="minor">@messages("version.create.no-description")</i>
@@ -62,12 +61,12 @@
                                                 @if(showFileControls) {
                                                     <select id="select-channel" form="form-publish" name="channel-input" class="form-control">
                                                         @channels.get.map { channel =>
-                                                          <option value="@channel.getName" data-color="@channel.getColor.hex"
-                                                            @if(pending.isDefined && channel.getName.equals(pending.get.getChannelName)) {
+                                                          <option value="@channel.name" data-color="@channel.color.hex"
+                                                            @if(pending.isDefined && channel.name.equals(pending.get.channelName)) {
                                                               selected
                                                             }
                                                           >
-                                                              @channel.getName
+                                                              @channel.name
                                                           </option>
                                                         }
                                                     </select>
@@ -78,8 +77,8 @@
                                                             src="@routes.Assets.at("javascripts/versionCreateChannelNew.js")"></script>
                                                     <script>DEFAULT_COLOR = '@Channel.DEFAULT_COLOR.hex';</script>
                                                 } else {
-                                                    <span id="channel-name" class="channel" style="background-color: @pending.get.getChannelColor;">
-                                                        @pending.get.getChannelName
+                                                    <span id="channel-name" class="channel" style="background-color: @pending.get.channelColor;">
+                                                        @pending.get.channelName
                                                     </span>
                                                     <a href="#">
                                                         <i id="channel-edit" class="fa fa-edit"
@@ -89,7 +88,7 @@
                                                         $(function() {
                                                             // Setup editor
                                                             initChannelManager(
-                                                                    "#channel-edit", "@pending.get.getChannelName", "@pending.get.getChannelColor",
+                                                                    "#channel-edit", "@pending.get.channelName", "@pending.get.channelColor",
                                                                     "Edit channel", null, null, "Save changes"
                                                             );
                                                         });
@@ -103,7 +102,7 @@
                         }
 
                         @if(showFileControls) {
-                            @form(action = routes.Projects.uploadVersion(project.owner, project.getSlug), 'enctype -> "multipart/form-data") {
+                            @form(action = routes.Projects.uploadVersion(project.ownerName, project.slug), 'enctype -> "multipart/form-data") {
                                 <label class="btn btn-primary" for="pluginFile">
                                     <input id="pluginFile" name="pluginFile" type="file" style="display: none;">
                                     @messages("version.create.select-file")
@@ -116,9 +115,9 @@
                             @* Ready to go! *@
                             @defining(pending.get.version) { version =>
                                 @form(action = routes.Projects.createVersion(
-                                    project.owner, project.getSlug, pending.get.getChannelName, version.versionString), 'id -> "form-publish") {
+                                    project.ownerName, project.slug, pending.get.channelName, version.versionString), 'id -> "form-publish") {
                                     @if(!showFileControls) {
-                                        <input type="hidden" class="channel-input" name="channel-input" value="@pending.get.getChannelName" />
+                                        <input type="hidden" class="channel-input" name="channel-input" value="@pending.get.channelName" />
                                     }
                                     <input type="hidden" class="channel-color-input" name="channel-color-input" value="@Channel.DEFAULT_COLOR.hex" />
                                     <input type="submit" name="create" value="@messages("version.create.publish")" class="btn btn-primary" />

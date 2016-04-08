@@ -6,23 +6,22 @@ import java.util.Date
 
 import com.google.common.base.Preconditions._
 import db.Storage
+import db.Storage.now
 import models.auth.User
 import models.author.Dev
-import models.project.Project._
 import models.project.Categories.Category
 import models.project.ChannelColors.ChannelColor
+import models.project.Project._
 import models.project.Version.PendingVersion
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
-import plugin.{Pages, PluginFile, ProjectManager}
+import plugin.{PluginFile, ProjectManager}
 import util.{Cacheable, PendingAction}
 
 import scala.collection.JavaConversions._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Promise, Future}
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 /**
   * Represents an Ore package.
@@ -34,34 +33,33 @@ import scala.util.{Failure, Success, Try}
   * and mutators must be used.</p>
   *
   * @param id                     Unique identifier
-  * @param createdAt              Instant of creation
+  * @param _createdAt              Instant of creation
   * @param pluginId               Plugin ID
-  * @param name                   Name of plugin
-  * @param owner                  The owner Author for this project
-  * @param authors                Authors who work on this project
+  * @param _name                   Name of plugin
+  * @param ownerName              The owner Author for this project
+  * @param authorNames            Authors who work on this project
   * @param homepage               The external project URL
   * @param recommendedVersionId   The ID of this project's recommended version
   * @param categoryId             The ID of this project's category
-  * @param views                  How many times this project has been views
-  * @param downloads              How many times this project has been downloaded in total
-  * @param starred                How many times this project has been starred
+  * @param _views                  How many times this project has been views
+  * @param _downloads              How many times this project has been downloaded in total
+  * @param _stars                How many times this project has been starred
   */
-case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pluginId: String,
-                   private var name: String, private var slug: String, owner: String,
-                   authors: List[String], homepage: Option[String],
+case class Project(id: Option[Int], private var _createdAt: Option[Timestamp], pluginId: String,
+                   private var _name: String, private var _slug: String, ownerName: String,
+                   authorNames: List[String], homepage: Option[String],
                    private var recommendedVersionId: Option[Int],
-                   private var categoryId: Int = -1, private var views: Int,
-                   private var downloads: Int, private var starred: Int) {
-
-  private lazy val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
+                   private var categoryId: Int = -1, private var _views: Int,
+                   private var _downloads: Int, private var _stars: Int) {
 
   def this(pluginId: String, name: String, owner: String, authors: List[String], homepage: String) = {
-    this(None, None, pluginId, sanitizeName(name), slugify(name), owner, authors, Option(homepage), None, 0, 0, 0, 0)
+    this(None, None, pluginId, sanitizeName(name), slugify(name),
+         owner, authors, Option(homepage), None, 0, 0, 0, 0)
   }
 
-  def getOwner: Dev = Dev(owner) // TODO: Teams
+  def owner: Dev = Dev(this.ownerName) // TODO: Teams
 
-  def getAuthors: List[Dev] = for (author <- authors) yield Dev(author) // TODO: Teams
+  def authors: List[Dev] = for (author <- authorNames) yield Dev(author) // TODO: Teams
 
   /**
     * Returns the Timestamp instant that this Project was created or None if it
@@ -69,48 +67,45 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     *
     * @return Instant of creation or None if has not been created
     */
-  def getCreatedAt: Option[Timestamp] = this.createdAt
+  def createdAt: Option[Timestamp] = this._createdAt
 
   /**
     * Method called when this Project is created in the database.
     */
-  def onCreate() = this.createdAt = Some(new Timestamp(new Date().getTime))
+  def onCreate() = this._createdAt = Some(new Timestamp(new Date().getTime))
 
   /**
     * Returns the name of this project.
     *
     * @return Name of project
     */
-  def getName: String = this.name
+  def name: String = this._name
 
   /**
     * Returns this Project's URL slug.
     *
     * @return URL slug
     */
-  def getSlug: String = this.slug
+  def slug: String = this._slug
 
   /**
     * Sets the name of this project and performs all the necessary renames.
     *
-    * @param name   New name
+    * @param _name   New name
     * @return       Future result
     */
-  def setName(name: String) = {
-    val newName = sanitizeName(name)
-    checkArgument(Project.isNamespaceAvailable(this.owner, newName), "slug not available", "")
+  def name_=(_name: String) = {
+    val newName = sanitizeName(_name)
+    checkArgument(Project.isNamespaceAvailable(this.ownerName, newName), "slug not available", "")
     checkArgument(isValidName(newName), "invalid name", "")
-    Storage.now(Storage.updateProjectString(this, _.name, newName)) match {
-      case Failure(thrown) => throw thrown
-      case Success(i) =>
-        ProjectManager.renameProject(this.owner, this.name, newName)
-        this.name = newName
-        Storage.now(Storage.updateProjectString(this, _.slug, slugify(this))) match {
-          case Failure(thrown) => throw thrown
-          case Success(j) =>
-            this.slug = slugify(this)
-        }
-    }
+
+    now(Storage.updateProjectString(this, _.name, newName)).get
+    ProjectManager.renameProject(this.ownerName, this.name, newName)
+    this._name = newName
+
+    val newSlug = slugify(this)
+    now(Storage.updateProjectString(this, _.slug, newSlug)).get
+    this._slug = newSlug
   }
 
   /**
@@ -118,7 +113,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     *
     * @return All channels in project
     */
-  def getChannels: Future[Seq[Channel]] = Storage.getChannels(this.id.get)
+  def channels: Seq[Channel] = now(Storage.channelsInProject(this.id.get)).get
 
   /**
     * Returns the Channel in this project with the specified name.
@@ -126,7 +121,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @param name   Name of channel
     * @return       Channel with name, if present, None otherwise
     */
-  def getChannel(name: String): Future[Option[Channel]] = Storage.optChannel(this.id.get, name)
+  def channel(name: String): Option[Channel] = now(Storage.channelWithName(this.id.get, name)).get
 
   /**
     * Returns the Channel in this project with the specified color. Colors are
@@ -135,7 +130,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @param color  Color of channel
     * @return       Channel with color, if present, None otherwise
     */
-  def getChannel(color: ChannelColor): Future[Option[Channel]] = Storage.optChannel(this.id.get, color.id)
+  def channel(color: ChannelColor): Option[Channel] = now(Storage.channelWithColor(this.id.get, color.id)).get
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -145,16 +140,8 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     */
   def newChannel(name: String, color: ChannelColor): Try[Channel] = Try {
     checkArgument(Channel.isValidName(name), "invalid name", "")
-    Storage.now(getChannels) match {
-      case Failure(thrown) => throw thrown
-      case Success(channels) => if (channels.size >= Channel.MAX_AMOUNT) {
-        throw new IllegalArgumentException("Project has reached maximum channel capacity.")
-      }
-    }
-    Storage.now(Storage.createChannel(new Channel(name, color, this.id.get))) match {
-      case Failure(thrown) => throw thrown
-      case Success(channel) => channel
-    }
+    checkState(this.channels.size < Project.MAX_CHANNELS, "channel limit reached", "")
+    now(Storage.createChannel(new Channel(name, color, this.id.get))).get
   }
 
   /**
@@ -162,18 +149,17 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     *
     * @return Recommended version
     */
-  def getRecommendedVersion: Future[Version] = Storage.getVersion(this.recommendedVersionId.get)
+  def recommendedVersion: Version = now(Storage.versionWithId(this.recommendedVersionId.get)).get.get
 
   /**
     * Updates this project's recommended version.
     *
-    * @param version  Version to set
+    * @param _version  Version to set
     * @return         Result
     */
-  def setRecommendedVersion(version: Version) = {
-    Storage.updateProjectInt(this, _.recommendedVersionId, version.id.get).onSuccess {
-      case i => this.recommendedVersionId = version.id
-    }
+  def recommendedVersion_=(_version: Version) = {
+    now(Storage.updateProjectInt(this, _.recommendedVersionId, _version.id.get)).get
+    this.recommendedVersionId = _version.id
   }
 
   /**
@@ -181,10 +167,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     *
     * @return All versions in project
     */
-  def getVersions: Seq[Version] = Storage.now(Storage.getAllVersions(this.id.get)) match {
-    case Failure(thrown) =>  throw thrown
-    case Success(versions) => versions
-  }
+  def versions: Seq[Version] = now(Storage.versionsInProject(this.id.get)).get
 
   /**
     * Returns all Versions belonging to the specified channels.
@@ -192,12 +175,9 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @param channels   Channels to get versions for
     * @return           All versions in channels
     */
-  def getVersions(channels: Seq[Channel]): Seq[Version] = {
+  def versions(channels: Seq[Channel]): Seq[Version] = {
     channels.foreach(c => checkArgument(c.projectId == this.id.get, "channel doesn't belong to project", ""))
-    Storage.now(Storage.getVersions(this.id.get, channels.map(_.id.get))) match {
-      case Failure(thrown) => throw thrown
-      case Success(versions) => versions
-    }
+    now(Storage.versionsInChannels(this.id.get, channels.map(_.id.get))).get
   }
 
   /**
@@ -205,19 +185,16 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     *
     * @return Project category
     */
-  def getCategory: Category = Categories(this.categoryId)
+  def category: Category = Categories(this.categoryId)
 
   /**
     * Sets this Project's category.
     *
-    * @param category Category to set
+    * @param _category Category to set
     */
-  def setCategory(category: Category) = {
-    if (exists) {
-      Storage.now(Storage.updateProjectInt(this, _.categoryId, category.id)) match {
-        case Failure(thrown) => throw thrown
-        case Success(i) => ;
-      }
+  def category_=(_category: Category) = {
+    if (this.exists) {
+      now(Storage.updateProjectInt(this, _.categoryId, category.id)).get
     }
     this.categoryId = category.id
   }
@@ -227,19 +204,16 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     *
     * @return Unique views on project
     */
-  def getViews: Int = this.views
+  def views: Int = this._views
 
   /**
     * Increments this Project's view count by one.
     *
     * @return Future result
     */
-  def addView(): Future[Int] = {
-    val f = Storage.updateProjectInt(this, _.views, this.views + 1)
-    f.onSuccess {
-      case i => this.views += 1
-    }
-    f
+  def addView() = {
+    now(Storage.updateProjectInt(this, _.views, this._views + 1)).get
+    this._views += 1
   }
 
   /**
@@ -247,19 +221,16 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     *
     * @return Amount of unique downloads
     */
-  def getDownloads: Int = this.downloads
+  def downloads: Int = this._downloads
 
   /**
     * Increments this Project's downloadc count by one.
     *
     * @return Future result
     */
-  def addDownload(): Future[Int] = {
-    val f = Storage.updateProjectInt(this, _.downloads, this.downloads + 1)
-    f.onSuccess {
-      case i => this.downloads += 1
-    }
-    f
+  def addDownload() = {
+    now(Storage.updateProjectInt(this, _.downloads, this._downloads + 1)).get
+    this._downloads += 1
   }
 
   /**
@@ -267,7 +238,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     *
     * @return Amount of stars
     */
-  def getStars: Int = this.starred
+  def stars: Int = this._stars
 
   /**
     * Returns true if this Project is starred by the specified User.
@@ -275,12 +246,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @param user   User to check if starred for
     * @return       True if starred by User
     */
-  def isStarredBy(user: User): Boolean = {
-    Storage.now(Storage.isProjectStarredBy(this, user)) match {
-      case Failure(thrown) => throw thrown
-      case Success(isStarred) => isStarred
-    }
-  }
+  def isStarredBy(user: User): Boolean = now(Storage.isProjectStarredBy(this, user)).get
 
   /**
     * Returns true if this Project is starred by the User with the specified
@@ -289,12 +255,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @param username   To get User of
     * @return           True if starred by User
     */
-  def isStarredBy(username: String): Boolean = {
-    Storage.now(Storage.getUser(username)) match {
-      case Failure(thrown) => throw thrown
-      case Success(user) => isStarredBy(user)
-    }
-  }
+  def isStarredBy(username: String): Boolean = isStarredBy(User.withName(username).get)
 
   /**
     * Sets this Project as starred for the specified User.
@@ -302,15 +263,9 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @param user   User to star for
     * @return       Future result
     */
-  def starFor(user: User): Future[Int] = {
-    val f = Storage.starProjectFor(this, user)
-    f.onSuccess {
-      case i =>
-        Storage.updateProjectInt(this, _.starred, this.starred + 1).onSuccess {
-          case j => this.starred += 1
-        }
-    }
-    f
+  def starFor(user: User) = {
+    now(Storage.starProjectFor(this, user)).get
+    this._stars += 1
   }
 
   /**
@@ -319,32 +274,74 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @param user   User to unstar for
     * @return       Future result
     */
-  def unstarFor(user: User): Future[Int] = {
-    val f = Storage.unstarProjectFor(this, user)
-    f.onSuccess {
-      case i =>
-        Storage.updateProjectInt(this, _.starred, this.starred - 1).onSuccess {
-          case j => this.starred -= 1
-        }
-    }
-    f
+  def unstarFor(user: User) = {
+    now(Storage.unstarProjectFor(this, user)).get
+    this._stars -= 1
   }
+
+  /**
+    * Returns this Project's pages.
+    *
+    * @return Project pages
+    */
+  def pages: Seq[Page] = now(Storage.pagesInProject(this.id.get)).get
+
+  /**
+    * Returns the Page with the specified name, if any.
+    *
+    * @param name   Page name
+    * @return       Page with name, if any, None otherwise
+    */
+  def page(name: String): Option[Page] = now(Storage.pageWithName(this.id.get, name)).get
+
+  /**
+    * Returns true if a page with the specified name exists.
+    *
+    * @param name   Page name
+    * @return       True if exists
+    */
+  def pageExists(name: String): Boolean = page(name).isDefined
+
+  /**
+    * Returns the specified Page or creates it if it doesn't exist.
+    *
+    * @param name   Page name
+    * @return       Page with name or new name if it doesn't exist
+    */
+  def getOrCreatePage(name: String): Page = {
+    Storage.getOrCreatePage(new Page(this.id.get, name, "", true))
+  }
+
+  /**
+    * Deletes the page with the specified name.
+    *
+    * @param name Page name
+    */
+  def deletePage(name: String) = {
+    now(Storage.deletePage(page(name).get)).get
+    Unit
+  }
+
+  /**
+    * Returns this Project's home page.
+    *
+    * @return Project home page
+    */
+  def homePage: Page = Storage.getOrCreatePage(new Page(this.id.get, Page.HOME, "", false))
 
   /**
     * Returns true if this Project already exists.
     *
     * @return True if project exists, false otherwise
     */
-  def exists: Boolean = {
-    Storage.now(Storage.isDefined(Storage.getProject(this.owner, this.name))).isSuccess
-  }
+  def exists: Boolean = withName(this.ownerName, this.name).isDefined
 
   /**
     * Returns true if the Project's desired slug is available.
     *
     * @return True if slug is available
     */
-  def isNamespaceAvailable: Boolean = Project.isNamespaceAvailable(this.owner, this.slug)
+  def isNamespaceAvailable: Boolean = Project.isNamespaceAvailable(this.ownerName, this._slug)
 
   /**
     * Immediately deletes this projects and any associated files.
@@ -352,12 +349,8 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     * @return Result
     */
   def delete: Try[Unit] = Try {
-    Storage.now(Storage.deleteProject(this)) match {
-      case Failure(thrown) => throw thrown
-      case Success(i) =>
-        FileUtils.deleteDirectory(ProjectManager.getProjectDir(this.owner, this.name).toFile)
-        FileUtils.deleteDirectory(Pages.getDocsDir(this.owner, this.name).toFile)
-    }
+    now(Storage.deleteProject(this)).get
+    FileUtils.deleteDirectory(ProjectManager.projectDir(this.ownerName, this._name).toFile)
   }
 
   /**
@@ -365,9 +358,7 @@ case class Project(id: Option[Int], private var createdAt: Option[Timestamp], pl
     *
     * @return Creation date string
     */
-  def prettyDate: String = {
-    this.dateFormat.format(this.createdAt.get)
-  }
+  def prettyDate: String = DATE_FORMAT.format(this._createdAt.get)
 
   override def hashCode: Int = this.id.get.hashCode
 
@@ -383,6 +374,21 @@ object Project {
     * The maximum length for a Project name.
     */
   val MAX_NAME_LENGTH: Int = 25
+
+  /**
+    * The maximum amount of Pages a Project can have.
+    */
+  val MAX_PAGES: Int = 10
+
+  /**
+    * The maximum amount of Channels permitted in a single Project.
+    */
+  val MAX_CHANNELS = 5
+
+  /**
+    * The format used for displaying dates regarding Projects.
+    */
+  val DATE_FORMAT = new SimpleDateFormat("MM-dd-yyyy")
 
   /**
     * Represents a Project with an uploaded plugin that has not yet been
@@ -401,9 +407,9 @@ object Project {
       * @return New PendingVersion
       */
     def initFirstVersion: PendingVersion = {
-      val meta = this.firstVersion.getMeta.get
+      val meta = this.firstVersion.meta.get
       val version = Version.fromMeta(this.project, meta)
-      val pending = Version.setPending(project.owner, project.slug,
+      val pending = Version.setPending(project.ownerName, project.slug,
         Channel.getSuggestedNameForVersion(version.versionString), version, this.firstVersion)
       this.pendingVersion = Some(pending)
       pending
@@ -418,15 +424,10 @@ object Project {
 
     override def complete: Try[Project] = Try {
       free()
-      ProjectManager.createProject(this) match {
-        case Failure(thrown) => throw thrown
-        case Success(newProject) => ProjectManager.createVersion(this.pendingVersion.get) match {
-          case Failure(thrown) => throw thrown
-          case Success(newVersion) =>
-            newProject.setRecommendedVersion(newVersion)
-            newProject
-        }
-      }
+      val newProject = ProjectManager.createProject(this).get
+      val newVersion = ProjectManager.createVersion(this.pendingVersion.get).get
+      newProject.recommendedVersion = newVersion
+      newProject
     }
 
     override def cancel() = {
@@ -437,9 +438,19 @@ object Project {
       }
     }
 
-    override def getKey: String = this.project.owner + '/' + this.project.slug
+    override def key: String = this.project.ownerName + '/' + this.project.slug
 
   }
+
+  def withSlug(owner: String, slug: String): Option[Project] = now(Storage.projectWithSlug(owner, slug)).get
+
+  def withName(owner: String, name: String): Option[Project] = now(Storage.projectWithName(owner, name)).get
+
+  def withPluginId(pluginId: String): Option[Project] = now(Storage.projectWithPluginId(pluginId)).get
+
+  def withId(id: Int): Option[Project] = now(Storage.projectWithId(id)).get
+
+  def by(owner: String): Seq[Project] = now(Storage.projectsBy(owner)).get
 
   /**
     * Returns true if the Project's desired slug is available.
@@ -447,17 +458,26 @@ object Project {
     * @return True if slug is available
     */
   def isNamespaceAvailable(owner: String, slug: String): Boolean = {
-    Storage.now(Storage.optProjectOfSlug(owner, slug)) match {
-      case Failure(thrown) => throw thrown
-      case Success(optProject) => optProject.isEmpty
-    }
+    withSlug(owner, slug).isEmpty
   }
 
+  /**
+    * Returns true if the specified name is a valid Project name.
+    *
+    * @param name   Name to check
+    * @return       True if valid name
+    */
   def isValidName(name: String): Boolean = {
     val sanitized = sanitizeName(name)
     sanitized.length >= 1 && sanitized.length <= MAX_NAME_LENGTH
   }
 
+  /**
+    * Trims the specified name and removes extra whitespace.
+    *
+    * @param name   Name to sanitize
+    * @return       Sanitized name
+    */
   def sanitizeName(name: String): String = name.trim.replaceAll(" +", " ")
 
   /**
@@ -465,7 +485,7 @@ object Project {
     *
     * @return URL slug
     */
-  def slugify(project: Project): String = slugify(project.getName)
+  def slugify(project: Project): String = slugify(project.name)
 
   /**
     * Returns a URL slug that should be used for the project.

@@ -6,12 +6,13 @@ import auth.DiscourseSSO._
 import controllers.routes.{Application => self}
 import db.Storage
 import models.auth.{FakeUser, User}
-import models.project.Categories
+import models.project.Categories.Category
+import models.project.{Categories, Project}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import views.{html => views}
 
-import scala.util.{Failure, Success}
+import scala.concurrent.Future
 
 class Application @Inject()(override val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
@@ -23,21 +24,21 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends Contr
     * @return Home page
     */
   def index(categories: Option[String]) = Action { implicit request =>
+    var projectsFuture: Future[Seq[Project]] = null
+    var categoryArray: Array[Category] = null
+
     categories match {
-      case None => Storage.now(Storage.getProjects(limit = INITIAL_PROJECT_LOAD)) match {
-        case Failure(thrown) => throw thrown
-        case Success(projects) => Ok(views.index(projects, None))
-      }
+      case None => projectsFuture = Storage.projects(limit = INITIAL_PROJECT_LOAD)
       case Some(csv) =>
-        val categoryArray = Categories.fromString(csv)
-        Storage.now(Storage.getProjects(categoryArray.map(_.id), INITIAL_PROJECT_LOAD)) match {
-          case Failure(thrown) => throw thrown
-          case Success(projects) =>
-            // Don't pass "visible categories" if all categories are visible
-            val allCategories = Categories.values.subsetOf(categoryArray.toSet)
-            Ok(views.index(projects, if (allCategories) None else Some(categoryArray)))
+        categoryArray = Categories.fromString(csv)
+        if (Categories.values.subsetOf(categoryArray.toSet)) {
+          categoryArray = null
         }
+        projectsFuture = Storage.projects(categoryArray.map(_.id), INITIAL_PROJECT_LOAD)
     }
+
+    val projects = Storage.now(projectsFuture).get
+    Ok(views.index(projects, Option(categoryArray)))
   }
 
   /**

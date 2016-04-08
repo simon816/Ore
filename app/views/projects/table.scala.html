@@ -67,16 +67,16 @@ Collection of all projects.
                     <tbody class="panel-body">
                         @models.map { project =>
                             <tr>
-                                @defining(project.getCategory) { category =>
+                                @defining(project.category) { category =>
                                   <td><i title="@category.title" class="fa @category.icon"></i></td>
                                 }
                                 <td class="" colspan="1">
-                                    <strong><a class="" href="@routes.Projects.show(project.owner, project.getSlug)">@project.getName</a></strong>
+                                    <strong><a class="" href="@routes.Projects.show(project.ownerName, project.slug)">@project.name</a></strong>
                                 </td>
-                                <td><a href="#">@project.owner</a></td>
-                                <td class="minor">@project.getViews</td>
-                                <td class="minor">@project.getDownloads</td>
-                                <td class="minor">@project.getStars</td>
+                                <td><a href="#">@project.ownerName</a></td>
+                                <td class="minor">@project.views</td>
+                                <td class="minor">@project.downloads</td>
+                                <td class="minor">@project.stars</td>
                             </tr>
                         }
                     </tbody>

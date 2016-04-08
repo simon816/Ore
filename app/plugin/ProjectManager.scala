@@ -2,9 +2,9 @@ package plugin
 
 import java.nio.file.{Files, Path}
 
-import com.google.common.base.Preconditions
 import com.google.common.base.Preconditions._
 import db.Storage
+import db.Storage.now
 import models.auth.User
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
@@ -12,7 +12,7 @@ import models.project.{Channel, Project, Version}
 import play.api.libs.Files.TemporaryFile
 import util.Dirs._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 /**
   * Handles management of uploaded projects.
@@ -32,7 +32,7 @@ object ProjectManager {
     if (Files.notExists(tmpPath.getParent)) {
       Files.createDirectories(tmpPath.getParent)
     }
-    tmp.moveTo(plugin.getPath.toFile, replace = true)
+    tmp.moveTo(plugin.path.toFile, replace = true)
     plugin.loadMeta
     plugin
   }
@@ -44,20 +44,17 @@ object ProjectManager {
     * @return         Result
     */
   def uploadPlugin(channel: Channel, plugin: PluginFile): Try[Unit] = Try {
-    plugin.getMeta match {
-      case None => throw new IllegalArgumentException("Specified PluginFile has no meta loaded.")
-      case Some(meta) =>
-        var oldPath = plugin.getPath
-        if (!plugin.isZipped) {
-          oldPath = plugin.zip
-        }
-        val newPath = getUploadPath(plugin.getOwner.username, meta.getName, meta.getVersion, channel.getName)
-        if (!Files.exists(newPath.getParent)) {
-          Files.createDirectories(newPath.getParent)
-        }
-        Files.move(oldPath, newPath)
-        Files.delete(oldPath)
+    val meta = plugin.meta.get
+    var oldPath = plugin.path
+    if (!plugin.isZipped) {
+      oldPath = plugin.zip
     }
+    val newPath = uploadPath(plugin.owner.username, meta.getName, meta.getVersion, channel.name)
+    if (!Files.exists(newPath.getParent)) {
+      Files.createDirectories(newPath.getParent)
+    }
+    Files.move(oldPath, newPath)
+    Files.delete(oldPath)
   }
 
   /**
@@ -70,15 +67,9 @@ object ProjectManager {
   def createProject(pending: PendingProject): Try[Project] = Try[Project] {
     checkArgument(!pending.project.exists, "project already exists", "")
     checkArgument(pending.project.isNamespaceAvailable, "slug not available", "")
-    checkArgument(Project.isValidName(pending.project.getName), "invalid name", "")
-    Storage.now(Storage.createProject(pending.project)) match {
-      case Failure(thrown) =>
-        pending.cancel()
-        throw thrown
-      case Success(newProject) =>
-        Pages.createHomePage(newProject.owner, newProject.getName)
-        newProject
-    }
+    checkArgument(Project.isValidName(pending.project.name), "invalid name", "")
+    val newProject = now(Storage.createProject(pending.project)).get
+    newProject
   }
 
   /**
@@ -88,49 +79,24 @@ object ProjectManager {
     * @return         New version
     */
   def createVersion(pending: PendingVersion): Try[Version] = Try[Version] {
-    // Get project
-    Storage.now(Storage.getProjectBySlug(pending.owner, pending.projectSlug)) match {
-      case Failure(thrown) =>
-        pending.cancel()
-        throw thrown
-      case Success(project) =>
-        var channel: Channel = null
-        // Create channel if not exists
-        Storage.now(project.getChannel(pending.getChannelName)) match {
-          case Failure(thrown) =>
-            pending.cancel()
-            throw thrown
-          case Success(channelOpt) => channelOpt match {
-            case None =>
-              project.newChannel(pending.getChannelName, pending.getChannelColor) match {
-                case Failure(thrown) =>
-                  pending.cancel()
-                  throw thrown
-                case Success(newChannel) => channel = newChannel
-              }
-            case Some(existingChannel) => channel = existingChannel
-          }
-        }
+    var channel: Channel = null
+    val project = Project.withSlug(pending.owner, pending.projectSlug).get
 
-        // Create version
-        val version = pending.version
-        Storage.now(Storage.isDefined(Storage.getVersion(channel.id.get, version.versionString))) match {
-          case Failure(ignored) => ;
-          case Success(m) => throw new Exception("Version already exists.")
-        }
-
-        val versionResult = Storage.now(channel.newVersion(version.versionString, version.dependencies,
-          version.getDescription.orNull, version.assets.orNull))
-        versionResult match {
-          case Failure(thrown) =>
-            pending.cancel()
-            throw thrown
-          case Success(newVersion) =>
-            // Upload plugin file
-            uploadPlugin(channel, pending.plugin)
-            newVersion
-        }
+    // Create channel if not exists
+    project.channel(pending.channelName) match {
+      case None => channel = project.newChannel(pending.channelName, pending.channelColor).get
+      case Some(existing) => channel = existing
     }
+
+    // Create version
+    val pendingVersion = pending.version
+    if (now(Storage.versionWithName(channel.id.get, pendingVersion.versionString)).get.isDefined) {
+      throw new IllegalArgumentException("Version already exists.")
+    }
+    val newVersion = channel.newVersion(pendingVersion.versionString, pendingVersion.dependenciesIds,
+      pendingVersion.description.orNull, pendingVersion.assets.orNull)
+    uploadPlugin(channel, pending.plugin)
+    newVersion
   }
 
   /**
@@ -142,8 +108,8 @@ object ProjectManager {
     * @param channel  Project channel
     * @return         Path to supposed file
     */
-  def getUploadPath(owner: String, name: String, version: String, channel: String): Path = {
-    getProjectDir(owner, name).resolve(channel).resolve("%s-%s.zip".format(name, version.toLowerCase))
+  def uploadPath(owner: String, name: String, version: String, channel: String): Path = {
+    projectDir(owner, name).resolve(channel).resolve("%s-%s.zip".format(name, version.toLowerCase))
   }
 
   /**
@@ -153,8 +119,8 @@ object ProjectManager {
     * @param name   Project name
     * @return       Plugin directory
     */
-  def getProjectDir(owner: String, name: String): Path = {
-    getUserDir(owner).resolve(name)
+  def projectDir(owner: String, name: String): Path = {
+    userDir(owner).resolve(name)
   }
 
   /**
@@ -163,7 +129,7 @@ object ProjectManager {
     * @param owner  Owner name
     * @return       Plugin directory
     */
-  def getUserDir(owner: String): Path = {
+  def userDir(owner: String): Path = {
     PLUGIN_DIR.resolve(owner)
   }
 
@@ -176,16 +142,15 @@ object ProjectManager {
     * @return         New path
     */
   def renameProject(owner: String, oldName: String, newName: String): Try[Unit] = Try {
-    val newProjectDir = getProjectDir(owner, newName)
-    Files.move(getProjectDir(owner, oldName), newProjectDir)
-    Files.move(Pages.getDocsDir(owner, oldName), Pages.getDocsDir(owner, newName))
+    val newProjectDir = projectDir(owner, newName)
+    Files.move(projectDir(owner, oldName), newProjectDir)
     for (channelDir <- newProjectDir.toFile.listFiles()) {
       if (channelDir.isDirectory) {
         val channelName = channelDir.getName
         for (pluginFile <- channelDir.listFiles()) {
           val fileName = pluginFile.getName
           val versionString = fileName.substring(fileName.indexOf('-') + 1, fileName.lastIndexOf('.'))
-          Files.move(pluginFile.toPath, getUploadPath(owner, newName, versionString, channelName))
+          Files.move(pluginFile.toPath, uploadPath(owner, newName, versionString, channelName))
         }
       }
     }
@@ -201,8 +166,8 @@ object ProjectManager {
     * @return             New path
     */
   def renameChannel(owner: String, projectName: String, oldName: String, newName: String): Try[Unit] = Try {
-    val newPath = getProjectDir(owner, projectName).resolve(newName)
-    val oldPath = getProjectDir(owner, projectName).resolve(oldName)
+    val newPath = projectDir(owner, projectName).resolve(newName)
+    val oldPath = projectDir(owner, projectName).resolve(oldName)
     Files.move(oldPath, newPath)
   }
 

@@ -1,13 +1,11 @@
 package db
 
-import java.sql.Timestamp
-import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import db.OrePostgresDriver.api._
 import models.auth.User
 import models.author.Team
-import models.project.{Channel, Project, Version}
+import models.project.{Channel, Project, Page, Version}
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
@@ -71,6 +69,8 @@ object Storage {
       TableQuery(tag => new VersionTable(tag).asInstanceOf[T])
     } else if (clazz.equals(classOf[User])) {
       TableQuery(tag => new UserTable(tag).asInstanceOf[T])
+    } else if (clazz.equals(classOf[Page])) {
+      TableQuery(tag => new PagesTable(tag).asInstanceOf[T])
     } else {
       throw new Exception("No table found for class: " + clazz.toString)
     }
@@ -88,17 +88,12 @@ object Storage {
     this.config.db.run(_filter[T, M](clazz, predicate).result)
   }
 
-  private def getAll[T <: Table[M], M](clazz: Class[_]): Future[Seq[M]] = {
+  private def all[T <: Table[M], M](clazz: Class[_]): Future[Seq[M]] = {
     val query = q[T](clazz)
     this.config.db.run(query.result)
   }
 
-  private def getN[T <: Table[M], M](clazz: Class[_], n: Int): Future[Seq[M]] = {
-    val query = q[T](clazz).take(n)
-    this.config.db.run(query.result)
-  }
-
-  private def optOne[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]): Future[Option[M]] = {
+  private def get[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]): Future[Option[M]] = {
     val p = Promise[Option[M]]
     filter[T, M](clazz, predicate).onComplete {
       case Failure(thrown) => p.failure(thrown)
@@ -108,8 +103,9 @@ object Storage {
   }
 
   private def getOne[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]): Future[M] = {
+    // TODO: Remove
     val p = Promise[M]
-    optOne[T, M](clazz, predicate).onComplete {
+    get[T, M](clazz, predicate).onComplete {
       case Failure(thrown) => p.failure(thrown)
       case Success(opt) => opt match {
         case None => p.failure(new Exception("Could not retrieve required row"))
@@ -119,46 +115,9 @@ object Storage {
     p.future
   }
 
-  // User queries
-
-  def getUser(username: String): Future[User] = getOne[UserTable, User](classOf[User], u => u.username === username)
-
-  def optUser(username: String): Future[Option[User]] = optOne[UserTable, User](classOf[User], u => u.username === username)
-
-  def createUser(user: User): Future[Unit] = {
-    val users = q[UserTable](classOf[User])
-    val action = DBIO.seq(users += user)
-    this.config.db.run(action)
-  }
-
-  def getOrCreateUser(user: User): User = {
-    Storage.now(optUser(user.username)) match {
-      case Failure(thrown) => throw thrown
-      case Success(userOpt) => userOpt match {
-        case None => Storage.now(createUser(user)) match {
-          case Failure(thrown) => throw thrown
-          case Success(void) => user
-        }
-        case Some(u) => u
-      }
-    }
-  }
-
-  // Team queries
-
-  def getTeams: Future[Seq[Team]] = getAll[TeamTable, Team](classOf[Team])
-
-  def optTeam(name: String): Future[Option[Team]] = optOne[TeamTable, Team](classOf[Team], t => t.name === name)
-
-  def optTeam(id: Int): Future[Option[Team]] = optOne[TeamTable, Team](classOf[Team], t => t.id === id)
-
-  def getTeam(name: String): Future[Team] = getOne[TeamTable, Team](classOf[Team], t => t.name === name)
-
-  def getTeam(id: Int): Future[Team] = getOne[TeamTable, Team](classOf[Team], t => t.id === id)
-
   // Project queries
 
-  def getProjects(categories: Array[Int] = null, limit: Int = -1, offset: Int = -1): Future[Seq[Project]] = {
+  def projects(categories: Array[Int] = null, limit: Int = -1, offset: Int = -1): Future[Seq[Project]] = {
     var query: Query[ProjectTable, Project, Seq] = q[ProjectTable](classOf[Project])
     if (categories != null) {
       query = for {
@@ -175,33 +134,23 @@ object Storage {
     this.config.db.run(query.result)
   }
 
-  def getProjectsBy(ownerName: String): Future[Seq[Project]] = {
+  def projectsBy(ownerName: String): Future[Seq[Project]] = {
     filter[ProjectTable, Project](classOf[Project], p => p.ownerName === ownerName)
   }
 
-  def optProject(owner: String, name: String): Future[Option[Project]] = {
-    optOne[ProjectTable, Project](classOf[Project], p => p.name === name && p.ownerName === owner)
-  }
-  
-  def optProject(id: Int): Future[Option[Project]] = optOne[ProjectTable, Project](classOf[Project], p => p.id === id)
-
-  def optProject(pluginId: String): Future[Option[Project]] = {
-    optOne[ProjectTable, Project](classOf[Project], p => p.pluginId === pluginId)
+  def projectWithName(owner: String, name: String): Future[Option[Project]] = {
+    get[ProjectTable, Project](classOf[Project], p => p.name === name && p.ownerName === owner)
   }
 
-  def getProject(owner: String, name: String): Future[Project] = {
-    getOne[ProjectTable, Project](classOf[Project], p => p.name === name && p.ownerName === owner)
+  def projectWithPluginId(pluginId: String): Future[Option[Project]] = {
+    get[ProjectTable, Project](classOf[Project], p => p.pluginId === pluginId)
   }
 
-  def getProjectBySlug(owner: String, slug: String): Future[Project] = {
-    getOne[ProjectTable, Project](classOf[Project], p => p.ownerName === owner && p.slug.toLowerCase === slug.toLowerCase)
+  def projectWithSlug(owner: String, slug: String): Future[Option[Project]] = {
+    get[ProjectTable, Project](classOf[Project], p => p.ownerName === owner && p.slug.toLowerCase === slug.toLowerCase)
   }
 
-  def optProjectOfSlug(owner: String, slug: String): Future[Option[Project]] = {
-    optOne[ProjectTable, Project](classOf[Project], p => p.ownerName === owner && p.slug.toLowerCase === slug.toLowerCase)
-  }
-
-  def getProject(id: Int): Future[Project] = getOne[ProjectTable, Project](classOf[Project], p => p.id === id)
+  def projectWithId(id: Int): Future[Option[Project]] = get[ProjectTable, Project](classOf[Project], p => p.id === id)
 
   def createProject(project: Project): Future[Project] = {
     // copy new vals into old project
@@ -273,31 +222,48 @@ object Storage {
     this.config.db.run(query)
   }
 
+  // User queries
+
+  def userWithName(username: String): Future[Option[User]] = get[UserTable, User](classOf[User], u => u.username === username)
+
+  def createUser(user: User): Future[Unit] = {
+    val users = q[UserTable](classOf[User])
+    val action = DBIO.seq(users += user)
+    this.config.db.run(action)
+  }
+
+  def getOrCreateUser(user: User): User = {
+    Storage.now(userWithName(user.username)) match {
+      case Failure(thrown) => throw thrown
+      case Success(userOpt) => userOpt match {
+        case None => Storage.now(createUser(user)) match {
+          case Failure(thrown) => throw thrown
+          case Success(void) => user
+        }
+        case Some(u) => u
+      }
+    }
+  }
+
   // Channel queries
 
-  def getChannels(projectId: Int): Future[Seq[Channel]] = {
+  def channelsInProject(projectId: Int): Future[Seq[Channel]] = {
     filter[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId)
   }
 
-  def optChannel(projectId: Int, name: String): Future[Option[Channel]] = {
-    optOne[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId && c.name.toLowerCase === name.toLowerCase)
+  def channelWithName(projectId: Int, name: String): Future[Option[Channel]] = {
+    get[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId && c.name.toLowerCase === name.toLowerCase)
   }
 
-  def optChannel(projectId: Int, colorId: Int): Future[Option[Channel]] = {
-    optOne[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId && c.colorId === colorId)
-  }
-  
-  def optChannel(id: Int): Future[Option[Channel]] = optOne[ChannelTable, Channel](classOf[Channel], c => c.id === id)
-
-  def getChannel(projectId: Int, name: String): Future[Channel] = {
-    getOne[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId && c.name === name)
+  def channelWithColor(projectId: Int, colorId: Int): Future[Option[Channel]] = {
+    get[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId && c.colorId === colorId)
   }
 
-  def getChannel(id: Int): Future[Channel] = getOne[ChannelTable, Channel](classOf[Channel], c => c.id === id)
+  def channelWithId(id: Int): Future[Option[Channel]] = get[ChannelTable, Channel](classOf[Channel], c => c.id === id)
 
   def createChannel(channel: Channel): Future[Channel] = {
     // copy new vals into old channel
-    channel.createdAt = Some(new Timestamp(new Date().getTime))
+    channel.onCreate()
     val channels = q[ChannelTable](classOf[Channel])
     val query = {
       channels returning channels.map(_.id) into {
@@ -330,15 +296,15 @@ object Storage {
 
   // Version queries
 
-  def getAllVersions(projectId: Int): Future[Seq[Version]] = {
+  def versionsInProject(projectId: Int): Future[Seq[Version]] = {
     filter[VersionTable, Version](classOf[Version], v => v.projectId === projectId)
   }
 
-  def getVersions(channelId: Int): Future[Seq[Version]] = {
+  def versionsInChannel(channelId: Int): Future[Seq[Version]] = {
     filter[VersionTable, Version](classOf[Version], v => v.channelId === channelId)
   }
 
-  def getVersions(projectId: Int, channelIds: Seq[Int]): Future[Seq[Version]] = {
+  def versionsInChannels(projectId: Int, channelIds: Seq[Int]): Future[Seq[Version]] = {
     val query = for {
       version <- q[VersionTable](classOf[Version])
       if version.projectId === projectId
@@ -347,21 +313,15 @@ object Storage {
     this.config.db.run(query.result)
   }
 
-  def optVersion(channelId: Int, versionString: String): Future[Option[Version]] = {
-    optOne[VersionTable, Version](classOf[Version], v => v.channelId === channelId && v.versionString === versionString)
+  def versionWithName(channelId: Int, versionString: String): Future[Option[Version]] = {
+    get[VersionTable, Version](classOf[Version], v => v.channelId === channelId && v.versionString === versionString)
   }
 
-  def optVersion(id: Int): Future[Option[Version]] = optOne[VersionTable, Version](classOf[Version], v => v.id === id)
-
-  def getVersion(channelId: Int, versionString: String): Future[Version] = {
-    getOne[VersionTable, Version](classOf[Version], v => v.channelId === channelId && v.versionString === versionString)
-  }
-
-  def getVersion(id: Int): Future[Version] = getOne[VersionTable, Version](classOf[Version], v => v.id === id)
+  def versionWithId(id: Int): Future[Option[Version]] = get[VersionTable, Version](classOf[Version], v => v.id === id)
 
   def createVersion(version: Version): Future[Version] = {
     // copy new vals into old version
-    version.createdAt = Some(new Timestamp(new Date().getTime))
+    version.onCreate()
     val versions = q[VersionTable](classOf[Version])
     val query = {
       versions returning versions.map(_.id) into {
@@ -410,6 +370,44 @@ object Storage {
     val query = for { v <- versions if v.id === version.id.get } yield key(v)
     val action = query.update(value)
     this.config.db.run(action)
+  }
+
+  // Page queries
+
+  def pagesInProject(projectId: Int): Future[Seq[Page]] = {
+    filter[PagesTable, Page](classOf[Page], p => p.projectId === projectId)
+  }
+
+  def pageWithName(projectId: Int, name: String): Future[Option[Page]] = {
+    get[PagesTable, Page](classOf[Page], p => p.projectId === projectId
+      && p.name.toLowerCase === name.toLowerCase)
+  }
+
+  def getOrCreatePage(page: Page): Page = {
+    now(pageWithName(page.projectId, page.name)).get.getOrElse(now(createPage(page)).get)
+  }
+
+  def createPage(page: Page) = {
+    page.onCreate()
+    val pages = q[PagesTable](classOf[Page])
+    val query = {
+      pages returning pages.map(_.id) into {
+        case (p, id) =>
+          p.copy(id=Some(id))
+      } += page
+    }
+    this.config.db.run(query)
+  }
+
+  def deletePage(page: Page) = {
+    val query = _filter[PagesTable, Page](classOf[Page], p => p.id === page.id.get)
+    this.config.db.run(query.delete)
+  }
+
+  def updatePageString(page: Page, key: PagesTable => Rep[String], value: String): Future[Int] = {
+    val pages = q[PagesTable](classOf[Page])
+    val query = for { p <- pages if p.id === page.id.get } yield key(p)
+    this.config.db.run(query.update(value))
   }
 
 }

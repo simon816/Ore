@@ -1,10 +1,10 @@
 @*
 Page used for uploading and creating new projects.
 *@
+@import models.project.Project
 @import models.project.Project.PendingProject
 @import play.api.Play
 @import views.html.helper.form
-@import models.project.Project
 @(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout(messages("project.create")) {
@@ -45,11 +45,11 @@ Page used for uploading and creating new projects.
                                             </tr>
                                             <tr>
                                                 <td><strong>@messages("project.name")</strong></td>
-                                                <td>@project.getName <i class="name-status fa fa-spinner fa-spin"></i></td>
+                                                <td>@project.name <i class="name-status fa fa-spinner fa-spin"></i></td>
                                             </tr>
                                             <tr>
                                                 <td><strong>@messages("project.owner")</strong></td>
-                                                <td>@project.owner</td>
+                                                <td>@project.ownerName</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -57,9 +57,9 @@ Page used for uploading and creating new projects.
                                     <script type="text/javascript" src="@routes.Assets.at("javascripts/projectCreateValidate.js")"></script>
                                     <script>
                                     $(function() {
-                                        validateMeta("@project.pluginId", "@project.getName",
+                                        validateMeta("@project.pluginId", "@project.name",
                                                      "@Play.current.configuration.getString("application.baseUrl").get",
-                                                     "@project.owner", "@project.getSlug"
+                                                     "@project.ownerName", "@project.slug"
 
                                         );
                                     });
@@ -84,11 +84,11 @@ Page used for uploading and creating new projects.
                         @* Continue to next step *@
                         @if(pending.isDefined) {
                             @defining(pending.get.project) { project =>
-                              @form(action = routes.Projects.showFirstVersionCreate(project.owner, project.getSlug), 'id -> "continue") {
+                              @form(action = routes.Projects.showFirstVersionCreate(project.ownerName, project.slug), 'id -> "continue") {
                                   @* Disabled until JS determines meta is valid *@
                                   <input type="submit" name="create" value="@messages("project.create.continue")"
                                          class="continue-btn btn btn-primary" disabled />
-                                  <i class="pull-right slug">Project will be created at <strong>@project.owner/@Project.slugify(project)</strong></i>
+                                  <i class="pull-right slug">Project will be created at <strong>@project.ownerName/@Project.slugify(project)</strong></i>
                               }
                             }
                         }

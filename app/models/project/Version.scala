@@ -2,9 +2,12 @@ package models.project
 
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import java.util.Date
 
 import db.Storage
+import db.Storage.now
 import models.project.ChannelColors.ChannelColor
+import models.project.Version._
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
@@ -12,30 +15,26 @@ import plugin.{PluginFile, ProjectManager}
 import util.{Cacheable, PendingAction}
 
 import scala.collection.JavaConversions._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.util.Try
 
 /**
   * Represents a single version of a Project.
   *
-  * @param id             Unique identifier
-  * @param createdAt      Instant of creation
-  * @param versionString  Version string
-  * @param dependencies   List of plugin dependencies with the plugin ID and
-  *                       version separated by a ':'
-  * @param description    User description of version
-  * @param assets         Path to assets directory within plugin
-  * @param downloads      The amount of times this version has been downloaded
-  * @param projectId      ID of project this version belongs to
-  * @param channelId      ID of channel this version belongs to
+  * @param id               Unique identifier
+  * @param _createdAt       Instant of creation
+  * @param versionString    Version string
+  * @param dependenciesIds  List of plugin dependencies with the plugin ID and
+  *                         version separated by a ':'
+  * @param _description     User description of version
+  * @param assets           Path to assets directory within plugin
+  * @param _downloads        The amount of times this version has been downloaded
+  * @param projectId        ID of project this version belongs to
+  * @param channelId        ID of channel this version belongs to
   */
-case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionString: String,
-                   dependencies: List[String], private var description: Option[String],
-                   assets: Option[String], private var downloads: Int, projectId: Int,
-                   var channelId: Int) {
-
-  private lazy val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
+case class Version(id: Option[Int], private var _createdAt: Option[Timestamp],
+                   versionString: String, dependenciesIds: List[String],
+                   private var _description: Option[String], assets: Option[String],
+                   private var _downloads: Int, projectId: Int, var channelId: Int) {
 
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int) = {
@@ -48,18 +47,31 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
   }
 
   /**
+    * Returns the Timestamp Instant that this Version was created.
+    *
+    * @return Instant of creation
+    */
+  def createdAt: Option[Timestamp] = this._createdAt
+
+  /**
+    * Called when this Version is created.
+    *
+    */
+  def onCreate() = this._createdAt = Some(new Timestamp(new Date().getTime))
+
+  /**
     * Returns the project this version belongs to.
     *
     * @return Project
     */
-  def getProject: Future[Project] = Storage.getProject(this.projectId)
+  def project: Project = now(Storage.projectWithId(this.projectId)).get.get
 
   /**
     * Returns the channel this version belongs to.
     *
     * @return Channel
     */
-  def getChannel: Future[Channel] = Storage.getChannel(this.channelId)
+  def channel: Channel = now(Storage.channelWithId(this.channelId)).get.get
 
   /**
     * Returns the channel this version belongs to from the specified collection
@@ -68,26 +80,23 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
     * @param channels   Channels to search
     * @return           Channel if present, None otherwise
     */
-  def getChannelFrom(channels: Seq[Channel]): Option[Channel] = channels.find(_.id.get == this.channelId)
+  def findChannelFrom(channels: Seq[Channel]): Option[Channel] = channels.find(_.id.get == this.channelId)
 
   /**
     * Returns this Version's description.
     *
     * @return Version description
     */
-  def getDescription: Option[String] = this.description
+  def description: Option[String] = this._description
 
   /**
     * Sets this Version's description.
     *
-    * @param description Version description
+    * @param _description Version description
     */
-  def setDescription(description: String): Future[Int] = {
-    val f = Storage.updateVersionString(this, _.description, description)
-    f.onComplete {
-      case i => this.description = Some(description)
-    }
-    f
+  def description_=(_description: String) = {
+    now(Storage.updateVersionString(this, _.description, _description)).get
+    this._description = Some(_description)
   }
 
   /**
@@ -95,8 +104,8 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
     *
     * @return Plugin dependencies
     */
-  def getDependencies: List[Dependency] = {
-    for (depend <- this.dependencies) yield {
+  def dependencies: List[Dependency] = {
+    for (depend <- this.dependenciesIds) yield {
       val data = depend.split(":")
       Dependency(data(0), data(1))
     }
@@ -107,19 +116,16 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
     *
     * @return Amount of unique downloads
     */
-  def getDownloads: Int = this.downloads
+  def downloads: Int = this._downloads
 
   /**
     * Increments this Version's download count by one.
     *
     * @return Future result
     */
-  def addDownload(): Future[Int] = {
-    val f = Storage.updateVersionInt(this, _.downloads, this.downloads + 1)
-    f.onSuccess {
-      case i => this.downloads += 1;
-    }
-    f
+  def addDownload() = {
+    now(Storage.updateVersionInt(this, _.downloads, this._downloads + 1)).get
+    this._downloads += 1
   }
 
   /**
@@ -128,7 +134,7 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
     * @return Creation date string
     */
   def prettyDate: String = {
-    this.dateFormat.format(this.createdAt.get)
+    DATE_FORMAT.format(this.createdAt.get)
   }
 
   override def hashCode: Int = this.id.hashCode
@@ -141,6 +147,8 @@ case class Version(id: Option[Int], var createdAt: Option[Timestamp], versionStr
 
 object Version {
 
+  val DATE_FORMAT = new SimpleDateFormat("MM-dd-yyyy")
+
   /**
     * Represents a pending version to be created later.
     *
@@ -151,41 +159,9 @@ object Version {
     * @param version        Version that is pending
     * @param plugin         Uploaded plugin
     */
-  case class PendingVersion(owner: String, projectSlug: String, private var channelName: String,
-                            private var channelColor: ChannelColor, version: Version,
+  case class PendingVersion(owner: String, projectSlug: String, var channelName: String,
+                            var channelColor: ChannelColor, version: Version,
                             plugin: PluginFile) extends PendingAction[Version] with Cacheable {
-
-    /**
-      * Returns the Channel name that this Version will be assigned to or created
-      * if it does not exist.
-      *
-      * @return Pending channel name
-      */
-    def getChannelName: String = this.channelName
-
-    /**
-      * Sets the Channel name that this Version will be assigned to or created
-      * if it does not exist.
-      *
-      * @param channelName Pending channel name
-      */
-    def setChannelName(channelName: String) = this.channelName = channelName
-
-    /**
-      * Returns the Channel color to use if a Channel needs to be created to
-      * create this Version.
-      *
-      * @return Channel color to user
-      */
-    def getChannelColor: ChannelColor = this.channelColor
-
-    /**
-      * Sets the Channel color to use if a Channel needs to be created to
-      * create this Version.
-      *
-      * @param channelColor Channel color to user
-      */
-    def setChannelColor(channelColor: ChannelColor) = this.channelColor = channelColor
 
     override def complete: Try[Version] = Try {
       free()
@@ -197,7 +173,7 @@ object Version {
       this.plugin.delete()
     }
 
-    override def getKey: String = {
+    override def key: String = {
       this.owner + '/' + this.projectSlug + '/' + this.channelName + '/' + this.version.versionString
     }
 
