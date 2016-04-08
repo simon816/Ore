@@ -2,7 +2,7 @@ package db.query
 
 import db.OrePostgresDriver.api._
 import Queries._
-import db.{ProjectTable, ProjectViewsTable, StarredProjectsTable}
+import db.{ProjectTable, ProjectViewsTable, ProjectStarsTable}
 import models.auth.User
 import models.project.Project
 import slick.lifted.Query
@@ -15,7 +15,7 @@ import scala.concurrent.Future
 object ProjectQueries extends ModelQueries[ProjectTable, Project] {
 
   private val views = TableQuery[ProjectViewsTable]
-  private val stars = TableQuery[StarredProjectsTable]
+  private val stars = TableQuery[ProjectStarsTable]
 
   /**
     * Filters projects based on the given criteria.

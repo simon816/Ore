@@ -28,13 +28,13 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
   def categoryId            =   column[Int]("category_id")
   def views                 =   column[Int]("views", O.Default(0))
   def downloads             =   column[Int]("downloads", O.Default(0))
-  def starred               =   column[Int]("starred", O.Default(0))
+  def stars                 =   column[Int]("stars", O.Default(0))
 
   override def pk = this.id
 
   override def * = (id.?, createdAt.?, pluginId, name, slug, ownerName,
                     authors, homepage.?, recommendedVersionId.?,
-                    categoryId, views, downloads, starred) <> ((Project.apply _).tupled,
+                    categoryId, views, downloads, stars) <> ((Project.apply _).tupled,
                     Project.unapply)
 
 }
@@ -51,7 +51,7 @@ class ProjectViewsTable(tag: Tag) extends Table[(Option[Int], Option[String],
 
 }
 
-class StarredProjectsTable(tag: Tag) extends Table[(Int, Int)](tag, "starred_projects") {
+class ProjectStarsTable(tag: Tag) extends Table[(Int, Int)](tag, "project_stars") {
 
   def userId      =   column[Int]("user_id")
   def projectId   =   column[Int]("project_id")

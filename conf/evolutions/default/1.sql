@@ -21,7 +21,7 @@ CREATE TABLE projects (
   category_id             int             NOT NULL CHECK (category_id >= 0),
   views                   bigint          NOT NULL CHECK (views >= 0),
   downloads               bigint          NOT NULL CHECK (downloads >= 0),
-  starred                 bigint          NOT NULL CHECK (starred >= 0),
+  stars                   bigint          NOT NULL CHECK (stars >= 0),
   UNIQUE (owner_name, name),
   UNIQUE (owner_name, slug)
 );
@@ -33,7 +33,7 @@ CREATE TABLE project_views (
   project_id  bigint        NOT NULL REFERENCES projects ON DELETE CASCADE
 );
 
-CREATE TABLE starred_projects (
+CREATE TABLE project_stars (
   user_id     bigint    NOT NULL REFERENCES users ON DELETE CASCADE,
   project_id  bigint    NOT NULL REFERENCES projects ON DELETE CASCADE,
   PRIMARY KEY (user_id, project_id)
@@ -91,7 +91,7 @@ CREATE TABLE teams (
 
 DROP TABLE projects;
 DROP TABLE project_views;
-DROP TABLE starred_projects;
+DROP TABLE project_stars;
 DROP TABLE channels;
 DROP TABLE versions;
 DROP TABLE version_downloads;
