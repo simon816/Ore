@@ -5,6 +5,7 @@ import javax.inject.Inject
 import auth.DiscourseSSO._
 import controllers.routes.{Application => self}
 import db.query.Queries
+import db.query.Queries.now
 import models.auth.{FakeUser, User}
 import models.project.Categories.Category
 import models.project.{Categories, Project}
@@ -54,14 +55,14 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
     */
   def logIn(sso: Option[String], sig: Option[String]) = Action {
     if (FakeUser.ENABLED) {
-      Queries.Users.getOrCreate(FakeUser)
+      now(Queries.Users.getOrCreate(FakeUser))
       Redirect(self.index(None)).withSession(Security.username -> FakeUser.username, "email" -> FakeUser.email)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(getRedirect)
     } else {
       val userData = authenticate(sso.get, sig.get)
       var user = new User(userData._1, userData._2, userData._3, userData._4)
-      user = Queries.Users.getOrCreate(user)
+      user = now(Queries.Users.getOrCreate(user)).get
       Redirect(self.index(None)).withSession(Security.username -> user.username, "email" -> user.email)
     }
   }

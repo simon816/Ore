@@ -1,11 +1,12 @@
 package db.query
 
+import java.sql.Timestamp
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import db.OrePostgresDriver.api._
 import db._
 import models.auth.User
-import models.author.Team
 import models.project.{Channel, Page, Project, Version}
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
@@ -48,19 +49,21 @@ object Queries {
 
   protected[db] val DB = Config.db
 
+  protected[db] def theTime: Timestamp = new Timestamp(new Date().getTime)
+
   protected[db] def q[T <: Table[_]](clazz: Class[_]): TableQuery[T] = {
     // Table mappings
-    if (clazz.equals(classOf[Project])) {
+    if (classOf[Project].isAssignableFrom(clazz)) {
       TableQuery(tag => new ProjectTable(tag).asInstanceOf[T])
-    } else if (clazz.equals(classOf[Team])) {
+    } else if (classOf[Project].isAssignableFrom(clazz)) {
       TableQuery(tag => new TeamTable(tag).asInstanceOf[T])
-    } else if (clazz.equals(classOf[Channel])) {
+    } else if (classOf[Channel].isAssignableFrom(clazz)) {
       TableQuery(tag => new ChannelTable(tag).asInstanceOf[T])
-    } else if (clazz.equals(classOf[Version])) {
+    } else if (classOf[Version].isAssignableFrom(clazz)) {
       TableQuery(tag => new VersionTable(tag).asInstanceOf[T])
-    } else if (clazz.equals(classOf[User])) {
+    } else if (classOf[User].isAssignableFrom(clazz)) {
       TableQuery(tag => new UserTable(tag).asInstanceOf[T])
-    } else if (clazz.equals(classOf[Page])) {
+    } else if (classOf[Page].isAssignableFrom(clazz)) {
       TableQuery(tag => new PagesTable(tag).asInstanceOf[T])
     } else {
       throw new Exception("No table found for class: " + clazz.toString)

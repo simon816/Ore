@@ -31,10 +31,10 @@ object Statistics {
         }
       },
       user => {
-        Queries.Projects.hasBeenViewedBy(project.id.get, user).onSuccess {
+        Queries.Projects.hasBeenViewedBy(project.id.get, user.externalId).onSuccess {
           case viewed: Boolean => if (!viewed) {
             project.addView()
-            Queries.Projects.setViewedBy(project.id.get, user)
+            Queries.Projects.setViewedBy(project.id.get, user.externalId)
           }
         }
       }

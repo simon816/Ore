@@ -1,9 +1,10 @@
 package db.query
 
+import java.sql.Timestamp
+
 import db.OrePostgresDriver.api._
-import Queries._
+import db.query.Queries._
 import db.{VersionDownloadsTable, VersionTable}
-import models.auth.User
 import models.project.Version
 
 import scala.concurrent.Future
@@ -69,25 +70,6 @@ object VersionQueries extends ModelQueries[VersionTable, Version] {
   def withId(id: Int): Future[Option[Version]] = find[VersionTable, Version](classOf[Version], v => v.id === id)
 
   /**
-    * Creates a new Version.
-    *
-    * @param version  Version to create
-    * @return         Newly created Version
-    */
-  def create(version: Version): Future[Version] = {
-    // copy new vals into old version
-    version.onCreate()
-    val versions = q[VersionTable](classOf[Version])
-    val query = {
-      versions returning versions.map(_.id) into {
-        case (v, id) =>
-          v.copy(id=Some(id))
-      } += version
-    }
-    DB.run(query)
-  }
-
-  /**
     * Returns true if the specified Version has been downloaded by a client
     * with the specified cookie.
     *
@@ -134,6 +116,10 @@ object VersionQueries extends ModelQueries[VersionTable, Version] {
   def setDownloadedBy(versionId: Int, userId: Int) = {
     val query = downloads += (None, None, Some(userId), versionId)
     DB.run(query)
+  }
+
+  override def copyInto(id: Option[Int], theTime: Option[Timestamp], version: Version): Version = {
+    version.copy(id = id, createdAt = theTime)
   }
 
 }

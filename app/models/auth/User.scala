@@ -1,11 +1,10 @@
 package models.auth
 
 import java.sql.Timestamp
-import java.util.Date
 
-import db.query.Queries
 import db.Model
-import Queries.now
+import db.query.Queries
+import db.query.Queries.now
 
 /**
   * Represents a Sponge user.
@@ -16,11 +15,11 @@ import Queries.now
   * @param username     Username
   * @param email        Email
   */
-case class User(externalId: Int, createdAt: Timestamp, name: String,
+case class User(externalId: Int, override val createdAt: Option[Timestamp], name: String,
                 username: String, email: String) extends Model {
 
   def this(externalId: Int, name: String, username: String, email: String) = {
-    this(externalId, new Timestamp(new Date().getTime), name, username, email)
+    this(externalId, None, name, username, email)
   }
 
   override def id: Option[Int] = Some(this.externalId)

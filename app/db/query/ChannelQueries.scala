@@ -1,5 +1,7 @@
 package db.query
 
+import java.sql.Timestamp
+
 import db.ChannelTable
 import db.OrePostgresDriver.api._
 import Queries._
@@ -52,22 +54,8 @@ object ChannelQueries extends ModelQueries[ChannelTable, Channel] {
     */
   def withId(id: Int): Future[Option[Channel]] = find[ChannelTable, Channel](classOf[Channel], c => c.id === id)
 
-  /**
-    * Creates a new Channel.
-    *
-    * @param channel  Channel to create
-    * @return         Newly created channel
-    */
-  def create(channel: Channel): Future[Channel] = {
-    channel.onCreate()
-    val channels = q[ChannelTable](classOf[Channel])
-    val query = {
-      channels returning channels.map(_.id) into {
-        case (c, id) =>
-          c.copy(id=Some(id))
-      } += channel
-    }
-    DB.run(query)
+  override def copyInto(id: Option[Int], theTime: Option[Timestamp], channel: Channel): Channel = {
+    channel.copy(id = id, createdAt = theTime)
   }
 
 }

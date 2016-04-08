@@ -1,5 +1,7 @@
 package db.query
 
+import java.sql.Timestamp
+
 import db.OrePostgresDriver.api._
 import Queries._
 import db.PagesTable
@@ -34,32 +36,10 @@ object PageQueries extends ModelQueries[PagesTable, Page] {
       && p.name.toLowerCase === name.toLowerCase)
   }
 
-  /**
-    * Returns the specified Page or creates it if it doesn't exist.
-    *
-    * @param page   Page to get or create
-    * @return       Existing or newly created Page
-    */
-  def getOrCreate(page: Page): Page = {
-    now(withName(page.projectId, page.name)).get.getOrElse(now(create(page)).get)
+  override def copyInto(id: Option[Int], theTime: Option[Timestamp], page: Page): Page = {
+    page.copy(id = id, createdAt = theTime)
   }
 
-  /**
-    * Creates the specified Page.
-    *
-    * @param page   Page to create
-    * @return       Newly created Page
-    */
-  def create(page: Page) = {
-    page.onCreate()
-    val pages = q[PagesTable](classOf[Page])
-    val query = {
-      pages returning pages.map(_.id) into {
-        case (p, id) =>
-          p.copy(id=Some(id))
-      } += page
-    }
-    DB.run(query)
-  }
+  override def named(page: Page): Future[Option[Page]] = withName(page.projectId, page.name)
 
 }

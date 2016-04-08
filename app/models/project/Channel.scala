@@ -2,12 +2,11 @@ package models.project
 
 import java.nio.file.Files
 import java.sql.Timestamp
-import java.util.Date
 
 import com.google.common.base.Preconditions._
-import db.query.Queries
-import Queries.now
 import db.Model
+import db.query.Queries
+import db.query.Queries.now
 import models.project.Channel._
 import models.project.ChannelColors.ChannelColor
 import org.apache.commons.io.FileUtils
@@ -24,28 +23,16 @@ import scala.util.Try
   * TODO: Max channels per-project
   *
   * @param id           Unique identifier
-  * @param _createdAt   Instant of creation
-  * @param _name         Name of channel
+  * @param createdAt    Instant of creation
+  * @param _name        Name of channel
   * @param colorId      ID of ChannelColor used to represent this Channel
   * @param projectId    ID of project this channel belongs to
   */
-case class Channel(override val id: Option[Int], private var _createdAt: Option[Timestamp],
+case class Channel(override val id: Option[Int], override val createdAt: Option[Timestamp],
                    private var _name: String, private var colorId: Int, projectId: Int)
                    extends Ordered[Channel] with Model {
 
   def this(name: String, color: ChannelColor, projectId: Int) = this(None, None, name, color.id, projectId)
-
-  /**
-    * Returns the Timestamp instant that this channel was created.
-    *
-    * @return Instant of creation, empty if not created
-    */
-  def createdAt: Option[Timestamp] = this._createdAt
-
-  /**
-    * Called when a Channel is created.
-    */
-  def onCreate() = this._createdAt = Some(new Timestamp(new Date().getTime))
 
   /**
     * Returns this Channel's name.

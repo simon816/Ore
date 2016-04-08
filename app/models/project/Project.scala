@@ -2,12 +2,11 @@ package models.project
 
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
-import java.util.Date
 
 import com.google.common.base.Preconditions._
-import db.query.Queries
 import db.Model
-import Queries.now
+import db.query.Queries
+import db.query.Queries.now
 import models.auth.User
 import models.author.Dev
 import models.project.Categories.Category
@@ -34,19 +33,19 @@ import scala.util.Try
   * and mutators must be used.</p>
   *
   * @param id                     Unique identifier
-  * @param _createdAt              Instant of creation
+  * @param createdAt              Instant of creation
   * @param pluginId               Plugin ID
-  * @param _name                   Name of plugin
+  * @param _name                  Name of plugin
   * @param ownerName              The owner Author for this project
   * @param authorNames            Authors who work on this project
   * @param homepage               The external project URL
   * @param recommendedVersionId   The ID of this project's recommended version
   * @param categoryId             The ID of this project's category
-  * @param _views                  How many times this project has been views
-  * @param _downloads              How many times this project has been downloaded in total
-  * @param _stars                How many times this project has been starred
+  * @param _views                 How many times this project has been views
+  * @param _downloads             How many times this project has been downloaded in total
+  * @param _stars                 How many times this project has been starred
   */
-case class Project(override val id: Option[Int], private var _createdAt: Option[Timestamp],
+case class Project(override val id: Option[Int], override val createdAt: Option[Timestamp],
                    pluginId: String, private var _name: String, private var _slug: String,
                    ownerName: String, authorNames: List[String], homepage: Option[String],
                    private var recommendedVersionId: Option[Int],
@@ -61,19 +60,6 @@ case class Project(override val id: Option[Int], private var _createdAt: Option[
   def owner: Dev = Dev(this.ownerName) // TODO: Teams
 
   def authors: List[Dev] = for (author <- authorNames) yield Dev(author) // TODO: Teams
-
-  /**
-    * Returns the Timestamp instant that this Project was created or None if it
-    * has not yet been created.
-    *
-    * @return Instant of creation or None if has not been created
-    */
-  def createdAt: Option[Timestamp] = this._createdAt
-
-  /**
-    * Method called when this Project is created in the database.
-    */
-  def onCreate() = this._createdAt = Some(new Timestamp(new Date().getTime))
 
   /**
     * Returns the name of this project.
@@ -247,7 +233,7 @@ case class Project(override val id: Option[Int], private var _createdAt: Option[
     * @param user   User to check if starred for
     * @return       True if starred by User
     */
-  def isStarredBy(user: User): Boolean = now(Queries.Projects.isStarredBy(this.id.get, user)).get
+  def isStarredBy(user: User): Boolean = now(Queries.Projects.isStarredBy(this.id.get, user.externalId)).get
 
   /**
     * Returns true if this Project is starred by the User with the specified
@@ -265,7 +251,7 @@ case class Project(override val id: Option[Int], private var _createdAt: Option[
     * @return       Future result
     */
   def starFor(user: User) = {
-    now(Queries.Projects.starFor(this.id.get, user)).get
+    now(Queries.Projects.starFor(this.id.get, user.externalId)).get
     this._stars += 1
   }
 
@@ -276,7 +262,7 @@ case class Project(override val id: Option[Int], private var _createdAt: Option[
     * @return       Future result
     */
   def unstarFor(user: User) = {
-    now(Queries.Projects.unstarFor(this.id.get, user)).get
+    now(Queries.Projects.unstarFor(this.id.get, user.externalId)).get
     this._stars -= 1
   }
 
@@ -310,7 +296,7 @@ case class Project(override val id: Option[Int], private var _createdAt: Option[
     * @return       Page with name or new name if it doesn't exist
     */
   def getOrCreatePage(name: String): Page = {
-    Queries.Pages.getOrCreate(new Page(this.id.get, name, "", true))
+    now(Queries.Pages.getOrCreate(new Page(this.id.get, name, "", true))).get
   }
 
   /**
@@ -328,7 +314,7 @@ case class Project(override val id: Option[Int], private var _createdAt: Option[
     *
     * @return Project home page
     */
-  def homePage: Page = Queries.Pages.getOrCreate(new Page(this.id.get, Page.HOME, "", false))
+  def homePage: Page = now(Queries.Pages.getOrCreate(new Page(this.id.get, Page.HOME, "", false))).get
 
   /**
     * Returns true if this Project already exists.
@@ -359,7 +345,7 @@ case class Project(override val id: Option[Int], private var _createdAt: Option[
     *
     * @return Creation date string
     */
-  def prettyDate: String = DATE_FORMAT.format(this._createdAt.get)
+  def prettyDate: String = DATE_FORMAT.format(this.createdAt.get)
 
   override def hashCode: Int = this.id.get.hashCode
 

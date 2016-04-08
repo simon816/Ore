@@ -1,5 +1,7 @@
 package db.query
 
+import java.sql.Timestamp
+
 import db.OrePostgresDriver.api._
 import Queries._
 import db.{ProjectTable, ProjectViewsTable, ProjectStarsTable}
@@ -60,7 +62,7 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @return       Project if any, None otherwise
     */
   def withName(owner: String, name: String): Future[Option[Project]] = {
-    find[ProjectTable, Project](classOf[Project], p => p.name === name && p.ownerName === owner)
+    find[ProjectTable, Project](classOf[Project], p => p.name.toLowerCase === name.toLowerCase && p.ownerName === owner)
   }
 
   /**
@@ -92,25 +94,6 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
   def withId(id: Int): Future[Option[Project]] = find[ProjectTable, Project](classOf[Project], p => p.id === id)
 
   /**
-    * Creates the specified Project.
-    *
-    * @param project  Project to create
-    * @return         Newly created Project
-    */
-  def create(project: Project): Future[Project] = {
-    // copy new vals into old project
-    project.onCreate()
-    val projects = q[ProjectTable](classOf[Project])
-    val query = {
-      projects returning projects.map(_.id) into {
-        case (p, id) =>
-          p.copy(id=Some(id))
-      } += project
-    }
-    DB.run(query)
-  }
-
-  /**
     * Returns true if the specified Project has been viewed by a client with
     * the specified cookie.
     *
@@ -140,11 +123,11 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * User.
     *
     * @param projectId  Project to check
-    * @param user User to look for
-    * @return         True if user is found
+    * @param userId     User to look for
+    * @return           True if user is found
     */
-  def hasBeenViewedBy(projectId: Int, user: User): Future[Boolean] = {
-    val query = views.filter(pv => pv.projectId === projectId && pv.userId === user.externalId).size > 0
+  def hasBeenViewedBy(projectId: Int, userId: Int): Future[Boolean] = {
+    val query = views.filter(pv => pv.projectId === projectId && pv.userId === userId).size > 0
     DB.run(query.result)
   }
 
@@ -152,11 +135,11 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * Sets whether the specified Project has been viewed by the specified User.
     *
     * @param projectId  Project to check
-    * @param user       User to look for
+    * @param userId     User to look for
     * @return           True if user is found
     */
-  def setViewedBy(projectId: Int, user: User) = {
-    val query = views += (None, None, Some(user.externalId), projectId)
+  def setViewedBy(projectId: Int, userId: Int): Future[Any] = {
+    val query = views += (None, None, Some(userId), projectId)
     DB.run(query)
   }
 
@@ -164,11 +147,11 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * Returns true if the specified Project is starred by the specified User.
     *
     * @param projectId  Project to check
-    * @param user       User to look for
+    * @param userId     User to look for
     * @return           True if Project is starred by user
     */
-  def isStarredBy(projectId: Int, user: User): Future[Boolean] = {
-    val query = stars.filter(sp => sp.userId === user.externalId
+  def isStarredBy(projectId: Int, userId: Int): Future[Boolean] = {
+    val query = stars.filter(sp => sp.userId === userId
       && sp.projectId === projectId).size > 0
     DB.run(query.result)
   }
@@ -177,10 +160,10 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * Sets the specified Project as starred for the specified user.
     *
     * @param projectId  Project to star
-    * @param user       User to star for
+    * @param userId     User to star for
     */
-  def starFor(projectId: Int, user: User): Future[Any] = {
-    val query = stars += (user.externalId, projectId)
+  def starFor(projectId: Int, userId: Int): Future[Any] = {
+    val query = stars += (userId, projectId)
     DB.run(query)
   }
 
@@ -188,12 +171,16 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * Sets the specified Project as unstarred for the specified user.
     *
     * @param projectId  Project to unstar
-    * @param user       User to unstar for
+    * @param userId     User to unstar for
     */
-  def unstarFor(projectId: Int, user: User) = {
-    val query = stars.filter(sp => sp.userId === user.externalId
+  def unstarFor(projectId: Int, userId: Int) = {
+    val query = stars.filter(sp => sp.userId === userId
       && sp.projectId === projectId).delete
     DB.run(query)
+  }
+
+  override def copyInto(id: Option[Int], theTime: Option[Timestamp], project: Project): Project = {
+    project.copy(id = id, createdAt = theTime)
   }
 
 }

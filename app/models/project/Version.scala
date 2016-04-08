@@ -2,11 +2,10 @@ package models.project
 
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
-import java.util.Date
 
-import db.query.Queries
 import db.Model
-import Queries.now
+import db.query.Queries
+import db.query.Queries.now
 import models.project.ChannelColors.ChannelColor
 import models.project.Version._
 import org.spongepowered.plugin.meta.PluginMetadata
@@ -22,17 +21,17 @@ import scala.util.Try
   * Represents a single version of a Project.
   *
   * @param id               Unique identifier
-  * @param _createdAt       Instant of creation
+  * @param createdAt        Instant of creation
   * @param versionString    Version string
   * @param dependenciesIds  List of plugin dependencies with the plugin ID and
   *                         version separated by a ':'
   * @param _description     User description of version
   * @param assets           Path to assets directory within plugin
-  * @param _downloads        The amount of times this version has been downloaded
+  * @param _downloads       The amount of times this version has been downloaded
   * @param projectId        ID of project this version belongs to
   * @param channelId        ID of channel this version belongs to
   */
-case class Version(override val id: Option[Int], private var _createdAt: Option[Timestamp],
+case class Version(override val id: Option[Int], override val createdAt: Option[Timestamp],
                    versionString: String, dependenciesIds: List[String],
                    private var _description: Option[String], assets: Option[String],
                    private var _downloads: Int, projectId: Int, var channelId: Int) extends Model {
@@ -46,19 +45,6 @@ case class Version(override val id: Option[Int], private var _createdAt: Option[
            description: String, assets: String, projectId: Int) = {
     this(versionString, dependencies, description, assets, projectId, -1)
   }
-
-  /**
-    * Returns the Timestamp Instant that this Version was created.
-    *
-    * @return Instant of creation
-    */
-  def createdAt: Option[Timestamp] = this._createdAt
-
-  /**
-    * Called when this Version is created.
-    *
-    */
-  def onCreate() = this._createdAt = Some(new Timestamp(new Date().getTime))
 
   /**
     * Returns the project this version belongs to.

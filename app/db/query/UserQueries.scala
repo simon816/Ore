@@ -1,5 +1,7 @@
 package db.query
 
+import java.sql.Timestamp
+
 import db.OrePostgresDriver.api._
 import Queries._
 import db.UserTable
@@ -22,28 +24,10 @@ object UserQueries extends ModelQueries[UserTable, User] {
     find[UserTable, User](classOf[User], u => u.username === username)
   }
 
-  /**
-    * Creates a new User.
-    *
-    * @param user User to create
-    */
-  def create(user: User) = {
-    val users = q[UserTable](classOf[User])
-    val action = DBIO.seq(users += user)
-    DB.run(action)
+  override def copyInto(id: Option[Int], theTime: Option[Timestamp], user: User): User = {
+    user.copy(externalId = id.getOrElse(user.externalId), createdAt = theTime)
   }
 
-  /**
-    * Returns the specified User or creates it if it doesn't exist.
-    *
-    * @param user   User to get or create
-    * @return       New or existing User
-    */
-  def getOrCreate(user: User): User = {
-    now(withName(user.username)).get.getOrElse {
-      now(create(user)).get
-      user
-    }
-  }
+  override def named(user: User): Future[Option[User]] = withName(user.username)
 
 }

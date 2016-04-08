@@ -1,7 +1,6 @@
 package models.project
 
 import java.sql.Timestamp
-import java.util.Date
 
 import db.Model
 import db.query.Queries
@@ -13,32 +12,20 @@ import org.pegdown.PegDownProcessor
   * Represents a documentation page within a project.
   *
   * @param id           Page ID
-  * @param _createdAt   Timestamp of creation
+  * @param createdAt    Timestamp of creation
   * @param projectId    Project ID
   * @param name         Page name
   * @param slug         Page URL slug
   * @param _contents     Markdown contents
   * @param isDeletable  True if can be deleted by the user
   */
-case class Page(override val id: Option[Int], private var _createdAt: Option[Timestamp],
+case class Page(override val id: Option[Int], override val createdAt: Option[Timestamp],
                 projectId: Int, name: String, slug: String, private var _contents: String,
                 isDeletable: Boolean) extends Model {
 
   def this(projectId: Int, name: String, content: String, isDeletable: Boolean = true) = {
     this(None, None, projectId, Project.sanitizeName(name), Project.slugify(name), content, isDeletable)
   }
-
-  /**
-    * Returns the Timestamp instant that this Page was created.
-    *
-    * @return Instant of creation
-    */
-  def createdAt: Option[Timestamp] = this._createdAt
-
-  /**
-    * Called when this Page is created.
-    */
-  def onCreate() = this._createdAt = Some(new Timestamp(new Date().getTime))
 
   /**
     * Returns the Markdown contents of this Page.
