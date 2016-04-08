@@ -3,7 +3,8 @@ package models.project
 import java.sql.Timestamp
 import java.util.Date
 
-import db.Storage
+import db.Model
+import db.query.Queries
 import models.project.Page._
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
@@ -19,9 +20,9 @@ import org.pegdown.PegDownProcessor
   * @param _contents     Markdown contents
   * @param isDeletable  True if can be deleted by the user
   */
-case class Page(id: Option[Int], private var _createdAt: Option[Timestamp],
-                projectId: Int, name: String, slug: String,
-                private var _contents: String, isDeletable: Boolean) {
+case class Page(override val id: Option[Int], private var _createdAt: Option[Timestamp],
+                projectId: Int, name: String, slug: String, private var _contents: String,
+                isDeletable: Boolean) extends Model {
 
   def this(projectId: Int, name: String, content: String, isDeletable: Boolean = true) = {
     this(None, None, projectId, Project.sanitizeName(name), Project.slugify(name), content, isDeletable)
@@ -52,7 +53,7 @@ case class Page(id: Option[Int], private var _createdAt: Option[Timestamp],
     * @param _contents Markdown contents
     */
   def contents_=(_contents: String) = {
-    Storage.now(Storage.updatePageString(this, _.contents, _contents)).get
+    Queries.now(Queries.Pages.setString(this, _.contents, _contents)).get
     this._contents = _contents
   }
 

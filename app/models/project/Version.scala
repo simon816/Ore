@@ -4,8 +4,9 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import db.Storage
-import db.Storage.now
+import db.query.Queries
+import db.Model
+import Queries.now
 import models.project.ChannelColors.ChannelColor
 import models.project.Version._
 import org.spongepowered.plugin.meta.PluginMetadata
@@ -31,10 +32,10 @@ import scala.util.Try
   * @param projectId        ID of project this version belongs to
   * @param channelId        ID of channel this version belongs to
   */
-case class Version(id: Option[Int], private var _createdAt: Option[Timestamp],
+case class Version(override val id: Option[Int], private var _createdAt: Option[Timestamp],
                    versionString: String, dependenciesIds: List[String],
                    private var _description: Option[String], assets: Option[String],
-                   private var _downloads: Int, projectId: Int, var channelId: Int) {
+                   private var _downloads: Int, projectId: Int, var channelId: Int) extends Model {
 
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int) = {
@@ -64,14 +65,14 @@ case class Version(id: Option[Int], private var _createdAt: Option[Timestamp],
     *
     * @return Project
     */
-  def project: Project = now(Storage.projectWithId(this.projectId)).get.get
+  def project: Project = Project.withId(this.projectId).get
 
   /**
     * Returns the channel this version belongs to.
     *
     * @return Channel
     */
-  def channel: Channel = now(Storage.channelWithId(this.channelId)).get.get
+  def channel: Channel = now(Queries.Channels.withId(this.channelId)).get.get
 
   /**
     * Returns the channel this version belongs to from the specified collection
@@ -95,7 +96,7 @@ case class Version(id: Option[Int], private var _createdAt: Option[Timestamp],
     * @param _description Version description
     */
   def description_=(_description: String) = {
-    now(Storage.updateVersionString(this, _.description, _description)).get
+    now(Queries.Versions.setString(this, _.description, _description)).get
     this._description = Some(_description)
   }
 
@@ -124,7 +125,7 @@ case class Version(id: Option[Int], private var _createdAt: Option[Timestamp],
     * @return Future result
     */
   def addDownload() = {
-    now(Storage.updateVersionInt(this, _.downloads, this._downloads + 1)).get
+    now(Queries.Versions.setInt(this, _.downloads, this._downloads + 1)).get
     this._downloads += 1
   }
 

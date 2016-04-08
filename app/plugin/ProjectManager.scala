@@ -3,8 +3,9 @@ package plugin
 import java.nio.file.{Files, Path}
 
 import com.google.common.base.Preconditions._
-import db.Storage
-import db.Storage.now
+import db.query.Queries
+import Queries.now
+import db.query.Queries
 import models.auth.User
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
@@ -68,7 +69,7 @@ object ProjectManager {
     checkArgument(!pending.project.exists, "project already exists", "")
     checkArgument(pending.project.isNamespaceAvailable, "slug not available", "")
     checkArgument(Project.isValidName(pending.project.name), "invalid name", "")
-    val newProject = now(Storage.createProject(pending.project)).get
+    val newProject = now(Queries.Projects.create(pending.project)).get
     newProject
   }
 
@@ -90,9 +91,10 @@ object ProjectManager {
 
     // Create version
     val pendingVersion = pending.version
-    if (now(Storage.versionWithName(channel.id.get, pendingVersion.versionString)).get.isDefined) {
+    if (channel.version(pendingVersion.versionString).isDefined) {
       throw new IllegalArgumentException("Version already exists.")
     }
+
     val newVersion = channel.newVersion(pendingVersion.versionString, pendingVersion.dependenciesIds,
       pendingVersion.description.orNull, pendingVersion.assets.orNull)
     uploadPlugin(channel, pending.plugin)

@@ -1,6 +1,6 @@
 package util
 
-import db.Storage
+import db.query.Queries
 import models.auth.User
 import models.project.{Project, Version}
 import play.api.mvc.RequestHeader
@@ -23,18 +23,18 @@ object Statistics {
   def projectViewed(project: Project, request: RequestHeader) = {
     cookieOrUser(request,
       cookie => {
-        Storage.hasProjectBeenViewedBy(project, cookie).onSuccess {
+        Queries.Projects.hasBeenViewedBy(project.id.get, cookie).onSuccess {
           case viewed: Boolean => if (!viewed) {
             project.addView()
-            Storage.setProjectViewedBy(project, cookie)
+            Queries.Projects.setViewedBy(project.id.get, cookie)
           }
         }
       },
       user => {
-        Storage.hasProjectBeenViewedBy(project, user).onSuccess {
+        Queries.Projects.hasBeenViewedBy(project.id.get, user).onSuccess {
           case viewed: Boolean => if (!viewed) {
             project.addView()
-            Storage.setProjectViewedBy(project, user)
+            Queries.Projects.setViewedBy(project.id.get, user)
           }
         }
       }
@@ -52,20 +52,20 @@ object Statistics {
   def versionDownloaded(project: Project, version: Version, request: RequestHeader) = {
     cookieOrUser(request,
       cookie => {
-        Storage.hasVersionBeenDownloadedBy(version, cookie).onSuccess {
+        Queries.Versions.hasBeenDownloadedBy(version.id.get, cookie).onSuccess {
           case viewed: Boolean => if (!viewed) {
             version.addDownload()
             project.addDownload()
-            Storage.setVersionDownloadedBy(version, cookie)
+            Queries.Versions.setDownloadedBy(version.id.get, cookie)
           }
         }
       },
       user => {
-        Storage.hasVersionBeenDownloadedBy(version, user).onSuccess {
+        Queries.Versions.hasBeenDownloadedBy(version.id.get, user.externalId).onSuccess {
           case viewed: Boolean => if (!viewed) {
             version.addDownload()
             project.addDownload()
-            Storage.setVersionDownloadedBy(version, user)
+            Queries.Versions.setDownloadedBy(version.id.get, user.externalId)
           }
         }
       }

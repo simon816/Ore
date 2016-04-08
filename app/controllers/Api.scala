@@ -1,7 +1,8 @@
 package controllers
 
-import db.Storage
-import db.Storage.now
+import db.query.Queries
+import Queries.now
+import db.query.Queries
 import models.project.{Categories, Project}
 import play.api.libs.json._
 import play.api.mvc._
@@ -42,7 +43,7 @@ class Api extends Controller {
         if (categories.isDefined) {
           categoryIds = Categories.fromString(categories.get).map(_.id)
         }
-        val projects = now(Storage.projects(categoryIds, limit.getOrElse(-1), offset.getOrElse(-1))).get
+        val projects = now(Queries.Projects.collect(categoryIds, limit.getOrElse(-1), offset.getOrElse(-1))).get
         Ok(Json.toJson(projects))
       case zoinks => BadRequest
     }
