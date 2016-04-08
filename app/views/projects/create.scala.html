@@ -11,18 +11,18 @@ Page used for uploading and creating new projects.
 
     <div class="container" style="margin-top: 90px">
         <div class="row">
-            <div class="col-md-6 col-md-offset-3">
+            <div class="col-md-8 col-md-offset-2">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">@messages("project.create.title") <span class="pull-right minor">Step 1/2</span></h3>
                     </div>
                     <div class="project-body panel-body">
-                        <p class="minor create-blurb">
-                            A project contains your downloads and the documentation for your plugin. Begin by uploading
-                            your plugin JAR file with a valid <i>mcmod.info</i> file in the first level or a ZIP file with
-                            your valid plugin JAR in the first level. Plugins with missing or incomplete metadata files
-                            will not be accepted.
-                        </p>
+                        <div class="minor create-blurb">
+                            <p>A project contains your downloads and the documentation for your plugin.</p>
+                            <p>Begin by uploading your plugin JAR file with a valid <i>mcmod.info</i> file
+                               in the first level or a ZIP file with your valid plugin JAR in the first
+                               level. Plugins with missing or incomplete metadata files will not be accepted.</p>
+                        </div>
 
                         @if(flash.get("error").isDefined) {
                             <div class="alert alert-danger alert-dismissable" role="alert">

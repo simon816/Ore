@@ -233,8 +233,12 @@ form {
 
 .plugin-meta {
     border-bottom: 1px solid #ddd;
-    margin-bottom: 10px;
-    padding-bottom: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+}
+
+#category {
+    margin-bottom: 20px;
 }
 
 .page-editor-tabs {
@@ -255,8 +259,9 @@ form {
 }
 
 .create-blurb {
-    margin-bottom: 10px;
-    padding-bottom: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    padding-top: 10px;
     border-bottom: 1px solid #ddd;
 }
 
