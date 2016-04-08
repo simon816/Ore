@@ -102,7 +102,7 @@
                         }
 
                         @if(showFileControls) {
-                            @form(action = routes.Projects.uploadVersion(project.ownerName, project.slug), 'enctype -> "multipart/form-data") {
+                            @form(action = routes.Versions.upload(project.ownerName, project.slug), 'enctype -> "multipart/form-data") {
                                 <label class="btn btn-primary" for="pluginFile">
                                     <input id="pluginFile" name="pluginFile" type="file" style="display: none;">
                                     @messages("version.create.select-file")
@@ -114,7 +114,7 @@
                         @if(pending.isDefined) {
                             @* Ready to go! *@
                             @defining(pending.get.version) { version =>
-                                @form(action = routes.Projects.createVersion(
+                                @form(action = routes.Versions.create(
                                     project.ownerName, project.slug, pending.get.channelName, version.versionString), 'id -> "form-publish") {
                                     @if(!showFileControls) {
                                         <input type="hidden" class="channel-input" name="channel-input" value="@pending.get.channelName" />

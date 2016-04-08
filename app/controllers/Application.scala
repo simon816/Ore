@@ -14,7 +14,7 @@ import views.{html => views}
 
 import scala.concurrent.Future
 
-class Application @Inject()(override val messagesApi: MessagesApi) extends Controller with I18nSupport {
+class Application @Inject()(override val messagesApi: MessagesApi) extends BaseController {
 
   val INITIAL_PROJECT_LOAD: Int = 50
 

@@ -26,11 +26,11 @@ Versions page within Project overview.
                                         <td>
                                             <div class="pull-right">
                                                 <span class="date">@version.prettyDate</span>
-                                                <a href="@routes.Projects.showVersion(
+                                                <a href="@routes.Versions.show(
                                                     model.ownerName, model.slug, channel.name, version.versionString)">
                                                     <i class="fa fa-info-circle"></i>
                                                 </a>
-                                                <a href="@routes.Projects.downloadVersion(
+                                                <a href="@routes.Versions.download(
                                                     model.ownerName, model.slug, channel.name, version.versionString)">
                                                     <i class="fa fa-download"></i>
                                                 </a>
@@ -45,7 +45,7 @@ Versions page within Project overview.
                     </div>
                     <div class="col-md-3">
                         @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)) {
-                            <a href="@routes.Projects.showVersionCreate(model.ownerName, model.slug)"
+                            <a href="@routes.Versions.showCreate(model.ownerName, model.slug)"
                             class="btn btn-block btn-primary btn-panel btn-version">
                                 <i class="fa fa-plus"></i> Create version
                             </a>
@@ -54,7 +54,7 @@ Versions page within Project overview.
                             <div class="panel-heading">
                                 <h3 class="panel-title">Channels</h3>
                                 @if(visibleChannels.isDefined) {
-                                    <a href="@routes.Projects.showVersions(model.ownerName, model.slug, None)">
+                                    <a href="@routes.Versions.showList(model.ownerName, model.slug, None)">
                                         <i class="pull-right channel-reset fa fa-times"></i>
                                     </a>
                                 }
@@ -68,7 +68,7 @@ Versions page within Project overview.
                                       @if(visibleChannels.isDefined) {
                                           @if(!visibleChannels.get.contains(channel.name)) {
                                               <a class="pull-right"
-                                                 href="@routes.Projects.showVersions(model.ownerName, model.slug, Some(
+                                                 href="@routes.Versions.showList(model.ownerName, model.slug, Some(
                                                      (visibleChannels.get :+ channel.name).mkString(",")
                                                  ))"
                                               >
@@ -76,7 +76,7 @@ Versions page within Project overview.
                                               </a>
                                           } else {
                                               <a class="pull-right"
-                                                 href="@routes.Projects.showVersions(model.ownerName, model.slug, Some(
+                                                 href="@routes.Versions.showList(model.ownerName, model.slug, Some(
                                                      visibleChannels.get.filterNot(c => c.equals(channel.name)).mkString(",")
                                                  ))"
                                               >
@@ -84,7 +84,7 @@ Versions page within Project overview.
                                               </a>
                                           }
                                       } else {
-                                          <a href="@routes.Projects.showVersions(model.ownerName, model.slug, Some(channel.name))"
+                                          <a href="@routes.Versions.showList(model.ownerName, model.slug, Some(channel.name))"
                                              class="pull-right">
                                               <i class="fa fa-eye"></i>
                                           </a>

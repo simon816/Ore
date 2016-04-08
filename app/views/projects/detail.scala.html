@@ -24,7 +24,7 @@ Base template for Project overview.
                                 <i class="fa fa-book"></i> @messages("project.docs")</a>
                         </li>
                         <li id="versions" class="">
-                            <a href="@routes.Projects.showVersions(project.ownerName, project.slug, None)">
+                            <a href="@routes.Versions.showList(project.ownerName, project.slug, None)">
                                 <i class="fa fa-download"></i> @messages("project.versions")
                             </a>
                         </li>
@@ -75,7 +75,7 @@ Base template for Project overview.
                         <i class="fa fa-flag"></i> @messages("project.flag")
                     </button>
                 }
-                <a href="@routes.Projects.downloadRecommendedVersion(project.ownerName, project.slug)"
+                <a href="@routes.Versions.downloadRecommended(project.ownerName, project.slug)"
                    title="Download the latest recommended version" data-toggle="tooltip"
                    data-placement="bottom" class="btn btn-primary">
                     <i class="fa fa-download"></i> @messages("project.download")

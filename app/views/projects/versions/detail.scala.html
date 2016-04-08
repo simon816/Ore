@@ -25,14 +25,14 @@
                                disabled data-toggle="tooltip" data-placement="top"
                                title="Every project must have at least one version"
                            } else {
-                               href="@routes.Projects.deleteVersion(project.ownerName, project.slug, channel.name, version.versionString)"
+                               href="@routes.Versions.delete(project.ownerName, project.slug, channel.name, version.versionString)"
                            }
                         >
                             Delete
                         </a>
                     }
                     <a class="btn btn-primary"
-                       href="@routes.Projects.downloadVersion(project.ownerName, project.slug, channel.name, version.versionString)">
+                       href="@routes.Versions.download(project.ownerName, project.slug, channel.name, version.versionString)">
                         Download
                     </a>
                 </div>
@@ -72,7 +72,7 @@
                     </ul>
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane active" id="edit">
-                        @form(action = routes.Projects.saveVersionDescription(
+                        @form(action = routes.Versions.saveDescription(
                             project.ownerName, project.slug, channel.name, version.versionString), 'id -> "form-save") {
                             <textarea id="version-editor"
                                       name="description"
