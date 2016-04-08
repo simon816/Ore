@@ -24,7 +24,7 @@ Documentation page within Project overview.
                             @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)
                                     && model.pages.size < Project.MAX_PAGES) {
                                 <a data-toggle="modal" data-target="#new-page">
-                                    <i class="new-page pull-right fa fa-plus"></i>
+                                    <i title="New" class="new-page pull-right fa fa-plus"></i>
                                 </a>
                                 @projects.pages.modalPageCreate(model)
                             }
@@ -35,7 +35,7 @@ Documentation page within Project overview.
                                     <a href="@routes.Pages.show(model.ownerName, model.slug, page.name)">@page.name</a>
                                     @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)) {
                                         <a href="@routes.Pages.showEditor(model.ownerName, model.slug, page.name)"
-                                           class="pull-right"><i class="fa fa-edit"></i></a>
+                                           class="pull-right"><i title="Edit" class="fa fa-edit"></i></a>
                                     }
                                 </li>
                             }

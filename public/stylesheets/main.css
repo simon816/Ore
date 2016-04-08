@@ -246,7 +246,9 @@ form {
 }
 
 .new-page {
-    margin-top: -13px;
+    position: absolute;
+    right: 34px;
+    top: 14px;
 }
 
 .category-reset {

@@ -28,11 +28,11 @@ Versions page within Project overview.
                                                 <span class="date">@version.prettyDate</span>
                                                 <a href="@routes.Versions.show(
                                                     model.ownerName, model.slug, channel.name, version.versionString)">
-                                                    <i class="fa fa-info-circle"></i>
+                                                    <i title="Details" class="fa fa-info-circle"></i>
                                                 </a>
                                                 <a href="@routes.Versions.download(
                                                     model.ownerName, model.slug, channel.name, version.versionString)">
-                                                    <i class="fa fa-download"></i>
+                                                    <i title="Download" class="fa fa-download"></i>
                                                 </a>
                                             </div>
                                         </td>
