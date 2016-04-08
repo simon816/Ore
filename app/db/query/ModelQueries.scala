@@ -3,12 +3,12 @@ package db.query
 import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
-import Queries._
+import db.query.Queries._
 import db.{Model, ModelTable}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Promise, Future}
-import scala.util.{Success, Failure}
+import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success}
 
 /**
   * Base class for handling Model queries.

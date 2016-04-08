@@ -1,6 +1,5 @@
-@import models.project.Project
+@import models.project.{Page, Project}
 @import views.html.helper.form
-@import models.project.Page
 @(model: Project, page: String, content: String)(implicit messages: Messages, session: Session)
 
 @projects.detail(model, "#docs") {

@@ -1,8 +1,7 @@
 package controllers
 
 import db.query.Queries
-import Queries.now
-import db.query.Queries
+import db.query.Queries.now
 import models.project.{Categories, Project}
 import play.api.libs.json._
 import play.api.mvc._

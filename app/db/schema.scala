@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import db.OrePostgresDriver.api._
 import models.auth.User
 import models.author.Team
-import models.project.{Channel, Project, Page, Version}
+import models.project.{Channel, Page, Project, Version}
 
 /*
  * Database schema definitions. Changes must be first applied as an evolutions

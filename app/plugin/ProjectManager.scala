@@ -4,8 +4,7 @@ import java.nio.file.{Files, Path}
 
 import com.google.common.base.Preconditions._
 import db.query.Queries
-import Queries.now
-import db.query.Queries
+import db.query.Queries.now
 import models.auth.User
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion

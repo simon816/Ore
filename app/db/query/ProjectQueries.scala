@@ -3,9 +3,8 @@ package db.query
 import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
-import Queries._
-import db.{ProjectTable, ProjectViewsTable, ProjectStarsTable}
-import models.auth.User
+import db.query.Queries._
+import db.{ProjectStarsTable, ProjectTable, ProjectViewsTable}
 import models.project.Project
 import slick.lifted.Query
 

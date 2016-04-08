@@ -1,6 +1,5 @@
-@import models.project.{Channel, Project, Version}
+@import models.project.{Channel, Page, Project, Version}
 @import views.html.helper.form
-@import models.project.Page
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages, session: Session)
 
 @projects.detail(project, "#versions") {

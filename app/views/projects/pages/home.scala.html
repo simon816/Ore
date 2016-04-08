@@ -1,8 +1,7 @@
 @*
 Documentation page within Project overview.
 *@
-@import models.project.Project
-@import models.project.Page
+@import models.project.{Page, Project}
 @(model: Project, page: Page)(implicit messages: Messages, session: Session)
 
 @projects.detail(model, "#docs") {

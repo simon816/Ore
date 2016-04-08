@@ -3,8 +3,8 @@ package db.query
 import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
-import Queries._
 import db.PagesTable
+import db.query.Queries._
 import models.project.Page
 
 import scala.concurrent.Future

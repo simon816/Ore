@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.ChannelTable
 import db.OrePostgresDriver.api._
-import Queries._
+import db.query.Queries._
 import models.project.Channel
 
 import scala.concurrent.Future

@@ -3,7 +3,7 @@ package controllers
 import javax.inject.Inject
 
 import controllers.routes.{Channels => self}
-import models.project.{ChannelColors, Channel, Project}
+import models.project.{Channel, ChannelColors, Project}
 import play.api.i18n.MessagesApi
 import util.Forms
 import views.{html => views}

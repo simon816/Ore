@@ -1,7 +1,6 @@
 package db
 
 import db.OrePostgresDriver.api._
-
 import slick.lifted.Tag
 
 /**
