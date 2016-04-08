@@ -19,6 +19,9 @@ import scala.concurrent.Future
   */
 class Application @Inject()(override val messagesApi: MessagesApi) extends BaseController {
 
+  /**
+    * The maximum amount of Projects that are loaded initially.
+    */
   val INITIAL_PROJECT_LOAD: Int = 50
 
   /**
@@ -29,7 +32,6 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
   def index(categories: Option[String]) = Action { implicit request =>
     var projectsFuture: Future[Seq[Project]] = null
     var categoryArray: Array[Category] = null
-
     categories match {
       case None => projectsFuture = Queries.Projects.collect(limit = INITIAL_PROJECT_LOAD)
       case Some(csv) =>
@@ -39,7 +41,6 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
         }
         projectsFuture = Queries.Projects.collect(categoryArray.map(_.id), INITIAL_PROJECT_LOAD)
     }
-
     val projects = Queries.now(projectsFuture).get
     Ok(views.index(projects, Option(categoryArray)))
   }

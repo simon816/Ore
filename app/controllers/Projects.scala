@@ -100,9 +100,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def show(author: String, slug: String) = Action { implicit request =>
     withProject(author, slug, project => {
-      Statistics.projectViewed(project, request)
       Ok(views.projects.pages.home(project, project.homePage))
-    })
+    }, countView = true)
   }
 
   /**
@@ -152,7 +151,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     * @return         View of project
     */
   def showDiscussion(author: String, slug: String) = Action { implicit request =>
-    withProject(author, slug, project => Ok(views.projects.discussion(project)))
+    withProject(author, slug, project => Ok(views.projects.discussion(project)), countView = true)
   }
 
   /**
@@ -163,7 +162,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     * @return         Project manager
     */
   def showManager(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
-    withProject(author, slug, project => Ok(views.projects.manage(project))))
+    withProject(author, slug, project => Ok(views.projects.manage(project)), countView = true))
   }
 
   /**
@@ -261,7 +260,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
         case None => NotFound
         case Some(p) => Ok(views.projects.pages.home(project, p))
       }
-    })
+    }, countView = true)
   }
 
   /**
@@ -274,7 +273,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
   def showChannels(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
       Ok(views.projects.channels.list(project, project.channels))
-    }))
+    }, countView = true))
   }
 
   /**

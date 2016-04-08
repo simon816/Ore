@@ -36,7 +36,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
           case Some(version) => Ok(views.projects.versions.detail(project, channel, version))
         }
       }
-    })
+    }, countView = true)
   }
 
   /**
@@ -91,7 +91,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
       }
 
       Ok(views.projects.versions.list(project, allChannels, versions, channelNames))
-    })
+    }, countView = true)
   }
 
   /**

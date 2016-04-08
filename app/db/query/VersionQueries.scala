@@ -13,7 +13,7 @@ import scala.concurrent.Future
   */
 object VersionQueries extends ModelQueries[VersionTable, Version] {
 
-  protected[db] val downloads = TableQuery[VersionDownloadsTable]
+  private val downloads = TableQuery[VersionDownloadsTable]
 
   /**
     * Returns all Versions in the specified Project.
