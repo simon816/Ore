@@ -7,6 +7,9 @@ import models.project.{Categories, Project}
 import play.api.libs.json._
 import play.api.mvc._
 
+/**
+  * Ore API (v1)
+  */
 class Api extends Controller {
 
   implicit val projectWrites = new Writes[Project] {

@@ -3,6 +3,9 @@ package util
 import play.api.Play
 import play.api.Play.current
 
+/**
+  * Helper class for getting commonly used Paths.
+  */
 object Dirs {
 
   lazy val ROOT_DIR      =   Play.application.path.toPath

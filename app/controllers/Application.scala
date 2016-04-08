@@ -14,6 +14,9 @@ import views.{html => views}
 
 import scala.concurrent.Future
 
+/**
+  * Main entry point for application.
+  */
 class Application @Inject()(override val messagesApi: MessagesApi) extends BaseController {
 
   val INITIAL_PROJECT_LOAD: Int = 50

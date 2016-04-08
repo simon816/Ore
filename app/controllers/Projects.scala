@@ -13,6 +13,8 @@ import views.{html => views}
 import scala.util.{Failure, Success}
 
 /**
+  * Controller for handling Project related actions.
+  *
   * TODO: Replace NotFounds, BadRequests, etc with pretty views
   * TODO: Localize
   */

@@ -47,10 +47,20 @@ class PluginFile(private var _path: Path, private val _owner: User) {
     */
   def meta: Option[PluginMetadata] = this._meta
 
+  /**
+    * Returns true if this is a ZIP file.
+    *
+    * @return True if zip file
+    */
   def isZipped: Boolean = {
     this._path.toString.endsWith(".zip")
   }
 
+  /**
+    * Wraps this file in a ZIP archive.
+    *
+    * @return New path
+    */
   def zip: Path = {
     val path = this._path.toString
     val zipPath = path.substring(0, path.lastIndexOf('.')) + ".zip"

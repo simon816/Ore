@@ -4,8 +4,14 @@ import java.security.MessageDigest
 
 import org.apache.commons.codec.binary.Hex
 
+/**
+  * Helper class for retrieving user avatars from the Gravatar service.
+  */
 object Gravatar {
 
+  /**
+    * Gravatar service URL
+    */
   val URL = "https://www.gravatar.com/avatar/"
 
   /**

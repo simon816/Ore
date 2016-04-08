@@ -13,6 +13,9 @@ import views.{html => views}
 
 import scala.util.{Failure, Success}
 
+/**
+  * Controller for handling Version related actions.
+  */
 class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseController {
 
   /**
@@ -145,14 +148,6 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
           }
         })
     })
-  }
-
-  private def pendingOrReal(author: String, slug: String): Option[Any] = {
-    // Returns either a PendingProject or existing Project
-    Project.withSlug(author, slug) match {
-      case None => Project.getPending(author, slug)
-      case Some(project) => Some(project)
-    }
   }
 
   /**
@@ -321,6 +316,14 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
       Statistics.versionDownloaded(project, rv, request)
       Ok.sendFile(ProjectManager.uploadPath(author, project.name, rv.versionString, rv.channel.name).toFile)
     })
+  }
+
+  private def pendingOrReal(author: String, slug: String): Option[Any] = {
+    // Returns either a PendingProject or existing Project
+    Project.withSlug(author, slug) match {
+      case None => Project.getPending(author, slug)
+      case Some(project) => Some(project)
+    }
   }
 
 }
