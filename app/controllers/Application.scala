@@ -4,7 +4,7 @@ import javax.inject.Inject
 
 import auth.DiscourseSSO._
 import controllers.routes.{Application => self}
-import db.Storage
+import db.query.Queries
 import models.auth.{FakeUser, User}
 import models.project.Categories.Category
 import models.project.{Categories, Project}
@@ -28,16 +28,16 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
     var categoryArray: Array[Category] = null
 
     categories match {
-      case None => projectsFuture = Storage.projects(limit = INITIAL_PROJECT_LOAD)
+      case None => projectsFuture = Queries.Projects.collect(limit = INITIAL_PROJECT_LOAD)
       case Some(csv) =>
         categoryArray = Categories.fromString(csv)
         if (Categories.values.subsetOf(categoryArray.toSet)) {
           categoryArray = null
         }
-        projectsFuture = Storage.projects(categoryArray.map(_.id), INITIAL_PROJECT_LOAD)
+        projectsFuture = Queries.Projects.collect(categoryArray.map(_.id), INITIAL_PROJECT_LOAD)
     }
 
-    val projects = Storage.now(projectsFuture).get
+    val projects = Queries.now(projectsFuture).get
     Ok(views.index(projects, Option(categoryArray)))
   }
 
@@ -50,14 +50,14 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
     */
   def logIn(sso: Option[String], sig: Option[String]) = Action {
     if (FakeUser.ENABLED) {
-      Storage.getOrCreateUser(FakeUser)
+      Queries.Users.getOrCreate(FakeUser)
       Redirect(self.index(None)).withSession(Security.username -> FakeUser.username, "email" -> FakeUser.email)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(getRedirect)
     } else {
       val userData = authenticate(sso.get, sig.get)
       var user = new User(userData._1, userData._2, userData._3, userData._4)
-      user = Storage.getOrCreateUser(user)
+      user = Queries.Users.getOrCreate(user)
       Redirect(self.index(None)).withSession(Security.username -> user.username, "email" -> user.email)
     }
   }

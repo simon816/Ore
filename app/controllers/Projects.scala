@@ -143,6 +143,62 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
   }
 
   /**
+    * Displays the "discussion" tab within a Project view.
+    *
+    * @param author   Owner of project
+    * @param slug     Project slug
+    * @return         View of project
+    */
+  def showDiscussion(author: String, slug: String) = Action { implicit request =>
+    withProject(author, slug, project => Ok(views.projects.discussion(project)))
+  }
+
+  /**
+    * Shows the project manager or "settings" pane.
+    *
+    * @param author   Project owner
+    * @param slug     Project slug
+    * @return         Project manager
+    */
+  def showManager(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
+    withProject(author, slug, project => Ok(views.projects.manage(project))))
+  }
+
+  /**
+    * Renames the specified project.
+    *
+    * @param author   Project owner
+    * @param slug     Project slug
+    * @return         Project homepage
+    */
+  def rename(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
+    withProject(author, slug, project => {
+      val newName = Project.sanitizeName(Forms.ProjectRename.bindFromRequest.get)
+      if (!Project.isNamespaceAvailable(author, Project.slugify(newName))) {
+        Redirect(self.showManager(author, slug)).flashing("error" -> "That name is not available.")
+      } else {
+        project.name = newName
+        Redirect(self.show(author, project.slug))
+      }
+    }))
+  }
+
+  /**
+    * Irreversibly deletes the specified project.
+    *
+    * @param author   Project owner
+    * @param slug     Project slug
+    * @return         Home page
+    */
+  def delete(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
+    withProject(author, slug, project => {
+      project.delete.get
+      Redirect(routes.Application.index(None))
+        .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
+    }))
+  }
+
+  /**
     * Displays the documentation page editor for the specified project and page
     * name.
     *
@@ -228,7 +284,6 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def createChannel(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
-      // Get all channels
       val channels = project.channels
       if (channels.size > Project.MAX_CHANNELS) {
         // Maximum reached
@@ -244,19 +299,21 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
           // Find submitted color
           ChannelColors.values.find(c => c.hex.equalsIgnoreCase(form._2)) match {
             case None => BadRequest("Invalid channel color.")
-            case Some(color) => channels.find(c => c.name.equalsIgnoreCase(channelName)) match {
-              case None =>
-                project.newChannel(channelName, color).get
-                Redirect(self.showChannels(author, slug))
+            case Some(color) => channels.find(c => c.color.equals(color)) match {
+              case None => channels.find(c => c.name.equalsIgnoreCase(channelName)) match {
+                case None =>
+                  project.newChannel(channelName, color).get
+                  Redirect(self.showChannels(author, slug))
+                case Some(channel) =>
+                  // Channel name taken
+                  Redirect(self.showChannels(author, slug))
+                    .flashing("error" -> "A channel with that name already exists.")
+              }
               case Some(channel) =>
-                // Channel name taken
+                // Channel color taken
                 Redirect(self.showChannels(author, slug))
-                  .flashing("error" -> "A channel with that name already exists.")
+                  .flashing("error" -> "A channel with that color already exists.")
             }
-            case Some(channel) =>
-              // Channel color taken
-              Redirect(self.showChannels(author, slug))
-                .flashing("error" -> "A channel with that color already exists.")
           }
         }
       }
@@ -331,7 +388,6 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def deleteChannel(author: String, slug: String, channelName: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
-
       val channels = project.channels
       if (channels.size == 1) {
         Redirect(self.showChannels(author, slug))
@@ -340,7 +396,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
         channels.find(c => c.name.equals(channelName)) match {
           case None => NotFound
           case Some(channel) =>
-            if (channel.versions.nonEmpty && channels.count(c => c.versions.size > 0) == 1) {
+            if (channel.versions.nonEmpty && channels.count(c => c.versions.nonEmpty) == 1) {
               Redirect(self.showChannels(author, slug))
                 .flashing("error" -> "You cannot delete your only non-empty channel.")
             } else {
@@ -349,62 +405,6 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
             }
         }
       }
-    }))
-  }
-
-  /**
-    * Displays the "discussion" tab within a Project view.
-    *
-    * @param author   Owner of project
-    * @param slug     Project slug
-    * @return         View of project
-    */
-  def showDiscussion(author: String, slug: String) = Action { implicit request =>
-    withProject(author, slug, project => Ok(views.projects.discussion(project)))
-  }
-
-  /**
-    * Shows the project manager or "settings" pane.
-    *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @return         Project manager
-    */
-  def showManager(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
-    withProject(author, slug, project => Ok(views.projects.manage(project))))
-  }
-
-  /**
-    * Renames the specified project.
-    *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @return         Project homepage
-    */
-  def rename(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
-    withProject(author, slug, project => {
-      val newName = Project.sanitizeName(Forms.ProjectRename.bindFromRequest.get)
-      if (!Project.isNamespaceAvailable(author, Project.slugify(newName))) {
-        Redirect(self.showManager(author, slug)).flashing("error" -> "That name is not available.")
-      } else {
-        project.name = newName
-        Redirect(self.show(author, project.slug))
-      }
-    }))
-  }
-
-  /**
-    * Irreversibly deletes the specified project.
-    *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @return         Home page
-    */
-  def delete(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
-    withProject(author, slug, project => {
-      project.delete.get
-      Redirect(routes.Application.index(None))
-        .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
     }))
   }
 
