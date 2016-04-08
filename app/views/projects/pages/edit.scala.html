@@ -9,7 +9,7 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/pagePreview.js")"></script>
 
     <div class="container">
-        @form(action = routes.Projects.savePage(model.ownerName, model.slug, page)) {
+        @form(action = routes.Pages.save(model.ownerName, model.slug, page)) {
             <div class="form-group form-inline">
                 <input class="form-control" type="text" name="name" value="@page" readonly>
                 <a href="@routes.Projects.show(model.ownerName, model.slug)" class="btn btn-default">
@@ -24,7 +24,7 @@
                                 disabled data-toggle="tooltip" data-placement="bottom"
                                 title="@messages("page.edit.cannot-delete-homepage")"
                             } else {
-                                href="@routes.Projects.deletePage(model.ownerName, model.slug, page)"
+                                href="@routes.Pages.delete(model.ownerName, model.slug, page)"
                             }
                         >@messages("page.edit.delete")</a>
 

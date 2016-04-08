@@ -9,7 +9,7 @@ import db.query.Queries.now
 import models.auth.{FakeUser, User}
 import models.project.Categories.Category
 import models.project.{Categories, Project}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.MessagesApi
 import play.api.mvc._
 import views.{html => views}
 
@@ -30,7 +30,7 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
     *
     * @return Home page
     */
-  def index(categories: Option[String]) = Action { implicit request =>
+  def showHome(categories: Option[String]) = Action { implicit request =>
     var projectsFuture: Future[Seq[Project]] = null
     var categoryArray: Array[Category] = null
     categories match {
@@ -56,14 +56,14 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
   def logIn(sso: Option[String], sig: Option[String]) = Action {
     if (FakeUser.ENABLED) {
       now(Queries.Users.getOrCreate(FakeUser))
-      Redirect(self.index(None)).withSession(Security.username -> FakeUser.username, "email" -> FakeUser.email)
+      Redirect(self.showHome(None)).withSession(Security.username -> FakeUser.username, "email" -> FakeUser.email)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(getRedirect)
     } else {
       val userData = authenticate(sso.get, sig.get)
       var user = new User(userData._1, userData._2, userData._3, userData._4)
       user = now(Queries.Users.getOrCreate(user)).get
-      Redirect(self.index(None)).withSession(Security.username -> user.username, "email" -> user.email)
+      Redirect(self.showHome(None)).withSession(Security.username -> user.username, "email" -> user.email)
     }
   }
 
@@ -73,7 +73,7 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
     * @return Home page
     */
   def logOut = Action { implicit request =>
-    Redirect(self.index(None)).withNewSession
+    Redirect(self.showHome(None)).withNewSession
   }
 
 }

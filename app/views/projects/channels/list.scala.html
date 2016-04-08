@@ -12,7 +12,7 @@
         $(function() {
             initChannelManager(
                     "#channel-new", "", "@Channel.DEFAULT_COLOR.hex", "New channel",
-                    "@routes.Projects.createChannel(project.ownerName, project.slug)",
+                    "@routes.Channels.create(project.ownerName, project.slug)",
                     "post", "Create channel"
             );
         });
@@ -58,7 +58,7 @@
                                                 @if(channel.versions.nonEmpty) {
                                                     data-toggle="modal" data-target="#modal-delete"
                                                 } else {
-                                                    href="@routes.Projects.deleteChannel(project.ownerName, project.slug, channel.name)"
+                                                    href="@routes.Channels.delete(project.ownerName, project.slug, channel.name)"
                                                 }
                                               }
                                             >
@@ -72,7 +72,7 @@
                                           initChannelDelete('#channel-delete-@channel.id', '@channel.name', @channel.versions.size);
                                           initChannelManager(
                                                   "#channel-edit-@channel.id", "@channel.name", "@channel.color.hex",
-                                                  "Edit channel", "@routes.Projects.editChannel(project.ownerName, project.slug, channel.name)",
+                                                  "Edit channel", "@routes.Channels.edit(project.ownerName, project.slug, channel.name)",
                                                   "post", "Save changes"
                                           );
                                       });

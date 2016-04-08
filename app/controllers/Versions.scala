@@ -101,7 +101,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     * @param slug     Project slug
     * @return         Version creation view
     */
-  def showCreate(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
+  def showCreator(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
       Ok(views.projects.versions.create(project, None, Some(project.channels), showFileControls = true))
     }))
@@ -116,7 +116,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def upload(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     request.body.asMultipartFormData.get.file("pluginFile") match {
-      case None => Redirect(self.showCreate(author, slug)).flashing("error" -> "Missing file")
+      case None => Redirect(self.showCreator(author, slug)).flashing("error" -> "Missing file")
       case Some(tmpFile) =>
         // Get project
         withProject(author, slug, project => {
@@ -124,7 +124,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
           ProjectManager.initUpload(tmpFile.ref, tmpFile.filename, user) match {
             case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
               // PEBKAC
-              Redirect(self.showCreate(author, slug))
+              Redirect(self.showCreator(author, slug))
                 .flashing("error" -> "Invalid plugin file.")
             } else {
               throw thrown
@@ -132,7 +132,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
             case Success(plugin) =>
               val meta = plugin.meta.get
               if (!meta.getId.equals(project.pluginId)) {
-                Redirect(self.showCreate(author, slug))
+                Redirect(self.showCreator(author, slug))
                   .flashing("error" -> "The uploaded plugin ID must match your project's plugin ID.")
               } else {
                 // Create version from meta file
@@ -143,7 +143,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
 
                 // Cache for later use
                 Version.setPending(author, slug, channelName, version, plugin)
-                Redirect(self.showCreateWithMeta(author, slug, channelName, version.versionString))
+                Redirect(self.showCreatorWithMeta(author, slug, channelName, version.versionString))
               }
           }
         })
@@ -159,16 +159,16 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     * @param versionString  Version name
     * @return               Version create view
     */
-  def showCreateWithMeta(author: String, slug: String,
-                                channelName: String, versionString: String) = {
+  def showCreatorWithMeta(author: String, slug: String,
+                          channelName: String, versionString: String) = {
     withUser(Some(author), user => implicit request =>
       // Get pending version
       Version.getPending(author, slug, channelName, versionString) match {
-        case None => Redirect(self.showCreate(author, slug))
+        case None => Redirect(self.showCreator(author, slug))
         case Some(pendingVersion) =>
           // Get project
           pendingOrReal(author, slug) match {
-            case None => Redirect(self.showCreate(author, slug))
+            case None => Redirect(self.showCreator(author, slug))
             case Some(p) => p match {
               case pending: PendingProject =>
                 Ok(views.projects.versions.create(
@@ -196,7 +196,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
   def create(author: String, slug: String, channelName: String, versionString: String) = {
     withUser(Some(author), user => implicit request => {
       Version.getPending(author, slug, channelName, versionString) match {
-        case None => Redirect(self.showCreate(author, slug))
+        case None => Redirect(self.showCreator(author, slug))
         case Some(pendingVersion) =>
           // Gather form data
           val form = Forms.ChannelEdit.bindFromRequest.get
@@ -209,7 +209,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
 
           // Validate channel name
           if (!Channel.isValidName(submittedName)) {
-            Redirect(routes.Application.index(None))
+            Redirect(routes.Application.showHome(None))
               .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
           } else {
             // Check for pending project
@@ -228,7 +228,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
 
                   if (colorTaken) {
                     pendingVersion.cache()
-                    Redirect(self.showCreateWithMeta(author, slug, channelName, versionString))
+                    Redirect(self.showCreatorWithMeta(author, slug, channelName, versionString))
                       .flashing("error" -> "A channel with that color already exists.")
                   } else {
                     // Check for existing version
@@ -238,7 +238,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
                     }
 
                     if (existingVersion != null) {
-                      Redirect(self.showCreateWithMeta(author, slug, channelName, versionString))
+                      Redirect(self.showCreatorWithMeta(author, slug, channelName, versionString))
                         .flashing("error" -> "Version already exists.")
                     } else {
                       pendingVersion.complete.get

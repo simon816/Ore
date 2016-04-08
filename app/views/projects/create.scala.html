@@ -82,7 +82,7 @@ Page used for uploading and creating new projects.
                         @* Continue to next step *@
                         @if(pending.isDefined) {
                             @defining(pending.get.project) { project =>
-                              @form(action = routes.Projects.showFirstVersionCreate(project.ownerName, project.slug), 'id -> "continue") {
+                              @form(action = routes.Projects.showFirstVersionCreator(project.ownerName, project.slug), 'id -> "continue") {
                                   @* Disabled until JS determines meta is valid *@
                                   <input type="submit" name="create" value="@messages("project.create.continue")"
                                          class="continue-btn btn btn-primary" disabled />

@@ -12,25 +12,20 @@ GET     /api/:version/project                                   @controllers.Api
 
 # ---------- Application ----------
 
-GET     /                                                       @controllers.Application.index(categories: Option[String])
+GET     /                                                       @controllers.Application.showHome(categories: Option[String])
 GET     /login                                                  @controllers.Application.logIn(sso: Option[String], sig: Option[String])
 GET     /logout                                                 @controllers.Application.logOut
 
 
 # ---------- Projects ----------
 
-GET     /new                                                    @controllers.Projects.showCreate
+GET     /new                                                    @controllers.Projects.showCreator
 POST    /new/upload                                             @controllers.Projects.upload
-GET     /new/:author/:slug                                      @controllers.Projects.showCreateWithMeta(author, slug)
+GET     /new/:author/:slug                                      @controllers.Projects.showCreatorWithMeta(author, slug)
 
-POST    /:author/:slug                                          @controllers.Projects.showFirstVersionCreate(author, slug)
+POST    /:author/:slug                                          @controllers.Projects.showFirstVersionCreator(author, slug)
 GET     /:author/:slug                                          @controllers.Projects.show(author, slug)
 GET     /:author/:slug/star/:starred                            @controllers.Projects.setStarred(author, slug, starred: Boolean)
-
-GET     /:author/:slug/pages/:page/edit                         @controllers.Projects.showPageEdit(author, slug, page)
-POST    /:author/:slug/pages/:page/edit                         @controllers.Projects.savePage(author, slug, page)
-GET     /:author/:slug/pages/:page/delete                       @controllers.Projects.deletePage(author, slug, page)
-GET     /:author/:slug/pages/:page                              @controllers.Projects.showPage(author, slug, page)
 
 GET     /:author/:slug/dicuss                                   @controllers.Projects.showDiscussion(author, slug)
 
@@ -39,10 +34,21 @@ POST    /:author/:slug/manage/save                              @controllers.Pro
 POST    /:author/:slug/manage/rename                            @controllers.Projects.rename(author, slug)
 POST    /:author/:slug/manage/delete                            @controllers.Projects.delete(author, slug)
 
-GET     /:author/:slug/channels                                 @controllers.Projects.showChannels(author, slug)
-POST    /:author/:slug/channels                                 @controllers.Projects.createChannel(author, slug)
-POST    /:author/:slug/channels/:channel                        @controllers.Projects.editChannel(author, slug, channel)
-GET     /:author/:slug/channels/:channel/delete                 @controllers.Projects.deleteChannel(author, slug, channel)
+
+# ---------- Pages ----------
+
+GET     /:author/:slug/pages/:page/edit                         @controllers.Pages.showEditor(author, slug, page)
+POST    /:author/:slug/pages/:page/edit                         @controllers.Pages.save(author, slug, page)
+GET     /:author/:slug/pages/:page/delete                       @controllers.Pages.delete(author, slug, page)
+GET     /:author/:slug/pages/:page                              @controllers.Pages.show(author, slug, page)
+
+
+# ---------- Channels ----------
+
+GET     /:author/:slug/channels                                 @controllers.Channels.showList(author, slug)
+POST    /:author/:slug/channels                                 @controllers.Channels.create(author, slug)
+POST    /:author/:slug/channels/:channel                        @controllers.Channels.edit(author, slug, channel)
+GET     /:author/:slug/channels/:channel/delete                 @controllers.Channels.delete(author, slug, channel)
 
 
 # ---------- Versions ----------
@@ -54,9 +60,9 @@ GET     /:author/:slug/versions/:channel/:version/delete        @controllers.Ver
 GET     /:author/:slug/versions/download/:channel/:version      @controllers.Versions.download(author, slug, channel, version)
 GET     /:author/:slug/versions/download/recommended            @controllers.Versions.downloadRecommended(author, slug)
 
-GET     /:author/:slug/versions/new                             @controllers.Versions.showCreate(author, slug)
+GET     /:author/:slug/versions/new                             @controllers.Versions.showCreator(author, slug)
 POST    /:author/:slug/versions/new/upload                      @controllers.Versions.upload(author, slug)
-GET     /:author/:slug/versions/new/:channel/:version           @controllers.Versions.showCreateWithMeta(author, slug, channel, version)
+GET     /:author/:slug/versions/new/:channel/:version           @controllers.Versions.showCreatorWithMeta(author, slug, channel, version)
 
 POST    /:author/:slug/versions/:channel/:version               @controllers.Versions.create(author, slug, channel, version)
 GET     /:author/:slug/versions/:channel/:version               @controllers.Versions.show(author, slug, channel, version)

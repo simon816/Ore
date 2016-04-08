@@ -45,7 +45,7 @@ Versions page within Project overview.
                     </div>
                     <div class="col-md-3">
                         @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)) {
-                            <a href="@routes.Versions.showCreate(model.ownerName, model.slug)"
+                            <a href="@routes.Versions.showCreator(model.ownerName, model.slug)"
                             class="btn btn-block btn-primary btn-panel btn-version">
                                 <i class="fa fa-plus"></i> Create version
                             </a>
@@ -93,7 +93,7 @@ Versions page within Project overview.
                                 }
                                 @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)) {
                                     <li class="list-group-item text-right">
-                                        <a href="@routes.Projects.showChannels(model.ownerName, model.slug)">
+                                        <a href="@routes.Channels.showList(model.ownerName, model.slug)">
                                             <i class="fa fa-cog"></i> Edit
                                         </a>
                                     </li>

@@ -40,7 +40,7 @@ trait ModelQueries[T <: ModelTable[M], M <: Model] {
     */
   def setString(model: M, key: T => Rep[String], value: String) = {
     val models = q[T](model.getClass)
-    val query = for { m <- models if m.asInstanceOf[T].pk === model.id.get } yield key(m)
+    val query = for { m <- models if m.pk === model.id.get } yield key(m)
     DB.run(query.update(value))
   }
 
@@ -73,10 +73,8 @@ trait ModelQueries[T <: ModelTable[M], M <: Model] {
     named(model).onComplete {
       case Failure(thrown) => modelPromise.failure(thrown)
       case Success(modelOpt) => modelOpt match {
-        case Some(existing) =>
-          modelPromise.success(existing)
-        case None =>
-          modelPromise.completeWith(create(model))
+        case Some(existing) => modelPromise.success(existing)
+        case None => modelPromise.completeWith(create(model))
       }
     }
     modelPromise.future

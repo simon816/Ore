@@ -7,7 +7,7 @@ import models.project._
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import plugin.{InvalidPluginFileException, ProjectManager}
-import util.{Forms, Statistics}
+import util.Forms
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -25,7 +25,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     *
     * @return Create project view
     */
-  def showCreate = withAuth { context => implicit request =>
+  def showCreator = withAuth { context => implicit request =>
     Ok(views.projects.create(None))
   }
 
@@ -36,13 +36,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def upload = { withUser(None, user => implicit request =>
     request.body.asMultipartFormData.get.file("pluginFile") match {
-      case None => Redirect(self.showCreate()).flashing("error" -> "No file submitted.")
+      case None => Redirect(self.showCreator()).flashing("error" -> "No file submitted.")
       case Some(tmpFile) =>
         // Initialize plugin file
         ProjectManager.initUpload(tmpFile.ref, tmpFile.filename, user) match {
           case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
             // PEBKAC
-            Redirect(self.showCreate()).flashing("error" -> "Invalid plugin file.")
+            Redirect(self.showCreator()).flashing("error" -> "Invalid plugin file.")
           } else {
             throw thrown
           }
@@ -51,7 +51,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
             val meta = plugin.meta.get
             val project = Project.fromMeta(user.username, meta)
             Project.setPending(project, plugin)
-            Redirect(self.showCreateWithMeta(project.ownerName, project.slug))
+            Redirect(self.showCreatorWithMeta(project.ownerName, project.slug))
         }
     })
   }
@@ -63,9 +63,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     * @param slug     Project slug
     * @return         Create project view
     */
-  def showCreateWithMeta(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
+  def showCreatorWithMeta(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     Project.getPending(author, slug) match {
-      case None => Redirect(self.showCreate())
+      case None => Redirect(self.showCreator())
       case Some(pending) => Ok(views.projects.create(Some(pending)))
     })
   }
@@ -78,14 +78,14 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     * @param slug     Project slug
     * @return         Redirection to project page if successful
     */
-  def showFirstVersionCreate(author: String, slug: String) = { withUser(Some(author), user => implicit request => {
+  def showFirstVersionCreator(author: String, slug: String) = { withUser(Some(author), user => implicit request => {
     Project.getPending(author, slug) match {
       case None => BadRequest("No project to create.")
       case Some(pendingProject) =>
         val category = Categories.withName(Forms.ProjectCategory.bindFromRequest.get)
         pendingProject.project.category = category
         val pendingVersion = pendingProject.initFirstVersion
-        Redirect(routes.Versions.showCreateWithMeta(
+        Redirect(routes.Versions.showCreatorWithMeta(
           author, slug, pendingVersion.channelName, pendingVersion.version.versionString
         ))
     }})
@@ -194,218 +194,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
   def delete(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
       project.delete.get
-      Redirect(routes.Application.index(None))
+      Redirect(routes.Application.showHome(None))
         .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
-    }))
-  }
-
-  /**
-    * Displays the documentation page editor for the specified project and page
-    * name.
-    *
-    * @param author   Owner name
-    * @param slug     Project slug
-    * @param page     Page name
-    * @return         Page editor
-    */
-  def showPageEdit(author: String, slug: String, page: String) = { withUser(Some(author), user => implicit request =>
-    withProject(author, slug, project => {
-      Ok(views.projects.pages.edit(project, page, project.getOrCreatePage(page).contents))
-    }))
-  }
-
-  /**
-    * Saves changes made on a documentation page.
-    *
-    * @param author   Owner name
-    * @param slug     Project slug
-    * @param page     Page name
-    * @return         Project home
-    */
-  def savePage(author: String, slug: String, page: String) = { withUser(Some(author), user => implicit request =>
-    // TODO: Validate content size and title
-    withProject(author, slug, project => {
-      val pageForm = Forms.PageEdit.bindFromRequest.get
-      project.getOrCreatePage(page).contents = pageForm._2
-      Redirect(self.showPage(author, slug, page))
-    }))
-  }
-
-  /**
-    * Irreversibly deletes the specified Page from the specified Project.
-    *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @param page     Page name
-    * @return         Redirect to Project homepage
-    */
-  def deletePage(author: String, slug: String, page: String) = withUser(Some(author), user => implicit request => {
-    withProject(author, slug, project => {
-      project.deletePage(page)
-      Redirect(self.show(author, slug))
-    })
-  })
-
-  /**
-    * Displays the specified page.
-    *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @param page     Page name
-    * @return         View of page
-    */
-  def showPage(author: String, slug: String, page: String) = Action { implicit request =>
-    withProject(author, slug, project => {
-      project.page(page) match {
-        case None => NotFound
-        case Some(p) => Ok(views.projects.pages.home(project, p))
-      }
-    }, countView = true)
-  }
-
-  /**
-    * Displays a view of the specified Project's Channels.
-    *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @return         View of channels
-    */
-  def showChannels(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
-    withProject(author, slug, project => {
-      Ok(views.projects.channels.list(project, project.channels))
-    }, countView = true))
-  }
-
-  /**
-    * Creates a submitted channel for the specified Project.
-    *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @return         Redirect to view of channels
-    */
-  def createChannel(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
-    withProject(author, slug, project => {
-      val channels = project.channels
-      if (channels.size > Project.MAX_CHANNELS) {
-        // Maximum reached
-        Redirect(self.showChannels(author, slug))
-          .flashing("error" -> "A project may only have up to five channels.")
-      } else {
-        val form = Forms.ChannelEdit.bindFromRequest.get
-        val channelName = form._1.trim
-        if (!Channel.isValidName(channelName)) {
-          Redirect(self.showChannels(author, slug))
-            .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
-        } else {
-          // Find submitted color
-          ChannelColors.values.find(c => c.hex.equalsIgnoreCase(form._2)) match {
-            case None => BadRequest("Invalid channel color.")
-            case Some(color) => channels.find(c => c.color.equals(color)) match {
-              case None => channels.find(c => c.name.equalsIgnoreCase(channelName)) match {
-                case None =>
-                  project.newChannel(channelName, color).get
-                  Redirect(self.showChannels(author, slug))
-                case Some(channel) =>
-                  // Channel name taken
-                  Redirect(self.showChannels(author, slug))
-                    .flashing("error" -> "A channel with that name already exists.")
-              }
-              case Some(channel) =>
-                // Channel color taken
-                Redirect(self.showChannels(author, slug))
-                  .flashing("error" -> "A channel with that color already exists.")
-            }
-          }
-        }
-      }
-    }))
-  }
-
-  /**
-    * Submits changes to an existing channel.
-    *
-    * @param author       Project owner
-    * @param slug         Project slug
-    * @param channelName  Channel name
-    * @return             View of channels
-    */
-  def editChannel(author: String, slug: String, channelName: String) = { withUser(Some(author), user => implicit request =>
-    withProject(author, slug, implicit project => {
-      // Get all channels
-      val form = Forms.ChannelEdit.bindFromRequest.get
-      val newName = form._1.trim
-      if (!Channel.isValidName(newName)) {
-        Redirect(self.showChannels(author, slug))
-          .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
-      } else {
-        // Find submitted channel by old name
-        val channels = project.channels
-        channels.find(c => c.name.equals(channelName)) match {
-          case None => NotFound("Channel not found.")
-          case Some(channel) => ChannelColors.values.find(c => c.hex.equalsIgnoreCase(form._2)) match {
-            case None => BadRequest("Invalid channel color.")
-            case Some(color) =>
-              // Check if color is taken by different channel
-              val colorChan = channels.find(c => c.color.equals(color))
-              val colorTaken = colorChan.isDefined && !colorChan.get.equals(channel)
-
-              // Check if name taken by different channel
-              val nameChan = channels.find(c => c.name.equals(newName))
-              val nameTaken = nameChan.isDefined && !nameChan.get.equals(channel)
-
-              if (colorTaken) {
-                Redirect(self.showChannels(author, slug))
-                  .flashing("error" -> "A channel with that color already exists.")
-              } else if (nameTaken) {
-                Redirect(self.showChannels(author, slug))
-                  .flashing("error" -> "A channel with that name already exists.")
-              } else {
-                // Change name if different
-                if (!channelName.equals(newName)) {
-                  channel.name = newName
-                }
-
-                // Change color if different
-                if (!channel.color.equals(color)) {
-                  channel.color = color
-                }
-
-                Redirect(self.showChannels(author, slug))
-              }
-          }
-        }
-      }
-    }))
-  }
-
-  /**
-    * Irreversibly deletes the specified channel and all version associated
-    * with it.
-    *
-    * @param author       Project owner
-    * @param slug         Project slug
-    * @param channelName  Channel name
-    * @return             View of channels
-    */
-  def deleteChannel(author: String, slug: String, channelName: String) = { withUser(Some(author), user => implicit request =>
-    withProject(author, slug, project => {
-      val channels = project.channels
-      if (channels.size == 1) {
-        Redirect(self.showChannels(author, slug))
-          .flashing("error" -> "You cannot delete your only channel.")
-      } else {
-        channels.find(c => c.name.equals(channelName)) match {
-          case None => NotFound
-          case Some(channel) =>
-            if (channel.versions.nonEmpty && channels.count(c => c.versions.nonEmpty) == 1) {
-              Redirect(self.showChannels(author, slug))
-                .flashing("error" -> "You cannot delete your only non-empty channel.")
-            } else {
-              channel.delete(project).get
-              Redirect(self.showChannels(author, slug))
-            }
-        }
-      }
     }))
   }
 

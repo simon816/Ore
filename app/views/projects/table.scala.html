@@ -40,7 +40,7 @@ Collection of all projects.
 
             <h3 class="pull-left">@messages("table.welcome") <i class="date">@messages("table.welcome.description")</i></h3>
             <div class="table-controls">
-                <a href="@routes.Projects.showCreate"
+                <a href="@routes.Projects.showCreator"
                    title="Submit a new project to Ore." data-toggle="tooltip"
                    data-placement="bottom" class="btn-create btn btn-primary pull-right">
                     <i class="fa fa-plus"></i> @messages("project.create")
@@ -91,7 +91,7 @@ Collection of all projects.
                 <div class="panel-heading">
                     <h3 class="panel-title">@messages("project.category.plural")</h3>
                     @if(visibleCategories.isDefined) {
-                        <a href="@routes.Application.index(None)"><i class="pull-right category-reset fa fa-times"></i></a>
+                        <a href="@routes.Application.showHome(None)"><i class="pull-right category-reset fa fa-times"></i></a>
                     }
                 </div>
                 <table class="table panel-body">
@@ -103,20 +103,20 @@ Collection of all projects.
                                 <td class="pull-right">
                                     @if(visibleCategories.isDefined) {
                                         @if(!visibleCategories.get.contains(Categories(i).asInstanceOf[Category])) {
-                                            <a href="@routes.Application.index(Some(
+                                            <a href="@routes.Application.showHome(Some(
                                                 (visibleCategories.get.map(_.id) :+ i).mkString(",")
                                             ))">
                                                 <i class="fa fa-eye-slash"></i>
                                             </a>
                                         } else {
-                                            <a href="@routes.Application.index(Some(
+                                            <a href="@routes.Application.showHome(Some(
                                                 visibleCategories.get.map(_.id).filterNot(id => id == i).mkString(",")
                                             ))">
                                                 <i class="fa fa-eye"></i>
                                             </a>
                                         }
                                     } else {
-                                        <a href="@routes.Application.index(Some(Integer.toString(i)))">
+                                        <a href="@routes.Application.showHome(Some(Integer.toString(i)))">
                                             <i class="fa fa-eye"></i>
                                         </a>
                                     }
