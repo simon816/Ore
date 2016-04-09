@@ -1,0 +1,7 @@
+# --- !Ups
+
+ALTER TABLE users ALTER COLUMN name DROP NOT NULL;
+
+# --- !Downs
+
+ALTER TABLE users ALTER COLUMN name SET NOT NULL;

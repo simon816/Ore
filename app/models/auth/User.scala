@@ -15,11 +15,11 @@ import db.query.Queries.now
   * @param username     Username
   * @param email        Email
   */
-case class User(externalId: Int, override val createdAt: Option[Timestamp], name: String,
+case class User(externalId: Int, override val createdAt: Option[Timestamp], name: Option[String],
                 username: String, email: String) extends Model {
 
   def this(externalId: Int, name: String, username: String, email: String) = {
-    this(externalId, None, name, username, email)
+    this(externalId, None, Option(name), username, email)
   }
 
   override def id: Option[Int] = Some(this.externalId)
@@ -31,9 +31,8 @@ object User {
   /**
     * Returns the user with the specified username.
     *
-    * @param name Username to find user for
     * @return User if found, None otherwise
     */
-  def withName(name: String): Option[User] = now(Queries.Users.withName(name)).get
+  def withName(username: String): Option[User] = now(Queries.Users.withName(username)).get
 
 }
