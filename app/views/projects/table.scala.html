@@ -94,33 +94,40 @@ Collection of all projects.
                         <a href="@routes.Application.showHome(None)"><i class="pull-right category-reset fa fa-times"></i></a>
                     }
                 </div>
-                <table class="table panel-body">
+                <table class="table panel-body category-table">
                     <tbody>
                         @for(i <- 0 until Categories.values.size) {
-                            <tr>
-                                <td class="cat-icon"><i class="fa @Categories(i).icon"></i></td>
-                                <td><strong class="minor">@Categories(i).title</strong></td>
-                                <td class="pull-right">
-                                    @if(visibleCategories.isDefined) {
-                                        @if(!visibleCategories.get.contains(Categories(i).asInstanceOf[Category])) {
-                                            <a href="@routes.Application.showHome(Some(
+                            @if(visibleCategories.isDefined) {
+                                @if(!visibleCategories.get.contains(Categories(i).asInstanceOf[Category])) {
+                                    <tr onclick="location.href='@routes.Application.showHome(Some(
                                                 (visibleCategories.get.map(_.id) :+ i).mkString(",")
-                                            ))">
-                                                <i class="fa fa-eye-slash"></i>
-                                            </a>
-                                        } else {
-                                            <a href="@routes.Application.showHome(Some(
+                                    ))'">
+                                    <td>
+                                        <div>
+                                            <i class="fa @Categories(i).icon"></i>
+                                            <strong>@Categories(i).title</strong>
+                                        <div>
+                                    </td>
+                                } else {
+                                    <tr onclick="location.href='@routes.Application.showHome(Some(
                                                 visibleCategories.get.map(_.id).filterNot(id => id == i).mkString(",")
-                                            ))">
-                                                <i class="fa fa-eye"></i>
-                                            </a>
-                                        }
-                                    } else {
-                                        <a href="@routes.Application.showHome(Some(Integer.toString(i)))">
-                                            <i class="fa fa-eye"></i>
-                                        </a>
-                                    }
+                                    ))'">
+                                    <td>
+                                        <div class="glow">
+                                            <i class="fa @Categories(i).icon"></i>
+                                            <strong>@Categories(i).title</strong>
+                                        </div>
+                                    </td>
+                                }
+                            } else {
+                                <tr onclick="location.href='@routes.Application.showHome(Some(Integer.toString(i)))'">
+                                <td>
+                                    <div>
+                                        <i class="fa @Categories(i).icon"></i>
+                                        <strong>@Categories(i).title</strong>
+                                    </div>
                                 </td>
+                            }
                             </tr>
                         }
                     </tbody>
