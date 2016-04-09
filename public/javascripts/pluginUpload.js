@@ -10,8 +10,6 @@ $(function() {
             return;
         }
 
-        console.log(MAX_FILE_SIZE);
-
         if (fileSize > MAX_FILE_SIZE) {
             alert.find('i').removeClass('fa-upload').addClass('fa-times');
             alert.find('.file-upload').find('button')
