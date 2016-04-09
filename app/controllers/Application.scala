@@ -37,10 +37,12 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
       case None => projectsFuture = Queries.Projects.collect(limit = INITIAL_PROJECT_LOAD)
       case Some(csv) =>
         categoryArray = Categories.fromString(csv)
+        var categoryIds = categoryArray.map(_.id)
         if (Categories.values.subsetOf(categoryArray.toSet)) {
           categoryArray = null
+          categoryIds = null
         }
-        projectsFuture = Queries.Projects.collect(categoryArray.map(_.id), INITIAL_PROJECT_LOAD)
+        projectsFuture = Queries.Projects.collect(categoryIds, INITIAL_PROJECT_LOAD)
     }
     val projects = Queries.now(projectsFuture).get
     Ok(views.index(projects, Option(categoryArray)))
