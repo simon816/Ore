@@ -5,15 +5,15 @@ package models.project
   */
 object Categories extends Enumeration {
 
-  val Protect     =   Category(0, "Protection",        "fa-lock")
-  val WorldMgmt   =   Category(1, "World Management",  "fa-globe")
-  val Chat        =   Category(2, "Chat",              "fa-comment")
+  val AdminTools  =   Category(0, "Admin Tools",       "fa-server")
+  val Chat        =   Category(1, "Chat",              "fa-comment")
+  val DevTools    =   Category(2, "Developer Tools",   "fa-wrench")
   val Econ        =   Category(3, "Economy",           "fa-money")
-  val Games       =   Category(4, "Games",             "fa-gamepad")
-  val Gameplay    =   Category(5, "Gameplay",          "fa-puzzle-piece")
-  val Rp          =   Category(6, "Role Playing",      "fa-magic")
-  val AdminTools  =   Category(7, "Admin Tools",       "fa-server")
-  val DevTools    =   Category(8, "Developer Tools",   "fa-wrench")
+  val Gameplay    =   Category(4, "Gameplay",          "fa-puzzle-piece")
+  val Games       =   Category(5, "Games",             "fa-gamepad")
+  val Protect     =   Category(6, "Protection",        "fa-lock")
+  val Rp          =   Category(7, "Role Playing",      "fa-magic")
+  val WorldMgmt   =   Category(8, "World Management",  "fa-globe")
   val Misc        =   Category(9, "Miscellaneous",     "fa-asterisk")
 
   /**

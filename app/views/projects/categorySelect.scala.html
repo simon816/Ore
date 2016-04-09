@@ -5,10 +5,13 @@
 <div class="category-select form-group">
     <label for="category">@messages("project.category")</label>
     <select class="form-control" id="category" name="category" form="@form">
-    @for(category <- Categories.values) {
-        <option @if(selected.isDefined && selected.get.equals(category)) { selected }>
-            @category.title
-        </option>
-    }
+        @for(i <- 0 until Categories.values.size) {
+
+        }
+        @for(i <- 0 until Categories.values.size) {
+            <option @if(selected.isDefined && selected.get.equals(Categories(i))) { selected }>
+                @Categories(i).title
+            </option>
+        }
     </select>
 </div>
