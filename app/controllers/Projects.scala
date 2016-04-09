@@ -166,6 +166,38 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
   }
 
   /**
+    * Redirect's to the project's issue tracker if any.
+    *
+    * @param author   Project owner
+    * @param slug     Project slug
+    * @return         Issue tracker
+    */
+  def showIssues(author: String, slug: String) = Action { implicit request =>
+    withProject(author, slug, project => {
+      project.issues match {
+        case None => NotFound
+        case Some(link) => Redirect(link)
+      }
+    })
+  }
+
+  /**
+    * Redirect's to the project's source code if any.
+    *
+    * @param author   Project owner
+    * @param slug     Project slug
+    * @return         Source code
+    */
+  def showSource(author: String, slug: String) = Action { implicit request =>
+    withProject(author, slug, project => {
+      project.source match {
+        case None => NotFound
+        case Some(link) => Redirect(link)
+      }
+    })
+  }
+
+  /**
     * Renames the specified project.
     *
     * @param author   Project owner

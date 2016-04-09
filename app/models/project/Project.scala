@@ -44,17 +44,20 @@ import scala.util.Try
   * @param _views                 How many times this project has been views
   * @param _downloads             How many times this project has been downloaded in total
   * @param _stars                 How many times this project has been starred
+  * @param _issues                External link to issue tracker
+  * @param _source                External link to source code
   */
 case class Project(override val id: Option[Int], override val createdAt: Option[Timestamp],
                    pluginId: String, private var _name: String, private var _slug: String,
                    ownerName: String, authorNames: List[String], homepage: Option[String],
                    private var recommendedVersionId: Option[Int],
                    private var categoryId: Int = -1, private var _views: Int,
-                   private var _downloads: Int, private var _stars: Int) extends Model {
+                   private var _downloads: Int, private var _stars: Int,
+                   private var _issues: Option[String], private var _source: Option[String]) extends Model {
 
   def this(pluginId: String, name: String, owner: String, authors: List[String], homepage: String) = {
     this(None, None, pluginId, sanitizeName(name), slugify(name),
-         owner, authors, Option(homepage), None, 0, 0, 0, 0)
+         owner, authors, Option(homepage), None, 0, 0, 0, 0, None, None)
   }
 
   def owner: Dev = Dev(this.ownerName) // TODO: Teams
@@ -264,6 +267,40 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
   def unstarFor(user: User) = {
     now(Queries.Projects.unstarFor(this.id.get, user.externalId)).get
     this._stars -= 1
+  }
+
+  /**
+    * Returns the link to this Project's issue tracker, if any.
+    *
+    * @return Link to issue tracker
+    */
+  def issues: Option[String] = this._issues
+
+  /**
+    * Sets the link to this Project's issue tracker.
+    *
+    * @param _issues Issue tracker link
+    */
+  def issues_=(_issues: String) = {
+    now(Queries.Projects.setString(this, _.issues, _issues))
+    this._issues = Option(_issues)
+  }
+
+  /**
+    * Returns the link to this Project's source code, if any.
+    *
+    * @return Link to source
+    */
+  def source: Option[String] = this._source
+
+  /**
+    * Sets the link to this Project's source code.
+    *
+    * @param _source Source code link
+    */
+  def source_=(_source: String) = {
+    now(Queries.Projects.setString(this, _.source, _source))
+    this._source = Option(_source)
   }
 
   /**

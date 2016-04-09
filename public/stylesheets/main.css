@@ -404,3 +404,8 @@ form {
 .version-preview {
     padding-left: 15px;
 }
+
+.fa-external-link {
+    font-size: 11px;
+    margin-top: 2px;
+}

@@ -1,9 +1,7 @@
 logs
 project/project
 target
-tmp
 uploads
-dist
 .idea
 /*.iml
 /out

@@ -33,11 +33,27 @@ Base template for Project overview.
                                 <i class="fa fa-users"></i> @messages("project.discuss")
                             </a>
                         </li>
+
                         @if(session.get("username").isDefined && session.get("username").get.equals(project.ownerName)) {
                             @* Show manager if permitted *@
                             <li id="settings" class="">
                                 <a href="@routes.Projects.showManager(project.ownerName, project.slug)">
                                     <i class="fa fa-cog"></i> @messages("project.settings")
+                                </a>
+                            </li>
+                        }
+
+                        @if(project.issues.isDefined) {
+                            <li id="issues">
+                                <a href="@routes.Projects.showIssues(project.ownerName, project.slug)">
+                                    <i class="fa fa-bug"></i> Issues <i class="fa fa-external-link"></i></a>
+                            </li>
+                        }
+
+                        @if(project.source.isDefined) {
+                            <li id="source">
+                                <a href="@routes.Projects.showSource(project.ownerName, project.slug)">
+                                    <i class="fa fa-code"></i> Source <i class="fa fa-external-link"></i>
                                 </a>
                             </li>
                         }
