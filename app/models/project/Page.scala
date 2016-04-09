@@ -61,8 +61,24 @@ object Page {
   val HOME: String = "Home"
 
   /**
+    * The template body for the Home page.
+    */
+  val HOME_MESSAGE: String = "Welcome to your new project!"
+
+  /**
     * The Markdown processor.
     */
   val MD: PegDownProcessor = new PegDownProcessor(ALL & ~ANCHORLINKS)
+
+  /**
+    * Returns a template for new Pages.
+    *
+    * @param title  Page title
+    * @param body   Default message
+    * @return       Template
+    */
+  def template(title: String, body: String = ""): String = {
+    "# " + title + "\n" + body
+  }
 
 }

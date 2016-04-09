@@ -241,6 +241,10 @@ form {
     margin-bottom: 20px;
 }
 
+.category-select {
+    margin-top: 10px;
+}
+
 .page-editor-tabs {
     margin-bottom: 15px;
 }

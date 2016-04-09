@@ -3,8 +3,8 @@ package db.query
 import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
-import db.query.Queries._
-import db.{VersionDownloadsTable, VersionTable}
+import db.query.Queries.DB._
+import db.{ChannelTable, VersionDownloadsTable, VersionTable}
 import models.project.Version
 
 import scala.concurrent.Future
@@ -12,7 +12,7 @@ import scala.concurrent.Future
 /**
   * Version related queries.
   */
-object VersionQueries extends ModelQueries[VersionTable, Version] {
+object VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => new VersionTable(tag))) {
 
   private val downloads = TableQuery[VersionDownloadsTable]
 
@@ -23,7 +23,7 @@ object VersionQueries extends ModelQueries[VersionTable, Version] {
     * @return           Versions in project
     */
   def inProject(projectId: Int): Future[Seq[Version]] = {
-    filter[VersionTable, Version](classOf[Version], v => v.projectId === projectId)
+    run(this.models.filter(v => v.projectId === projectId).result)
   }
 
   /**
@@ -33,7 +33,7 @@ object VersionQueries extends ModelQueries[VersionTable, Version] {
     * @return           Versions in channel
     */
   def inChannel(channelId: Int): Future[Seq[Version]] = {
-    filter[VersionTable, Version](classOf[Version], v => v.channelId === channelId)
+    run(this.models.filter(v => v.channelId === channelId).result)
   }
 
   /**
@@ -44,10 +44,10 @@ object VersionQueries extends ModelQueries[VersionTable, Version] {
     */
   def inChannels(channelIds: Seq[Int]): Future[Seq[Version]] = {
     val query = for {
-      version <- q[VersionTable](classOf[Version])
+      version <- this.models
       if version.channelId inSetBind channelIds
     } yield version
-    DB.run(query.result)
+    run(query.result)
   }
 
   /**
@@ -58,7 +58,7 @@ object VersionQueries extends ModelQueries[VersionTable, Version] {
     * @return               Version with name
     */
   def withName(channelId: Int, versionString: String): Future[Option[Version]] = {
-    find[VersionTable, Version](classOf[Version], v => v.channelId === channelId && v.versionString === versionString)
+    find(v => v.channelId === channelId && v.versionString === versionString)
   }
 
   /**
@@ -67,7 +67,7 @@ object VersionQueries extends ModelQueries[VersionTable, Version] {
     * @param id   Version ID
     * @return     Version with ID
     */
-  def withId(id: Int): Future[Option[Version]] = find[VersionTable, Version](classOf[Version], v => v.id === id)
+  def withId(id: Int): Future[Option[Version]] = find(v => v.id === id)
 
   /**
     * Returns true if the specified Version has been downloaded by a client
@@ -78,8 +78,8 @@ object VersionQueries extends ModelQueries[VersionTable, Version] {
     * @return           True if downloaded
     */
   def hasBeenDownloadedBy(versionId: Int, cookie: String): Future[Boolean] = {
-    val query = downloads.filter(vd => vd.versionId === versionId && vd.cookie === cookie).size > 0
-    DB.run(query.result)
+    val query = this.downloads.filter(vd => vd.versionId === versionId && vd.cookie === cookie).size > 0
+    run(query.result)
   }
 
   /**
@@ -90,8 +90,8 @@ object VersionQueries extends ModelQueries[VersionTable, Version] {
     * @param cookie     To set as downloaded for
     */
   def setDownloadedBy(versionId: Int, cookie: String) = {
-    val query = downloads += (None, Some(cookie), None, versionId)
-    DB.run(query)
+    val query = this.downloads += (None, Some(cookie), None, versionId)
+    run(query)
   }
 
   /**
@@ -103,8 +103,8 @@ object VersionQueries extends ModelQueries[VersionTable, Version] {
     * @return           True if downloaded
     */
   def hasBeenDownloadedBy(versionId: Int, userId: Int): Future[Boolean] = {
-    val query = downloads.filter(vd => vd.versionId === versionId && vd.userId === userId).size > 0
-    DB.run(query.result)
+    val query = this.downloads.filter(vd => vd.versionId === versionId && vd.userId === userId).size > 0
+    run(query.result)
   }
 
   /**
@@ -114,8 +114,8 @@ object VersionQueries extends ModelQueries[VersionTable, Version] {
     * @param userId     To set as downloaded for
     */
   def setDownloadedBy(versionId: Int, userId: Int) = {
-    val query = downloads += (None, None, Some(userId), versionId)
-    DB.run(query)
+    val query = this.downloads += (None, None, Some(userId), versionId)
+    run(query)
   }
 
   override def copyInto(id: Option[Int], theTime: Option[Timestamp], version: Version): Version = {

@@ -5,6 +5,8 @@ var CATEGORY_STRING = null;
 var currentlyLoaded = 0;
 
 $(function() {
+    $('.alert').fadeIn('slow');
+
     $('.btn-more').click(function() {
         var ajaxUrl = BASE_URL + '/api/projects?limit=' + PROJECTS_PER_CLICK + '&offset=' + currentlyLoaded;
         if (CATEGORY_STRING) {

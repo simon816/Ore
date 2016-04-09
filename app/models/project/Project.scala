@@ -296,7 +296,7 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     * @return       Page with name or new name if it doesn't exist
     */
   def getOrCreatePage(name: String): Page = {
-    now(Queries.Pages.getOrCreate(new Page(this.id.get, name, "", true))).get
+    now(Queries.Pages.getOrCreate(new Page(this.id.get, name, Page.template(name), true))).get
   }
 
   /**
@@ -314,7 +314,9 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     *
     * @return Project home page
     */
-  def homePage: Page = now(Queries.Pages.getOrCreate(new Page(this.id.get, Page.HOME, "", false))).get
+  def homePage: Page = {
+    now(Queries.Pages.getOrCreate(new Page(this.id.get, Page.HOME, Page.template(name, Page.HOME_MESSAGE), false))).get
+  }
 
   /**
     * Returns true if this Project already exists.

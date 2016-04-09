@@ -6,8 +6,8 @@ import java.util.concurrent.TimeUnit
 
 import db.OrePostgresDriver.api._
 import db._
-import models.auth.User
-import models.project.{Channel, Page, Project, Version}
+import db.query.Queries.DB.run
+import db.query.Queries._
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
@@ -16,6 +16,129 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future, Promise}
 import scala.util.{Failure, Success, Try}
+
+/**
+  * Base class for handling Model queries.
+  *
+  * @tparam T ModelTable
+  * @tparam M Model
+  */
+abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]) {
+
+  /**
+    * Sets an Int field on the Model.
+    *
+    * @param model  Model to update
+    * @param key    Key to update
+    * @param value  Value to set
+    */
+  def setInt(model: M, key: T => Rep[Int], value: Int) = {
+    val query = for { m <- this.models if m.pk === model.id.get } yield key(m)
+    run(query.update(value))
+  }
+
+  /**
+    * Sets a String field on the Model.
+    *
+    * @param model  Model to update
+    * @param key    Key to update
+    * @param value  Value to set
+    */
+  def setString(model: M, key: T => Rep[String], value: String) = {
+    val query = for { m <- this.models if m.pk === model.id.get } yield key(m)
+    run(query.update(value))
+  }
+
+  /**
+    * Returns the first model that matches the given predicate.
+    *
+    * @param predicate  Predicate
+    * @return           Optional result
+    */
+  def find(predicate: T => Rep[Boolean]): Future[Option[M]] = {
+    val modelPromise = Promise[Option[M]]
+    val query = this.models.filter(predicate).take(1)
+    run(query.result).andThen {
+      case Failure(thrown) => modelPromise.failure(thrown)
+      case Success(result) => modelPromise.success(result.headOption)
+    }
+    modelPromise.future
+  }
+
+  /**
+    * Returns the model with the specified ID, if any.
+    *
+    * @param id   Model with ID
+    * @return     Model if present, None otherwise
+    */
+  def get(id: Int): Future[Option[M]] = {
+    find(m => m.pk === id)
+  }
+
+  /**
+    * Creates the specified model in it's table.
+    *
+    * @param model  Model to create
+    * @return       Newly created model
+    */
+  def create(model: M): Future[M] = {
+    val toInsert = copyInto(None, Some(theTime), model)
+    val query = {
+      this.models returning this.models.map(_.pk) into {
+        case (m, id) =>
+          copyInto(Some(id), m.createdAt, m)
+      } += toInsert
+    }
+    DB.run(query)
+  }
+
+  /**
+    * Returns the specified model or creates it if it doesn't exist.
+    *
+    * @param model  Model to get or create
+    * @return       Existing or newly created model
+    */
+  def getOrCreate(model: M): Future[M] = {
+    val modelPromise = Promise[M]
+    named(model).onComplete {
+      case Failure(thrown) => modelPromise.failure(thrown)
+      case Success(modelOpt) => modelOpt match {
+        case Some(existing) => modelPromise.success(existing)
+        case None => modelPromise.completeWith(create(model))
+      }
+    }
+    modelPromise.future
+  }
+
+  /**
+    * Deletes the specified Model.
+    *
+    * @param model Model to delete
+    */
+  def delete(model: M) = {
+    val query = this.models.filter(m => m.pk === model.id.get)
+    DB.run(query.delete)
+  }
+
+  /**
+    * Creates a copy of the specified model with the specified ID.
+    *
+    * @param id       ID to put in model
+    * @param theTime  Current time
+    * @param model    Model to copy
+    * @return         Copy of model
+    */
+  def copyInto(id: Option[Int], theTime: Option[Timestamp], model: M): M
+
+  /**
+    * Tries to find the specified model in it's table with an unset ID.
+    *
+    * @param model  Model to find
+    * @return       Model if found
+    */
+  def named(model: M): Future[Option[M]] = Future(None)
+
+}
 
 /**
   * Contains all queries for retrieving models from the database.
@@ -50,43 +173,5 @@ object Queries {
   protected[db] val DB = Config.db
 
   protected[db] def theTime: Timestamp = new Timestamp(new Date().getTime)
-
-  protected[db] def q[T <: Table[_]](clazz: Class[_]): TableQuery[T] = {
-    // Table mappings
-    if (classOf[Project].isAssignableFrom(clazz)) {
-      TableQuery(tag => new ProjectTable(tag).asInstanceOf[T])
-    } else if (classOf[Project].isAssignableFrom(clazz)) {
-      TableQuery(tag => new TeamTable(tag).asInstanceOf[T])
-    } else if (classOf[Channel].isAssignableFrom(clazz)) {
-      TableQuery(tag => new ChannelTable(tag).asInstanceOf[T])
-    } else if (classOf[Version].isAssignableFrom(clazz)) {
-      TableQuery(tag => new VersionTable(tag).asInstanceOf[T])
-    } else if (classOf[User].isAssignableFrom(clazz)) {
-      TableQuery(tag => new UserTable(tag).asInstanceOf[T])
-    } else if (classOf[Page].isAssignableFrom(clazz)) {
-      TableQuery(tag => new PagesTable(tag).asInstanceOf[T])
-    } else {
-      throw new Exception("No table found for class: " + clazz.toString)
-    }
-  }
-
-  protected[db] def filterQuery[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]) = {
-    // Raw filter query
-    q[T](clazz).filter(predicate)
-  }
-
-  protected[db] def filter[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]): Future[Seq[M]] = {
-    // Filter action
-    DB.run(filterQuery[T, M](clazz, predicate).result)
-  }
-
-  protected[db] def find[T <: Table[M], M](clazz: Class[_], predicate: T => Rep[Boolean]): Future[Option[M]] = {
-    val p = Promise[Option[M]]
-    filter[T, M](clazz, predicate).onComplete {
-      case Failure(thrown) => p.failure(thrown)
-      case Success(m) => p.success(m.headOption)
-    }
-    p.future
-  }
 
 }

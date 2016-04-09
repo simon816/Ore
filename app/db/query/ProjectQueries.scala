@@ -3,7 +3,7 @@ package db.query
 import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
-import db.query.Queries._
+import db.query.Queries.DB.run
 import db.{ProjectStarsTable, ProjectTable, ProjectViewsTable}
 import models.project.Project
 import slick.lifted.Query
@@ -13,7 +13,7 @@ import scala.concurrent.Future
 /**
   * Project related queries
   */
-object ProjectQueries extends ModelQueries[ProjectTable, Project] {
+object ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => new ProjectTable(tag))) {
 
   private val views = TableQuery[ProjectViewsTable]
   private val stars = TableQuery[ProjectStarsTable]
@@ -27,7 +27,7 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @return             Projects matching criteria
     */
   def collect(categories: Array[Int] = null, limit: Int = -1, offset: Int = -1): Future[Seq[Project]] = {
-    var query: Query[ProjectTable, Project, Seq] = q[ProjectTable](classOf[Project])
+    var query: Query[ProjectTable, Project, Seq] = this.models
     if (categories != null) {
       query = for {
         project <- query
@@ -40,7 +40,7 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     if (limit > -1) {
       query = query.take(limit)
     }
-    DB.run(query.result)
+    run(query.result)
   }
 
   /**
@@ -50,7 +50,7 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @return           Projects by owner
     */
   def by(ownerName: String): Future[Seq[Project]] = {
-    filter[ProjectTable, Project](classOf[Project], p => p.ownerName === ownerName)
+    run(this.models.filter(p => p.ownerName === ownerName).result)
   }
 
   /**
@@ -61,7 +61,7 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @return       Project if any, None otherwise
     */
   def withName(owner: String, name: String): Future[Option[Project]] = {
-    find[ProjectTable, Project](classOf[Project], p => p.name.toLowerCase === name.toLowerCase && p.ownerName === owner)
+    find(p => p.name.toLowerCase === name.toLowerCase && p.ownerName === owner)
   }
 
   /**
@@ -71,7 +71,7 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @return           Project if any, None otherwise
     */
   def withPluginId(pluginId: String): Future[Option[Project]] = {
-    find[ProjectTable, Project](classOf[Project], p => p.pluginId === pluginId)
+    find(p => p.pluginId === pluginId)
   }
 
   /**
@@ -81,7 +81,7 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @return       Project if any, None otherwise
     */
   def withSlug(owner: String, slug: String): Future[Option[Project]] = {
-    find[ProjectTable, Project](classOf[Project], p => p.ownerName === owner && p.slug.toLowerCase === slug.toLowerCase)
+    find(p => p.ownerName === owner && p.slug.toLowerCase === slug.toLowerCase)
   }
 
   /**
@@ -90,7 +90,7 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @param id   Project ID
     * @return     Project if any, None otherwise
     */
-  def withId(id: Int): Future[Option[Project]] = find[ProjectTable, Project](classOf[Project], p => p.id === id)
+  def withId(id: Int): Future[Option[Project]] = find(p => p.id === id)
 
   /**
     * Returns true if the specified Project has been viewed by a client with
@@ -101,8 +101,8 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @return         True if cookie is found
     */
   def hasBeenViewedBy(projectId: Int, cookie: String): Future[Boolean] = {
-    val query = views.filter(pv => pv.projectId === projectId && pv.cookie === cookie).size > 0
-    DB.run(query.result)
+    val query = this.views.filter(pv => pv.projectId === projectId && pv.cookie === cookie).size > 0
+    run(query.result)
   }
 
   /**
@@ -113,8 +113,8 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @param cookie Cookie to look for
     */
   def setViewedBy(projectId: Int, cookie: String): Future[Any] = {
-    val query = views += (None, Some(cookie), None, projectId)
-    DB.run(query)
+    val query = this.views += (None, Some(cookie), None, projectId)
+    run(query)
   }
 
   /**
@@ -126,8 +126,8 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @return           True if user is found
     */
   def hasBeenViewedBy(projectId: Int, userId: Int): Future[Boolean] = {
-    val query = views.filter(pv => pv.projectId === projectId && pv.userId === userId).size > 0
-    DB.run(query.result)
+    val query = this.views.filter(pv => pv.projectId === projectId && pv.userId === userId).size > 0
+    run(query.result)
   }
 
   /**
@@ -138,8 +138,8 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @return           True if user is found
     */
   def setViewedBy(projectId: Int, userId: Int): Future[Any] = {
-    val query = views += (None, None, Some(userId), projectId)
-    DB.run(query)
+    val query = this.views += (None, None, Some(userId), projectId)
+    run(query)
   }
 
   /**
@@ -150,9 +150,8 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @return           True if Project is starred by user
     */
   def isStarredBy(projectId: Int, userId: Int): Future[Boolean] = {
-    val query = stars.filter(sp => sp.userId === userId
-      && sp.projectId === projectId).size > 0
-    DB.run(query.result)
+    val query = this.stars.filter(sp => sp.userId === userId && sp.projectId === projectId).size > 0
+    run(query.result)
   }
 
   /**
@@ -162,8 +161,8 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @param userId     User to star for
     */
   def starFor(projectId: Int, userId: Int): Future[Any] = {
-    val query = stars += (userId, projectId)
-    DB.run(query)
+    val query = this.stars += (userId, projectId)
+    run(query)
   }
 
   /**
@@ -173,9 +172,8 @@ object ProjectQueries extends ModelQueries[ProjectTable, Project] {
     * @param userId     User to unstar for
     */
   def unstarFor(projectId: Int, userId: Int) = {
-    val query = stars.filter(sp => sp.userId === userId
-      && sp.projectId === projectId).delete
-    DB.run(query)
+    val query = this.stars.filter(sp => sp.userId === userId && sp.projectId === projectId).delete
+    run(query)
   }
 
   override def copyInto(id: Option[Int], theTime: Option[Timestamp], project: Project): Project = {

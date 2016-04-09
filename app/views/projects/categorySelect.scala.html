@@ -2,7 +2,7 @@
 @import models.project.Categories.Category
 @(form: String, selected: Option[Category] = None)(implicit messages: Messages)
 
-<div class="form-group">
+<div class="category-select form-group">
     <label for="category">@messages("project.category")</label>
     <select class="form-control" id="category" name="category" form="@form">
     @for(category <- Categories.values) {

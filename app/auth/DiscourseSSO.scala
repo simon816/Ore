@@ -55,7 +55,7 @@ object DiscourseSSO {
     var email: String = null
     for (param <- params) {
       val data = param.split('=')
-      val value = data(1)
+      val value = if (data.length > 1) data(1) else null
       data(0) match {
         case "external_id" => externalId = Integer.parseInt(value)
         case "name" => name = value

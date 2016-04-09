@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.ChannelTable
 import db.OrePostgresDriver.api._
-import db.query.Queries._
+import db.query.Queries.DB.run
 import models.project.Channel
 
 import scala.concurrent.Future
@@ -12,7 +12,7 @@ import scala.concurrent.Future
 /**
   * Channel related queries.
   */
-object ChannelQueries extends ModelQueries[ChannelTable, Channel] {
+object ChannelQueries extends Queries[ChannelTable, Channel](TableQuery(tag => new ChannelTable(tag))) {
 
   /**
     * Returns all Channels in the specified Project.
@@ -21,7 +21,7 @@ object ChannelQueries extends ModelQueries[ChannelTable, Channel] {
     * @return           Channels in project
     */
   def in(projectId: Int): Future[Seq[Channel]] = {
-    filter[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId)
+    run(this.models.filter(c => c.projectId === projectId).result)
   }
 
   /**
@@ -32,7 +32,7 @@ object ChannelQueries extends ModelQueries[ChannelTable, Channel] {
     * @return           Channel with name if any, None otherwise
     */
   def withName(projectId: Int, name: String): Future[Option[Channel]] = {
-    find[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId && c.name.toLowerCase === name.toLowerCase)
+    find(c => c.projectId === projectId && c.name.toLowerCase === name.toLowerCase)
   }
 
   /**
@@ -43,7 +43,7 @@ object ChannelQueries extends ModelQueries[ChannelTable, Channel] {
     * @return           Channel with color if any, None otherwise
     */
   def withColor(projectId: Int, colorId: Int): Future[Option[Channel]] = {
-    find[ChannelTable, Channel](classOf[Channel], c => c.projectId === projectId && c.colorId === colorId)
+    find(c => c.projectId === projectId && c.colorId === colorId)
   }
 
   /**
@@ -52,7 +52,7 @@ object ChannelQueries extends ModelQueries[ChannelTable, Channel] {
     * @param id   Channel ID
     * @return     Channel with id if any, None otherwise
     */
-  def withId(id: Int): Future[Option[Channel]] = find[ChannelTable, Channel](classOf[Channel], c => c.id === id)
+  def withId(id: Int): Future[Option[Channel]] = find(c => c.id === id)
 
   override def copyInto(id: Option[Int], theTime: Option[Timestamp], channel: Channel): Channel = {
     channel.copy(id = id, createdAt = theTime)

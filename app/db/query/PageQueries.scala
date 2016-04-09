@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
 import db.PagesTable
-import db.query.Queries._
+import db.query.Queries.DB.run
 import models.project.Page
 
 import scala.concurrent.Future
@@ -12,7 +12,7 @@ import scala.concurrent.Future
 /**
   * Page related queries.
   */
-object PageQueries extends ModelQueries[PagesTable, Page] {
+object PageQueries extends Queries[PagesTable, Page](TableQuery(tag => new PagesTable(tag))) {
 
   /**
     * Returns all Pages in the specified Project.
@@ -21,7 +21,7 @@ object PageQueries extends ModelQueries[PagesTable, Page] {
     * @return           Pages in Project
     */
   def in(projectId: Int): Future[Seq[Page]] = {
-    filter[PagesTable, Page](classOf[Page], p => p.projectId === projectId)
+    run(this.models.filter(p => p.projectId === projectId).result)
   }
 
   /**
@@ -32,8 +32,7 @@ object PageQueries extends ModelQueries[PagesTable, Page] {
     * @return           Page with name
     */
   def withName(projectId: Int, name: String): Future[Option[Page]] = {
-    find[PagesTable, Page](classOf[Page], p => p.projectId === projectId
-      && p.name.toLowerCase === name.toLowerCase)
+    find(p => p.projectId === projectId && p.name.toLowerCase === name.toLowerCase)
   }
 
   override def copyInto(id: Option[Int], theTime: Option[Timestamp], page: Page): Page = {

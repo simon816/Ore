@@ -9,7 +9,7 @@
 
     <div class="container">
         <div class="row">
-            <div class="col-md-9">
+            <div class="col-md-8">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">@messages("project.settings")</h3>
@@ -86,14 +86,9 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 @if(flash.get("error").isDefined) {
-                    <div class="alert alert-danger alert-dismissable" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        @flash.get("error").get
-                    </div>
+                    <div class="alert alert-danger" role="alert"> @flash.get("error").get</div>
                 }
             </div>
         </div>
