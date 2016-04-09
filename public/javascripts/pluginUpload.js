@@ -24,4 +24,8 @@ $(function() {
         alert.find('.file-size').text(filesize(this.files[0].size));
         alert.fadeIn('slow');
     });
+
+    $('.file-upload').find('button').click(function() {
+        $(this).find('i').removeClass('fa-upload').addClass('fa-spinner fa-spin');
+    });
 });
