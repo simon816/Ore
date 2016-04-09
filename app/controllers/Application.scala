@@ -38,7 +38,7 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
       case Some(csv) =>
         categoryArray = Categories.fromString(csv)
         var categoryIds = categoryArray.map(_.id)
-        if (Categories.values.subsetOf(categoryArray.toSet)) {
+        if (Categories.values.subsetOf(categoryArray.toSet) || categoryArray.isEmpty) {
           categoryArray = null
           categoryIds = null
         }
