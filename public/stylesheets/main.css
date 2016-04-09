@@ -2,6 +2,10 @@
     height: 40px;
 }
 
+body {
+    background-color: #f3f2f0;
+}
+
 .navbar-main {
     padding-top: 1px;
     min-height: 63px; !important;
@@ -70,6 +74,7 @@
 
 .category-table tr:hover {
     cursor: pointer;
+    background-color: #f3f2f0;
 }
 
 .category-table > tbody > tr > td {
