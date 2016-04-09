@@ -31,6 +31,7 @@ object User {
   /**
     * Returns the user with the specified username.
     *
+    * @param username Username of user
     * @return User if found, None otherwise
     */
   def withName(username: String): Option[User] = now(Queries.Users.withName(username)).get

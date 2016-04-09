@@ -81,14 +81,23 @@ body {
     padding: 0;
 }
 
-.category-table > tbody > tr > td > div {
+.category-table > tbody > tr > td  {
     padding: 8px;
 }
 
-.category-table div.glow {
+.category-table tr.glow {
+    background: #f6d830;
+}
+
+.category-table tr.glow > td {
     -webkit-box-shadow: inset 0 0 5px #e6b800;
     -moz-box-shadow: inset 0 0 5px #e6b800;
     box-shadow: inset 0 0 5px #e6b800;
+    border: none;
+}
+
+.category-table tr.glow:hover {
+    background: #f6d830;
 }
 
 .project-table > thead > tr > th:first-child {

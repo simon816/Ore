@@ -6,9 +6,6 @@
     <label for="category">@messages("project.category")</label>
     <select class="form-control" id="category" name="category" form="@form">
         @for(i <- 0 until Categories.values.size) {
-
-        }
-        @for(i <- 0 until Categories.values.size) {
             <option @if(selected.isDefined && selected.get.equals(Categories(i))) { selected }>
                 @Categories(i).title
             </option>
