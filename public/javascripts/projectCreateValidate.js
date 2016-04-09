@@ -19,7 +19,7 @@ function success(selector, then) {
         removeSpinner(selector);
         $(selector).addClass('fa-check-circle');
         then();
-    }, 1000);
+    }, 500);
 }
 
 function failed(selector, message) {
@@ -70,12 +70,14 @@ function checkName(name, idSuccess, baseUrl, owner, slug) {
 }
 
 function updateContinueButton(idSuccess, nameSuccess) {
+    var btn = $('.continue-btn').hide().removeClass('btn-default');
+    var icon = btn.find('i').removeClass('fa-spinner fa-spin');
     if (idSuccess && nameSuccess) {
-        var btn = $('.continue-btn').hide()
-            .removeClass('btn-danger')
-            .addClass('btn-primary')
-            .prop('disabled', false);
-        btn.find('i').removeClass('fa-spinner fa-spin').addClass('fa-arrow-right');
-        btn.fadeIn();
+        btn.addClass('btn-primary').prop('disabled', false);
+        icon.addClass('fa-arrow-right');
+    } else {
+        btn.addClass('btn-danger');
+        icon.addClass('fa-times')
     }
+    btn.fadeIn();
 }

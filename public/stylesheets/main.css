@@ -91,10 +91,6 @@
     margin-bottom: 15px;
 }
 
-.panel-create {
-    margin-bottom: 3px;
-}
-
 .project-header {
     font-size: 20px;
     font-weight: normal;
@@ -237,7 +233,7 @@ form {
 
 .plugin-meta {
     border-bottom: 1px solid #ddd;
-    margin-bottom: 20px;
+    padding-top: 20px;
     padding-bottom: 20px;
 }
 
@@ -265,7 +261,7 @@ form {
 }
 
 .create-blurb {
-    margin-bottom: 20px;
+    margin-bottom: 0;
     padding-bottom: 20px;
     padding-top: 10px;
     border-bottom: 1px solid #ddd;
@@ -277,12 +273,6 @@ form {
 
 .form-group {
     margin-bottom: 10px; !important;
-}
-
-#form-publish {
-    margin-bottom: 5px;
-    position: relative;
-    height: 35px;
 }
 
 .tos {
@@ -305,7 +295,44 @@ form {
 }
 
 #continue {
-    margin-top: 16px; !important;
+    margin-top: 4px; !important;
+}
+
+#form-upload > label {
+    margin-right: 10px;
+    margin-top: 4px;
+}
+
+#form-publish .btn {
+    margin-top: 5px;
+}
+
+.alert-file {
+    min-width: 248px;
+    min-height: 42px;
+}
+
+.alert-file .file-name {
+    margin-right: 50px;
+}
+
+.alert-file > .alert {
+    padding: 10px;
+    min-width: 200px;
+    margin: 0;
+}
+
+.alert-file > .file-upload {
+    width: 48px;
+    height: 42px;
+}
+
+.alert-file > .file-upload > .btn {
+    height: 100%;
+}
+
+#continue {
+    margin-left: 5px;
 }
 
 .continue-btn:disabled {
