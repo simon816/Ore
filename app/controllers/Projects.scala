@@ -82,7 +82,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     Project.getPending(author, slug) match {
       case None => BadRequest("No project to create.")
       case Some(pendingProject) =>
-        val category = Categories.withName(Forms.ProjectCategory.bindFromRequest.get)
+        val category = Categories.withName(Forms.ProjectCategory.bindFromRequest.get.trim)
         pendingProject.project.category = category
         val pendingVersion = pendingProject.initFirstVersion
         Redirect(routes.Versions.showCreatorWithMeta(

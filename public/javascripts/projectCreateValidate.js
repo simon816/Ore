@@ -13,9 +13,13 @@ function removeSpinner(selector) {
     $(selector).removeClass('fa-spinner fa-spin');
 }
 
-function success(selector) {
-    removeSpinner(selector);
-    $(selector).addClass('fa-check-circle');
+function success(selector, then) {
+    // Simulate loading :P
+    setTimeout(function() {
+        removeSpinner(selector);
+        $(selector).addClass('fa-check-circle');
+        then();
+    }, 1000);
 }
 
 function failed(selector, message) {
@@ -29,8 +33,9 @@ function checkId(pluginId, name, baseUrl, owner, slug) {
         url: baseUrl + '/api/project?pluginId=' + pluginId,
         statusCode: {
             404: function() {
-                success('.id-status');
-                checkName(name, true, baseUrl, owner, slug);
+                success('.id-status', function() {
+                    checkName(name, true, baseUrl, owner, slug);
+                });
             },
             200: function() {
                 failed('.id-status', 'That plugin ID is not available!');
@@ -51,8 +56,10 @@ function checkName(name, idSuccess, baseUrl, owner, slug) {
         url: baseUrl + '/' + owner + '/' + slug,
         statusCode: {
             404: function() {
-                success('.name-status');
-                updateContinueButton(idSuccess, true);
+                success('.name-status', function() {
+                    console.log('name checked');
+                    updateContinueButton(idSuccess, true);
+                });
             },
             200: function() {
                 failed('.name-status', 'You already have a project of this name!');
@@ -64,6 +71,11 @@ function checkName(name, idSuccess, baseUrl, owner, slug) {
 
 function updateContinueButton(idSuccess, nameSuccess) {
     if (idSuccess && nameSuccess) {
-        $('.continue-btn').prop('disabled', false);
+        var btn = $('.continue-btn').hide()
+            .removeClass('btn-danger')
+            .addClass('btn-primary')
+            .prop('disabled', false);
+        btn.find('i').removeClass('fa-spinner fa-spin').addClass('fa-arrow-right');
+        btn.fadeIn();
     }
-};
+}

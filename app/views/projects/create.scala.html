@@ -12,7 +12,7 @@ Page used for uploading and creating new projects.
     <div class="container" style="margin-top: 90px">
         <div class="row">
             <div class="col-md-8 col-md-offset-2">
-                <div class="panel panel-default">
+                <div class="panel panel-default panel-create">
                     <div class="panel-heading">
                         <h3 class="panel-title">@messages("project.create.title") <span class="pull-right minor">@messages("project.create.step", 1, 2)</span></h3>
                     </div>
@@ -70,26 +70,30 @@ Page used for uploading and creating new projects.
 
                         }
 
-                        @* File controls *@
-                        @form(action = routes.Projects.upload, 'enctype -> "multipart/form-data") {
-                            <label class="btn btn-primary" for="pluginFile">
-                                <input id="pluginFile" name="pluginFile" type="file" style="display: none;">
-                                @messages("project.create.select-file")
-                            </label>
-                            <input type="submit" name="submit" value="@messages("project.create.upload")" class="btn btn-primary" />
-                        }
-
-                        @* Continue to next step *@
-                        @if(pending.isDefined) {
-                            @defining(pending.get.project) { project =>
-                              @form(action = routes.Projects.showFirstVersionCreator(project.ownerName, project.slug), 'id -> "continue") {
-                                  @* Disabled until JS determines meta is valid *@
-                                  <input type="submit" name="create" value="@messages("project.create.continue")"
-                                         class="continue-btn btn btn-primary" disabled />
-                                  <i class="pull-right slug">@Html(messages("project.create.destination", "<strong>" + project.ownerName + "/" + Project.slugify(project) + "</strong>")) </i>
-                              }
+                        <div class="create-buttons">
+                            @* File controls *@
+                            @form(action = routes.Projects.upload, 'enctype -> "multipart/form-data", 'class -> "pull-left") {
+                                <label class="btn btn-default" for="pluginFile">
+                                    <input id="pluginFile" name="pluginFile" type="file" style="display: none;">
+                                    @messages("project.create.select-file")
+                                </label>
+                                <input type="submit" name="submit" value="@messages("project.create.upload")" class="btn btn-primary" />
                             }
-                        }
+
+                            @* Continue to next step *@
+                            @if(pending.isDefined) {
+                                @defining(pending.get.project) { project =>
+                                  @form(action = routes.Projects.showFirstVersionCreator(project.ownerName, project.slug),
+                                      'id -> "continue", 'class -> "pull-right") {
+                                      @* Disabled until JS determines meta is valid *@
+                                      <button title="Continue" type="submit" name="create" value="@messages("project.create.continue")"
+                                             class="pull-right continue-btn btn btn-default btn-block" disabled>
+                                          <i class="fa fa-spinner fa-spin"></i>
+                                      </button>
+                                  }
+                                }
+                            }
+                        </div>
                     </div>
                 </div>
             </div>

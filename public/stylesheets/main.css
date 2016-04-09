@@ -91,6 +91,10 @@
     margin-bottom: 15px;
 }
 
+.panel-create {
+    margin-bottom: 3px;
+}
+
 .project-header {
     font-size: 20px;
     font-weight: normal;
@@ -278,6 +282,7 @@ form {
 #form-publish {
     margin-bottom: 5px;
     position: relative;
+    height: 35px;
 }
 
 .tos {
@@ -295,9 +300,16 @@ form {
     padding-top: 10px; !important;
 }
 
-#continue {
-    position: relative;
+.create-buttons > form {
     margin-bottom: 0; !important;
+}
+
+#continue {
+    margin-top: 16px; !important;
+}
+
+.continue-btn:disabled {
+    opacity: 1; !important;
 }
 
 .slug {

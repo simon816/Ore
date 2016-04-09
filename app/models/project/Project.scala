@@ -181,9 +181,9 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     */
   def category_=(_category: Category) = {
     if (this.exists) {
-      now(Queries.Projects.setInt(this, _.categoryId, category.id)).get
+      now(Queries.Projects.setInt(this, _.categoryId, _category.id)).get
     }
-    this.categoryId = category.id
+    this.categoryId = _category.id
   }
 
   /**
