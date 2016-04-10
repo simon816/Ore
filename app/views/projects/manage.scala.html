@@ -1,8 +1,9 @@
+@import controllers.project.routes.{Projects => projectRoutes}
 @import models.project.Project
 @import views.html.helper.form
 @(project: Project)(implicit messages: Messages, session: Session, flash: Flash)
 
-@projects.detail(project, "#settings") {
+@projects.view(project, "#settings") {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/projectManage.js")"></script>
     <script>projectName = "@project.name";</script>
@@ -40,7 +41,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <div class="form-inline">
-                                        @form(action = routes.Projects.rename(project.ownerName, project.slug), 'id -> "rename") {
+                                        @form(action = projectRoutes.rename(project.ownerName, project.slug), 'id -> "rename") {
                                             <button type="button" class="btn btn-default" data-dismiss="modal">
                                                 @messages("channel.edit.close")
                                             </button>
@@ -68,7 +69,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <div class="form-inline">
-                                            @form(action = routes.Projects.delete(project.ownerName, project.slug)) {
+                                            @form(action = projectRoutes.delete(project.ownerName, project.slug)) {
                                                 <button type="button" class="btn btn-default" data-dismiss="modal">
                                                     @messages("channel.edit.close")
                                                 </button>
@@ -80,7 +81,7 @@
                             </div>
                         </div>
 
-                        @form(action = routes.Projects.save(project.ownerName, project.slug), 'id -> "save") {
+                        @form(action = projectRoutes.save(project.ownerName, project.slug), 'id -> "save") {
                             <input type="submit" name="save" value="Save changes" class="btn btn-success">
                         }
                     </div>

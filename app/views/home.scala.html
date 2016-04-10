@@ -2,8 +2,8 @@
 The main entry point of Ore. This page displays a list of Projects that can be
 sorted according to different criteria.
 *@
-@import models.project.Categories.Category
 @import models.project.Project
+@import pkg.Categories.Category
 @(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages,
         session: Session, flash: Flash)
 

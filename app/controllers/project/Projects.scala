@@ -1,12 +1,14 @@
-package controllers
+package controllers.project
 
 import javax.inject.Inject
 
-import controllers.routes.{Projects => self}
+import controllers.BaseController
+import controllers.project.routes.{Projects => self}
+import controllers.routes.{Application => app}
 import models.project._
+import pkg.{Categories, InvalidPluginFileException, ProjectManager}
 import play.api.i18n.MessagesApi
 import play.api.mvc._
-import plugin.{InvalidPluginFileException, ProjectManager}
 import util.Forms
 import views.{html => views}
 
@@ -100,7 +102,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def show(author: String, slug: String) = Action { implicit request =>
     withProject(author, slug, project => {
-      Ok(views.projects.pages.home(project, project.homePage))
+      Ok(views.projects.pages.view(project, project.homePage))
     }, countView = true)
   }
 
@@ -151,7 +153,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     * @return         View of project
     */
   def showDiscussion(author: String, slug: String) = Action { implicit request =>
-    withProject(author, slug, project => Ok(views.projects.discussion(project)), countView = true)
+    withProject(author, slug, project => Ok(views.projects.discuss(project)), countView = true)
   }
 
   /**
@@ -226,7 +228,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
   def delete(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
       project.delete.get
-      Redirect(routes.Application.showHome(None))
+      Redirect(app.showHome(None))
         .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
     }))
   }

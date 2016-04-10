@@ -1,6 +1,7 @@
 @*
 Page used for uploading and creating new projects.
 *@
+@import controllers.project.routes.{Projects => projectRoutes}
 @import models.project.Project.PendingProject
 @import play.api.Play
 @import views.html.helper.form
@@ -77,7 +78,7 @@ Page used for uploading and creating new projects.
 
                         <div class="create-buttons">
                             @* File controls *@
-                            @form(action = routes.Projects.upload, 'enctype -> "multipart/form-data", 'id -> "form-upload") {
+                            @form(action = projectRoutes.upload, 'enctype -> "multipart/form-data", 'id -> "form-upload") {
                                 <label class="btn btn-default pull-left" for="pluginFile">
                                     <input id="pluginFile" name="pluginFile" type="file" style="display: none;">
                                     @messages("project.create.select-file")
@@ -87,11 +88,11 @@ Page used for uploading and creating new projects.
                             @* Continue to next step *@
                             @if(pending.isDefined) {
                                 @defining(pending.get.project) { project =>
-                                    @form(action = routes.Projects.showFirstVersionCreator(project.ownerName, project.slug),
+                                    @form(action = projectRoutes.showFirstVersionCreator(project.ownerName, project.slug),
                                         'id -> "continue", 'class -> "pull-right") {
 
                                         <div class="btn-group">
-                                            <a href="@routes.Projects.showCreator" title="Back" class="pull-left btn btn-default">
+                                            <a href="@projectRoutes.showCreator" title="Back" class="pull-left btn btn-default">
                                                 <i class="fa fa-arrow-left"></i>
                                             </a>
 

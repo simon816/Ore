@@ -1,9 +1,9 @@
 package controllers
 
 import models.project.Project
+import pkg.Statistics
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Controller, RequestHeader, Result}
-import util.Statistics
 
 /**
   * Represents a Secured base Controller for this application.

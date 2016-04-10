@@ -4,7 +4,7 @@ Discussion page within Project overview.
 @import models.project.Project
 @(model: Project)(implicit messages: Messages, session: Session)
 
-@projects.detail(model, "#discussion") {
+@projects.view(model, "#discussion") {
 
     <p>TODO: Discourse embedded discussion</p>
 

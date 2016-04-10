@@ -1,8 +1,9 @@
-package controllers
+package controllers.project
 
 import javax.inject.Inject
 
-import controllers.routes.{Pages => self}
+import controllers.BaseController
+import controllers.project.routes.{Pages => self}
 import play.api.i18n.MessagesApi
 import play.api.mvc.Action
 import util.Forms
@@ -25,7 +26,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi) extends BaseControl
     withProject(author, slug, project => {
       project.page(page) match {
         case None => NotFound
-        case Some(p) => Ok(views.projects.pages.home(project, p))
+        case Some(p) => Ok(views.projects.pages.view(project, p))
       }
     }, countView = true)
   }

@@ -1,4 +1,4 @@
-package models.project
+package pkg
 
 /**
   * Represents a color that a Channel may be represented by.

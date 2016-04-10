@@ -1,4 +1,6 @@
-package models.project
+package pkg
+
+import models.project.Project
 
 /**
   * Represents a dependency to another plugin. Either on or not on Ore.

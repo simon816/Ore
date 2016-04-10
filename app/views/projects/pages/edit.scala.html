@@ -1,16 +1,17 @@
+@import controllers.project.{routes => projectRoutes}
 @import models.project.{Page, Project}
 @import views.html.helper.form
 @(model: Project, page: String, content: String)(implicit messages: Messages, session: Session)
 
-@projects.detail(model, "#docs") {
+@projects.view(model, "#docs") {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/pagePreview.js")"></script>
 
     <div class="container">
-        @form(action = routes.Pages.save(model.ownerName, model.slug, page)) {
+        @form(action = projectRoutes.Pages.save(model.ownerName, model.slug, page)) {
             <div class="form-group form-inline">
                 <input class="form-control" type="text" name="name" value="@page" readonly>
-                <a href="@routes.Projects.show(model.ownerName, model.slug)" class="btn btn-default">
+                <a href="@projectRoutes.Projects.show(model.ownerName, model.slug)" class="btn btn-default">
                     @messages("page.edit.cancel")
                 </a>
                 <input type="submit" title="@messages("page.edit.save")" value="@messages("page.edit.save")" class="btn btn-primary">
@@ -22,7 +23,7 @@
                                 disabled data-toggle="tooltip" data-placement="bottom"
                                 title="@messages("page.edit.cannot-delete-homepage")"
                             } else {
-                                href="@routes.Pages.delete(model.ownerName, model.slug, page)"
+                                href="@projectRoutes.Pages.delete(model.ownerName, model.slug, page)"
                             }
                         >@messages("page.edit.delete")</a>
 

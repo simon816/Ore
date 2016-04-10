@@ -2,15 +2,17 @@ package controllers
 
 import javax.inject.Inject
 
-import auth.DiscourseSSO._
+import _root_.pkg.Categories
 import controllers.routes.{Application => self}
 import db.query.Queries
 import db.query.Queries.now
-import models.auth.{FakeUser, User}
-import models.project.Categories.Category
-import models.project.{Categories, Project}
+import models.project.Project
+import models.user.{FakeUser, User}
+import pkg.Categories.Category
 import play.api.i18n.MessagesApi
 import play.api.mvc._
+import util.DiscourseSSO
+import util.DiscourseSSO._
 import views.{html => views}
 
 import scala.concurrent.Future
@@ -45,7 +47,7 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
         projectsFuture = Queries.Projects.collect(categoryIds, INITIAL_PROJECT_LOAD)
     }
     val projects = Queries.now(projectsFuture).get
-    Ok(views.index(projects, Option(categoryArray)))
+    Ok(views.home(projects, Option(categoryArray)))
   }
 
   /**

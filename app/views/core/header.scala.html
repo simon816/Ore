@@ -14,23 +14,29 @@ The main header displayed on each layout.
                         <img class="logo" src="@Play.current.configuration.getString("sponge.logo").get" />
                         <span class="caret"></span>
                     </a>
+
                     <ul class="dropdown-menu main-dropdown" aria-label="@messages("aria.dropdown.main")">
                         <li><a href="https://www.spongepowered.org"><i class="fa fa-home"></i>@messages("general.home")</a></li>
                         <li><a href="https://forums.spongepowered.org"><i class="fa fa-comment"></i>@messages("general.forums")</a></li>
                         <li><a href="https://github.com/SpongePowered"><i class="fa fa-code"></i>@messages("general.code")</a></li>
                         <li><a href="https://docs.spongepowered.org"><i class="fa fa-book"></i>@messages("general.docs")</a></li>
                         <li><a href="https://jd.spongepowered.org"><i class="fa fa-graduation-cap"></i>@messages("general.javadocs")</a></li>
-                        <li class="active"><a href="https://ore-staging.spongepowered.org"><i class="fa fa-wrench"></i>@messages("general.plugins")</a></li>
-                        <li><a href="https://forums.spongepowered.org/t/sponge-downloads/11448"><i class="fa fa-download"></i>@messages("general.getsponge")</a></li>
+                        <li class="active"><a href="https://ore-staging.spongepowered.org">
+                            <i class="fa fa-wrench"></i>@messages("general.plugins")</a>
+                        </li>
+                        <li><a href="https://forums.spongepowered.org/t/sponge-downloads/11448">
+                            <i class="fa fa-download"></i>@messages("general.getsponge")</a>
+                        </li>
                     </ul>
                 </li>
             </ul>
+
             @session.get("email").map { email =>
                 @* Show user controls *@
                 <ul class="nav navbar-nav navbar-right">
                     <li class="dropdown">
                         <a href="#" class="drop-down-toggle" data-toggle="dropdown">
-                            <img height="32" width="32" class="user-avatar" src="@Gravatar.get(email)" />
+                            <img height="32" width="32" class="user-avatar" src="@Gravatar.urlFor(email)" />
                             <span class="caret"></span>
                         </a>
                         <ul class="user-dropdown dropdown-menu" aria-label="@messages("aria.dropdown.menu",1)">

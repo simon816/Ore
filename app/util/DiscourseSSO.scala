@@ -1,4 +1,4 @@
-package auth
+package util
 
 import java.math.BigInteger
 import java.net.{URLDecoder, URLEncoder}

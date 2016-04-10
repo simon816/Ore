@@ -1,14 +1,16 @@
-package controllers
+package controllers.project
 
 import javax.inject.Inject
 
-import controllers.routes.{Versions => self}
+import controllers.BaseController
+import controllers.project.routes.{Versions => self}
+import controllers.routes.{Application => app}
 import models.project.Project.PendingProject
-import models.project.{Channel, ChannelColors, Project, Version}
+import models.project.{Channel, Project, Version}
+import pkg.{ChannelColors, InvalidPluginFileException, ProjectManager, Statistics}
 import play.api.i18n.MessagesApi
 import play.api.mvc.Action
-import plugin.{InvalidPluginFileException, ProjectManager}
-import util.{Forms, Statistics}
+import util.Forms
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -19,13 +21,13 @@ import scala.util.{Failure, Success}
 class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseController {
 
   /**
-    * Shows the specified version detail page.
+    * Shows the specified version view page.
     *
     * @param author         Owner name
     * @param slug           Project slug
     * @param channelName    Channel name
     * @param versionString  Version name
-    * @return               Version detail view
+    * @return               Version view view
     */
   def show(author: String, slug: String, channelName: String, versionString: String) = Action { implicit request =>
     withProject(author, slug, project => {
@@ -209,7 +211,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
 
           // Validate channel name
           if (!Channel.isValidName(submittedName)) {
-            Redirect(routes.Application.showHome(None))
+            Redirect(app.showHome(None))
               .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
           } else {
             // Check for pending project

@@ -8,11 +8,11 @@ import db.Model
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Channel._
-import models.project.ChannelColors.ChannelColor
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
-import plugin.ProjectManager
+import pkg.ChannelColors.ChannelColor
+import pkg.{ChannelColors, ProjectManager}
 
 import scala.util.Try
 

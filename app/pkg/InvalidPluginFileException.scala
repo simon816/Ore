@@ -1,4 +1,4 @@
-package plugin
+package pkg
 
 /**
   * Exception thrown when an uploaded PluginFile is invalid.

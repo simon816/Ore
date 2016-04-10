@@ -1,8 +1,10 @@
 @*
 Collection of all projects.
 *@
-@import models.project.Categories.Category
-@import models.project.{Categories, Project}
+@import controllers.project.routes.{Projects => projectRoutes}
+@import models.project.Project
+@import pkg.Categories
+@import pkg.Categories.Category
 @import play.api.Play
 @(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages,
         session: Session, flash: Flash)
@@ -17,7 +19,7 @@ Collection of all projects.
 </script>
 
 <div class="container">
-    <div class="row index-header">
+    <div class="row home-header">
         <div class="col-md-12">
 
             @if(flash.get("success").isDefined) {
@@ -40,7 +42,7 @@ Collection of all projects.
 
             <h3 class="pull-left">@messages("table.welcome") <i class="date">@messages("table.welcome.description")</i></h3>
             <div class="table-controls">
-                <a href="@routes.Projects.showCreator"
+                <a href="@projectRoutes.showCreator"
                    title="Submit a new project to Ore." data-toggle="tooltip"
                    data-placement="bottom" class="btn-create btn btn-primary pull-right">
                     <i class="fa fa-plus"></i> @messages("project.create")
@@ -71,7 +73,7 @@ Collection of all projects.
                                   <td><i title="@category.title" class="fa @category.icon"></i></td>
                                 }
                                 <td class="" colspan="1">
-                                    <strong><a class="" href="@routes.Projects.show(project.ownerName, project.slug)">@project.name</a></strong>
+                                    <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
                                 </td>
                                 <td><a href="#">@project.ownerName</a></td>
                                 <td class="minor stat">@project.views</td>

@@ -1,11 +1,12 @@
 @*
 Versions page within Project overview.
 *@
+@import controllers.project.routes
 @import models.project.{Channel, Project, Version}
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
   visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session)
 
-@projects.detail(model, "#versions") {
+@projects.view(model, "#versions") {
 
     <div class="container version-container">
         <div class="row">

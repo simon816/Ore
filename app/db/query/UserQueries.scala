@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
 import db.UserTable
-import models.auth.User
+import models.user.User
 
 import scala.concurrent.Future
 

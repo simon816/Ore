@@ -7,17 +7,17 @@ import com.google.common.base.Preconditions._
 import db.Model
 import db.query.Queries
 import db.query.Queries.now
-import models.auth.User
-import models.author.Dev
-import models.project.Categories.Category
-import models.project.ChannelColors.ChannelColor
 import models.project.Project._
 import models.project.Version.PendingVersion
+import models.project.author.Dev
+import models.user.User
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
+import pkg.Categories.Category
+import pkg.ChannelColors.ChannelColor
+import pkg._
 import play.api.Play.current
 import play.api.cache.Cache
-import plugin.{PluginFile, ProjectManager}
 import util.{Cacheable, PendingAction}
 
 import scala.collection.JavaConversions._

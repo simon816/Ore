@@ -1,5 +1,6 @@
 @import models.project.{Channel, Project}
 @import play.api.Play
+@import controllers.project.{routes => projectRoutes}
 @(project: Project, channels: Seq[Channel])(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout(messages("channel.list.page-title", project.ownerName, project.slug)) {
@@ -12,7 +13,7 @@
         $(function() {
             initChannelManager(
                     "#channel-new", "", "@Channel.DEFAULT_COLOR.hex", "New channel",
-                    "@routes.Channels.create(project.ownerName, project.slug)",
+                    "@projectRoutes.Channels.create(project.ownerName, project.slug)",
                     "post", "Create channel"
             );
         });
@@ -58,7 +59,7 @@
                                                 @if(channel.versions.nonEmpty) {
                                                     data-toggle="modal" data-target="#modal-delete"
                                                 } else {
-                                                    href="@routes.Channels.delete(project.ownerName, project.slug, channel.name)"
+                                                    href="@projectRoutes.Channels.delete(project.ownerName, project.slug, channel.name)"
                                                 }
                                               }
                                             >
@@ -72,7 +73,7 @@
                                           initChannelDelete('#channel-delete-@channel.id', '@channel.name', @channel.versions.size);
                                           initChannelManager(
                                                   "#channel-edit-@channel.id", "@channel.name", "@channel.color.hex",
-                                                  "Edit channel", "@routes.Channels.edit(project.ownerName, project.slug, channel.name)",
+                                                  "Edit channel", "@projectRoutes.Channels.edit(project.ownerName, project.slug, channel.name)",
                                                   "post", "Save changes"
                                           );
                                       });
@@ -80,7 +81,7 @@
                                 }
                             </tbody>
                         </table>
-                        <a href="@routes.Versions.showList(project.ownerName, project.slug, None)" class="pull-left btn btn-default">
+                        <a href="@projectRoutes.Versions.showList(project.ownerName, project.slug, None)" class="pull-left btn btn-default">
                             <i class="fa fa-arrow-left"></i>
                         </a>
                         <a href="#" id="channel-new" class="pull-right btn btn-primary"

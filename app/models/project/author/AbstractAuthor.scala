@@ -1,4 +1,4 @@
-package models.author
+package models.project.author
 
 import com.google.common.base.MoreObjects
 import models.project.Project

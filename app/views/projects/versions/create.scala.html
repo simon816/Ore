@@ -1,3 +1,4 @@
+@import controllers.project.{routes => projectRoutes}
 @import models.project.Version.PendingVersion
 @import models.project.{Channel, Project}
 @import views.html.helper.form
@@ -103,7 +104,7 @@
                         }
 
                         @if(showFileControls) {
-                            @form(action = routes.Versions.upload(project.ownerName, project.slug),
+                            @form(action = projectRoutes.Versions.upload(project.ownerName, project.slug),
                                 'enctype -> "multipart/form-data", 'id -> "form-upload", 'class -> "pull-left") {
                                 <label class="btn btn-default" for="pluginFile">
                                     <input id="pluginFile" name="pluginFile" type="file" style="display: none;">
@@ -117,7 +118,7 @@
                         @if(pending.isDefined) {
                             @* Ready to go! *@
                             @defining(pending.get.version) { version =>
-                                @form(action = routes.Versions.create(
+                                @form(action = projectRoutes.Versions.create(
                                     project.ownerName, project.slug, pending.get.channelName, version.versionString),
                                     'id -> "form-publish", 'class -> "pull-right") {
                                     @if(!showFileControls) {
@@ -127,7 +128,7 @@
 
                                     <div @if(!showFileControls) { class="btn-group" } >
                                         @if(!showFileControls) {
-                                            <a href="@routes.Projects.showCreatorWithMeta(project.ownerName, project.name)" title="Back"
+                                            <a href="@projectRoutes.Projects.showCreatorWithMeta(project.ownerName, project.name)" title="Back"
                                                class="btn btn-default">
                                                 <i class="fa fa-arrow-left"></i>
                                             </a>

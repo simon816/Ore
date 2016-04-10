@@ -1,9 +1,11 @@
-package controllers
+package controllers.project
 
 import javax.inject.Inject
 
-import controllers.routes.{Channels => self}
-import models.project.{Channel, ChannelColors, Project}
+import controllers.BaseController
+import controllers.project.routes.{Channels => self}
+import models.project.{Channel, Project}
+import pkg.ChannelColors
 import play.api.i18n.MessagesApi
 import util.Forms
 import views.{html => views}

@@ -1,14 +1,14 @@
-package plugin
+package pkg
 
 import java.nio.file.{Files, Path}
 
 import com.google.common.base.Preconditions._
 import db.query.Queries
 import db.query.Queries.now
-import models.auth.User
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
 import models.project.{Channel, Project, Version}
+import models.user.User
 import play.api.libs.Files.TemporaryFile
 import util.Dirs._
 
@@ -145,6 +145,7 @@ object ProjectManager {
   def renameProject(owner: String, oldName: String, newName: String): Try[Unit] = Try {
     val newProjectDir = projectDir(owner, newName)
     Files.move(projectDir(owner, oldName), newProjectDir)
+    // Rename plugin files
     for (channelDir <- newProjectDir.toFile.listFiles()) {
       if (channelDir.isDirectory) {
         val channelName = channelDir.getName

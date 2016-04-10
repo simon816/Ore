@@ -6,12 +6,12 @@ import java.text.SimpleDateFormat
 import db.Model
 import db.query.Queries
 import db.query.Queries.now
-import models.project.ChannelColors.ChannelColor
 import models.project.Version._
 import org.spongepowered.plugin.meta.PluginMetadata
+import pkg.ChannelColors.ChannelColor
+import pkg._
 import play.api.Play.current
 import play.api.cache.Cache
-import plugin.{PluginFile, ProjectManager}
 import util.{Cacheable, PendingAction}
 
 import scala.collection.JavaConversions._

@@ -3,9 +3,9 @@ package db
 import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
-import models.auth.User
-import models.author.Team
+import models.project.author.Team
 import models.project.{Channel, Page, Project, Version}
+import models.user.User
 
 /*
  * Database schema definitions. Changes must be first applied as an evolutions

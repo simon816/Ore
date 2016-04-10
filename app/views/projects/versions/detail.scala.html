@@ -1,8 +1,9 @@
+@import controllers.project.{routes => projectRoutes}
 @import models.project.{Channel, Page, Project, Version}
 @import views.html.helper.form
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages, session: Session)
 
-@projects.detail(project, "#versions") {
+@projects.view(project, "#versions") {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/versionEdit.js")"></script>
 
@@ -23,14 +24,14 @@
                                disabled data-toggle="tooltip" data-placement="top"
                                title="@messages("version.delete.cannot-last")"
                            } else {
-                               href="@routes.Versions.delete(project.ownerName, project.slug, channel.name, version.versionString)"
+                               href="@projectRoutes.Versions.delete(project.ownerName, project.slug, channel.name, version.versionString)"
                            }
                         >
                             @messages("version.delete")
                         </a>
                     }
                     <a class="btn btn-primary"
-                       href="@routes.Versions.download(project.ownerName, project.slug, channel.name, version.versionString)">
+                       href="@projectRoutes.Versions.download(project.ownerName, project.slug, channel.name, version.versionString)">
                         @messages("version.download")
                     </a>
                 </div>
@@ -70,7 +71,7 @@
                     </ul>
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane active" id="edit">
-                        @form(action = routes.Versions.saveDescription(
+                        @form(action = projectRoutes.Versions.saveDescription(
                             project.ownerName, project.slug, channel.name, version.versionString), 'id -> "form-save") {
                             <textarea id="version-editor"
                                       name="description"
@@ -93,7 +94,7 @@
                             <li class="list-group-item">
                                 @defining(depend.project) { project =>
                                     @if(project.isDefined) {
-                                        <a href="@routes.Projects.show(project.get.ownerName, project.get.slug)">
+                                        <a href="@projectRoutes.Projects.show(project.get.ownerName, project.get.slug)">
                                             <strong>@project.get.name</strong>
                                         </a>
                                     } else {

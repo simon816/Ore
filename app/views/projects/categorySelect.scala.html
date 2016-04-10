@@ -1,14 +1,16 @@
-@import models.project.Categories
-@import models.project.Categories.Category
+@import pkg.Categories
+@import pkg.Categories.Category
 @(form: String, selected: Option[Category] = None)(implicit messages: Messages)
 
 <div class="category-select form-group">
     <label for="category">@messages("project.category")</label>
     <select class="form-control" id="category" name="category" form="@form">
         @for(i <- 0 until Categories.values.size) {
-            <option @if(selected.isDefined && selected.get.equals(Categories(i))) { selected }>
-                @Categories(i).title
-            </option>
+          @defining(Categories(i)) { category =>
+              <option @if(selected.isDefined && selected.get.equals(category)) { selected }>
+                @category.title
+              </option>
+          }
         }
     </select>
 </div>

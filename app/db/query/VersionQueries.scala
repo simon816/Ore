@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
 import db.query.Queries.DB._
-import db.{ChannelTable, VersionDownloadsTable, VersionTable}
+import db.{VersionDownloadsTable, VersionTable}
 import models.project.Version
 
 import scala.concurrent.Future

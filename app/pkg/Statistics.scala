@@ -1,8 +1,8 @@
-package util
+package pkg
 
 import db.query.Queries
-import models.auth.User
 import models.project.{Project, Version}
+import models.user.User
 import play.api.mvc.RequestHeader
 
 import scala.concurrent.ExecutionContext.Implicits.global

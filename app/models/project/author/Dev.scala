@@ -1,6 +1,6 @@
-package models.author
+package models.project.author
 
-import models.auth.User
+import models.user.User
 
 /**
   * Represents a single developer on a project. A developer is not necessarily

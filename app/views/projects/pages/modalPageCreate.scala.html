@@ -1,10 +1,11 @@
+@import controllers.project.{routes => projectRoutes}
 @import models.project.Project
 @(model: Project)(implicit messages: Messages)
 
 <script type="text/javascript" src="@routes.Assets.at("javascripts/pageEdit.js")"></script>
 <script>
     var onNewPage = function(newPage) {
-        window.location = "@routes.Projects.show(model.ownerName, model.slug)/pages/" + newPage + "/edit"
+        window.location = "@projectRoutes.Projects.show(model.ownerName, model.slug)/pages/" + newPage + "/edit"
     }
 </script>
 

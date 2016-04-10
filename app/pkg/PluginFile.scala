@@ -1,11 +1,11 @@
-package plugin
+package pkg
 
 import java.io.{FileInputStream, FileOutputStream, IOException}
 import java.nio.file.{Files, Path, Paths}
 import java.util.jar.{JarEntry, JarInputStream}
 import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
-import models.auth.User
+import models.user.User
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 
 import scala.util.control.Breaks._
@@ -15,7 +15,7 @@ import scala.util.control.Breaks._
   *
   * @param _path Path to uploaded file
   */
-class PluginFile(private var _path: Path, private val _owner: User) {
+class PluginFile(private var _path: Path, val owner: User) {
 
   private val META_FILE_NAME = "mcmod.info"
 
@@ -32,13 +32,6 @@ class PluginFile(private var _path: Path, private val _owner: User) {
     * Deletes the File at this PluginFile's Path
     */
   def delete() = Files.delete(this._path)
-
-  /**
-    * Returns the owner of this file.
-    *
-    * @return Owner of file
-    */
-  def owner: User = this._owner
 
   /**
     * Returns the loaded PluginMetadata, if any.

@@ -1,4 +1,4 @@
-package models.author
+package models.project.author
 
 import java.sql.Timestamp
 

@@ -1,4 +1,4 @@
-package models.auth
+package models.user
 
 import play.api.Play
 

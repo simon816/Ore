@@ -1,7 +1,7 @@
 package controllers
 
 import controllers.Secured.Context
-import models.auth.{FakeUser, User}
+import models.user.{FakeUser, User}
 import play.api.mvc._
 
 /**
