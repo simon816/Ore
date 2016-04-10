@@ -260,6 +260,7 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     */
   def starFor(user: User) = {
     now(Queries.Projects.starFor(this.id.get, user.externalId)).get
+    now(Queries.Projects.setInt(this, _.stars, this.stars + 1)).get
     this._stars += 1
   }
 
@@ -271,6 +272,7 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     */
   def unstarFor(user: User) = {
     now(Queries.Projects.unstarFor(this.id.get, user.externalId)).get
+    now(Queries.Projects.setInt(this, _.stars, this.stars - 1)).get
     this._stars -= 1
   }
 
