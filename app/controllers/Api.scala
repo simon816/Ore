@@ -1,6 +1,6 @@
 package controllers
 
-import _root_.pkg.Categories
+import _root_.ore.Categories
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project

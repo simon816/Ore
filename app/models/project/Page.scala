@@ -7,6 +7,8 @@ import db.query.Queries
 import models.project.Page._
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
+import play.api.Play.current
+import play.api.Play.{configuration => config}
 
 /**
   * Represents a documentation page within a project.
@@ -58,12 +60,12 @@ object Page {
   /**
     * The name of each Project's homepage.
     */
-  val HOME: String = "Home"
+  val HOME_NAME: String = config.getString("ore.pages.home.name").get
 
   /**
     * The template body for the Home page.
     */
-  val HOME_MESSAGE: String = "Welcome to your new project!"
+  val HOME_MESSAGE: String = config.getString("ore.pages.home.message").get
 
   /**
     * The Markdown processor.

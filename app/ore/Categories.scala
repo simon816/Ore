@@ -1,4 +1,4 @@
-package pkg
+package ore
 
 /**
   * Represents a project category.

@@ -46,14 +46,6 @@ object ChannelQueries extends Queries[ChannelTable, Channel](TableQuery(tag => n
     find(c => c.projectId === projectId && c.colorId === colorId)
   }
 
-  /**
-    * Returns the Channel with the specified ID.
-    *
-    * @param id   Channel ID
-    * @return     Channel with id if any, None otherwise
-    */
-  def withId(id: Int): Future[Option[Channel]] = find(c => c.id === id)
-
   override def copyInto(id: Option[Int], theTime: Option[Timestamp], channel: Channel): Channel = {
     channel.copy(id = id, createdAt = theTime)
   }

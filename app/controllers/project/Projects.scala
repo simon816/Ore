@@ -6,7 +6,7 @@ import controllers.BaseController
 import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
 import models.project._
-import pkg.{Categories, InvalidPluginFileException, ProjectManager}
+import ore.{Categories, InvalidPluginFileException, ProjectManager}
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.Forms

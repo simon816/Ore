@@ -5,7 +5,7 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Channels => self}
 import models.project.{Channel, Project}
-import pkg.ChannelColors
+import ore.Colors
 import play.api.i18n.MessagesApi
 import util.Forms
 import views.{html => views}
@@ -50,7 +50,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi) extends BaseCont
             .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
         } else {
           // Find submitted color
-          ChannelColors.values.find(c => c.hex.equalsIgnoreCase(form._2)) match {
+          Colors.values.find(c => c.hex.equalsIgnoreCase(form._2)) match {
             case None => BadRequest("Invalid channel color.")
             case Some(color) => channels.find(c => c.color.equals(color)) match {
               case None => channels.find(c => c.name.equalsIgnoreCase(channelName)) match {
@@ -94,7 +94,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi) extends BaseCont
         val channels = project.channels
         channels.find(c => c.name.equals(channelName)) match {
           case None => NotFound("Channel not found.")
-          case Some(channel) => ChannelColors.values.find(c => c.hex.equalsIgnoreCase(form._2)) match {
+          case Some(channel) => Colors.values.find(c => c.hex.equalsIgnoreCase(form._2)) match {
             case None => BadRequest("Invalid channel color.")
             case Some(color) =>
               // Check if color is taken by different channel

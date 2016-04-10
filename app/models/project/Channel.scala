@@ -11,8 +11,10 @@ import models.project.Channel._
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
-import pkg.ChannelColors.ChannelColor
-import pkg.{ChannelColors, ProjectManager}
+import ore.Colors.Color
+import ore.{Colors, ProjectManager}
+import play.api.Play.current
+import play.api.Play.{configuration => config}
 
 import scala.util.Try
 
@@ -32,7 +34,7 @@ case class Channel(override val id: Option[Int], override val createdAt: Option[
                    private var _name: String, private var colorId: Int, projectId: Int)
                    extends Ordered[Channel] with Model {
 
-  def this(name: String, color: ChannelColor, projectId: Int) = this(None, None, name, color.id, projectId)
+  def this(name: String, color: Color, projectId: Int) = this(None, None, name, color.id, projectId)
 
   /**
     * Returns this Channel's name.
@@ -61,7 +63,7 @@ case class Channel(override val id: Option[Int], override val createdAt: Option[
     *
     * @return Color channel is represented by
     */
-  def color: ChannelColor = ChannelColors(this.colorId)
+  def color: Color = Colors(this.colorId)
 
   /**
     * Sets the color of this channel.
@@ -69,7 +71,7 @@ case class Channel(override val id: Option[Int], override val createdAt: Option[
     * @param _color  Color of channel
     * @return       Future result
     */
-  def color_=(_color: ChannelColor) = {
+  def color_=(_color: Color) = {
     now(Queries.Channels.setInt(this, _.colorId, _color.id))
     this.colorId = _color.id
   }
@@ -146,22 +148,22 @@ object Channel {
   /**
     * The maximum name size of a Channel.
     */
-  val MAX_NAME_LENGTH = 15
+  val MAX_NAME_LENGTH = config.getInt("ore.channels.max-name-len").get
 
   /**
     * Regular expression for permitted Channel characters.
     */
-  val NAME_REGEX = "^[a-zA-Z0-9]+$"
+  val NAME_REGEX = config.getString("ore.channels.name-regex").get
 
   /**
     * The default color used for Channels.
     */
-  val DEFAULT_COLOR: ChannelColor = ChannelColors.DarkGreen
+  val DEFAULT_COLOR: Color = Colors(config.getInt("ore.channels.color-default").get)
 
   /**
     * The default name used for Channels.
     */
-  val DEFAULT_CHANNEL: String = "Release"
+  val DEFAULT_CHANNEL: String = config.getString("ore.channels.name-default").get
 
   /**
     * Returns true if the specified string is a valid channel name.

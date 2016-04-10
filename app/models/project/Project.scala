@@ -1,7 +1,6 @@
 package models.project
 
 import java.sql.Timestamp
-import java.text.SimpleDateFormat
 
 import com.google.common.base.Preconditions._
 import db.Model
@@ -13,10 +12,11 @@ import models.project.author.Dev
 import models.user.User
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
-import pkg.Categories.Category
-import pkg.ChannelColors.ChannelColor
-import pkg._
+import ore.Categories.Category
+import ore.Colors.Color
+import ore._
 import play.api.Play.current
+import play.api.Play.{configuration => config}
 import play.api.cache.Cache
 import util.{Cacheable, PendingAction}
 
@@ -53,7 +53,8 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
                    private var recommendedVersionId: Option[Int],
                    private var categoryId: Int = -1, private var _views: Int,
                    private var _downloads: Int, private var _stars: Int,
-                   private var _issues: Option[String], private var _source: Option[String]) extends Model {
+                   private var _issues: Option[String], private var _source: Option[String])
+                   extends Model {
 
   def this(pluginId: String, name: String, owner: String, authors: List[String], homepage: String) = {
     this(None, None, pluginId, sanitizeName(name), slugify(name),
@@ -70,13 +71,6 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     * @return Name of project
     */
   def name: String = this._name
-
-  /**
-    * Returns this Project's URL slug.
-    *
-    * @return URL slug
-    */
-  def slug: String = this._slug
 
   /**
     * Sets the name of this project and performs all the necessary renames.
@@ -97,6 +91,13 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     now(Queries.Projects.setString(this, _.slug, newSlug)).get
     this._slug = newSlug
   }
+
+  /**
+    * Returns this Project's URL slug.
+    *
+    * @return URL slug
+    */
+  def slug: String = this._slug
 
   /**
     * Returns all Channels belonging to this Project.
@@ -120,7 +121,7 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     * @param color  Color of channel
     * @return       Channel with color, if present, None otherwise
     */
-  def channel(color: ChannelColor): Option[Channel] = now(Queries.Channels.withColor(this.id.get, color.id)).get
+  def channel(color: Color): Option[Channel] = now(Queries.Channels.withColor(this.id.get, color.id)).get
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -128,7 +129,7 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     * @param name   Name of channel
     * @return       New channel
     */
-  def newChannel(name: String, color: ChannelColor): Try[Channel] = Try {
+  def newChannel(name: String, color: Color): Try[Channel] = Try {
     checkArgument(Channel.isValidName(name), "invalid name", "")
     checkState(this.channels.size < Project.MAX_CHANNELS, "channel limit reached", "")
     now(Queries.Channels.create(new Channel(name, color, this.id.get))).get
@@ -139,7 +140,7 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     *
     * @return Recommended version
     */
-  def recommendedVersion: Version = now(Queries.Versions.withId(this.recommendedVersionId.get)).get.get
+  def recommendedVersion: Version = now(Queries.Versions.get(this.recommendedVersionId.get)).get.get
 
   /**
     * Updates this project's recommended version.
@@ -165,7 +166,7 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     * @param channels   Channels to get versions for
     * @return           All versions in channels
     */
-  def versions(channels: Seq[Channel]): Seq[Version] = {
+  def versionsIn(channels: Seq[Channel]): Seq[Version] = {
     channels.foreach(c => checkArgument(c.projectId == this.id.get, "channel doesn't belong to project", ""))
     now(Queries.Versions.inChannels(channels.map(_.id.get))).get
   }
@@ -245,7 +246,11 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     * @param username   To get User of
     * @return           True if starred by User
     */
-  def isStarredBy(username: String): Boolean = isStarredBy(User.withName(username).get)
+  def isStarredBy(username: String): Boolean = {
+    val user = User.withName(username)
+    checkArgument(user.isDefined, "user not found", "")
+    isStarredBy(user.get)
+  }
 
   /**
     * Sets this Project as starred for the specified User.
@@ -337,6 +342,7 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     * @return       Page with name or new name if it doesn't exist
     */
   def getOrCreatePage(name: String): Page = {
+    // TODO: name validation
     now(Queries.Pages.getOrCreate(new Page(this.id.get, name, Page.template(name), true))).get
   }
 
@@ -356,7 +362,8 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     * @return Project home page
     */
   def homePage: Page = {
-    now(Queries.Pages.getOrCreate(new Page(this.id.get, Page.HOME, Page.template(name, Page.HOME_MESSAGE), false))).get
+    val page = new Page(this.id.get, Page.HOME_NAME, Page.template(name, Page.HOME_MESSAGE), false)
+    now(Queries.Pages.getOrCreate(page)).get
   }
 
   /**
@@ -383,13 +390,6 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     FileUtils.deleteDirectory(ProjectManager.projectDir(this.ownerName, this._name).toFile)
   }
 
-  /**
-    * Returns a presentable date string of this version's creation date.
-    *
-    * @return Creation date string
-    */
-  def prettyDate: String = DATE_FORMAT.format(this.createdAt.get)
-
   override def hashCode: Int = this.id.get.hashCode
 
   override def equals(o: Any): Boolean = {
@@ -403,22 +403,17 @@ object Project {
   /**
     * The maximum length for a Project name.
     */
-  val MAX_NAME_LENGTH: Int = 25
+  val MAX_NAME_LENGTH: Int = config.getInt("ore.projects.max-name-len").get
 
   /**
     * The maximum amount of Pages a Project can have.
     */
-  val MAX_PAGES: Int = 10
+  val MAX_PAGES: Int = config.getInt("ore.projects.max-pages").get
 
   /**
     * The maximum amount of Channels permitted in a single Project.
     */
-  val MAX_CHANNELS = 5
-
-  /**
-    * The format used for displaying dates regarding Projects.
-    */
-  val DATE_FORMAT = new SimpleDateFormat("MM-dd-yyyy")
+  val MAX_CHANNELS = config.getInt("ore.projects.max-channels").get
 
   /**
     * Represents a Project with an uploaded plugin that has not yet been
@@ -427,7 +422,8 @@ object Project {
     * @param project        Pending project
     * @param firstVersion   Uploaded plugin
     */
-  case class PendingProject(project: Project, firstVersion: PluginFile) extends PendingAction[Project] with Cacheable {
+  case class PendingProject(project: Project, firstVersion: PluginFile) extends PendingAction[Project]
+                                                                        with Cacheable {
 
     private var pendingVersion: Option[PendingVersion] = None
 
@@ -478,7 +474,7 @@ object Project {
 
   def withPluginId(pluginId: String): Option[Project] = now(Queries.Projects.withPluginId(pluginId)).get
 
-  def withId(id: Int): Option[Project] = now(Queries.Projects.withId(id)).get
+  def withId(id: Int): Option[Project] = now(Queries.Projects.get(id)).get
 
   def by(owner: String): Seq[Project] = now(Queries.Projects.by(owner)).get
 

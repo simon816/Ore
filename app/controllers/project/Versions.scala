@@ -7,7 +7,7 @@ import controllers.project.routes.{Versions => self}
 import controllers.routes.{Application => app}
 import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
-import pkg.{ChannelColors, InvalidPluginFileException, ProjectManager, Statistics}
+import ore.{Colors, InvalidPluginFileException, ProjectManager, Statistics}
 import play.api.i18n.MessagesApi
 import play.api.mvc.Action
 import util.Forms
@@ -87,7 +87,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
       }
 
       // Don't pass "visible channels" if all channels are visible
-      val versions = if (allChannels.equals(visibleChannels)) project.versions else project.versions(visibleChannels)
+      val versions = if (allChannels.equals(visibleChannels)) project.versions else project.versionsIn(visibleChannels)
       if (channelNames.isDefined && allChannels.map(_.name).toSet.subsetOf(channelNames.get.toSet)) {
         channelNames = None
       }
@@ -204,7 +204,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
           val form = Forms.ChannelEdit.bindFromRequest.get
           val submittedName = form._1.trim
           pendingVersion.channelName = submittedName
-          ChannelColors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
+          Colors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
             case None => BadRequest("Invalid channel color.")
             case Some(color) => pendingVersion.channelColor = color
           }
@@ -298,7 +298,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
         case Some(channel) => channel.version(versionString) match {
           case None => NotFound("Version not found.")
           case Some(version) =>
-            Statistics.versionDownloaded(project, version, request)
+            Statistics.versionDownloaded(project, version)
             Ok.sendFile(ProjectManager.uploadPath(author, name, versionString, channelName).toFile)
         }
       }
@@ -315,7 +315,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
   def downloadRecommended(author: String, slug: String) = Action { implicit request =>
     withProject(author, slug, project => {
       val rv = project.recommendedVersion
-      Statistics.versionDownloaded(project, rv, request)
+      Statistics.versionDownloaded(project, rv)
       Ok.sendFile(ProjectManager.uploadPath(author, project.name, rv.versionString, rv.channel.name).toFile)
     })
   }

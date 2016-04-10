@@ -1,4 +1,4 @@
-package pkg
+package ore
 
 import java.nio.file.{Files, Path}
 

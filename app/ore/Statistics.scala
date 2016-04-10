@@ -1,4 +1,4 @@
-package pkg
+package ore
 
 import db.query.Queries
 import models.project.{Project, Version}
@@ -20,7 +20,7 @@ object Statistics {
     * @param project Project to check views for
     * @param request Request to view the project
     */
-  def projectViewed(project: Project, request: RequestHeader) = {
+  def projectViewed(project: Project)(implicit request: RequestHeader) = {
     cookieOrUser(request,
       cookie => {
         Queries.Projects.hasBeenViewedBy(project.id.get, cookie).onSuccess {
@@ -49,7 +49,7 @@ object Statistics {
     * @param version Version to check downloads for
     * @param request Request to download the version
     */
-  def versionDownloaded(project: Project, version: Version, request: RequestHeader) = {
+  def versionDownloaded(project: Project, version: Version)(implicit request: RequestHeader) = {
     cookieOrUser(request,
       cookie => {
         Queries.Versions.hasBeenDownloadedBy(version.id.get, cookie).onSuccess {

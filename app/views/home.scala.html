@@ -2,15 +2,105 @@
 The main entry point of Ore. This page displays a list of Projects that can be
 sorted according to different criteria.
 *@
+@import controllers.project.routes.{Projects => projectRoutes}
 @import models.project.Project
-@import pkg.Categories.Category
+@import ore.Categories.Category
+@import play.api.Play
+@import ore.Categories
 @(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages,
         session: Session, flash: Flash)
 
 @core.layout(messages("general.title")) {
 
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/projectsMore.js")"></script>
+    <script>
+        @if(visibleCategories.isDefined) {
+            CATEGORY_STRING = "@visibleCategories.get.map(_.id).mkString(",")";
+        }
+        BASE_URL = '@Play.current.configuration.getString("application.baseUrl")';
+        currentlyLoaded = @models.size;
+    </script>
+
     <div class="container" style="margin-top: 60px ;">
-        @projects.table(models, visibleCategories)
+        <div class="row index-header">
+            <div class="col-md-12">
+                @if(flash.get("success").isDefined) {
+                    <div class="alert alert-success alert-dismissable" role="alert" style="display: none;">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        @flash.get("success").get
+                    </div>
+                }
+
+                @if(flash.get("error").isDefined) {
+                    <div class="alert alert-danger alert-dismissable" role="alert" style="display: none;">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        @flash.get("error").get
+                    </div>
+                }
+
+                <h3 class="pull-left">@messages("table.welcome") <i class="date">@messages("table.welcome.description")</i></h3>
+                <div class="table-controls">
+                    <a href="@projectRoutes.showCreator"
+                    title="Submit a new project to Ore." data-toggle="tooltip"
+                    data-placement="bottom" class="btn-create btn btn-primary pull-right">
+                        <i class="fa fa-plus"></i> @messages("project.create")
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-9">
+                @projects.table(models, visibleCategories)
+            </div>
+
+            <div class="col-md-3">
+                @* Category table *@
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">@messages("project.category.plural")</h3>
+                        @if(visibleCategories.isDefined) {
+                            <a href="@routes.Application.showHome(None)"><i class="pull-right category-reset fa fa-times"></i></a>
+                        }
+                    </div>
+                    <table class="table panel-body category-table">
+                        <tbody>
+                            @for(i <- 0 until Categories.values.size) {
+                              @defining(Categories(i)) { category =>
+                                @if(visibleCategories.isDefined) {
+                                  @if(!visibleCategories.get.contains(category)) {
+                                      <tr onclick="location.href='@routes.Application.showHome(Some(
+                                      (visibleCategories.get.map(_.id) :+ i).mkString(",")))'">
+                                          <td>
+                                              <i class="fa @category.icon"></i>
+                                              <strong>@category.title</strong>
+                                          </td>
+                                  } else {
+                                      <tr class="glow" onclick="location.href='@routes.Application.showHome(Some(
+                                        visibleCategories.get.map(_.id).filterNot(id => id == i).mkString(",")))'">
+                                          <td>
+                                              <i class="fa @Categories(i).icon"></i>
+                                              <strong>@Categories(i).title</strong>
+                                          </td>
+                                  }
+                                } else {
+                                    <tr onclick="location.href='@routes.Application.showHome(Some(Integer.toString(i)))'">
+                                        <td>
+                                            <i class="fa @category.icon"></i>
+                                            <strong>@category.title</strong>
+                                        </td>
+                                }
+                              }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
 }

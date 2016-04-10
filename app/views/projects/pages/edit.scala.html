@@ -19,7 +19,7 @@
                 <div class="pull-right input-group">
                     @if(model.pageExists(page)) {
                         <a class="btn btn-danger"
-                            @if(page.equals(Page.HOME)) {
+                            @if(page.equals(Page.HOME_NAME)) {
                                 disabled data-toggle="tooltip" data-placement="bottom"
                                 title="@messages("page.edit.cannot-delete-homepage")"
                             } else {

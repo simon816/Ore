@@ -1,11 +1,20 @@
 package db
 
+import play.api.Play.current
+import play.api.Play.{configuration => config}
+
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
 
 /**
   * Represents a Model in the Database.
   */
 trait Model {
+
+  /**
+    * The format used for displaying dates for models.
+    */
+  val DATE_FORMAT = new SimpleDateFormat(config.getString("ore.date-format").get)
 
   /**
     * Model ID
@@ -20,5 +29,13 @@ trait Model {
     * @return Instant of creation
     */
   def createdAt: Option[Timestamp]
+
+  /**
+    * Returns a presentable date string of this models's creation date.
+    *
+    * @return Creation date string
+    */
+  def prettyDate: String = DATE_FORMAT.format(this.createdAt.get)
+
 
 }

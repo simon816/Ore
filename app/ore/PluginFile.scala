@@ -1,4 +1,4 @@
-package pkg
+package ore
 
 import java.io.{FileInputStream, FileOutputStream, IOException}
 import java.nio.file.{Files, Path, Paths}
@@ -94,29 +94,25 @@ class PluginFile(private var _path: Path, val owner: User) {
 
       // Find plugin JAR
       var jarIn: JarInputStream = null
-      try {
-        if (zip != null) {
-          var pluginEntry: ZipEntry = null
-          val entries = zip.entries()
-          breakable {
-            while (entries.hasMoreElements) {
-              val entry = entries.nextElement()
-              val name = entry.getName
-              if (!entry.isDirectory && name.split("/").length == 1 && name.endsWith(".jar")) {
-                pluginEntry = entry
-                break
-              }
+      if (zip != null) {
+        var pluginEntry: ZipEntry = null
+        val entries = zip.entries()
+        breakable {
+          while (entries.hasMoreElements) {
+            val entry = entries.nextElement()
+            val name = entry.getName
+            if (!entry.isDirectory && name.split("/").length == 1 && name.endsWith(".jar")) {
+              pluginEntry = entry
+              break
             }
           }
-          if (pluginEntry == null) {
-            throw new InvalidPluginFileException("Could not find a JAR file in the top level of ZIP file.")
-          }
-          jarIn = new JarInputStream(zip.getInputStream(pluginEntry))
-        } else {
-          jarIn = new JarInputStream(Files.newInputStream(this._path))
         }
-      } catch {
-        case ioe: IOException => throw new InvalidPluginFileException(cause = ioe)
+        if (pluginEntry == null) {
+          throw new InvalidPluginFileException("Could not find a JAR file in the top level of ZIP file.")
+        }
+        jarIn = new JarInputStream(zip.getInputStream(pluginEntry))
+      } else {
+        jarIn = new JarInputStream(Files.newInputStream(this._path))
       }
 
       // Find plugin meta file
@@ -139,7 +135,7 @@ class PluginFile(private var _path: Path, val owner: User) {
 
       val metaList = McModInfo.DEFAULT.read(jarIn)
       if (metaList.size() > 1) {
-        throw new InvalidPluginFileException("No plugin meta file found.")
+        throw new InvalidPluginFileException("Multiple meta files found.")
       }
 
       // Parse plugin meta info

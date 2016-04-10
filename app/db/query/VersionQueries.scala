@@ -62,14 +62,6 @@ object VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => n
   }
 
   /**
-    * Returns the Version with the specified ID.
-    *
-    * @param id   Version ID
-    * @return     Version with ID
-    */
-  def withId(id: Int): Future[Option[Version]] = find(v => v.id === id)
-
-  /**
     * Returns true if the specified Version has been downloaded by a client
     * with the specified cookie.
     *

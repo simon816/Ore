@@ -8,8 +8,8 @@ import db.query.Queries
 import db.query.Queries.now
 import models.project.Version._
 import org.spongepowered.plugin.meta.PluginMetadata
-import pkg.ChannelColors.ChannelColor
-import pkg._
+import ore.Colors.Color
+import ore._
 import play.api.Play.current
 import play.api.cache.Cache
 import util.{Cacheable, PendingAction}
@@ -58,7 +58,7 @@ case class Version(override val id: Option[Int], override val createdAt: Option[
     *
     * @return Channel
     */
-  def channel: Channel = now(Queries.Channels.withId(this.channelId)).get.get
+  def channel: Channel = now(Queries.Channels.get(this.channelId)).get.get
 
   /**
     * Returns the channel this version belongs to from the specified collection
@@ -115,15 +115,6 @@ case class Version(override val id: Option[Int], override val createdAt: Option[
     this._downloads += 1
   }
 
-  /**
-    * Returns a presentable date string of this version's creation date.
-    *
-    * @return Creation date string
-    */
-  def prettyDate: String = {
-    DATE_FORMAT.format(this.createdAt.get)
-  }
-
   override def hashCode: Int = this.id.hashCode
 
   override def equals(o: Any): Boolean = {
@@ -133,9 +124,7 @@ case class Version(override val id: Option[Int], override val createdAt: Option[
 }
 
 object Version {
-
-  val DATE_FORMAT = new SimpleDateFormat("MM-dd-yyyy")
-
+  
   /**
     * Represents a pending version to be created later.
     *
@@ -147,7 +136,7 @@ object Version {
     * @param plugin         Uploaded plugin
     */
   case class PendingVersion(owner: String, projectSlug: String, var channelName: String,
-                            var channelColor: ChannelColor, version: Version,
+                            var channelColor: Color, version: Version,
                             plugin: PluginFile) extends PendingAction[Version] with Cacheable {
 
     override def complete: Try[Version] = Try {

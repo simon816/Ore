@@ -1,7 +1,7 @@
 package controllers
 
 import models.project.Project
-import pkg.Statistics
+import ore.Statistics
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Controller, RequestHeader, Result}
 
@@ -16,7 +16,7 @@ abstract class BaseController extends Controller with I18nSupport with Secured {
       case None => NotFound
       case Some(project) =>
         if (countView) {
-          Statistics.projectViewed(project, request)
+          Statistics.projectViewed(project)
         }
         f(project)
     }

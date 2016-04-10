@@ -8,7 +8,9 @@ import db.{ProjectStarsTable, ProjectTable, ProjectViewsTable}
 import models.project.Project
 import slick.lifted.Query
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Promise, Future}
+import scala.util.{Success, Failure}
 
 /**
   * Project related queries
@@ -83,14 +85,6 @@ object ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => n
   def withSlug(owner: String, slug: String): Future[Option[Project]] = {
     find(p => p.ownerName === owner && p.slug.toLowerCase === slug.toLowerCase)
   }
-
-  /**
-    * Returns the Project with the specified ID, if any.
-    *
-    * @param id   Project ID
-    * @return     Project if any, None otherwise
-    */
-  def withId(id: Int): Future[Option[Project]] = find(p => p.id === id)
 
   /**
     * Returns true if the specified Project has been viewed by a client with
@@ -174,6 +168,25 @@ object ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => n
   def unstarFor(projectId: Int, userId: Int) = {
     val query = this.stars.filter(sp => sp.userId === userId && sp.projectId === projectId).delete
     run(query)
+  }
+
+  /**
+    * Returns all the Projects that the specified User has starred.
+    *
+    * @param userId   User ID to get stars for
+    * @return         Projects starred by user
+    */
+  def starredBy(userId: Int): Future[Seq[Project]] = {
+    val promise = Promise[Seq[Project]]
+    val starQuery = this.stars.filter(sp => sp.userId === userId)
+    run(starQuery.result).andThen {
+      case Failure(thrown) => promise.failure(thrown)
+      case Success(userStars) =>
+        val projectIds = userStars.map(_._2)
+        val projectsQuery = this.models.filter(p => p.id inSetBind projectIds)
+        promise.completeWith(run(projectsQuery.result))
+    }
+    promise.future
   }
 
   override def copyInto(id: Option[Int], theTime: Option[Timestamp], project: Project): Project = {

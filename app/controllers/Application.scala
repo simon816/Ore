@@ -2,13 +2,14 @@ package controllers
 
 import javax.inject.Inject
 
-import _root_.pkg.Categories
+import _root_.ore.Categories
 import controllers.routes.{Application => self}
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project
+import models.project.author.Dev
 import models.user.{FakeUser, User}
-import pkg.Categories.Category
+import ore.Categories.Category
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.DiscourseSSO._

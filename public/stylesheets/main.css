@@ -189,20 +189,58 @@ body {
 
 .user-header {
     width: 100%;
-    display: inline-block;
-    padding: 10px;
+    height: 150px;
+    padding: 20px;
     border-bottom: 1px solid #ddd;
+    margin-bottom: 40px;
 }
 
-.user-header > img {
+.user-header .header-body {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    margin-top: 4px;
+}
+
+.user-header .user-badge {
+    width: 30%;
+}
+
+.user-header .user-title > img {
     float: left;
     margin-right: 20px;
     border-radius: 50%;
 }
 
-.user-header > h1 {
+.user-header .user-title > h1 {
     float: left;
-    margin-top: 30px; !important;
+}
+
+.user-header .user-title {
+    display: inline-block;
+}
+
+.user-header .pull-right {
+    height: 100%;
+    width: 200px;
+}
+
+.user-header .user-info {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    text-align: right;
+}
+
+.user-header .user-roles {
+    position: absolute;
+    list-style-type: none;
+    top: 0;
+    right: 0;
+}
+
+.user-header .user-roles li {
+    display: inline;
 }
 
 .date {
@@ -422,4 +460,35 @@ form {
 .fa-external-link {
     font-size: 11px;
     margin-top: 2px;
+}
+
+.panel-stars .panel-footer {
+    text-align: right;
+    vertical-align: middle;
+    margin: 0 auto;
+}
+
+.panel-stars .panel-footer > .pull-right {
+    font-size: 16px;
+}
+
+.panel-stars .panel-footer > .pull-left {
+    margin-top: 2px;
+}
+
+.panel-stars tr:hover {
+    background-color: #f3f2f0;
+    cursor: pointer;
+}
+
+.panel-stars td > .pull-left {
+    margin-right: 5px;
+}
+
+.panel-stars td > .pull-right > span {
+    font-size: 12px;
+}
+
+.panel-stars td > .pull-right > i {
+    font-size: 18px;
 }

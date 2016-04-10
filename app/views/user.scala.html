@@ -3,15 +3,74 @@ User page for developers.
 *@
 @import models.user.User
 @import util.Gravatar
-@(user: User)(implicit messages: Messages, session: Session)
+@import models.project.Project
+@import models.project.author.Dev
+@(user: User)(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout(user.username) {
 
     <div class="container" style="margin-top: 90px">
         <div class="user-header">
-            <img title="@user.username" alt="@user.username" height="100" width="100"
-                 class="user-avatar-lg" src="@Gravatar.urlFor(user.email)" />
-            <h1>@user.username</h1>
+            <div class="header-body">
+                <div class="pull-left user-badge">
+                    <div class="user-title">
+                        <img title="@user.username" alt="@user.username" height="100" width="100"
+                        class="user-avatar-lg" src="@Gravatar.urlFor(user.email, 100)" />
+                        <h1>@user.username</h1><br />
+                        <div class="user-tag">
+                            <i class="minor">Add a tagline</i>
+                            <a href="#"><i class="fa fa-edit"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="pull-right">
+                    <ul class="user-roles">
+                        @user.roles.map { role =>
+                          <li class="user-role channel" style="background-color: @role.color.hex;">@role.title</li>
+                        }
+                    </ul>
+                    <div class="user-info">
+                        <i class="minor">@Dev(user.username).projects.size projects</i><br/>
+                        <i class="minor">A member since @user.prettyDate</i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                @projects.table(Dev(user.username).projects)
+            </div>
+            <div class="col-md-4">
+                <div class="panel-stars panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-star"></i> @messages("project.starred")</h3>
+                    </div>
+                    <table class="table panel-body">
+                        <tbody>
+                            @user.starred.map { project =>
+                              <tr>
+                                  <td>
+                                      <a class="pull-left">@project.ownerName/<strong>@project.name</strong></a>
+                                      <div class="pull-right">
+                                          <span class="minor">@project.recommendedVersion.versionString</span>
+                                          <i data-toggle="tooltip" data-placement="right"
+                                             title="@project.category.title" class="fa @project.category.icon"></i>
+                                      </div>
+                                  </td>
+                              </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="panel-footer">
+                        <a class="pull-left" href="#">See all</a>
+                        <div class="pull-right">
+                            <a href="#">&laquo;</a>
+                            <a href="#">&raquo;</a>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -20,9 +20,11 @@ object Gravatar {
     * @param email  Email to get avatar for
     * @return       Avatar of email, or default avatar if not found
     */
-  def urlFor(email: String): String = {
+  def urlFor(email: String, size: Int = 0): String = {
     val hash = Hex.encodeHexString(MessageDigest.getInstance("MD5").digest(email.trim().toLowerCase.getBytes("UTF-8")))
-    this.URL + hash
+    var url = this.URL + hash
+    if (size > 0) url += "?s=" + size
+    url
   }
 
 }
