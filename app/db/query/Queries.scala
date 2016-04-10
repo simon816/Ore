@@ -76,6 +76,21 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
   }
 
   /**
+    * Returns a collection of models with the specified limit and offset.
+    *
+    * @param limit  Amount of models to take
+    * @param offset Offset to drop
+    * @return       Collection of models
+    */
+  def collect(limit: Int = -1, offset: Int = -1, filter: T => Rep[Boolean] = null): Future[Seq[M]] = {
+    var query: Query[T, M, Seq] = this.models
+    if (filter != null) query = query.filter(filter)
+    if (offset > -1) query = query.drop(offset)
+    if (limit > -1) query = query.take(limit)
+    run(query.result)
+  }
+
+  /**
     * Creates the specified model in it's table.
     *
     * @param model  Model to create

@@ -6,7 +6,6 @@ import db.OrePostgresDriver.api._
 import db.query.Queries.DB.run
 import db.{ProjectStarsTable, ProjectTable, ProjectViewsTable}
 import models.project.Project
-import slick.lifted.Query
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Promise, Future}
@@ -28,21 +27,44 @@ object ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => n
     * @param offset       Result set offset
     * @return             Projects matching criteria
     */
-  def collect(categories: Array[Int] = null, limit: Int = -1, offset: Int = -1): Future[Seq[Project]] = {
-    var query: Query[ProjectTable, Project, Seq] = this.models
+  def collect(categories: Array[Int], limit: Int, offset: Int): Future[Seq[Project]] = {
+    var filter: ProjectTable => Rep[Boolean] = null
     if (categories != null) {
-      query = for {
-        project <- query
-        if project.categoryId inSetBind categories
-      } yield project
+      filter = p => p.categoryId inSetBind categories
     }
-    if (offset > -1) {
-      query = query.drop(offset)
-    }
-    if (limit > -1) {
-      query = query.take(limit)
-    }
-    run(query.result)
+    collect(limit, offset, filter)
+  }
+
+  /**
+    * Filters projects based on the given criteria.
+    *
+    * @param categories   Categories of Projects
+    * @param limit        Amount of Projects to get
+    * @return             Projects matching criteria
+    */
+  def collect(categories: Array[Int], limit: Int): Future[Seq[Project]] = {
+    collect(categories, limit, -1)
+  }
+
+  /**
+    * Filters projects based on the given criteria.
+    *
+    * @param categories   Categories of Projects
+    * @return             Projects matching criteria
+    */
+  def collect(categories: Array[Int]): Future[Seq[Project]] = {
+    collect(categories, -1, -1)
+  }
+
+  /**
+    * Filters projects based on the given criteria.
+    *
+    * @param categories   Categories of Projects
+    * @param limit        Amount of Projects to get
+    * @return             Projects matching criteria
+    */
+  def collect(limit: Int): Future[Seq[Project]] = {
+    collect(null, limit, -1)
   }
 
   /**
@@ -174,16 +196,20 @@ object ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => n
     * Returns all the Projects that the specified User has starred.
     *
     * @param userId   User ID to get stars for
+    * @param limit    Max amount of stars to retrieve
+    * @param offset   Amount of stars to skip
     * @return         Projects starred by user
     */
-  def starredBy(userId: Int): Future[Seq[Project]] = {
+  def starredBy(userId: Int, limit: Int = -1, offset: Int = -1): Future[Seq[Project]] = {
     val promise = Promise[Seq[Project]]
     val starQuery = this.stars.filter(sp => sp.userId === userId)
     run(starQuery.result).andThen {
       case Failure(thrown) => promise.failure(thrown)
       case Success(userStars) =>
         val projectIds = userStars.map(_._2)
-        val projectsQuery = this.models.filter(p => p.id inSetBind projectIds)
+        var projectsQuery = this.models.filter(p => p.id inSetBind projectIds)
+        if (offset > -1) projectsQuery = projectsQuery.drop(offset)
+        if (limit > -1) projectsQuery = projectsQuery.take(limit)
         promise.completeWith(run(projectsQuery.result))
     }
     promise.future

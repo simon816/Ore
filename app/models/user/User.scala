@@ -5,9 +5,12 @@ import java.sql.Timestamp
 import db.Model
 import db.query.Queries
 import db.query.Queries.now
+import models.user.User._
 import models.project.Project
 import ore.UserRoles
 import ore.UserRoles.UserRole
+import play.api.Play.current
+import play.api.Play.{configuration => config}
 
 /**
   * Represents a Sponge user.
@@ -37,15 +40,24 @@ case class User(externalId: Int, override val createdAt: Option[Timestamp], name
   /**
     * Returns the Projects that this User has starred.
     *
-    * @return Projects user has starred
+    * @param page Page of user stars
+    * @return     Projects user has starred
     */
-  def starred: Seq[Project] = now(Queries.Projects.starredBy(this.externalId)).get
+  def starred(page: Int = -1): Seq[Project] = {
+    val limit = if (page < 1) -1 else STARS_PER_PAGE
+    now(Queries.Projects.starredBy(this.externalId, limit, (page - 1) * STARS_PER_PAGE)).get
+  }
 
   override def id: Option[Int] = Some(this.externalId)
 
 }
 
 object User {
+
+  /**
+    * The amount of stars displayed in the stars panel per page.
+    */
+  val STARS_PER_PAGE: Int = config.getInt("ore.users.stars-per-page").get
 
   /**
     * Returns the user with the specified username.

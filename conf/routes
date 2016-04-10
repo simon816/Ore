@@ -3,11 +3,15 @@
 # ~~~~
 
 # ---------- API (v1) ----------
-GET     /api/projects                                           @controllers.Api.projects(version = "v1", categories: Option[String], limit:Option[Int], offset: Option[Int])
+GET     /api/projects                                           @controllers.Api.projects(version = "v1", categories: Option[String], limit: Option[Int], offset: Option[Int])
 GET     /api/project                                            @controllers.Api.project(version = "v1", pluginId: Option[String])
+GET     /api/users                                              @controllers.Api.users(version = "v1", limit: Option[Int], offset: Option[Int])
+GET     /api/users/:user                                        @controllers.Api.user(version = "v1", user)
 
-GET     /api/:version/projects                                  @controllers.Api.projects(version, categories: Option[String], limit:Option[Int], offset: Option[Int])
+GET     /api/:version/projects                                  @controllers.Api.projects(version, categories: Option[String], limit: Option[Int], offset: Option[Int])
 GET     /api/:version/project                                   @controllers.Api.project(version, pluginId: Option[String])
+GET     /api/:version/users                                     @controllers.Api.users(version, limit: Option[Int], offset: Option[Int])
+GET     /api/:version/users/:user                               @controllers.Api.user(version, user)
 
 
 # ---------- Application ----------

@@ -1,13 +1,16 @@
 @*
 User page for developers.
 *@
+@import controllers.project.{routes => projectRoutes}
+@import models.project.author.Dev
 @import models.user.User
 @import util.Gravatar
-@import models.project.Project
-@import models.project.author.Dev
 @(user: User)(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout(user.username) {
+
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/userPage.js")"></script>
+    <script>USERNAME = '@user.username';</script>
 
     <div class="container" style="margin-top: 90px">
         <div class="user-header">
@@ -47,10 +50,12 @@ User page for developers.
                     </div>
                     <table class="table panel-body">
                         <tbody>
-                            @user.starred.map { project =>
+                            @user.starred(1).map { project =>
                               <tr>
                                   <td>
-                                      <a class="pull-left">@project.ownerName/<strong>@project.name</strong></a>
+                                      <a href="@projectRoutes.Projects.show(project.ownerName, project.name)" class="pull-left">
+                                        @project.ownerName/<strong>@project.slug</strong>
+                                      </a>
                                       <div class="pull-right">
                                           <span class="minor">@project.recommendedVersion.versionString</span>
                                           <i data-toggle="tooltip" data-placement="right"
@@ -64,8 +69,8 @@ User page for developers.
                     <div class="panel-footer">
                         <a class="pull-left" href="#">See all</a>
                         <div class="pull-right">
-                            <a href="#">&laquo;</a>
-                            <a href="#">&raquo;</a>
+                            <a class="prev" href="#" style="display: none;">&laquo;</a>
+                            <a class="next" href="#">&raquo;</a>
                         </div>
                         <div class="clearfix"></div>
                     </div>

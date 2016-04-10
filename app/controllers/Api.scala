@@ -4,6 +4,7 @@ import _root_.ore.Categories
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project
+import models.user.User
 import play.api.libs.json._
 import play.api.mvc._
 
@@ -18,17 +19,32 @@ class Api extends Controller {
         Map("name" -> channel.name, "color" -> channel.color.hex)
       }
       val category = project.category
+      val rv = project.recommendedVersion
       Json.obj(
         "pluginId" -> project.pluginId,
         "createdAt" -> project.prettyDate,
         "name" -> project.name,
         "owner" -> project.ownerName,
+        "href" -> ('/' + project.ownerName + '/' + project.slug),
         "authors" -> project.authorNames,
         "channels" -> channelInfo,
+        "recommended" -> Map("channel" -> rv.channel.name, "version" -> rv.versionString),
         "category" -> Map("title" -> category.title, "icon" -> category.icon),
         "views" -> project.views,
         "downloads" -> project.downloads,
         "stars" -> project.stars
+      )
+    }
+  }
+
+  implicit val userWrites = new Writes[User] {
+    def writes(user: User) = {
+      Json.obj(
+        "id" -> user.id,
+        "createdAt" -> user.prettyDate,
+        "username" -> user.username,
+        "roles" -> user.roles.map(_.title),
+        "starred" -> user.starred().map(p => p.pluginId)
       )
     }
   }
@@ -69,6 +85,38 @@ class Api extends Controller {
         }
       }
       case yikes => BadRequest
+    }
+  }
+
+  /**
+    * Returns a JSON view of Ore Users.
+    *
+    * @param version  API version
+    * @param limit    Amount of users to get
+    * @param offset   Offset to drop
+    * @return         List of users
+    */
+  def users(version: String, limit: Option[Int], offset: Option[Int]) = Action {
+    version match {
+      case "v1" => Ok(Json.toJson(now(Queries.Users.collect(limit.getOrElse(-1), offset.getOrElse(-1))).get))
+      case oops => BadRequest
+    }
+  }
+
+  /**
+    * Returns a JSON view of the specified User.
+    *
+    * @param version    API version
+    * @param username   Username of user
+    * @return           User with username
+    */
+  def user(version: String, username: String) = Action {
+    version match {
+      case "v1" => User.withName(username) match {
+        case None => NotFound
+        case Some(user) => Ok(Json.toJson(user))
+      }
+      case sad => BadRequest
     }
   }
 
