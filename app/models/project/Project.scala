@@ -282,7 +282,9 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     * @param _issues Issue tracker link
     */
   def issues_=(_issues: String) = {
-    now(Queries.Projects.setString(this, _.issues, _issues))
+    if (this.exists) {
+      now(Queries.Projects.setString(this, _.issues, _issues))
+    }
     this._issues = Option(_issues)
   }
 
@@ -299,7 +301,9 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
     * @param _source Source code link
     */
   def source_=(_source: String) = {
-    now(Queries.Projects.setString(this, _.source, _source))
+    if (this.exists) {
+      now(Queries.Projects.setString(this, _.source, _source))
+    }
     this._source = Option(_source)
   }
 

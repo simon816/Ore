@@ -70,10 +70,11 @@ Page used for uploading and creating new projects.
                                     </script>
                                 </div>
                             }
+                        }
 
+                        @if(pending.isDefined) {
                             @* Category select *@
-                            @projects.categorySelect("continue")
-
+                            @projects.inputSettings("continue")
                         }
 
                         <div class="create-buttons">

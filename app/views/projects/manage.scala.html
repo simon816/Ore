@@ -16,7 +16,8 @@
                         <h3 class="panel-title">@messages("project.settings")</h3>
                     </div>
                     <div class="panel-body">
-                        @projects.categorySelect("save", Some(project.category))
+
+                        @projects.inputSettings("save", project.issues, project.source, Some(project.category))
 
                         <label for="name">Project name</label>
                         <div class="form-inline form-rename">

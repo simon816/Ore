@@ -19,9 +19,9 @@ object Forms {
   lazy val PageEdit = Form(tuple("name" -> text, "content" -> text))
 
   /**
-    * Selects a Category for a project.
+    * Submits settings changes for a Project.
     */
-  lazy val ProjectCategory = Form(single("category" -> text))
+  lazy val ProjectSave = Form(tuple("category" -> text, "issues" -> text, "source" -> text))
 
   /**
     * Submits a name change for a project.

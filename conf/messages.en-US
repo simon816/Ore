@@ -70,6 +70,8 @@ project.create.step             =   Step {0}/{1}
 project.create.destination      =   Project will be created at {0}
 project.create.info-text.head   =   A project contains your downloads and the documentation for your plugin.
 project.create.info-text.bottom =   Begin by uploading your plugin JAR file with a valid <i>mcmod.info</i> file in the first level or a ZIP file with your valid plugin JAR in the first level. Plugins with missing or incomplete metadata files will not be accepted.
+project.create.issue-input      =   Issue tracker URL
+project.create.source-input     =   Source code URL
 
 version                         =   Version
 version.description             =   Description
