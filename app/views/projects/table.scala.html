@@ -75,7 +75,7 @@ Collection of all projects.
                                 <td class="" colspan="1">
                                     <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
                                 </td>
-                                <td><a href="#">@project.ownerName</a></td>
+                                <td><a href="@routes.Application.showUser(project.ownerName)">@project.ownerName</a></td>
                                 <td class="minor stat">@project.views</td>
                                 <td class="minor stat">@project.downloads</td>
                                 <td class="minor stat">@project.stars</td>

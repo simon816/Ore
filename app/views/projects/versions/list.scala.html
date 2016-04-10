@@ -1,7 +1,7 @@
 @*
 Versions page within Project overview.
 *@
-@import controllers.project.routes
+@import controllers.project.{routes => projectRoutes}
 @import models.project.{Channel, Project, Version}
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
   visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session)
@@ -27,11 +27,11 @@ Versions page within Project overview.
                                         <td>
                                             <div class="pull-right">
                                                 <span class="date">@version.prettyDate</span>
-                                                <a href="@routes.Versions.show(
+                                                <a href="@projectRoutes.Versions.show(
                                                     model.ownerName, model.slug, channel.name, version.versionString)">
                                                     <i title="Details" class="fa fa-info-circle"></i>
                                                 </a>
-                                                <a href="@routes.Versions.download(
+                                                <a href="@projectRoutes.Versions.download(
                                                     model.ownerName, model.slug, channel.name, version.versionString)">
                                                     <i title="Download" class="fa fa-download"></i>
                                                 </a>
@@ -46,7 +46,7 @@ Versions page within Project overview.
                     </div>
                     <div class="col-md-3">
                         @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)) {
-                            <a href="@routes.Versions.showCreator(model.ownerName, model.slug)"
+                            <a href="@projectRoutes.Versions.showCreator(model.ownerName, model.slug)"
                             class="btn btn-block btn-primary btn-panel btn-version">
                                 <i class="fa fa-plus"></i> Create version
                             </a>
@@ -55,7 +55,7 @@ Versions page within Project overview.
                             <div class="panel-heading">
                                 <h3 class="panel-title">Channels</h3>
                                 @if(visibleChannels.isDefined) {
-                                    <a href="@routes.Versions.showList(model.ownerName, model.slug, None)">
+                                    <a href="@projectRoutes.Versions.showList(model.ownerName, model.slug, None)">
                                         <i class="pull-right channel-reset fa fa-times"></i>
                                     </a>
                                 }
@@ -69,7 +69,7 @@ Versions page within Project overview.
                                       @if(visibleChannels.isDefined) {
                                           @if(!visibleChannels.get.contains(channel.name)) {
                                               <a class="pull-right"
-                                                 href="@routes.Versions.showList(model.ownerName, model.slug, Some(
+                                                 href="@projectRoutes.Versions.showList(model.ownerName, model.slug, Some(
                                                      (visibleChannels.get :+ channel.name).mkString(",")
                                                  ))"
                                               >
@@ -77,7 +77,7 @@ Versions page within Project overview.
                                               </a>
                                           } else {
                                               <a class="pull-right"
-                                                 href="@routes.Versions.showList(model.ownerName, model.slug, Some(
+                                                 href="@projectRoutes.Versions.showList(model.ownerName, model.slug, Some(
                                                      visibleChannels.get.filterNot(c => c.equals(channel.name)).mkString(",")
                                                  ))"
                                               >
@@ -85,7 +85,7 @@ Versions page within Project overview.
                                               </a>
                                           }
                                       } else {
-                                          <a href="@routes.Versions.showList(model.ownerName, model.slug, Some(channel.name))"
+                                          <a href="@projectRoutes.Versions.showList(model.ownerName, model.slug, Some(channel.name))"
                                              class="pull-right">
                                               <i class="fa fa-eye"></i>
                                           </a>
@@ -94,7 +94,7 @@ Versions page within Project overview.
                                 }
                                 @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)) {
                                     <li class="list-group-item text-right">
-                                        <a href="@routes.Channels.showList(model.ownerName, model.slug)">
+                                        <a href="@projectRoutes.Channels.showList(model.ownerName, model.slug)">
                                             <i class="fa fa-cog"></i> Edit
                                         </a>
                                     </li>
@@ -111,7 +111,7 @@ Versions page within Project overview.
                                     <li class="list-group-item">
                                         @defining(author.user) { userOpt =>
                                             @if(userOpt.isDefined) {
-                                                <a href="#">@author.name</a>
+                                                <a href="@routes.Application.showUser(author.name)">@author.name</a>
                                             } else {
                                                 <span class="minor">@author.name</span>
                                             }

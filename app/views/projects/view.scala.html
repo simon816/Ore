@@ -13,7 +13,7 @@ Base template for Project overview.
     <div class="project-header-container">
         <div class="container">
             <h1 class="project-header pull-left">
-                <a href="#">@project.ownerName</a>
+                <a href="@routes.Application.showUser(project.ownerName)">@project.ownerName</a>
                 / <strong><a href="@projectRoutes.Projects.show(project.ownerName, project.slug)">@project.name</a></strong>
             </h1>
 

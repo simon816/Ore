@@ -1,0 +1,18 @@
+@*
+User page for developers.
+*@
+@import models.user.User
+@import util.Gravatar
+@(user: User)(implicit messages: Messages, session: Session)
+
+@core.layout(user.username) {
+
+    <div class="container" style="margin-top: 90px">
+        <div class="user-header">
+            <img title="@user.username" alt="@user.username" height="100" width="100"
+                 class="user-avatar-lg" src="@Gravatar.urlFor(user.email)" />
+            <h1>@user.username</h1>
+        </div>
+    </div>
+
+}

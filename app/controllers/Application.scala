@@ -11,7 +11,6 @@ import models.user.{FakeUser, User}
 import pkg.Categories.Category
 import play.api.i18n.MessagesApi
 import play.api.mvc._
-import util.DiscourseSSO
 import util.DiscourseSSO._
 import views.{html => views}
 
@@ -48,6 +47,19 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
     }
     val projects = Queries.now(projectsFuture).get
     Ok(views.home(projects, Option(categoryArray)))
+  }
+
+  /**
+    * Shows the User page for the user with the specified username.
+    *
+    * @param username   Username to lookup
+    * @return           View of user page
+    */
+  def showUser(username: String) = Action { implicit request =>
+    User.withName(username) match {
+      case None => NotFound
+      case Some(user) => Ok(views.user(user))
+    }
   }
 
   /**
