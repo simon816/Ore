@@ -34,7 +34,7 @@ POST    /:author/:slug                                          @controllers.pro
 GET     /:author/:slug                                          @controllers.project.Projects.show(author, slug)
 GET     /:author/:slug/star/:starred                            @controllers.project.Projects.setStarred(author, slug, starred: Boolean)
 
-GET     /:author/:slug/dicuss                                   @controllers.project.Projects.showDiscussion(author, slug)
+GET     /:author/:slug/discuss                                  @controllers.project.Projects.showDiscussion(author, slug)
 
 GET     /:author/:slug/manage                                   @controllers.project.Projects.showManager(author, slug)
 POST    /:author/:slug/manage/save                              @controllers.project.Projects.save(author, slug)
