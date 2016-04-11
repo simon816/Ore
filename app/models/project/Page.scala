@@ -21,12 +21,18 @@ import play.api.Play.{configuration => config}
   * @param _contents     Markdown contents
   * @param isDeletable  True if can be deleted by the user
   */
-case class Page(override val id: Option[Int], override val createdAt: Option[Timestamp],
-                projectId: Int, name: String, slug: String, private var _contents: String,
-                isDeletable: Boolean) extends Model {
+case class Page(override val  id: Option[Int] = None,
+                override val  createdAt: Option[Timestamp] = None,
+                val           projectId: Int,
+                val           name: String,
+                val           slug: String,
+                private var   _contents: String,
+                val           isDeletable: Boolean = true)
+                extends       Model {
 
-  def this(projectId: Int, name: String, content: String, isDeletable: Boolean = true) = {
-    this(None, None, projectId, Project.sanitizeName(name), Project.slugify(name), content, isDeletable)
+  def this(projectId: Int, name: String, content: String, isDeletable: Boolean) = {
+    this(projectId=projectId, name=Project.sanitizeName(name),
+         slug=Project.slugify(name), _contents=content, isDeletable=isDeletable)
   }
 
   /**

@@ -31,10 +31,15 @@ import scala.util.Try
   * @param projectId        ID of project this version belongs to
   * @param channelId        ID of channel this version belongs to
   */
-case class Version(override val id: Option[Int], override val createdAt: Option[Timestamp],
-                   versionString: String, dependenciesIds: List[String],
-                   private var _description: Option[String], assets: Option[String],
-                   private var _downloads: Int, projectId: Int, var channelId: Int) extends Model {
+case class Version(override val   id: Option[Int] = None,
+                   override val   createdAt: Option[Timestamp] = None,
+                   val            versionString: String,
+                   val            dependenciesIds: List[String] = List(),
+                   private var    _description: Option[String] = None,
+                   val            assets: Option[String] = None,
+                   private var    _downloads: Int = 0,
+                   val            projectId: Int,
+                   val            channelId: Int) extends Model {
 
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int) = {

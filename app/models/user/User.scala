@@ -2,17 +2,15 @@ package models.user
 
 import java.sql.Timestamp
 
-import com.google.common.base.Preconditions
 import com.google.common.base.Preconditions._
 import db.Model
 import db.query.Queries
 import db.query.Queries.now
-import models.user.User._
 import models.project.Project
+import models.user.User._
 import ore.UserRoles
 import ore.UserRoles.UserRole
-import play.api.Play.current
-import play.api.Play.{configuration => config}
+import play.api.Play.{configuration => config, current}
 
 /**
   * Represents a Sponge user.
@@ -25,13 +23,17 @@ import play.api.Play.{configuration => config}
   * @param roleIds      List of roles this User is in
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
-case class User(externalId: Int, override val createdAt: Option[Timestamp], name: Option[String],
-                username: String, email: String, roleIds: List[Int] = List(),
-                private var _tagline: Option[String] = None)
-                extends Model {
+case class User(val           externalId: Int,
+                override val  createdAt: Option[Timestamp] = None,
+                val           name: Option[String] = None,
+                val           username: String,
+                val           email: String,
+                val           roleIds: List[Int] = List(),
+                private var   _tagline: Option[String] = None)
+                extends       Model {
 
   def this(externalId: Int, name: String, username: String, email: String) = {
-    this(externalId, None, Option(name), username, email)
+    this(externalId=externalId, name=Option(name), username=username, email=email)
   }
 
   /**

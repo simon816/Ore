@@ -30,11 +30,15 @@ import scala.util.Try
   * @param colorId      ID of ChannelColor used to represent this Channel
   * @param projectId    ID of project this channel belongs to
   */
-case class Channel(override val id: Option[Int], override val createdAt: Option[Timestamp],
-                   private var _name: String, private var colorId: Int, projectId: Int)
-                   extends Ordered[Channel] with Model {
+case class Channel(override val   id: Option[Int] = None,
+                   override val   createdAt: Option[Timestamp] = None,
+                   private var    _name: String,
+                   private var    colorId: Int,
+                   val            projectId: Int)
+                   extends        Ordered[Channel]
+                   with           Model {
 
-  def this(name: String, color: Color, projectId: Int) = this(None, None, name, color.id, projectId)
+  def this(name: String, color: Color, projectId: Int) = this(_name=name, colorId=color.id, projectId=projectId)
 
   /**
     * Returns this Channel's name.

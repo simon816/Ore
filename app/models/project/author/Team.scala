@@ -11,5 +11,7 @@ import db.Model
   * @param createdAt  Instant of creation
   * @param name       Name of team
   */
-case class Team(override val id: Option[Int], override val createdAt: Option[Timestamp],
-                override val name: String) extends AbstractAuthor with Model
+case class Team(override val id: Option[Int] = None,
+                override val createdAt: Option[Timestamp] = None,
+                override val name: String)
+                extends AbstractAuthor with Model

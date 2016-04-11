@@ -13,7 +13,6 @@ Collection of all projects.
             <tr class="panel-title">
                 <th></th>
                 <th class="name">@messages("project.name")</th>
-                <th></th>
                 <th class="author">@messages("project.author")</th>
                 <th title="Views" class="minor stat"><i class="fa fa-eye"></i></th>
                 <th title="Downloads" class="minor stat"><i class="fa fa-download"></i></th>
@@ -28,8 +27,8 @@ Collection of all projects.
                 }
             <td class="name">
                 <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
+                <i class="minor">@project.description.getOrElse("")</i>
             </td>
-            <td class="description"><i class="minor">@project.description.getOrElse("")</i></td>
             <td class="author"><a href="@routes.Application.showUser(project.ownerName)">@project.ownerName</a></td>
             <td class="minor stat">@project.views</td>
             <td class="minor stat">@project.downloads</td>
