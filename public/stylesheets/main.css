@@ -74,10 +74,15 @@ body {
     min-width: 30px;
     font-size: 18px;
     white-space: nowrap;
+    overflow: hidden;
 }
 
 .project-table .name {
     width: 1%;
+    max-width: 500px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: gray;
 }
 
 .project-table .name > i {

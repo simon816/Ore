@@ -20,7 +20,8 @@
                         @projects.inputSettings("save", project.issues, project.source, Some(project.category))
 
                         <label for="description">Project description</label>
-                        <input form="save" class="form-control" type="text" id="description" name="description"
+                        <input form="save" class="form-control" type="text" id="description"
+                               name="description" maxlength="@Project.MAX_DESCRIPTION_LENGTH"
                           @project.description.map { description =>
                             value="@description"
                           }.getOrElse {
