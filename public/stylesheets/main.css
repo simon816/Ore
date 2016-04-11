@@ -62,13 +62,36 @@ body {
     padding-bottom: 50px;
 }
 
+.project-table > tbody > tr > td:first-child {
+    width: 1%;
+}
+
 .project-table > tbody > tr > td {
+    min-width: 30px;
     font-size: 18px;
+    white-space: nowrap;
+}
+
+.project-table .name {
+    width: 1%;
+}
+
+.project-table .author {
+    text-align: right;
+}
+
+.project-table .description {
+    font-size: 16px;
+    vertical-align: bottom;
+    padding-left: 0;
+}
+
+.project-panel .panel-footer {
+    height: 34px;
 }
 
 .project-table .stat {
     text-align: center;
-    vertical-align: middle;
     width: 40px;
 }
 
@@ -100,9 +123,6 @@ body {
     background: #f6d830;
 }
 
-.project-table > thead > tr > th:first-child {
-    width: 25px;
-}
 
 .project-header-container {
     margin-top: 60px;

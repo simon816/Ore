@@ -27,8 +27,9 @@ $(function() {
                     $('.project-table').find('tbody').append(
                           '<tr>'
                           + '<td><i title="' + category.title + '" class="fa ' + category.icon + '"></i></td>'
-                          + '<td colspan="1"><strong><a href="' + url + '">' + project.name + '</a></strong></td>'
-                          + '<td><a href="#">' + project.owner + '</a></td>'
+                          + '<td class="name"><strong><a href="' + url + '">' + project.name + '</a></strong></td>'
+                          + '<td class="description"><i class="minor">Lorem ipsum some description here.</i></td>'
+                          + '<td class="author"><a href="#">' + project.owner + '</a></td>'
                           + '<td class="minor">' + project.views + '</td>'
                           + '<td class="minor">' + project.downloads + '</td>'
                           + '<td class="minor">' + project.stars + '</td>'

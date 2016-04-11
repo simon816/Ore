@@ -7,13 +7,14 @@ Collection of all projects.
 @(models: Seq[Project], visibleCategories: Option[Array[Category]] = None)(implicit messages: Messages,
         session: Session, flash: Flash)
 
-<div class="panel panel-default">
+<div class="panel panel-default project-panel">
     <table class="table project-table">
         <thead class="panel-heading">
             <tr class="panel-title">
                 <th></th>
-                <th>@messages("project.name")</th>
-                <th>@messages("project.author")</th>
+                <th class="name">@messages("project.name")</th>
+                <th></th>
+                <th class="author">@messages("project.author")</th>
                 <th title="Views" class="minor stat"><i class="fa fa-eye"></i></th>
                 <th title="Downloads" class="minor stat"><i class="fa fa-download"></i></th>
                 <th title="Stars" class="minor stat"><i class="fa fa-star"></i></th>
@@ -25,10 +26,11 @@ Collection of all projects.
                 @defining(project.category) { category =>
                     <td><i title="@category.title" class="fa @category.icon"></i></td>
                 }
-            <td class="" colspan="1">
+            <td class="name">
                 <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
             </td>
-            <td><a href="@routes.Application.showUser(project.ownerName)">@project.ownerName</a></td>
+            <td class="description"><i class="minor">@project.description.getOrElse("")</i></td>
+            <td class="author"><a href="@routes.Application.showUser(project.ownerName)">@project.ownerName</a></td>
             <td class="minor stat">@project.views</td>
             <td class="minor stat">@project.downloads</td>
             <td class="minor stat">@project.stars</td>
@@ -36,5 +38,9 @@ Collection of all projects.
         }
         </tbody>
     </table>
-    <button class="btn btn-default btn-more"><strong>@messages("table.more")</strong></button>
+    @if(models.size >= Project.INITIAL_LOAD) {
+        <button class="btn btn-default btn-more"><strong>@messages("table.more")</strong></button>
+    } else {
+        <div class="panel-footer"></div>
+    }
 </div>

@@ -46,19 +46,29 @@ import scala.util.Try
   * @param _stars                 How many times this project has been starred
   * @param _issues                External link to issue tracker
   * @param _source                External link to source code
+  * @param _description           Short description of Project
   */
-case class Project(override val id: Option[Int], override val createdAt: Option[Timestamp],
-                   pluginId: String, private var _name: String, private var _slug: String,
-                   ownerName: String, authorNames: List[String], homepage: Option[String],
-                   private var recommendedVersionId: Option[Int],
-                   private var categoryId: Int = -1, private var _views: Int,
-                   private var _downloads: Int, private var _stars: Int,
-                   private var _issues: Option[String], private var _source: Option[String])
-                   extends Model {
+case class Project(override val   id: Option[Int] = None,
+                   override val   createdAt: Option[Timestamp] = None,
+                   val            pluginId: String,
+                   private var    _name: String,
+                   private var    _slug: String,
+                   val            ownerName: String,
+                   val            authorNames: List[String],
+                   val            homepage: Option[String] = None,
+                   private var    recommendedVersionId: Option[Int] = None,
+                   private var    categoryId: Int = -1,
+                   private var    _views: Int = 0,
+                   private var    _downloads: Int = 0,
+                   private var    _stars: Int = 0,
+                   private var    _issues: Option[String] = None,
+                   private var    _source: Option[String] = None,
+                   private var    _description: Option[String] = None)
+                   extends        Model {
 
   def this(pluginId: String, name: String, owner: String, authors: List[String], homepage: String) = {
-    this(None, None, pluginId, sanitizeName(name), slugify(name),
-         owner, authors, Option(homepage), None, 0, 0, 0, 0, None, None)
+    this(pluginId=pluginId, _name=sanitizeName(name), _slug=slugify(name),
+         ownerName=owner, authorNames=authors, homepage=Option(homepage))
   }
 
   def owner: Dev = Dev(this.ownerName) // TODO: Teams
@@ -100,75 +110,23 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
   def slug: String = this._slug
 
   /**
-    * Returns all Channels belonging to this Project.
+    * Returns this Project's description.
     *
-    * @return All channels in project
+    * @return Project description
     */
-  def channels: Seq[Channel] = now(Queries.Channels.in(this.id.get)).get
+  def description: Option[String] = this._description
 
   /**
-    * Returns the Channel in this project with the specified name.
+    * Sets this Project's description.
     *
-    * @param name   Name of channel
-    * @return       Channel with name, if present, None otherwise
+    * @param _description Description to set
     */
-  def channel(name: String): Option[Channel] = now(Queries.Channels.withName(this.id.get, name)).get
-
-  /**
-    * Returns the Channel in this project with the specified color. Colors are
-    * unique to Channels within Projects.
-    *
-    * @param color  Color of channel
-    * @return       Channel with color, if present, None otherwise
-    */
-  def channel(color: Color): Option[Channel] = now(Queries.Channels.withColor(this.id.get, color.id)).get
-
-  /**
-    * Creates a new Channel for this project with the specified name.
-    *
-    * @param name   Name of channel
-    * @return       New channel
-    */
-  def newChannel(name: String, color: Color): Try[Channel] = Try {
-    checkArgument(Channel.isValidName(name), "invalid name", "")
-    checkState(this.channels.size < Project.MAX_CHANNELS, "channel limit reached", "")
-    now(Queries.Channels.create(new Channel(name, color, this.id.get))).get
-  }
-
-  /**
-    * Returns this Project's recommended version.
-    *
-    * @return Recommended version
-    */
-  def recommendedVersion: Version = now(Queries.Versions.get(this.recommendedVersionId.get)).get.get
-
-  /**
-    * Updates this project's recommended version.
-    *
-    * @param _version  Version to set
-    * @return         Result
-    */
-  def recommendedVersion_=(_version: Version) = {
-    now(Queries.Projects.setInt(this, _.recommendedVersionId, _version.id.get)).get
-    this.recommendedVersionId = _version.id
-  }
-
-  /**
-    * Returns all Versions belonging to this Project.
-    *
-    * @return All versions in project
-    */
-  def versions: Seq[Version] = now(Queries.Versions.inProject(this.id.get)).get
-
-  /**
-    * Returns all Versions belonging to the specified channels.
-    *
-    * @param channels   Channels to get versions for
-    * @return           All versions in channels
-    */
-  def versionsIn(channels: Seq[Channel]): Seq[Version] = {
-    channels.foreach(c => checkArgument(c.projectId == this.id.get, "channel doesn't belong to project", ""))
-    now(Queries.Versions.inChannels(channels.map(_.id.get))).get
+  def description_=(_description: String) = {
+    var value = sanitizeName(_description)
+    checkArgument(value.length <= MAX_DESCRIPTION_LENGTH, "description too long", "")
+    value = if (value.nonEmpty) value else null
+    now(Queries.Projects.setString(this, _.description, value)).get
+    this._description = Option(value)
   }
 
   /**
@@ -317,6 +275,78 @@ case class Project(override val id: Option[Int], override val createdAt: Option[
   }
 
   /**
+    * Returns all Channels belonging to this Project.
+    *
+    * @return All channels in project
+    */
+  def channels: Seq[Channel] = now(Queries.Channels.in(this.id.get)).get
+
+  /**
+    * Returns the Channel in this project with the specified name.
+    *
+    * @param name   Name of channel
+    * @return       Channel with name, if present, None otherwise
+    */
+  def channel(name: String): Option[Channel] = now(Queries.Channels.withName(this.id.get, name)).get
+
+  /**
+    * Returns the Channel in this project with the specified color. Colors are
+    * unique to Channels within Projects.
+    *
+    * @param color  Color of channel
+    * @return       Channel with color, if present, None otherwise
+    */
+  def channel(color: Color): Option[Channel] = now(Queries.Channels.withColor(this.id.get, color.id)).get
+
+  /**
+    * Creates a new Channel for this project with the specified name.
+    *
+    * @param name   Name of channel
+    * @return       New channel
+    */
+  def newChannel(name: String, color: Color): Try[Channel] = Try {
+    checkArgument(Channel.isValidName(name), "invalid name", "")
+    checkState(this.channels.size < Project.MAX_CHANNELS, "channel limit reached", "")
+    now(Queries.Channels.create(new Channel(name, color, this.id.get))).get
+  }
+
+  /**
+    * Returns all Versions belonging to this Project.
+    *
+    * @return All versions in project
+    */
+  def versions: Seq[Version] = now(Queries.Versions.inProject(this.id.get)).get
+
+  /**
+    * Returns all Versions belonging to the specified channels.
+    *
+    * @param channels   Channels to get versions for
+    * @return           All versions in channels
+    */
+  def versionsIn(channels: Seq[Channel]): Seq[Version] = {
+    channels.foreach(c => checkArgument(c.projectId == this.id.get, "channel doesn't belong to project", ""))
+    now(Queries.Versions.inChannels(channels.map(_.id.get))).get
+  }
+
+  /**
+    * Returns this Project's recommended version.
+    *
+    * @return Recommended version
+    */
+  def recommendedVersion: Version = now(Queries.Versions.get(this.recommendedVersionId.get)).get.get
+
+  /**
+    * Updates this project's recommended version.
+    *
+    * @param _version  Version to set
+    * @return         Result
+    */
+  def recommendedVersion_=(_version: Version) = {
+    now(Queries.Projects.setInt(this, _.recommendedVersionId, _version.id.get)).get
+    this.recommendedVersionId = _version.id
+  }
+
+  /**
     * Returns this Project's pages.
     *
     * @return Project pages
@@ -410,6 +440,11 @@ object Project {
   val MAX_NAME_LENGTH: Int = config.getInt("ore.projects.max-name-len").get
 
   /**
+    * The maximum length for a Project description.
+    */
+  val MAX_DESCRIPTION_LENGTH: Int = config.getInt("ore.projects.max-desc-len").get
+
+  /**
     * The maximum amount of Pages a Project can have.
     */
   val MAX_PAGES: Int = config.getInt("ore.projects.max-pages").get
@@ -418,6 +453,11 @@ object Project {
     * The maximum amount of Channels permitted in a single Project.
     */
   val MAX_CHANNELS = config.getInt("ore.projects.max-channels").get
+
+  /**
+    * The maximum amount of Projects that are loaded initially.
+    */
+  val INITIAL_LOAD: Int = config.getInt("ore.projects.init-load").get
 
   /**
     * Represents a Project with an uploaded plugin that has not yet been

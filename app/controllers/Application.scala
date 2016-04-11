@@ -7,7 +7,7 @@ import controllers.routes.{Application => self}
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project
-import models.project.author.Dev
+import models.project.Project._
 import models.user.{FakeUser, User}
 import ore.Categories.Category
 import play.api.i18n.MessagesApi
@@ -24,11 +24,6 @@ import scala.concurrent.Future
 class Application @Inject()(override val messagesApi: MessagesApi) extends BaseController {
 
   /**
-    * The maximum amount of Projects that are loaded initially.
-    */
-  val INITIAL_PROJECT_LOAD: Int = 50
-
-  /**
     * Display the home page.
     *
     * @return Home page
@@ -37,7 +32,7 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
     var projectsFuture: Future[Seq[Project]] = null
     var categoryArray: Array[Category] = null
     categories match {
-      case None => projectsFuture = Queries.Projects.collect(limit = INITIAL_PROJECT_LOAD)
+      case None => projectsFuture = Queries.Projects.collect(limit = INITIAL_LOAD)
       case Some(csv) =>
         categoryArray = Categories.fromString(csv)
         var categoryIds = categoryArray.map(_.id)
@@ -45,7 +40,7 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
           categoryArray = null
           categoryIds = null
         }
-        projectsFuture = Queries.Projects.collect(categoryIds, INITIAL_PROJECT_LOAD)
+        projectsFuture = Queries.Projects.collect(categoryIds, INITIAL_LOAD)
     }
     val projects = Queries.now(projectsFuture).get
     Ok(views.home(projects, Option(categoryArray)))
