@@ -6,6 +6,20 @@ Discussion page within Project overview.
 
 @projects.view(model, "#discussion") {
 
-    <p>TODO: Discourse embedded discussion</p>
+    <div class="container">
+        <div id='discourse-comments'></div>
+
+        <script type="text/javascript">
+            DiscourseEmbed = { discourseUrl: 'https://forums.spongepowered.org/',
+                discourseEmbedUrl: 'https://ore-staging.spongepowered.org/@model.ownerName/@model.slug' };
+
+            (function() {
+                var d = document.createElement('script'); d.type = 'text/javascript'; d.async = true;
+                d.src = DiscourseEmbed.discourseUrl + 'javascripts/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(d);
+            })();
+        </script>
+
+    </div>
 
 }
