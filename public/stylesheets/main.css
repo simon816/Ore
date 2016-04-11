@@ -231,7 +231,7 @@ body {
 }
 
 .user-header .user-badge {
-    width: 30%;
+    width: 80%;
 }
 
 .user-header .user-badge > img {
@@ -246,7 +246,7 @@ body {
 
 .user-header .pull-right {
     height: 100%;
-    width: 200px;
+    width: 20%;
 }
 
 .user-header .user-info {
