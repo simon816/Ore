@@ -80,7 +80,6 @@ Base template for Project overview.
                             <span class="starred"> @project.stars</span>
                         </button>
                         <script>
-                                var baseUrl = "@Play.current.configuration.getString("application.baseUrl")";
                                 var projectOwner = "@project.ownerName";
                                 var projectSlug = "@project.slug";
                                 var alreadyStarred = @alreadyStarred;

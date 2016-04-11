@@ -1,4 +1,3 @@
-var BASE_URL = null;
 var PROJECTS_PER_CLICK = 50;
 var CATEGORY_STRING = null;
 
@@ -8,7 +7,7 @@ $(function() {
     $('.alert').fadeIn('slow');
 
     $('.btn-more').click(function() {
-        var ajaxUrl = BASE_URL + '/api/projects?limit=' + PROJECTS_PER_CLICK + '&offset=' + currentlyLoaded;
+        var ajaxUrl = '/api/projects?limit=' + PROJECTS_PER_CLICK + '&offset=' + currentlyLoaded;
         if (CATEGORY_STRING) {
             ajaxUrl += '&categories=' + CATEGORY_STRING;
         }
@@ -23,7 +22,7 @@ $(function() {
                     }
                     var project = data[i];
                     var category = project.category;
-                    var url = BASE_URL + '/' + project.owner + '/' + project.name;
+                    var url = '/' + project.owner + '/' + project.name;
                     $('.project-table').find('tbody').append(
                           '<tr>'
                           + '<td><i title="' + category.title + '" class="fa ' + category.icon + '"></i></td>'
@@ -31,7 +30,6 @@ $(function() {
                           +   '<strong><a href="' + url + '">' + project.name + '</a></strong>'
                           +   '<i class="minor">Lorem ipsum some description here.</i>'
                           + '</td>'
-                          + '<td class="description"><i class="minor">Lorem ipsum some description here.</i></td>'
                           + '<td class="author"><a href="#">' + project.owner + '</a></td>'
                           + '<td class="minor">' + project.views + '</td>'
                           + '<td class="minor">' + project.downloads + '</td>'

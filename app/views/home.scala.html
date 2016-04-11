@@ -17,7 +17,6 @@ sorted according to different criteria.
         @if(visibleCategories.isDefined) {
             CATEGORY_STRING = "@visibleCategories.get.map(_.id).mkString(",")";
         }
-        BASE_URL = '@Play.current.configuration.getString("application.baseUrl")';
         currentlyLoaded = @models.size;
     </script>
 

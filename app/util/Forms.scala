@@ -21,7 +21,7 @@ object Forms {
   /**
     * Submits settings changes for a Project.
     */
-  lazy val ProjectSave = Form(tuple("category" -> text, "issues" -> text, "source" -> text))
+  lazy val ProjectSave = Form(tuple("category" -> text, "issues" -> text, "source" -> text, "description" -> text))
 
   /**
     * Submits a name change for a project.

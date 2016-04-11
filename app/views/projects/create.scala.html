@@ -5,6 +5,7 @@ Page used for uploading and creating new projects.
 @import models.project.Project.PendingProject
 @import play.api.Play
 @import views.html.helper.form
+@import models.project.Project
 @(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout(messages("project.create")) {
@@ -56,16 +57,28 @@ Page used for uploading and creating new projects.
                                                 <td><strong>@messages("project.owner")</strong></td>
                                                 <td>@project.ownerName</td>
                                             </tr>
+                                            <tr>
+                                                <td><label for="description">Description</label></td>
+                                                <td>
+                                                    @defining(pending.get.pendingVersion.get.version.description) { description =>
+                                                        <input form="continue" class="form-control" type="text" id="description"
+                                                               name="description" maxlength="@Project.MAX_DESCRIPTION_LENGTH"
+                                                            @description.map { value =>
+                                                              value="@value"
+                                                            }.getOrElse {
+                                                              placeholder="@messages("version.create.no-description")"
+                                                            }
+                                                        />
+                                                    }
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
 
                                     <script>
                                     $(function() {
                                         validateMeta("@project.pluginId", "@project.name",
-                                                     "@Play.current.configuration.getString("application.baseUrl").get",
-                                                     "@project.ownerName", "@project.slug"
-
-                                        );
+                                                     "@project.ownerName", "@project.slug");
                                     });
                                     </script>
                                 </div>

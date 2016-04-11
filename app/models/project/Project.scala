@@ -19,6 +19,7 @@ import play.api.Play.current
 import play.api.Play.{configuration => config}
 import play.api.cache.Cache
 import util.{Cacheable, PendingAction}
+import util.Input._
 
 import scala.collection.JavaConversions._
 import scala.util.Try
@@ -67,7 +68,7 @@ case class Project(override val   id: Option[Int] = None,
                    extends        Model {
 
   def this(pluginId: String, name: String, owner: String, authors: List[String], homepage: String) = {
-    this(pluginId=pluginId, _name=sanitizeName(name), _slug=slugify(name),
+    this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
          ownerName=owner, authorNames=authors, homepage=Option(homepage))
   }
 
@@ -89,7 +90,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return       Future result
     */
   def name_=(_name: String) = {
-    val newName = sanitizeName(_name)
+    val newName = compact(_name)
     checkArgument(Project.isNamespaceAvailable(this.ownerName, newName), "slug not available", "")
     checkArgument(isValidName(newName), "invalid name", "")
 
@@ -97,7 +98,7 @@ case class Project(override val   id: Option[Int] = None,
     ProjectManager.renameProject(this.ownerName, this.name, newName)
     this._name = newName
 
-    val newSlug = slugify(this)
+    val newSlug = slugify(this.name)
     now(Queries.Projects.setString(this, _.slug, newSlug)).get
     this._slug = newSlug
   }
@@ -122,11 +123,11 @@ case class Project(override val   id: Option[Int] = None,
     * @param _description Description to set
     */
   def description_=(_description: String) = {
-    var value = sanitizeName(_description)
-    checkArgument(value.length <= MAX_DESCRIPTION_LENGTH, "description too long", "")
-    value = if (value.nonEmpty) value else null
-    now(Queries.Projects.setString(this, _.description, value)).get
-    this._description = Option(value)
+    checkArgument(_description == null || _description.length <= MAX_DESCRIPTION_LENGTH, "description too long", "")
+    if (this.exists) {
+      now(Queries.Projects.setString(this, _.description, _description)).get
+    }
+    this._description = Option(_description)
   }
 
   /**
@@ -206,7 +207,6 @@ case class Project(override val   id: Option[Int] = None,
     */
   def isStarredBy(username: String): Boolean = {
     val user = User.withName(username)
-    checkArgument(user.isDefined, "user not found", "")
     isStarredBy(user.get)
   }
 
@@ -247,11 +247,10 @@ case class Project(override val   id: Option[Int] = None,
     * @param _issues Issue tracker link
     */
   def issues_=(_issues: String) = {
-    val value = if (_issues.nonEmpty) _issues else null
     if (this.exists) {
-      now(Queries.Projects.setString(this, _.issues, value))
+      now(Queries.Projects.setString(this, _.issues, _issues))
     }
-    this._issues = Option(value)
+    this._issues = Option(_issues)
   }
 
   /**
@@ -267,11 +266,10 @@ case class Project(override val   id: Option[Int] = None,
     * @param _source Source code link
     */
   def source_=(_source: String) = {
-    val value = if (_source.nonEmpty) _source else null
     if (this.exists) {
-      now(Queries.Projects.setString(this, _.source, value))
+      now(Queries.Projects.setString(this, _.source, _source))
     }
-    this._source = Option(value)
+    this._source = Option(_source)
   }
 
   /**
@@ -376,7 +374,8 @@ case class Project(override val   id: Option[Int] = None,
     * @return       Page with name or new name if it doesn't exist
     */
   def getOrCreatePage(name: String): Page = {
-    // TODO: name validation
+    // TODO: Name validation
+    checkNotNull(name, "name cannot be null", "")
     now(Queries.Pages.getOrCreate(new Page(this.id.get, name, Page.template(name), true))).get
   }
 
@@ -467,9 +466,9 @@ object Project {
     * @param firstVersion   Uploaded plugin
     */
   case class PendingProject(project: Project, firstVersion: PluginFile) extends PendingAction[Project]
-                                                                        with Cacheable {
+                                                                        with    Cacheable {
 
-    private var pendingVersion: Option[PendingVersion] = None
+    private var _pendingVersion: Option[PendingVersion] = None
 
     /**
       * Creates a new PendingVersion for this PendingProject
@@ -481,7 +480,7 @@ object Project {
       val version = Version.fromMeta(this.project, meta)
       val pending = Version.setPending(project.ownerName, project.slug,
         Channel.getSuggestedNameForVersion(version.versionString), version, this.firstVersion)
-      this.pendingVersion = Some(pending)
+      this._pendingVersion = Some(pending)
       pending
     }
 
@@ -490,7 +489,7 @@ object Project {
       *
       * @return PendingVersion
       */
-    def getPendingVersion: Option[PendingVersion] = this.pendingVersion
+    def pendingVersion: Option[PendingVersion] = this._pendingVersion
 
     override def complete: Try[Project] = Try {
       free()
@@ -538,31 +537,9 @@ object Project {
     * @return       True if valid name
     */
   def isValidName(name: String): Boolean = {
-    val sanitized = sanitizeName(name)
+    val sanitized = compact(name)
     sanitized.length >= 1 && sanitized.length <= MAX_NAME_LENGTH
   }
-
-  /**
-    * Trims the specified name and removes extra whitespace.
-    *
-    * @param name   Name to sanitize
-    * @return       Sanitized name
-    */
-  def sanitizeName(name: String): String = name.trim.replaceAll(" +", " ")
-
-  /**
-    * Returns a URL slug that should be used for the project.
-    *
-    * @return URL slug
-    */
-  def slugify(project: Project): String = slugify(project.name)
-
-  /**
-    * Returns a URL slug that should be used for the project.
-    *
-    * @return URL slug
-    */
-  def slugify(name: String) = sanitizeName(name).replace(' ', '-')
 
   /**
     * Marks the specified Project as pending for later use.

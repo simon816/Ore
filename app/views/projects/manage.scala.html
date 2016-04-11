@@ -19,6 +19,15 @@
 
                         @projects.inputSettings("save", project.issues, project.source, Some(project.category))
 
+                        <label for="description">Project description</label>
+                        <input form="save" class="form-control" type="text" id="description" name="description"
+                          @project.description.map { description =>
+                            value="@description"
+                          }.getOrElse {
+                            placeholder="@messages("version.create.no-description")"
+                          }
+                        />
+
                         <label for="name">Project name</label>
                         <div class="form-inline form-rename">
                             <input form="rename" id="name" name="name" class="form-control" type="text" value="@project.name"

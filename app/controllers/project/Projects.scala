@@ -10,6 +10,7 @@ import ore.{Categories, InvalidPluginFileException, ProjectManager}
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.Forms
+import util.Input._
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -68,7 +69,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
   def showCreatorWithMeta(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     Project.getPending(author, slug) match {
       case None => Redirect(self.showCreator())
-      case Some(pending) => Ok(views.projects.create(Some(pending)))
+      case Some(pending) =>
+        pending.initFirstVersion
+        Ok(views.projects.create(Some(pending)))
     })
   }
 
@@ -85,15 +88,12 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
       case None => BadRequest("No project to create.")
       case Some(pendingProject) =>
         val form = Forms.ProjectSave.bindFromRequest.get
-        val category = Categories.withName(form._1.trim)
-        val issues = form._2.trim
-        val source = form._3.trim
+        pendingProject.project.category = Categories.withName(form._1.trim)
+        pendingProject.project.issues = nullIfEmpty(form._2)
+        pendingProject.project.source = nullIfEmpty(form._3)
+        pendingProject.project.description = nullIfEmpty(form._4)
 
-        pendingProject.project.category = category
-        if (issues.nonEmpty) pendingProject.project.issues = issues
-        if (source.nonEmpty) pendingProject.project.source = source
-
-        val pendingVersion = pendingProject.initFirstVersion
+        val pendingVersion = pendingProject.pendingVersion.get
         Redirect(routes.Versions.showCreatorWithMeta(
           author, slug, pendingVersion.channelName, pendingVersion.version.versionString
         ))
@@ -123,23 +123,10 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
   def save(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
       val form = Forms.ProjectSave.bindFromRequest.get
-      val category = Categories.withName(form._1.trim)
-      var issues = form._2.trim
-      var source = form._3.trim
-
-      if (issues.isEmpty) issues = null
-      if (source.isEmpty) source = null
-
-      if (!category.equals(project.category)) {
-        project.category = category
-      }
-      if (project.issues.isEmpty || !project.issues.get.equals(issues)) {
-        project.issues = issues
-      }
-      if (project.source.isEmpty || !project.source.get.equals(source)) {
-        project.source = source
-      }
-
+      project.category = Categories.withName(form._1.trim)
+      project.issues = nullIfEmpty(form._2)
+      project.source = nullIfEmpty(form._3)
+      project.description = nullIfEmpty(form._4)
       Redirect(self.show(author, slug))
     }))
   }
@@ -229,8 +216,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def rename(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
-      val newName = Project.sanitizeName(Forms.ProjectRename.bindFromRequest.get)
-      if (!Project.isNamespaceAvailable(author, Project.slugify(newName))) {
+      val newName = compact(Forms.ProjectRename.bindFromRequest.get)
+      if (!Project.isNamespaceAvailable(author, slugify(newName))) {
         Redirect(self.showManager(author, slug)).flashing("error" -> "That name is not available.")
       } else {
         project.name = newName

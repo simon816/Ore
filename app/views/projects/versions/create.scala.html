@@ -2,6 +2,7 @@
 @import models.project.Version.PendingVersion
 @import models.project.{Channel, Project}
 @import views.html.helper.form
+@import util.Input
 @(project: Project, pending: Option[PendingVersion],
   channels: Option[Seq[Channel]], showFileControls: Boolean)(implicit messages: Messages, session: Session, flash: Flash)
 
@@ -144,7 +145,7 @@
                 <span class="pull-left tos"><i>@Html(messages("version.create.tos", "#"))</i></span>
                 @if(!showFileControls) {
                     <span class="pull-right tos">
-                        <i>@Html(messages("project.create.destination", "<strong>" + project.ownerName + "/" + Project.slugify(project)
+                        <i>@Html(messages("project.create.destination", "<strong>" + project.ownerName + "/" + Input.slugify(project.name)
                                 + "</strong>"))
                         </i>
                     </span>

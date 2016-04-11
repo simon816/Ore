@@ -140,9 +140,14 @@ object Version {
     * @param version        Version that is pending
     * @param plugin         Uploaded plugin
     */
-  case class PendingVersion(owner: String, projectSlug: String, var channelName: String,
-                            var channelColor: Color, version: Version,
-                            plugin: PluginFile) extends PendingAction[Version] with Cacheable {
+  case class PendingVersion(val       owner: String,
+                            val       projectSlug: String,
+                            var       channelName: String,
+                            var       channelColor: Color,
+                            val       version: Version,
+                            val       plugin: PluginFile)
+                            extends   PendingAction[Version]
+                            with      Cacheable {
 
     override def complete: Try[Version] = Try {
       free()

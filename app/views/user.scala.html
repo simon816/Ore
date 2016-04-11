@@ -96,19 +96,25 @@ User page for developers.
                     </div>
                     <table class="table panel-body">
                         <tbody>
-                            @user.starred(1).map { project =>
-                              <tr>
-                                  <td>
-                                      <a href="@projectRoutes.Projects.show(project.ownerName, project.name)" class="pull-left">
-                                        @project.ownerName/<strong>@project.slug</strong>
-                                      </a>
-                                      <div class="pull-right">
-                                          <span class="minor">@project.recommendedVersion.versionString</span>
-                                          <i data-toggle="tooltip" data-placement="right"
-                                             title="@project.category.title" class="fa @project.category.icon"></i>
-                                      </div>
-                                  </td>
-                              </tr>
+                            @defining(user.starred(1)) { stars =>
+                              @if(stars.isEmpty) {
+                                  <tr><td><i class="minor">@messages("user.no-stars", user.username)</i></td></tr>
+                              } else {
+                                  @stars.map { star =>
+                                      <tr>
+                                          <td>
+                                              <a href="@projectRoutes.Projects.show(star.ownerName, star.name)" class="pull-left">
+                                                  @star.ownerName/<strong>@star.slug</strong>
+                                              </a>
+                                              <div class="pull-right">
+                                                  <span class="minor">@star.recommendedVersion.versionString</span>
+                                                  <i data-toggle="tooltip" data-placement="right"
+                                                  title="@star.category.title" class="fa @star.category.icon"></i>
+                                              </div>
+                                          </td>
+                                      </tr>
+                                  }
+                              }
                             }
                         </tbody>
                     </table>

@@ -9,6 +9,7 @@ import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
 import play.api.Play.current
 import play.api.Play.{configuration => config}
+import util.Input._
 
 /**
   * Represents a documentation page within a project.
@@ -31,8 +32,8 @@ case class Page(override val  id: Option[Int] = None,
                 extends       Model {
 
   def this(projectId: Int, name: String, content: String, isDeletable: Boolean) = {
-    this(projectId=projectId, name=Project.sanitizeName(name),
-         slug=Project.slugify(name), _contents=content, isDeletable=isDeletable)
+    this(projectId=projectId, name=compact(name),
+         slug=slugify(name), _contents=content, isDeletable=isDeletable)
   }
 
   /**
