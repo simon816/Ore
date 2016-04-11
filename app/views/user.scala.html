@@ -5,6 +5,7 @@ User page for developers.
 @import models.project.author.Dev
 @import models.user.User
 @import util.Gravatar
+@import views.html.helper.form
 @(user: User)(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout(user.username) {
@@ -16,13 +17,48 @@ User page for developers.
         <div class="user-header">
             <div class="header-body">
                 <div class="pull-left user-badge">
+                    <img title="@user.username" alt="@user.username" height="100" width="100"
+                    class="user-avatar-lg" src="@Gravatar.urlFor(user.email, 100)" />
                     <div class="user-title">
-                        <img title="@user.username" alt="@user.username" height="100" width="100"
-                        class="user-avatar-lg" src="@Gravatar.urlFor(user.email, 100)" />
-                        <h1>@user.username</h1><br />
+                        <h1>@user.username</h1>
                         <div class="user-tag">
-                            <i class="minor">Add a tagline</i>
-                            <a href="#"><i class="fa fa-edit"></i></a>
+                            <i class="minor">
+                                @if(user.tagline.isDefined) {
+                                    @user.tagline.get
+                                } else { @if(session.get("username").isDefined
+                                        && session.get("username").get.equals(user.username)) {
+                                    Add a tagline
+                                }}
+                            </i>
+
+                            @if(session.get("username").isDefined && session.get("username").get.equals(user.username)) {
+                                <a href="#" data-toggle="modal" data-target="#modal-tagline"><i class="fa fa-edit"></i></a>
+                            }
+                        </div>
+                        <div class="modal fade" id="modal-tagline" tabindex="-1" role="dialog" aria-labelledby="label-tagline">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="@messages("aria.cancel")">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                        <h4 class="modal-title">@messages("user.tagline.edit")</h4>
+                                    </div>
+                                    @form(action = routes.Application.saveTagline(user.username)) {
+                                        <div class="modal-body">
+                                            <label for="tagline">Tagline</label>
+                                            <input class="form-control" type="text" value="@user.tagline.getOrElse("")" id="tagline"
+                                                   name="tagline" />
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                @messages("aria.close")
+                                            </button>
+                                            <input type="submit" value="@messages("aria.save")" class="btn btn-primary" />
+                                        </div>
+                                    }
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

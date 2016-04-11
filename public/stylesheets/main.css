@@ -206,18 +206,14 @@ body {
     width: 30%;
 }
 
-.user-header .user-title > img {
+.user-header .user-badge > img {
     float: left;
     margin-right: 20px;
     border-radius: 50%;
 }
 
-.user-header .user-title > h1 {
+.user-header .user-badge > h1 {
     float: left;
-}
-
-.user-header .user-title {
-    display: inline-block;
 }
 
 .user-header .pull-right {

@@ -130,11 +130,12 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
   def username    =   column[String]("username")
   def email       =   column[String]("email")
   def roles       =   column[List[Int]]("roles")
+  def tagline     =   column[String]("tagline")
 
   def pk = this.externalId
 
   override def * = (externalId, createdAt.?, name.?,
-                    username, email, roles) <> ((User.apply _).tupled, User.unapply)
+                    username, email, roles, tagline.?) <> ((User.apply _).tupled, User.unapply)
 
 }
 

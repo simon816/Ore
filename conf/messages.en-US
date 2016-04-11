@@ -113,5 +113,8 @@ table.more                      =   More
 
 aria.close                      =   Close
 aria.cancel                     =   Cancel
+aria.save                       =   Save
 aria.dropdown.main              =   maindropdown
 aria.dropdown.menu              =   dropdownMenu{0}
+
+user.tagline.edit = Edit tagline

@@ -13,6 +13,7 @@ import ore.Categories.Category
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.DiscourseSSO._
+import util.Forms
 import views.{html => views}
 
 import scala.concurrent.Future
@@ -62,6 +63,24 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
       case Some(user) => Ok(views.user(user))
     }
   }
+
+  /**
+    * Submits a change to the specified user's tagline.
+    *
+    * @param username   User to update
+    * @return           View of user page
+    */
+  def saveTagline(username: String) = withUser(Some(username), user => implicit request => {
+    val tagline = Forms.UserTagline.bindFromRequest.get.trim
+    if (tagline.length > User.MAX_TAGLINE_LENGTH) {
+      Redirect(self.showUser(user.username)).flashing("error" -> "Tagline is too long.")
+    } else {
+      if (user.tagline.isEmpty || !user.tagline.get.equals(tagline)) {
+        user.tagline = tagline
+      }
+      Redirect(self.showUser(user.username))
+    }
+  })
 
   /**
     * Redirect to forums for SSO authentication and then back here again.

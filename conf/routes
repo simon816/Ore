@@ -27,6 +27,9 @@ GET     /new                                                    @controllers.pro
 POST    /new/upload                                             @controllers.project.Projects.upload
 GET     /new/:author/:slug                                      @controllers.project.Projects.showCreatorWithMeta(author, slug)
 
+GET     /:user                                                  @controllers.Application.showUser(user)
+POST    /settings/tagline                                       @controllers.Application.saveTagline(user)
+
 POST    /:author/:slug                                          @controllers.project.Projects.showFirstVersionCreator(author, slug)
 GET     /:author/:slug                                          @controllers.project.Projects.show(author, slug)
 GET     /:author/:slug/star/:starred                            @controllers.project.Projects.setStarred(author, slug, starred: Boolean)
@@ -41,9 +44,6 @@ POST    /:author/:slug/manage/delete                            @controllers.pro
 GET     /:author/:slug/issues                                   @controllers.project.Projects.showIssues(author, slug)
 GET     /:author/:slug/source                                   @controllers.project.Projects.showSource(author, slug)
 
-# ---------- Users ----------
-
-GET     /:user                                                  @controllers.Application.showUser(user)
 
 # ---------- Pages ----------
 
