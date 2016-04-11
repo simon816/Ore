@@ -78,4 +78,5 @@ $(function() {
     var footer = getStarsFooter();
     footer.find('.next').click(function() { loadStars(1); });
     footer.find('.prev').click(function() { loadStars(-1); });
+    $('.alert').fadeIn('slow');
 });
