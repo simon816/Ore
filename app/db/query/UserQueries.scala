@@ -20,7 +20,7 @@ class UserQueries extends Queries[UserTable, User](TableQuery(tag => new UserTab
     * @return           User if found, None otherwise
     */
   def withName(username: String): Future[Option[User]] = {
-    find(u => u.username === username)
+    ?(u => u.username === username)
   }
 
   override def copyInto(id: Option[Int], theTime: Option[Timestamp], user: User): User = {

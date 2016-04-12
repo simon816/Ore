@@ -23,7 +23,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def showList(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
-      Ok(views.projects.channels.list(project, project.channels))
+      Ok(views.projects.channels.list(project, project.channels.seq))
     }, countView = true))
   }
 
@@ -36,7 +36,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def create(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
-      val channels = project.channels
+      val channels = project.channels.values
       if (channels.size > Project.MaxChannels) {
         // Maximum reached
         Redirect(self.showList(author, slug))
@@ -90,7 +90,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi) extends BaseCont
           .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
       } else {
         // Find submitted channel by old name
-        val channels = project.channels
+        val channels = project.channels.values
         channels.find(c => c.name.equals(channelName)) match {
           case None => NotFound("Channel not found.")
           case Some(channel) => Channel.Colors.find(c => c.hex.equalsIgnoreCase(form._2)) match {
@@ -140,7 +140,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def delete(author: String, slug: String, channelName: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
-      val channels = project.channels
+      val channels = project.channels.values
       if (channels.size == 1) {
         Redirect(self.showList(author, slug))
           .flashing("error" -> "You cannot delete your only channel.")

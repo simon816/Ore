@@ -8,7 +8,7 @@ import models.user.User
   *
   * @param name Name of developer
   */
-case class Dev(override val name: String) extends AbstractAuthor {
+case class Dev(override val name: String) extends Author {
 
   /**
     * Tries to resolve this Dev to a registered User.

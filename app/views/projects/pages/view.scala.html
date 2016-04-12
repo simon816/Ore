@@ -31,7 +31,7 @@ Documentation page within Project overview.
                             }
                         </div>
                         <ul class="list-group">
-                            @for(page <- model.pages) {
+                            @for(page <- model.pages.values) {
                                 <li class="list-group-item">
                                     <a href="@routes.Pages.show(model.ownerName, model.slug, page.name)">@page.name</a>
                                     @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)) {

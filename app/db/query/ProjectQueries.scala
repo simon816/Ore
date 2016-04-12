@@ -59,7 +59,6 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
   /**
     * Filters projects based on the given criteria.
     *
-    * @param categories   Categories of Projects
     * @param limit        Amount of Projects to get
     * @return             Projects matching criteria
     */
@@ -85,7 +84,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @return       Project if any, None otherwise
     */
   def withName(owner: String, name: String): Future[Option[Project]] = {
-    find(p => p.name.toLowerCase === name.toLowerCase && p.ownerName === owner)
+    ?(p => p.name.toLowerCase === name.toLowerCase && p.ownerName === owner)
   }
 
   /**
@@ -95,7 +94,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @return           Project if any, None otherwise
     */
   def withPluginId(pluginId: String): Future[Option[Project]] = {
-    find(p => p.pluginId === pluginId)
+    ?(p => p.pluginId === pluginId)
   }
 
   /**
@@ -105,7 +104,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @return       Project if any, None otherwise
     */
   def withSlug(owner: String, slug: String): Future[Option[Project]] = {
-    find(p => p.ownerName === owner && p.slug.toLowerCase === slug.toLowerCase)
+    ?(p => p.ownerName === owner && p.slug.toLowerCase === slug.toLowerCase)
   }
 
   /**

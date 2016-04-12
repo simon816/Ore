@@ -83,14 +83,14 @@ object ProjectManager {
     val project = Project.withSlug(pending.owner, pending.projectSlug).get
 
     // Create channel if not exists
-    project.channel(pending.channelName) match {
+    project.channels.withName(pending.channelName) match {
       case None => channel = project.newChannel(pending.channelName, pending.channelColor).get
       case Some(existing) => channel = existing
     }
 
     // Create version
     val pendingVersion = pending.version
-    if (channel.version(pendingVersion.versionString).isDefined) {
+    if (channel.versions.withName(pendingVersion.versionString).isDefined) {
       throw new IllegalArgumentException("Version already exists.")
     }
 

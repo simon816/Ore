@@ -28,7 +28,7 @@
                         >@messages("page.edit.delete")</a>
 
                         <a class="pull-right btn btn-primary"
-                           @if(model.pages.length < Project.MaxPages) {
+                           @if(model.pages.size < Project.MaxPages) {
                                data-toggle="modal" data-target="#new-page"
                            } else {
                                disabled data-toggle="tooltip" data-placement="bottom"

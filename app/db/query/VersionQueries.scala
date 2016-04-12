@@ -58,7 +58,7 @@ class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => ne
     * @return               Version with name
     */
   def withName(channelId: Int, versionString: String): Future[Option[Version]] = {
-    find(v => v.channelId === channelId && v.versionString === versionString)
+    ?(v => v.channelId === channelId && v.versionString === versionString)
   }
 
   /**

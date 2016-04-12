@@ -3,7 +3,7 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.Model
+import db._
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project._
@@ -76,13 +76,6 @@ case class Project(override val   id: Option[Int] = None,
   def owner: Dev = Dev(this.ownerName) // TODO: Teams
 
   def authors: List[Dev] = for (author <- authorNames) yield Dev(author) // TODO: Teams
-
-  /**
-    * Returns the name of this project.
-    *
-    * @return Name of project
-    */
-  def name: String = this._name
 
   /**
     * Sets the name of this project and performs all the necessary renames.
@@ -274,28 +267,11 @@ case class Project(override val   id: Option[Int] = None,
   }
 
   /**
-    * Returns all Channels belonging to this Project.
+    * Returns the Channels in this Project.
     *
-    * @return All channels in project
+    * @return Channels in project
     */
-  def channels: Seq[Channel] = now(Queries.Channels.in(this.id.get)).get
-
-  /**
-    * Returns the Channel in this project with the specified name.
-    *
-    * @param name   Name of channel
-    * @return       Channel with name, if present, None otherwise
-    */
-  def channel(name: String): Option[Channel] = now(Queries.Channels.withName(this.id.get, name)).get
-
-  /**
-    * Returns the Channel in this project with the specified color. Colors are
-    * unique to Channels within Projects.
-    *
-    * @param color  Color of channel
-    * @return       Channel with color, if present, None otherwise
-    */
-  def channel(color: Color): Option[Channel] = now(Queries.Channels.withColor(this.id.get, color.id)).get
+  def channels: ModelSet[ChannelTable, Channel] = ModelSet(Queries.Channels, this.id.get, _.projectId)
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -306,15 +282,15 @@ case class Project(override val   id: Option[Int] = None,
   def newChannel(name: String, color: Color): Try[Channel] = Try {
     checkArgument(Channel.isValidName(name), "invalid name", "")
     checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
-    now(Queries.Channels.create(new Channel(name, color, this.id.get))).get
+    this.channels.add(new Channel(name, color, this.id.get))
   }
 
   /**
-    * Returns all Versions belonging to this Project.
+    * Returns all versions in this project.
     *
-    * @return All versions in project
+    * @return Versions in project
     */
-  def versions: Seq[Version] = now(Queries.Versions.inProject(this.id.get)).get
+  def versions: ModelSet[VersionTable, Version] = ModelSet(Queries.Versions, this.id.get, _.projectId)
 
   /**
     * Returns all Versions belonging to the specified channels.
@@ -346,19 +322,11 @@ case class Project(override val   id: Option[Int] = None,
   }
 
   /**
-    * Returns this Project's pages.
+    * Returns the pages in this Project.
     *
-    * @return Project pages
+    * @return Pages in project
     */
-  def pages: Seq[Page] = now(Queries.Pages.in(this.id.get)).get
-
-  /**
-    * Returns the Page with the specified name, if any.
-    *
-    * @param name   Page name
-    * @return       Page with name, if any, None otherwise
-    */
-  def page(name: String): Option[Page] = now(Queries.Pages.withName(this.id.get, name)).get
+  def pages: ModelSet[PagesTable, Page] = new ModelSet(Queries.Pages, this.id.get, _.projectId)
 
   /**
     * Returns true if a page with the specified name exists.
@@ -366,7 +334,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param name   Page name
     * @return       True if exists
     */
-  def pageExists(name: String): Boolean = page(name).isDefined
+  def pageExists(name: String): Boolean = pages.withName(name).isDefined
 
   /**
     * Returns the specified Page or creates it if it doesn't exist.
@@ -378,16 +346,6 @@ case class Project(override val   id: Option[Int] = None,
     // TODO: Name validation
     checkNotNull(name, "name cannot be null", "")
     now(Queries.Pages.getOrCreate(new Page(this.id.get, name, Page.template(name), true))).get
-  }
-
-  /**
-    * Deletes the page with the specified name.
-    *
-    * @param name Page name
-    */
-  def deletePage(name: String) = {
-    now(Queries.Pages.delete(page(name).get)).get
-    Unit
   }
 
   /**
@@ -420,9 +378,11 @@ case class Project(override val   id: Option[Int] = None,
     * @return Result
     */
   def delete: Try[Unit] = Try {
-    now(Queries.Projects.delete(this)).get
+    now(Queries.Projects delete this).get
     FileUtils.deleteDirectory(ProjectManager.projectDir(this.ownerName, this._name).toFile)
   }
+
+  override def name: String = this._name
 
   override def hashCode: Int = this.id.get.hashCode
 

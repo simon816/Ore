@@ -19,4 +19,11 @@ abstract class ModelTable[M <: Model](tag: Tag, name: String) extends Table[M](t
     */
   def pk: Rep[Int]
 
+  /**
+    * Returns this table's name.
+    *
+    * @return
+    */
+  def modelName: Rep[String]
+
 }

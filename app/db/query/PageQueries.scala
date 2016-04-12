@@ -32,7 +32,7 @@ class PageQueries extends Queries[PagesTable, Page](TableQuery(tag => new PagesT
     * @return           Page with name
     */
   def withName(projectId: Int, name: String): Future[Option[Page]] = {
-    find(p => p.projectId === projectId && p.name.toLowerCase === name.toLowerCase)
+    ?(p => p.projectId === projectId && p.name.toLowerCase === name.toLowerCase)
   }
 
   override def copyInto(id: Option[Int], theTime: Option[Timestamp], page: Page): Page = {

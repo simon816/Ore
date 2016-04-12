@@ -15,7 +15,7 @@ class Api extends Controller {
 
   implicit val projectWrites = new Writes[Project] {
     def writes(project: Project) = {
-      val channelInfo: Seq[Map[String, String]] = for (channel <- project.channels) yield {
+      val channelInfo: Seq[Map[String, String]] = for (channel <- project.channels.seq) yield {
         Map("name" -> channel.name, "color" -> channel.color.hex)
       }
       val category = project.category

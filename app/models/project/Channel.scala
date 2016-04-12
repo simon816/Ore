@@ -4,7 +4,7 @@ import java.nio.file.Files
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.Model
+import db.{ModelSet, VersionTable, Model}
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Channel._
@@ -34,17 +34,10 @@ case class Channel(override val   id: Option[Int] = None,
                    private var    _name: String,
                    private var    colorId: Int,
                    val            projectId: Int)
-                   extends        Ordered[Channel]
-                   with           Model {
+                   extends        Model
+                   with           Ordered[Channel] {
 
   def this(name: String, color: Color, projectId: Int) = this(_name=name, colorId=color.id, projectId=projectId)
-
-  /**
-    * Returns this Channel's name.
-    *
-    * @return Channel name
-    */
-  def name: String = this._name
 
   /**
     * Sets the name of this channel for.
@@ -91,15 +84,20 @@ case class Channel(override val   id: Option[Int] = None,
     *
     * @return All versions
     */
-  def versions: Seq[Version] = now(Queries.Versions.inChannel(this.id.get)).get
+  def versions: ModelSet[VersionTable, Version] = ModelSet(Queries.Versions, this.id.get, _.channelId)
 
   /**
-    * Returns the Version in this channel with the specified version string.
+    * Creates a new version for this Channel.
     *
-    * @param version  Version string
-    * @return         Version, if any, None otherwise
+    * @param version        Version string
+    * @param dependencies   Plugin dependencies
+    * @param description    Plugin description
+    * @param assets         Assets location
+    * @return               Newly created version
     */
-  def version(version: String): Option[Version] = now(Queries.Versions.withName(this.id.get, version)).get
+  def newVersion(version: String, dependencies: List[String], description: String, assets: String): Version = {
+    this.versions.add(new Version(version, dependencies, description, assets, this.projectId, this.id.get))
+  }
 
   /**
     * Deletes the specified Version within this channel.
@@ -111,7 +109,7 @@ case class Channel(override val   id: Option[Int] = None,
   def deleteVersion(version: Version, context: Project): Try[Unit] = Try {
     checkArgument(context.versions.size > 1, "only one version", "")
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
-    now(Queries.Versions.delete(version)).get
+    now(Queries.Versions delete version).get
     Files.delete(ProjectManager.uploadPath(context.ownerName, context.name, version.versionString, this._name))
   }
 
@@ -124,17 +122,15 @@ case class Channel(override val   id: Option[Int] = None,
   def delete(context: Project): Try[Unit] = Try {
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
 
-    val channels = context.channels
+    val channels = context.channels.values
     checkArgument(channels.size > 1, "only one channel", "")
     checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
 
-    now(Queries.Channels.delete(this)).get
+    now(Queries.Channels delete this).get
     FileUtils.deleteDirectory(ProjectManager.projectDir(context.ownerName, context.name).resolve(this._name).toFile)
   }
 
-  def newVersion(version: String, dependencies: List[String], description: String, assets: String): Version = {
-    now(Queries.Versions.create(new Version(version, dependencies, description, assets, this.projectId, this.id.get))).get
-  }
+  override def name: String = this._name
 
   override def compare(that: Channel): Int = this._name compare that._name
 

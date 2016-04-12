@@ -24,7 +24,7 @@ import util.Input._
 case class Page(override val  id: Option[Int] = None,
                 override val  createdAt: Option[Timestamp] = None,
                 val           projectId: Int,
-                val           name: String,
+                override val  name: String,
                 val           slug: String,
                 private var   _contents: String,
                 val           isDeletable: Boolean = true)

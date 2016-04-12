@@ -6,7 +6,6 @@ import db.Model
 import db.query.Queries
 import db.query.Queries.now
 import ore.Colors.Color
-import ore._
 import ore.project.{Dependency, PluginFile, ProjectManager}
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
@@ -38,7 +37,8 @@ case class Version(override val   id: Option[Int] = None,
                    val            assets: Option[String] = None,
                    private var    _downloads: Int = 0,
                    val            projectId: Int,
-                   val            channelId: Int) extends Model {
+                   val            channelId: Int)
+                   extends        Model {
 
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int) = {
@@ -118,6 +118,8 @@ case class Version(override val   id: Option[Int] = None,
     now(Queries.Versions.setInt(this, _.downloads, this._downloads + 1)).get
     this._downloads += 1
   }
+
+  override def name: String = this.versionString
 
   override def hashCode: Int = this.id.hashCode
 

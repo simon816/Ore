@@ -32,7 +32,7 @@ class ChannelQueries extends Queries[ChannelTable, Channel](TableQuery(tag => ne
     * @return           Channel with name if any, None otherwise
     */
   def withName(projectId: Int, name: String): Future[Option[Channel]] = {
-    find(c => c.projectId === projectId && c.name.toLowerCase === name.toLowerCase)
+    ?(c => c.projectId === projectId && c.name.toLowerCase === name.toLowerCase)
   }
 
   /**
@@ -43,7 +43,7 @@ class ChannelQueries extends Queries[ChannelTable, Channel](TableQuery(tag => ne
     * @return           Channel with color if any, None otherwise
     */
   def withColor(projectId: Int, colorId: Int): Future[Option[Channel]] = {
-    find(c => c.projectId === projectId && c.colorId === colorId)
+    ?(c => c.projectId === projectId && c.colorId === colorId)
   }
 
   override def copyInto(id: Option[Int], theTime: Option[Timestamp], channel: Channel): Channel = {

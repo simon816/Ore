@@ -17,7 +17,7 @@ import play.api.Play.{configuration => config, current}
   *
   * @param externalId   External ID provided by authentication.
   * @param createdAt    Date this user first logged onto Ore.
-  * @param name         Full name of user
+  * @param fullName     Full name of user
   * @param username     Username
   * @param email        Email
   * @param roleIds      List of roles this User is in
@@ -25,7 +25,7 @@ import play.api.Play.{configuration => config, current}
   */
 case class User(val           externalId: Int,
                 override val  createdAt: Option[Timestamp] = None,
-                val           name: Option[String] = None,
+                val           fullName: Option[String] = None,
                 val           username: String,
                 val           email: String,
                 private var   roleIds: List[Int] = List(),
@@ -33,7 +33,7 @@ case class User(val           externalId: Int,
                 extends       Model {
 
   def this(externalId: Int, name: String, username: String, email: String) = {
-    this(externalId=externalId, name=Option(name), username=username, email=email)
+    this(externalId=externalId, fullName=Option(name), username=username, email=email)
   }
 
   /**
@@ -85,6 +85,8 @@ case class User(val           externalId: Int,
   }
 
   override def id: Option[Int] = Some(this.externalId)
+
+  override def name: String = this.username
 
 }
 

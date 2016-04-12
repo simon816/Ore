@@ -27,6 +27,71 @@ import scala.util.{Failure, Success, Try}
 abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]) {
 
   /**
+    * Returns the first model that matches the given predicate.
+    *
+    * @param predicate  Predicate
+    * @return           Optional result
+    */
+  def ?(predicate: T => Rep[Boolean]): Future[Option[M]] = {
+    val modelPromise = Promise[Option[M]]
+    val query = this.models.filter(predicate).take(1)
+    run(query.result).andThen {
+      case Failure(thrown) => modelPromise.failure(thrown)
+      case Success(result) => modelPromise.success(result.headOption)
+    }
+    modelPromise.future
+  }
+
+  /**
+    * Returns the size of the model table.
+    *
+    * @return Size of model table
+    */
+  def count(filter: T => Rep[Boolean] = null): Future[Int] = {
+    var query: Query[T, M, Seq] = this.models
+    if (filter != null) query = query.filter(filter)
+    run(query.length.result)
+  }
+
+  /**
+    * Creates the specified model in it's table.
+    *
+    * @param model  Model to create
+    * @return       Newly created model
+    */
+  def create(model: M): Future[M] = {
+    val toInsert = copyInto(None, Some(theTime), model)
+    val query = {
+      this.models returning this.models.map(_.pk) into {
+        case (m, id) =>
+          copyInto(Some(id), m.createdAt, m)
+      } += toInsert
+    }
+    run(query)
+  }
+
+  /**
+    * Deletes the specified Model.
+    *
+    * @param model Model to delete
+    * @return      this
+    */
+  def delete(model: M): Future[Int] = {
+    val query = this.models.filter(m => m.pk === model.id.get)
+    run(query.delete)
+  }
+
+  /**
+    * Returns the model with the specified ID, if any.
+    *
+    * @param id   Model with ID
+    * @return     Model if present, None otherwise
+    */
+  def get(id: Int): Future[Option[M]] = {
+    ?(m => m.pk === id)
+  }
+
+  /**
     * Sets an Int field on the Model.
     *
     * @param model  Model to update
@@ -63,32 +128,6 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
   }
 
   /**
-    * Returns the first model that matches the given predicate.
-    *
-    * @param predicate  Predicate
-    * @return           Optional result
-    */
-  def find(predicate: T => Rep[Boolean]): Future[Option[M]] = {
-    val modelPromise = Promise[Option[M]]
-    val query = this.models.filter(predicate).take(1)
-    run(query.result).andThen {
-      case Failure(thrown) => modelPromise.failure(thrown)
-      case Success(result) => modelPromise.success(result.headOption)
-    }
-    modelPromise.future
-  }
-
-  /**
-    * Returns the model with the specified ID, if any.
-    *
-    * @param id   Model with ID
-    * @return     Model if present, None otherwise
-    */
-  def get(id: Int): Future[Option[M]] = {
-    find(m => m.pk === id)
-  }
-
-  /**
     * Returns a collection of models with the specified limit and offset.
     *
     * @param limit  Amount of models to take
@@ -101,23 +140,6 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     if (offset > -1) query = query.drop(offset)
     if (limit > -1) query = query.take(limit)
     run(query.result)
-  }
-
-  /**
-    * Creates the specified model in it's table.
-    *
-    * @param model  Model to create
-    * @return       Newly created model
-    */
-  def create(model: M): Future[M] = {
-    val toInsert = copyInto(None, Some(theTime), model)
-    val query = {
-      this.models returning this.models.map(_.pk) into {
-        case (m, id) =>
-          copyInto(Some(id), m.createdAt, m)
-      } += toInsert
-    }
-    run(query)
   }
 
   /**
@@ -136,16 +158,6 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
       }
     }
     modelPromise.future
-  }
-
-  /**
-    * Deletes the specified Model.
-    *
-    * @param model Model to delete
-    */
-  def delete(model: M) = {
-    val query = this.models.filter(m => m.pk === model.id.get)
-    run(query.delete)
   }
 
   /**

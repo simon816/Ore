@@ -13,6 +13,7 @@ import play.api.i18n.MessagesApi
 import play.api.mvc.Action
 import util.Forms
 import views.{html => views}
+import db.OrePostgresDriver.api._
 
 import scala.util.{Failure, Success}
 
@@ -32,9 +33,9 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def show(author: String, slug: String, channelName: String, versionString: String) = Action { implicit request =>
     withProject(author, slug, project => {
-      project.channel(channelName) match {
+      project.channels.withName(channelName) match {
         case None => NotFound
-        case Some(channel) => channel.version(versionString) match {
+        case Some(channel) => channel.versions.withName(versionString) match {
           case None => NotFound
           case Some(version) => Ok(views.projects.versions.detail(project, channel, version))
         }
@@ -54,9 +55,9 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
   def saveDescription(author: String, slug: String, channelName: String, versionString: String) = {
     withUser(Some(author), user => implicit request =>
       withProject(author, slug, project => {
-        project.channel(channelName) match {
+        project.channels.withName(channelName) match {
           case None => NotFound("Channel not found.")
-          case Some(channel) => channel.version(versionString) match {
+          case Some(channel) => channel.versions.withName(versionString) match {
             case None => NotFound("Version not found.")
             case Some(version) =>
               val oldDesc = version.description
@@ -80,7 +81,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def showList(author: String, slug: String, channels: Option[String]) = Action { implicit request =>
     withProject(author, slug, project => {
-      val allChannels = project.channels
+      val allChannels = project.channels.seq
       var channelNames = if (channels.isDefined) Some(channels.get.toLowerCase.split(",")) else None
       var visibleChannels = allChannels
       if (channelNames.isDefined) {
@@ -88,7 +89,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
       }
 
       // Don't pass "visible channels" if all channels are visible
-      val versions = if (allChannels.equals(visibleChannels)) project.versions else project.versionsIn(visibleChannels)
+      val versions = if (allChannels.equals(visibleChannels)) project.versions.seq else project.versionsIn(visibleChannels)
       if (channelNames.isDefined && allChannels.map(_.name).toSet.subsetOf(channelNames.get.toSet)) {
         channelNames = None
       }
@@ -106,7 +107,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def showCreator(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
     withProject(author, slug, project => {
-      Ok(views.projects.versions.create(project, None, Some(project.channels), showFileControls = true))
+      Ok(views.projects.versions.create(project, None, Some(project.channels.values.toSeq), showFileControls = true))
     }))
   }
 
@@ -142,7 +143,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
                 val version = Version.fromMeta(project, meta)
 
                 // Get first channel for default
-                val channelName: String = project.channels.head.name
+                val channelName: String = project.channels.values.head.name
 
                 // Cache for later use
                 Version.setPending(author, slug, channelName, version, plugin)
@@ -179,7 +180,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
                 ))
               case real: Project =>
                 Ok(views.projects.versions.create(
-                  real, Some(pendingVersion), Some(real.channels), showFileControls = true
+                  real, Some(pendingVersion), Some(real.channels.seq), showFileControls = true
                 ))
             }
           }
@@ -221,12 +222,12 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
                 // No pending project, just create the version for the existing project
                 withProject(author, slug, project => {
                   // Check if creating a new channel
-                  val existingChannel: Channel = project.channel(submittedName).orNull
+                  val existingChannel: Channel = project.channels.withName(submittedName).orNull
 
                   // Check if color is available
                   var colorTaken: Boolean = false
                   if (existingChannel == null) {
-                    colorTaken = project.channel(pendingVersion.channelColor).isDefined
+                    colorTaken = project.channels.find(_.colorId === pendingVersion.channelColor.id).isDefined
                   }
 
                   if (colorTaken) {
@@ -237,7 +238,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
                     // Check for existing version
                     var existingVersion: Version = null
                     if (existingChannel != null) {
-                      existingVersion = existingChannel.version(versionString).orNull
+                      existingVersion = existingChannel.versions.withName(versionString).orNull
                     }
 
                     if (existingVersion != null) {
@@ -271,9 +272,9 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
   def delete(author: String, slug: String, channelName: String, versionString: String) = {
     withUser(Some(author), user => implicit request =>
       withProject(author, slug, project => {
-        project.channel(channelName) match {
+        project.channels.withName(channelName) match {
           case None => NotFound("Channel not found.")
-          case Some(channel) => channel.version(versionString) match {
+          case Some(channel) => channel.versions.withName(versionString) match {
             case None => NotFound("Version not found.")
             case Some(version) =>
               channel.deleteVersion(version, project).get
@@ -294,9 +295,9 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
     */
   def download(author: String, name: String, channelName: String, versionString: String) = Action { implicit request =>
     withProject(author, name, project => {
-      project.channel(channelName) match {
+      project.channels.withName(channelName) match {
         case None => NotFound("Channel not found.")
-        case Some(channel) => channel.version(versionString) match {
+        case Some(channel) => channel.versions.withName(versionString) match {
           case None => NotFound("Version not found.")
           case Some(version) =>
             Statistics.versionDownloaded(project, version)

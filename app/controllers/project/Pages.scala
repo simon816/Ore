@@ -24,7 +24,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi) extends BaseControl
     */
   def show(author: String, slug: String, page: String) = Action { implicit request =>
     withProject(author, slug, project => {
-      project.page(page) match {
+      project.pages.withName(page) match {
         case None => NotFound
         case Some(p) => Ok(views.projects.pages.view(project, p))
       }
@@ -73,7 +73,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi) extends BaseControl
     */
   def delete(author: String, slug: String, page: String) = withUser(Some(author), user => implicit request => {
     withProject(author, slug, project => {
-      project.deletePage(page)
+      project.pages.remove(project.pages.withName(page).get)
       Redirect(routes.Projects.show(author, slug))
     })
   })
