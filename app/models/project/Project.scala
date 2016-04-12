@@ -11,7 +11,6 @@ import models.project.Version.PendingVersion
 import models.project.author.Dev
 import models.user.User
 import ore.Colors.Color
-import ore._
 import ore.project.Categories.Category
 import ore.project.{Categories, PluginFile, ProjectManager}
 import org.apache.commons.io.FileUtils
@@ -28,10 +27,6 @@ import scala.util.Try
   * Represents an Ore package.
   *
   * <p>Note: As a general rule, do not handle actions / results in model classes</p>
-  *
-  * <p>Note: Instance variables should be private unless they are database
-  * properties unless they are vars instead of vals in which case accessors
-  * and mutators must be used.</p>
   *
   * @param id                     Unique identifier
   * @param createdAt              Instant of creation
@@ -472,14 +467,47 @@ object Project {
 
   }
 
+  /**
+    * Returns the Project with the specified owner name and URL slug, if any.
+    *
+    * @param owner  Owner name
+    * @param slug   URL slug
+    * @return       Project if found, None otherwise
+    */
   def withSlug(owner: String, slug: String): Option[Project] = now(Queries.Projects.withSlug(owner, slug)).get
 
+  /**
+    * Returns the Project with the specified owner name and Project name, if
+    * any.
+    *
+    * @param owner  Owner name
+    * @param name   Project name
+    * @return       Project if found, None otherwise
+    */
   def withName(owner: String, name: String): Option[Project] = now(Queries.Projects.withName(owner, name)).get
 
+  /**
+    * Returns the Project with the specified plugin ID, if any.
+    *
+    * @param pluginId Plugin ID
+    * @return         Project if found, None otherwise
+    */
   def withPluginId(pluginId: String): Option[Project] = now(Queries.Projects.withPluginId(pluginId)).get
 
+  /**
+    * Returns the Project with the specified ID, if any.
+    *
+    * @param id ID
+    * @return   Project if found, None otherwise
+    */
   def withId(id: Int): Option[Project] = now(Queries.Projects.get(id)).get
 
+  /**
+    * Returns the all Projects created by the specified owner.
+    *
+    * @param owner  Owner name
+    * @return       Project if found, None otherwise
+    */
   def by(owner: String): Seq[Project] = now(Queries.Projects.by(owner)).get
 
   /**

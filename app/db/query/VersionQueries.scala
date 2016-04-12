@@ -17,26 +17,6 @@ class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => ne
   private val downloads = TableQuery[VersionDownloadsTable]
 
   /**
-    * Returns all Versions in the specified Project.
-    *
-    * @param projectId  Project ID
-    * @return           Versions in project
-    */
-  def inProject(projectId: Int): Future[Seq[Version]] = {
-    run(this.models.filter(v => v.projectId === projectId).result)
-  }
-
-  /**
-    * Returns all Versions in the specified Channel
-    *
-    * @param channelId  Channel ID
-    * @return           Versions in channel
-    */
-  def inChannel(channelId: Int): Future[Seq[Version]] = {
-    run(this.models.filter(v => v.channelId === channelId).result)
-  }
-
-  /**
     * Returns all Versions in the specified seq of channels.
     *
     * @param channelIds   Channel IDs
@@ -48,17 +28,6 @@ class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => ne
       if version.channelId inSetBind channelIds
     } yield version
     run(query.result)
-  }
-
-  /**
-    * Returns the Version with the specified name in the specified Channel.
-    *
-    * @param channelId      Channel version is in
-    * @param versionString  Version to search for
-    * @return               Version with name
-    */
-  def withName(channelId: Int, versionString: String): Future[Option[Version]] = {
-    ?(v => v.channelId === channelId && v.versionString === versionString)
   }
 
   /**

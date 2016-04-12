@@ -30,6 +30,8 @@ object UserRoles extends Enumeration {
     * @return     UserRole with ID
     */
   def withId(id: Int): UserRole = this.values.find(_.externalId == id).getOrElse {
+    // Throw an exception instead of returning an Option to match Enumeration
+    // behavior
     throw new NoSuchElementException
   }
 

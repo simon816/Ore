@@ -1,7 +1,7 @@
 package ore.project
 
 /**
-  * Represents a project category.
+  * Enumeration of Categories a Project may possess.
   */
 object Categories extends Enumeration {
 
@@ -37,7 +37,15 @@ object Categories extends Enumeration {
     }
   }).flatten
 
+  /**
+    * Represents a Project category.
+    *
+    * @param i      Index
+    * @param title  Title to display
+    * @param icon   Icon to display
+    */
   case class Category(i: Int, title: String, icon: String) extends super.Val(i, title)
+
   implicit def convert(value: Value): Category = value.asInstanceOf[Category]
 
 }

@@ -25,6 +25,7 @@ class Api extends Controller {
         "createdAt" -> project.prettyDate,
         "name" -> project.name,
         "owner" -> project.ownerName,
+        "description" -> project.description.getOrElse("").toString,
         "href" -> ('/' + project.ownerName + '/' + project.slug),
         "authors" -> project.authorNames,
         "channels" -> channelInfo,
