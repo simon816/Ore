@@ -27,8 +27,8 @@ class DiscourseGroups(private val url: String, ws: WSClient) {
       val groups = (response.json \ "user" \ "groups").as[List[JsObject]]
       (for (group <- groups) yield {
         val id = (group \ "id").as[Int]
-        UserRoles.values.find(_.id == id).asInstanceOf[Option[UserRole]]
-      }).flatten.toSet
+        UserRoles.values.find(_.externalId == id)
+      }).flatten.map(_.asInstanceOf[UserRole]).toSet
     }
   }
 

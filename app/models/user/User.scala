@@ -41,9 +41,7 @@ case class User(val           externalId: Int,
     *
     * @return UserRoles user has
     */
-  def roles: Set[UserRole] = (for (roleId <- roleIds) yield {
-    UserRoles(roleId).asInstanceOf[UserRole]
-  }).toSet
+  def roles: Set[UserRole] = (for (roleId <- roleIds) yield UserRoles.withId(roleId)).toSet
 
   /**
     * Sets the roles that this User belongs to.
@@ -51,8 +49,8 @@ case class User(val           externalId: Int,
     * @param _roles Roles to update
     */
   def roles_=(_roles: Set[UserRole]) = {
-    val ids = _roles.map(_.id).toList
-    now(Queries.Users.setIntList(this, "external_id", "roles", ids)).get
+    val ids = _roles.map(_.externalId).toList
+    now(Queries.Users.setIntList(this, _.roles, ids)).get
     this.roleIds = ids
   }
 

@@ -55,6 +55,7 @@ case class Project(override val   id: Option[Int] = None,
                    private var    _name: String,
                    private var    _slug: String,
                    val            ownerName: String,
+                   val            ownerId: Int,
                    val            authorNames: List[String] = List(),
                    val            homepage: Option[String] = None,
                    private var    recommendedVersionId: Option[Int] = None,
@@ -67,9 +68,9 @@ case class Project(override val   id: Option[Int] = None,
                    private var    _description: Option[String] = None)
                    extends        Model {
 
-  def this(pluginId: String, name: String, owner: String, authors: List[String], homepage: String) = {
+  def this(pluginId: String, name: String, owner: String, ownerId: Int, authors: List[String], homepage: String) = {
     this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
-         ownerName=owner, authorNames=authors, homepage=Option(homepage))
+         ownerName=owner, ownerId=ownerId, authorNames=authors, homepage=Option(homepage))
   }
 
   def owner: Dev = Dev(this.ownerName) // TODO: Teams
@@ -569,8 +570,8 @@ object Project {
     * @param meta   PluginMetadata object
     * @return       New project
     */
-  def fromMeta(owner: String, meta: PluginMetadata): Project = {
-    new Project(meta.getId, meta.getName, owner, meta.getAuthors.toList, meta.getUrl)
+  def fromMeta(owner: User, meta: PluginMetadata): Project = {
+    new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getAuthors.toList, meta.getUrl)
   }
 
 }

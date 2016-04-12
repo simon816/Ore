@@ -93,14 +93,12 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(Auth.getRedirect(config.getString("application.baseUrl").get + "/login"))
     } else {
-      println("logging in")
       val userData = Auth.authenticate(sso.get, sig.get)
       var user = new User(userData._1, userData._2, userData._3, userData._4)
       user = now(Queries.Users.getOrCreate(user)).get
 
       if (Groups == null) init(ws)
       val roles = now(Groups.roles(user.username)).get
-      println("roles = " + roles)
       if (!roles.equals(user.roles)) user.roles = roles
 
       Redirect(self.showHome(None)).withSession(Security.username -> user.username, "email" -> user.email)

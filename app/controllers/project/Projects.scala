@@ -52,7 +52,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
           case Success(plugin) =>
             // Cache pending project for later use
             val meta = plugin.meta.get
-            val project = Project.fromMeta(user.username, meta)
+            val project = Project.fromMeta(user, meta)
             Project.setPending(project, plugin)
             Redirect(self.showCreatorWithMeta(project.ownerName, project.slug))
         }

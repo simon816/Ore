@@ -10,8 +10,7 @@ import models.user.User
 /*
  * Database schema definitions. Changes must be first applied as an evolutions
  * SQL script in "conf/evolutions/default", then here, then in the associated
- * model. Tables should have their columns defined in the order in which they
- * appear in the DB.
+ * model.
  */
 
 class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
@@ -22,6 +21,7 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
   def name                  =   column[String]("name")
   def slug                  =   column[String]("slug")
   def ownerName             =   column[String]("owner_name")
+  def ownerId               =   column[Int]("owner_id")
   def authors               =   column[List[String]]("authors")
   def homepage              =   column[String]("homepage")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
@@ -35,7 +35,7 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
 
   override def pk = this.id
 
-  override def * = (id.?, createdAt.?, pluginId, name, slug, ownerName,
+  override def * = (id.?, createdAt.?, pluginId, name, slug, ownerName, ownerId,
                     authors, homepage.?, recommendedVersionId.?, categoryId,
                     views, downloads, stars, issues.?, source.?,
                     description.?) <> ((Project.apply _).tupled, Project.unapply)

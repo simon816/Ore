@@ -9,15 +9,15 @@ import ore.user.UserRoles.UserRole
   * Represents a Sponge donor.
   *
   * @param i            Index
-  * @param id           ID of role
+  * @param externalId           ID of role
   * @param title        Title to display
   * @param color        Color to display
   */
 class Donor(override val   i: Int,
-            override val   id: Int,
+            override val   externalId: Int,
             override val   title: String,
             override val   color: Color)
-            extends        UserRole(i, id, TrustLevel, title, color) {
+            extends        UserRole(i, externalId, TrustLevel, title, color) {
 
 }
 

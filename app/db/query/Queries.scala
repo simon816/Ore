@@ -54,15 +54,12 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     * Sets an int array field on the Model.
     *
     * @param model  Model to update
-    * @param pk     Primary key name
-    * @param col    Column name
+    * @param key    Key to update
     * @param value  Value
     */
-  def setIntList(model: M, pk: String, col: String, value: List[Int]) = {
-    val tableName = models.baseTableRow.tableName
-    val v = value.mkString("{", ",", "}")
-    val action = sqlu"""update $tableName set $col = '$v' where $pk = ${model.id};"""
-    run(action)
+  def setIntList(model: M, key: T => Rep[List[Int]], value: List[Int]) = {
+    val query = for { m <- this.models if m.pk === model.id.get } yield key(m)
+    run(query.update(value))
   }
 
   /**
