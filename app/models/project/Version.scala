@@ -1,18 +1,14 @@
 package models.project
 
 import java.sql.Timestamp
-import java.text.SimpleDateFormat
 
 import db.Model
 import db.query.Queries
 import db.query.Queries.now
-import models.project.Version._
+import ore.Colors.Color
 import ore._
-import ore.project.{Dependency, ProjectManager, PluginFile}
+import ore.project.{Dependency, PluginFile, ProjectManager}
 import org.spongepowered.plugin.meta.PluginMetadata
-import util.{Cacheable, PendingAction}
-import Colors.Color
-import ore._
 import play.api.Play.current
 import play.api.cache.Cache
 import util.{Cacheable, PendingAction}

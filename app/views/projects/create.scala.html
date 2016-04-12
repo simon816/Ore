@@ -2,10 +2,9 @@
 Page used for uploading and creating new projects.
 *@
 @import controllers.project.routes.{Projects => projectRoutes}
-@import models.project.Project.PendingProject
-@import play.api.Play
-@import views.html.helper.form
 @import models.project.Project
+@import models.project.Project.PendingProject
+@import views.html.helper.form
 @(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout(messages("project.create")) {

@@ -1,8 +1,7 @@
 package ore.user
 
 import ore.Colors
-import Colors._
-import ore.Colors
+import ore.Colors._
 
 /**
   * Represents a collection of roles a User may have.
@@ -19,11 +18,11 @@ object UserRoles extends Enumeration {
   val Support           =   new UserRole(4, 43,   2,  "Sponge Support",       Aqua)
   val Contributor       =   new UserRole(0, 49,   1,  "Sponge Contributor",   Green)
   val Adviser           =   new UserRole(5, 48,   1,  "Sponge Adviser",       Aqua)
-  val DiamondDonor      =      new Donor(0, 52,       "Diamond Donor",       LightBlue)
-  val GoldDonor         =      new Donor(0, 53,       "Gold Donor",          Gold)
-  val IronDonor         =      new Donor(0, 56,       "Iron Donor",          Silver)
-  val QuartzDonor       =      new Donor(0, 54,       "Quartz Donor",        Quartz)
-  val StoneDonor        =      new Donor(0, 57,       "Stone Donor",         Gray)
+  val DiamondDonor      =      new Donor(0, 52,       "Diamond Donor",        LightBlue)
+  val GoldDonor         =      new Donor(0, 53,       "Gold Donor",           Gold)
+  val IronDonor         =      new Donor(0, 56,       "Iron Donor",           Silver)
+  val QuartzDonor       =      new Donor(0, 54,       "Quartz Donor",         Quartz)
+  val StoneDonor        =      new Donor(0, 57,       "Stone Donor",          Gray)
 
   /**
     * Represents a User role.

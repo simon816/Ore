@@ -1,8 +1,8 @@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.Version.PendingVersion
 @import models.project.{Channel, Project}
-@import views.html.helper.form
 @import util.Input
+@import views.html.helper.form
 @(project: Project, pending: Option[PendingVersion],
   channels: Option[Seq[Channel]], showFileControls: Boolean)(implicit messages: Messages, session: Session, flash: Flash)
 

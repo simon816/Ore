@@ -8,8 +8,8 @@ import db.{ProjectStarsTable, ProjectTable, ProjectViewsTable}
 import models.project.Project
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Promise, Future}
-import scala.util.{Success, Failure}
+import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success}
 
 /**
   * Project related queries

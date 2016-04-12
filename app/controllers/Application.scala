@@ -1,6 +1,7 @@
 package controllers
 
 import javax.inject.Inject
+
 import controllers.routes.{Application => self}
 import db.query.Queries
 import db.query.Queries.now
@@ -8,15 +9,13 @@ import models.project.Project
 import models.project.Project._
 import models.user.{FakeUser, User}
 import ore.project.Categories
-import Categories.Category
-import ore.project.Categories
-import play.api.Play.current
-import play.api.Play.{configuration => config}
+import ore.project.Categories.Category
+import play.api.Play.{configuration => config, current}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import util.forums.SpongeForums._
 import util.Forms
+import util.forums.SpongeForums._
 import views.{html => views}
 
 import scala.concurrent.Future

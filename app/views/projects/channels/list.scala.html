@@ -1,6 +1,5 @@
-@import models.project.{Channel, Project}
-@import play.api.Play
 @import controllers.project.{routes => projectRoutes}
+@import models.project.{Channel, Project}
 @(project: Project, channels: Seq[Channel])(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout(messages("channel.list.page-title", project.ownerName, project.slug)) {

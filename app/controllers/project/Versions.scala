@@ -8,7 +8,7 @@ import controllers.routes.{Application => app}
 import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
 import ore.Statistics
-import ore.project.{ProjectManager, InvalidPluginFileException}
+import ore.project.{InvalidPluginFileException, ProjectManager}
 import play.api.i18n.MessagesApi
 import play.api.mvc.Action
 import util.Forms

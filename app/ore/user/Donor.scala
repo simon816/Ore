@@ -1,7 +1,7 @@
 package ore.user
 
 import ore.Colors
-import Colors.Color
+import ore.Colors.Color
 import ore.user.Donor._
 import ore.user.UserRoles.UserRole
 

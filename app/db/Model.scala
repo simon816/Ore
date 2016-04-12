@@ -1,10 +1,9 @@
 package db
 
-import play.api.Play.current
-import play.api.Play.{configuration => config}
-
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+
+import play.api.Play.{configuration => config, current}
 
 /**
   * Represents a Model in the Database.

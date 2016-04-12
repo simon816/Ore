@@ -9,8 +9,7 @@ import db._
 import db.query.Queries.DB.run
 import db.query.Queries._
 import play.api.Play
-import play.api.Play.current
-import play.api.Play.{configuration => config}
+import play.api.Play.{configuration => config, current}
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
 

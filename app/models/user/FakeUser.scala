@@ -1,7 +1,6 @@
 package models.user
 
-import play.api.Play.current
-import play.api.Play.{configuration => config}
+import play.api.Play.{configuration => config, current}
 
 /**
   * Represents a "fake" User object for bypassing the standard authentication

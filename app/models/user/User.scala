@@ -9,8 +9,7 @@ import db.query.Queries.now
 import models.project.Project
 import models.user.User._
 import ore.user.UserRoles
-import UserRoles.UserRole
-import ore.user.UserRoles
+import ore.user.UserRoles.UserRole
 import play.api.Play.{configuration => config, current}
 
 /**

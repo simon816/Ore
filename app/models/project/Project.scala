@@ -10,19 +10,16 @@ import models.project.Project._
 import models.project.Version.PendingVersion
 import models.project.author.Dev
 import models.user.User
+import ore.Colors.Color
 import ore._
-import ore.project.{ProjectManager, PluginFile, Categories}
+import ore.project.Categories.Category
+import ore.project.{Categories, PluginFile, ProjectManager}
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
-import Categories.Category
-import util.{Cacheable, PendingAction}
-import Colors.Color
-import ore._
-import play.api.Play.current
-import play.api.Play.{configuration => config}
+import play.api.Play.{configuration => config, current}
 import play.api.cache.Cache
-import util.{Cacheable, PendingAction}
 import util.Input._
+import util.{Cacheable, PendingAction}
 
 import scala.collection.JavaConversions._
 import scala.util.Try

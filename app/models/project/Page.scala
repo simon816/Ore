@@ -7,8 +7,7 @@ import db.query.Queries
 import models.project.Page._
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
-import play.api.Play.current
-import play.api.Play.{configuration => config}
+import play.api.Play.{configuration => config, current}
 import util.Input._
 
 /**

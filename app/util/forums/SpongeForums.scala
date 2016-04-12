@@ -1,7 +1,6 @@
 package util.forums
 
-import play.api.Play.current
-import play.api.Play.{configuration => config}
+import play.api.Play.{configuration => config, current}
 import play.api.libs.ws.WSClient
 
 /**

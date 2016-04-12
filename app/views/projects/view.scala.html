@@ -3,7 +3,6 @@ Base template for Project overview.
 *@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.Project
-@import play.api.Play
 @(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session)
 
 @core.layout(project.ownerName + " / " + project.name) {
