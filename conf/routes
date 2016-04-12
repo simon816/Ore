@@ -22,6 +22,8 @@ GET     /logout                                                 @controllers.App
 
 # ---------- Projects ----------
 
+GET     /p/:pluginId                                            @controllers.project.Projects.shortcut(pluginId)
+
 GET     /new                                                    @controllers.project.Projects.showCreator
 
 POST    /new/upload                                             @controllers.project.Projects.upload

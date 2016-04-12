@@ -114,6 +114,19 @@ class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseCont
   }
 
   /**
+    * Shortcut for navigating to a project.
+    *
+    * @param pluginId Project pluginId
+    * @return Redirect to project page.
+    */
+  def shortcut(pluginId: String) = Action { implicit request =>
+    Project.withPluginId(pluginId) match {
+      case None => NotFound
+      case Some(project) => Redirect(self.show(project.ownerName, project.slug))
+    }
+  }
+
+  /**
     * Saves the specified Project from the settings manager.
     *
     * @param author   Project owner
