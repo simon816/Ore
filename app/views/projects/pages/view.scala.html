@@ -23,7 +23,7 @@ Documentation page within Project overview.
                         <div class="panel-heading">
                             <h3 class="panel-title">@messages("page.plural")</h3>
                             @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)
-                                    && model.pages.size < Project.MAX_PAGES) {
+                                    && model.pages.size < Project.MaxPages) {
                                 <a data-toggle="modal" data-target="#new-page">
                                     <i title="New" class="new-page pull-right fa fa-plus"></i>
                                 </a>

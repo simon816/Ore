@@ -7,7 +7,8 @@ import controllers.project.routes.{Versions => self}
 import controllers.routes.{Application => app}
 import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
-import ore.{Colors, InvalidPluginFileException, ProjectManager, Statistics}
+import ore.Statistics
+import ore.project.{ProjectManager, InvalidPluginFileException}
 import play.api.i18n.MessagesApi
 import play.api.mvc.Action
 import util.Forms
@@ -204,7 +205,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
           val form = Forms.ChannelEdit.bindFromRequest.get
           val submittedName = form._1.trim
           pendingVersion.channelName = submittedName
-          Colors.values.find(color => color.hex.equalsIgnoreCase(form._2)) match {
+          Channel.Colors.find(color => color.hex.equalsIgnoreCase(form._2)) match {
             case None => BadRequest("Invalid channel color.")
             case Some(color) => pendingVersion.channelColor = color
           }

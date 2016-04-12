@@ -8,13 +8,12 @@ import db.Model
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Channel._
+import ore.Colors._
+import ore.project.ProjectManager
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
-import ore.Colors.Color
-import ore.{Colors, ProjectManager}
-import play.api.Play.current
-import play.api.Play.{configuration => config}
+import play.api.Play.{configuration => config, current}
 
 import scala.util.Try
 
@@ -67,7 +66,7 @@ case class Channel(override val   id: Option[Int] = None,
     *
     * @return Color channel is represented by
     */
-  def color: Color = Colors(this.colorId)
+  def color: Color = Channel.Colors(this.colorId)
 
   /**
     * Sets the color of this channel.
@@ -150,24 +149,30 @@ case class Channel(override val   id: Option[Int] = None,
 object Channel {
 
   /**
+    * The colors a Channel is allowed to have.
+    */
+  val Colors: Seq[Color] = Seq(Purple, Violet, Magenta, Blue, Aqua, Cyan, Green,
+                               DarkGreen, Chartreuse, Amber, Orange, Red)
+
+  /**
     * The maximum name size of a Channel.
     */
-  val MAX_NAME_LENGTH = config.getInt("ore.channels.max-name-len").get
+  val MaxNameLength = config.getInt("ore.channels.max-name-len").get
 
   /**
     * Regular expression for permitted Channel characters.
     */
-  val NAME_REGEX = config.getString("ore.channels.name-regex").get
+  val NameRegex = config.getString("ore.channels.name-regex").get
 
   /**
     * The default color used for Channels.
     */
-  val DEFAULT_COLOR: Color = Colors(config.getInt("ore.channels.color-default").get)
+  val DefaultColor: Color = Colors(config.getInt("ore.channels.color-default").get)
 
   /**
     * The default name used for Channels.
     */
-  val DEFAULT_CHANNEL: String = config.getString("ore.channels.name-default").get
+  val DefaultName: String = config.getString("ore.channels.name-default").get
 
   /**
     * Returns true if the specified string is a valid channel name.
@@ -176,7 +181,7 @@ object Channel {
     * @return       True if valid channel name
     */
   def isValidName(name: String): Boolean = {
-    name.length >= 1 && name.length <= MAX_NAME_LENGTH && name.matches(NAME_REGEX)
+    name.length >= 1 && name.length <= MaxNameLength && name.matches(NameRegex)
   }
 
   /**
@@ -189,7 +194,7 @@ object Channel {
     * @return         Suggested channel name
     */
   def getSuggestedNameForVersion(version: String): String = {
-    firstString(new ComparableVersion(version).getItems).getOrElse(DEFAULT_CHANNEL)
+    firstString(new ComparableVersion(version).getItems).getOrElse(DefaultName)
   }
 
   private def firstString(items: ListItem): Option[String] = {

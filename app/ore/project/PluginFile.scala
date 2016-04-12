@@ -1,4 +1,4 @@
-package ore
+package ore.project
 
 import java.io.{FileInputStream, FileOutputStream, IOException}
 import java.nio.file.{Files, Path, Paths}
@@ -17,7 +17,7 @@ import scala.util.control.Breaks._
   */
 class PluginFile(private var _path: Path, val owner: User) {
 
-  private val META_FILE_NAME = "mcmod.info"
+  private val MetaFileName = "mcmod.info"
 
   private var _meta: Option[PluginMetadata] = None
 
@@ -122,7 +122,7 @@ class PluginFile(private var _path: Path, val owner: User) {
         while ( {
           entry = jarIn.getNextJarEntry; entry
         } != null) {
-          if (entry.getName.equals(META_FILE_NAME)) {
+          if (entry.getName.equals(MetaFileName)) {
             metaFound = true
             break
           }

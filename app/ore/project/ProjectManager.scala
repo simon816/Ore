@@ -1,4 +1,4 @@
-package ore
+package ore.project
 
 import java.nio.file.{Files, Path}
 
@@ -27,7 +27,7 @@ object ProjectManager {
     * @return       New plugin file
     */
   def initUpload(tmp: TemporaryFile, name: String, owner: User): Try[PluginFile] = Try {
-    val tmpPath = TEMP_DIR.resolve(owner.username).resolve(name)
+    val tmpPath = Tmp.resolve(owner.username).resolve(name)
     val plugin = new PluginFile(tmpPath, owner)
     if (Files.notExists(tmpPath.getParent)) {
       Files.createDirectories(tmpPath.getParent)
@@ -131,7 +131,7 @@ object ProjectManager {
     * @return       Plugin directory
     */
   def userDir(owner: String): Path = {
-    PLUGIN_DIR.resolve(owner)
+    Plugins.resolve(owner)
   }
 
   /**

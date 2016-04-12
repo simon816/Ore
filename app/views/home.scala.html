@@ -4,9 +4,9 @@ sorted according to different criteria.
 *@
 @import controllers.project.routes.{Projects => projectRoutes}
 @import models.project.Project
-@import ore.Categories.Category
 @import play.api.Play
-@import ore.Categories
+@import ore.project.Categories
+@import ore.project.Categories._
 @(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages,
         session: Session, flash: Flash)
 

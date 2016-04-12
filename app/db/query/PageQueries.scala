@@ -12,7 +12,7 @@ import scala.concurrent.Future
 /**
   * Page related queries.
   */
-object PageQueries extends Queries[PagesTable, Page](TableQuery(tag => new PagesTable(tag))) {
+class PageQueries extends Queries[PagesTable, Page](TableQuery(tag => new PagesTable(tag))) {
 
   /**
     * Returns all Pages in the specified Project.

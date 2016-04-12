@@ -15,6 +15,6 @@ object FakeUser extends User(config.getInt("application.fakeUser.id").get,
   /**
     * True if FakeUser should be used.
     */
-  val ENABLED: Boolean = config.getBoolean("application.fakeUser.enabled").get
+  val IsEnabled: Boolean = config.getBoolean("application.fakeUser.enabled").get
 
 }

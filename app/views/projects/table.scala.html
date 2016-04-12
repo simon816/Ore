@@ -3,7 +3,7 @@ Collection of all projects.
 *@
 @import controllers.project.routes.{Projects => projectRoutes}
 @import models.project.Project
-@import ore.Categories.Category
+@import ore.project.Categories._
 @(models: Seq[Project], visibleCategories: Option[Array[Category]] = None)(implicit messages: Messages,
         session: Session, flash: Flash)
 
@@ -37,7 +37,7 @@ Collection of all projects.
         }
         </tbody>
     </table>
-    @if(models.size >= Project.INITIAL_LOAD) {
+    @if(models.size >= Project.InitialLoad) {
         <button class="btn btn-default btn-more"><strong>@messages("table.more")</strong></button>
     } else {
         <div class="panel-footer"></div>

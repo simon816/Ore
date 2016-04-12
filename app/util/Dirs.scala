@@ -8,9 +8,9 @@ import play.api.Play.current
   */
 object Dirs {
 
-  lazy val ROOT_DIR      =   Play.application.path.toPath
-  lazy val UPLOADS_DIR   =   ROOT_DIR.resolve("uploads")
-  lazy val PLUGIN_DIR    =   UPLOADS_DIR.resolve("plugins")
-  lazy val TEMP_DIR      =   UPLOADS_DIR.resolve("tmp")
+  lazy val Root     =   Play.application.path.toPath
+  lazy val Uploads  =   Root.resolve("uploads")
+  lazy val Plugins  =   Uploads.resolve("plugins")
+  lazy val Tmp      =   Uploads.resolve("tmp")
 
 }

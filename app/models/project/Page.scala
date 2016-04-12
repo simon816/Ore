@@ -67,12 +67,12 @@ object Page {
   /**
     * The name of each Project's homepage.
     */
-  val HOME_NAME: String = config.getString("ore.pages.home.name").get
+  val HomeName: String = config.getString("ore.pages.home.name").get
 
   /**
     * The template body for the Home page.
     */
-  val HOME_MESSAGE: String = config.getString("ore.pages.home.message").get
+  val HomeMessage: String = config.getString("ore.pages.home.message").get
 
   /**
     * The Markdown processor.

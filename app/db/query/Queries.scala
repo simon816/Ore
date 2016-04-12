@@ -9,6 +9,8 @@ import db._
 import db.query.Queries.DB.run
 import db.query.Queries._
 import play.api.Play
+import play.api.Play.current
+import play.api.Play.{configuration => config}
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
 
@@ -47,6 +49,21 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
   def setString(model: M, key: T => Rep[String], value: String) = {
     val query = for { m <- this.models if m.pk === model.id.get } yield key(m)
     run(query.update(value))
+  }
+
+  /**
+    * Sets an int array field on the Model.
+    *
+    * @param model  Model to update
+    * @param pk     Primary key name
+    * @param col    Column name
+    * @param value  Value
+    */
+  def setIntList(model: M, pk: String, col: String, value: List[Int]) = {
+    val tableName = models.baseTableRow.tableName
+    val v = value.mkString("{", ",", "}")
+    val action = sqlu"""update $tableName set $col = '$v' where $pk = ${model.id};"""
+    run(action)
   }
 
   /**
@@ -104,7 +121,7 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
           copyInto(Some(id), m.createdAt, m)
       } += toInsert
     }
-    DB.run(query)
+    run(query)
   }
 
   /**
@@ -132,7 +149,7 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     */
   def delete(model: M) = {
     val query = this.models.filter(m => m.pk === model.id.get)
-    DB.run(query.delete)
+    run(query.delete)
   }
 
   /**
@@ -160,16 +177,16 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
   */
 object Queries {
 
-  val Users     =   UserQueries
-  val Projects  =   ProjectQueries
-  val Channels  =   ChannelQueries
-  val Versions  =   VersionQueries
-  val Pages     =   PageQueries
+  val Users     =   new UserQueries
+  val Projects  =   new ProjectQueries
+  val Channels  =   new ChannelQueries
+  val Versions  =   new VersionQueries
+  val Pages     =   new PageQueries
 
   /**
     * The default timeout when awaiting a query result.
     */
-  val DEFAULT_TIMEOUT: Duration = Duration(10, TimeUnit.SECONDS)
+  val DefaultTimeout: Duration = Duration(config.getInt("application.db.default-timeout").get, TimeUnit.SECONDS)
 
   /**
     * Awaits the result of the specified future and returns the result.
@@ -179,7 +196,7 @@ object Queries {
     * @tparam M       Return type
     * @return         Try of return type
     */
-  def now[M](f: Future[M], timeout: Duration = DEFAULT_TIMEOUT): Try[M] = {
+  def now[M](f: Future[M], timeout: Duration = DefaultTimeout): Try[M] = {
     Await.ready(f, timeout).value.get
   }
 

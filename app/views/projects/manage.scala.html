@@ -21,7 +21,7 @@
 
                         <label for="description">Project description</label>
                         <input form="save" class="form-control" type="text" id="description"
-                               name="description" maxlength="@Project.MAX_DESCRIPTION_LENGTH"
+                               name="description" maxlength="@Project.MaxDescriptionLength"
                           @project.description.map { description =>
                             value="@description"
                           }.getOrElse {
@@ -32,7 +32,7 @@
                         <label for="name">Project name</label>
                         <div class="form-inline form-rename">
                             <input form="rename" id="name" name="name" class="form-control" type="text" value="@project.name"
-                                   maxlength="@Project.MAX_NAME_LENGTH">
+                                   maxlength="@Project.MaxNameLength">
                             <button id="btn-rename" data-toggle="modal" data-target="#modal-rename" class="btn btn-warning" disabled>
                                 @messages("project.rename")
                             </button>

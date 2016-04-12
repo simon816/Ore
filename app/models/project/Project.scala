@@ -10,10 +10,13 @@ import models.project.Project._
 import models.project.Version.PendingVersion
 import models.project.author.Dev
 import models.user.User
+import ore._
+import ore.project.{ProjectManager, PluginFile, Categories}
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
-import ore.Categories.Category
-import ore.Colors.Color
+import Categories.Category
+import util.{Cacheable, PendingAction}
+import Colors.Color
 import ore._
 import play.api.Play.current
 import play.api.Play.{configuration => config}
@@ -123,7 +126,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param _description Description to set
     */
   def description_=(_description: String) = {
-    checkArgument(_description == null || _description.length <= MAX_DESCRIPTION_LENGTH, "description too long", "")
+    checkArgument(_description == null || _description.length <= MaxDescriptionLength, "description too long", "")
     if (this.exists) {
       now(Queries.Projects.setString(this, _.description, _description)).get
     }
@@ -304,7 +307,7 @@ case class Project(override val   id: Option[Int] = None,
     */
   def newChannel(name: String, color: Color): Try[Channel] = Try {
     checkArgument(Channel.isValidName(name), "invalid name", "")
-    checkState(this.channels.size < Project.MAX_CHANNELS, "channel limit reached", "")
+    checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
     now(Queries.Channels.create(new Channel(name, color, this.id.get))).get
   }
 
@@ -395,7 +398,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return Project home page
     */
   def homePage: Page = {
-    val page = new Page(this.id.get, Page.HOME_NAME, Page.template(name, Page.HOME_MESSAGE), false)
+    val page = new Page(this.id.get, Page.HomeName, Page.template(name, Page.HomeMessage), false)
     now(Queries.Pages.getOrCreate(page)).get
   }
 
@@ -436,27 +439,27 @@ object Project {
   /**
     * The maximum length for a Project name.
     */
-  val MAX_NAME_LENGTH: Int = config.getInt("ore.projects.max-name-len").get
+  val MaxNameLength: Int = config.getInt("ore.projects.max-name-len").get
 
   /**
     * The maximum length for a Project description.
     */
-  val MAX_DESCRIPTION_LENGTH: Int = config.getInt("ore.projects.max-desc-len").get
+  val MaxDescriptionLength: Int = config.getInt("ore.projects.max-desc-len").get
 
   /**
     * The maximum amount of Pages a Project can have.
     */
-  val MAX_PAGES: Int = config.getInt("ore.projects.max-pages").get
+  val MaxPages: Int = config.getInt("ore.projects.max-pages").get
 
   /**
     * The maximum amount of Channels permitted in a single Project.
     */
-  val MAX_CHANNELS = config.getInt("ore.projects.max-channels").get
+  val MaxChannels = config.getInt("ore.projects.max-channels").get
 
   /**
     * The maximum amount of Projects that are loaded initially.
     */
-  val INITIAL_LOAD: Int = config.getInt("ore.projects.init-load").get
+  val InitialLoad: Int = config.getInt("ore.projects.init-load").get
 
   /**
     * Represents a Project with an uploaded plugin that has not yet been
@@ -538,7 +541,7 @@ object Project {
     */
   def isValidName(name: String): Boolean = {
     val sanitized = compact(name)
-    sanitized.length >= 1 && sanitized.length <= MAX_NAME_LENGTH
+    sanitized.length >= 1 && sanitized.length <= MaxNameLength
   }
 
   /**

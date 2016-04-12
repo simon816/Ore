@@ -8,8 +8,9 @@ import db.query.Queries
 import db.query.Queries.now
 import models.project.Project
 import models.user.User._
-import ore.UserRoles
-import ore.UserRoles.UserRole
+import ore.user.UserRoles
+import UserRoles.UserRole
+import ore.user.UserRoles
 import play.api.Play.{configuration => config, current}
 
 /**
@@ -28,7 +29,7 @@ case class User(val           externalId: Int,
                 val           name: Option[String] = None,
                 val           username: String,
                 val           email: String,
-                val           roleIds: List[Int] = List(),
+                private var   roleIds: List[Int] = List(),
                 private var   _tagline: Option[String] = None)
                 extends       Model {
 
@@ -46,14 +47,25 @@ case class User(val           externalId: Int,
   }).toSet
 
   /**
+    * Sets the roles that this User belongs to.
+    *
+    * @param _roles Roles to update
+    */
+  def roles_=(_roles: Set[UserRole]) = {
+    val ids = _roles.map(_.id).toList
+    now(Queries.Users.setIntList(this, "external_id", "roles", ids)).get
+    this.roleIds = ids
+  }
+
+  /**
     * Returns the Projects that this User has starred.
     *
     * @param page Page of user stars
     * @return     Projects user has starred
     */
   def starred(page: Int = -1): Seq[Project] = {
-    val limit = if (page < 1) -1 else STARS_PER_PAGE
-    now(Queries.Projects.starredBy(this.externalId, limit, (page - 1) * STARS_PER_PAGE)).get
+    val limit = if (page < 1) -1 else StarsPerPage
+    now(Queries.Projects.starredBy(this.externalId, limit, (page - 1) * StarsPerPage)).get
   }
 
   /**
@@ -69,7 +81,7 @@ case class User(val           externalId: Int,
     * @param _tagline Tagline to display
     */
   def tagline_=(_tagline: String) = {
-    checkArgument(_tagline.length <= MAX_TAGLINE_LENGTH, "tagline too long", "")
+    checkArgument(_tagline.length <= MaxTaglineLength, "tagline too long", "")
     val tag = if (_tagline.nonEmpty) _tagline else null
     now(Queries.Users.setString(this, _.tagline, tag)).get
     this._tagline = Option(tag)
@@ -84,12 +96,12 @@ object User {
   /**
     * The amount of stars displayed in the stars panel per page.
     */
-  val STARS_PER_PAGE: Int = config.getInt("ore.users.stars-per-page").get
+  val StarsPerPage: Int = config.getInt("ore.users.stars-per-page").get
 
   /**
     * The maximum length for User taglines.
     */
-  val MAX_TAGLINE_LENGTH: Int = config.getInt("ore.users.max-tagline-len").get
+  val MaxTaglineLength: Int = config.getInt("ore.users.max-tagline-len").get
 
   /**
     * Returns the user with the specified username.

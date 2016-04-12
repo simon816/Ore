@@ -12,7 +12,7 @@ import scala.concurrent.Future
 /**
   * Channel related queries.
   */
-object ChannelQueries extends Queries[ChannelTable, Channel](TableQuery(tag => new ChannelTable(tag))) {
+class ChannelQueries extends Queries[ChannelTable, Channel](TableQuery(tag => new ChannelTable(tag))) {
 
   /**
     * Returns all Channels in the specified Project.

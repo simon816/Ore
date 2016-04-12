@@ -1,4 +1,4 @@
-package util
+package util.forums
 
 import java.math.BigInteger
 import java.net.{URLDecoder, URLEncoder}
@@ -8,38 +8,55 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 import org.apache.commons.codec.binary.Hex
-import play.api.Play.{current => my}
 
-object DiscourseSSO {
+/**
+  * Handles single-sign-on authentication to a Discourse forum.
+  *
+  * @param url      SSO url
+  * @param secret   SSO secret key
+  */
+class DiscourseSSO(private val url: String, private val secret: String) {
 
-  private val url = my.configuration.getString("discourse.sso.url").get
-  private val secret = my.configuration.getString("discourse.sso.secret").get.getBytes("UTF-8")
-  private val returnUrl = my.configuration.getString("application.baseUrl").get + "/login"
+  private val charEncoding = "UTF-8"
   private val random = new SecureRandom
   private val algo = "HmacSHA256"
 
   private def nonce: String = {
-    new BigInteger(130, random).toString(32)
+    new BigInteger(130, this.random).toString(32)
   }
 
   private def hmac_sha256(data: Array[Byte]): String = {
     val hmac = Mac.getInstance(this.algo)
-    val keySpec = new SecretKeySpec(this.secret, this.algo)
+    val keySpec = new SecretKeySpec(this.secret.getBytes(this.charEncoding), this.algo)
     hmac.init(keySpec)
     Hex.encodeHexString(hmac.doFinal(data))
   }
 
-  def getRedirect: String = {
-    val payload = "require_validation=true&return_sso_url=" + this.returnUrl + "&nonce=" + nonce
+  /**
+    * Returns the redirect to the Discourse forum to perform authentication.
+    *
+    * @param returnUrl  URL to tell Discourse to return to
+    * @return           Redirect URL
+    */
+  def getRedirect(returnUrl: String): String = {
+    val payload = "require_validation=true&return_sso_url=" + returnUrl + "&nonce=" + nonce
     val encoded = new String(Base64.getEncoder.encode(payload.getBytes("UTF-8")))
     val urlEncoded = URLEncoder.encode(encoded, "UTF-8")
     val hmac = hmac_sha256(encoded.getBytes("UTF-8"))
     this.url + "?sso=" + urlEncoded + "&sig=" + hmac
   }
 
+  /**
+    * Verifies an incoming payload from Discourse SSO and extracts the
+    * necessary data.
+    *
+    * @param sso  SSO payload
+    * @param sig  Signature to verify
+    * @return     User data
+    */
   def authenticate(sso: String, sig: String): (Int, String, String, String) = {
     // check sig
-    val hmac = hmac_sha256(sso.getBytes("UTF-8"))
+    val hmac = hmac_sha256(sso.getBytes(this.charEncoding))
     if (!hmac.equals(sig)) {
       throw new Exception("Invalid signature.")
     }

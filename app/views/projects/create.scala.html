@@ -62,7 +62,7 @@ Page used for uploading and creating new projects.
                                                 <td>
                                                     @defining(pending.get.pendingVersion.get.version.description) { description =>
                                                         <input form="continue" class="form-control" type="text" id="description"
-                                                               name="description" maxlength="@Project.MAX_DESCRIPTION_LENGTH"
+                                                               name="description" maxlength="@Project.MaxDescriptionLength"
                                                             @description.map { value =>
                                                               value="@value"
                                                             }.getOrElse {

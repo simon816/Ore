@@ -1,4 +1,4 @@
-package ore
+package ore.project
 
 import models.project.Project
 

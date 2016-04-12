@@ -37,7 +37,7 @@ trait Secured {
   def withUser(username: Option[String] = None, f: User => Request[AnyContent] => Result) = withAuth { context => implicit request =>
     if (username.isDefined && !username.get.equals(context.username)) {
       onUnauthorized(request)
-    } else if (FakeUser.ENABLED) {
+    } else if (FakeUser.IsEnabled) {
       f(FakeUser)(request)
     } else {
       f(User.withName(context.username).get)(request)

@@ -11,7 +11,7 @@
         PROJECT_SLUG = '@project.slug';
         $(function() {
             initChannelManager(
-                    "#channel-new", "", "@Channel.DEFAULT_COLOR.hex", "New channel",
+                    "#channel-new", "", "@Channel.DefaultColor.hex", "New channel",
                     "@projectRoutes.Channels.create(project.ownerName, project.slug)",
                     "post", "Create channel"
             );
@@ -84,7 +84,7 @@
                             <i class="fa fa-arrow-left"></i>
                         </a>
                         <a href="#" id="channel-new" class="pull-right btn btn-primary"
-                           @if(channels.size >= Project.MAX_CHANNELS) {
+                           @if(channels.size >= Project.MaxChannels) {
                                disabled data-toggle="tooltip" data-placement="left"
                                title="@messages("channel.edit.max-amount-reached")"
                            } else {

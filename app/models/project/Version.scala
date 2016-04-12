@@ -7,8 +7,11 @@ import db.Model
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Version._
+import ore._
+import ore.project.{Dependency, ProjectManager, PluginFile}
 import org.spongepowered.plugin.meta.PluginMetadata
-import ore.Colors.Color
+import util.{Cacheable, PendingAction}
+import Colors.Color
 import ore._
 import play.api.Play.current
 import play.api.cache.Cache
@@ -175,7 +178,7 @@ object Version {
     * @param plugin   Uploaded plugin
     */
   def setPending(owner: String, slug: String, channel: String, version: Version, plugin: PluginFile): PendingVersion = {
-    val pending = PendingVersion(owner, slug, channel, Channel.DEFAULT_COLOR, version, plugin)
+    val pending = PendingVersion(owner, slug, channel, Channel.DefaultColor, version, plugin)
     pending.cache()
     pending
   }

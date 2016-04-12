@@ -78,7 +78,7 @@
                                                     </a>
                                                     <script type="text/javascript"
                                                             src="@routes.Assets.at("javascripts/versionCreateChannelNew.js")"></script>
-                                                    <script>DEFAULT_COLOR = '@Channel.DEFAULT_COLOR.hex';</script>
+                                                    <script>DEFAULT_COLOR = '@Channel.DefaultColor.hex';</script>
                                                 } else {
                                                     <span id="channel-name" class="channel" style="background-color: @pending.get.channelColor;">
                                                         @pending.get.channelName
@@ -125,7 +125,7 @@
                                     @if(!showFileControls) {
                                         <input type="hidden" class="channel-input" name="channel-input" value="@pending.get.channelName" />
                                     }
-                                    <input type="hidden" class="channel-color-input" name="channel-color-input" value="@Channel.DEFAULT_COLOR.hex" />
+                                    <input type="hidden" class="channel-color-input" name="channel-color-input" value="@Channel.DefaultColor.hex" />
 
                                     <div @if(!showFileControls) { class="btn-group" } >
                                         @if(!showFileControls) {

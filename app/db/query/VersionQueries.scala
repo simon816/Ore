@@ -12,7 +12,7 @@ import scala.concurrent.Future
 /**
   * Version related queries.
   */
-object VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => new VersionTable(tag))) {
+class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => new VersionTable(tag))) {
 
   private val downloads = TableQuery[VersionDownloadsTable]
 

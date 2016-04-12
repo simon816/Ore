@@ -1,18 +1,21 @@
 package controllers
 
 import javax.inject.Inject
-
-import _root_.ore.Categories
 import controllers.routes.{Application => self}
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project
 import models.project.Project._
 import models.user.{FakeUser, User}
-import ore.Categories.Category
+import ore.project.Categories
+import Categories.Category
+import ore.project.Categories
+import play.api.Play.current
+import play.api.Play.{configuration => config}
 import play.api.i18n.MessagesApi
+import play.api.libs.ws.WSClient
 import play.api.mvc._
-import util.DiscourseSSO._
+import util.forums.SpongeForums._
 import util.Forms
 import views.{html => views}
 
@@ -21,7 +24,7 @@ import scala.concurrent.Future
 /**
   * Main entry point for application.
   */
-class Application @Inject()(override val messagesApi: MessagesApi) extends BaseController {
+class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController {
 
   /**
     * Display the home page.
@@ -32,7 +35,7 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
     var projectsFuture: Future[Seq[Project]] = null
     var categoryArray: Array[Category] = null
     categories match {
-      case None => projectsFuture = Queries.Projects.collect(limit = INITIAL_LOAD)
+      case None => projectsFuture = Queries.Projects.collect(limit = InitialLoad)
       case Some(csv) =>
         categoryArray = Categories.fromString(csv)
         var categoryIds = categoryArray.map(_.id)
@@ -40,7 +43,7 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
           categoryArray = null
           categoryIds = null
         }
-        projectsFuture = Queries.Projects.collect(categoryIds, INITIAL_LOAD)
+        projectsFuture = Queries.Projects.collect(categoryIds, InitialLoad)
     }
     val projects = Queries.now(projectsFuture).get
     Ok(views.home(projects, Option(categoryArray)))
@@ -67,7 +70,7 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
     */
   def saveTagline(username: String) = withUser(Some(username), user => implicit request => {
     val tagline = Forms.UserTagline.bindFromRequest.get.trim
-    if (tagline.length > User.MAX_TAGLINE_LENGTH) {
+    if (tagline.length > User.MaxTaglineLength) {
       Redirect(self.showUser(user.username)).flashing("error" -> "Tagline is too long.")
     } else {
       if (user.tagline.isEmpty || !user.tagline.get.equals(tagline)) {
@@ -85,15 +88,22 @@ class Application @Inject()(override val messagesApi: MessagesApi) extends BaseC
     * @return     Logged in home
     */
   def logIn(sso: Option[String], sig: Option[String]) = Action {
-    if (FakeUser.ENABLED) {
+    if (FakeUser.IsEnabled) {
       now(Queries.Users.getOrCreate(FakeUser))
       Redirect(self.showHome(None)).withSession(Security.username -> FakeUser.username, "email" -> FakeUser.email)
     } else if (sso.isEmpty || sig.isEmpty) {
-      Redirect(getRedirect)
+      Redirect(Auth.getRedirect(config.getString("application.baseUrl").get + "/login"))
     } else {
-      val userData = authenticate(sso.get, sig.get)
+      println("logging in")
+      val userData = Auth.authenticate(sso.get, sig.get)
       var user = new User(userData._1, userData._2, userData._3, userData._4)
       user = now(Queries.Users.getOrCreate(user)).get
+
+      if (Groups == null) init(ws)
+      val roles = now(Groups.roles(user.username)).get
+      println("roles = " + roles)
+      if (!roles.equals(user.roles)) user.roles = roles
+
       Redirect(self.showHome(None)).withSession(Security.username -> user.username, "email" -> user.email)
     }
   }

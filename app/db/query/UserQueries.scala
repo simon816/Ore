@@ -11,7 +11,7 @@ import scala.concurrent.Future
 /**
   * User related queries.
   */
-object UserQueries extends Queries[UserTable, User](TableQuery(tag => new UserTable(tag))) {
+class UserQueries extends Queries[UserTable, User](TableQuery(tag => new UserTable(tag))) {
 
   /**
     * Returns the User with the specified username.

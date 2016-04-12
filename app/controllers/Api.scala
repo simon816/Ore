@@ -1,10 +1,10 @@
 package controllers
 
-import _root_.ore.Categories
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project
 import models.user.User
+import ore.project.Categories
 import play.api.libs.json._
 import play.api.mvc._
 

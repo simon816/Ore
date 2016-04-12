@@ -14,7 +14,7 @@ trait Model {
   /**
     * The format used for displaying dates for models.
     */
-  val DATE_FORMAT = new SimpleDateFormat(config.getString("ore.date-format").get)
+  val DateFormat = new SimpleDateFormat(config.getString("ore.date-format").get)
 
   /**
     * Model ID
@@ -35,7 +35,7 @@ trait Model {
     *
     * @return Creation date string
     */
-  def prettyDate: String = DATE_FORMAT.format(this.createdAt.get)
+  def prettyDate: String = DateFormat.format(this.createdAt.get)
 
 
 }
