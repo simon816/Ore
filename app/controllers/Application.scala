@@ -18,6 +18,7 @@ import util.Forms
 import util.forums.SpongeForums._
 import views.{html => views}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
@@ -98,8 +99,9 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
       user = now(Queries.Users.getOrCreate(user)).get
 
       if (Groups == null) init(ws)
-      val roles = now(Groups.roles(user.username)).get
-      if (!roles.equals(user.roles)) user.roles = roles
+      Groups.roles(user.username).andThen {
+        case roles => if (!roles.equals(user.roles)) user.roles = roles.get
+      }
 
       Redirect(self.showHome(None)).withSession(Security.username -> user.username, "email" -> user.email)
     }
