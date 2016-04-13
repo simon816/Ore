@@ -6,6 +6,23 @@
     cursor: default;
 }
 
+.pre-beta {
+    font-size: 14px;
+}
+
+.pre-beta .channel {
+    background-color: #B9F2FF;
+}
+
+.pre-beta a {
+    font-style: italic;
+    font-size: 12px;
+}
+
+.pre-beta a:hover {
+    text-decoration: underline;
+}
+
 .page-content {
     padding: 10px;
     max-width: 100%;
