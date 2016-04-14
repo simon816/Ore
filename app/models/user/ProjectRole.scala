@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import db.orm.model.Model
 import ore.permission.role.Role
 import ore.permission.role.RoleTypes.RoleType
-import ore.permission.scope.{Scope, ProjectScope}
+import ore.permission.scope.{ProjectScope, Scope}
 
 case class ProjectRole(override val id: Option[Int] = None,
                        override val createdAt: Option[Timestamp] = None,

@@ -3,8 +3,7 @@ package util
 import java.nio.file.Files
 
 import play.api.Play
-import play.api.Play.current
-import play.api.Play.{configuration => config}
+import play.api.Play.{configuration => config, current}
 
 /**
   * Helper to retrieve current Git ref.

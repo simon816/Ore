@@ -1,7 +1,7 @@
 package ore.permission
 
 import models.user.User
-import ore.permission.scope.{ScopeSubject, Scope}
+import ore.permission.scope.{Scope, ScopeSubject}
 
 /**
   * Permission wrapper used for chaining permission checks.

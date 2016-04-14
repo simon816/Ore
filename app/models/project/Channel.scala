@@ -5,8 +5,8 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.VersionTable
-import db.orm.collection.{NamedModelSet, ModelSet}
-import db.orm.model.{NamedModel, Model}
+import db.orm.collection.NamedModelSet
+import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Channel._

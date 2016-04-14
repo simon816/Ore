@@ -2,6 +2,7 @@ package controllers.project
 
 import javax.inject.Inject
 
+import db.OrePostgresDriver.api._
 import controllers.BaseController
 import controllers.project.routes.{Versions => self}
 import controllers.routes.{Application => app}
@@ -14,7 +15,6 @@ import play.api.i18n.MessagesApi
 import play.api.mvc.Action
 import util.Forms
 import views.{html => views}
-import db.OrePostgresDriver.api._
 
 import scala.util.{Failure, Success}
 
@@ -228,7 +228,8 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
                   // Check if color is available
                   var colorTaken: Boolean = false
                   if (existingChannel == null) {
-                    colorTaken = project.channels.find(_.color === (pendingVersion.channelColor:Color)).isDefined
+                    val color = pendingVersion.channelColor
+                    colorTaken = project.channels.find(_.color === (color:Color)).isDefined
                   }
 
                   if (colorTaken) {

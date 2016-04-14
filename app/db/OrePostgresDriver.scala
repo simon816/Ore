@@ -3,7 +3,7 @@ package db
 import com.github.tminglei.slickpg._
 import ore.Colors
 import ore.Colors.Color
-import ore.permission.role.{Role, RoleTypes}
+import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 
 /**

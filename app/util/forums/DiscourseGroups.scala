@@ -1,8 +1,7 @@
 package util.forums
 
 import ore.permission.role.RoleTypes
-import RoleTypes.RoleType
-import ore.permission.role.RoleTypes
+import ore.permission.role.RoleTypes.RoleType
 import play.api.libs.json.JsObject
 import play.api.libs.ws.WSClient
 

@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db._
-import db.orm.collection.{NamedModelSet, ModelSet}
+import db.orm.collection.NamedModelSet
 import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
@@ -13,7 +13,7 @@ import models.project.Version.PendingVersion
 import models.project.author.Dev
 import models.user.User
 import ore.Colors.Color
-import ore.permission.scope.{ScopeSubject, ProjectScope}
+import ore.permission.scope.{ProjectScope, ScopeSubject}
 import ore.project.Categories.Category
 import ore.project.{Categories, PluginFile, ProjectManager}
 import org.apache.commons.io.FileUtils

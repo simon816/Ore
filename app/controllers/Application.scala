@@ -8,8 +8,6 @@ import db.query.Queries.now
 import models.project.Project
 import models.project.Project._
 import models.user.{FakeUser, User}
-import ore.permission.DeleteProjects
-import ore.permission.scope.GlobalScope
 import ore.project.Categories
 import ore.project.Categories.Category
 import play.api.Play.{configuration => config, current}

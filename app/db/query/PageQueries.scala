@@ -4,7 +4,6 @@ import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
 import db.PagesTable
-import db.query.Queries.DB.run
 import models.project.Page
 
 import scala.concurrent.Future

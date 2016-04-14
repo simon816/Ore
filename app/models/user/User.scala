@@ -2,8 +2,8 @@ package models.user
 
 import java.sql.Timestamp
 
-import db.OrePostgresDriver.api._
 import com.google.common.base.Preconditions._
+import db.OrePostgresDriver.api._
 import db.UserProjectRolesTable
 import db.orm.collection.ModelSet
 import db.orm.model.NamedModel
@@ -14,7 +14,7 @@ import models.user.User._
 import ore.permission._
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.role._
-import ore.permission.scope.{ProjectScope, GlobalScope, Scope}
+import ore.permission.scope.{GlobalScope, ProjectScope, Scope}
 import play.api.Play.{configuration => config, current => app}
 import play.api.mvc.Session
 

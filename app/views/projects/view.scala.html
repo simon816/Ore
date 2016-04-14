@@ -3,8 +3,8 @@ Base template for Project overview.
 *@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.Project
-@import ore.permission.ViewSettings
 @import models.user.User
+@import ore.permission.ViewSettings
 @(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session)
 
 @core.layout(project.ownerName + " / " + project.name) {
