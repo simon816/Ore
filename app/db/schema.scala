@@ -62,7 +62,7 @@ class ProjectStarsTable(tag: Tag) extends Table[(Int, Int)](tag, "project_stars"
 
 }
 
-class PagesTable(tag: Tag) extends NamedModelTable[Page](tag, "pages") {
+class PageTable(tag: Tag) extends NamedModelTable[Page](tag, "pages") {
 
   def projectId     =   column[Int]("project_id")
   def name          =   column[String]("name")
@@ -97,11 +97,13 @@ class VersionTable(tag: Tag) extends NamedModelTable[Version](tag, "versions") {
   def downloads       =   column[Int]("downloads")
   def projectId       =   column[Int]("project_id")
   def channelId       =   column[Int]("channel_id")
+  def fileSize        =   column[Long]("file_size")
 
   override def modelName = this.versionString
 
   override def * = (id.?, createdAt.?, versionString, dependencies, description.?,
-                    assets.?, downloads, projectId, channelId) <> ((Version.apply _).tupled, Version.unapply)
+                    assets.?, downloads, projectId, channelId,
+                    fileSize) <> ((Version.apply _).tupled, Version.unapply)
 }
 
 class VersionDownloadsTable(tag: Tag) extends Table[(Option[Int], Option[String],
@@ -127,8 +129,8 @@ class UserTable(tag: Tag) extends NamedModelTable[User](tag, "users") {
 
   override def modelName = this.username
 
-  override def * = (id.?, createdAt.?, name.?,
-                    username, email, tagline.?, globalRoles) <> ((User.apply _).tupled, User.unapply)
+  override def * = (id.?, createdAt.?, name.?, username, email, tagline.?,
+                    globalRoles) <> ((User.apply _).tupled, User.unapply)
 
 }
 

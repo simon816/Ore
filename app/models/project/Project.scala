@@ -325,7 +325,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Pages in project
     */
-  def pages: NamedModelSet[PagesTable, Page] = new NamedModelSet(Queries.Pages, this.id.get, _.projectId)
+  def pages: NamedModelSet[PageTable, Page] = new NamedModelSet(Queries.Pages, this.id.get, _.projectId)
 
   /**
     * Returns true if a page with the specified name exists.
@@ -438,8 +438,7 @@ object Project {
       * @return New PendingVersion
       */
     def initFirstVersion: PendingVersion = {
-      val meta = this.firstVersion.meta.get
-      val version = Version.fromMeta(this.project, meta)
+      val version = Version.fromMeta(this.project, this.firstVersion)
       val pending = Version.setPending(project.ownerName, project.slug,
         Channel.getSuggestedNameForVersion(version.versionString), version, this.firstVersion)
       this._pendingVersion = Some(pending)

@@ -135,13 +135,12 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
               throw thrown
             }
             case Success(plugin) =>
-              val meta = plugin.meta.get
-              if (!meta.getId.equals(project.pluginId)) {
+              if (!plugin.meta.get.getId.equals(project.pluginId)) {
                 Redirect(self.showCreator(author, slug))
                   .flashing("error" -> "The uploaded plugin ID must match your project's plugin ID.")
               } else {
                 // Create version from meta file
-                val version = Version.fromMeta(project, meta)
+                val version = Version.fromMeta(project, plugin)
 
                 // Get first channel for default
                 val channelName: String = project.channels.values.head.name

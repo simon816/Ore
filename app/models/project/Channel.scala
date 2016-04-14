@@ -97,8 +97,10 @@ case class Channel(override val   id: Option[Int] = None,
     * @param assets         Assets location
     * @return               Newly created version
     */
-  def newVersion(version: String, dependencies: List[String], description: String, assets: String): Version = {
-    this.versions.add(new Version(version, dependencies, description, assets, this.projectId, this.id.get))
+  def newVersion(version: String, dependencies: List[String],
+                 description: String, assets: String, fileSize: Long): Version = {
+    this.versions.add(new Version(version, dependencies, description, assets,
+                                  this.projectId, this.id.get, fileSize))
   }
 
   /**

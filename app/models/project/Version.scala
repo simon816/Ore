@@ -7,6 +7,7 @@ import db.query.Queries
 import db.query.Queries.now
 import ore.Colors.Color
 import ore.project.{Dependency, PluginFile, ProjectManager}
+import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
@@ -37,17 +38,19 @@ case class Version(override val   id: Option[Int] = None,
                    val            assets: Option[String] = None,
                    private var    _downloads: Int = 0,
                    val            projectId: Int,
-                   val            channelId: Int)
+                   val            channelId: Int,
+                   val            fileSize: Long)
                    extends        NamedModel {
 
   def this(versionString: String, dependencies: List[String], description: String,
-           assets: String, projectId: Int, channelId: Int) = {
-    this(None, None, versionString, dependencies, Option(description), Option(assets), 0, projectId, channelId)
+           assets: String, projectId: Int, channelId: Int, fileSize: Long) = {
+    this(None, None, versionString, dependencies, Option(description),
+         Option(assets), 0, projectId, channelId, fileSize)
   }
 
   def this(versionString: String, dependencies: List[String],
-           description: String, assets: String, projectId: Int) = {
-    this(versionString, dependencies, description, assets, projectId, -1)
+           description: String, assets: String, projectId: Int, fileSize: Long) = {
+    this(versionString, dependencies, description, assets, projectId, -1, fileSize)
   }
 
   /**
@@ -118,6 +121,8 @@ case class Version(override val   id: Option[Int] = None,
     now(Queries.Versions.setInt(this, _.downloads, this._downloads + 1)).get
     this._downloads += 1
   }
+
+  def humanFileSize: String = FileUtils.byteCountToDisplaySize(this.fileSize)
 
   override def name: String = this.versionString
 
@@ -199,13 +204,15 @@ object Version {
     * Creates a new Version from the specified PluginMetadata.
     *
     * @param project  Project this version belongs to
-    * @param meta     PluginMetadata
+    * @param plugin   PluginFile
     * @return         New Version
     */
-  def fromMeta(project: Project, meta: PluginMetadata): Version = {
+  def fromMeta(project: Project, plugin: PluginFile): Version = {
     // TODO: asset parsing
+    val meta = plugin.meta.get
     val depends = for (depend <- meta.getRequiredDependencies) yield depend.getId + ":" + depend.getVersion
-    new Version(meta.getVersion, depends.toList, meta.getDescription, "", project.id.getOrElse(-1))
+    new Version(meta.getVersion, depends.toList, meta.getDescription, "",
+                project.id.getOrElse(-1), plugin.path.toFile.length)
   }
 
 }

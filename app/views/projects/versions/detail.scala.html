@@ -18,6 +18,7 @@
                     <a href="#"><strong>@project.ownerName</strong></a> released this version on @version.prettyDate
                 </p>
                 <div class="pull-right version-buttons">
+                    <span class="date">@version.humanFileSize</span>
                     @if(session.get("username").isDefined && session.get("username").get.equals(project.ownerName)) {
                         <a class="btn btn-danger"
                            @if(project.versions.size == 1) {

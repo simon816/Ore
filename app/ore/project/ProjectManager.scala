@@ -98,7 +98,7 @@ object ProjectManager {
     }
 
     val newVersion = channel.newVersion(pendingVersion.versionString, pendingVersion.dependenciesIds,
-      pendingVersion.description.orNull, pendingVersion.assets.orNull)
+      pendingVersion.description.orNull, pendingVersion.assets.orNull, pending.plugin.path.toFile.length)
     uploadPlugin(channel, pending.plugin)
     newVersion
   }

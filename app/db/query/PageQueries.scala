@@ -3,7 +3,7 @@ package db.query
 import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
-import db.PagesTable
+import db.PageTable
 import models.project.Page
 
 import scala.concurrent.Future
@@ -11,7 +11,7 @@ import scala.concurrent.Future
 /**
   * Page related queries.
   */
-class PageQueries extends Queries[PagesTable, Page](TableQuery(tag => new PagesTable(tag))) {
+class PageQueries extends Queries[PageTable, Page](TableQuery(tag => new PageTable(tag))) {
 
   override def copyInto(id: Option[Int], theTime: Option[Timestamp], page: Page): Page = {
     page.copy(id = id, createdAt = theTime)
