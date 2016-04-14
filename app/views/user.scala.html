@@ -74,7 +74,7 @@ User page for developers.
                 </div>
                 <div class="pull-right">
                     <ul class="user-roles">
-                        @user.roles.map { role =>
+                        @user.globalRoleTypes.map { role =>
                           <li class="user-role channel" style="background-color: @role.color.hex;">@role.title</li>
                         }
                     </ul>

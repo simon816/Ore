@@ -2,7 +2,7 @@ package models.project.author
 
 import java.sql.Timestamp
 
-import db.Model
+import db.orm.model.NamedModel
 
 /**
   * Represents a collection of developers who work on a project.
@@ -14,4 +14,4 @@ import db.Model
 case class Team(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
                 override val name: String)
-                extends Model with Author
+                extends NamedModel with Author

@@ -3,6 +3,8 @@ Base template for Project overview.
 *@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.Project
+@import ore.permission.ViewSettings
+@import models.user.User
 @(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session)
 
 @core.layout(project.ownerName + " / " + project.name) {
@@ -34,7 +36,7 @@ Base template for Project overview.
                             </a>
                         </li>
 
-                        @if(session.get("username").isDefined && session.get("username").get.equals(project.ownerName)) {
+                        @if(User.current.isDefined && (User.current.get can ViewSettings in project)) {
                             @* Show manager if permitted *@
                             <li id="settings" class="">
                                 <a href="@projectRoutes.Projects.showManager(project.ownerName, project.slug)">

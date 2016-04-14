@@ -8,6 +8,8 @@ import db.query.Queries.now
 import models.project.Project
 import models.project.Project._
 import models.user.{FakeUser, User}
+import ore.permission.DeleteProjects
+import ore.permission.scope.GlobalScope
 import ore.project.Categories
 import ore.project.Categories.Category
 import play.api.Play.{configuration => config, current}
@@ -100,7 +102,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
 
       if (Groups == null) init(ws)
       Groups.roles(user.username).andThen {
-        case roles => if (!roles.equals(user.roles)) user.roles = roles.get
+        case roles => if (!roles.equals(user.globalRoleTypes)) user.globalRoleTypes = roles.get
       }
 
       Redirect(self.showHome(None)).withSession(Security.username -> user.username, "email" -> user.email)

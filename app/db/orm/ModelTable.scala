@@ -1,6 +1,9 @@
-package db
+package db.orm
+
+import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
+import db.orm.model.Model
 import slick.lifted.Tag
 
 /**
@@ -12,18 +15,7 @@ import slick.lifted.Tag
   */
 abstract class ModelTable[M <: Model](tag: Tag, name: String) extends Table[M](tag, name) {
 
-  /**
-    * Returns this table's primary key.
-    *
-    * @return Table primary key
-    */
-  def pk: Rep[Int]
-
-  /**
-    * Returns this table's name.
-    *
-    * @return
-    */
-  def modelName: Rep[String]
+  def id        =   column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def createdAt =   column[Timestamp]("created_at")
 
 }

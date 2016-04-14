@@ -8,7 +8,8 @@ import db.query.Queries.now
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
 import models.project.{Channel, Project, Version}
-import models.user.User
+import models.user.{ProjectRole, User}
+import ore.permission.role.RoleTypes
 import play.api.libs.Files.TemporaryFile
 import util.Dirs._
 
@@ -69,6 +70,8 @@ object ProjectManager {
     checkArgument(pending.project.isNamespaceAvailable, "slug not available", "")
     checkArgument(Project.isValidName(pending.project.name), "invalid name", "")
     val newProject = now(Queries.Projects.create(pending.project)).get
+    val user = pending.firstVersion.owner
+    user.projectRoles.add(new ProjectRole(user.id.get, RoleTypes.ProjectOwner, newProject.id.get))
     newProject
   }
 

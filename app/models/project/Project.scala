@@ -4,6 +4,8 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db._
+import db.orm.collection.{NamedModelSet, ModelSet}
+import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project._
@@ -11,6 +13,7 @@ import models.project.Version.PendingVersion
 import models.project.author.Dev
 import models.user.User
 import ore.Colors.Color
+import ore.permission.scope.{ScopeSubject, ProjectScope}
 import ore.project.Categories.Category
 import ore.project.{Categories, PluginFile, ProjectManager}
 import org.apache.commons.io.FileUtils
@@ -61,7 +64,8 @@ case class Project(override val   id: Option[Int] = None,
                    private var    _issues: Option[String] = None,
                    private var    _source: Option[String] = None,
                    private var    _description: Option[String] = None)
-                   extends        Model {
+                   extends        NamedModel
+                   with           ScopeSubject {
 
   def this(pluginId: String, name: String, owner: String, ownerId: Int, authors: List[String], homepage: String) = {
     this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
@@ -185,7 +189,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param user   User to check if starred for
     * @return       True if starred by User
     */
-  def isStarredBy(user: User): Boolean = now(Queries.Projects.isStarredBy(this.id.get, user.externalId)).get
+  def isStarredBy(user: User): Boolean = now(Queries.Projects.isStarredBy(this.id.get, user.id.get)).get
 
   /**
     * Returns true if this Project is starred by the User with the specified
@@ -206,7 +210,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return       Future result
     */
   def starFor(user: User) = {
-    now(Queries.Projects.starFor(this.id.get, user.externalId)).get
+    now(Queries.Projects.starFor(this.id.get, user.id.get)).get
     now(Queries.Projects.setInt(this, _.stars, this.stars + 1)).get
     this._stars += 1
   }
@@ -218,7 +222,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return       Future result
     */
   def unstarFor(user: User) = {
-    now(Queries.Projects.unstarFor(this.id.get, user.externalId)).get
+    now(Queries.Projects.unstarFor(this.id.get, user.id.get)).get
     now(Queries.Projects.setInt(this, _.stars, this.stars - 1)).get
     this._stars -= 1
   }
@@ -266,7 +270,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Channels in project
     */
-  def channels: ModelSet[ChannelTable, Channel] = ModelSet(Queries.Channels, this.id.get, _.projectId)
+  def channels: NamedModelSet[ChannelTable, Channel] = new NamedModelSet(Queries.Channels, this.id.get, _.projectId)
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -285,7 +289,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Versions in project
     */
-  def versions: ModelSet[VersionTable, Version] = ModelSet(Queries.Versions, this.id.get, _.projectId)
+  def versions: NamedModelSet[VersionTable, Version] = new NamedModelSet(Queries.Versions, this.id.get, _.projectId)
 
   /**
     * Returns all Versions belonging to the specified channels.
@@ -321,7 +325,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Pages in project
     */
-  def pages: ModelSet[PagesTable, Page] = new ModelSet(Queries.Pages, this.id.get, _.projectId)
+  def pages: NamedModelSet[PagesTable, Page] = new NamedModelSet(Queries.Pages, this.id.get, _.projectId)
 
   /**
     * Returns true if a page with the specified name exists.
@@ -378,6 +382,8 @@ case class Project(override val   id: Option[Int] = None,
   }
 
   override def name: String = this._name
+
+  override def scope: ProjectScope = ProjectScope(this.id.get)
 
   override def hashCode: Int = this.id.get.hashCode
 

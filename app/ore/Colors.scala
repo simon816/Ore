@@ -22,6 +22,7 @@ object Colors extends Enumeration {
   val Red         =   Color(14,   "#DC0000")
   val Silver      =   Color(15,   "#C0C0C0")
   val Gray        =   Color(16,   "#A9A9A9")
+  val Transparent =   Color(17,   "transparent")
 
   case class Color(i: Int, hex: String) extends super.Val(i, hex)
   implicit def convert(value: Value): Color = value.asInstanceOf[Color]

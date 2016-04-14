@@ -44,7 +44,7 @@ class Api extends Controller {
         "id" -> user.id,
         "createdAt" -> user.prettyDate,
         "username" -> user.username,
-        "roles" -> user.roles.map(_.title),
+        "roles" -> user.globalRoleTypes.map(_.title),
         "starred" -> user.starred().map(p => p.pluginId)
       )
     }

@@ -7,6 +7,7 @@ import controllers.project.routes.{Versions => self}
 import controllers.routes.{Application => app}
 import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
+import ore.Colors.Color
 import ore.Statistics
 import ore.project.{InvalidPluginFileException, ProjectManager}
 import play.api.i18n.MessagesApi
@@ -227,7 +228,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseCont
                   // Check if color is available
                   var colorTaken: Boolean = false
                   if (existingChannel == null) {
-                    colorTaken = project.channels.find(_.colorId === pendingVersion.channelColor.id).isDefined
+                    colorTaken = project.channels.find(_.color === (pendingVersion.channelColor:Color)).isDefined
                   }
 
                   if (colorTaken) {

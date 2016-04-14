@@ -31,10 +31,10 @@ object Statistics {
         }
       },
       user => {
-        Queries.Projects.hasBeenViewedBy(project.id.get, user.externalId).onSuccess {
+        Queries.Projects.hasBeenViewedBy(project.id.get, user.id.get).onSuccess {
           case viewed: Boolean => if (!viewed) {
             project.addView()
-            Queries.Projects.setViewedBy(project.id.get, user.externalId)
+            Queries.Projects.setViewedBy(project.id.get, user.id.get)
           }
         }
       }
@@ -61,11 +61,11 @@ object Statistics {
         }
       },
       user => {
-        Queries.Versions.hasBeenDownloadedBy(version.id.get, user.externalId).onSuccess {
+        Queries.Versions.hasBeenDownloadedBy(version.id.get, user.id.get).onSuccess {
           case viewed: Boolean => if (!viewed) {
             version.addDownload()
             project.addDownload()
-            Queries.Versions.setDownloadedBy(version.id.get, user.externalId)
+            Queries.Versions.setDownloadedBy(version.id.get, user.id.get)
           }
         }
       }

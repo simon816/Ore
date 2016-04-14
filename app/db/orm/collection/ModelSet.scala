@@ -1,8 +1,10 @@
-package db
+package db.orm.collection
 
+import db.OrePostgresDriver.api._
+import db.orm.ModelTable
+import db.orm.model.Model
 import db.query.Queries
 import db.query.Queries.now
-import db.OrePostgresDriver.api._
 
 /**
   * Represents a collection of models belonging to a parent model.
@@ -13,7 +15,7 @@ import db.OrePostgresDriver.api._
   * @tparam T         Table type
   * @tparam M         Model type
   */
-case class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M], parentId: Int, ref: T => Rep[Int]) {
+class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M], parentId: Int, ref: T => Rep[Int]) {
 
   /**
     * Returns all models in this set.
@@ -64,14 +66,6 @@ case class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M], pare
     * @return     Model with ID or None if not found
     */
   def withId(id: Int): Option[M] = now(this.queries.get(id)).get
-
-  /**
-    * Returns the model with the specified name.
-    *
-    * @param name   Model name
-    * @return       Model with name or None if not found
-    */
-  def withName(name: String): Option[M] = now(this.queries ? (m => ref(m) === parentId && m.modelName === name)).get
 
   /**
     * Finds the first model that matches the given predicate.

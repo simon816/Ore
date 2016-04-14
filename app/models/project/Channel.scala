@@ -4,7 +4,9 @@ import java.nio.file.Files
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.{ModelSet, VersionTable, Model}
+import db.VersionTable
+import db.orm.collection.{NamedModelSet, ModelSet}
+import db.orm.model.{NamedModel, Model}
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Channel._
@@ -26,18 +28,18 @@ import scala.util.Try
   * @param id           Unique identifier
   * @param createdAt    Instant of creation
   * @param _name        Name of channel
-  * @param colorId      ID of ChannelColor used to represent this Channel
+  * @param _color       Color used to represent this Channel
   * @param projectId    ID of project this channel belongs to
   */
 case class Channel(override val   id: Option[Int] = None,
                    override val   createdAt: Option[Timestamp] = None,
                    private var    _name: String,
-                   private var    colorId: Int,
+                   private var    _color: Color,
                    val            projectId: Int)
-                   extends        Model
+                   extends        NamedModel
                    with           Ordered[Channel] {
 
-  def this(name: String, color: Color, projectId: Int) = this(_name=name, colorId=color.id, projectId=projectId)
+  def this(name: String, color: Color, projectId: Int) = this(_name=name, _color=color, projectId=projectId)
 
   /**
     * Sets the name of this channel for.
@@ -59,7 +61,7 @@ case class Channel(override val   id: Option[Int] = None,
     *
     * @return Color channel is represented by
     */
-  def color: Color = Channel.Colors(this.colorId)
+  def color: Color = this._color
 
   /**
     * Sets the color of this channel.
@@ -68,8 +70,8 @@ case class Channel(override val   id: Option[Int] = None,
     * @return       Future result
     */
   def color_=(_color: Color) = {
-    now(Queries.Channels.setInt(this, _.colorId, _color.id))
-    this.colorId = _color.id
+    now(Queries.Channels.setColor(this.id.get, _color)).get
+    this._color = _color
   }
 
   /**
@@ -84,7 +86,7 @@ case class Channel(override val   id: Option[Int] = None,
     *
     * @return All versions
     */
-  def versions: ModelSet[VersionTable, Version] = ModelSet(Queries.Versions, this.id.get, _.channelId)
+  def versions: NamedModelSet[VersionTable, Version] = new NamedModelSet(Queries.Versions, this.id.get, _.channelId)
 
   /**
     * Creates a new version for this Channel.

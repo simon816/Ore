@@ -44,12 +44,6 @@ sorted according to different criteria.
                 <h3 class="pull-left">
                     @messages("table.welcome")
                     <i class="date">@messages("table.welcome.description")</i>
-                    <span class="pre-beta">
-                        <span class="channel">Pre-beta</span>
-                        @defining(Git.ref) { ref =>
-                            <a target="_blank" href="@ref._2">@ref._1</a>
-                        }
-                    </span>
                 </h3>
                 <div class="table-controls">
                     <a href="@projectRoutes.showCreator"
@@ -110,5 +104,12 @@ sorted according to different criteria.
             </div>
         </div>
     </div>
+
+    <span class="pre-beta">
+        <span class="channel">Pre-beta</span>
+        @defining(Git.ref) { ref =>
+            <a target="_blank" href="@ref._2">@ref._1</a>
+        }
+    </span>
 
 }

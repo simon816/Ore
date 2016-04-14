@@ -2,7 +2,7 @@ package models.project
 
 import java.sql.Timestamp
 
-import db.Model
+import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
 import ore.Colors.Color
@@ -38,7 +38,7 @@ case class Version(override val   id: Option[Int] = None,
                    private var    _downloads: Int = 0,
                    val            projectId: Int,
                    val            channelId: Int)
-                   extends        Model {
+                   extends        NamedModel {
 
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int) = {

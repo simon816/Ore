@@ -2,7 +2,7 @@ package models.project
 
 import java.sql.Timestamp
 
-import db.Model
+import db.orm.model.NamedModel
 import db.query.Queries
 import models.project.Page._
 import org.pegdown.Extensions._
@@ -28,7 +28,7 @@ case class Page(override val  id: Option[Int] = None,
                 val           slug: String,
                 private var   _contents: String,
                 val           isDeletable: Boolean = true)
-                extends       Model {
+                extends       NamedModel {
 
   def this(projectId: Int, name: String, content: String, isDeletable: Boolean) = {
     this(projectId=projectId, name=compact(name),

@@ -1,11 +1,12 @@
 package db
 
-import java.sql.Timestamp
-
 import db.OrePostgresDriver.api._
+import db.orm.{ModelTable, NamedModelTable}
 import models.project.author.Team
 import models.project.{Channel, Page, Project, Version}
-import models.user.User
+import models.user.{ProjectRole, User}
+import ore.Colors.Color
+import ore.permission.role.RoleTypes.RoleType
 
 /*
  * Database schema definitions. Changes must be first applied as an evolutions
@@ -13,10 +14,8 @@ import models.user.User
  * model.
  */
 
-class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
+class ProjectTable(tag: Tag) extends NamedModelTable[Project](tag, "projects") {
 
-  def id                    =   column[Int]("id", O.PrimaryKey, O.AutoInc)
-  def createdAt             =   column[Timestamp]("created_at")
   def pluginId              =   column[String]("plugin_id")
   def name                  =   column[String]("name")
   def slug                  =   column[String]("slug")
@@ -33,7 +32,6 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
   def source                =   column[String]("source")
   def description           =   column[String]("description")
 
-  override def pk = this.id
   override def modelName = this.name
 
   override def * = (id.?, createdAt.?, pluginId, name, slug, ownerName, ownerId,
@@ -64,17 +62,14 @@ class ProjectStarsTable(tag: Tag) extends Table[(Int, Int)](tag, "project_stars"
 
 }
 
-class PagesTable(tag: Tag) extends ModelTable[Page](tag, "pages") {
+class PagesTable(tag: Tag) extends NamedModelTable[Page](tag, "pages") {
 
-  def id            =   column[Int]("id", O.PrimaryKey, O.AutoInc)
-  def createdAt     =   column[Timestamp]("created_at")
   def projectId     =   column[Int]("project_id")
   def name          =   column[String]("name")
   def slug          =   column[String]("slug")
   def contents      =   column[String]("contents")
   def isDeletable   =   column[Boolean]("is_deletable")
 
-  override def pk = this.id
   override def modelName = this.name
 
   override def * = (id.?, createdAt.?, projectId,
@@ -82,24 +77,19 @@ class PagesTable(tag: Tag) extends ModelTable[Page](tag, "pages") {
 
 }
 
-class ChannelTable(tag: Tag) extends ModelTable[Channel](tag, "channels") {
+class ChannelTable(tag: Tag) extends NamedModelTable[Channel](tag, "channels") {
 
-  def id          =   column[Int]("id", O.PrimaryKey, O.AutoInc)
-  def createdAt   =   column[Timestamp]("created_at")
   def name        =   column[String]("name")
-  def colorId     =   column[Int]("color_id")
+  def color       =   column[Color]("color_id")
   def projectId   =   column[Int]("project_id")
 
-  override def pk = this.id
   override def modelName = this.name
 
-  override def * = (id.?, createdAt.?, name, colorId, projectId) <> ((Channel.apply _).tupled, Channel.unapply)
+  override def * = (id.?, createdAt.?, name, color, projectId) <> ((Channel.apply _).tupled, Channel.unapply)
 }
 
-class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions") {
+class VersionTable(tag: Tag) extends NamedModelTable[Version](tag, "versions") {
 
-  def id              =   column[Int]("id", O.PrimaryKey, O.AutoInc)
-  def createdAt       =   column[Timestamp]("created_at")
   def versionString   =   column[String]("version_string")
   def dependencies    =   column[List[String]]("dependencies")
   def description     =   column[String]("description")
@@ -108,7 +98,6 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions") {
   def projectId       =   column[Int]("project_id")
   def channelId       =   column[Int]("channel_id")
 
-  override def pk = this.id
   override def modelName = this.versionString
 
   override def * = (id.?, createdAt.?, versionString, dependencies, description.?,
@@ -127,31 +116,36 @@ class VersionDownloadsTable(tag: Tag) extends Table[(Option[Int], Option[String]
 
 }
 
-class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
+class UserTable(tag: Tag) extends NamedModelTable[User](tag, "users") {
 
-  def externalId  =   column[Int]("external_id", O.PrimaryKey)
-  def createdAt   =   column[Timestamp]("created_at")
-  def name        =   column[String]("name")
-  def username    =   column[String]("username")
-  def email       =   column[String]("email")
-  def roles       =   column[List[Int]]("roles")
-  def tagline     =   column[String]("tagline")
+  override def id   =   column[Int]("id", O.PrimaryKey)
+  def name          =   column[String]("name")
+  def username      =   column[String]("username")
+  def email         =   column[String]("email")
+  def tagline       =   column[String]("tagline")
+  def globalRoles   =   column[List[Int]]("global_roles")
 
-  override def pk = this.externalId
   override def modelName = this.username
 
-  override def * = (externalId, createdAt.?, name.?,
-                    username, email, roles, tagline.?) <> ((User.apply _).tupled, User.unapply)
+  override def * = (id.?, createdAt.?, name.?,
+                    username, email, tagline.?, globalRoles) <> ((User.apply _).tupled, User.unapply)
 
 }
 
-class TeamTable(tag: Tag) extends ModelTable[Team](tag, "teams") {
+class UserProjectRolesTable(tag: Tag) extends ModelTable[ProjectRole](tag, "user_project_roles") {
 
-  def id          =   column[Int]("id", O.PrimaryKey, O.AutoInc)
-  def createdAt   =   column[Timestamp]("created_at")
-  def name        =   column[String]("name")
+  def userId      =   column[Int]("user_id")
+  def roleType    =   column[RoleType]("role_type_id")
+  def projectId   =   column[Int]("project_id")
 
-  override def pk = this.id
+  override def * = (id.?, createdAt.?, userId, roleType, projectId) <> (ProjectRole.tupled, ProjectRole.unapply)
+
+}
+
+class TeamTable(tag: Tag) extends NamedModelTable[Team](tag, "teams") {
+
+  def name = column[String]("name")
+
   override def modelName = this.name
 
   override def * = (id.?, createdAt.?, name) <> (Team.tupled, Team.unapply)

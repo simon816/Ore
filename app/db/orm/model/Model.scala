@@ -1,15 +1,9 @@
-package db
+package db.orm.model
 
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
-import db.query.Queries
-import db.query.Queries._
-import ore.project.ProjectManager
-import org.apache.commons.io.FileUtils
 import play.api.Play.{configuration => config, current}
-
-import scala.util.Try
 
 /**
   * Represents a Model in the Database.
@@ -27,13 +21,6 @@ abstract class Model {
     * @return ID of model
     */
   def id: Option[Int]
-
-  /**
-    * Returns the Model's name
-    *
-    * @return Model name
-    */
-  def name: String
 
   /**
     * The Timestamp instant that this Model was created.

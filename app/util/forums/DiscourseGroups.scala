@@ -1,7 +1,8 @@
 package util.forums
 
-import ore.user.UserRoles
-import ore.user.UserRoles.UserRole
+import ore.permission.role.RoleTypes
+import RoleTypes.RoleType
+import ore.permission.role.RoleTypes
 import play.api.libs.json.JsObject
 import play.api.libs.ws.WSClient
 
@@ -22,13 +23,13 @@ class DiscourseGroups(private val url: String, ws: WSClient) {
     * @param username   User to get roles for
     * @return           Set of roles the user has
     */
-  def roles(username: String): Future[Set[UserRole]] = {
+  def roles(username: String): Future[Set[RoleType]] = {
     ws.url(userUrl(username)).get.map { response =>
       val groups = (response.json \ "user" \ "groups").as[List[JsObject]]
       (for (group <- groups) yield {
         val id = (group \ "id").as[Int]
-        UserRoles.values.find(_.externalId == id)
-      }).flatten.map(_.asInstanceOf[UserRole]).toSet
+        RoleTypes.values.find(_.roleId == id)
+      }).flatten.map(_.asInstanceOf[RoleType]).toSet
     }
   }
 

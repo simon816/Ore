@@ -5,9 +5,11 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import db.OrePostgresDriver.api._
-import db._
+import db.orm.ModelTable
+import db.orm.model.Model
 import db.query.Queries.DB.run
 import db.query.Queries._
+import db.query.user.UserQueries
 import play.api.Play
 import play.api.Play.{configuration => config, current}
 import play.api.db.slick.DatabaseConfigProvider
@@ -62,7 +64,7 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
   def create(model: M): Future[M] = {
     val toInsert = copyInto(None, Some(theTime), model)
     val query = {
-      this.models returning this.models.map(_.pk) into {
+      this.models returning this.models.map(_.id) into {
         case (m, id) =>
           copyInto(Some(id), m.createdAt, m)
       } += toInsert
@@ -77,7 +79,7 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     * @return      this
     */
   def delete(model: M): Future[Int] = {
-    val query = this.models.filter(m => m.pk === model.id.get)
+    val query = this.models.filter(m => m.id === model.id.get)
     run(query.delete)
   }
 
@@ -88,7 +90,7 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     * @return     Model if present, None otherwise
     */
   def get(id: Int): Future[Option[M]] = {
-    ?(m => m.pk === id)
+    ?(m => m.id === id)
   }
 
   /**
@@ -99,7 +101,7 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     * @param value  Value to set
     */
   def setInt(model: M, key: T => Rep[Int], value: Int) = {
-    val query = for { m <- this.models if m.pk === model.id.get } yield key(m)
+    val query = for { m <- this.models if m.id === model.id.get } yield key(m)
     run(query.update(value))
   }
 
@@ -111,7 +113,7 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     * @param value  Value to set
     */
   def setString(model: M, key: T => Rep[String], value: String) = {
-    val query = for { m <- this.models if m.pk === model.id.get } yield key(m)
+    val query = for { m <- this.models if m.id === model.id.get } yield key(m)
     run(query.update(value))
   }
 
@@ -123,7 +125,7 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     * @param value  Value
     */
   def setIntList(model: M, key: T => Rep[List[Int]], value: List[Int]) = {
-    val query = for { m <- this.models if m.pk === model.id.get } yield key(m)
+    val query = for { m <- this.models if m.id === model.id.get } yield key(m)
     run(query.update(value))
   }
 
