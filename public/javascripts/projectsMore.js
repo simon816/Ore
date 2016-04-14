@@ -28,7 +28,7 @@ $(function() {
                           + '<td><i title="' + category.title + '" class="fa ' + category.icon + '"></i></td>'
                           + '<td class="name">'
                           +   '<strong><a href="' + url + '">' + project.name + '</a></strong>'
-                          +   '<i class="minor"> ' + project.description + '</i>'
+                          +   '<i title="' + project.description + '" class="minor"> ' + project.description + '</i>'
                           + '</td>'
                           + '<td class="author"><a href="#">' + project.owner + '</a></td>'
                           + '<td class="minor">' + project.views + '</td>'

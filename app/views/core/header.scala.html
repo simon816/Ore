@@ -2,7 +2,7 @@
 The main header displayed on each layout.
 *@
 @import play.api.Play
-@import util.Gravatar
+@import util.forums.SpongeForums
 @()(implicit messages: Messages, session: Session)
 
 <nav class="navbar-main navbar navbar-fixed-top navbar-inverse">
@@ -31,18 +31,18 @@ The main header displayed on each layout.
                 </li>
             </ul>
 
-            @session.get("email").map { email =>
+            @session.get("username").map { username =>
                 @* Show user controls *@
                 <ul class="nav navbar-nav navbar-right">
                     <li class="dropdown">
                         <a href="#" class="drop-down-toggle" data-toggle="dropdown">
-                            <img height="32" width="32" class="user-avatar" src="@Gravatar.urlFor(email)" />
+                            <img height="32" width="32" class="user-avatar" src="@SpongeForums.API.avatarUrl(username, 32)" />
                             <span class="caret"></span>
                         </a>
                         <ul class="user-dropdown dropdown-menu" aria-label="@messages("aria.dropdown.menu",1)">
                             <li>
-                                <a href="@routes.Application.showUser(session.get("username").get)">
-                                    <span class="pull-left">@session.get("username").get</span>
+                                <a href="@routes.Application.showUser(username)">
+                                    <span class="pull-left">@username</span>
                                     <i class="pull-right fa fa-user"></i>
                                 </a>
                             </li>

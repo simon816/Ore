@@ -4,8 +4,8 @@ User page for developers.
 @import controllers.project.{routes => projectRoutes}
 @import models.project.author.Dev
 @import models.user.User
-@import util.Gravatar
 @import views.html.helper.form
+@import util.forums.SpongeForums
 @(user: User)(implicit messages: Messages, session: Session, flash: Flash)
 
 @core.layout(user.username) {
@@ -28,7 +28,7 @@ User page for developers.
             <div class="header-body">
                 <div class="pull-left user-badge">
                     <img title="@user.username" alt="@user.username" height="100" width="100"
-                    class="user-avatar-lg" src="@Gravatar.urlFor(user.email, 100)" />
+                    class="user-avatar-lg" src="@SpongeForums.API.avatarUrl(user.username, 100)" />
                     <div class="user-title">
                         <h1>@user.username</h1>
                         <div class="user-tag">

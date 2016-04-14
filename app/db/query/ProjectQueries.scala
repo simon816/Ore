@@ -94,7 +94,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @return           Project if any, None otherwise
     */
   def withPluginId(pluginId: String): Future[Option[Project]] = {
-    ?(p => p.pluginId === pluginId)
+    ?(_.pluginId === pluginId)
   }
 
   /**

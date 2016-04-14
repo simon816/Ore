@@ -9,8 +9,8 @@ import play.api.libs.ws.WSClient
 object SpongeForums {
 
   val Auth = new DiscourseSSO(config.getString("discourse.sso.url").get, config.getString("discourse.sso.secret").get)
-  private var groups: DiscourseGroups = null
-  def Groups: DiscourseGroups = this.groups
+  private var api: DiscourseAPI = null
+  def API: DiscourseAPI = this.api
 
   /**
     * Initializes this object.
@@ -18,7 +18,7 @@ object SpongeForums {
     * @param ws HTTP request client
     */
   def init(ws: WSClient) = {
-    this.groups = new DiscourseGroups(config.getString("discourse.baseUrl").get, ws)
+    this.api = new DiscourseAPI(config.getString("discourse.baseUrl").get, ws)
   }
 
 }

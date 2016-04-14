@@ -26,6 +26,8 @@ import scala.concurrent.Future
   */
 class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController {
 
+  if (API == null) init(ws)
+
   /**
     * Display the home page.
     *
@@ -98,8 +100,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
       var user = new User(userData._1, userData._2, userData._3, userData._4)
       user = now(Queries.Users.getOrCreate(user)).get
 
-      if (Groups == null) init(ws)
-      Groups.roles(user.username).andThen {
+      API.roles(user.username).andThen {
         case roles => if (!roles.equals(user.globalRoleTypes)) user.globalRoleTypes = roles.get
       }
 

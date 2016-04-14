@@ -27,7 +27,7 @@ Collection of all projects.
                 }
             <td class="name">
                 <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
-                <i class="minor">@project.description.getOrElse("")</i>
+                <i title="@project.description.getOrElse("")" class="minor">@project.description.getOrElse("")</i>
             </td>
             <td class="author"><a href="@routes.Application.showUser(project.ownerName)">@project.ownerName</a></td>
             <td class="minor stat">@project.views</td>
