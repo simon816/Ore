@@ -8,7 +8,10 @@ import play.api.libs.ws.WSClient
   */
 object SpongeForums {
 
-  val Auth = new DiscourseSSO(config.getString("discourse.sso.url").get, config.getString("discourse.sso.secret").get)
+  val Auth = config.getString("discourse.sso.url").map { ssoUrl =>
+    new DiscourseSSO(ssoUrl, config.getString("discourse.sso.secret").get)
+  }.orNull
+
   private var api: DiscourseAPI = null
   def API: DiscourseAPI = this.api
 
