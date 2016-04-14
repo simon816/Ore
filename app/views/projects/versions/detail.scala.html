@@ -1,7 +1,8 @@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.{Channel, Page, Project, Version}
 @import views.html.helper.form
-@(project: Project, channel: Channel, version: Version)(implicit messages: Messages, session: Session)
+@(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
+        session: Session, request: RequestHeader)
 
 @projects.view(project, "#versions") {
 

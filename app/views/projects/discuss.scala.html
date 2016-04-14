@@ -2,7 +2,7 @@
 Discussion page within Project overview.
 *@
 @import models.project.Project
-@(model: Project)(implicit messages: Messages, session: Session)
+@(model: Project)(implicit messages: Messages, session: Session, request: RequestHeader)
 
 @projects.view(model, "#discussion") {
 

@@ -4,7 +4,7 @@ Versions page within Project overview.
 @import controllers.project.{routes => projectRoutes}
 @import models.project.{Channel, Project, Version}
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
-  visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session)
+  visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session, request: RequestHeader)
 
 @projects.view(model, "#versions") {
 

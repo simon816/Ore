@@ -8,6 +8,7 @@ import controllers.routes.{Application => app}
 import models.project._
 import ore.project.{Categories, InvalidPluginFileException, ProjectManager}
 import play.api.i18n.MessagesApi
+import play.api.libs.ws.WSClient
 import play.api.mvc._
 import util.Forms
 import util.Input._
@@ -21,7 +22,7 @@ import scala.util.{Failure, Success}
   * TODO: Replace NotFounds, BadRequests, etc with pretty views
   * TODO: Localize
   */
-class Projects @Inject()(override val messagesApi: MessagesApi) extends BaseController {
+class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
 
   /**
     * Displays the "create project" page.

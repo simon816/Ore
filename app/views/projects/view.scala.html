@@ -5,7 +5,7 @@ Base template for Project overview.
 @import models.project.Project
 @import models.user.User
 @import ore.permission.ViewSettings
-@(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session)
+@(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session, request: RequestHeader)
 
 @core.layout(project.ownerName + " / " + project.name) {
 

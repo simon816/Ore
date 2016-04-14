@@ -3,7 +3,7 @@ The main header displayed on each layout.
 *@
 @import play.api.Play
 @import util.forums.SpongeForums
-@()(implicit messages: Messages, session: Session)
+@()(implicit messages: Messages, session: Session, request: RequestHeader)
 
 <nav class="navbar-main navbar navbar-fixed-top navbar-inverse">
     <div class="container">
@@ -59,8 +59,8 @@ The main header displayed on each layout.
             }.getOrElse {
                 @* Show login controls *@
                 <div class="nav navbar-nav navbar-right">
-                    <a href="@routes.Application.logIn(None, None)" class="btn btn-primary navbar-btn">@messages("general.signup")</a>
-                    <a href="@routes.Application.logIn(None, None)" class="btn btn-primary navbar-btn">@messages("general.login")</a>
+                    <a href="@routes.Application.logIn(None, None, Some(request.path))" class="btn btn-primary navbar-btn">@messages("general.signup")</a>
+                    <a href="@routes.Application.logIn(None, None, Some(request.path))" class="btn btn-primary navbar-btn">@messages("general.login")</a>
                 </div>
             }
         </div>

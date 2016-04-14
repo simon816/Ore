@@ -6,13 +6,14 @@ import controllers.BaseController
 import controllers.project.routes.{Channels => self}
 import models.project.{Channel, Project}
 import play.api.i18n.MessagesApi
+import play.api.libs.ws.WSClient
 import util.Forms
 import views.{html => views}
 
 /**
   * Controller for handling Channel related actions.
   */
-class Channels @Inject()(override val messagesApi: MessagesApi) extends BaseController {
+class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
 
   /**
     * Displays a view of the specified Project's Channels.

@@ -3,12 +3,16 @@ package controllers
 import models.project.Project
 import ore.Statistics
 import play.api.i18n.I18nSupport
+import play.api.libs.ws.WSClient
 import play.api.mvc.{Controller, RequestHeader, Result}
+import util.forums.SpongeForums._
 
 /**
   * Represents a Secured base Controller for this application.
   */
-abstract class BaseController extends Controller with I18nSupport with Secured {
+abstract class BaseController(ws: WSClient) extends Controller with I18nSupport with Secured {
+
+  if (API == null) init(ws)
 
   protected[controllers] def withProject(author: String, slug: String, f: Project => Result,
                                          countView: Boolean = false)(implicit request: RequestHeader): Result = {

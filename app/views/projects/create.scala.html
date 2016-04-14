@@ -5,7 +5,7 @@ Page used for uploading and creating new projects.
 @import models.project.Project
 @import models.project.Project.PendingProject
 @import views.html.helper.form
-@(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash)
+@(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
 
 @core.layout(messages("project.create")) {
 

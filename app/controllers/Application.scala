@@ -24,9 +24,7 @@ import scala.concurrent.Future
 /**
   * Main entry point for application.
   */
-class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController {
-
-  if (API == null) init(ws)
+class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
 
   /**
     * Display the home page.
@@ -89,12 +87,13 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     * @param sig  Incoming signature from forums
     * @return     Logged in home
     */
-  def logIn(sso: Option[String], sig: Option[String]) = Action {
+  def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
     if (FakeUser.IsEnabled) {
       now(Queries.Users.getOrCreate(FakeUser))
       Redirect(self.showHome(None)).withSession(Security.username -> FakeUser.username, "email" -> FakeUser.email)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(Auth.getRedirect(config.getString("application.baseUrl").get + "/login"))
+        .flashing("url" -> returnPath.getOrElse(request.path))
     } else {
       val userData = Auth.authenticate(sso.get, sig.get)
       var user = new User(userData._1, userData._2, userData._3, userData._4)
@@ -104,7 +103,8 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
         case roles => if (!roles.equals(user.globalRoleTypes)) user.globalRoleTypes = roles.get
       }
 
-      Redirect(self.showHome(None)).withSession(Security.username -> user.username, "email" -> user.email)
+      val baseUrl = config.getString("application.baseUrl").get
+      Redirect(baseUrl + request2flash.get("url").get).withSession(Security.username -> user.username, "email" -> user.email)
     }
   }
 

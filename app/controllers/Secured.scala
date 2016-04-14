@@ -11,7 +11,9 @@ trait Secured {
 
   def username(request: RequestHeader) = request.session.get(Security.username)
 
-  def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.logIn(None, None))
+  def onUnauthorized(request: RequestHeader) = {
+    Results.Redirect(routes.Application.logIn(None, None, Some(request.path)))
+  }
 
   /**
     * Ensures the client is authenticated as any User.

@@ -5,6 +5,7 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Pages => self}
 import play.api.i18n.MessagesApi
+import play.api.libs.ws.WSClient
 import play.api.mvc.Action
 import util.Forms
 import views.{html => views}
@@ -12,7 +13,7 @@ import views.{html => views}
 /**
   * Controller for handling Page related actions.
   */
-class Pages @Inject()(override val messagesApi: MessagesApi) extends BaseController {
+class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
 
   /**
     * Displays the specified page.

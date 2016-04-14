@@ -8,7 +8,7 @@ sorted according to different criteria.
 @import ore.project.Categories._
 @import util.Git
 @(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages,
-        session: Session, flash: Flash)
+        session: Session, flash: Flash, request: RequestHeader)
 
 @core.layout(messages("general.title")) {
 

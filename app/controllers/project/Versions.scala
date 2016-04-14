@@ -12,6 +12,7 @@ import ore.Colors.Color
 import ore.Statistics
 import ore.project.{InvalidPluginFileException, ProjectManager}
 import play.api.i18n.MessagesApi
+import play.api.libs.ws.WSClient
 import play.api.mvc.Action
 import util.Forms
 import views.{html => views}
@@ -21,7 +22,7 @@ import scala.util.{Failure, Success}
 /**
   * Controller for handling Version related actions.
   */
-class Versions @Inject()(override val messagesApi: MessagesApi) extends BaseController {
+class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
 
   /**
     * Shows the specified version view page.
