@@ -18,7 +18,11 @@ object SpongeForums {
     * @param ws HTTP request client
     */
   def init(ws: WSClient) = {
-    this.api = new DiscourseAPI(config.getString("discourse.baseUrl").get, ws)
+    if (config.getBoolean("discourse.api.enabled").get) {
+      this.api = new DiscourseAPI(config.getString("discourse.baseUrl").get, ws)
+    } else {
+      this.api = DiscourseAPI.Disabled
+    }
   }
 
 }

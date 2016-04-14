@@ -57,3 +57,12 @@ class DiscourseAPI(private val url: String, ws: WSClient) {
   }
 
 }
+
+object DiscourseAPI {
+
+  object Disabled extends DiscourseAPI("", null) {
+    override def roles(username: String) = Future(Set())
+    override def avatarUrl(username: String, size: Int) = ""
+  }
+
+}
