@@ -26,7 +26,7 @@ import scala.util.{Failure, Success}
 class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
 
   private def VersionCreateAction(author: String, slug: String) = {
-    Authenticated andThen AuthedProjectAction(author, slug) andThen ProjectPermissionAction(CreateVersions)
+    AuthedProjectAction(author, slug) andThen ProjectPermissionAction(CreateVersions)
   }
 
   /**
@@ -61,8 +61,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return View of Version
     */
   def saveDescription(author: String, slug: String, channelName: String, versionString: String) = {
-    (Authenticated andThen AuthedProjectAction(author, slug)
-      andThen ProjectPermissionAction(EditVersions)) { implicit request =>
+    (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditVersions)) { implicit request =>
       request.project.channels.withName(channelName) match {
         case None => NotFound("Channel not found.")
         case Some(channel) => channel.versions.withName(versionString) match {

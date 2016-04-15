@@ -8,6 +8,10 @@ User page for developers.
 @import util.forums.SpongeForums
 @(user: User)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
 
+@isThisUser = @{
+    User.current.isDefined && User.current.get.equals(user)
+}
+
 @core.layout(user.username) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/userPage.js")"></script>
@@ -35,13 +39,12 @@ User page for developers.
                             <i class="minor">
                                 @if(user.tagline.isDefined) {
                                     @user.tagline.get
-                                } else { @if(session.get("username").isDefined
-                                        && session.get("username").get.equals(user.username)) {
+                                } else { @if(isThisUser) {
                                     Add a tagline
                                 }}
                             </i>
 
-                            @if(session.get("username").isDefined && session.get("username").get.equals(user.username)) {
+                            @if(isThisUser) {
                                 <a href="#" data-toggle="modal" data-target="#modal-tagline"><i class="fa fa-edit"></i></a>
                             }
                         </div>

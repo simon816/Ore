@@ -49,6 +49,7 @@ project.rename.info             =   Are you sure you want to rename your Project
 project.discuss                 =   Discuss
 project.docs                    =   Docs
 project.settings                =   Settings
+project.settings.members        =   Members
 project.versions                =   Versions
 
 project.downloads               =   Downloads

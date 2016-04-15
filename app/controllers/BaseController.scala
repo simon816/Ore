@@ -39,6 +39,7 @@ abstract class BaseController(ws: WSClient) extends Controller with I18nSupport 
     = new ActionRefiner[Request, ProjectRequest] {
       def refine[A](request: Request[A]) = Future.successful {
         Project.withSlug(author, slug).map { project =>
+          if (countView) Statistics.projectViewed(project)(request)
           new ProjectRequest(project, request)
         } toRight {
           NotFound

@@ -26,7 +26,7 @@ import scala.util.{Failure, Success}
 class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
 
   private def SettingsEditAction(author: String, slug: String) = {
-    Authenticated andThen AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditSettings)
+    AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditSettings)
   }
 
   /**
@@ -163,7 +163,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return Result code
     */
   def setStarred(author: String, slug: String, starred: Boolean) = {
-    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+    AuthedProjectAction(author, slug) { implicit request =>
       val project = request.project
       val user = request.user
       val alreadyStarred = project.isStarredBy(user)

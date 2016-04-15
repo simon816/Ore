@@ -71,8 +71,8 @@ Base template for Project overview.
             </div>
 
             <div class="pull-right project-controls">
-                @if(session.get("username").isDefined) {
-                    @defining(project.isStarredBy(session.get("username").get)) { alreadyStarred =>
+                @if(User.current.isDefined) {
+                    @defining(project.isStarredBy(User.current.get.username)) { alreadyStarred =>
                         <button class="btn btn-default btn-star">
                             <i id="icon-star" @if(alreadyStarred) {
                                 class="fa fa-star"
@@ -87,7 +87,7 @@ Base template for Project overview.
                         </script>
                     }
                 }
-                @if(session.get("username").isEmpty || !session.get("username").get.equals(project.ownerName)) {
+                @if(User.current.isEmpty || !User.current.get.username.equals(project.ownerName)) {
                     <button class="btn btn-default">
                         <i class="fa fa-flag"></i> @messages("project.flag")
                     </button>

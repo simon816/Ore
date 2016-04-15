@@ -3,7 +3,13 @@ Documentation page within Project overview.
 *@
 @import controllers.project.routes
 @import models.project.{Page, Project}
+@import models.user.User
+@import ore.permission.EditPages
 @(model: Project, page: Page)(implicit messages: Messages, session: Session, request: RequestHeader)
+
+@canEditPages = @{
+    User.current.isDefined && (User.current.get can EditPages in model)
+}
 
 @projects.view(model, "#docs") {
 
@@ -11,7 +17,7 @@ Documentation page within Project overview.
         <div class="container">
             <div class="row">
                 <div class="col-md-9">
-                    @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)) {
+                    @if(canEditPages) {
                         <a href="@routes.Pages.showEditor(model.ownerName, model.slug, page.name)"
                            class="btn btn-default pull-right"><i class="fa fa-edit"></i> @messages("page.edit")</a>
                     }
@@ -22,8 +28,7 @@ Documentation page within Project overview.
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h3 class="panel-title">@messages("page.plural")</h3>
-                            @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)
-                                    && model.pages.size < Project.MaxPages) {
+                            @if(canEditPages && model.pages.size < Project.MaxPages) {
                                 <a data-toggle="modal" data-target="#new-page">
                                     <i title="New" class="new-page pull-right fa fa-plus"></i>
                                 </a>
@@ -34,7 +39,7 @@ Documentation page within Project overview.
                             @for(page <- model.pages.values) {
                                 <li class="list-group-item">
                                     <a href="@routes.Pages.show(model.ownerName, model.slug, page.name)">@page.name</a>
-                                    @if(session.get("username").isDefined && session.get("username").get.equals(model.ownerName)) {
+                                    @if(canEditPages) {
                                         <a href="@routes.Pages.showEditor(model.ownerName, model.slug, page.name)"
                                            class="pull-right"><i title="Edit" class="fa fa-edit"></i></a>
                                     }

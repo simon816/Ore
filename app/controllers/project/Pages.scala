@@ -17,7 +17,7 @@ import views.{html => views}
 class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
 
   private def PageEditAction(author: String, slug: String) = {
-    Authenticated andThen AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditPages)
+    AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditPages)
   }
 
   /**

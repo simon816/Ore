@@ -23,7 +23,10 @@ object RoleTypes extends Enumeration {
   val QuartzDonor       =   new DonorType(13, 54,               "Quartz Donor",          Quartz)
   val StoneDonor        =   new DonorType(14, 57,               "Stone Donor",           Gray)
 
-  val ProjectOwner      =   new RoleType(15, -1,    Absolute,   "Project Owner",         Transparent)
+  val ProjectOwner      =   new  RoleType(15, -1,   Absolute,   "Owner",                 Transparent)
+  val ProjectDev        =   new  RoleType(16, -2,   Standard,   "Developer",             Transparent)
+  val ProjectEditor     =   new  RoleType(17, -3,   Limited,    "Editor",                Transparent)
+  val ProjectSupport    =   new  RoleType(18, -4,   Default,    "Support",               Transparent)
 
   /**
     * Returns the role with the specified external ID.

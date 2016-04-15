@@ -2,6 +2,7 @@ package controllers
 
 import models.project.Project
 import models.user.User
+import ore.Statistics
 import ore.permission.Permission
 import ore.permission.scope.ScopeSubject
 import play.api.mvc.Results._
@@ -57,24 +58,23 @@ trait Secured {
     override val subject = this.project
   }
 
-  /**
-    * Action to retrieve a [[Project]] after authentication has been performed.
-    *
-    * @param author     Project owner
-    * @param slug       Project slug
-    * @param countView  True if should count as project view
-    * @return           Either a new [[AuthedProjectRequest]] or a [[NotFound]]
-    *                   result.
-    */
-  def AuthedProjectAction(author: String, slug: String, countView: Boolean = false)
+  private def authedProjectAction(author: String, slug: String, countView: Boolean)
     = new ActionRefiner[AuthRequest, AuthedProjectRequest] {
       def refine[A](request: AuthRequest[A]) = Future.successful {
         Project.withSlug(author, slug).map { project =>
+          if (countView) Statistics.projectViewed(project)(request)
           new AuthedProjectRequest(project, request)
         } toRight {
           NotFound
         }
       }
+  }
+
+  /** Action to retrieve a [[Project]] after authentication has been performed. */
+  object AuthedProjectAction {
+    def apply(author: String, slug: String, countView: Boolean = false) = {
+      Authenticated andThen authedProjectAction(author, slug, countView)
+    }
   }
 
   /**

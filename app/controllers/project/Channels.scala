@@ -17,7 +17,7 @@ import views.{html => views}
 class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
 
   private def ChannelEditAction(author: String, slug: String) = {
-    Authenticated andThen AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditChannels)
+    AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditChannels)
   }
 
   /**
