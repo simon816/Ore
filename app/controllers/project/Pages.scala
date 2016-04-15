@@ -23,13 +23,14 @@ class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) exten
     * @param page   Page name
     * @return View of page
     */
-  def show(author: String, slug: String, page: String) = Action { implicit request =>
-    withProject(author, slug, project => {
+  def show(author: String, slug: String, page: String) = {
+    ProjectAction(author, slug, countView = true) { implicit request =>
+      val project = request.project
       project.pages.withName(page) match {
         case None => NotFound
         case Some(p) => Ok(views.projects.pages.view(project, p))
       }
-    }, countView = true)
+    }
   }
 
   /**
@@ -41,10 +42,11 @@ class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) exten
     * @param page   Page name
     * @return Page editor
     */
-  def showEditor(author: String, slug: String, page: String) = Authenticated { implicit request =>
-    withProject(author, slug, project => {
+  def showEditor(author: String, slug: String, page: String) = {
+    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+      val project = request.project
       Ok(views.projects.pages.edit(project, page, project.getOrCreatePage(page).contents))
-    })
+    }
   }
 
   /**
@@ -55,13 +57,13 @@ class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) exten
     * @param page   Page name
     * @return Project home
     */
-  def save(author: String, slug: String, page: String) = Authenticated { implicit request =>
-    // TODO: Validate content size and title
-    withProject(author, slug, project => {
+  def save(author: String, slug: String, page: String) = {
+    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+      // TODO: Validate content size and title
       val pageForm = Forms.PageEdit.bindFromRequest.get
-      project.getOrCreatePage(page).contents = pageForm._2
+      request.project.getOrCreatePage(page).contents = pageForm._2
       Redirect(self.show(author, slug, page))
-    })
+    }
   }
 
   /**
@@ -72,11 +74,12 @@ class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) exten
     * @param page   Page name
     * @return Redirect to Project homepage
     */
-  def delete(author: String, slug: String, page: String) = Authenticated { implicit request =>
-    withProject(author, slug, project => {
+  def delete(author: String, slug: String, page: String) = {
+    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+      val project = request.project
       project.pages.remove(project.pages.withName(page).get)
       Redirect(routes.Projects.show(author, slug))
-    })
+    }
   }
 
 }

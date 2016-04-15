@@ -110,10 +110,11 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param slug   Project slug
     * @return View of project
     */
-  def show(author: String, slug: String) = Action { implicit request =>
-    withProject(author, slug, project => {
+  def show(author: String, slug: String) = {
+    ProjectAction(author, slug, countView = true) { implicit request =>
+      val project = request.project
       Ok(views.projects.pages.view(project, project.homePage))
-    }, countView = true)
+    }
   }
 
   /**
@@ -136,15 +137,16 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param slug   Project slug
     * @return View of project
     */
-  def save(author: String, slug: String) = Authenticated { implicit request =>
-    withProject(author, slug, project => {
+  def save(author: String, slug: String) = {
+    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+      val project = request.project
       val form = Forms.ProjectSave.bindFromRequest.get
       project.category = Categories.withName(form._1.trim)
       project.issues = nullIfEmpty(form._2)
       project.source = nullIfEmpty(form._3)
       project.description = nullIfEmpty(form._4)
       Redirect(self.show(author, slug))
-    })
+    }
   }
 
   /**
@@ -155,8 +157,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param starred True if should set to starred
     * @return Result code
     */
-  def setStarred(author: String, slug: String, starred: Boolean) = Authenticated { implicit request =>
-    withProject(author, slug, project => {
+  def setStarred(author: String, slug: String, starred: Boolean) = {
+    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+      val project = request.project
       val user = request.user
       val alreadyStarred = project.isStarredBy(user)
       if (starred) {
@@ -167,7 +170,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
         project.unstarFor(user)
       }
       Ok
-    })
+    }
   }
 
   /**
@@ -177,8 +180,10 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param slug   Project slug
     * @return View of project
     */
-  def showDiscussion(author: String, slug: String) = Action { implicit request =>
-    withProject(author, slug, project => Ok(views.projects.discuss(project)), countView = true)
+  def showDiscussion(author: String, slug: String) = {
+    ProjectAction(author, slug, countView = true) { implicit request =>
+      Ok(views.projects.discuss(request.project))
+    }
   }
 
   /**
@@ -188,8 +193,10 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param slug   Project slug
     * @return Project manager
     */
-  def showManager(author: String, slug: String) = Authenticated { implicit request =>
-    withProject(author, slug, project => Ok(views.projects.manage(project)), countView = true)
+  def showManager(author: String, slug: String) = {
+    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+      Ok(views.projects.manage(request.project))
+    }
   }
 
   /**
@@ -199,13 +206,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param slug   Project slug
     * @return Issue tracker
     */
-  def showIssues(author: String, slug: String) = Action { implicit request =>
-    withProject(author, slug, project => {
-      project.issues match {
+  def showIssues(author: String, slug: String) = {
+    ProjectAction(author, slug) { implicit request =>
+      request.project.issues match {
         case None => NotFound
         case Some(link) => Redirect(link)
       }
-    })
+    }
   }
 
   /**
@@ -215,13 +222,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param slug   Project slug
     * @return Source code
     */
-  def showSource(author: String, slug: String) = Action { implicit request =>
-    withProject(author, slug, project => {
-      project.source match {
+  def showSource(author: String, slug: String) = {
+    ProjectAction(author, slug) { implicit request =>
+      request.project.source match {
         case None => NotFound
         case Some(link) => Redirect(link)
       }
-    })
+    }
   }
 
   /**
@@ -231,16 +238,17 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param slug   Project slug
     * @return Project homepage
     */
-  def rename(author: String, slug: String) = Authenticated { implicit request =>
-    withProject(author, slug, project => {
+  def rename(author: String, slug: String) = {
+    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
       val newName = compact(Forms.ProjectRename.bindFromRequest.get)
       if (!Project.isNamespaceAvailable(author, slugify(newName))) {
         Redirect(self.showManager(author, slug)).flashing("error" -> "That name is not available.")
       } else {
+        val project = request.project
         project.name = newName
         Redirect(self.show(author, project.slug))
       }
-    })
+    }
   }
 
   /**
@@ -250,12 +258,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param slug   Project slug
     * @return Home page
     */
-  def delete(author: String, slug: String) = Authenticated { implicit request =>
-    withProject(author, slug, project => {
+  def delete(author: String, slug: String) = {
+    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+      val project = request.project
       project.delete.get
       Redirect(app.showHome(None))
         .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
-    })
+    }
   }
 
 }

@@ -22,10 +22,11 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param slug   Project slug
     * @return View of channels
     */
-  def showList(author: String, slug: String) = Authenticated { implicit request =>
-    withProject(author, slug, project => {
+  def showList(author: String, slug: String) = {
+    (Authenticated andThen AuthedProjectAction(author, slug, countView = true)) { implicit request =>
+      val project = request.project
       Ok(views.projects.channels.list(project, project.channels.seq))
-    }, countView = true)
+    }
   }
 
   /**
@@ -35,8 +36,9 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param slug   Project slug
     * @return Redirect to view of channels
     */
-  def create(author: String, slug: String) = Authenticated { implicit request =>
-    withProject(author, slug, project => {
+  def create(author: String, slug: String) = {
+    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+      val project = request.project
       val channels = project.channels.values
       if (channels.size > Project.MaxChannels) {
         // Maximum reached
@@ -70,7 +72,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
           }
         }
       }
-    })
+    }
   }
 
   /**
@@ -81,8 +83,8 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param channelName Channel name
     * @return View of channels
     */
-  def edit(author: String, slug: String, channelName: String) = Authenticated { implicit request =>
-    withProject(author, slug, implicit project => {
+  def edit(author: String, slug: String, channelName: String) = {
+    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
       // Get all channels
       val form = Forms.ChannelEdit.bindFromRequest.get
       val newName = form._1.trim
@@ -91,7 +93,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
           .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
       } else {
         // Find submitted channel by old name
-        val channels = project.channels.values
+        val channels = request.project.channels.values
         channels.find(c => c.name.equals(channelName)) match {
           case None => NotFound("Channel not found.")
           case Some(channel) => Channel.Colors.find(c => c.hex.equalsIgnoreCase(form._2)) match {
@@ -127,7 +129,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
           }
         }
       }
-    })
+    }
   }
 
   /**
@@ -139,8 +141,9 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param channelName Channel name
     * @return View of channels
     */
-  def delete(author: String, slug: String, channelName: String) = Authenticated { implicit request =>
-    withProject(author, slug, project => {
+  def delete(author: String, slug: String, channelName: String) = {
+    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+      val project = request.project
       val channels = project.channels.values
       if (channels.size == 1) {
         Redirect(self.showList(author, slug))
@@ -158,7 +161,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
             }
         }
       }
-    })
+    }
   }
 
 }
