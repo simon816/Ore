@@ -14,7 +14,7 @@ import scala.concurrent.Future
   */
 trait Secured {
 
-  def onUnauthorized(request: RequestHeader) = {
+  private def onUnauthorized(request: RequestHeader) = {
     Redirect(routes.Application.logIn(None, None, Some(request.path)))
   }
 
@@ -34,34 +34,6 @@ trait Secured {
       User.current(request.session)
         .map(new AuthRequest(_, request))
         .toRight(onUnauthorized(request))
-    }
-  }
-
-  // Projects
-
-  /**
-    * A request that holds a [[Project]].
-    *
-    * @param project Project to hold
-    * @param request Request to wrap
-    */
-  class ProjectRequest[A](val project: Project, request: Request[A]) extends WrappedRequest[A](request)
-
-  private def projectAction(author: String, slug: String, countView: Boolean = false)
-    = new ActionRefiner[Request, ProjectRequest] {
-      def refine[A](request: Request[A]) = Future.successful {
-        Project.withSlug(author, slug).map { project =>
-          new ProjectRequest(project, request)
-        } toRight {
-          NotFound
-        }
-      }
-  }
-
-  /** Action to retrieve a [[Project]] and add it to the request. */
-  object ProjectAction {
-    def apply(author: String, slug: String, countView: Boolean = false) = {
-      Action andThen projectAction(author, slug, countView)
     }
   }
 
@@ -123,6 +95,13 @@ trait Secured {
     }
   }
 
+  /**
+    * A PermissionAction that uses an AuthedProjectRequest for the
+    * ScopedRequest.
+    *
+    * @param p  Permission to check
+    * @return   An [[AuthedProjectRequest]]
+    */
   def ProjectPermissionAction(p: Permission) = PermissionAction[AuthedProjectRequest](p)
 
 }
