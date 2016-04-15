@@ -4,6 +4,7 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.project.routes.{Pages => self}
+import ore.permission.EditPages
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc.Action
@@ -14,6 +15,10 @@ import views.{html => views}
   * Controller for handling Page related actions.
   */
 class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
+
+  private def PageEditAction(author: String, slug: String) = {
+    Authenticated andThen AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditPages)
+  }
 
   /**
     * Displays the specified page.
@@ -43,7 +48,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) exten
     * @return Page editor
     */
   def showEditor(author: String, slug: String, page: String) = {
-    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+    PageEditAction(author, slug) { implicit request =>
       val project = request.project
       Ok(views.projects.pages.edit(project, page, project.getOrCreatePage(page).contents))
     }
@@ -58,7 +63,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) exten
     * @return Project home
     */
   def save(author: String, slug: String, page: String) = {
-    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+    PageEditAction(author, slug) { implicit request =>
       // TODO: Validate content size and title
       val pageForm = Forms.PageEdit.bindFromRequest.get
       request.project.getOrCreatePage(page).contents = pageForm._2
@@ -75,7 +80,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) exten
     * @return Redirect to Project homepage
     */
   def delete(author: String, slug: String, page: String) = {
-    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+    PageEditAction(author, slug) { implicit request =>
       val project = request.project
       project.pages.remove(project.pages.withName(page).get)
       Redirect(routes.Projects.show(author, slug))

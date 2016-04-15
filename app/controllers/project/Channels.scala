@@ -5,6 +5,7 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Channels => self}
 import models.project.{Channel, Project}
+import ore.permission.EditChannels
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import util.Forms
@@ -15,6 +16,10 @@ import views.{html => views}
   */
 class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
 
+  private def ChannelEditAction(author: String, slug: String) = {
+    Authenticated andThen AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditChannels)
+  }
+
   /**
     * Displays a view of the specified Project's Channels.
     *
@@ -23,7 +28,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return View of channels
     */
   def showList(author: String, slug: String) = {
-    (Authenticated andThen AuthedProjectAction(author, slug, countView = true)) { implicit request =>
+    ChannelEditAction(author, slug) { implicit request =>
       val project = request.project
       Ok(views.projects.channels.list(project, project.channels.seq))
     }
@@ -37,7 +42,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return Redirect to view of channels
     */
   def create(author: String, slug: String) = {
-    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+    ChannelEditAction(author, slug) { implicit request =>
       val project = request.project
       val channels = project.channels.values
       if (channels.size > Project.MaxChannels) {
@@ -84,8 +89,9 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return View of channels
     */
   def edit(author: String, slug: String, channelName: String) = {
-    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+    ChannelEditAction(author, slug) { implicit request =>
       // Get all channels
+      implicit val project = request.project
       val form = Forms.ChannelEdit.bindFromRequest.get
       val newName = form._1.trim
       if (!Channel.isValidName(newName)) {
@@ -142,7 +148,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return View of channels
     */
   def delete(author: String, slug: String, channelName: String) = {
-    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+    ChannelEditAction(author, slug) { implicit request =>
       val project = request.project
       val channels = project.channels.values
       if (channels.size == 1) {

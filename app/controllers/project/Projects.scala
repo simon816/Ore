@@ -6,6 +6,7 @@ import controllers.BaseController
 import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
 import models.project._
+import ore.permission.EditSettings
 import ore.project.{Categories, InvalidPluginFileException, ProjectManager}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -23,6 +24,10 @@ import scala.util.{Failure, Success}
   * TODO: Localize
   */
 class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
+
+  private def SettingsEditAction(author: String, slug: String) = {
+    Authenticated andThen AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditSettings)
+  }
 
   /**
     * Displays the "create project" page.
@@ -138,7 +143,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return View of project
     */
   def save(author: String, slug: String) = {
-    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+    SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
       val form = Forms.ProjectSave.bindFromRequest.get
       project.category = Categories.withName(form._1.trim)
@@ -194,7 +199,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return Project manager
     */
   def showManager(author: String, slug: String) = {
-    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+    SettingsEditAction(author, slug) { implicit request =>
       Ok(views.projects.manage(request.project))
     }
   }
@@ -239,7 +244,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return Project homepage
     */
   def rename(author: String, slug: String) = {
-    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+    SettingsEditAction(author, slug) { implicit request =>
       val newName = compact(Forms.ProjectRename.bindFromRequest.get)
       if (!Project.isNamespaceAvailable(author, slugify(newName))) {
         Redirect(self.showManager(author, slug)).flashing("error" -> "That name is not available.")
@@ -259,7 +264,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return Home page
     */
   def delete(author: String, slug: String) = {
-    (Authenticated andThen AuthedProjectAction(author, slug)) { implicit request =>
+    SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
       project.delete.get
       Redirect(app.showHome(None))

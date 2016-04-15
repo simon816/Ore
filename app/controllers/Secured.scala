@@ -105,14 +105,24 @@ trait Secured {
       }
   }
 
-  def PermissionAction[R <: ScopedRequest](p: Permission) = new ActionRefiner[ScopedRequest, R] {
+  /**
+    * Action to perform a permission check for the current ScopedRequest and
+    * given Permission.
+    *
+    * @param p  Permission to check
+    * @tparam R Type of ScopedRequest that is being checked
+    * @return   The ScopedRequest as an instance of R
+    */
+  def PermissionAction[R[_] <: ScopedRequest[_]](p: Permission) = new ActionRefiner[ScopedRequest, R] {
     def refine[A](request: ScopedRequest[A]) = Future.successful {
       if (!(request.user can p in request.subject)) {
         Left(onUnauthorized(request))
       } else {
-        Right(request.asInstanceOf[R][A])
+        Right(request.asInstanceOf[R[A]])
       }
     }
   }
+
+  def ProjectPermissionAction(p: Permission) = PermissionAction[AuthedProjectRequest](p)
 
 }
