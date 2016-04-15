@@ -18,24 +18,24 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   /**
     * Displays a view of the specified Project's Channels.
     *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @return         View of channels
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return View of channels
     */
-  def showList(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
+  def showList(author: String, slug: String) = Authenticated { implicit request =>
     withProject(author, slug, project => {
       Ok(views.projects.channels.list(project, project.channels.seq))
-    }, countView = true))
+    }, countView = true)
   }
 
   /**
     * Creates a submitted channel for the specified Project.
     *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @return         Redirect to view of channels
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return Redirect to view of channels
     */
-  def create(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
+  def create(author: String, slug: String) = Authenticated { implicit request =>
     withProject(author, slug, project => {
       val channels = project.channels.values
       if (channels.size > Project.MaxChannels) {
@@ -70,18 +70,18 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
           }
         }
       }
-    }))
+    })
   }
 
   /**
     * Submits changes to an existing channel.
     *
-    * @param author       Project owner
-    * @param slug         Project slug
-    * @param channelName  Channel name
-    * @return             View of channels
+    * @param author      Project owner
+    * @param slug        Project slug
+    * @param channelName Channel name
+    * @return View of channels
     */
-  def edit(author: String, slug: String, channelName: String) = { withUser(Some(author), user => implicit request =>
+  def edit(author: String, slug: String, channelName: String) = Authenticated { implicit request =>
     withProject(author, slug, implicit project => {
       // Get all channels
       val form = Forms.ChannelEdit.bindFromRequest.get
@@ -127,19 +127,19 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
           }
         }
       }
-    }))
+    })
   }
 
   /**
     * Irreversibly deletes the specified channel and all version associated
     * with it.
     *
-    * @param author       Project owner
-    * @param slug         Project slug
-    * @param channelName  Channel name
-    * @return             View of channels
+    * @param author      Project owner
+    * @param slug        Project slug
+    * @param channelName Channel name
+    * @return View of channels
     */
-  def delete(author: String, slug: String, channelName: String) = { withUser(Some(author), user => implicit request =>
+  def delete(author: String, slug: String, channelName: String) = Authenticated { implicit request =>
     withProject(author, slug, project => {
       val channels = project.channels.values
       if (channels.size == 1) {
@@ -158,7 +158,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
             }
         }
       }
-    }))
+    })
   }
 
 }

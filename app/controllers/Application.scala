@@ -68,7 +68,8 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     * @param username   User to update
     * @return           View of user page
     */
-  def saveTagline(username: String) = withUser(Some(username), user => implicit request => {
+  def saveTagline(username: String) = Authenticated { implicit request =>
+    val user = request.user
     val tagline = Forms.UserTagline.bindFromRequest.get.trim
     if (tagline.length > User.MaxTaglineLength) {
       Redirect(self.showUser(user.username)).flashing("error" -> "Tagline is too long.")
@@ -78,7 +79,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
       }
       Redirect(self.showUser(user.username))
     }
-  })
+  }
 
   /**
     * Redirect to forums for SSO authentication and then back here again.

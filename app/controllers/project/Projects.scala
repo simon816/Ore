@@ -29,7 +29,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     *
     * @return Create project view
     */
-  def showCreator = withAuth { context => implicit request =>
+  def showCreator = Authenticated { implicit request =>
     Ok(views.projects.create(None))
   }
 
@@ -38,11 +38,12 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     *
     * @return Result
     */
-  def upload = { withUser(None, user => implicit request =>
+  def upload = Authenticated { implicit request =>
     request.body.asMultipartFormData.get.file("pluginFile") match {
       case None => Redirect(self.showCreator()).flashing("error" -> "No file submitted.")
       case Some(tmpFile) =>
         // Initialize plugin file
+        val user = request.user
         ProjectManager.initUpload(tmpFile.ref, tmpFile.filename, user) match {
           case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
             // PEBKAC
@@ -57,34 +58,34 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
             Project.setPending(project, plugin)
             Redirect(self.showCreatorWithMeta(project.ownerName, project.slug))
         }
-    })
+    }
   }
 
   /**
     * Displays the "create project" page with uploaded plugin meta data.
     *
-    * @param author   Author of plugin
-    * @param slug     Project slug
-    * @return         Create project view
+    * @param author Author of plugin
+    * @param slug   Project slug
+    * @return Create project view
     */
-  def showCreatorWithMeta(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
+  def showCreatorWithMeta(author: String, slug: String) = Authenticated { implicit request =>
     Project.getPending(author, slug) match {
       case None => Redirect(self.showCreator())
       case Some(pending) =>
         pending.initFirstVersion
         Ok(views.projects.create(Some(pending)))
-    })
+    }
   }
 
   /**
     * Continues on to the second step of Project creation where the user
     * publishes their Project.
     *
-    * @param author   Author of project
-    * @param slug     Project slug
-    * @return         Redirection to project page if successful
+    * @param author Author of project
+    * @param slug   Project slug
+    * @return Redirection to project page if successful
     */
-  def showFirstVersionCreator(author: String, slug: String) = { withUser(Some(author), user => implicit request => {
+  def showFirstVersionCreator(author: String, slug: String) = Authenticated { implicit request => {
     Project.getPending(author, slug) match {
       case None => BadRequest("No project to create.")
       case Some(pendingProject) =>
@@ -98,15 +99,16 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
         Redirect(routes.Versions.showCreatorWithMeta(
           author, slug, pendingVersion.channelName, pendingVersion.version.versionString
         ))
-    }})
+    }
+  }
   }
 
   /**
     * Displays the Project with the specified author and name.
     *
-    * @param author   Owner of project
-    * @param slug     Project slug
-    * @return         View of project
+    * @param author Owner of project
+    * @param slug   Project slug
+    * @return View of project
     */
   def show(author: String, slug: String) = Action { implicit request =>
     withProject(author, slug, project => {
@@ -130,11 +132,11 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   /**
     * Saves the specified Project from the settings manager.
     *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @return         View of project
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return View of project
     */
-  def save(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
+  def save(author: String, slug: String) = Authenticated { implicit request =>
     withProject(author, slug, project => {
       val form = Forms.ProjectSave.bindFromRequest.get
       project.category = Categories.withName(form._1.trim)
@@ -142,19 +144,20 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
       project.source = nullIfEmpty(form._3)
       project.description = nullIfEmpty(form._4)
       Redirect(self.show(author, slug))
-    }))
+    })
   }
 
   /**
     * Sets the "starred" status of a Project for the current user.
     *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @param starred  True if should set to starred
-    * @return         Result code
+    * @param author  Project owner
+    * @param slug    Project slug
+    * @param starred True if should set to starred
+    * @return Result code
     */
-  def setStarred(author: String, slug: String, starred: Boolean) = { withUser(None, user => implicit request =>
+  def setStarred(author: String, slug: String, starred: Boolean) = Authenticated { implicit request =>
     withProject(author, slug, project => {
+      val user = request.user
       val alreadyStarred = project.isStarredBy(user)
       if (starred) {
         if (!alreadyStarred) {
@@ -164,15 +167,15 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
         project.unstarFor(user)
       }
       Ok
-    }))
+    })
   }
 
   /**
     * Displays the "discussion" tab within a Project view.
     *
-    * @param author   Owner of project
-    * @param slug     Project slug
-    * @return         View of project
+    * @param author Owner of project
+    * @param slug   Project slug
+    * @return View of project
     */
   def showDiscussion(author: String, slug: String) = Action { implicit request =>
     withProject(author, slug, project => Ok(views.projects.discuss(project)), countView = true)
@@ -181,20 +184,20 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   /**
     * Shows the project manager or "settings" pane.
     *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @return         Project manager
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return Project manager
     */
-  def showManager(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
-    withProject(author, slug, project => Ok(views.projects.manage(project)), countView = true))
+  def showManager(author: String, slug: String) = Authenticated { implicit request =>
+    withProject(author, slug, project => Ok(views.projects.manage(project)), countView = true)
   }
 
   /**
     * Redirect's to the project's issue tracker if any.
     *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @return         Issue tracker
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return Issue tracker
     */
   def showIssues(author: String, slug: String) = Action { implicit request =>
     withProject(author, slug, project => {
@@ -208,9 +211,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   /**
     * Redirect's to the project's source code if any.
     *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @return         Source code
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return Source code
     */
   def showSource(author: String, slug: String) = Action { implicit request =>
     withProject(author, slug, project => {
@@ -224,11 +227,11 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   /**
     * Renames the specified project.
     *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @return         Project homepage
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return Project homepage
     */
-  def rename(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
+  def rename(author: String, slug: String) = Authenticated { implicit request =>
     withProject(author, slug, project => {
       val newName = compact(Forms.ProjectRename.bindFromRequest.get)
       if (!Project.isNamespaceAvailable(author, slugify(newName))) {
@@ -237,22 +240,22 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
         project.name = newName
         Redirect(self.show(author, project.slug))
       }
-    }))
+    })
   }
 
   /**
     * Irreversibly deletes the specified project.
     *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @return         Home page
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return Home page
     */
-  def delete(author: String, slug: String) = { withUser(Some(author), user => implicit request =>
+  def delete(author: String, slug: String) = Authenticated { implicit request =>
     withProject(author, slug, project => {
       project.delete.get
       Redirect(app.showHome(None))
         .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
-    }))
+    })
   }
 
 }
