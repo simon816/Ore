@@ -8,7 +8,9 @@ import play.api.libs.ws.WSClient
   */
 object SpongeForums {
 
-  lazy val Auth = new DiscourseSSO(config.getString("discourse.sso.url").get, config.getString("discourse.sso.secret").get)
+  lazy val Auth = new DiscourseSSO(config.getString("discourse.sso.url").get,
+                                   config.getString("discourse.sso.secret").get)
+
   private var api: DiscourseAPI = null
   def API: DiscourseAPI = this.api
 

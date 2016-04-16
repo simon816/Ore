@@ -19,6 +19,13 @@ import scala.util.{Success, Failure}
   */
 class DiscourseAPI(private val url: String, ws: WSClient) {
 
+  /**
+    * Attempts to retrieve the user with the specified username from the forums
+    * and creates them if they exist.
+    *
+    * @param username Username to find
+    * @return         New user or None
+    */
   def fetchUser(username: String): Future[Option[User]] = {
     ws.url(userUrl(username)).get.map { response =>
       val obj = response.json.as[JsObject]
@@ -27,7 +34,7 @@ class DiscourseAPI(private val url: String, ws: WSClient) {
         var user = new User((userObj \ "id").as[Int], (userObj \ "name").asOpt[String].orNull,
                             (userObj \ "username").as[String], (userObj \ "email").asOpt[String].orNull)
         user = now(Queries.Users.getOrCreate(user)).get
-        val globalRoles = now(roles(username)).get
+        val globalRoles = parseRoles(userObj)
         user.globalRoleTypes = globalRoles
         Some(user)
       } else {
@@ -43,21 +50,24 @@ class DiscourseAPI(private val url: String, ws: WSClient) {
     * @param username   User to get roles for
     * @return           Set of roles the user has
     */
-  def roles(username: String): Future[Set[RoleType]] = {
+  def fetchRoles(username: String): Future[Set[RoleType]] = {
     ws.url(userUrl(username)).get.map { response =>
       val obj = response.json.as[JsObject]
       if (isSuccess(obj)) {
-        val groups = (response.json \ "user" \ "groups").as[List[JsObject]]
-        (for (group <- groups) yield {
-          val id = (group \ "id").as[Int]
-          RoleTypes.values.find(_.roleId == id)
-        }).flatten.map(_.asInstanceOf[RoleType]).toSet
+        parseRoles((obj \ "user").as[JsObject])
       } else {
         Set()
       }
     }
   }
 
+  /**
+    * Returns the URL to the specified user's avatar image.
+    *
+    * @param username Username to get avatar URL for
+    * @param size     Size of avatar
+    * @return         Avatar URL
+    */
   def avatarUrl(username: String, size: Int): String = {
     now(ws.url(userUrl(username)).get.map { response =>
       val obj = response.json.as[JsObject]
@@ -70,7 +80,15 @@ class DiscourseAPI(private val url: String, ws: WSClient) {
     }).get
   }
 
-  def isSuccess(json: JsObject): Boolean = !json.keys.contains("errors")
+  private def parseRoles(userObj: JsObject): Set[RoleType] = {
+    val groups = (userObj \ "groups").as[List[JsObject]]
+    (for (group <- groups) yield {
+      val id = (group \ "id").as[Int]
+      RoleTypes.values.find(_.roleId == id)
+    }).flatten.map(_.asInstanceOf[RoleType]).toSet
+  }
+
+  private def isSuccess(json: JsObject): Boolean = !json.keys.contains("errors")
 
   private def userUrl(username: String): String = {
     url + "/users/" + username + ".json"
@@ -80,8 +98,12 @@ class DiscourseAPI(private val url: String, ws: WSClient) {
 
 object DiscourseAPI {
 
+  /**
+    * Represents a DiscourseAPI object in a disabled state.
+    */
   object Disabled extends DiscourseAPI("", null) {
-    override def roles(username: String) = Future(Set())
+    override def fetchUser(username: String) = Future(None)
+    override def fetchRoles(username: String) = Future(Set())
     override def avatarUrl(username: String, size: Int) = ""
   }
 
