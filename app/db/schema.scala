@@ -140,7 +140,7 @@ class UserProjectRolesTable(tag: Tag) extends ModelTable[ProjectRole](tag, "user
   def roleType    =   column[RoleType]("role_type_id")
   def projectId   =   column[Int]("project_id")
 
-  override def * = (id.?, createdAt.?, userId, roleType, projectId) <> (ProjectRole.tupled, ProjectRole.unapply)
+  override def * = (id.?, createdAt.?, userId, roleType, projectId) <> ((ProjectRole.apply _).tupled, ProjectRole.unapply)
 
 }
 
