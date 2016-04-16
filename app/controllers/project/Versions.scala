@@ -14,7 +14,6 @@ import ore.permission.{CreateVersions, EditVersions}
 import ore.project.{InvalidPluginFileException, ProjectManager}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
-import play.api.mvc.Action
 import util.Forms
 import views.{html => views}
 

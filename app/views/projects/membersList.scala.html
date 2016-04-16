@@ -1,0 +1,26 @@
+@import models.project.Project
+@(model: Project)(implicit messages: Messages)
+
+@if(model.members.nonEmpty) {
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">@messages("project.settings.members")</h3>
+        </div>
+        <ul class="list-group">
+        @model.members.map { author =>
+            <li class="list-group-item">
+                @defining(author.user) { userOpt =>
+                    @if(userOpt.isDefined) {
+                        <a href="@routes.Application.showUser(author.name)">@author.name</a>
+                        <span class="minor pull-right">
+                          @userOpt.get.projectRoles.filter(_.projectId === model.id.get).head.roleType.title
+                        </span>
+                    } else {
+                        <span class="minor">@author.name</span>
+                    }
+                }
+            </li>
+        }
+        </ul>
+    </div>
+}

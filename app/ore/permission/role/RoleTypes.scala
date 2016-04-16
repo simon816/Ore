@@ -40,6 +40,8 @@ object RoleTypes extends Enumeration {
     throw new NoSuchElementException
   }
 
+  def ofProjects = this.values.filter(_.roleId < 0)
+
   /**
     * Represents a User role.
     *

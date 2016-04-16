@@ -1,12 +1,9 @@
 package controllers
 
 import models.project.Project
-import models.user.User
 import ore.Statistics
 import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
-import play.api.mvc.Results._
-import play.api.mvc.Security.AuthenticatedRequest
 import play.api.mvc._
 import util.forums.SpongeForums._
 

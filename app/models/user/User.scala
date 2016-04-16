@@ -37,18 +37,37 @@ case class User(override val  id: Option[Int] = None,
                 private var   globalRoleIds: List[Int] = List())
                 extends       NamedModel {
 
+  /**
+    * The User's [[PermissionPredicate]]. All permission checks go through
+    * here.
+    */
   val can: PermissionPredicate = PermissionPredicate(this)
 
   def this(externalId: Int, name: String, username: String, email: String) = {
     this(id=Some(externalId), fullName=Option(name), username=username, email=email)
   }
 
+  /**
+    * Returns a [[ModelSet]] of [[ProjectRole]]s.
+    *
+    * @return ProjectRoles
+    */
   def projectRoles: ModelSet[UserProjectRolesTable, ProjectRole] = {
     new ModelSet(Queries.Users.ProjectRoles, this.id.get, _.userId)
   }
 
+  /**
+    * Returns a Set of [[RoleType]]s that this User has globally.
+    *
+    * @return Global RoleTypes.
+    */
   def globalRoleTypes: Set[RoleType] = (for (roleId <- globalRoleIds) yield RoleTypes.withId(roleId)).toSet
 
+  /**
+    * Sets the [[RoleTypes]]s that this User has globally.
+    *
+    * @param _roles Roles to set
+    */
   def globalRoleTypes_=(_roles: Set[RoleType]) = {
     val ids = _roles.map(_.roleId).toList
     now(Queries.Users.setIntList(this, _.globalRoles, ids)).get
@@ -119,6 +138,8 @@ object User {
     * @return User if found, None otherwise
     */
   def withName(username: String): Option[User] = now(Queries.Users.withName(username)).get
+
+  def withId(id: Int): Option[User] = now(Queries.Users.get(id)).get
 
   /**
     * Returns the currently authenticated User.

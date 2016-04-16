@@ -7,7 +7,6 @@ import controllers.project.routes.{Pages => self}
 import ore.permission.EditPages
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
-import play.api.mvc.Action
 import util.Forms
 import views.{html => views}
 

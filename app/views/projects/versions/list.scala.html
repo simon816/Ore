@@ -4,8 +4,7 @@ Versions page within Project overview.
 @import controllers.project.{routes => projectRoutes}
 @import models.project.{Channel, Project, Version}
 @import models.user.User
-@import ore.permission.CreateVersions
-@import ore.permission.EditChannels
+@import ore.permission.{CreateVersions, EditChannels}
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
   visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session, request: RequestHeader)
 
@@ -105,26 +104,7 @@ Versions page within Project overview.
                                 }
                             </ul>
                         </div>
-                        @if(model.authors.nonEmpty) {
-                            <div class="panel panel-default">
-                                <div class="panel-heading">
-                                    <h3 class="panel-title">Developers</h3>
-                                </div>
-                                <ul class="list-group">
-                                @model.authors.map { author =>
-                                    <li class="list-group-item">
-                                        @defining(author.user) { userOpt =>
-                                            @if(userOpt.isDefined) {
-                                                <a href="@routes.Application.showUser(author.name)">@author.name</a>
-                                            } else {
-                                                <span class="minor">@author.name</span>
-                                            }
-                                        }
-                                    </li>
-                                }
-                                </ul>
-                            </div>
-                        }
+                        @projects.membersList(model)
                     </div>
                 </div>
             </div>

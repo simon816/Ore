@@ -6,7 +6,9 @@ import controllers.BaseController
 import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
 import models.project._
+import models.user.ProjectRole
 import ore.permission.EditSettings
+import ore.permission.role.RoleTypes
 import ore.project.{Categories, InvalidPluginFileException, ProjectManager}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -83,6 +85,26 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   }
 
   /**
+    * Shows the members configuration page during Project creation.
+    *
+    * @param author   Project owner
+    * @param slug     Project slug
+    * @return         View of members config
+    */
+  def showMembersConfig(author: String, slug: String) = Authenticated { implicit request =>
+    Project.getPending(author, slug) match {
+      case None => BadRequest("No pending project")
+      case Some(project) =>
+        val form = Forms.ProjectSave.bindFromRequest.get
+        project.project.category = Categories.withName(form._1.trim)
+        project.project.issues = nullIfEmpty(form._2)
+        project.project.source = nullIfEmpty(form._3)
+        project.project.description = nullIfEmpty(form._4)
+        Ok(views.projects.membersConfig(project))
+    }
+  }
+
+  /**
     * Continues on to the second step of Project creation where the user
     * publishes their Project.
     *
@@ -90,22 +112,21 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param slug   Project slug
     * @return Redirection to project page if successful
     */
-  def showFirstVersionCreator(author: String, slug: String) = Authenticated { implicit request => {
+  def showFirstVersionCreator(author: String, slug: String) = Authenticated { implicit request =>
     Project.getPending(author, slug) match {
       case None => BadRequest("No project to create.")
       case Some(pendingProject) =>
-        val form = Forms.ProjectSave.bindFromRequest.get
-        pendingProject.project.category = Categories.withName(form._1.trim)
-        pendingProject.project.issues = nullIfEmpty(form._2)
-        pendingProject.project.source = nullIfEmpty(form._3)
-        pendingProject.project.description = nullIfEmpty(form._4)
+        val form = Forms.MemberRoles.bindFromRequest.get
+        val roleNames = form._2
+        val roles = for ((userId, i) <- form._1.zipWithIndex) yield {
+          new ProjectRole(userId, RoleTypes.withName(roleNames(i)), -1)
+        }
+        pendingProject.roles = roles.toSet
 
         val pendingVersion = pendingProject.pendingVersion.get
         Redirect(routes.Versions.showCreatorWithMeta(
-          author, slug, pendingVersion.channelName, pendingVersion.version.versionString
-        ))
+          author, slug, pendingVersion.channelName, pendingVersion.version.versionString))
     }
-  }
   }
 
   /**

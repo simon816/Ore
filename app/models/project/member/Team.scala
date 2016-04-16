@@ -1,11 +1,11 @@
-package models.project.author
+package models.project.member
 
 import java.sql.Timestamp
 
 import db.orm.model.NamedModel
 
 /**
-  * Represents a collection of developers who work on a project.
+  * Represents a collection of authors who work on a project.
   *
   * @param id         Unique ID
   * @param createdAt  Instant of creation

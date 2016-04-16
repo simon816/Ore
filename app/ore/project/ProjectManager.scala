@@ -70,8 +70,14 @@ object ProjectManager {
     checkArgument(pending.project.isNamespaceAvailable, "slug not available", "")
     checkArgument(Project.isValidName(pending.project.name), "invalid name", "")
     val newProject = now(Queries.Projects.create(pending.project)).get
+
+    // Add Project roles
     val user = pending.firstVersion.owner
     user.projectRoles.add(new ProjectRole(user.id.get, RoleTypes.ProjectOwner, newProject.id.get))
+    for (role <- pending.roles) {
+      user.projectRoles.add(role.copy(projectId=newProject.id.get))
+    }
+
     newProject
   }
 

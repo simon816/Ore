@@ -10,8 +10,8 @@ import db.query.Queries
 import db.query.Queries.now
 import models.project.Project._
 import models.project.Version.PendingVersion
-import models.project.author.Dev
-import models.user.User
+import models.project.member.Member
+import models.user.{ProjectRole, User}
 import ore.Colors.Color
 import ore.permission.scope.{ProjectScope, ScopeSubject}
 import ore.project.Categories.Category
@@ -72,9 +72,9 @@ case class Project(override val   id: Option[Int] = None,
          ownerName=owner, ownerId=ownerId, authorNames=authors, homepage=Option(homepage))
   }
 
-  def owner: Dev = Dev(this.ownerName) // TODO: Teams
+  def owner: Member = Member(this.ownerName) // TODO: Teams
 
-  def authors: List[Dev] = for (author <- authorNames) yield Dev(author) // TODO: Teams
+  def members: List[Member] = for (author <- authorNames) yield Member(author) // TODO: Teams
 
   /**
     * Sets the name of this project and performs all the necessary renames.
@@ -427,8 +427,11 @@ object Project {
     * @param project        Pending project
     * @param firstVersion   Uploaded plugin
     */
-  case class PendingProject(project: Project, firstVersion: PluginFile) extends PendingAction[Project]
-                                                                        with    Cacheable {
+  case class PendingProject(val project: Project,
+                            val firstVersion: PluginFile,
+                            var roles: Set[ProjectRole] = Set())
+                            extends PendingAction[Project]
+                            with Cacheable {
 
     private var _pendingVersion: Option[PendingVersion] = None
 

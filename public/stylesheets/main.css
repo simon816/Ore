@@ -555,3 +555,11 @@ form {
 .panel-stars td > .pull-right > i {
     font-size: 18px;
 }
+
+.table-members {
+    border-bottom: 1px solid #ddd;
+}
+
+.table-members tr > td:last-child {
+    text-align: right;
+}

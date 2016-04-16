@@ -1,9 +1,8 @@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.{Channel, Page, Project, Version}
-@import views.html.helper.form
 @import models.user.User
-@import ore.permission.CreateVersions
-@import ore.permission.EditVersions
+@import ore.permission.{CreateVersions, EditVersions}
+@import views.html.helper.form
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
         session: Session, request: RequestHeader)
 

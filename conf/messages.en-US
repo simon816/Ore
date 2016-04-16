@@ -74,6 +74,9 @@ project.create.info-text.bottom =   Begin by uploading your plugin JAR file with
 project.create.issue-input      =   Issue tracker URL
 project.create.source-input     =   Source code URL
 
+project.members.info-text.head   =   Project members are other users of Ore that have special access to your project. Different user "roles" define what a user can and cannot do to your project.
+project.members.info-text.bottom =   Ore was able to find <strong>{0}</strong> users who are registered with Ore in your plugin file.
+
 version                         =   Version
 version.description             =   Description
 version.delete                  =   Delete

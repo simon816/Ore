@@ -13,6 +13,8 @@ object Forms {
     */
   lazy val ChannelEdit = Form(tuple("channel-input" -> text, "channel-color-input" -> text))
 
+  lazy val MemberRoles = Form(tuple("users" -> list(number), "roles" -> list(text)))
+
   /**
     * Submits changes on a documentation page.
     */

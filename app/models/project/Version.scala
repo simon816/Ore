@@ -8,7 +8,6 @@ import db.query.Queries.now
 import ore.Colors.Color
 import ore.project.{Dependency, PluginFile, ProjectManager}
 import org.apache.commons.io.FileUtils
-import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
 import util.{Cacheable, PendingAction}

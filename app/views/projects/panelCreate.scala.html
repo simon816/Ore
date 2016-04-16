@@ -1,0 +1,22 @@
+@import play.twirl.api.Html
+@(title: String, step: Int)(content: Html)(implicit messages: Messages, session: Session, request: RequestHeader)
+
+@core.layout(title) {
+
+    <div class="container" style="margin-top: 90px">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            @messages("project.create.title")
+                            <span class="pull-right minor">@messages("project.create.step", step, 4)</span>
+                        </h3>
+                    </div>
+                    @content
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
