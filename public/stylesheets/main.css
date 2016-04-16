@@ -563,3 +563,7 @@ form {
 .table-members tr > td:last-child {
     text-align: right;
 }
+
+a > .fa {
+    cursor: pointer; !important;
+}

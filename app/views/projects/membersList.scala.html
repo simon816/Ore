@@ -1,17 +1,29 @@
 @import models.project.Project
-@(model: Project)(implicit messages: Messages)
+@import db.OrePostgresDriver.api._
+@import models.user.User
+@import ore.permission.EditSettings
+@(model: Project, editable: Boolean = false)(implicit messages: Messages, session: play.api.mvc.Session)
 
 @if(model.members.nonEmpty) {
     <div class="panel panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">@messages("project.settings.members")</h3>
+            @if(editable && User.current.isDefined && (User.current.get can EditSettings in model)) {
+                <a href="#"><i class="fa fa-plus pull-right new-page"></i></a>
+            }
         </div>
-        <ul class="list-group">
+        <ul class="list-members list-group">
         @model.members.map { author =>
             <li class="list-group-item">
                 @defining(author.user) { userOpt =>
                     @if(userOpt.isDefined) {
                         <a href="@routes.Application.showUser(author.name)">@author.name</a>
+
+                        @if(editable) {
+                            <a href="#"><i class="fa fa-trash"></i></a>
+                            <a href="#"><i class="fa fa-edit"></i></a>
+                        }
+
                         <span class="minor pull-right">
                           @userOpt.get.projectRoles.filter(_.projectId === model.id.get).head.roleType.title
                         </span>
