@@ -3,12 +3,11 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db._
-import db.orm.dao.{ModelDAO, NamedModelSet}
+import db.{PageTable, ChannelTable, VersionTable}
+import db.orm.dao.{NamedModelSet, ModelDAO}
 import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
-import models.project.Project._
 import models.project.Version.PendingVersion
 import models.project.member.Member
 import models.user.{ProjectRole, User}
@@ -24,7 +23,6 @@ import util.Input.{compact, slugify}
 import util.{Cacheable, PendingAction}
 
 import scala.util.Try
-import scala.collection.JavaConversions._
 
 /**
   * Represents an Ore package.
@@ -66,6 +64,8 @@ case class Project(override val   id: Option[Int] = None,
                    private var    _description: Option[String] = None)
                    extends        NamedModel
                    with           ScopeSubject {
+
+  import models.project.Project._
 
   def this(pluginId: String, name: String, owner: String, ownerId: Int, authors: List[String], homepage: String) = {
     this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
@@ -397,7 +397,9 @@ case class Project(override val   id: Option[Int] = None,
 
 }
 
-object Project {
+object Project extends ModelDAO[Project] {
+
+  import scala.collection.JavaConversions._
 
   /**
     * The maximum length for a Project name.
@@ -506,14 +508,8 @@ object Project {
     */
   def withPluginId(pluginId: String): Option[Project] = now(Queries.Projects.withPluginId(pluginId)).get
 
-  /**
-    * Returns the Project with the specified ID, if any.
-    *
-    * @param id ID
-    * @return   Project if found, None otherwise
-    */
   override def withId(id: Int): Option[Project] = now(Queries.Projects.get(id)).get
-
+  
   /**
     * Returns the all Projects created by the specified owner.
     *
