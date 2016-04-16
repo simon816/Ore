@@ -4,7 +4,7 @@ import models.project.Project
 import models.user.User
 import ore.Statistics
 import ore.permission.Permission
-import ore.permission.scope.ScopeSubject
+import ore.permission.scope.{Scope, GlobalScope, ScopeSubject}
 import play.api.mvc.Results._
 import play.api.mvc._
 
@@ -19,6 +19,12 @@ trait Secured {
     Redirect(routes.Application.logIn(None, None, Some(request.path)))
   }
 
+  /** Represents a Request with a [[User]] and [[ScopeSubject]] */
+  trait ScopedRequest[A] extends WrappedRequest[A] {
+    def user: User
+    def subject: ScopeSubject
+  }
+
   // Auth
 
   /**
@@ -28,6 +34,9 @@ trait Secured {
     * @param request  Request to wrap
     */
   case class AuthRequest[A](val user: User, request: Request[A]) extends WrappedRequest[A](request)
+                                                                 with ScopedRequest[A] {
+    override val subject: ScopeSubject = GlobalScope
+  }
 
   /** Action that ensures that the request is authenticated. */
   object Authenticated extends ActionBuilder[AuthRequest] with ActionRefiner[Request, AuthRequest] {
@@ -40,12 +49,6 @@ trait Secured {
 
   // Permissions
 
-  /** Represents a Request with a [[User]] and [[ScopeSubject]] */
-  trait ScopedRequest[A] extends WrappedRequest[A] {
-    def user: User
-    def subject: ScopeSubject
-  }
-
   /**
     * A request that hold a Project and a [[AuthRequest]].
     *
@@ -55,7 +58,7 @@ trait Secured {
   class AuthedProjectRequest[A](val project: Project, request: AuthRequest[A])
                           extends WrappedRequest[A](request) with ScopedRequest[A] {
     override def user: User = request.user
-    override val subject = this.project
+    override val subject: ScopeSubject = this.project
   }
 
   private def authedProjectAction(author: String, slug: String, countView: Boolean)

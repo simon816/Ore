@@ -7,6 +7,9 @@ sorted according to different criteria.
 @import ore.project.Categories
 @import ore.project.Categories._
 @import util.Git
+@import models.user.User
+@import ore.permission.scope.GlobalScope
+@import ore.permission.ResetOre
 @(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages,
         session: Session, flash: Flash, request: RequestHeader)
 
@@ -45,12 +48,16 @@ sorted according to different criteria.
                     @messages("table.welcome")
                     <i class="date">@messages("table.welcome.description")</i>
                 </h3>
-                <div class="table-controls">
+                <div class="table-controls pull-right">
                     <a href="@projectRoutes.showCreator"
                     title="Submit a new project to Ore." data-toggle="tooltip"
-                    data-placement="bottom" class="btn-create btn btn-primary pull-right">
+                    data-placement="bottom" class="btn-create btn btn-primary">
                         <i class="fa fa-plus"></i> @messages("project.create")
                     </a>
+                    @if(User.current.isDefined && (User.current.get can ResetOre in GlobalScope)) {
+                        <a href="@routes.Application.reset" title="Reset Ore to factory settings" data-toggle="tooltip"
+                        data-placement="bottom" class="btn btn-danger">Reset Ore</a>
+                    }
                 </div>
             </div>
         </div>

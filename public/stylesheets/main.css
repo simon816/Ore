@@ -94,6 +94,7 @@ body {
 
 .table-controls {
     padding-bottom: 50px;
+    margin-top: 15px;
 }
 
 .project-table > tbody > tr > td:first-child {
@@ -363,10 +364,6 @@ form {
 .index-header .alert {
     margin-top: 20px;
     margin-bottom: 0;
-}
-
-.btn-create {
-    margin-top: 15px;
 }
 
 .btn-more {

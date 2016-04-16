@@ -212,7 +212,7 @@ object Queries {
 
   protected[db] val Config = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
-  protected[db] val DB = Config.db
+  val DB = Config.db
 
   protected[db] def theTime: Timestamp = new Timestamp(new Date().getTime)
 

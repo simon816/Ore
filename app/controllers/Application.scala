@@ -1,20 +1,25 @@
 package controllers
 
+import java.nio.file.Files
 import javax.inject.Inject
 
+import db.OrePostgresDriver.api._
 import controllers.routes.{Application => self}
+import db.UserTable
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project
 import models.project.Project._
 import models.user.{FakeUser, User}
+import ore.permission.ResetOre
 import ore.project.Categories
 import ore.project.Categories.Category
+import org.apache.commons.io.FileUtils
 import play.api.Play.{configuration => config, current}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import util.Forms
+import util.{Dirs, Forms}
 import util.forums.SpongeForums._
 import views.{html => views}
 
@@ -115,6 +120,19 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     * @return Home page
     */
   def logOut = Action { implicit request =>
+    Redirect(self.showHome(None)).withNewSession
+  }
+
+  /**
+    * Helper route to reset Ore.
+    *
+    * TODO: REMOVE BEFORE PRODUCTION
+    */
+  def reset() = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
+    println("debug")
+    val query: Query[UserTable, User, Seq] = Queries.Users.models
+    now(Queries.DB.run(query.delete)).get
+    FileUtils.deleteDirectory(Dirs.Uploads.toFile)
     Redirect(self.showHome(None)).withNewSession
   }
 
