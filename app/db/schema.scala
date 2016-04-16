@@ -2,7 +2,7 @@ package db
 
 import db.OrePostgresDriver.api._
 import db.orm.{ModelTable, NamedModelTable}
-import models.project.member.Team
+import ore.project.member.Team
 import models.project.{Channel, Page, Project, Version}
 import models.user.{ProjectRole, User}
 import ore.Colors.Color

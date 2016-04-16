@@ -1,4 +1,4 @@
-package models.project.member
+package ore.project.member
 
 import com.google.common.base.MoreObjects
 import models.project.Project

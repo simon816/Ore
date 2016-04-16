@@ -5,11 +5,10 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.VersionTable
-import db.orm.dao.NamedModelSet
+import db.orm.dao.{ModelDAO, NamedModelSet}
 import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
-import models.project.Channel._
 import ore.Colors._
 import ore.project.ProjectManager
 import org.apache.commons.io.FileUtils
@@ -38,6 +37,8 @@ case class Channel(override val   id: Option[Int] = None,
                    val            projectId: Int)
                    extends        NamedModel
                    with           Ordered[Channel] {
+
+  import models.project.Channel._
 
   def this(name: String, color: Color, projectId: Int) = this(_name=name, _color=color, projectId=projectId)
 
@@ -152,7 +153,7 @@ case class Channel(override val   id: Option[Int] = None,
 
 }
 
-object Channel {
+object Channel extends ModelDAO[Channel] {
 
   /**
     * The colors a Channel is allowed to have.
@@ -179,6 +180,8 @@ object Channel {
     * The default name used for Channels.
     */
   val DefaultName: String = config.getString("ore.channels.name-default").get
+
+  override def withId(id: Int): Option[Channel] = now(Queries.Channels.get(id)).get
 
   /**
     * Returns true if the specified string is a valid channel name.

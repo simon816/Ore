@@ -2,9 +2,9 @@ package models.project
 
 import java.sql.Timestamp
 
+import db.orm.dao.ModelDAO
 import db.orm.model.NamedModel
 import db.query.Queries
-import models.project.Page._
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
 import play.api.Play.{configuration => config, current}
@@ -29,6 +29,8 @@ case class Page(override val  id: Option[Int] = None,
                 private var   _contents: String,
                 val           isDeletable: Boolean = true)
                 extends       NamedModel {
+
+  import models.project.Page._
 
   def this(projectId: Int, name: String, content: String, isDeletable: Boolean) = {
     this(projectId=projectId, name=compact(name),
@@ -61,7 +63,7 @@ case class Page(override val  id: Option[Int] = None,
 
 }
 
-object Page {
+object Page extends ModelDAO[Page] {
 
   /**
     * The name of each Project's homepage.
@@ -77,6 +79,8 @@ object Page {
     * The Markdown processor.
     */
   val MD: PegDownProcessor = new PegDownProcessor(ALL & ~ANCHORLINKS)
+
+  override def withId(id: Int): Option[Page] = Queries.now(Queries.Pages.get(id)).get
 
   /**
     * Returns a template for new Pages.

@@ -1,4 +1,4 @@
-package models.project.member
+package ore.project.member
 
 import java.sql.Timestamp
 

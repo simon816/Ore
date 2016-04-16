@@ -2,6 +2,7 @@ package models.project
 
 import java.sql.Timestamp
 
+import db.orm.dao.ModelDAO
 import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
@@ -135,7 +136,7 @@ case class Version(override val   id: Option[Int] = None,
 
 }
 
-object Version {
+object Version extends ModelDAO[Version] {
   
   /**
     * Represents a pending version to be created later.
@@ -171,6 +172,8 @@ object Version {
     }
 
   }
+
+  override def withId(id: Int): Option[Version] = now(Queries.Versions.get(id)).get
 
   /**
     * Marks the specified Version as pending and caches it for later use.

@@ -5,12 +5,11 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
 import db.UserProjectRolesTable
-import db.orm.dao.ModelSet
+import db.orm.dao.{ModelDAO, ModelSet}
 import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project
-import models.user.User._
 import ore.permission._
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.role._
@@ -36,6 +35,8 @@ case class User(override val  id: Option[Int] = None,
                 private var   _tagline: Option[String] = None,
                 private var   globalRoleIds: List[Int] = List())
                 extends       NamedModel {
+
+  import models.user.User._
 
   /**
     * The User's [[PermissionPredicate]]. All permission checks go through
@@ -121,7 +122,7 @@ case class User(override val  id: Option[Int] = None,
 
 }
 
-object User {
+object User extends ModelDAO[User] {
 
   /**
     * The amount of stars displayed in the stars panel per page.
@@ -141,7 +142,7 @@ object User {
     */
   def withName(username: String): Option[User] = now(Queries.Users.withName(username)).get
 
-  def withId(id: Int): Option[User] = now(Queries.Users.get(id)).get
+  override def withId(id: Int): Option[User] = now(Queries.Users.get(id)).get
 
   /**
     * Returns the currently authenticated User.

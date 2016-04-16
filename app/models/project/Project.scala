@@ -9,7 +9,7 @@ import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Version.PendingVersion
-import models.project.member.Member
+import ore.project.member.Member
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
 import ore.permission.scope.{ProjectScope, ScopeSubject}
@@ -509,7 +509,7 @@ object Project extends ModelDAO[Project] {
   def withPluginId(pluginId: String): Option[Project] = now(Queries.Projects.withPluginId(pluginId)).get
 
   override def withId(id: Int): Option[Project] = now(Queries.Projects.get(id)).get
-  
+
   /**
     * Returns the all Projects created by the specified owner.
     *
