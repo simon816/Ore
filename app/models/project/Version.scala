@@ -73,7 +73,9 @@ case class Version(override val   id: Option[Int] = None,
     * @param channels   Channels to search
     * @return           Channel if present, None otherwise
     */
-  def findChannelFrom(channels: Seq[Channel]): Option[Channel] = channels.find(_.id.get == this.channelId)
+  def findChannelFrom(channels: Seq[Channel]): Option[Channel] = assertDefined {
+    channels.find(_.id.get == this.channelId)
+  }
 
   /**
     * Returns this Version's description.
@@ -88,7 +90,7 @@ case class Version(override val   id: Option[Int] = None,
     * @param _description Version description
     */
   def description_=(_description: String) = {
-    now(Queries.Versions.setString(this, _.description, _description)).get
+    if (isDefined) now(Queries.Versions.setString(this, _.description, _description)).get
     this._description = Some(_description)
   }
 
@@ -117,7 +119,7 @@ case class Version(override val   id: Option[Int] = None,
     * @return Future result
     */
   def addDownload() = {
-    now(Queries.Versions.setInt(this, _.downloads, this._downloads + 1)).get
+    if (isDefined) now(Queries.Versions.setInt(this, _.downloads, this._downloads + 1)).get
     this._downloads += 1
   }
 

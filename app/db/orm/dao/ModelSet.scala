@@ -1,4 +1,4 @@
-package db.orm.collection
+package db.orm.dao
 
 import db.OrePostgresDriver.api._
 import db.orm.ModelTable
@@ -15,7 +15,10 @@ import db.query.Queries.now
   * @tparam T         Table type
   * @tparam M         Model type
   */
-class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M], parentId: Int, ref: T => Rep[Int]) {
+class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M],
+                                               parentId: Int,
+                                               ref: T => Rep[Int])
+                                               extends ModelDAO[M] {
 
   /**
     * Returns all models in this set.
@@ -60,14 +63,6 @@ class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M], parentId:
   def remove(model: M) = now(this.queries delete model).get
 
   /**
-    * Returns the model with the specified ID.
-    *
-    * @param id   ID to lookup
-    * @return     Model with ID or None if not found
-    */
-  def withId(id: Int): Option[M] = now(this.queries.get(id)).get
-
-  /**
     * Finds the first model that matches the given predicate.
     *
     * @param p  Predicate filter
@@ -89,5 +84,7 @@ class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M], parentId:
     * @return Sequence
     */
   def seq: Seq[M] = this.values.toSeq
+
+  override def withId(id: Int): Option[M] = now(this.queries.get(id)).get
 
 }

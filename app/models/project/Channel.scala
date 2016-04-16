@@ -5,7 +5,7 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.VersionTable
-import db.orm.collection.NamedModelSet
+import db.orm.dao.NamedModelSet
 import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
@@ -48,7 +48,7 @@ case class Channel(override val   id: Option[Int] = None,
     * @param _name     New channel name
     * @return         Future result
     */
-  def name_=(_name: String)(implicit context: Project) = {
+  def name_=(_name: String)(implicit context: Project) = assertDefined {
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
     checkArgument(isValidName(name), "invalid name", "")
     now(Queries.Channels.setString(this, _.name, name)).get
@@ -69,7 +69,7 @@ case class Channel(override val   id: Option[Int] = None,
     * @param _color  Color of channel
     * @return       Future result
     */
-  def color_=(_color: Color) = {
+  def color_=(_color: Color) = assertDefined {
     now(Queries.Channels.setColor(this.id.get, _color)).get
     this._color = _color
   }
@@ -86,7 +86,9 @@ case class Channel(override val   id: Option[Int] = None,
     *
     * @return All versions
     */
-  def versions: NamedModelSet[VersionTable, Version] = new NamedModelSet(Queries.Versions, this.id.get, _.channelId)
+  def versions: NamedModelSet[VersionTable, Version] = assertDefined {
+    new NamedModelSet(Queries.Versions, this.id.get, _.channelId)
+  }
 
   /**
     * Creates a new version for this Channel.
@@ -98,7 +100,7 @@ case class Channel(override val   id: Option[Int] = None,
     * @return               Newly created version
     */
   def newVersion(version: String, dependencies: List[String],
-                 description: String, assets: String, fileSize: Long): Version = {
+                 description: String, assets: String, fileSize: Long): Version = assertDefined {
     this.versions.add(new Version(version, dependencies, description, assets,
                                   this.projectId, this.id.get, fileSize))
   }
@@ -110,11 +112,13 @@ case class Channel(override val   id: Option[Int] = None,
     * @param context  Project for context
     * @return         Result
     */
-  def deleteVersion(version: Version, context: Project): Try[Unit] = Try {
-    checkArgument(context.versions.size > 1, "only one version", "")
-    checkArgument(context.id.get == this.projectId, "invalid context id", "")
-    now(Queries.Versions delete version).get
-    Files.delete(ProjectManager.uploadPath(context.ownerName, context.name, version.versionString, this._name))
+  def deleteVersion(version: Version, context: Project): Try[Unit] = assertDefined {
+    Try {
+      checkArgument(context.versions.size > 1, "only one version", "")
+      checkArgument(context.id.get == this.projectId, "invalid context id", "")
+      now(Queries.Versions delete version).get
+      Files.delete(ProjectManager.uploadPath(context.ownerName, context.name, version.versionString, this._name))
+    }
   }
 
   /**
@@ -123,15 +127,17 @@ case class Channel(override val   id: Option[Int] = None,
     * @param context  Project context
     * @return         Result
     */
-  def delete(context: Project): Try[Unit] = Try {
-    checkArgument(context.id.get == this.projectId, "invalid context id", "")
+  def delete(context: Project): Try[Unit] = assertDefined {
+    Try {
+      checkArgument(context.id.get == this.projectId, "invalid context id", "")
 
-    val channels = context.channels.values
-    checkArgument(channels.size > 1, "only one channel", "")
-    checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
+      val channels = context.channels.values
+      checkArgument(channels.size > 1, "only one channel", "")
+      checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
 
-    now(Queries.Channels delete this).get
-    FileUtils.deleteDirectory(ProjectManager.projectDir(context.ownerName, context.name).resolve(this._name).toFile)
+      now(Queries.Channels delete this).get
+      FileUtils.deleteDirectory(ProjectManager.projectDir(context.ownerName, context.name).resolve(this._name).toFile)
+    }
   }
 
   override def name: String = this._name

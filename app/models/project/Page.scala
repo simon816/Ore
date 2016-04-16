@@ -48,7 +48,7 @@ case class Page(override val  id: Option[Int] = None,
     * @param _contents Markdown contents
     */
   def contents_=(_contents: String) = {
-    Queries.now(Queries.Pages.setString(this, _.contents, _contents)).get
+    if (isDefined) Queries.now(Queries.Pages.setString(this, _.contents, _contents)).get
     this._contents = _contents
   }
 

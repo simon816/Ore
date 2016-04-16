@@ -1,4 +1,4 @@
-package db.orm.collection
+package db.orm.dao
 
 import db.OrePostgresDriver.api._
 import db.orm.NamedModelTable

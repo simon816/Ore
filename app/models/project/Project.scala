@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db._
-import db.orm.collection.NamedModelSet
+import db.orm.dao.{ModelDAO, NamedModelSet}
 import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
@@ -20,11 +20,11 @@ import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.{configuration => config, current}
 import play.api.cache.Cache
-import util.Input._
+import util.Input.{compact, slugify}
 import util.{Cacheable, PendingAction}
 
-import scala.collection.JavaConversions._
 import scala.util.Try
+import scala.collection.JavaConversions._
 
 /**
   * Represents an Ore package.
@@ -82,7 +82,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param _name   New name
     * @return       Future result
     */
-  def name_=(_name: String) = {
+  def name_=(_name: String) = assertDefined {
     val newName = compact(_name)
     checkArgument(Project.isNamespaceAvailable(this.ownerName, newName), "slug not available", "")
     checkArgument(isValidName(newName), "invalid name", "")
@@ -117,9 +117,7 @@ case class Project(override val   id: Option[Int] = None,
     */
   def description_=(_description: String) = {
     checkArgument(_description == null || _description.length <= MaxDescriptionLength, "description too long", "")
-    if (this.exists) {
-      now(Queries.Projects.setString(this, _.description, _description)).get
-    }
+    if (isDefined) now(Queries.Projects.setString(this, _.description, _description)).get
     this._description = Option(_description)
   }
 
@@ -136,9 +134,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param _category Category to set
     */
   def category_=(_category: Category) = {
-    if (this.exists) {
-      now(Queries.Projects.setInt(this, _.categoryId, _category.id)).get
-    }
+    if (isDefined) now(Queries.Projects.setInt(this, _.categoryId, _category.id)).get
     this.categoryId = _category.id
   }
 
@@ -155,7 +151,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return Future result
     */
   def addView() = {
-    now(Queries.Projects.setInt(this, _.views, this._views + 1)).get
+    if (isDefined) now(Queries.Projects.setInt(this, _.views, this._views + 1)).get
     this._views += 1
   }
 
@@ -172,7 +168,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return Future result
     */
   def addDownload() = {
-    now(Queries.Projects.setInt(this, _.downloads, this._downloads + 1)).get
+    if (isDefined) now(Queries.Projects.setInt(this, _.downloads, this._downloads + 1)).get
     this._downloads += 1
   }
 
@@ -189,7 +185,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param user   User to check if starred for
     * @return       True if starred by User
     */
-  def isStarredBy(user: User): Boolean = now(Queries.Projects.isStarredBy(this.id.get, user.id.get)).get
+  def isStarredBy(user: User): Boolean = assertDefined(now(Queries.Projects.isStarredBy(this.id.get, user.id.get)).get)
 
   /**
     * Returns true if this Project is starred by the User with the specified
@@ -198,7 +194,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param username   To get User of
     * @return           True if starred by User
     */
-  def isStarredBy(username: String): Boolean = {
+  def isStarredBy(username: String): Boolean = assertDefined {
     val user = User.withName(username)
     isStarredBy(user.get)
   }
@@ -209,7 +205,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param user   User to star for
     * @return       Future result
     */
-  def starFor(user: User) = {
+  def starFor(user: User) = assertDefined {
     now(Queries.Projects.starFor(this.id.get, user.id.get)).get
     now(Queries.Projects.setInt(this, _.stars, this.stars + 1)).get
     this._stars += 1
@@ -221,7 +217,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param user   User to unstar for
     * @return       Future result
     */
-  def unstarFor(user: User) = {
+  def unstarFor(user: User) = assertDefined {
     now(Queries.Projects.unstarFor(this.id.get, user.id.get)).get
     now(Queries.Projects.setInt(this, _.stars, this.stars - 1)).get
     this._stars -= 1
@@ -240,9 +236,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param _issues Issue tracker link
     */
   def issues_=(_issues: String) = {
-    if (this.exists) {
-      now(Queries.Projects.setString(this, _.issues, _issues))
-    }
+    if (isDefined) now(Queries.Projects.setString(this, _.issues, _issues))
     this._issues = Option(_issues)
   }
 
@@ -259,9 +253,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param _source Source code link
     */
   def source_=(_source: String) = {
-    if (this.exists) {
-      now(Queries.Projects.setString(this, _.source, _source))
-    }
+    if (isDefined) now(Queries.Projects.setString(this, _.source, _source))
     this._source = Option(_source)
   }
 
@@ -270,7 +262,9 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Channels in project
     */
-  def channels: NamedModelSet[ChannelTable, Channel] = new NamedModelSet(Queries.Channels, this.id.get, _.projectId)
+  def channels: NamedModelSet[ChannelTable, Channel] = assertDefined {
+    new NamedModelSet(Queries.Channels, this.id.get, _.projectId)
+  }
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -278,10 +272,12 @@ case class Project(override val   id: Option[Int] = None,
     * @param name   Name of channel
     * @return       New channel
     */
-  def newChannel(name: String, color: Color): Try[Channel] = Try {
-    checkArgument(Channel.isValidName(name), "invalid name", "")
-    checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
-    this.channels.add(new Channel(name, color, this.id.get))
+  def newChannel(name: String, color: Color): Try[Channel] = assertDefined {
+    Try {
+      checkArgument(Channel.isValidName(name), "invalid name", "")
+      checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
+      this.channels.add(new Channel(name, color, this.id.get))
+    }
   }
 
   /**
@@ -289,7 +285,9 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Versions in project
     */
-  def versions: NamedModelSet[VersionTable, Version] = new NamedModelSet(Queries.Versions, this.id.get, _.projectId)
+  def versions: NamedModelSet[VersionTable, Version] = assertDefined {
+    new NamedModelSet(Queries.Versions, this.id.get, _.projectId)
+  }
 
   /**
     * Returns all Versions belonging to the specified channels.
@@ -297,7 +295,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param channels   Channels to get versions for
     * @return           All versions in channels
     */
-  def versionsIn(channels: Seq[Channel]): Seq[Version] = {
+  def versionsIn(channels: Seq[Channel]): Seq[Version] = assertDefined {
     channels.foreach(c => checkArgument(c.projectId == this.id.get, "channel doesn't belong to project", ""))
     now(Queries.Versions.inChannels(channels.map(_.id.get))).get
   }
@@ -307,7 +305,9 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Recommended version
     */
-  def recommendedVersion: Version = now(Queries.Versions.get(this.recommendedVersionId.get)).get.get
+  def recommendedVersion: Version = assertDefined {
+    now(Queries.Versions.get(this.recommendedVersionId.get)).get.get
+  }
 
   /**
     * Updates this project's recommended version.
@@ -316,7 +316,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return         Result
     */
   def recommendedVersion_=(_version: Version) = {
-    now(Queries.Projects.setInt(this, _.recommendedVersionId, _version.id.get)).get
+    if (isDefined) now(Queries.Projects.setInt(this, _.recommendedVersionId, _version.id.get)).get
     this.recommendedVersionId = _version.id
   }
 
@@ -325,7 +325,9 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Pages in project
     */
-  def pages: NamedModelSet[PageTable, Page] = new NamedModelSet(Queries.Pages, this.id.get, _.projectId)
+  def pages: NamedModelSet[PageTable, Page] = assertDefined {
+    new NamedModelSet(Queries.Pages, this.id.get, _.projectId)
+  }
 
   /**
     * Returns true if a page with the specified name exists.
@@ -341,7 +343,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param name   Page name
     * @return       Page with name or new name if it doesn't exist
     */
-  def getOrCreatePage(name: String): Page = {
+  def getOrCreatePage(name: String): Page = assertDefined {
     // TODO: Name validation
     checkNotNull(name, "name cannot be null", "")
     now(Queries.Pages.getOrCreate(new Page(this.id.get, name, Page.template(name), true))).get
@@ -352,7 +354,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Project home page
     */
-  def homePage: Page = {
+  def homePage: Page = assertDefined {
     val page = new Page(this.id.get, Page.HomeName, Page.template(name, Page.HomeMessage), false)
     now(Queries.Pages.getOrCreate(page)).get
   }
@@ -376,9 +378,11 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Result
     */
-  def delete: Try[Unit] = Try {
-    now(Queries.Projects delete this).get
-    FileUtils.deleteDirectory(ProjectManager.projectDir(this.ownerName, this._name).toFile)
+  def delete: Try[Unit] = assertDefined {
+    Try {
+      now(Queries.Projects delete this).get
+      FileUtils.deleteDirectory(ProjectManager.projectDir(this.ownerName, this._name).toFile)
+    }
   }
 
   override def name: String = this._name
@@ -466,7 +470,7 @@ object Project {
     override def cancel() = {
       free()
       this.firstVersion.delete()
-      if (project.exists) {
+      if (project.isDefined) {
         project.delete
       }
     }
@@ -508,7 +512,7 @@ object Project {
     * @param id ID
     * @return   Project if found, None otherwise
     */
-  def withId(id: Int): Option[Project] = now(Queries.Projects.get(id)).get
+  override def withId(id: Int): Option[Project] = now(Queries.Projects.get(id)).get
 
   /**
     * Returns the all Projects created by the specified owner.

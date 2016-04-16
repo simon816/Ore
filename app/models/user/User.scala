@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
 import db.UserProjectRolesTable
-import db.orm.collection.ModelSet
+import db.orm.dao.ModelSet
 import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
@@ -52,7 +52,7 @@ case class User(override val  id: Option[Int] = None,
     *
     * @return ProjectRoles
     */
-  def projectRoles: ModelSet[UserProjectRolesTable, ProjectRole] = {
+  def projectRoles: ModelSet[UserProjectRolesTable, ProjectRole] = assertDefined {
     new ModelSet(Queries.Users.ProjectRoles, this.id.get, _.userId)
   }
 
@@ -70,7 +70,7 @@ case class User(override val  id: Option[Int] = None,
     */
   def globalRoleTypes_=(_roles: Set[RoleType]) = {
     val ids = _roles.map(_.roleId).toList
-    now(Queries.Users.setIntList(this, _.globalRoles, ids)).get
+    if (isDefined) now(Queries.Users.setIntList(this, _.globalRoles, ids)).get
     this.globalRoleIds = ids
   }
 
@@ -79,10 +79,12 @@ case class User(override val  id: Option[Int] = None,
     *
     * @return Highest level of trust
     */
-  def trust(scope: Scope = GlobalScope): Trust = scope match {
-    case GlobalScope => this.globalRoleTypes.map(_.trust).toList.sorted.headOption.getOrElse(Default)
-    case pScope: ProjectScope =>
-      this.projectRoles.find(_.projectId === pScope.projectId).map(_.roleType.trust).getOrElse(Default)
+  def trust(scope: Scope = GlobalScope): Trust = assertDefined {
+    scope match {
+      case GlobalScope => this.globalRoleTypes.map(_.trust).toList.sorted.headOption.getOrElse(Default)
+      case pScope: ProjectScope =>
+        this.projectRoles.find(_.projectId === pScope.projectId).map(_.roleType.trust).getOrElse(Default)
+    }
   }
 
   /**
@@ -91,7 +93,7 @@ case class User(override val  id: Option[Int] = None,
     * @param page Page of user stars
     * @return     Projects user has starred
     */
-  def starred(page: Int = -1): Seq[Project] = {
+  def starred(page: Int = -1): Seq[Project] = assertDefined {
     val limit = if (page < 1) -1 else StarsPerPage
     now(Queries.Projects.starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
   }
@@ -111,7 +113,7 @@ case class User(override val  id: Option[Int] = None,
   def tagline_=(_tagline: String) = {
     checkArgument(_tagline.length <= MaxTaglineLength, "tagline too long", "")
     val tag = if (_tagline.nonEmpty) _tagline else null
-    now(Queries.Users.setString(this, _.tagline, tag)).get
+    if (isDefined) now(Queries.Users.setString(this, _.tagline, tag)).get
     this._tagline = Option(tag)
   }
 

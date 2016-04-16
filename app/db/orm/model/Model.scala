@@ -36,5 +36,20 @@ abstract class Model {
     */
   def prettyDate: String = DateFormat.format(this.createdAt.get)
 
+  /**
+    * Returns true if this Project is defined in the database.
+    *
+    * @return True if defined in database
+    */
+  def isDefined: Boolean = this.id.isDefined
+
+  protected def assertDefined[A](f: => A): A = {
+    if (isDefined) {
+      f
+    } else {
+      throw new IllegalStateException("model must exist")
+    }
+  }
+
 
 }

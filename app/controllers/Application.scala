@@ -79,9 +79,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     if (tagline.length > User.MaxTaglineLength) {
       Redirect(self.showUser(user.username)).flashing("error" -> "Tagline is too long.")
     } else {
-      if (user.tagline.isEmpty || !user.tagline.get.equals(tagline)) {
-        user.tagline = tagline
-      }
+      user.tagline = tagline
       Redirect(self.showUser(user.username))
     }
   }
@@ -129,7 +127,6 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     * TODO: REMOVE BEFORE PRODUCTION
     */
   def reset() = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
-    println("debug")
     val query: Query[UserTable, User, Seq] = Queries.Users.models
     now(Queries.DB.run(query.delete)).get
     FileUtils.deleteDirectory(Dirs.Uploads.toFile)
