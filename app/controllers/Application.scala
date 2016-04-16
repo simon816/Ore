@@ -1,10 +1,9 @@
 package controllers
 
-import java.nio.file.Files
 import javax.inject.Inject
 
-import db.OrePostgresDriver.api._
 import controllers.routes.{Application => self}
+import db.OrePostgresDriver.api._
 import db.UserTable
 import db.query.Queries
 import db.query.Queries.now
@@ -19,8 +18,8 @@ import play.api.Play.{configuration => config, current}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import util.{Dirs, Forms}
 import util.forums.SpongeForums._
+import util.{Dirs, Forms}
 import views.{html => views}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -94,7 +93,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
   def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
     if (FakeUser.IsEnabled) {
       now(Queries.Users.getOrCreate(FakeUser))
-      Redirect(self.showHome(None)).withSession(Security.username -> FakeUser.username, "email" -> FakeUser.email)
+      Redirect(self.showHome(None)).withSession(Security.username -> FakeUser.username, "email" -> FakeUser.email.get)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(Auth.getRedirect(config.getString("application.baseUrl").get + "/login"))
         .flashing("url" -> returnPath.getOrElse(request.path))
@@ -108,7 +107,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
       }
 
       val baseUrl = config.getString("application.baseUrl").get
-      Redirect(baseUrl + request2flash.get("url").get).withSession(Security.username -> user.username, "email" -> user.email)
+      Redirect(baseUrl + request2flash.get("url").get).withSession(Security.username -> user.username, "email" -> user.email.get)
     }
   }
 

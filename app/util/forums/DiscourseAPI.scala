@@ -1,13 +1,16 @@
 package util.forums
 
 import db.query.Queries
+import db.query.Queries.now
+import models.user.User
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 import play.api.libs.json.JsObject
 import play.api.libs.ws.WSClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Promise, Future}
+import scala.util.{Success, Failure}
 
 /**
   * Handles retrieval of groups on a discourse forum.
@@ -15,6 +18,23 @@ import scala.concurrent.Future
   * @param url Discourse URL
   */
 class DiscourseAPI(private val url: String, ws: WSClient) {
+
+  def fetchUser(username: String): Future[Option[User]] = {
+    ws.url(userUrl(username)).get.map { response =>
+      val obj = response.json.as[JsObject]
+      if (isSuccess(obj)) {
+        val userObj = (obj \ "user").as[JsObject]
+        var user = new User((userObj \ "id").as[Int], (userObj \ "name").asOpt[String].orNull,
+                            (userObj \ "username").as[String], (userObj \ "email").asOpt[String].orNull)
+        user = now(Queries.Users.getOrCreate(user)).get
+        val globalRoles = now(roles(username)).get
+        user.globalRoleTypes = globalRoles
+        Some(user)
+      } else {
+        None
+      }
+    }
+  }
 
   /**
     * Returns a set of UserRoles that the specified User has on the Sponge
@@ -39,7 +59,7 @@ class DiscourseAPI(private val url: String, ws: WSClient) {
   }
 
   def avatarUrl(username: String, size: Int): String = {
-    Queries.now(ws.url(userUrl(username)).get.map { response =>
+    now(ws.url(userUrl(username)).get.map { response =>
       val obj = response.json.as[JsObject]
       if (isSuccess(obj)) {
         val template = (obj \ "user" \ "avatar_template").as[String]

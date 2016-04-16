@@ -129,7 +129,7 @@ class UserTable(tag: Tag) extends NamedModelTable[User](tag, "users") {
 
   override def modelName = this.username
 
-  override def * = (id.?, createdAt.?, name.?, username, email, tagline.?,
+  override def * = (id.?, createdAt.?, name.?, username, email.?, tagline.?,
                     globalRoles) <> ((User.apply _).tupled, User.unapply)
 
 }

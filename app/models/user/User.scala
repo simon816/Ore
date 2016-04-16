@@ -16,6 +16,7 @@ import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope}
 import play.api.Play.{configuration => config, current => app}
 import play.api.mvc.Session
+import util.forums.SpongeForums
 
 /**
   * Represents a Sponge user.
@@ -31,7 +32,7 @@ case class User(override val  id: Option[Int] = None,
                 override val  createdAt: Option[Timestamp] = None,
                 val           fullName: Option[String] = None,
                 val           username: String,
-                val           email: String,
+                val           email: Option[String],
                 private var   _tagline: Option[String] = None,
                 private var   globalRoleIds: List[Int] = List())
                 extends       NamedModel {
@@ -45,7 +46,7 @@ case class User(override val  id: Option[Int] = None,
   val can: PermissionPredicate = PermissionPredicate(this)
 
   def this(externalId: Int, name: String, username: String, email: String) = {
-    this(id=Some(externalId), fullName=Option(name), username=username, email=email)
+    this(id=Some(externalId), fullName=Option(name), username=username, email=Option(email))
   }
 
   /**
@@ -140,7 +141,10 @@ object User extends ModelDAO[User] {
     * @param username Username of user
     * @return User if found, None otherwise
     */
-  def withName(username: String): Option[User] = now(Queries.Users.withName(username)).get
+  def withName(username: String): Option[User] = {
+    now(Queries.Users.withName(username)).get
+      .orElse(now(SpongeForums.API.fetchUser(username)).get)
+  }
 
   override def withId(id: Int): Option[User] = now(Queries.Users.get(id)).get
 
