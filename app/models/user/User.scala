@@ -98,7 +98,7 @@ case class User(override val  id: Option[Int] = None,
     */
   def trustIn(scope: Scope = GlobalScope): Trust = assertDefined {
     scope match {
-      case GlobalScope => this.globalRoleTypes.map(_.trust).toList.sorted.headOption.getOrElse(Default)
+      case GlobalScope => this.globalRoleTypes.map(_.trust).toList.sorted.reverse.headOption.getOrElse(Default)
       case pScope: ProjectScope =>
         this.projectRoles.find(_.projectId === pScope.projectId).map(_.roleType.trust).getOrElse(Default)
     }
