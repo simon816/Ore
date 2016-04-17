@@ -93,7 +93,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
   def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
     if (FakeUser.IsEnabled) {
       now(Queries.Users.getOrCreate(FakeUser))
-      Redirect(self.showHome(None)).withSession(Security.username -> FakeUser.username, "email" -> FakeUser.email.get)
+      Redirect(self.showHome(None)).withSession(Security.username -> FakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(Auth.getRedirect(config.getString("application.baseUrl").get + "/login"))
         .flashing("url" -> returnPath.getOrElse(request.path))
@@ -107,7 +107,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
       }
 
       val baseUrl = config.getString("application.baseUrl").get
-      Redirect(baseUrl + request2flash.get("url").get).withSession(Security.username -> user.username, "email" -> user.email.get)
+      Redirect(baseUrl + request2flash.get("url").get).withSession(Security.username -> user.username)
     }
   }
 

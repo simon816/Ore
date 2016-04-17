@@ -12,6 +12,8 @@ application.fakeUser.username   =   "Spongie"
 application.fakeUser.email      =   "spongie@spongepowered.org"
 application.db.default-timeout  =   10
 
+session.maxAge = 2419200 # 4 weeks
+
 
 # Play configuration
 play.crypto.secret                      =   "changeme"
