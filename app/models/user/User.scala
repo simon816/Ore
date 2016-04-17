@@ -50,6 +50,21 @@ case class User(override val  id: Option[Int] = None,
   }
 
   /**
+    * Returns the Project with the specified name that this User owns.
+    *
+    * @param name   Name of project
+    * @return       Owned project, if any, None otherwise
+    */
+  def getProject(name: String): Option[Project] = Project.withName(this.username, name)
+
+  /**
+    * Returns all Projects owned by this User.
+    *
+    * @return All projects owned by User
+    */
+  def projects: Seq[Project] = Project.by(this.username)
+
+  /**
     * Returns a [[ModelSet]] of [[ProjectRole]]s.
     *
     * @return ProjectRoles
@@ -81,7 +96,7 @@ case class User(override val  id: Option[Int] = None,
     *
     * @return Highest level of trust
     */
-  def trust(scope: Scope = GlobalScope): Trust = assertDefined {
+  def trustIn(scope: Scope = GlobalScope): Trust = assertDefined {
     scope match {
       case GlobalScope => this.globalRoleTypes.map(_.trust).toList.sorted.headOption.getOrElse(Default)
       case pScope: ProjectScope =>

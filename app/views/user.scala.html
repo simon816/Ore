@@ -82,7 +82,7 @@ User page for developers.
                         }
                     </ul>
                     <div class="user-info">
-                        <i class="minor">@Member(user.username).projects.size projects</i><br/>
+                        <i class="minor">@user.projects.size projects</i><br/>
                         <i class="minor">A member since @user.prettyDate</i>
                     </div>
                 </div>
@@ -90,7 +90,7 @@ User page for developers.
         </div>
         <div class="row">
             <div class="col-md-8">
-                @projects.table(Member(user.username).projects)
+                @projects.table(user.projects)
             </div>
             <div class="col-md-4">
                 <div class="panel-stars panel panel-default">

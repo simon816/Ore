@@ -22,21 +22,6 @@ trait Author {
 
   def user: Option[User] = User.withName(this.name)
 
-  /**
-    * Returns the Project with the specified name that this Author owns.
-    *
-    * @param name   Name of project
-    * @return       Owned project, if any, None otherwise
-    */
-  def project(name: String): Option[Project] = Project.withName(this.name, name)
-
-  /**
-    * Returns all Projects owned by this Author.
-    *
-    * @return All projects owned by Author
-    */
-  def projects: Seq[Project] = Project.by(this.name)
-
   override def toString: String = MoreObjects.toStringHelper(this).add("name", this.name).toString
 
   override def hashCode: Int = this.name.hashCode

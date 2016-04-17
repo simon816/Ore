@@ -23,7 +23,7 @@ trait Scope {
     * @return     True if user has permission in this scope
     */
   def check(user: User, p: Permission): Boolean = {
-    p.trust <= user.trust(this)
+    p.trust <= user.trustIn(this)
   }
 
   /**

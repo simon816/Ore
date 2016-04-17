@@ -6,11 +6,10 @@ import models.user.User
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 import play.api.libs.json.JsObject
-import play.api.libs.ws.WSClient
+import play.api.libs.ws.{WSClient, WSResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Promise, Future}
-import scala.util.{Success, Failure}
+import scala.concurrent.Future
 
 /**
   * Handles retrieval of groups on a discourse forum.
@@ -28,17 +27,14 @@ class DiscourseAPI(private val url: String, ws: WSClient) {
     */
   def fetchUser(username: String): Future[Option[User]] = {
     ws.url(userUrl(username)).get.map { response =>
-      val obj = response.json.as[JsObject]
-      if (isSuccess(obj)) {
-        val userObj = (obj \ "user").as[JsObject]
+      validate(response) { json =>
+        val userObj = (json \ "user").as[JsObject]
         var user = new User((userObj \ "id").as[Int], (userObj \ "name").asOpt[String].orNull,
                             (userObj \ "username").as[String], (userObj \ "email").asOpt[String].orNull)
         user = now(Queries.Users.getOrCreate(user)).get
         val globalRoles = parseRoles(userObj)
         user.globalRoleTypes = globalRoles
-        Some(user)
-      } else {
-        None
+        user
       }
     }
   }
@@ -52,10 +48,9 @@ class DiscourseAPI(private val url: String, ws: WSClient) {
     */
   def fetchRoles(username: String): Future[Set[RoleType]] = {
     ws.url(userUrl(username)).get.map { response =>
-      val obj = response.json.as[JsObject]
-      if (isSuccess(obj)) {
-        parseRoles((obj \ "user").as[JsObject])
-      } else {
+      validate(response) { json =>
+        parseRoles((json \ "user").as[JsObject])
+      } getOrElse {
         Set()
       }
     }
@@ -70,11 +65,10 @@ class DiscourseAPI(private val url: String, ws: WSClient) {
     */
   def avatarUrl(username: String, size: Int): String = {
     now(ws.url(userUrl(username)).get.map { response =>
-      val obj = response.json.as[JsObject]
-      if (isSuccess(obj)) {
-        val template = (obj \ "user" \ "avatar_template").as[String]
+      validate(response) { json =>
+        val template = (json \ "user" \ "avatar_template").as[String]
         this.url + template.replace("{size}", size.toString)
-      } else {
+      } getOrElse {
         ""
       }
     }).get
@@ -88,7 +82,16 @@ class DiscourseAPI(private val url: String, ws: WSClient) {
     }).flatten.map(_.asInstanceOf[RoleType]).toSet
   }
 
-  private def isSuccess(json: JsObject): Boolean = !json.keys.contains("errors")
+  private def validate[A](response: WSResponse)(f: JsObject => A): Option[A] = try {
+    val json = response.json.as[JsObject]
+    if (!json.keys.contains("errors")) {
+      Some(f(json))
+    } else {
+      None
+    }
+  } catch {
+    case e: Exception => None
+  }
 
   private def userUrl(username: String): String = {
     url + "/users/" + username + ".json"

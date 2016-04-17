@@ -25,13 +25,13 @@ function init() {
         });
 
         // Save description
-        $('#description-save').click(function() {
+        $('#description-save').click(function(event) {
             event.preventDefault();
             $('#form-save').submit();
         });
 
         // Cancel editor
-        $('#description-cancel').click(function() {
+        $('#description-cancel').click(function(event) {
             event.preventDefault();
             init();
         });

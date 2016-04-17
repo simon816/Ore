@@ -16,7 +16,7 @@ import util.Dirs._
 import scala.util.Try
 
 /**
-  * Handles management of uploaded projects.
+  * Handles creation of Project's and their components.
   */
 object ProjectManager {
 
@@ -30,9 +30,7 @@ object ProjectManager {
   def initUpload(tmp: TemporaryFile, name: String, owner: User): Try[PluginFile] = Try {
     val tmpPath = Tmp.resolve(owner.username).resolve(name)
     val plugin = new PluginFile(tmpPath, owner)
-    if (Files.notExists(tmpPath.getParent)) {
-      Files.createDirectories(tmpPath.getParent)
-    }
+    if (Files.notExists(tmpPath.getParent)) Files.createDirectories(tmpPath.getParent)
     tmp.moveTo(plugin.path.toFile, replace = true)
     plugin.loadMeta
     plugin
@@ -47,13 +45,9 @@ object ProjectManager {
   def uploadPlugin(channel: Channel, plugin: PluginFile): Try[Unit] = Try {
     val meta = plugin.meta.get
     var oldPath = plugin.path
-    if (!plugin.isZipped) {
-      oldPath = plugin.zip
-    }
+    if (!plugin.isZipped) oldPath = plugin.zip
     val newPath = uploadPath(plugin.owner.username, meta.getName, meta.getVersion, channel.name)
-    if (!Files.exists(newPath.getParent)) {
-      Files.createDirectories(newPath.getParent)
-    }
+    if (!Files.exists(newPath.getParent)) Files.createDirectories(newPath.getParent)
     Files.move(oldPath, newPath)
     Files.delete(oldPath)
   }
@@ -104,7 +98,8 @@ object ProjectManager {
     }
 
     val newVersion = channel.newVersion(pendingVersion.versionString, pendingVersion.dependenciesIds,
-      pendingVersion.description.orNull, pendingVersion.assets.orNull, pending.plugin.path.toFile.length)
+                                        pendingVersion.description.orNull, pendingVersion.assets.orNull,
+                                        pending.plugin.path.toFile.length)
     uploadPlugin(channel, pending.plugin)
     newVersion
   }

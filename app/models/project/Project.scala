@@ -84,7 +84,6 @@ case class Project(override val   id: Option[Int] = None,
     */
   def name_=(_name: String) = assertDefined {
     val newName = compact(_name)
-    checkArgument(Project.isNamespaceAvailable(this.ownerName, newName), "slug not available", "")
     checkArgument(isValidName(newName), "invalid name", "")
 
     now(Queries.Projects.setString(this, _.name, newName)).get
@@ -92,6 +91,7 @@ case class Project(override val   id: Option[Int] = None,
     this._name = newName
 
     val newSlug = slugify(this.name)
+    checkArgument(Project.isNamespaceAvailable(this.ownerName, newSlug), "slug not available", "")
     now(Queries.Projects.setString(this, _.slug, newSlug)).get
     this._slug = newSlug
   }
