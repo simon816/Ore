@@ -12,8 +12,6 @@ application.fakeUser.username   =   "Spongie"
 application.fakeUser.email      =   "spongie@spongepowered.org"
 application.db.default-timeout  =   10
 
-session.maxAge = 2419200 # 4 weeks
-
 
 # Play configuration
 play.crypto.secret                      =   "changeme"
@@ -21,6 +19,7 @@ play.crypto.secret                      =   ${?APPLICATION_SECRET}
 play.i18n.langs                         =   [ "en", "en-US" ]
 play.evolutions.autocommit              =   false
 play.evolutions.db.default.autoApply    =   true
+play.http.session.maxAge                =   2419200 # 4 weeks
 
 
 # Ore configuration
@@ -44,7 +43,7 @@ ore.users.stars-per-page    =   5
 ore.users.max-tagline-len   =   100
 
 ore.git.url     =   "https://github.com/SpongePowered/Ore"
-ore.git.ref     =   ".git/refs/heads/master"
+ore.git.ref     =   "conf/master"
 ore.git.ref-len =   7
 
 

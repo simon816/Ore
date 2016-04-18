@@ -182,6 +182,7 @@ local.properties
 .recommenders/
 
 # Ore
+/conf/master
 /conf/application.conf
 /project/project/target
 uploads
