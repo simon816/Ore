@@ -1,17 +1,12 @@
 package ore.project.member
 
-import java.sql.Timestamp
-
-import db.orm.model.NamedModel
+import models.project.Project
 
 /**
-  * Represents a collection of authors who work on a project.
+  * Represents a collection of members who work on a project.
   *
-  * @param id         Unique ID
-  * @param createdAt  Instant of creation
+  * @param project    Project this team belongs to.
   * @param name       Name of team
   */
-case class Team(override val id: Option[Int] = None,
-                override val createdAt: Option[Timestamp] = None,
-                override val name: String)
-                extends NamedModel with Author
+case class Team(override val project: Project, override val name: String, members: Set[Member])
+                extends Member(project, name)

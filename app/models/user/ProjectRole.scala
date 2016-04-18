@@ -13,11 +13,10 @@ case class ProjectRole(override val id: Option[Int] = None,
                        override val createdAt: Option[Timestamp] = None,
                        override val userId: Int,
                        override val roleType: RoleType,
-                       val          projectId: Int)
+                       override val projectId: Int)
                        extends      Model
-                       with         Role {
-
-  override val scope: Scope = ProjectScope(this.projectId)
+                       with         Role
+                       with         ProjectScope {
 
   def this(userId: Int, roleType: RoleType, projectId: Int) = {
     this(id=None, createdAt=None, userId=userId, roleType=roleType, projectId=projectId)

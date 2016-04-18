@@ -22,7 +22,7 @@ trait Secured {
   /** Represents a Request with a [[User]] and [[ScopeSubject]] */
   trait ScopedRequest[A] extends WrappedRequest[A] {
     def user: User
-    def subject: ScopeSubject
+    def subject: ScopeSubject = this.user
   }
 
   // Auth
@@ -33,10 +33,8 @@ trait Secured {
     * @param user     Authenticated user
     * @param request  Request to wrap
     */
-  case class AuthRequest[A](val user: User, request: Request[A]) extends WrappedRequest[A](request)
-                                                                 with ScopedRequest[A] {
-    override val subject: ScopeSubject = GlobalScope
-  }
+  case class AuthRequest[A](override val user: User, request: Request[A]) extends WrappedRequest[A](request)
+                                                                          with ScopedRequest[A]
 
   /** Action that ensures that the request is authenticated. */
   object Authenticated extends ActionBuilder[AuthRequest] with ActionRefiner[Request, AuthRequest] {
@@ -56,7 +54,7 @@ trait Secured {
     * @param request An [[AuthRequest]]
     */
   class AuthedProjectRequest[A](val project: Project, request: AuthRequest[A])
-                          extends WrappedRequest[A](request) with ScopedRequest[A] {
+                                extends WrappedRequest[A](request) with ScopedRequest[A] {
     override def user: User = request.user
     override val subject: ScopeSubject = this.project
   }

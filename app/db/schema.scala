@@ -143,13 +143,3 @@ class UserProjectRolesTable(tag: Tag) extends ModelTable[ProjectRole](tag, "user
   override def * = (id.?, createdAt.?, userId, roleType, projectId) <> ((ProjectRole.apply _).tupled, ProjectRole.unapply)
 
 }
-
-class TeamTable(tag: Tag) extends NamedModelTable[Team](tag, "teams") {
-
-  def name = column[String]("name")
-
-  override def modelName = this.name
-
-  override def * = (id.?, createdAt.?, name) <> (Team.tupled, Team.unapply)
-
-}

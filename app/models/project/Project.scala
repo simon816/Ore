@@ -9,12 +9,12 @@ import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Version.PendingVersion
-import ore.project.member.Member
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
 import ore.permission.scope.{ProjectScope, ScopeSubject}
 import ore.project.Categories.Category
-import ore.project.{Categories, PluginFile, ProjectManager}
+import ore.project.member.Member
+import ore.project.{ProjectFiles, Categories, PluginFile, ProjectFactory}
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.{configuration => config, current}
@@ -63,7 +63,7 @@ case class Project(override val   id: Option[Int] = None,
                    private var    _source: Option[String] = None,
                    private var    _description: Option[String] = None)
                    extends        NamedModel
-                   with           ScopeSubject {
+                   with           ProjectScope {
 
   import models.project.Project._
 
@@ -72,9 +72,9 @@ case class Project(override val   id: Option[Int] = None,
          ownerName=owner, ownerId=ownerId, authorNames=authors, homepage=Option(homepage))
   }
 
-  def owner: Member = Member(this.ownerName) // TODO: Teams
+  def owner: Member = new Member(this, this.ownerName)
 
-  def members: List[Member] = for (author <- authorNames) yield Member(author) // TODO: Teams
+  def members: List[Member] = for (author <- authorNames) yield new Member(this, author)
 
   /**
     * Sets the name of this project and performs all the necessary renames.
@@ -87,7 +87,7 @@ case class Project(override val   id: Option[Int] = None,
     checkArgument(isValidName(newName), "invalid name", "")
 
     now(Queries.Projects.setString(this, _.name, newName)).get
-    ProjectManager.renameProject(this.ownerName, this.name, newName)
+    ProjectFiles.renameProject(this.ownerName, this.name, newName)
     this._name = newName
 
     val newSlug = slugify(this.name)
@@ -381,13 +381,13 @@ case class Project(override val   id: Option[Int] = None,
   def delete: Try[Unit] = assertDefined {
     Try {
       now(Queries.Projects delete this).get
-      FileUtils.deleteDirectory(ProjectManager.projectDir(this.ownerName, this._name).toFile)
+      FileUtils.deleteDirectory(ProjectFiles.projectDir(this.ownerName, this._name).toFile)
     }
   }
 
-  override def name: String = this._name
+  override val projectId = assertDefined(this.id.get)
 
-  override def scope: ProjectScope = ProjectScope(this.id.get)
+  override def name: String = this._name
 
   override def hashCode: Int = this.id.get.hashCode
 
@@ -463,8 +463,8 @@ object Project extends ModelDAO[Project] {
 
     override def complete: Try[Project] = Try {
       free()
-      val newProject = ProjectManager.createProject(this).get
-      val newVersion = ProjectManager.createVersion(this.pendingVersion.get).get
+      val newProject = ProjectFactory.createProject(this).get
+      val newVersion = ProjectFactory.createVersion(this.pendingVersion.get).get
       newProject.recommendedVersion = newVersion
       newProject
     }

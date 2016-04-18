@@ -9,7 +9,7 @@ import models.project._
 import models.user.ProjectRole
 import ore.permission.EditSettings
 import ore.permission.role.RoleTypes
-import ore.project.{Categories, InvalidPluginFileException, ProjectManager}
+import ore.project.{Categories, InvalidPluginFileException, ProjectFactory}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
@@ -51,7 +51,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
       case Some(tmpFile) =>
         // Initialize plugin file
         val user = request.user
-        ProjectManager.initUpload(tmpFile.ref, tmpFile.filename, user) match {
+        ProjectFactory.initUpload(tmpFile.ref, tmpFile.filename, user) match {
           case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
             // PEBKAC
             Redirect(self.showCreator()).flashing("error" -> "Invalid plugin file.")

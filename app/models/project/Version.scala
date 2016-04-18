@@ -7,7 +7,8 @@ import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
 import ore.Colors.Color
-import ore.project.{Dependency, PluginFile, ProjectManager}
+import ore.permission.scope.ProjectScope
+import ore.project.{Dependency, PluginFile, ProjectFactory}
 import org.apache.commons.io.FileUtils
 import play.api.Play.current
 import play.api.cache.Cache
@@ -37,10 +38,11 @@ case class Version(override val   id: Option[Int] = None,
                    private var    _description: Option[String] = None,
                    val            assets: Option[String] = None,
                    private var    _downloads: Int = 0,
-                   val            projectId: Int,
+                   override val   projectId: Int,
                    val            channelId: Int,
                    val            fileSize: Long)
-                   extends        NamedModel {
+                   extends        NamedModel
+                   with           ProjectScope {
 
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int, fileSize: Long) = {
@@ -159,7 +161,7 @@ object Version extends ModelDAO[Version] {
 
     override def complete: Try[Version] = Try {
       free()
-      return ProjectManager.createVersion(this)
+      return ProjectFactory.createVersion(this)
     }
     
     override def cancel() = {

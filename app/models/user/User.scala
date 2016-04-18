@@ -13,7 +13,7 @@ import models.project.Project
 import ore.permission._
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.role._
-import ore.permission.scope.{GlobalScope, ProjectScope, Scope}
+import ore.permission.scope.{ScopeSubject, GlobalScope, ProjectScope, Scope}
 import play.api.Play.{configuration => config, current => app}
 import play.api.mvc.Session
 import util.forums.SpongeForums
@@ -35,7 +35,8 @@ case class User(override val  id: Option[Int] = None,
                 val           email: Option[String],
                 private var   _tagline: Option[String] = None,
                 private var   globalRoleIds: List[Int] = List())
-                extends       NamedModel {
+                extends       NamedModel
+                with          ScopeSubject {
 
   import models.user.User._
 
@@ -133,6 +134,8 @@ case class User(override val  id: Option[Int] = None,
     if (isDefined) now(Queries.Users.setString(this, _.tagline, tag)).get
     this._tagline = Option(tag)
   }
+
+  override val scope: Scope = GlobalScope
 
   override def name: String = this.username
 

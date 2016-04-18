@@ -11,7 +11,7 @@ import models.project.{Channel, Project, Version}
 import ore.Colors.Color
 import ore.Statistics
 import ore.permission.{CreateVersions, EditVersions}
-import ore.project.{InvalidPluginFileException, ProjectManager}
+import ore.project.{ProjectFiles, InvalidPluginFileException, ProjectFactory}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import util.Forms
@@ -132,7 +132,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
         case None => Redirect(self.showCreator(author, slug)).flashing("error" -> "Missing file")
         case Some(tmpFile) =>
           // Initialize plugin file
-          ProjectManager.initUpload(tmpFile.ref, tmpFile.filename, request.user) match {
+          ProjectFactory.initUpload(tmpFile.ref, tmpFile.filename, request.user) match {
             case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
               // PEBKAC
               Redirect(self.showCreator(author, slug))
@@ -318,7 +318,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
           case None => NotFound("Version not found.")
           case Some(version) =>
             Statistics.versionDownloaded(project, version)
-            Ok.sendFile(ProjectManager.uploadPath(author, slug, versionString, channelName).toFile)
+            Ok.sendFile(ProjectFiles.uploadPath(author, slug, versionString, channelName).toFile)
         }
       }
     }
@@ -336,7 +336,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
       val project = request.project
       val rv = project.recommendedVersion
       Statistics.versionDownloaded(project, rv)
-      Ok.sendFile(ProjectManager.uploadPath(author, project.name, rv.versionString, rv.channel.name).toFile)
+      Ok.sendFile(ProjectFiles.uploadPath(author, project.name, rv.versionString, rv.channel.name).toFile)
     }
   }
 

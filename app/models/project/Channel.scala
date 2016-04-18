@@ -10,7 +10,8 @@ import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
 import ore.Colors._
-import ore.project.ProjectManager
+import ore.permission.scope.{ProjectScope, Scope, ScopeSubject}
+import ore.project.{ProjectFiles, ProjectFactory}
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
@@ -34,9 +35,10 @@ case class Channel(override val   id: Option[Int] = None,
                    override val   createdAt: Option[Timestamp] = None,
                    private var    _name: String,
                    private var    _color: Color,
-                   val            projectId: Int)
+                   override val   projectId: Int)
                    extends        NamedModel
-                   with           Ordered[Channel] {
+                   with           Ordered[Channel]
+                   with           ProjectScope {
 
   import models.project.Channel._
 
@@ -53,7 +55,7 @@ case class Channel(override val   id: Option[Int] = None,
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
     checkArgument(isValidName(name), "invalid name", "")
     now(Queries.Channels.setString(this, _.name, name)).get
-    ProjectManager.renameChannel(context.ownerName, context.name, this._name, name)
+    ProjectFiles.renameChannel(context.ownerName, context.name, this._name, name)
     this._name = name
   }
 
@@ -118,7 +120,7 @@ case class Channel(override val   id: Option[Int] = None,
       checkArgument(context.versions.size > 1, "only one version", "")
       checkArgument(context.id.get == this.projectId, "invalid context id", "")
       now(Queries.Versions delete version).get
-      Files.delete(ProjectManager.uploadPath(context.ownerName, context.name, version.versionString, this._name))
+      Files.delete(ProjectFiles.uploadPath(context.ownerName, context.name, version.versionString, this._name))
     }
   }
 
@@ -137,7 +139,7 @@ case class Channel(override val   id: Option[Int] = None,
       checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
 
       now(Queries.Channels delete this).get
-      FileUtils.deleteDirectory(ProjectManager.projectDir(context.ownerName, context.name).resolve(this._name).toFile)
+      FileUtils.deleteDirectory(ProjectFiles.projectDir(context.ownerName, context.name).resolve(this._name).toFile)
     }
   }
 

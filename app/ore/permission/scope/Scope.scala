@@ -6,7 +6,7 @@ import ore.permission.Permission
 /**
   * Represents a "scope" for testing permissions within the application.
   */
-trait Scope {
+trait Scope extends ScopeSubject {
 
   /**
     * Returns the parent scope for this scope if any.
@@ -41,5 +41,7 @@ trait Scope {
     }
     result
   }
+
+  override val scope: Scope = this
 
 }

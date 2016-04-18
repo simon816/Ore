@@ -5,6 +5,7 @@ import java.sql.Timestamp
 import db.orm.dao.ModelDAO
 import db.orm.model.NamedModel
 import db.query.Queries
+import ore.permission.scope.{ProjectScope, Scope, ScopeSubject}
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
 import play.api.Play.{configuration => config, current}
@@ -23,12 +24,13 @@ import util.Input._
   */
 case class Page(override val  id: Option[Int] = None,
                 override val  createdAt: Option[Timestamp] = None,
-                val           projectId: Int,
+                override val  projectId: Int,
                 override val  name: String,
                 val           slug: String,
                 private var   _contents: String,
                 val           isDeletable: Boolean = true)
-                extends       NamedModel {
+                extends       NamedModel
+                with          ProjectScope {
 
   import models.project.Page._
 
