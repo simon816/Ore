@@ -6,29 +6,9 @@
     cursor: default;
 }
 
-.pre-beta {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    font-size: 14px;
-}
-
-.pre-beta .channel {
-    background-color: #B9F2FF;
-}
-
-.pre-beta a {
-    font-style: italic;
-    font-size: 12px;
-}
-
-.pre-beta a:hover {
-    text-decoration: underline;
-}
-
 .page-content {
     padding: 10px;
-    width: 100%;
+    max-width: 100%;
     overflow: hidden;
 }
 
@@ -36,14 +16,105 @@
     max-width: 100%;
 }
 
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    background-color: #f3f2f0;
+    margin-bottom: 60px;
+}
+
+.page-content {
+    padding: 10px;
+    width: 100%;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    min-height: 60px;
+    height: 60px;
+
+    overflow: hidden;
+}
+
+.footer > div {
+    text-align: center;
+}
+
 .page-content h1, .page-content h2, .page-content h3, .page-content h4, .page-content h5, .page-content h6 {
     border-bottom: 1px solid #ddd;
     padding-bottom: 5px;
 }
 
-
 body {
     background-color: #f3f2f0;
+}
+
+.footer > .navbar-default {
+    background-color: #CCCCCC;
+    border: 0;
+    border-top: 1px solid #A5A5A5;
+}
+
+.release {
+    position: absolute;
+    left: 10px;
+    bottom: 21px;
+}
+
+.release .channel {
+    background-color: #FFB600;
+    outline: none;
+}
+
+.release .channel:hover {
+    cursor: pointer;
+}
+
+.release a {
+    font-size: 16px;
+}
+
+.release a:hover {
+    color: white;
+}
+
+.copyright {
+    position: absolute;
+    bottom: 20px;
+    font-weight: bold;
+    font-size: 16px;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+}
+
+.social {
+    position: absolute;
+    right: 10px;
+    bottom: 11px;
+}
+
+.social > a {
+    color: #727272;
+    outline: none;
+}
+
+.social > a > .fa {
+    transition: all 0.15s ease-in-out;
+}
+
+.social > a > .fa-twitter:hover {
+    color: #00aced;
+}
+
+.social > a > .fa-facebook-official:hover {
+    color: #3b5998;
 }
 
 .navbar-main {

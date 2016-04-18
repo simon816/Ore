@@ -1,0 +1,23 @@
+@import util.Git
+@()
+
+<footer class="footer">
+    <div class="navbar-main navbar navbar-default">
+        <span class="release">
+            @defining(Git.ref) { ref =>
+                <a class="channel" target="_blank" href="@ref._2">Pre-beta</a>
+            }
+        </span>
+        <span class="copyright">
+            <i class="fa fa-copyright"> 2016 SpongePowered</i>
+        </span>
+        <span class="social">
+            <a target="_blank" href="http://twitter.com">
+                <i class="fa fa-twitter fa-3x"></i>
+            </a>
+            <a target="_blank" href="http://facebook.com">
+                <i class="fa fa-facebook-official fa-3x"></i>
+            </a>
+        </span>
+    </div>
+</footer>
