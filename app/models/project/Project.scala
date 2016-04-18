@@ -3,18 +3,18 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.{PageTable, ChannelTable, VersionTable}
-import db.orm.dao.{NamedModelSet, ModelDAO}
+import db.orm.dao.{ModelDAO, NamedModelSet}
 import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
+import db.{ChannelTable, PageTable, VersionTable}
 import models.project.Version.PendingVersion
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
-import ore.permission.scope.{ProjectScope, ScopeSubject}
+import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
 import ore.project.member.Member
-import ore.project.{ProjectFiles, Categories, PluginFile, ProjectFactory}
+import ore.project.{Categories, PluginFile, ProjectFactory, ProjectFiles}
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.{configuration => config, current}
@@ -385,7 +385,7 @@ case class Project(override val   id: Option[Int] = None,
     }
   }
 
-  override val projectId = assertDefined(this.id.get)
+  override def projectId = assertDefined(this.id.get)
 
   override def name: String = this._name
 
