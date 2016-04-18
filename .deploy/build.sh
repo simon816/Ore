@@ -21,8 +21,6 @@ if [ ! which docker >/dev/null 2>&1 ]; then
   exit 1
 fi
 
-cp ./.git/refs/heads/master ./conf/master
-
 echo Running activator to produce output tar.gz
 activator universal:packageZipTarball || exit 2
 
