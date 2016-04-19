@@ -13,8 +13,8 @@ import ore.project.{Categories, InvalidPluginFileException, ProjectFactory}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import util.Forms
 import util.Input._
+import util.form.Forms
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -78,9 +78,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   def showCreatorWithMeta(author: String, slug: String) = Authenticated { implicit request =>
     Project.getPending(author, slug) match {
       case None => Redirect(self.showCreator())
-      case Some(pending) =>
-        pending.initFirstVersion
-        Ok(views.projects.create(Some(pending)))
+      case Some(pending) => Ok(views.projects.create(Some(pending)))
     }
   }
 
@@ -94,13 +92,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   def showMembersConfig(author: String, slug: String) = Authenticated { implicit request =>
     Project.getPending(author, slug) match {
       case None => BadRequest("No pending project")
-      case Some(project) =>
-        val form = Forms.ProjectSave.bindFromRequest.get
-        project.project.category = Categories.withName(form._1.trim)
-        project.project.issues = nullIfEmpty(form._2)
-        project.project.source = nullIfEmpty(form._3)
-        project.project.description = nullIfEmpty(form._4)
-        Ok(views.projects.members.config(project))
+      case Some(pendingProject) =>
+        Forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.project)
+        Ok(views.projects.members.config(pendingProject))
     }
   }
 
@@ -116,14 +110,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     Project.getPending(author, slug) match {
       case None => BadRequest("No project to create.")
       case Some(pendingProject) =>
-        val form = Forms.MemberRoles.bindFromRequest.get
-        val roleNames = form._2
-        val roles = for ((userId, i) <- form._1.zipWithIndex) yield {
-          new ProjectRole(userId, RoleTypes.withName(roleNames(i)), -1)
-        }
-        pendingProject.roles = roles.toSet
-
-        val pendingVersion = pendingProject.pendingVersion.get
+        pendingProject.roles = Forms.MemberRoles.bindFromRequest.get.build()
+        val pendingVersion = pendingProject.pendingVersion
         Redirect(routes.Versions.showCreatorWithMeta(
           author, slug, pendingVersion.channelName, pendingVersion.version.versionString))
     }
@@ -165,12 +153,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     */
   def save(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
-      val project = request.project
-      val form = Forms.ProjectSave.bindFromRequest.get
-      project.category = Categories.withName(form._1.trim)
-      project.issues = nullIfEmpty(form._2)
-      project.source = nullIfEmpty(form._3)
-      project.description = nullIfEmpty(form._4)
+      Forms.ProjectSave.bindFromRequest.get.saveTo(request.project)
       Redirect(self.show(author, slug))
     }
   }
@@ -187,14 +170,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     AuthedProjectAction(author, slug) { implicit request =>
       val project = request.project
       val user = request.user
-      val alreadyStarred = project.isStarredBy(user)
-      if (starred) {
-        if (!alreadyStarred) {
-          project.starFor(user)
-        }
-      } else if (alreadyStarred) {
-        project.unstarFor(user)
-      }
+      project.setStarredBy(user, starred)
       Ok
     }
   }

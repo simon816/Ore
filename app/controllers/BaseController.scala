@@ -16,7 +16,7 @@ abstract class BaseController(ws: WSClient) extends Controller with I18nSupport 
 
   if (API == null) init(ws)
 
-  protected[controllers] def withProject(author: String, slug: String, f: Project => Result)
+  protected[controllers] def withProject(author: String, slug: String)(f: Project => Result)
                                         (implicit request: RequestHeader): Result = {
     Project.withSlug(author, slug) match {
       case None => NotFound

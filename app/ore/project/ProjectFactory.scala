@@ -52,7 +52,7 @@ object ProjectFactory {
     val newProject = now(Queries.Projects create pending.project).get
 
     // Add Project roles
-    val user = pending.firstVersion.owner
+    val user = pending.file.owner
     user.projectRoles.add(new ProjectRole(user.id.get, RoleTypes.ProjectOwner, newProject.id.get))
     for (role <- pending.roles) {
       User.withId(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))

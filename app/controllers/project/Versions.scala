@@ -14,7 +14,7 @@ import ore.permission.{CreateVersions, EditVersions}
 import ore.project.{InvalidPluginFileException, ProjectFactory, ProjectFiles}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
-import util.Forms
+import util.form.Forms
 import views.{html => views}
 
 import scala.util.{Failure, Success}
@@ -66,11 +66,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
         case Some(channel) => channel.versions.withName(versionString) match {
           case None => NotFound("Version not found.")
           case Some(version) =>
-            val oldDesc = version.description
-            val newDesc = Forms.VersionDescription.bindFromRequest.get.trim
-            if ((oldDesc.isEmpty && !newDesc.isEmpty) || !oldDesc.get.equals(newDesc)) {
-              version.description = newDesc
-            }
+            version.description = Forms.VersionDescription.bindFromRequest.get.trim
             Redirect(self.show(author, slug, channelName, versionString))
         }
       }
@@ -181,13 +177,11 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
             case None => Redirect(self.showCreator(author, slug))
             case Some(p) => p match {
               case pending: PendingProject =>
-                Ok(views.projects.versions.create(
-                  pending.project, Some(pendingVersion), None, showFileControls = false
-                ))
+                Ok(views.projects.versions.create(pending.project, Some(pendingVersion),
+                                                  None, showFileControls = false))
               case real: Project =>
-                Ok(views.projects.versions.create(
-                  real, Some(pendingVersion), Some(real.channels.seq), showFileControls = true
-                ))
+                Ok(views.projects.versions.create(real, Some(pendingVersion),
+                                                  Some(real.channels.seq), showFileControls = true))
             }
           }
       }
@@ -214,64 +208,44 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     */
   def create(author: String, slug: String, channelName: String, versionString: String) = {
     Authenticated { implicit request =>
+      // First get the pending Version
       Version.getPending(author, slug, channelName, versionString) match {
-        case None => Redirect(self.showCreator(author, slug))
+        case None => Redirect(self.showCreator(author, slug)) // Not found
         case Some(pendingVersion) =>
-          // Gather form data
-          val form = Forms.ChannelEdit.bindFromRequest.get
-          val submittedName = form._1.trim
-          pendingVersion.channelName = submittedName
-          Channel.Colors.find(color => color.hex.equalsIgnoreCase(form._2)) match {
-            case None => BadRequest("Invalid channel color.")
-            case Some(color) => pendingVersion.channelColor = color
-          }
+          // Get submitted channel
+          Forms.ChannelEdit.bindFromRequest.fold(
+            hasErrors => Redirect(self.showCreatorWithMeta(author, slug, channelName, versionString))
+              .flashing("error" -> hasErrors.errors.head.message),
 
-          // Validate channel name
-          if (!Channel.isValidName(submittedName)) {
-            Redirect(app.showHome(None))
-              .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
-          } else {
-            // Check for pending project
-            Project.getPending(author, slug) match {
-              case None =>
-                // No pending project, just create the version for the existing project
-                withProject(author, slug, project => {
-                  // Check if creating a new channel
-                  val existingChannel: Channel = project.channels.withName(submittedName).orNull
+            channelData => {
+              // Channel is valid
+              pendingVersion.channelName = channelData.name.trim
+              pendingVersion.channelColor = channelData.color
 
-                  // Check if color is available
-                  var colorTaken: Boolean = false
-                  if (existingChannel == null) {
-                    val color = pendingVersion.channelColor
-                    colorTaken = project.channels.find(_.color === (color: Color)).isDefined
+              // Check for pending project
+              Project.getPending(author, slug) match {
+                case None =>
+                  // No pending project, create version for existing project
+                  withProject(author, slug) { project =>
+                    val existingChannel = project.channels.withName(pendingVersion.channelName).orNull
+                    var channelResult: Either[String, Channel] = Right(existingChannel)
+                    if (existingChannel == null) channelResult = channelData.addTo(project)
+                    channelResult.fold(
+                      error => Redirect(self.showCreatorWithMeta(author, slug, channelName, versionString))
+                        .flashing("error" -> error),
+                      channel => {
+                        pendingVersion.complete.get
+                        Redirect(self.show(author, slug, pendingVersion.channelName, versionString))
+                      }
+                    )
                   }
-
-                  if (colorTaken) {
-                    pendingVersion.cache()
-                    Redirect(self.showCreatorWithMeta(author, slug, channelName, versionString))
-                      .flashing("error" -> "A channel with that color already exists.")
-                  } else {
-                    // Check for existing version
-                    var existingVersion: Version = null
-                    if (existingChannel != null) {
-                      existingVersion = existingChannel.versions.withName(versionString).orNull
-                    }
-
-                    if (existingVersion != null) {
-                      Redirect(self.showCreatorWithMeta(author, slug, channelName, versionString))
-                        .flashing("error" -> "Version already exists.")
-                    } else {
-                      pendingVersion.complete.get
-                      Redirect(self.show(author, slug, submittedName, versionString))
-                    }
-                  }
-                })
-              case Some(pendingProject) =>
-                // Found a pending project, create the project and it's first version
-                pendingProject.complete.get
-                Redirect(routes.Projects.show(author, slug))
+                case Some(pendingProject) =>
+                  // Found a pending project, create it with first version
+                  pendingProject.complete.get
+                  Redirect(routes.Projects.show(author, slug))
+              }
             }
-          }
+          )
       }
     }
   }

@@ -203,15 +203,27 @@ case class Project(override val   id: Option[Int] = None,
   }
 
   /**
+    * Sets the "starred" state of this Project for the specified User.
+    *
+    * @param user User to set starred state of
+    * @param starred True if should star
+    */
+  def setStarredBy(user: User, starred: Boolean) = {
+    if (starred) starFor(user) else unstarFor(user)
+  }
+
+  /**
     * Sets this Project as starred for the specified User.
     *
     * @param user   User to star for
     * @return       Future result
     */
   def starFor(user: User) = assertDefined {
-    now(Queries.Projects.starFor(this.id.get, user.id.get)).get
-    now(Queries.Projects.setInt(this, _.stars, this.stars + 1)).get
-    this._stars += 1
+    if (!isStarredBy(user)) {
+      now(Queries.Projects.starFor(this.id.get, user.id.get)).get
+      now(Queries.Projects.setInt(this, _.stars, this.stars + 1)).get
+      this._stars += 1
+    }
   }
 
   /**
@@ -221,9 +233,11 @@ case class Project(override val   id: Option[Int] = None,
     * @return       Future result
     */
   def unstarFor(user: User) = assertDefined {
-    now(Queries.Projects.unstarFor(this.id.get, user.id.get)).get
-    now(Queries.Projects.setInt(this, _.stars, this.stars - 1)).get
-    this._stars -= 1
+    if (isStarredBy(user)) {
+      now(Queries.Projects.unstarFor(this.id.get, user.id.get)).get
+      now(Queries.Projects.setInt(this, _.stars, this.stars - 1)).get
+      this._stars -= 1
+    }
   }
 
   /**
@@ -435,48 +449,32 @@ object Project extends ModelDAO[Project] {
     * Represents a Project with an uploaded plugin that has not yet been
     * created.
     *
-    * @param project        Pending project
-    * @param firstVersion   Uploaded plugin
+    * @param project  Pending project
+    * @param file     Uploaded plugin
     */
   case class PendingProject(val project: Project,
-                            val firstVersion: PluginFile,
+                            val file: PluginFile,
                             var roles: Set[ProjectRole] = Set())
                             extends PendingAction[Project]
                             with Cacheable {
 
-    private var _pendingVersion: Option[PendingVersion] = None
-
-    /**
-      * Creates a new PendingVersion for this PendingProject
-      *
-      * @return New PendingVersion
-      */
-    def initFirstVersion: PendingVersion = {
-      val version = Version.fromMeta(this.project, this.firstVersion)
-      val pending = Version.setPending(project.ownerName, project.slug,
-        Channel.getSuggestedNameForVersion(version.versionString), version, this.firstVersion)
-      this._pendingVersion = Some(pending)
-      pending
+    val pendingVersion: PendingVersion = {
+      val version = Version.fromMeta(this.project, this.file)
+      Version.setPending(project.ownerName, project.slug,
+        Channel.getSuggestedNameForVersion(version.versionString), version, this.file)
     }
-
-    /**
-      * Returns this PendingProject's PendingVersion
-      *
-      * @return PendingVersion
-      */
-    def pendingVersion: Option[PendingVersion] = this._pendingVersion
 
     override def complete: Try[Project] = Try {
       free()
       val newProject = ProjectFactory.createProject(this).get
-      val newVersion = ProjectFactory.createVersion(this.pendingVersion.get).get
+      val newVersion = ProjectFactory.createVersion(this.pendingVersion).get
       newProject.recommendedVersion = newVersion
       newProject
     }
 
     override def cancel() = {
       free()
-      this.firstVersion.delete()
+      this.file.delete()
       if (project.isDefined) {
         project.delete
       }

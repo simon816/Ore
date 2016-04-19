@@ -18,8 +18,9 @@ import play.api.Play.{configuration => config, current}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
+import util.form.Forms
 import util.forums.SpongeForums._
-import util.{P, Forms}
+import util.P
 import views.{html => views}
 
 import scala.concurrent.ExecutionContext.Implicits.global

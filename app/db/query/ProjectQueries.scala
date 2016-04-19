@@ -115,7 +115,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @param category Category to set
     */
   def setCategory(project: Project, category: Category) = {
-    val query = for { model <- this.models if model.id === project.id.get } yield project.category
+    val query = for { model <- this.models if model.id === project.id.get } yield model.category
     run(query.update(category))
   }
 

@@ -8,7 +8,7 @@ import models.project.{Channel, Project}
 import ore.permission.EditChannels
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
-import util.Forms
+import util.form.Forms
 import views.{html => views}
 
 /**
@@ -43,40 +43,13 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     */
   def create(author: String, slug: String) = {
     ChannelEditAction(author, slug) { implicit request =>
-      val project = request.project
-      val channels = project.channels.values
-      if (channels.size > Project.MaxChannels) {
-        // Maximum reached
-        Redirect(self.showList(author, slug))
-          .flashing("error" -> "A project may only have up to five channels.")
-      } else {
-        val form = Forms.ChannelEdit.bindFromRequest.get
-        val channelName = form._1.trim
-        if (!Channel.isValidName(channelName)) {
-          Redirect(self.showList(author, slug))
-            .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
-        } else {
-          // Find submitted color
-          Channel.Colors.find(c => c.hex.equalsIgnoreCase(form._2)) match {
-            case None => BadRequest("Invalid channel color.")
-            case Some(color) => channels.find(c => c.color.equals(color)) match {
-              case None => channels.find(c => c.name.equalsIgnoreCase(channelName)) match {
-                case None =>
-                  project.addChannel(channelName, color)
-                  Redirect(self.showList(author, slug))
-                case Some(channel) =>
-                  // Channel name taken
-                  Redirect(self.showList(author, slug))
-                    .flashing("error" -> "A channel with that name already exists.")
-              }
-              case Some(channel) =>
-                // Channel color taken
-                Redirect(self.showList(author, slug))
-                  .flashing("error" -> "A channel with that color already exists.")
-            }
-          }
-        }
-      }
+      Forms.ChannelEdit.bindFromRequest.fold(
+        hasErrors => Redirect(self.showList(author, slug)).flashing("error" -> hasErrors.errors.head.message),
+        channelData => channelData.addTo(request.project).fold(
+          error => Redirect(self.showList(author, slug)).flashing("error" -> error),
+          channel => Redirect(self.showList(author, slug))
+        )
+      )
     }
   }
 
@@ -90,51 +63,15 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     */
   def edit(author: String, slug: String, channelName: String) = {
     ChannelEditAction(author, slug) { implicit request =>
-      // Get all channels
       implicit val project = request.project
-      val form = Forms.ChannelEdit.bindFromRequest.get
-      val newName = form._1.trim
-      if (!Channel.isValidName(newName)) {
-        Redirect(self.showList(author, slug))
-          .flashing("error" -> "Channel names must be between 1 and 15 and be alphanumeric.")
-      } else {
-        // Find submitted channel by old name
-        val channels = request.project.channels.values
-        channels.find(c => c.name.equals(channelName)) match {
-          case None => NotFound("Channel not found.")
-          case Some(channel) => Channel.Colors.find(c => c.hex.equalsIgnoreCase(form._2)) match {
-            case None => BadRequest("Invalid channel color.")
-            case Some(color) =>
-              // Check if color is taken by different channel
-              val colorChan = channels.find(c => c.color.equals(color))
-              val colorTaken = colorChan.isDefined && !colorChan.get.equals(channel)
-
-              // Check if name taken by different channel
-              val nameChan = channels.find(c => c.name.equals(newName))
-              val nameTaken = nameChan.isDefined && !nameChan.get.equals(channel)
-
-              if (colorTaken) {
-                Redirect(self.showList(author, slug))
-                  .flashing("error" -> "A channel with that color already exists.")
-              } else if (nameTaken) {
-                Redirect(self.showList(author, slug))
-                  .flashing("error" -> "A channel with that name already exists.")
-              } else {
-                // Change name if different
-                if (!channelName.equals(newName)) {
-                  channel.name = newName
-                }
-
-                // Change color if different
-                if (!channel.color.equals(color)) {
-                  channel.color = color
-                }
-
-                Redirect(self.showList(author, slug))
-              }
-          }
+      Forms.ChannelEdit.bindFromRequest.fold(
+        hasErrors => Redirect(self.showList(author, slug)).flashing("error" -> hasErrors.errors.head.message),
+        channelData => channelData.saveTo(channelName).map { error =>
+          Redirect(self.showList(author, slug)).flashing("error" -> error)
+        } getOrElse {
+          Redirect(self.showList(author, slug))
         }
-      }
+      )
     }
   }
 
