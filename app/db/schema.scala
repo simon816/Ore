@@ -24,7 +24,7 @@ class ProjectTable(tag: Tag) extends NamedModelTable[Project](tag, "projects") {
   def authors               =   column[List[String]]("authors")
   def homepage              =   column[String]("homepage")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
-  def category              =   column[Category]("category_id")
+  def category              =   column[Category]("category")
   def views                 =   column[Int]("views", O.Default(0))
   def downloads             =   column[Int]("downloads", O.Default(0))
   def stars                 =   column[Int]("stars", O.Default(0))
@@ -80,7 +80,7 @@ class PageTable(tag: Tag) extends NamedModelTable[Page](tag, "pages") {
 class ChannelTable(tag: Tag) extends NamedModelTable[Channel](tag, "channels") {
 
   def name        =   column[String]("name")
-  def color       =   column[Color]("color_id")
+  def color       =   column[Color]("color")
   def projectId   =   column[Int]("project_id")
 
   override def modelName = this.name
@@ -137,7 +137,7 @@ class UserTable(tag: Tag) extends NamedModelTable[User](tag, "users") {
 class UserProjectRolesTable(tag: Tag) extends ModelTable[ProjectRole](tag, "user_project_roles") {
 
   def userId      =   column[Int]("user_id")
-  def roleType    =   column[RoleType]("role_type_id")
+  def roleType    =   column[RoleType]("role_type")
   def projectId   =   column[Int]("project_id")
 
   override def * = (id.?, createdAt.?, userId, roleType, projectId) <> ((ProjectRole.apply _).tupled, ProjectRole.unapply)
