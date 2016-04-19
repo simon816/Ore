@@ -11,13 +11,13 @@ import db.query.Queries.now
   *
   * @param queries    Queries class
   * @param parentId   Parent model ID
-  * @param ref        Column that references the models contained in this set
+  * @param parentRef  Column that references the models contained in this set
   * @tparam T         Table type
   * @tparam M         Model type
   */
 class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M],
                                                parentId: Int,
-                                               ref: T => Rep[Int])
+                                               parentRef: T => Rep[Int])
                                                extends ModelDAO[M] {
 
   /**
@@ -25,14 +25,14 @@ class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M],
     *
     * @return All models in set
     */
-  def values: Set[M] = now(this.queries collect (filter = ref(_) === parentId)).get.toSet
+  def values: Set[M] = now(this.queries collect (filter = parentRef(_) === parentId)).get.toSet
 
   /**
     * Returns the amount of models in this set.
     *
     * @return Amount of models in set
     */
-  def size: Int = now(this.queries count (ref(_) === parentId)).get
+  def size: Int = now(this.queries count (parentRef(_) === parentId)).get
 
   /**
     * Returns true if there are no models in this set.
@@ -49,18 +49,35 @@ class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M],
   def nonEmpty: Boolean = this.size > 0
 
   /**
+    * Returns true if this set contains the given model.
+    *
+    * @param model  Model to look for
+    * @return       True if set contains model
+    */
+  def contains(model: M): Boolean = {
+    now(this.queries count (t => parentRef(t) === parentId && t.id === model.id.get)).get > 0
+  }
+
+  /**
     * Adds a new model to the set.
     *
-    * @param model Model to add
+    * @param model  Model to add
+    * @return       The newly created model
     */
-  def add(model: M) = now(this.queries create model).get
+  def add(model: M): M = now(this.queries create model).get
 
   /**
     * Removes a model from the set.
     *
-    * @param model Model to remove
+    * @param model  Model to remove
+    * @return       True if the model was removed
     */
-  def remove(model: M) = now(this.queries delete model).get
+  def remove(model: M): Boolean = if (this.contains(model)) {
+    now(this.queries delete model).get
+    true
+  } else {
+    false
+  }
 
   /**
     * Finds the first model that matches the given predicate.
@@ -68,7 +85,7 @@ class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M],
     * @param p  Predicate filter
     * @return   First match
     */
-  def find(p: T => Rep[Boolean]): Option[M] = now(this.queries ? (m => ref(m) === parentId && p(m))).get
+  def find(p: T => Rep[Boolean]): Option[M] = now(this.queries ? (m => parentRef(m) === parentId && p(m))).get
 
   /**
     * Filters the values in this set by the given predicate.
@@ -76,7 +93,7 @@ class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M],
     * @param p  Predicate filter
     * @return   Result sequence
     */
-  def filter(p: T => Rep[Boolean]): Seq[M] = now(this.queries.collect(filter = m => ref(m) === parentId && p(m))).get
+  def filter(p: T => Rep[Boolean]): Seq[M] = now(this.queries.collect(filter = m => parentRef(m) === parentId && p(m))).get
 
   /**
     * Returns a Seq version of this set.

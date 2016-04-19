@@ -7,10 +7,11 @@ import db.query.Queries
 import db.query.Queries._
 import slick.lifted.Rep
 
-class NamedModelSet[T <: NamedModelTable[M], M <: NamedModel](queries: Queries[T, M],
-                                                              parentId: Int,
-                                                              ref: T => Rep[Int])
-                                                              extends ModelSet[T, M](queries, parentId, ref) {
+class NamedModelSet[T <: NamedModelTable[M],
+                    M <: NamedModel](queries: Queries[T, M],
+                                     parentId: Int,
+                                     parentRef: T => Rep[Int])
+                                     extends ModelSet[T, M](queries, parentId, parentRef) {
 
   /**
     * Returns the model with the specified name.
@@ -19,7 +20,7 @@ class NamedModelSet[T <: NamedModelTable[M], M <: NamedModel](queries: Queries[T
     * @return       Model with name or None if not found
     */
   def withName(name: String): Option[M] = {
-    now(this.queries ? (m => ref(m) === parentId && m.modelName === name)).get
+    now(this.queries ? (m => parentRef(m) === parentId && m.modelName === name)).get
   }
 
 }
