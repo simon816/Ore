@@ -1,0 +1,107 @@
+@import controllers.project.{routes => projectRoutes}
+@import models.project.Project.PendingProject
+@import models.user.User
+@import play.twirl.api.Html
+@import views.html.helper.form
+@(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
+
+@projects.panelCreate(messages("project.create"), 3) {
+    @defining(User.current.get) { user =>
+
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/membersConfig.js")"></script>
+
+        <!-- Template row -->
+        <table style="display: none;">
+            <tbody>
+                <tr id="result-row">
+                    <td>
+                        <input type="hidden"/>
+                        <i class="fa fa-times user-cancel"></i>
+                        <a target="_blank" href=""></a>
+                    </td>
+                    <td>@projects.members.roleSelect("")</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Start panel -->
+        <div class="panel-body">
+            <!-- Info -->
+            <div class="minor create-blurb">
+                <p>@messages("project.members.info-text.head")</p>
+                <p>@Html(messages("project.members.info-text.bottom", 1))</p>
+            </div>
+
+            <!-- User not found alert (hidden) -->
+            <div class="alert alert-danger alert-dismissible" role="alert" style="display: none;">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <strong>Whoops!</strong> Could not find user "<span class="error-username"></span>"
+            </div>
+
+            <!-- Member table -->
+            <table class="table table-members">
+                <tbody>
+                    <!-- Owner (not submitted) -->
+                    <tr>
+                        <td><strong>@user.username</strong></td>
+                        <td><i class="minor">Owner</i></td>
+                    </tr>
+
+                    <!-- Members found in meta file -->
+                    @for((author, i) <- pending.project.authorNames.filterNot(_.equals(user.username)).zipWithIndex) {
+                        @User.withName(author).map { user =>
+                            <tr>
+                                <td>
+                                    <input form="form-continue" type="hidden" value="@user.id.get" />
+                                    <strong>
+                                        <a target="_blank" href="@routes.Application.showUser(user.username)">
+                                            @user.username
+                                        </a>
+                                    </strong>
+                                </td>
+                                <td>@projects.members.roleSelect()</td>
+                            </tr>
+                        }
+                    }
+
+                    <!-- User search -->
+                    <tr>
+                        <td>
+                            <div class="input-group input-group-sm user-search">
+                                <input class="form-control" type="text" placeholder="Find user&hellip;" />
+                                <span class="input-group-btn">
+                                    <button disabled class="btn btn-default"><i class="fa fa-search"></i></button>
+                                </span>
+                            </div>
+                        </td>
+                        <td></td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+            <!-- Submission form -->
+            @form(action = projectRoutes.Projects.showFirstVersionCreator(pending.project.ownerName, pending.project.slug),
+                'id -> "form-continue") {
+
+                <div class="btn-group pull-right">
+                    <a href="@projectRoutes.Projects.showCreatorWithMeta(pending.project.ownerName, pending.project.slug)"
+                       title="Back" class="pull-left btn btn-default">
+                        <i class="fa fa-arrow-left"></i>
+                    </a>
+
+                    @* Disabled until JS determines meta is valid *@
+                    <button title="Continue" type="submit" name="submit" value="@messages("project.create.continue")"
+                            class="pull-right continue-btn btn btn-primary">
+                        <i class="fa fa-arrow-right"></i>
+                    </button>
+                </div>
+
+            }
+
+        </div>
+
+    }
+}

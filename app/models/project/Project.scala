@@ -3,11 +3,11 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.orm.dao.{ModelDAO, NamedModelSet}
+import db.orm.dao.{ModelDAO, ModelSet, NamedModelSet}
 import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
-import db.{ChannelTable, PageTable, VersionTable}
+import db.{ChannelTable, PageTable, UserProjectRolesTable, VersionTable}
 import models.project.Version.PendingVersion
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
@@ -74,7 +74,10 @@ case class Project(override val   id: Option[Int] = None,
 
   def owner: Member = new Member(this, this.ownerName)
 
-  def members: List[Member] = for (author <- authorNames) yield new Member(this, author)
+  def members: List[Member] = (for (role <- this.roles.values) yield {
+    // TODO: Make this more sane
+    new Member(this, User.withId(role.userId).get.username)
+  }).toList
 
   /**
     * Sets the name of this project and performs all the necessary renames.
@@ -255,6 +258,10 @@ case class Project(override val   id: Option[Int] = None,
   def source_=(_source: String) = {
     if (isDefined) now(Queries.Projects.setString(this, _.source, _source))
     this._source = Option(_source)
+  }
+
+  def roles: ModelSet[UserProjectRolesTable, ProjectRole] = assertDefined {
+    new ModelSet(Queries.Users.ProjectRoles, this.id.get, _.projectId)
   }
 
   /**

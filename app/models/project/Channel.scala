@@ -10,8 +10,8 @@ import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
 import ore.Colors._
-import ore.permission.scope.{ProjectScope, Scope, ScopeSubject}
-import ore.project.{ProjectFiles, ProjectFactory}
+import ore.permission.scope.ProjectScope
+import ore.project.ProjectFiles
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}

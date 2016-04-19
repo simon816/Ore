@@ -70,7 +70,7 @@ object ProjectFactory {
     val user = pending.firstVersion.owner
     user.projectRoles.add(new ProjectRole(user.id.get, RoleTypes.ProjectOwner, newProject.id.get))
     for (role <- pending.roles) {
-      user.projectRoles.add(role.copy(projectId=newProject.id.get))
+      User.withId(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
     }
 
     newProject

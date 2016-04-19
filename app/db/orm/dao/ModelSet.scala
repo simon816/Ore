@@ -25,7 +25,7 @@ class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M],
     *
     * @return All models in set
     */
-  def values: Set[M] = now(this.queries ? (ref(_) === parentId)).get.toSet
+  def values: Set[M] = now(this.queries collect (filter = ref(_) === parentId)).get.toSet
 
   /**
     * Returns the amount of models in this set.

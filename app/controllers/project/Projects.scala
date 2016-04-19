@@ -100,7 +100,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
         project.project.issues = nullIfEmpty(form._2)
         project.project.source = nullIfEmpty(form._3)
         project.project.description = nullIfEmpty(form._4)
-        Ok(views.projects.membersConfig(project))
+        Ok(views.projects.members.config(project))
     }
   }
 

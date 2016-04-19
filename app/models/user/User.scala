@@ -13,7 +13,7 @@ import models.project.Project
 import ore.permission._
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.role._
-import ore.permission.scope.{ScopeSubject, GlobalScope, ProjectScope, Scope}
+import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
 import play.api.Play.{configuration => config, current => app}
 import play.api.mvc.Session
 import util.forums.SpongeForums

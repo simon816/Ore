@@ -7,7 +7,7 @@ import db.orm.model.Model
 import db.query.Queries
 import ore.permission.role.Role
 import ore.permission.role.RoleTypes.RoleType
-import ore.permission.scope.{ProjectScope, Scope}
+import ore.permission.scope.ProjectScope
 
 case class ProjectRole(override val id: Option[Int] = None,
                        override val createdAt: Option[Timestamp] = None,

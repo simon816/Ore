@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import db.orm.dao.ModelDAO
 import db.orm.model.NamedModel
 import db.query.Queries
-import ore.permission.scope.{ProjectScope, Scope, ScopeSubject}
+import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
 import play.api.Play.{configuration => config, current}

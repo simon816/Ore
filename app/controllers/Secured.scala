@@ -4,7 +4,7 @@ import models.project.Project
 import models.user.User
 import ore.Statistics
 import ore.permission.Permission
-import ore.permission.scope.{GlobalScope, ScopeSubject}
+import ore.permission.scope.ScopeSubject
 import play.api.mvc.Results._
 import play.api.mvc._
 

@@ -1,0 +1,8 @@
+@import ore.permission.role.RoleTypes
+@(form: String = "form-continue")
+
+<select form="@form">
+    @for(roleType <- RoleTypes.ofProjects.filter(!_.equals(RoleTypes.ProjectOwner))) {
+        <option>@roleType.title</option>
+    }
+</select>

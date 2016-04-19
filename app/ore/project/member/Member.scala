@@ -1,8 +1,9 @@
 package ore.project.member
 
 import com.google.common.base.MoreObjects
+import db.OrePostgresDriver.api._
 import models.project.Project
-import models.user.User
+import models.user.{ProjectRole, User}
 import ore.permission.scope.{Scope, ScopeSubject}
 
 class Member(val project: Project, val name: String) extends ScopeSubject {
@@ -14,6 +15,11 @@ class Member(val project: Project, val name: String) extends ScopeSubject {
     * @return User of Member if exists
     */
   def user: Option[User] = User.withName(this.name)
+
+  def roles: Set[ProjectRole] = this.user match {
+    case None => Set()
+    case Some(u) => this.project.roles.filter(_.userId === u.id.get).toSet
+  }
 
   override val scope: Scope = project.scope
 
