@@ -6,6 +6,7 @@ import models.project.{Channel, Page, Project, Version}
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
+import ore.project.Categories.Category
 
 /*
  * Database schema definitions. Changes must be first applied as an evolutions
@@ -23,7 +24,7 @@ class ProjectTable(tag: Tag) extends NamedModelTable[Project](tag, "projects") {
   def authors               =   column[List[String]]("authors")
   def homepage              =   column[String]("homepage")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
-  def categoryId            =   column[Int]("category_id")
+  def category              =   column[Category]("category_id")
   def views                 =   column[Int]("views", O.Default(0))
   def downloads             =   column[Int]("downloads", O.Default(0))
   def stars                 =   column[Int]("stars", O.Default(0))
@@ -34,7 +35,7 @@ class ProjectTable(tag: Tag) extends NamedModelTable[Project](tag, "projects") {
   override def modelName = this.name
 
   override def * = (id.?, createdAt.?, pluginId, name, slug, ownerName, ownerId,
-                    authors, homepage.?, recommendedVersionId.?, categoryId,
+                    authors, homepage.?, recommendedVersionId.?, category,
                     views, downloads, stars, issues.?, source.?,
                     description.?) <> ((Project.apply _).tupled, Project.unapply)
 

@@ -37,7 +37,7 @@ import scala.util.Try
   * @param authorNames            Authors who work on this project
   * @param homepage               The external project URL
   * @param recommendedVersionId   The ID of this project's recommended version
-  * @param categoryId             The ID of this project's category
+  * @param _category              The project's Category
   * @param _views                 How many times this project has been views
   * @param _downloads             How many times this project has been downloaded in total
   * @param _stars                 How many times this project has been starred
@@ -55,7 +55,7 @@ case class Project(override val   id: Option[Int] = None,
                    val            authorNames: List[String] = List(),
                    val            homepage: Option[String] = None,
                    private var    recommendedVersionId: Option[Int] = None,
-                   private var    categoryId: Int = -1,
+                   private var    _category: Category = Categories.Undefined,
                    private var    _views: Int = 0,
                    private var    _downloads: Int = 0,
                    private var    _stars: Int = 0,
@@ -129,7 +129,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Project category
     */
-  def category: Category = Categories(this.categoryId)
+  def category: Category = this._category
 
   /**
     * Sets this Project's category.
@@ -137,8 +137,8 @@ case class Project(override val   id: Option[Int] = None,
     * @param _category Category to set
     */
   def category_=(_category: Category) = {
-    if (isDefined) now(Queries.Projects.setInt(this, _.categoryId, _category.id)).get
-    this.categoryId = _category.id
+    if (isDefined) now(Queries.Projects.setCategory(this, _category)).get
+    this._category = _category
   }
 
   /**

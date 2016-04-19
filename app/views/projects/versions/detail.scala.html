@@ -53,7 +53,7 @@
                 @if(version.description.isEmpty) {
                     <p class="minor"><i>@messages("version.create.no-description")</i></p>
                 } else {
-                    <p>@Html(Page.MD.markdownToHtml(version.description.get))</p>
+                    <p>@Html(Page.MarkdownProcessor.markdownToHtml(version.description.get))</p>
                 }
             </div>
 

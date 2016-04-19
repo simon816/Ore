@@ -5,16 +5,17 @@ package ore.project
   */
 object Categories extends Enumeration {
 
-  val AdminTools  =   Category(0, "Admin Tools",       "fa-server")
-  val Chat        =   Category(1, "Chat",              "fa-comment")
-  val DevTools    =   Category(2, "Developer Tools",   "fa-wrench")
-  val Econ        =   Category(3, "Economy",           "fa-money")
-  val Gameplay    =   Category(4, "Gameplay",          "fa-puzzle-piece")
-  val Games       =   Category(5, "Games",             "fa-gamepad")
-  val Protect     =   Category(6, "Protection",        "fa-lock")
-  val Rp          =   Category(7, "Role Playing",      "fa-magic")
-  val WorldMgmt   =   Category(8, "World Management",  "fa-globe")
-  val Misc        =   Category(9, "Miscellaneous",     "fa-asterisk")
+  val AdminTools  =   Category( 0, "Admin Tools",       "fa-server")
+  val Chat        =   Category( 1, "Chat",              "fa-comment")
+  val DevTools    =   Category( 2, "Developer Tools",   "fa-wrench")
+  val Econ        =   Category( 3, "Economy",           "fa-money")
+  val Gameplay    =   Category( 4, "Gameplay",          "fa-puzzle-piece")
+  val Games       =   Category( 5, "Games",             "fa-gamepad")
+  val Protect     =   Category( 6, "Protection",        "fa-lock")
+  val Rp          =   Category( 7, "Role Playing",      "fa-magic")
+  val WorldMgmt   =   Category( 8, "World Management",  "fa-globe")
+  val Misc        =   Category( 9, "Miscellaneous",     "fa-asterisk")
+  val Undefined   =   Category(10, "Undefined",         null)
 
   /**
     * Returns an Array of categories from a comma separated string of IDs.

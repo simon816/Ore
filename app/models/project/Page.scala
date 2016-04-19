@@ -61,7 +61,7 @@ case class Page(override val  id: Option[Int] = None,
     *
     * @return HTML representation
     */
-  def html: String = MD.markdownToHtml(contents)
+  def html: String = MarkdownProcessor.markdownToHtml(contents)
 
 }
 
@@ -80,7 +80,7 @@ object Page extends ModelDAO[Page] {
   /**
     * The Markdown processor.
     */
-  val MD: PegDownProcessor = new PegDownProcessor(ALL & ~ANCHORLINKS)
+  val MarkdownProcessor: PegDownProcessor = new PegDownProcessor(ALL & ~ANCHORLINKS)
 
   override def withId(id: Int): Option[Page] = Queries.now(Queries.Pages.get(id)).get
 

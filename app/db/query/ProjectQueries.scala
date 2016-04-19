@@ -6,6 +6,7 @@ import db.OrePostgresDriver.api._
 import db.query.Queries.DB.run
 import db.{ProjectStarsTable, ProjectTable, ProjectViewsTable}
 import models.project.Project
+import ore.project.Categories.Category
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
@@ -27,10 +28,10 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @param offset       Result set offset
     * @return             Projects matching criteria
     */
-  def collect(categories: Array[Int], limit: Int, offset: Int): Future[Seq[Project]] = {
+  def collect(categories: Array[Category], limit: Int, offset: Int): Future[Seq[Project]] = {
     var filter: ProjectTable => Rep[Boolean] = null
     if (categories != null) {
-      filter = p => p.categoryId inSetBind categories
+      filter = p => p.category inSetBind categories
     }
     collect(limit, offset, filter)
   }
@@ -42,7 +43,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @param limit        Amount of Projects to get
     * @return             Projects matching criteria
     */
-  def collect(categories: Array[Int], limit: Int): Future[Seq[Project]] = {
+  def collect(categories: Array[Category], limit: Int): Future[Seq[Project]] = {
     collect(categories, limit, -1)
   }
 
@@ -52,7 +53,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @param categories   Categories of Projects
     * @return             Projects matching criteria
     */
-  def collect(categories: Array[Int]): Future[Seq[Project]] = {
+  def collect(categories: Array[Category]): Future[Seq[Project]] = {
     collect(categories, -1, -1)
   }
 
@@ -105,6 +106,17 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     */
   def withSlug(owner: String, slug: String): Future[Option[Project]] = {
     ?(p => p.ownerName === owner && p.slug.toLowerCase === slug.toLowerCase)
+  }
+
+  /**
+    * Sets the category for the specified Project.
+    *
+    * @param project  Project to update
+    * @param category Category to set
+    */
+  def setCategory(project: Project, category: Category) = {
+    val query = for { model <- this.models if model.id === project.id.get } yield project.category
+    run(query.update(category))
   }
 
   /**

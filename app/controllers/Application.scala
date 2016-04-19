@@ -42,12 +42,10 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
       case None => projectsFuture = Queries.Projects.collect(limit = InitialLoad)
       case Some(csv) =>
         categoryArray = Categories.fromString(csv)
-        var categoryIds = categoryArray.map(_.id)
         if (Categories.values.subsetOf(categoryArray.toSet) || categoryArray.isEmpty) {
           categoryArray = null
-          categoryIds = null
         }
-        projectsFuture = Queries.Projects.collect(categoryIds, InitialLoad)
+        projectsFuture = Queries.Projects.collect(categoryArray, InitialLoad)
     }
     val projects = Queries.now(projectsFuture).get
     Ok(views.home(projects, Option(categoryArray)))

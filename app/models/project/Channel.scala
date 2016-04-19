@@ -168,8 +168,6 @@ object Channel extends ModelDAO[Channel] {
     */
   val DefaultName: String = config.getString("ore.channels.name-default").get
 
-  override def withId(id: Int): Option[Channel] = now(Queries.Channels.get(id)).get
-
   /**
     * Returns true if the specified string is a valid channel name.
     *
@@ -192,6 +190,8 @@ object Channel extends ModelDAO[Channel] {
   def getSuggestedNameForVersion(version: String): String = {
     firstString(new ComparableVersion(version).getItems).getOrElse(DefaultName)
   }
+
+  override def withId(id: Int): Option[Channel] = now(Queries.Channels.get(id)).get
 
   private def firstString(items: ListItem): Option[String] = {
     // Get the first non-number component in the version string

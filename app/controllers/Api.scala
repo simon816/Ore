@@ -5,6 +5,7 @@ import db.query.Queries.now
 import models.project.Project
 import models.user.User
 import ore.project.Categories
+import ore.project.Categories.Category
 import play.api.libs.json._
 import play.api.mvc._
 
@@ -59,11 +60,11 @@ class Api extends Controller {
   def projects(version: String, categories: Option[String], limit: Option[Int], offset: Option[Int]) = Action {
     version match {
       case "v1" =>
-        var categoryIds: Array[Int] = null
+        var categoryArray: Array[Category] = null
         if (categories.isDefined) {
-          categoryIds = Categories.fromString(categories.get).map(_.id)
+          categoryArray = Categories.fromString(categories.get)
         }
-        val projects = now(Queries.Projects.collect(categoryIds, limit.getOrElse(-1), offset.getOrElse(-1))).get
+        val projects = now(Queries.Projects.collect(categoryArray, limit.getOrElse(-1), offset.getOrElse(-1))).get
         Ok(Json.toJson(projects))
       case zoinks => BadRequest
     }
