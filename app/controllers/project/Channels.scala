@@ -62,7 +62,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
             case Some(color) => channels.find(c => c.color.equals(color)) match {
               case None => channels.find(c => c.name.equalsIgnoreCase(channelName)) match {
                 case None =>
-                  project.newChannel(channelName, color).get
+                  project.addChannel(channelName, color)
                   Redirect(self.showList(author, slug))
                 case Some(channel) =>
                   // Channel name taken

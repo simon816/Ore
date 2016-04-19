@@ -3,7 +3,7 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.orm.dao.{ModelDAO, ModelSet, NamedModelSet}
+import db.orm.dao.{ImmutableNamedModelSet, ModelDAO, ModelSet, NamedModelSet}
 import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
@@ -269,8 +269,8 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Channels in project
     */
-  def channels: NamedModelSet[ChannelTable, Channel] = assertDefined {
-    new NamedModelSet(Queries.Channels, this.id.get, _.projectId)
+  def channels: ImmutableNamedModelSet[ChannelTable, Channel] = assertDefined {
+    new ImmutableNamedModelSet(Queries.Channels, this.id.get, _.projectId)
   }
 
   /**
@@ -279,12 +279,10 @@ case class Project(override val   id: Option[Int] = None,
     * @param name   Name of channel
     * @return       New channel
     */
-  def newChannel(name: String, color: Color): Try[Channel] = assertDefined {
-    Try {
-      checkArgument(Channel.isValidName(name), "invalid name", "")
-      checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
-      this.channels.add(new Channel(name, color, this.id.get))
-    }
+  def addChannel(name: String, color: Color): Channel = assertDefined {
+    checkArgument(Channel.isValidName(name), "invalid name", "")
+    checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
+    now(Queries.Channels create new Channel(name, color, this.id.get)).get
   }
 
   /**

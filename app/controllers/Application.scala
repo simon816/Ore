@@ -19,7 +19,7 @@ import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import util.forums.SpongeForums._
-import util.{Dirs, Forms}
+import util.{P, Forms}
 import views.{html => views}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -128,7 +128,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
   def reset() = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
     val query: Query[UserTable, User, Seq] = Queries.Users.models
     now(Queries.DB.run(query.delete)).get
-    FileUtils.deleteDirectory(Dirs.Uploads.toFile)
+    FileUtils.deleteDirectory(P.UploadsDir.toFile)
     Redirect(self.showHome(None)).withNewSession
   }
 

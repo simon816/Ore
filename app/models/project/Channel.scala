@@ -94,21 +94,6 @@ case class Channel(override val   id: Option[Int] = None,
   }
 
   /**
-    * Creates a new version for this Channel.
-    *
-    * @param version        Version string
-    * @param dependencies   Plugin dependencies
-    * @param description    Plugin description
-    * @param assets         Assets location
-    * @return               Newly created version
-    */
-  def newVersion(version: String, dependencies: List[String],
-                 description: String, assets: String, fileSize: Long): Version = assertDefined {
-    this.versions.add(new Version(version, dependencies, description, assets,
-                                  this.projectId, this.id.get, fileSize))
-  }
-
-  /**
     * Deletes the specified Version within this channel.
     *
     * @param version  Version to delete

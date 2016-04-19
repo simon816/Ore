@@ -2,7 +2,7 @@ package ore.project
 
 import java.nio.file.{Files, Path}
 
-import util.Dirs._
+import util.P._
 
 import scala.util.Try
 
@@ -42,7 +42,7 @@ object ProjectFiles {
     * @return       Plugin directory
     */
   def userDir(owner: String): Path = {
-    Plugins.resolve(owner)
+    PluginsDir.resolve(owner)
   }
 
   /**
