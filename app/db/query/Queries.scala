@@ -76,10 +76,19 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     * Deletes the specified Model.
     *
     * @param model Model to delete
-    * @return      this
     */
   def delete(model: M): Future[Int] = {
     val query = this.models.filter(m => m.id === model.id.get)
+    run(query.delete)
+  }
+
+  /**
+    * Deletes all the models that match the specified filter.
+    *
+    * @param filter Filter to delete models
+    */
+  def deleteWhere(filter: T => Rep[Boolean]) = {
+    val query = this.models.filter(filter)
     run(query.delete)
   }
 

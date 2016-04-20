@@ -45,6 +45,7 @@ GET     /:author/:slug/manage                                   @controllers.pro
 POST    /:author/:slug/manage/save                              @controllers.project.Projects.save(author, slug)
 POST    /:author/:slug/manage/rename                            @controllers.project.Projects.rename(author, slug)
 POST    /:author/:slug/manage/delete                            @controllers.project.Projects.delete(author, slug)
+POST    /:author/:slug/manage/members/remove                    @controllers.project.Projects.removeMember(author, slug)
 
 GET     /:author/:slug/issues                                   @controllers.project.Projects.showIssues(author, slug)
 GET     /:author/:slug/source                                   @controllers.project.Projects.showSource(author, slug)

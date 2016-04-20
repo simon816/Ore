@@ -6,6 +6,7 @@ import controllers.BaseController
 import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
 import models.project._
+import models.user.User
 import ore.permission.EditSettings
 import ore.project.{InvalidPluginFileException, ProjectFactory}
 import play.api.i18n.MessagesApi
@@ -228,6 +229,19 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
         case None => NotFound
         case Some(link) => Redirect(link)
       }
+    }
+  }
+
+  /**
+    * Removes a [[ore.project.member.Member]] from the specified project.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    */
+  def removeMember(author: String, slug: String) = {
+    SettingsEditAction(author, slug) { implicit request =>
+      request.project.removeMember(User.withName(Forms.MemberRemove.bindFromRequest.get.trim).get)
+      Redirect(self.showManager(author, slug))
     }
   }
 

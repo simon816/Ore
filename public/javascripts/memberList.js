@@ -5,17 +5,28 @@ function updateIndices() {
     });
 }
 
+function getItemContainer(element) {
+    return element.closest('.list-group-item');
+}
+
 function initMember(memberRow) {
     // Replace title with select on click
     memberRow.find('.fa-edit').parent().click(function(event) {
         event.preventDefault();
-        var row = $(this).closest('.list-group-item');
-        row.find('span').replaceWith($('#select-role').clone().show());
-        $(this).find('.fa-edit').remove();
+        getItemContainer($(this)).find('span').replaceWith($('#select-role').clone().show());
+        $(this).find('.fa-edit').parent().remove();
+    });
+
+    // Set form input on modal when delete is clicked
+    memberRow.find('.fa-trash').parent().click(function(event) {
+        event.preventDefault();
+        $('#modal-user-delete').find('input').val(getItemContainer($(this)).find('.username').text());
     });
 }
 
 $(function() {
+    initMember($('.list-members').find('.list-group-item'));
+
     initUserSearch(function(result) {
         var alert = $('.alert-danger');
         var message = alert.find('span');
@@ -48,6 +59,5 @@ $(function() {
         updateIndices();
     });
 
-    initMember($('.list-members').find('.list-group-item'));
     updateIndices();
 });

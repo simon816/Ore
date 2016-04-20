@@ -20,6 +20,11 @@ object Forms {
   )(ChannelData.apply)(ChannelData.unapply))
 
   /**
+    * Submits a member to be removed from a Project.
+    */
+  lazy val MemberRemove = Form(single("username" -> text))
+
+  /**
     * Submits changes to a [[models.project.Project]]'s
     * [[models.user.ProjectRole]]s.
     */

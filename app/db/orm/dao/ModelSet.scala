@@ -80,6 +80,13 @@ class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M],
   }
 
   /**
+    * Removes all models matching the specified filter.
+    *
+    * @param p Model filter
+    */
+  def removeWhere(p: T => Rep[Boolean]) = now(this.queries deleteWhere p).get
+
+  /**
     * Finds the first model that matches the given predicate.
     *
     * @param p  Predicate filter

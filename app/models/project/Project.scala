@@ -3,6 +3,7 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
+import db.OrePostgresDriver.api._
 import db.orm.dao.{ImmutableNamedModelSet, ModelDAO, ModelSet, NamedModelSet}
 import db.orm.model.NamedModel
 import db.query.Queries
@@ -76,6 +77,8 @@ case class Project(override val   id: Option[Int] = None,
     // TODO: Make this more sane
     new Member(this, User.withId(role.userId).get.username)
   }).toList
+
+  def removeMember(user: User) = this.roles.removeWhere(_.userId === user.id.get)
 
   /**
     * Sets the name of this project and performs all the necessary renames.

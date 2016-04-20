@@ -1,7 +1,9 @@
+@import controllers.project.{routes => projectRoutes}
 @import models.project.Project
 @import models.user.User
 @import ore.permission.EditSettings
 @import ore.permission.role.RoleTypes
+@import views.html.helper.form
 @(model: Project, editable: Boolean = false)(implicit messages: Messages, session: play.api.mvc.Session)
 
 @canEdit = @{
@@ -14,7 +16,7 @@
         <script type="text/javascript" src="@routes.Assets.at("javascripts/userSearch.js")"></script>
         <script type="text/javascript" src="@routes.Assets.at("javascripts/memberList.js")"></script>
         @projects.members.roleSelect("", "select-role", "pull-right", hidden = true)
-
+        <!-- Row template -->
         <ul style="display: none;">
             <li id="row-user" class="list-group-item">
                 <input type="hidden" />
@@ -23,6 +25,26 @@
                 @projects.members.roleSelect("", classes="pull-right")
             </li>
         </ul>
+        <!-- Delete modal -->
+        <div class="modal fade" id="modal-user-delete" tabindex="-1" role="dialog" aria-labelledby="label-user-delete">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="label-user-delete">Modal title</h4>
+                    </div>
+                    <div class="modal-body">Are you sure you want to remove this user?</div>
+                    <div class="modal-footer">
+                        @form(action = projectRoutes.Projects.removeMember(model.ownerName, model.slug),
+                            'class -> "form-inline") {
+                            <input type="hidden" name="username" />
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-danger">Remove</button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 
     <div class="panel panel-default">
@@ -34,10 +56,12 @@
             @model.members.map { member =>
                 <li class="list-group-item">
 
-                    <a href="@routes.Application.showUser(member.name)">@member.name</a>
+                    <a class="username" href="@routes.Application.showUser(member.name)">@member.name</a>
 
                     @if(canEdit && !member.headRole.roleType.equals(RoleTypes.ProjectOwner)) {
-                        <a href="#"><i class="fa fa-trash"></i></a>
+                        <a href="#">
+                            <i class="fa fa-trash" data-toggle="modal" data-target="#modal-user-delete"></i>
+                        </a>
                         <a href="#"><i class="fa fa-edit"></i></a>
                     }
 
