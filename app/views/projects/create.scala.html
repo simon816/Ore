@@ -50,10 +50,10 @@ Page used for uploading and creating new projects.
                                 <td><label for="description">Description</label></td>
                                 <td>
                                 @defining(pending.get.pendingVersion.version.description) { description =>
-                                    <input form="continue" class="form-control" type="text" id="description"
-                                    name="description" maxlength="@Project.MaxDescriptionLength"
+                                    <input form="continue" class="form-control-sm" type="text" id="description"
+                                            name="description" maxlength="@Project.MaxDescriptionLength"
                                         @description.map { value =>
-                                        value="@value"
+                                            value="@value"
                                         }.getOrElse {
                                             placeholder="@messages("version.create.no-description")"
                                 }

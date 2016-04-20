@@ -55,6 +55,14 @@ function initUserSearch(element) {
             },
 
             success: function(user) {
+                $('.alert-danger').fadeOut();
+
+                // Check if user is already defined
+                if ($('input[value="' + user.id + '"]').length
+                    || $('.table-members').first('tr').find('strong').text() === user.username) {
+                    return;
+                }
+
                 // Build the result row from the template
                 var newRow = $('#result-row').clone().attr('id', '');
                 newRow.find('input').attr('form', 'form-continue').val(user.id);
