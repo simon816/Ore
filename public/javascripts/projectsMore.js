@@ -11,6 +11,8 @@ $(function() {
         if (CATEGORY_STRING) {
             ajaxUrl += '&categories=' + CATEGORY_STRING;
         }
+
+        // Request more projects
         $('.btn-more').html('<i class="fa fa-spinner fa-spin"></i>');
         $.ajax({
             url: ajaxUrl,
@@ -23,6 +25,9 @@ $(function() {
                     var project = data[i];
                     var category = project.category;
                     var url = '/' + project.owner + '/' + project.name;
+
+                    // Add received project to table
+                    // TODO: Use template in HTML
                     $('.project-table').find('tbody').append(
                           '<tr>'
                           + '<td><i title="' + category.title + '" class="fa ' + category.icon + '"></i></td>'

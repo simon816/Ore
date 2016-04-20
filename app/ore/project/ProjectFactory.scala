@@ -9,7 +9,6 @@ import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
 import models.project.{Channel, Project, Version}
 import models.user.{ProjectRole, User}
-import ore.Colors.Color
 import ore.permission.role.RoleTypes
 import ore.project.ProjectFiles._
 import play.api.libs.Files.TemporaryFile

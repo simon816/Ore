@@ -591,3 +591,7 @@ a > .fa {
 .user-cancel:hover {
     background-color: #ddd;
 }
+
+.user-cancel2 {
+    left: 0; !important;
+}

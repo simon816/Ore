@@ -16,11 +16,14 @@ case class ProjectRole(override val id: Option[Int] = None,
                        override val projectId: Int)
                        extends      Model
                        with         Role
-                       with         ProjectScope {
+                       with         ProjectScope
+                       with         Ordered[ProjectRole] {
 
   def this(userId: Int, roleType: RoleType, projectId: Int) = {
     this(id=None, createdAt=None, userId=userId, roleType=roleType, projectId=projectId)
   }
+
+  override def compare(that: ProjectRole) = this.roleType.trust compare that.roleType.trust
 
 }
 

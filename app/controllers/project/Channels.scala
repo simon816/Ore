@@ -4,7 +4,6 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.project.routes.{Channels => self}
-import models.project.{Channel, Project}
 import ore.permission.EditChannels
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient

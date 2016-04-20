@@ -1,7 +1,7 @@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.{Channel, Page, Project, Version}
 @import models.user.User
-@import ore.permission.{CreateVersions, EditVersions}
+@import ore.permission.EditVersions
 @import views.html.helper.form
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
         session: Session, request: RequestHeader)
@@ -22,7 +22,7 @@
                 </p>
                 <div class="pull-right version-buttons">
                     <span class="date">@version.humanFileSize</span>
-                    @if(User.current.isDefined && (User.current.get can CreateVersions in project)) {
+                    @if(User.current.isDefined && (User.current.get can EditVersions in project)) {
                         <a class="btn btn-danger"
                            @if(project.versions.size == 1) {
                                disabled data-toggle="tooltip" data-placement="top"

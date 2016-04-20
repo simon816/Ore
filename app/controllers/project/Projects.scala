@@ -6,10 +6,8 @@ import controllers.BaseController
 import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
 import models.project._
-import models.user.ProjectRole
 import ore.permission.EditSettings
-import ore.permission.role.RoleTypes
-import ore.project.{Categories, InvalidPluginFileException, ProjectFactory}
+import ore.project.{InvalidPluginFileException, ProjectFactory}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._

@@ -5,12 +5,10 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Versions => self}
 import controllers.routes.{Application => app}
-import db.OrePostgresDriver.api._
 import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
-import ore.Colors.Color
 import ore.Statistics
-import ore.permission.{CreateVersions, EditVersions}
+import ore.permission.EditVersions
 import ore.project.{InvalidPluginFileException, ProjectFactory, ProjectFiles}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -24,8 +22,8 @@ import scala.util.{Failure, Success}
   */
 class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
 
-  private def VersionCreateAction(author: String, slug: String) = {
-    AuthedProjectAction(author, slug) andThen ProjectPermissionAction(CreateVersions)
+  private def VersionEditAction(author: String, slug: String) = {
+    AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditVersions)
   }
 
   /**
@@ -60,7 +58,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return View of Version
     */
   def saveDescription(author: String, slug: String, channelName: String, versionString: String) = {
-    (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditVersions)) { implicit request =>
+    VersionEditAction(author, slug) { implicit request =>
       request.project.channels.withName(channelName) match {
         case None => NotFound("Channel not found.")
         case Some(channel) => channel.versions.withName(versionString) match {
@@ -109,7 +107,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return Version creation view
     */
   def showCreator(author: String, slug: String) = {
-    VersionCreateAction(author, slug) { implicit request =>
+    VersionEditAction(author, slug) { implicit request =>
       val project = request.project
       Ok(views.projects.versions.create(project, None, Some(project.channels.values.toSeq), showFileControls = true))
     }
@@ -123,7 +121,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return Version create page (with meta)
     */
   def upload(author: String, slug: String) = {
-    VersionCreateAction(author, slug) { implicit request =>
+    VersionEditAction(author, slug) { implicit request =>
       request.body.asMultipartFormData.get.file("pluginFile") match {
         case None => Redirect(self.showCreator(author, slug)).flashing("error" -> "Missing file")
         case Some(tmpFile) =>
@@ -260,7 +258,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return Versions page
     */
   def delete(author: String, slug: String, channelName: String, versionString: String) = {
-    VersionCreateAction(author, slug) { implicit request =>
+    VersionEditAction(author, slug) { implicit request =>
       val project = request.project
       project.channels.withName(channelName) match {
         case None => NotFound("Channel not found.")

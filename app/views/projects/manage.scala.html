@@ -99,9 +99,10 @@
                 </div>
             </div>
             <div class="col-md-4">
-                @if(flash.get("error").isDefined) {
-                    <div class="alert alert-danger" role="alert"> @flash.get("error").get</div>
-                }
+
+                <div class="alert alert-danger" role="alert" @if(flash.get("error").isEmpty) { style="display: none;" }>
+                    <strong>Whoops!</strong> <span>@flash.get("error").getOrElse("")</span>
+                </div>
 
                 @projects.members.list(project, editable = true)
 

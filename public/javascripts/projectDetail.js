@@ -3,7 +3,6 @@ var projectSlug = null;
 var alreadyStarred = false;
 
 $(function() {
-
     // setup star button
     var increment = alreadyStarred ? -1 : 1;
     $('.btn-star').click(function() {
@@ -20,5 +19,4 @@ $(function() {
 
         increment *= -1;
     });
-
 });

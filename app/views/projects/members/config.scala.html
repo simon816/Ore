@@ -3,12 +3,14 @@
 @import models.user.User
 @import play.twirl.api.Html
 @import views.html.helper.form
+
 @import scala.collection.JavaConversions._
 @(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
 
 @projects.panelCreate(messages("project.create"), 3) {
     @defining(User.current.get) { user =>
 
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/userSearch.js")"></script>
         <script type="text/javascript" src="@routes.Assets.at("javascripts/membersConfig.js")"></script>
 
         <!-- Template row -->
@@ -69,14 +71,7 @@
 
                     <!-- User search -->
                     <tr>
-                        <td>
-                            <div class="input-group input-group-sm user-search">
-                                <input class="form-control" type="text" placeholder="Find user&hellip;" />
-                                <span class="input-group-btn">
-                                    <button disabled class="btn btn-default"><i class="fa fa-search"></i></button>
-                                </span>
-                            </div>
-                        </td>
+                        <td>@projects.members.userSearch()</td>
                         <td></td>
                     </tr>
 

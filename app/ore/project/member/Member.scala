@@ -12,6 +12,8 @@ class Member(val project: Project, val name: String) extends ScopeSubject {
 
   def roles: Set[ProjectRole] = this.project.roles.filter(_.userId === this.user.id.get).toSet
 
+  def headRole: ProjectRole = this.roles.toList.sorted.head
+
   override val scope: Scope = project.scope
 
   override def toString: String = MoreObjects.toStringHelper(this).add("name", this.name).toString

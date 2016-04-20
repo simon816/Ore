@@ -9,6 +9,7 @@ $(function() {
     $('[data-toggle="tooltip"]').tooltip();
 
     if (Cookies.get('uid') == null) {
+        // TODO: move this server-side
         Cookies.set('uid', uid());
     }
 });

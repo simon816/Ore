@@ -38,6 +38,4 @@ function init() {
     });
 }
 
-$(function() {
-    init();
-});
+$(function() { init(); });

@@ -1,5 +1,3 @@
-var KEY_ENTER = 13;
-
 function updateIndices() {
     // Set the input fields to their proper indices so the server can read
     // them as a list.
@@ -12,78 +10,39 @@ function updateIndices() {
     });
 }
 
-function initUserSearch(element) {
-    var input = element.find('input');
-    var btn = element.find('.btn');
-
-    // Disable button with no input
-    input.on('input', function() {
-        $(this).next().find('.btn').prop('disabled', $(this).val().length == 0);
-    });
-
-    // Catch "enter" action
-    input.on('keypress', function(event) {
-        if (event.keyCode === KEY_ENTER) {
-            event.preventDefault();
-            btn.click();
-        }
-    });
-
-    // Replace input with result
-    btn.click(function() {
-
-        var row = $(this).closest('tr');
-        var inputGroup = row.find('.user-search');
-        var btnIcon = $(this).find('i');
-        var input = inputGroup.find('input');
-        var username = input.val(); // Submitted name
-
-        // Request user on click
-        btnIcon.removeClass('fa-search').addClass('fa-spinner fa-spin');
-        $.ajax({
-            url: '/api/users/' + username,
-            dataType: 'json',
-
-            complete: function() {
-                input.val('');
-                btnIcon.removeClass('fa-spinner fa-spin').addClass('fa-search').prop('disabled', true);
-            },
-
-            error: function() {
-                $('.error-username').text(username);
-                $('.alert-danger').fadeIn();
-            },
-
-            success: function(user) {
-                $('.alert-danger').fadeOut();
-
-                // Check if user is already defined
-                if ($('input[value="' + user.id + '"]').length
-                    || $('.table-members').first('tr').find('strong').text() === user.username) {
-                    return;
-                }
-
-                // Build the result row from the template
-                var newRow = $('#result-row').clone().attr('id', '');
-                newRow.find('input').attr('form', 'form-continue').val(user.id);
-                newRow.find('select').attr('form', 'form-continue');
-                newRow.find('a').attr('href', '/' + user.username).text(user.username);
-
-                // Bind cancel button
-                newRow.find('.user-cancel').click(function() {
-                    $(this).closest('tr').remove();
-                    updateIndices();
-                });
-
-                // Insert the new row before the search row
-                row.before(newRow);
-                updateIndices();
-            }
-        });
-    });
-}
-
 $(function() {
-    initUserSearch($('.user-search'));
+    initUserSearch(function(result) {
+        var alert = $('.alert-danger');
+        if (!result.isSuccess) {
+            $('.error-username').text(result.username);
+            alert.fadeIn();
+            return;
+        }
+        alert.fadeOut();
+
+        // Check if user is already defined
+        var user = result.user;
+        if ($('input[value="' + user.id + '"]').length
+            || $('.table-members').first('tr').find('strong').text() === user.username) {
+            return;
+        }
+
+        // Build the result row from the template
+        var newRow = $('#result-row').clone().attr('id', '');
+        newRow.find('input').attr('form', 'form-continue').val(user.id);
+        newRow.find('select').attr('form', 'form-continue');
+        newRow.find('a').attr('href', '/' + user.username).text(user.username);
+
+        // Bind cancel button
+        newRow.find('.user-cancel').click(function() {
+            $(this).closest('tr').remove();
+            updateIndices();
+        });
+
+        // Insert the new row before the search row
+        $('.user-search').closest('tr').before(newRow);
+        updateIndices();
+    });
+
     updateIndices();
 });

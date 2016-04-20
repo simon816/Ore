@@ -12,6 +12,7 @@ function getStarsFooter() {
 }
 
 function loadStars(increment) {
+    // Request user data
     $.ajax({
         url: 'api/users/' + USERNAME,
         dataType: 'json',
@@ -30,6 +31,7 @@ function loadStars(increment) {
                 }
                 var star = newStars[i];
 
+                // Request project data for this Star
                 $.ajax({
                     url: 'api/project?pluginId=' + star,
                     dataType: 'json',
@@ -38,6 +40,7 @@ function loadStars(increment) {
                         var slug = href.substr(href.lastIndexOf('/') + 1, href.length);
                         var category = projectData.category;
 
+                        // Append project contents to result
                         content +=
                             '<tr>'
                             + '<td>'
@@ -49,16 +52,20 @@ function loadStars(increment) {
                             + '</td>';
 
                         if (++count == newStars.length) {
+                            // Done loading, set the table to the result
                             tbody.html(content);
                             currentStarsPage += increment;
                             var footer = getStarsFooter();
                             var prev = footer.find('.prev');
+
+                            // Check if there is a last page
                             if (currentStarsPage > 1) {
                                 prev.show();
                             } else {
                                 prev.hide();
                             }
 
+                            // Check if there is a next page
                             var next = footer.find('.next');
                             if (end < allStars.length) {
                                 next.show();

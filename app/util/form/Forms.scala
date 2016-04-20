@@ -40,7 +40,9 @@ object Forms {
     "category" -> text,
     "issues" -> text,
     "source" -> text,
-    "description" -> text
+    "description" -> text,
+    "users" -> list(number),
+    "roles" -> list(text)
   )(ProjectSettings.apply)(ProjectSettings.unapply))
 
   /**

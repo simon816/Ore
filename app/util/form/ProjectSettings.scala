@@ -8,7 +8,13 @@ import util.Input._
   * Represents the configurable Project settings that can be submitted via a
   * form.
   */
-case class ProjectSettings(categoryName: String, issues: String, source: String, description: String) {
+case class ProjectSettings(val          categoryName: String,
+                           val          issues: String,
+                           val          source: String,
+                           val          description: String,
+                           override val users: List[Int],
+                           override val roles: List[String])
+                           extends      TraitProjectRoleSetBuilder {
 
   /**
     * Saves these settings to the specified [[Project]].
@@ -20,6 +26,10 @@ case class ProjectSettings(categoryName: String, issues: String, source: String,
     project.issues = nullIfEmpty(issues)
     project.source = nullIfEmpty(source)
     project.description = nullIfEmpty(description)
+    val roles = project.roles
+    for (role <- this.build()) {
+      roles.add(role.copy(projectId=project.id.get))
+    }
   }
 
 }

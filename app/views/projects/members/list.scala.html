@@ -1,31 +1,58 @@
 @import models.project.Project
 @import models.user.User
 @import ore.permission.EditSettings
+@import ore.permission.role.RoleTypes
 @(model: Project, editable: Boolean = false)(implicit messages: Messages, session: play.api.mvc.Session)
 
+@canEdit = @{
+    editable && User.current.isDefined && (User.current.get can EditSettings in model)
+}
+
 @if(model.members.nonEmpty) {
+
+    @if(canEdit) {
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/userSearch.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/memberList.js")"></script>
+        @projects.members.roleSelect("", "select-role", "pull-right", hidden = true)
+
+        <ul style="display: none;">
+            <li id="row-user" class="list-group-item">
+                <input type="hidden" />
+                <i class="fa fa-times user-cancel user-cancel2"></i>
+                <a></a>
+                @projects.members.roleSelect("", classes="pull-right")
+            </li>
+        </ul>
+    }
+
     <div class="panel panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">@messages("project.settings.members")</h3>
-            @if(editable && User.current.isDefined && (User.current.get can EditSettings in model)) {
-                <a href="#"><i class="fa fa-plus pull-right new-page"></i></a>
-            }
         </div>
         <ul class="list-members list-group">
-        @model.members.map { member =>
-            <li class="list-group-item">
+            <!-- Member list -->
+            @model.members.map { member =>
+                <li class="list-group-item">
 
-                <a href="@routes.Application.showUser(member.name)">@member.name</a>
+                    <a href="@routes.Application.showUser(member.name)">@member.name</a>
 
-                @if(editable) {
-                    <a href="#"><i class="fa fa-trash"></i></a>
-                    <a href="#"><i class="fa fa-edit"></i></a>
-                }
+                    @if(canEdit && !member.headRole.roleType.equals(RoleTypes.ProjectOwner)) {
+                        <a href="#"><i class="fa fa-trash"></i></a>
+                        <a href="#"><i class="fa fa-edit"></i></a>
+                    }
 
-                <span class="minor pull-right">@member.roles.head.roleType.title</span>
+                    <span class="minor pull-right">@member.headRole.roleType.title</span>
 
-            </li>
-        }
+                </li>
+            }
+
+            <!-- User search -->
+            @if(canEdit) {
+                <li class="list-group-item">
+                    @projects.members.userSearch()
+                </li>
+            }
+
         </ul>
     </div>
 }
