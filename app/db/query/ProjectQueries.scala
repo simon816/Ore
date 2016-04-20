@@ -6,7 +6,9 @@ import db.OrePostgresDriver.api._
 import db.query.Queries.DB.run
 import db.{ProjectStarsTable, ProjectTable, ProjectViewsTable}
 import models.project.Project
+import models.user.User
 import ore.project.Categories.Category
+import ore.project.member.Member
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
@@ -225,6 +227,23 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     }
     promise.future
   }
+
+  /**
+    * Returns the [[Member]]s in the specified Project, sorted by role.
+    *
+    * @param project  Project to get Members for
+    * @return         List of Members
+    */
+  def members(project: Project): Future[List[Member]] = {
+    val promise = Promise[List[Member]]
+    Queries.Users.ProjectRoles.distinctUsersIn(project.id.get).andThen {
+      case Failure(thrown) => promise.failure(thrown)
+      case Success(userIds) =>
+        val members = for (userId <- userIds) yield new Member(project, User.withId(userId).get.username)
+        promise.success(members.toList.sorted.reverse)
+      }
+      promise.future
+    }
 
   override def copyInto(id: Option[Int], theTime: Option[Timestamp], project: Project): Project = {
     project.copy(id = id, createdAt = theTime)

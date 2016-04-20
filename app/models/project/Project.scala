@@ -73,10 +73,7 @@ case class Project(override val   id: Option[Int] = None,
 
   def owner: Member = new Member(this, this.ownerName)
 
-  def members: List[Member] = (for (role <- this.roles.values) yield {
-    // TODO: Make this more sane
-    new Member(this, User.withId(role.userId).get.username)
-  }).toList
+  def members: List[Member] = now(Queries.Projects.members(this)).get
 
   def removeMember(user: User) = this.roles.removeWhere(_.userId === user.id.get)
 

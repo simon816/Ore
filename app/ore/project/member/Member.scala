@@ -6,7 +6,7 @@ import models.project.Project
 import models.user.{ProjectRole, User}
 import ore.permission.scope.{Scope, ScopeSubject}
 
-class Member(val project: Project, val name: String) extends ScopeSubject {
+class Member(val project: Project, val name: String) extends ScopeSubject with Ordered[Member] {
 
   def user: User = User.withName(this.name).get
 
@@ -15,6 +15,8 @@ class Member(val project: Project, val name: String) extends ScopeSubject {
   def headRole: ProjectRole = this.roles.toList.sorted.head
 
   override val scope: Scope = project.scope
+
+  override def compare(that: Member) = this.headRole compare that.headRole
 
   override def toString: String = MoreObjects.toStringHelper(this).add("name", this.name).toString
 
