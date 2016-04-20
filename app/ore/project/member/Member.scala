@@ -12,7 +12,7 @@ class Member(val project: Project, val name: String) extends ScopeSubject with O
 
   def roles: Set[ProjectRole] = this.project.roles.filter(_.userId === this.user.id.get).toSet
 
-  def headRole: ProjectRole = this.roles.toList.sorted.head
+  def headRole: ProjectRole = this.roles.toList.sorted.last
 
   override val scope: Scope = project.scope
 
