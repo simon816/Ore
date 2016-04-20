@@ -15,18 +15,14 @@
         @model.members.map { member =>
             <li class="list-group-item">
 
-                @if(member.user.isDefined) {
-                    <a href="@routes.Application.showUser(member.name)">@member.name</a>
+                <a href="@routes.Application.showUser(member.name)">@member.name</a>
 
-                    @if(editable) {
-                        <a href="#"><i class="fa fa-trash"></i></a>
-                        <a href="#"><i class="fa fa-edit"></i></a>
-                    }
-
-                    <span class="minor pull-right">@member.roles.head.roleType.title</span>
-                } else {
-                    <span class="minor">@member.name</span>
+                @if(editable) {
+                    <a href="#"><i class="fa fa-trash"></i></a>
+                    <a href="#"><i class="fa fa-edit"></i></a>
                 }
+
+                <span class="minor pull-right">@member.roles.head.roleType.title</span>
 
             </li>
         }

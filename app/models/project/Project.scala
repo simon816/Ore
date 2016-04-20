@@ -34,7 +34,6 @@ import scala.util.Try
   * @param pluginId               Plugin ID
   * @param _name                  Name of plugin
   * @param ownerName              The owner Author for this project
-  * @param authorNames            Authors who work on this project
   * @param homepage               The external project URL
   * @param recommendedVersionId   The ID of this project's recommended version
   * @param _category              The project's Category
@@ -52,7 +51,6 @@ case class Project(override val   id: Option[Int] = None,
                    private var    _slug: String,
                    val            ownerName: String,
                    val            ownerId: Int,
-                   val            authorNames: List[String] = List(),
                    val            homepage: Option[String] = None,
                    private var    recommendedVersionId: Option[Int] = None,
                    private var    _category: Category = Categories.Undefined,
@@ -67,9 +65,9 @@ case class Project(override val   id: Option[Int] = None,
 
   import models.project.Project._
 
-  def this(pluginId: String, name: String, owner: String, ownerId: Int, authors: List[String], homepage: String) = {
+  def this(pluginId: String, name: String, owner: String, ownerId: Int, homepage: String) = {
     this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
-         ownerName=owner, ownerId=ownerId, authorNames=authors, homepage=Option(homepage))
+         ownerName=owner, ownerId=ownerId, homepage=Option(homepage))
   }
 
   def owner: Member = new Member(this, this.ownerName)
@@ -418,8 +416,6 @@ case class Project(override val   id: Option[Int] = None,
 
 object Project extends ModelDAO[Project] {
 
-  import scala.collection.JavaConversions._
-
   /**
     * The maximum length for a Project name.
     */
@@ -570,7 +566,7 @@ object Project extends ModelDAO[Project] {
     * @return       New project
     */
   def fromMeta(owner: User, meta: PluginMetadata): Project = {
-    new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getAuthors.toList, meta.getUrl)
+    new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getUrl)
   }
 
 }

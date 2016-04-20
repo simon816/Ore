@@ -3,6 +3,7 @@
 @import models.user.User
 @import play.twirl.api.Html
 @import views.html.helper.form
+@import scala.collection.JavaConversions._
 @(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
 
 @projects.panelCreate(messages("project.create"), 3) {
@@ -50,7 +51,7 @@
                     </tr>
 
                     <!-- Members found in meta file -->
-                    @for((author, i) <- pending.project.authorNames.filterNot(_.equals(user.username)).zipWithIndex) {
+                    @for((author, i) <- pending.file.meta.get.getAuthors.filterNot(_.equals(user.username)).zipWithIndex) {
                         @User.withName(author).map { user =>
                             <tr>
                                 <td>

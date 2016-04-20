@@ -21,7 +21,6 @@ class ProjectTable(tag: Tag) extends NamedModelTable[Project](tag, "projects") {
   def slug                  =   column[String]("slug")
   def ownerName             =   column[String]("owner_name")
   def ownerId               =   column[Int]("owner_id")
-  def authors               =   column[List[String]]("authors")
   def homepage              =   column[String]("homepage")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
   def category              =   column[Category]("category")
@@ -34,10 +33,9 @@ class ProjectTable(tag: Tag) extends NamedModelTable[Project](tag, "projects") {
 
   override def modelName = this.name
 
-  override def * = (id.?, createdAt.?, pluginId, name, slug, ownerName, ownerId,
-                    authors, homepage.?, recommendedVersionId.?, category,
-                    views, downloads, stars, issues.?, source.?,
-                    description.?) <> ((Project.apply _).tupled, Project.unapply)
+  override def * = (id.?, createdAt.?, pluginId, name, slug, ownerName, ownerId, homepage.?, recommendedVersionId.?,
+                    category, views, downloads, stars, issues.?, source.?, description.?) <> ((Project.apply _).tupled,
+                    Project.unapply)
 
 }
 

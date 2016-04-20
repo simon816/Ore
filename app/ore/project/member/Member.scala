@@ -8,18 +8,9 @@ import ore.permission.scope.{Scope, ScopeSubject}
 
 class Member(val project: Project, val name: String) extends ScopeSubject {
 
-  /**
-    * Attempts the resolve this Author as a User. Not all Member's are
-    * necessarily Users.
-    *
-    * @return User of Member if exists
-    */
-  def user: Option[User] = User.withName(this.name)
+  def user: User = User.withName(this.name).get
 
-  def roles: Set[ProjectRole] = this.user match {
-    case None => Set()
-    case Some(u) => this.project.roles.filter(_.userId === u.id.get).toSet
-  }
+  def roles: Set[ProjectRole] = this.project.roles.filter(_.userId === this.user.id.get).toSet
 
   override val scope: Scope = project.scope
 

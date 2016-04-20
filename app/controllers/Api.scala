@@ -19,8 +19,14 @@ class Api extends Controller {
       val channelInfo: Seq[Map[String, String]] = for (channel <- project.channels.seq) yield {
         Map("name" -> channel.name, "color" -> channel.color.hex)
       }
+
+      val members: Seq[Map[String, JsValue]] = for (member <- project.members) yield {
+        Map("name" -> JsString(member.name), "roles" -> JsArray(member.roles.map(r => JsString(r.roleType.title)).toSeq))
+      }
+
       val category = project.category
       val rv = project.recommendedVersion
+
       Json.obj(
         "pluginId" -> project.pluginId,
         "createdAt" -> project.prettyDate,
@@ -28,7 +34,7 @@ class Api extends Controller {
         "owner" -> project.ownerName,
         "description" -> project.description.getOrElse("").toString,
         "href" -> ('/' + project.ownerName + '/' + project.slug),
-        "authors" -> project.authorNames,
+        "members" -> members,
         "channels" -> channelInfo,
         "recommended" -> Map("channel" -> rv.channel.name, "version" -> rv.versionString),
         "category" -> Map("title" -> category.title, "icon" -> category.icon),
