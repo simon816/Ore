@@ -97,8 +97,7 @@ body {
 }
 
 .table-controls {
-    padding-bottom: 50px;
-    margin-top: 15px;
+    margin-top: 20px;
 }
 
 .project-table > tbody > tr > td:first-child {
@@ -598,4 +597,8 @@ a > .fa {
 
 .user-cancel2 {
     left: 0; !important;
+}
+
+.search-bar {
+    padding-bottom: 10px;
 }

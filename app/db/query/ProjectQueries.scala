@@ -24,25 +24,48 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
   /**
     * Filters projects based on the given criteria.
     *
-    * @param categories   Categories of Projects
-    * @param limit        Amount of Projects to get
-    * @param offset       Result set offset
-    * @return             Projects matching criteria
+    * @param filter Filter to match Projects on
+    * @param limit  Amount of Projects to get
+    * @param offset Result set offset
+    * @return       Projects matching criteria
     */
-  def collect(categories: Array[Category], limit: Int, offset: Int): Future[Seq[Project]] = {
-    var filter: ProjectTable => Rep[Boolean] = null
-    if (categories != null) {
-      filter = p => p.category inSetBind categories
-    }
+  def collect(filter: ProjectTable => Rep[Boolean], limit: Int, offset: Int): Future[Seq[Project]] = {
     collect(limit, offset, filter)
   }
 
   /**
     * Filters projects based on the given criteria.
     *
-    * @param categories   Categories of Projects
-    * @param limit        Amount of Projects to get
-    * @return             Projects matching criteria
+    * @param filter Filter to match Projects on
+    * @param limit  Amount of Projects to get
+    * @return       Projects matching criteria
+    */
+  def collect(filter: ProjectTable => Rep[Boolean], limit: Int): Future[Seq[Project]] = {
+    collect(filter, limit, -1)
+  }
+
+  /**
+    * Filters projects based on the given criteria.
+    *
+    * @param categories Categories of Projects
+    * @param limit      Amount of Projects to get
+    * @param offset     Result set offset
+    * @return           Projects matching criteria
+    */
+  def collect(categories: Array[Category], limit: Int, offset: Int): Future[Seq[Project]] = {
+    var filter: ProjectTable => Rep[Boolean] = null
+    if (categories != null) {
+      filter = p => p.category inSetBind categories
+    }
+    collect(filter, limit, offset)
+  }
+
+  /**
+    * Filters projects based on the given criteria.
+    *
+    * @param categories Categories of Projects
+    * @param limit      Amount of Projects to get
+    * @return           Projects matching criteria
     */
   def collect(categories: Array[Category], limit: Int): Future[Seq[Project]] = {
     collect(categories, limit, -1)
@@ -51,8 +74,8 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
   /**
     * Filters projects based on the given criteria.
     *
-    * @param categories   Categories of Projects
-    * @return             Projects matching criteria
+    * @param categories Categories of Projects
+    * @return           Projects matching criteria
     */
   def collect(categories: Array[Category]): Future[Seq[Project]] = {
     collect(categories, -1, -1)
@@ -61,11 +84,11 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
   /**
     * Filters projects based on the given criteria.
     *
-    * @param limit        Amount of Projects to get
-    * @return             Projects matching criteria
+    * @param limit Amount of Projects to get
+    * @return      Projects matching criteria
     */
   def collect(limit: Int): Future[Seq[Project]] = {
-    collect(null, limit, -1)
+    collect(null.asInstanceOf[Array[Category]], limit, -1)
   }
 
   /**
@@ -240,9 +263,9 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
       case Success(users) =>
         val members = for (user <- users) yield new Member(project, user.username)
         promise.success(members.toList.sorted.reverse)
-      }
-      promise.future
     }
+    promise.future
+  }
 
   override def copyInto(id: Option[Int], theTime: Option[Timestamp], project: Project): Project = {
     project.copy(id = id, createdAt = theTime)

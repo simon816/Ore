@@ -2,9 +2,11 @@ package controllers.project
 
 import javax.inject.Inject
 
+import db.OrePostgresDriver.api._
 import controllers.BaseController
 import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
+import db.query.Queries
 import models.project._
 import models.user.User
 import ore.permission.EditSettings
@@ -128,6 +130,20 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
       val project = request.project
       Ok(views.projects.pages.view(project, project.homePage))
     }
+  }
+
+  /**
+    * Searches for Projects by the given query string.
+    *
+    * @param query Query string
+    */
+  def search(query: String) = Action { implicit request =>
+    val q = '%' + query + '%'
+    val projects = Queries.now(Queries.Projects.collect(filter = project =>
+           (project.name like q)
+        || (project.description like q)
+        || (project.ownerName like q), Project.InitialLoad)).get
+    Ok(views.home(projects, None))
   }
 
   /**

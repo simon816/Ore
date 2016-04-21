@@ -16,6 +16,7 @@ sorted according to different criteria.
 @core.layout(messages("general.title")) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/projectsMore.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/projectSearch.js")"></script>
     <script>
         @if(visibleCategories.isDefined) {
             CATEGORY_STRING = "@visibleCategories.get.map(_.id).mkString(",")";
@@ -59,6 +60,26 @@ sorted according to different criteria.
                         data-placement="bottom" class="btn btn-danger">Reset Ore</a>
                     }
                 </div>
+            </div>
+        </div>
+
+        <div class="row search-bar">
+            <div class="col-md-9">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search projects&hellip;" />
+                    <div class="input-group-btn">
+                        <button class="btn btn-default"><i class="fa fa-search"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <select class="form-control">
+                    <option selected>Hot</option>
+                    <option>Top</option>
+                    <option>Latest</option>
+                    <option>New</option>
+                </select>
             </div>
         </div>
 
