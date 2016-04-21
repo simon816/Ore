@@ -84,6 +84,10 @@ body {
     padding: 10px 20px;
 }
 
+.user-dropdown {
+    width: 200px;   
+}
+
 .user-dropdown > li > a {
     overflow: hidden;
 }
