@@ -119,6 +119,12 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     Redirect(self.showHome(None)).withNewSession
   }
 
+  /**
+    * Removes a trailing slash from a route.
+    *
+    * @param path Path with trailing slash
+    * @return     Redirect to proper route
+    */
   def removeTrail(path: String) = Action {
     MovedPermanently('/' + path)
   }
