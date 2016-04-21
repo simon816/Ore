@@ -3,17 +3,46 @@ package db.orm.model
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
+import db.query.Queries
 import play.api.Play.{configuration => config, current}
+
+import scala.concurrent.Future
 
 /**
   * Represents a Model in the Database.
   */
-abstract class Model {
+abstract class Model { self =>
+
+  type M <: Model { type M = self.M }
 
   /**
     * The format used for displaying dates for models.
     */
   val DateFormat = new SimpleDateFormat(config.getString("ore.date-format").get)
+
+  private var fieldBindings: Map[String, TableBinding[_]] = Map.empty
+
+  private case class TableBinding[A](valueFunc: M => A, updateFunc: A => Seq[Future[_]])
+
+  /**
+    * Binds a new update function to the specified field name.
+    *
+    * @param name Field name
+    * @param f    Update function
+    */
+  def bind[A](name: String, value: M => A, f: A => Seq[Future[_]]) = {
+    this.fieldBindings += name -> TableBinding[A](value, f)
+  }
+
+  def update[A](name: String) = {
+    val binding = this.fieldBindings.get(name).get.asInstanceOf[TableBinding[A]]
+    val value = binding.valueFunc(this.asInstanceOf[M])
+    binding.updateFunc(value)
+  }
+
+  def get[A](name: String): A = {
+    this.fieldBindings.get(name).get.asInstanceOf[TableBinding[A]].valueFunc(this.asInstanceOf[M])
+  }
 
   /**
     * Model ID

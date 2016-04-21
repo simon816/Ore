@@ -3,7 +3,8 @@ package models.project
 import java.sql.Timestamp
 
 import db.orm.dao.ModelDAO
-import db.orm.model.NamedModel
+import db.orm.model.ModelKeys._
+import db.orm.model.{ModelKeys, NamedModel}
 import db.query.Queries
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
@@ -30,7 +31,7 @@ case class Page(override val  id: Option[Int] = None,
                 private var   _contents: String,
                 val           isDeletable: Boolean = true)
                 extends       NamedModel
-                with          ProjectScope {
+                with          ProjectScope { self =>
 
   import models.project.Page._
 
@@ -52,8 +53,8 @@ case class Page(override val  id: Option[Int] = None,
     * @param _contents Markdown contents
     */
   def contents_=(_contents: String) = {
-    if (isDefined) Queries.now(Queries.Pages.setString(this, _.contents, _contents)).get
     this._contents = _contents
+    if (isDefined) update(Contents)
   }
 
   /**
@@ -62,6 +63,12 @@ case class Page(override val  id: Option[Int] = None,
     * @return HTML representation
     */
   def html: String = MarkdownProcessor.markdownToHtml(contents)
+
+  // Table bindings
+
+  override type M <: Page { type M = self.M }
+
+  bind[String](Contents, _._contents, contents => Seq(Queries.Pages.setString(this, _.contents, contents)))
 
 }
 

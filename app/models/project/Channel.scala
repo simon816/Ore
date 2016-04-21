@@ -6,7 +6,8 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions._
 import db.VersionTable
 import db.orm.dao.{ModelDAO, NamedModelSet}
-import db.orm.model.NamedModel
+import db.orm.model.ModelKeys._
+import db.orm.model.{ModelKeys, NamedModel}
 import db.query.Queries
 import db.query.Queries.now
 import ore.Colors._
@@ -38,7 +39,7 @@ case class Channel(override val   id: Option[Int] = None,
                    override val   projectId: Int)
                    extends        NamedModel
                    with           Ordered[Channel]
-                   with           ProjectScope {
+                   with           ProjectScope { self =>
 
   import models.project.Channel._
 
@@ -54,9 +55,9 @@ case class Channel(override val   id: Option[Int] = None,
   def name_=(_name: String)(implicit context: Project) = assertDefined {
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
     checkArgument(isValidName(name), "invalid name", "")
-    now(Queries.Channels.setString(this, _.name, name)).get
     ProjectFiles.renameChannel(context.ownerName, context.name, this._name, name)
     this._name = name
+    update(Name)
   }
 
   /**
@@ -73,8 +74,8 @@ case class Channel(override val   id: Option[Int] = None,
     * @return       Future result
     */
   def color_=(_color: Color) = assertDefined {
-    now(Queries.Channels.setColor(this.id.get, _color)).get
     this._color = _color
+    update(ModelKeys.Color)
   }
 
   /**
@@ -137,6 +138,13 @@ case class Channel(override val   id: Option[Int] = None,
   override def equals(o: Any): Boolean = {
     o.isInstanceOf[Channel] && o.asInstanceOf[Channel].id.get == this.id.get
   }
+
+  // Table bindings
+
+  override type M <: Channel { type M = self.M }
+
+  bind[String](Name, _._name, name => Seq(Queries.Channels.setString(this, _.name, name)))
+  bind[Color](ModelKeys.Color, _._color, color => Seq(Queries.Channels.setColor(this, color)))
 
 }
 

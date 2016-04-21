@@ -3,7 +3,8 @@ package models.project
 import java.sql.Timestamp
 
 import db.orm.dao.ModelDAO
-import db.orm.model.NamedModel
+import db.orm.model.ModelKeys._
+import db.orm.model.{ModelKeys, NamedModel}
 import db.query.Queries
 import db.query.Queries.now
 import ore.Colors.Color
@@ -42,7 +43,7 @@ case class Version(override val   id: Option[Int] = None,
                    val            channelId: Int,
                    val            fileSize: Long)
                    extends        NamedModel
-                   with           ProjectScope {
+                   with           ProjectScope { self =>
 
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int, fileSize: Long) = {
@@ -93,8 +94,8 @@ case class Version(override val   id: Option[Int] = None,
     * @param _description Version description
     */
   def description_=(_description: String) = {
-    if (isDefined) now(Queries.Versions.setString(this, _.description, _description)).get
     this._description = Some(_description)
+    if (isDefined) update(Description)
   }
 
   /**
@@ -122,8 +123,8 @@ case class Version(override val   id: Option[Int] = None,
     * @return Future result
     */
   def addDownload() = {
-    if (isDefined) now(Queries.Versions.setInt(this, _.downloads, this._downloads + 1)).get
     this._downloads += 1
+    if (isDefined) update(Downloads)
   }
 
   def humanFileSize: String = FileUtils.byteCountToDisplaySize(this.fileSize)
@@ -135,6 +136,15 @@ case class Version(override val   id: Option[Int] = None,
   override def equals(o: Any): Boolean = {
     o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get
   }
+
+  // Table bindings
+
+  override type M <: Version { type M = self.M }
+
+  bind[String](Description, _._description.orNull, description => {
+    Seq(Queries.Versions.setString(this, _.description, description))
+  })
+  bind[Int](Downloads, _._downloads, downloads => Seq(Queries.Versions.setInt(this, _.downloads, downloads)))
 
 }
 

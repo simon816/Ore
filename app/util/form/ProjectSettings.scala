@@ -26,9 +26,11 @@ case class ProjectSettings(val          categoryName: String,
     project.issues = nullIfEmpty(issues)
     project.source = nullIfEmpty(source)
     project.description = nullIfEmpty(description)
-    val roles = project.roles
-    for (role <- this.build()) {
-      roles.add(role.copy(projectId=project.id.get))
+    if (project.isDefined) {
+      val roles = project.roles
+      for (role <- this.build()) {
+        roles.add(role.copy(projectId = project.id.get))
+      }
     }
   }
 

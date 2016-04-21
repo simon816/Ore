@@ -5,7 +5,8 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
 import db.orm.dao.{ImmutableNamedModelSet, ModelDAO, ModelSet, NamedModelSet}
-import db.orm.model.NamedModel
+import db.orm.model.ModelKeys._
+import db.orm.model.{ModelKeys, NamedModel}
 import db.query.Queries
 import db.query.Queries.now
 import db.{ChannelTable, PageTable, UserProjectRolesTable, VersionTable}
@@ -62,7 +63,7 @@ case class Project(override val   id: Option[Int] = None,
                    private var    _source: Option[String] = None,
                    private var    _description: Option[String] = None)
                    extends        NamedModel
-                   with           ProjectScope {
+                   with           ProjectScope { self =>
 
   import models.project.Project._
 
@@ -85,16 +86,13 @@ case class Project(override val   id: Option[Int] = None,
     */
   def name_=(_name: String) = assertDefined {
     val newName = compact(_name)
+    val newSlug = slugify(newName)
     checkArgument(isValidName(newName), "invalid name", "")
-
-    now(Queries.Projects.setString(this, _.name, newName)).get
+    checkArgument(Project.isNamespaceAvailable(this.ownerName, newSlug), "slug not available", "")
     ProjectFiles.renameProject(this.ownerName, this.name, newName)
     this._name = newName
-
-    val newSlug = slugify(this.name)
-    checkArgument(Project.isNamespaceAvailable(this.ownerName, newSlug), "slug not available", "")
-    now(Queries.Projects.setString(this, _.slug, newSlug)).get
-    this._slug = newSlug
+    this._slug = slugify(newName)
+    update(Name)
   }
 
   /**
@@ -118,8 +116,8 @@ case class Project(override val   id: Option[Int] = None,
     */
   def description_=(_description: String) = {
     checkArgument(_description == null || _description.length <= MaxDescriptionLength, "description too long", "")
-    if (isDefined) now(Queries.Projects.setString(this, _.description, _description)).get
     this._description = Option(_description)
+    if (isDefined) update(Description)
   }
 
   /**
@@ -135,8 +133,8 @@ case class Project(override val   id: Option[Int] = None,
     * @param _category Category to set
     */
   def category_=(_category: Category) = {
-    if (isDefined) now(Queries.Projects.setCategory(this, _category)).get
     this._category = _category
+    if (isDefined) update(ModelKeys.Category)
   }
 
   /**
@@ -152,8 +150,8 @@ case class Project(override val   id: Option[Int] = None,
     * @return Future result
     */
   def addView() = {
-    if (isDefined) now(Queries.Projects.setInt(this, _.views, this._views + 1)).get
     this._views += 1
+    if (isDefined) update(Views)
   }
 
   /**
@@ -169,8 +167,8 @@ case class Project(override val   id: Option[Int] = None,
     * @return Future result
     */
   def addDownload() = {
-    if (isDefined) now(Queries.Projects.setInt(this, _.downloads, this._downloads + 1)).get
     this._downloads += 1
+    if (isDefined) update(Downloads)
   }
 
   /**
@@ -186,7 +184,9 @@ case class Project(override val   id: Option[Int] = None,
     * @param user   User to check if starred for
     * @return       True if starred by User
     */
-  def isStarredBy(user: User): Boolean = assertDefined(now(Queries.Projects.isStarredBy(this.id.get, user.id.get)).get)
+  def isStarredBy(user: User): Boolean = assertDefined {
+    now(Queries.Projects.isStarredBy(this.id.get, user.id.get)).get
+  }
 
   /**
     * Returns true if this Project is starred by the User with the specified
@@ -218,9 +218,9 @@ case class Project(override val   id: Option[Int] = None,
     */
   def starFor(user: User) = assertDefined {
     if (!isStarredBy(user)) {
-      now(Queries.Projects.starFor(this.id.get, user.id.get)).get
-      now(Queries.Projects.setInt(this, _.stars, this.stars + 1)).get
       this._stars += 1
+      now(Queries.Projects.starFor(this.id.get, user.id.get)).get
+      update(Stars)
     }
   }
 
@@ -232,9 +232,9 @@ case class Project(override val   id: Option[Int] = None,
     */
   def unstarFor(user: User) = assertDefined {
     if (isStarredBy(user)) {
-      now(Queries.Projects.unstarFor(this.id.get, user.id.get)).get
-      now(Queries.Projects.setInt(this, _.stars, this.stars - 1)).get
       this._stars -= 1
+      now(Queries.Projects.unstarFor(this.id.get, user.id.get)).get
+      update(Stars)
     }
   }
 
@@ -251,8 +251,8 @@ case class Project(override val   id: Option[Int] = None,
     * @param _issues Issue tracker link
     */
   def issues_=(_issues: String) = {
-    if (isDefined) now(Queries.Projects.setString(this, _.issues, _issues))
     this._issues = Option(_issues)
+    if (isDefined) update(Issues)
   }
 
   /**
@@ -268,8 +268,8 @@ case class Project(override val   id: Option[Int] = None,
     * @param _source Source code link
     */
   def source_=(_source: String) = {
-    if (isDefined) now(Queries.Projects.setString(this, _.source, _source))
     this._source = Option(_source)
+    if (isDefined) update(Source)
   }
 
   def roles: ModelSet[UserProjectRolesTable, ProjectRole] = assertDefined {
@@ -411,6 +411,24 @@ case class Project(override val   id: Option[Int] = None,
   override def equals(o: Any): Boolean = {
     o.isInstanceOf[Project] && o.asInstanceOf[Project].id.get == this.id.get
   }
+
+  // Table bindings
+
+  override type M <: Project { type M = self.M }
+
+  bind[String](Name, _._name, newName => Seq(
+    Queries.Projects.setString(this, _.name, newName),
+    Queries.Projects.setString(this, _.slug, slugify(newName))
+  ))
+  bind[Category](ModelKeys.Category, _._category, cat => Seq(Queries.Projects.setCategory(this, cat)))
+  bind[Int](Views, _._views, views => Seq(Queries.Projects.setInt(this, _.views, views)))
+  bind[Int](Downloads, _._downloads, downloads => Seq(Queries.Projects.setInt(this, _.downloads, downloads)))
+  bind[Int](Stars, _._stars, stars => Seq(Queries.Projects.setInt(this, _.stars, stars)))
+  bind[String](Issues, _._issues.orNull, issues => Seq(Queries.Projects.setString(this, _.issues, issues)))
+  bind[String](Source, _._source.orNull, source => Seq(Queries.Projects.setString(this, _.source, source)))
+  bind[String](Description, _._description.orNull, description => {
+    Seq(Queries.Projects.setString(this, _.description, description))
+  })
 
 }
 
