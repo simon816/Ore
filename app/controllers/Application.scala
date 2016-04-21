@@ -119,12 +119,16 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     Redirect(self.showHome(None)).withNewSession
   }
 
+  def removeTrail(path: String) = Action {
+    MovedPermanently('/' + path)
+  }
+
   /**
     * Helper route to reset Ore.
     *
     * TODO: REMOVE BEFORE PRODUCTION
     */
-  def reset() = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
+  def reset = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
     val query: Query[UserTable, User, Seq] = Queries.Users.models
     now(Queries.DB.run(query.delete)).get
     FileUtils.deleteDirectory(P.UploadsDir.toFile)

@@ -208,11 +208,6 @@ object Queries {
   val DefaultTimeout: Duration = Duration(config.getInt("application.db.default-timeout").get, TimeUnit.SECONDS)
 
   /**
-    * The actual database object used to run queries.
-    */
-  val DB = Config.db
-
-  /**
     * Awaits the result of the specified future and returns the result.
     *
     * @param f        Future to await
@@ -225,6 +220,11 @@ object Queries {
   }
 
   protected[db] val Config = DatabaseConfigProvider.get[JdbcProfile](Play.current)
+
+  /**
+    * The actual database object used to run queries.
+    */
+  val DB = Config.db
 
   protected[db] def theTime: Timestamp = new Timestamp(new Date().getTime)
 

@@ -2,11 +2,13 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET     /admin/reset                                            @controllers.Application.reset()
+GET     /*path/                                                 @controllers.Application.removeTrail(path)
+GET     /admin/reset                                            @controllers.Application.reset
 
 # ---------- API (v1) ----------
 GET     /api/projects                                           @controllers.Api.projects(version = "v1", categories: Option[String], limit: Option[Int], offset: Option[Int])
 GET     /api/project                                            @controllers.Api.project(version = "v1", pluginId: Option[String])
+
 GET     /api/users                                              @controllers.Api.users(version = "v1", limit: Option[Int], offset: Option[Int])
 GET     /api/users/:user                                        @controllers.Api.user(version = "v1", user)
 
@@ -30,10 +32,10 @@ GET     /new                                                    @controllers.pro
 
 POST    /new/upload                                             @controllers.project.Projects.upload
 GET     /new/:author/:slug                                      @controllers.project.Projects.showCreatorWithMeta(author, slug)
-POST     /new/:author/:slug/members                             @controllers.project.Projects.showMembersConfig(author, slug)
+POST    /new/:author/:slug/members                              @controllers.project.Projects.showMembersConfig(author, slug)
 
 GET     /:user                                                  @controllers.Application.showUser(user)
-POST    /settings/tagline                                       @controllers.Application.saveTagline(user)
+POST    /:user/settings/tagline                                 @controllers.Application.saveTagline(user)
 
 POST    /:author/:slug                                          @controllers.project.Projects.showFirstVersionCreator(author, slug)
 GET     /:author/:slug                                          @controllers.project.Projects.show(author, slug)

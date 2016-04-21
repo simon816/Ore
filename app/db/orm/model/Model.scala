@@ -86,11 +86,7 @@ abstract class Model { self =>
   def isDefined: Boolean = this.id.isDefined
 
   protected def assertDefined[A](f: => A): A = {
-    if (isDefined) {
-      f
-    } else {
-      throw new IllegalStateException("model must exist")
-    }
+    if (isDefined) f else throw new IllegalStateException("model must exist")
   }
 
 

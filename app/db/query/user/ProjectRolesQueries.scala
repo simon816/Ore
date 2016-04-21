@@ -9,6 +9,7 @@ import db.query.Queries.DB._
 import models.user.{ProjectRole, User}
 import slick.lifted.TableQuery
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 
