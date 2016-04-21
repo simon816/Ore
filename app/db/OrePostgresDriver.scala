@@ -9,7 +9,7 @@ import ore.project.Categories
 import ore.project.Categories.Category
 
 /**
-  * Custom Postgres driver to support array data types.
+  * Custom Postgres driver to support array data and custom type mappings.
   */
 trait OrePostgresDriver extends ExPostgresDriver with PgArraySupport {
 

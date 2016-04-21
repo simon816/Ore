@@ -61,7 +61,7 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     * @param model  Model to create
     * @return       Newly created model
     */
-  def create(model: M): Future[M] = {
+  def insert(model: M): Future[M] = {
     val toInsert = copyInto(None, Some(theTime), model)
     val query = {
       this.models returning this.models.map(_.id) into {
@@ -159,13 +159,13 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     * @param model  Model to get or create
     * @return       Existing or newly created model
     */
-  def getOrCreate(model: M): Future[M] = {
+  def getOrInsert(model: M): Future[M] = {
     val modelPromise = Promise[M]
     named(model).onComplete {
       case Failure(thrown) => modelPromise.failure(thrown)
       case Success(modelOpt) => modelOpt match {
         case Some(existing) => modelPromise.success(existing)
-        case None => modelPromise.completeWith(create(model))
+        case None => modelPromise.completeWith(insert(model))
       }
     }
     modelPromise.future
@@ -208,6 +208,11 @@ object Queries {
   val DefaultTimeout: Duration = Duration(config.getInt("application.db.default-timeout").get, TimeUnit.SECONDS)
 
   /**
+    * The actual database object used to run queries.
+    */
+  val DB = Config.db
+
+  /**
     * Awaits the result of the specified future and returns the result.
     *
     * @param f        Future to await
@@ -220,8 +225,6 @@ object Queries {
   }
 
   protected[db] val Config = DatabaseConfigProvider.get[JdbcProfile](Play.current)
-
-  val DB = Config.db
 
   protected[db] def theTime: Timestamp = new Timestamp(new Date().getTime)
 

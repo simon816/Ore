@@ -238,8 +238,8 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     val promise = Promise[List[Member]]
     Queries.Users.ProjectRoles.distinctUsersIn(project.id.get).andThen {
       case Failure(thrown) => promise.failure(thrown)
-      case Success(userIds) =>
-        val members = for (userId <- userIds) yield new Member(project, User.withId(userId).get.username)
+      case Success(users) =>
+        val members = for (user <- users) yield new Member(project, user.username)
         promise.success(members.toList.sorted.reverse)
       }
       promise.future

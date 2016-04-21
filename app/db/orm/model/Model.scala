@@ -20,28 +20,41 @@ abstract class Model { self =>
     */
   val DateFormat = new SimpleDateFormat(config.getString("ore.date-format").get)
 
-  private var fieldBindings: Map[String, TableBinding[_]] = Map.empty
+  private var tableBindings: Map[String, TableBinding[_]] = Map.empty
 
   private case class TableBinding[A](valueFunc: M => A, updateFunc: A => Seq[Future[_]])
 
   /**
     * Binds a new update function to the specified field name.
     *
-    * @param name Field name
+    * @param key  Field name
     * @param f    Update function
     */
-  def bind[A](name: String, value: M => A, f: A => Seq[Future[_]]) = {
-    this.fieldBindings += name -> TableBinding[A](value, f)
+  def bind[A](key: String, value: M => A, f: A => Seq[Future[_]]) = {
+    this.tableBindings += key -> TableBinding[A](value, f)
   }
 
-  def update[A](name: String) = {
-    val binding = this.fieldBindings.get(name).get.asInstanceOf[TableBinding[A]]
+  /**
+    * Updates the specified key in the table.
+    *
+    * @param key  Binding key
+    * @tparam A   Value type
+    */
+  def update[A](key: String) = {
+    val binding = this.tableBindings.get(key).get.asInstanceOf[TableBinding[A]]
     val value = binding.valueFunc(this.asInstanceOf[M])
     for (f <- binding.updateFunc(value)) Queries.now(f).get
   }
 
-  def get[A](name: String): A = {
-    this.fieldBindings.get(name).get.asInstanceOf[TableBinding[A]].valueFunc(this.asInstanceOf[M])
+  /**
+    * Returns the value of the specified key.
+    *
+    * @param key  Model key
+    * @tparam A   Value type
+    * @return     Value of key
+    */
+  def get[A](key: String): A = {
+    this.tableBindings.get(key).get.asInstanceOf[TableBinding[A]].valueFunc(this.asInstanceOf[M])
   }
 
   /**

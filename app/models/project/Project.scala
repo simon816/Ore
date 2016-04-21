@@ -72,10 +72,26 @@ case class Project(override val   id: Option[Int] = None,
          ownerName=owner, ownerId=ownerId, homepage=Option(homepage))
   }
 
+  /**
+    * Returns the owner [[Member]] of this project.
+    *
+    * @return Owner Member of project
+    */
   def owner: Member = new Member(this, this.ownerName)
 
+  /**
+    * Returns all [[Member]]s of this project.
+    *
+    * @return All Members of project
+    */
   def members: List[Member] = now(Queries.Projects.members(this)).get
 
+  /**
+    * Removes the [[Member]] that belongs to the specified [[User]] from this
+    * project.
+    *
+    * @param user User to remove
+    */
   def removeMember(user: User) = this.roles.removeWhere(_.userId === user.id.get)
 
   /**
@@ -272,6 +288,11 @@ case class Project(override val   id: Option[Int] = None,
     if (isDefined) update(Source)
   }
 
+  /**
+    * Returns a [[ModelSet]] of all [[ProjectRole]]s in this Project.
+    *
+    * @return Set of all ProjectRoles
+    */
   def roles: ModelSet[UserProjectRolesTable, ProjectRole] = assertDefined {
     new ModelSet(Queries.Users.ProjectRoles, this.id.get, _.projectId)
   }
@@ -294,7 +315,7 @@ case class Project(override val   id: Option[Int] = None,
   def addChannel(name: String, color: Color): Channel = assertDefined {
     checkArgument(Channel.isValidName(name), "invalid name", "")
     checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
-    now(Queries.Channels create new Channel(name, color, this.id.get)).get
+    now(Queries.Channels insert new Channel(name, color, this.id.get)).get
   }
 
   /**
@@ -363,7 +384,7 @@ case class Project(override val   id: Option[Int] = None,
   def getOrCreatePage(name: String): Page = assertDefined {
     // TODO: Name validation
     checkNotNull(name, "name cannot be null", "")
-    now(Queries.Pages.getOrCreate(new Page(this.id.get, name, Page.template(name), true))).get
+    now(Queries.Pages.getOrInsert(new Page(this.id.get, name, Page.template(name), true))).get
   }
 
   /**
@@ -373,7 +394,7 @@ case class Project(override val   id: Option[Int] = None,
     */
   def homePage: Page = assertDefined {
     val page = new Page(this.id.get, Page.HomeName, Page.template(name, Page.HomeMessage), false)
-    now(Queries.Pages.getOrCreate(page)).get
+    now(Queries.Pages.getOrInsert(page)).get
   }
 
   /**
@@ -472,6 +493,9 @@ object Project extends ModelDAO[Project] {
                             extends PendingAction[Project]
                             with Cacheable {
 
+    /**
+      * The first [[PendingVersion]] for this PendingProject.
+      */
     val pendingVersion: PendingVersion = {
       val version = Version.fromMeta(this.project, this.file)
       Version.setPending(project.ownerName, project.slug,
@@ -524,8 +548,6 @@ object Project extends ModelDAO[Project] {
     * @return         Project if found, None otherwise
     */
   def withPluginId(pluginId: String): Option[Project] = now(Queries.Projects.withPluginId(pluginId)).get
-
-  override def withId(id: Int): Option[Project] = now(Queries.Projects.get(id)).get
 
   /**
     * Returns the all Projects created by the specified owner.
@@ -586,5 +608,7 @@ object Project extends ModelDAO[Project] {
   def fromMeta(owner: User, meta: PluginMetadata): Project = {
     new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getUrl)
   }
+
+  override def withId(id: Int): Option[Project] = now(Queries.Projects.get(id)).get
 
 }

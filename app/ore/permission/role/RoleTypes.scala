@@ -7,6 +7,8 @@ import ore.Colors._
   */
 object RoleTypes extends Enumeration {
 
+  // Global
+
   val Admin             =   new  RoleType( 0, 61,   Absolute,   "Ore Admin",             Red)
   val SpongeLeader      =   new  RoleType( 1, 44,   Absolute,   "Sponge Leader",         Amber)
   val TeamLeader        =   new  RoleType( 2, 58,   Standard,   "Team Leader",           Amber)
@@ -24,6 +26,8 @@ object RoleTypes extends Enumeration {
   val QuartzDonor       =   new DonorType(14, 54,               "Quartz Donor",          Quartz)
   val StoneDonor        =   new DonorType(15, 57,               "Stone Donor",           Gray)
 
+  // Project
+
   val ProjectOwner      =   new  RoleType(16, -1,   Absolute,   "Owner",                 Transparent)
   val ProjectDev        =   new  RoleType(17, -2,   Standard,   "Developer",             Transparent)
   val ProjectEditor     =   new  RoleType(18, -3,   Limited,    "Editor",                Transparent)
@@ -32,8 +36,8 @@ object RoleTypes extends Enumeration {
   /**
     * Returns the role with the specified external ID.
     *
-    * @param id   Sponge ID
-    * @return     UserRole with ID
+    * @param id Sponge ID
+    * @return   UserRole with ID
     */
   def withId(id: Int): RoleType = this.values.find(_.roleId == id).getOrElse {
     // Throw an exception instead of returning an Option to match Enumeration
@@ -41,16 +45,21 @@ object RoleTypes extends Enumeration {
     throw new NoSuchElementException
   }
 
+  /**
+    * Returns the typical RoleTypes of [[models.user.ProjectRole]]s.
+    *
+    * @return RoleTypes used by ProjectRoles
+    */
   def ofProjects = this.values.filter(_.roleId < 0)
 
   /**
     * Represents a User role.
     *
-    * @param i            Index
-    * @param roleId       ID of role
-    * @param trust        Level of trust that this user has
-    * @param title        Title to display
-    * @param color        Color to display
+    * @param i      Index
+    * @param roleId ID of role
+    * @param trust  Level of trust that this user has
+    * @param title  Title to display
+    * @param color  Color to display
     */
   class RoleType(val i: Int,
                  val roleId: Int,
@@ -59,6 +68,14 @@ object RoleTypes extends Enumeration {
                  val color: Color)
                  extends super.Val(i, title)
 
+  /**
+    * Represents a type of Donor.
+    *
+    * @param i      Index
+    * @param roleId ID of role
+    * @param title  Title to display
+    * @param color  Color to display
+    */
   class DonorType(override val i: Int,
                   override val roleId: Int,
                   override val title: String,

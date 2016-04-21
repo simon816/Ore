@@ -1,5 +1,8 @@
 package db.orm.model
 
+/**
+  * Collection of String keys used for table bindings within Models.
+  */
 object ModelKeys {
 
   val Name = "name"

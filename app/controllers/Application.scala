@@ -91,7 +91,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     */
   def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
     if (FakeUser.IsEnabled) {
-      now(Queries.Users.getOrCreate(FakeUser))
+      now(Queries.Users.getOrInsert(FakeUser))
       Redirect(self.showHome(None)).withSession(Security.username -> FakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(Auth.getRedirect(config.getString("application.baseUrl").get + "/login"))
@@ -99,7 +99,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     } else {
       val userData = Auth.authenticate(sso.get, sig.get)
       var user = new User(userData._1, userData._2, userData._3, userData._4)
-      user = now(Queries.Users.getOrCreate(user)).get
+      user = now(Queries.Users.getOrInsert(user)).get
 
       API.fetchRoles(user.username).andThen {
         case roles => if (!roles.equals(user.globalRoleTypes)) user.globalRoleTypes = roles.get

@@ -1,7 +1,7 @@
 package ore
 
 /**
-  * Represents a color that a Channel may be represented by.
+  * Represents a color.
   */
 object Colors extends Enumeration {
 

@@ -48,7 +48,7 @@ object ProjectFactory {
     checkArgument(!pending.project.exists, "project already exists", "")
     checkArgument(pending.project.isNamespaceAvailable, "slug not available", "")
     checkArgument(Project.isValidName(pending.project.name), "invalid name", "")
-    val newProject = now(Queries.Projects create pending.project).get
+    val newProject = now(Queries.Projects insert pending.project).get
 
     // Add Project roles
     val user = pending.file.owner

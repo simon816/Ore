@@ -9,6 +9,17 @@ import ore.permission.role.Role
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.ProjectScope
 
+/**
+  * Represents a [[ore.project.member.Member]]'s role in a
+  * [[models.project.Project]]. A ProjectRole determines what a Member can and
+  * cannot do within a [[ProjectScope]].
+  *
+  * @param id         Model ID
+  * @param createdAt  Timestamp instant of creation
+  * @param userId     ID of User this role belongs to
+  * @param roleType   Type of role
+  * @param projectId  ID of project this role belongs to
+  */
 case class ProjectRole(override val id: Option[Int] = None,
                        override val createdAt: Option[Timestamp] = None,
                        override val userId: Int,

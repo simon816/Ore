@@ -6,12 +6,33 @@ import models.project.Project
 import models.user.{ProjectRole, User}
 import ore.permission.scope.{Scope, ScopeSubject}
 
+/**
+  * Represents a single or collection of members of a [[Project]].
+  *
+  * @param project  Project this Member is a part of
+  * @param name     Member name
+  */
 class Member(val project: Project, val name: String) extends ScopeSubject with Ordered[Member] {
 
+  /**
+    * Returns the [[User]] this Member belongs to.
+    *
+    * @return User member belongs to
+    */
   def user: User = User.withName(this.name).get
 
+  /**
+    * Returns the Member's [[ProjectRole]]s in the [[Project]].
+    *
+    * @return Roles in project
+    */
   def roles: Set[ProjectRole] = this.project.roles.filter(_.userId === this.user.id.get).toSet
 
+  /**
+    * Returns the Member's highest ranking [[ProjectRole]] in the [[Project]].
+    *
+    * @return Highest ranking role
+    */
   def headRole: ProjectRole = this.roles.toList.sorted.last
 
   override val scope: Scope = project.scope

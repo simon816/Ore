@@ -8,8 +8,18 @@ import ore.permission.role.RoleTypes
   */
 trait TraitProjectRoleSetBuilder {
 
+  /**
+    * Returns the user IDs to use in building the set.
+    *
+    * @return User IDs
+    */
   def users: List[Int]
 
+  /**
+    * Returns the role names to use in building the set.
+    *
+    * @return Role names
+    */
   def roles: List[String]
 
   /**

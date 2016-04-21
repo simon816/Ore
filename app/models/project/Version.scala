@@ -127,6 +127,11 @@ case class Version(override val   id: Option[Int] = None,
     if (isDefined) update(Downloads)
   }
 
+  /**
+    * Returns a human readable file size for this Version.
+    *
+    * @return Human readable file size
+    */
   def humanFileSize: String = FileUtils.byteCountToDisplaySize(this.fileSize)
 
   override def name: String = this.versionString
@@ -185,8 +190,6 @@ object Version extends ModelDAO[Version] {
 
   }
 
-  override def withId(id: Int): Option[Version] = now(Queries.Versions.get(id)).get
-
   /**
     * Marks the specified Version as pending and caches it for later use.
     *
@@ -230,5 +233,7 @@ object Version extends ModelDAO[Version] {
     new Version(meta.getVersion, depends.toList, meta.getDescription, "",
                 project.id.getOrElse(-1), plugin.path.toFile.length)
   }
+
+  override def withId(id: Int): Option[Version] = now(Queries.Versions.get(id)).get
 
 }

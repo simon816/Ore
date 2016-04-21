@@ -46,7 +46,6 @@ object Categories extends Enumeration {
     * @param icon   Icon to display
     */
   case class Category(i: Int, title: String, icon: String) extends super.Val(i, title)
-
   implicit def convert(value: Value): Category = value.asInstanceOf[Category]
 
 }

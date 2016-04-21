@@ -163,8 +163,6 @@ object User extends ModelDAO[User] {
     now(Queries.Users.withName(username)).get.orElse(now(SpongeForums.API.fetchUser(username)).get)
   }
 
-  override def withId(id: Int): Option[User] = now(Queries.Users.get(id)).get
-
   /**
     * Returns the currently authenticated User.
     *
@@ -172,5 +170,7 @@ object User extends ModelDAO[User] {
     * @return         Authenticated user, if any, None otherwise
     */
   def current(implicit session: Session): Option[User] = session.get("username").map(withName).getOrElse(None)
+
+  override def withId(id: Int): Option[User] = now(Queries.Users.get(id)).get
 
 }

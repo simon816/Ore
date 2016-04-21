@@ -9,6 +9,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Helper class for handling tracking of statistics.
+  *
+  * TODO: Rethink how this is handled
   */
 object Statistics {
 

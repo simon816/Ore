@@ -13,6 +13,12 @@ import ore.Colors.Color
   */
 class ChannelQueries extends Queries[ChannelTable, Channel](TableQuery(tag => new ChannelTable(tag))) {
 
+  /**
+    * Sets the [[Color]] of the specified [[Channel]] in the database.
+    *
+    * @param channel  Channel to set color of
+    * @param color    Color to set
+    */
   def setColor(channel: Channel, color: Color) = {
     val query = for { model <- this.models if model.id === channel.id.get } yield model.color
     run(query.update(color))

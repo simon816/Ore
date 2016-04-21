@@ -1,5 +1,8 @@
 package db.orm.model
 
+/**
+  * Represents a Model with a name.
+  */
 abstract class NamedModel extends Model {
 
   /**

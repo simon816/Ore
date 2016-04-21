@@ -31,7 +31,7 @@ class DiscourseAPI(private val url: String, ws: WSClient) {
         val userObj = (json \ "user").as[JsObject]
         var user = new User((userObj \ "id").as[Int], (userObj \ "name").asOpt[String].orNull,
                             (userObj \ "username").as[String], (userObj \ "email").asOpt[String].orNull)
-        user = now(Queries.Users.getOrCreate(user)).get
+        user = now(Queries.Users.getOrInsert(user)).get
         val globalRoles = parseRoles(userObj)
         user.globalRoleTypes = globalRoles
         user

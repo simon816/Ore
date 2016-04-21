@@ -64,7 +64,7 @@ class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M],
     * @param model  Model to add
     * @return       The newly created model
     */
-  def add(model: M): M = now(this.queries create model).get
+  def add(model: M): M = now(this.queries insert model).get
 
   /**
     * Removes a model from the set.
