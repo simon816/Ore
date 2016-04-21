@@ -1,6 +1,7 @@
 package util.form
 
 import models.project.Project
+import ore.permission.role.RoleTypes
 import ore.project.Categories
 import util.Input._
 
@@ -13,7 +14,9 @@ case class ProjectSettings(val          categoryName: String,
                            val          source: String,
                            val          description: String,
                            override val users: List[Int],
-                           override val roles: List[String])
+                           override val roles: List[String],
+                           val          userUps: List[String],
+                           val          roleUps: List[String])
                            extends      TraitProjectRoleSetBuilder {
 
   /**
@@ -27,9 +30,15 @@ case class ProjectSettings(val          categoryName: String,
     project.source = nullIfEmpty(source)
     project.description = nullIfEmpty(description)
     if (project.isDefined) {
+      // Add new roles
       val roles = project.roles
       for (role <- this.build()) {
         roles.add(role.copy(projectId = project.id.get))
+      }
+
+      // Update existing roles
+      for ((user, i) <- this.userUps.zipWithIndex) {
+        project.members.find(_.name.equalsIgnoreCase(user)).get.headRole.roleType = RoleTypes.withName(roleUps(i))
       }
     }
   }

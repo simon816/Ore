@@ -47,7 +47,9 @@ object Forms {
     "source" -> text,
     "description" -> text,
     "users" -> list(number),
-    "roles" -> list(text)
+    "roles" -> list(text),
+    "userUps" -> list(text),
+    "roleUps" -> list(text)
   )(ProjectSettings.apply)(ProjectSettings.unapply))
 
   /**

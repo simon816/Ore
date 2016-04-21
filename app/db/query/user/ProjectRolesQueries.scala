@@ -7,6 +7,7 @@ import db.UserProjectRolesTable
 import db.query.Queries
 import db.query.Queries.DB._
 import models.user.{ProjectRole, User}
+import ore.permission.role.RoleTypes.RoleType
 import slick.lifted.TableQuery
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -30,6 +31,17 @@ class ProjectRolesQueries extends Queries[UserProjectRolesTable, ProjectRole](Ta
       case Success(userIds) => promise.success(for (userId <- userIds) yield User.withId(userId).get)
     }
     promise.future
+  }
+
+  /**
+    * Sets the [[RoleType]] of the specified [[ProjectRole]].
+    *
+    * @param role     Role to update
+    * @param roleType Role type to set
+    */
+  def setRoleType(role: ProjectRole, roleType: RoleType) = {
+    val query = for { model <- this.models if model.id === role.id.get } yield model.roleType
+    run(query.update(roleType))
   }
 
   override def copyInto(id: Option[Int], theTime: Option[Timestamp], model: ProjectRole): ProjectRole = {

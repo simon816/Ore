@@ -1,7 +1,13 @@
 function updateIndices() {
-    $('.list-members').find('.user-new').each(function(i) {
+    var memberList = $('.list-members');
+    memberList.find('.user-new').each(function(i) {
         $(this).find('input').attr('name', 'users[' + i + ']');
         $(this).find('select').attr('name', 'roles[' + i + ']');
+    });
+
+    memberList.find('.user-changed').each(function(i) {
+        $(this).find('input').attr('name', 'userUps[' + i + ']');
+        $(this).find('select').attr('name', 'roleUps[' + i + ']');
     });
 }
 
@@ -13,8 +19,19 @@ function initMember(memberRow) {
     // Replace title with select on click
     memberRow.find('.fa-edit').parent().click(function(event) {
         event.preventDefault();
-        getItemContainer($(this)).find('span').replaceWith($('#select-role').clone().show());
+
+        // Mark user as changed
+        var container = getItemContainer($(this)).addClass('user-changed');
+        var input = $('#select-role').clone().attr('id', '').attr('form', 'save');
+
+        // Add input
+        container.find('span').replaceWith(input.show());
+        var username = container.find('.username').text();
+        container.append('<input type="hidden" form="save" value="' + username + '" />');
+
+        // Remove edit button and update input names
         $(this).find('.fa-edit').parent().remove();
+        updateIndices();
     });
 
     // Set form input on modal when delete is clicked
