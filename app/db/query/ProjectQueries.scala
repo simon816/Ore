@@ -6,7 +6,6 @@ import db.OrePostgresDriver.api._
 import db.query.Queries.DB.run
 import db.{ProjectStarsTable, ProjectTable, ProjectViewsTable}
 import models.project.Project
-import models.user.User
 import ore.project.Categories.Category
 import ore.project.member.Member
 

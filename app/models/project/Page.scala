@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.orm.dao.ModelDAO
 import db.orm.model.ModelKeys._
-import db.orm.model.{ModelKeys, NamedModel}
+import db.orm.model.NamedModel
 import db.query.Queries
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._

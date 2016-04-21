@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.orm.dao.ModelDAO
 import db.orm.model.ModelKeys._
-import db.orm.model.{ModelKeys, NamedModel}
+import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
 import ore.Colors.Color

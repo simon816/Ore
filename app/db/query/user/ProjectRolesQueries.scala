@@ -6,11 +6,11 @@ import db.OrePostgresDriver.api._
 import db.UserProjectRolesTable
 import db.query.Queries
 import db.query.Queries.DB._
-import models.user.{User, ProjectRole}
+import models.user.{ProjectRole, User}
 import slick.lifted.TableQuery
 
-import scala.concurrent.{Promise, Future}
-import scala.util.{Success, Failure}
+import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success}
 
 class ProjectRolesQueries extends Queries[UserProjectRolesTable, ProjectRole](TableQuery[UserProjectRolesTable]) {
 
