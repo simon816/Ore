@@ -37,7 +37,7 @@ abstract class Model { self =>
   def update[A](name: String) = {
     val binding = this.fieldBindings.get(name).get.asInstanceOf[TableBinding[A]]
     val value = binding.valueFunc(this.asInstanceOf[M])
-    binding.updateFunc(value)
+    for (f <- binding.updateFunc(value)) Queries.now(f).get
   }
 
   def get[A](name: String): A = {
