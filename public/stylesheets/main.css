@@ -599,6 +599,55 @@ a > .fa {
     left: 0; !important;
 }
 
-.search-bar {
+.btn-group-login {
+    padding: 4px;
+}
+
+.btn-group-login > a {
+    margin: 0 auto;
+}
+
+.project-search {
+    padding: 3px;
+}
+
+.project-search > .input-group {
+    width: 0;
+}
+
+.icon-project-search {
+    width: 40px;
+    height: 40px;
+    padding: 7px;
+    -webkit-transition: background-color 0.5s;
+    -moz-transition: background-color 0.5s;
+    -ms-transition: background-color 0.5s;
+    -o-transition: background-color 0.5s;
+    transition: background-color 0.5s;
+}
+
+.icon-project-search:hover {
+    background-color: white;
+}
+
+.icon-project-search:hover > i {
+    color: black;
+}
+
+.icon-project-search > i {
+    font-size: 25px;
+    color: #e6b800;
+    -webkit-transition: color 0.5s;
+    -moz-transition: color 0.5s;
+    -ms-transition: color 0.5s;
+    -o-transition: color 0.5s;
+    transition: color 0.5s;
+}
+
+.select-sort {
     padding-bottom: 10px;
+}
+
+.select-sort h3 {
+    margin: 0 auto;
 }

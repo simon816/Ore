@@ -9,6 +9,7 @@ The main header displayed on each layout.
 <nav class="navbar-main navbar navbar-fixed-top navbar-inverse">
     <div class="container">
         <div class="collapse navbar-collapse">
+            <!-- Left navbar -->
             <ul class="nav navbar-nav navbar-left">
                 <li class="dropdown">
                     <a href="@routes.Application.showHome(None, None)" class="main-dropdown-toggle drop-down-toggle disabled" data-toggle="dropdown">
@@ -32,9 +33,24 @@ The main header displayed on each layout.
                 </li>
             </ul>
 
-            @User.current.map { user =>
-                @* Show user controls *@
-                <ul class="nav navbar-nav navbar-right">
+            <!-- Right navbar -->
+            <ul class="nav navbar-nav navbar-right">
+
+                <li class="project-search">
+                    <div class="input-group" style="display: none;">
+                        <input type="text" class="form-control" placeholder="Search projects&hellip;" />
+                        <div class="input-group-btn">
+                            <button class="btn btn-default"><i class="fa fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </li>
+
+                <li class="icon-project-search">
+                    <i class="fa fa-search"></i>
+                </li>
+
+                @User.current.map { user =>
+                    @* Show user controls *@
                     <li class="dropdown">
                         <a href="#" class="drop-down-toggle" data-toggle="dropdown">
                             <img height="32" width="32" class="user-avatar" src="@SpongeForums.API.avatarUrl(user.username, 100)" />
@@ -56,14 +72,18 @@ The main header displayed on each layout.
                             </li>
                         </ul>
                     </li>
-                </ul>
-            }.getOrElse {
-                @* Show login controls *@
-                <div class="nav navbar-nav navbar-right">
-                    <a href="@routes.Application.logIn(None, None, Some(request.path))" class="btn btn-primary navbar-btn">@messages("general.signup")</a>
-                    <a href="@routes.Application.logIn(None, None, Some(request.path))" class="btn btn-primary navbar-btn">@messages("general.login")</a>
-                </div>
-            }
+                }.getOrElse {
+                    <li>
+                        <div class="btn-group-login">
+                            <a href="@routes.Application.logIn(None, None, Some(request.path))"
+                               class="btn btn-primary navbar-btn">@messages("general.signup")</a>
+                            <a href="@routes.Application.logIn(None, None, Some(request.path))"
+                            class="btn btn-primary navbar-btn">@messages("general.login")</a>
+                        </div>
+                    </li>
+                }
+
+            </ul>
         </div>
     </div>
 </nav>

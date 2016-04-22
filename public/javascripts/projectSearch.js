@@ -2,7 +2,17 @@ var KEY_ENTER = 13;
 var CATEGORY_STRING = null;
 
 $(function() {
-    var searchBar = $('.search-bar');
+
+    $('.icon-project-search').click(function() {
+        var searchBar = $('.project-search').find('.input-group');
+        if (searchBar.is(':visible')) {
+            searchBar.animate({width: '0px'}, 100).fadeOut(100);
+        } else {
+            searchBar.fadeIn(100).animate({width: '790px'}, 100);
+        }
+    });
+
+    var searchBar = $('.project-search');
     searchBar.find('input').on('keypress', function(event) {
         if (event.keyCode === KEY_ENTER) {
             event.preventDefault();
