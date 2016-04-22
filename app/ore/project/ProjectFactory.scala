@@ -60,7 +60,7 @@ object ProjectFactory {
 
     // Test
     SpongeForums.Embed.createTopicAs(
-      user, user.username + " / " + newProject.name, newProject.description.getOrElse("No description"))
+      user, user.username + " / " + newProject.name, newProject.description.getOrElse("No descriptionnnnnnnnn"))
 
     newProject
   }
