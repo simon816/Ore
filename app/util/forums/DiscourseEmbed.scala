@@ -32,8 +32,7 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
   def updateTopic(project: Project) = {
     val postId = project.postId.get
     println(Project.topicContentFor(project))
-    val params = this.keyedRequest(project.ownerName) + (
-      "post[raw]" -> Seq(Project.topicContentFor(project)))
+    val params = this.keyedRequest(project.ownerName) + ("post[raw]" -> Seq(Project.topicContentFor(project)))
     ws.url(url + "/posts/" + postId).put(params).map { response =>
       println(response)
       println(response.json)
@@ -44,7 +43,7 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
     val topicId = project.topicId.get
     val params = this.keyedRequest(project.ownerName) + (
       "topic_id" -> Seq(topicId.toString),
-      "title" -> Seq(project.ownerName + " / " + project.name))
+      "title" -> Seq(project.ownerName + " / " + project.name + project.description.map(" - " + _).getOrElse("")))
     ws.url(url + "/t/" + topicId).put(params)
   }
 

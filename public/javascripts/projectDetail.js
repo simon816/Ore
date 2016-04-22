@@ -2,8 +2,7 @@ var projectOwner = null;
 var projectSlug = null;
 var alreadyStarred = false;
 
-var KEY_TAB = 9;
-var KEY_SHIFT = 16;
+var KEY_T = 84;
 
 $(function() {
     // setup star button
@@ -23,17 +22,12 @@ $(function() {
         increment *= -1;
     });
 
-    var shiftDown = false;
     var body = $('body');
     body.keydown(function(event) {
         var target = $(event.target);
         if (target.is('body')) {
             switch (event.keyCode) {
-                case KEY_SHIFT:
-                    shiftDown = true;
-                    break;
-                case KEY_TAB:
-                    if (!shiftDown) return;
+                case KEY_T:
                     event.preventDefault();
                     var navBar = $('.project-navbar');
                     var activeTab = navBar.find('li.active');
@@ -44,19 +38,6 @@ $(function() {
                     } else {
                         window.location = navBar.find('li:first').find('a').attr('href');
                     }
-                    break;
-                default:
-                    break;
-            }
-        }
-    });
-
-    body.keyup(function(event) {
-        var target = $(event.target);
-        if (target.is('body')) {
-            switch (event.keyCode) {
-                case KEY_SHIFT:
-                    shiftDown = false;
                     break;
                 default:
                     break;
