@@ -28,13 +28,19 @@
 
 .page-content {
     padding: 10px;
-    max-width: 100%;
+    width: 100%;
     overflow: hidden;
 }
 
 .page-content img {
     max-width: 100%;
 }
+
+.page-content h1, .page-content h2, .page-content h3, .page-content h4, .page-content h5, .page-content h6 {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
 
 body {
     background-color: #f3f2f0;
