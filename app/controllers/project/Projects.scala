@@ -133,20 +133,6 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   }
 
   /**
-    * Searches for Projects by the given query string.
-    *
-    * @param query Query string
-    */
-  def search(query: String) = Action { implicit request =>
-    val q = '%' + query + '%'
-    val projects = Queries.now(Queries.Projects.collect(filter = project =>
-           (project.name like q)
-        || (project.description like q)
-        || (project.ownerName like q), Project.InitialLoad)).get
-    Ok(views.home(projects, None))
-  }
-
-  /**
     * Shortcut for navigating to a project.
     *
     * @param pluginId Project pluginId
@@ -292,7 +278,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
       project.delete.get
-      Redirect(app.showHome(None))
+      Redirect(app.showHome(None, None))
         .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
     }
   }

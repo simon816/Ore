@@ -1,4 +1,5 @@
 var KEY_ENTER = 13;
+var CATEGORY_STRING = null;
 
 $(function() {
     var searchBar = $('.search-bar');
@@ -9,8 +10,10 @@ $(function() {
         }
     });
 
-    searchBar.find('.btn').click(function(event) {
+    searchBar.find('.btn').click(function() {
         var query = $(this).closest('.input-group').find('input').val();
-        window.location = '/search?q=' + query;
+        var url = '/?q=' + query;
+        if (CATEGORY_STRING) url += '&categories=' + CATEGORY_STRING;
+        window.location = url;
     });
 });

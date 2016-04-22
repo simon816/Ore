@@ -44,6 +44,19 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     collect(filter, limit, -1)
   }
 
+  def collect(filter: ProjectTable => Rep[Boolean], categories: Array[Category],
+              limit: Int, offset: Int): Future[Seq[Project]] = {
+    val f: ProjectTable => Rep[Boolean] = if (categories != null) {
+      val cf: ProjectTable => Rep[Boolean] = p => p.category inSetBind categories
+      if (filter != null) p => cf(p) && filter(p) else cf
+    } else filter
+    collect(f, limit, offset)
+  }
+
+  def collect(filter: ProjectTable => Rep[Boolean], categories: Array[Category], limit: Int): Future[Seq[Project]] = {
+    collect(filter, categories, limit, -1)
+  }
+
   /**
     * Filters projects based on the given criteria.
     *
@@ -53,11 +66,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @return           Projects matching criteria
     */
   def collect(categories: Array[Category], limit: Int, offset: Int): Future[Seq[Project]] = {
-    var filter: ProjectTable => Rep[Boolean] = null
-    if (categories != null) {
-      filter = p => p.category inSetBind categories
-    }
-    collect(filter, limit, offset)
+    collect(null, categories, limit, offset)
   }
 
   /**

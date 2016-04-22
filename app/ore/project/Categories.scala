@@ -15,7 +15,7 @@ object Categories extends Enumeration {
   val Rp          =   Category( 7, "Role Playing",      "fa-magic")
   val WorldMgmt   =   Category( 8, "World Management",  "fa-globe")
   val Misc        =   Category( 9, "Miscellaneous",     "fa-asterisk")
-  val Undefined   =   Category(10, "Undefined",         null)
+  val Undefined   =   Category(10, "Undefined",         null, isVisible = false)
 
   /**
     * Returns an Array of categories from a comma separated string of IDs.
@@ -45,7 +45,7 @@ object Categories extends Enumeration {
     * @param title  Title to display
     * @param icon   Icon to display
     */
-  case class Category(i: Int, title: String, icon: String) extends super.Val(i, title)
+  case class Category(i: Int, title: String, icon: String, isVisible: Boolean = true) extends super.Val(i, title)
   implicit def convert(value: Value): Category = value.asInstanceOf[Category]
 
 }

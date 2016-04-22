@@ -4,10 +4,9 @@ import javax.inject.Inject
 
 import controllers.routes.{Application => self}
 import db.OrePostgresDriver.api._
-import db.UserTable
 import db.query.Queries
 import db.query.Queries.now
-import models.project.Project
+import db.{ProjectTable, UserTable}
 import models.project.Project._
 import models.user.{FakeUser, User}
 import ore.permission.ResetOre
@@ -24,7 +23,6 @@ import util.forums.SpongeForums._
 import views.{html => views}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 /**
   * Main entry point for application.
@@ -36,19 +34,13 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     *
     * @return Home page
     */
-  def showHome(categories: Option[String]) = Action { implicit request =>
-    var projectsFuture: Future[Seq[Project]] = null
-    var categoryArray: Array[Category] = null
-    categories match {
-      case None => projectsFuture = Queries.Projects.collect(limit = InitialLoad)
-      case Some(csv) =>
-        categoryArray = Categories.fromString(csv)
-        if (Categories.values.subsetOf(categoryArray.toSet) || categoryArray.isEmpty) {
-          categoryArray = null
-        }
-        projectsFuture = Queries.Projects.collect(categoryArray, InitialLoad)
-    }
-    val projects = Queries.now(projectsFuture).get
+  def showHome(categories: Option[String], query: Option[String]) = Action { implicit request =>
+    val categoryArray: Array[Category] = if (categories.isDefined) Categories.fromString(categories.get) else null
+    val filter: ProjectTable => Rep[Boolean] = if (query.isDefined) {
+      val q = '%' + query.get.toLowerCase + '%'
+      p => (p.name.toLowerCase like q) || (p.description like q) || (p.ownerName like q)
+    } else null
+    val projects = now(Queries.Projects.collect(filter, categoryArray, InitialLoad)).get
     Ok(views.home(projects, Option(categoryArray)))
   }
 
@@ -92,7 +84,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
   def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
     if (FakeUser.IsEnabled) {
       now(Queries.Users.getOrInsert(FakeUser))
-      Redirect(self.showHome(None)).withSession(Security.username -> FakeUser.username)
+      Redirect(self.showHome(None, None)).withSession(Security.username -> FakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(Auth.getRedirect(config.getString("application.baseUrl").get + "/login"))
         .flashing("url" -> returnPath.getOrElse(request.path))
@@ -116,7 +108,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     * @return Home page
     */
   def logOut = Action { implicit request =>
-    Redirect(self.showHome(None)).withNewSession
+    Redirect(self.showHome(None, None)).withNewSession
   }
 
   /**
@@ -138,7 +130,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     val query: Query[UserTable, User, Seq] = Queries.Users.models
     now(Queries.DB.run(query.delete)).get
     FileUtils.deleteDirectory(P.UploadsDir.toFile)
-    Redirect(self.showHome(None)).withNewSession
+    Redirect(self.showHome(None, None)).withNewSession
   }
 
 }
