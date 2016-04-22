@@ -16,5 +16,6 @@ object ModelKeys {
   val Color = "color"
   val Contents = "contents"
   val RoleType = "roleType"
+  val TopicId = "topicId"
 
 }

@@ -58,10 +58,7 @@ object ProjectFactory {
       User.withId(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
     }
 
-    // Test
-    SpongeForums.Embed.createTopicAs(
-      user, user.username + " / " + newProject.name, newProject.description.getOrElse("No descriptionnnnnnnnn"))
-
+    SpongeForums.Embed.createTopic(newProject)
     newProject
   }
 

@@ -22,6 +22,7 @@ import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.{configuration => config, current}
 import play.api.cache.Cache
 import util.Input.{compact, slugify}
+import util.forums.SpongeForums
 import util.{Cacheable, PendingAction}
 
 import scala.util.Try
@@ -61,7 +62,8 @@ case class Project(override val   id: Option[Int] = None,
                    private var    _stars: Int = 0,
                    private var    _issues: Option[String] = None,
                    private var    _source: Option[String] = None,
-                   private var    _description: Option[String] = None)
+                   private var    _description: Option[String] = None,
+                   private var    _topicId: Option[Int] = None)
                    extends        NamedModel
                    with           ProjectScope { self =>
 
@@ -108,6 +110,7 @@ case class Project(override val   id: Option[Int] = None,
     ProjectFiles.renameProject(this.ownerName, this.name, newName)
     this._name = newName
     this._slug = slugify(newName)
+    SpongeForums.Embed.renameTopic(this)
     update(Name)
   }
 
@@ -288,6 +291,13 @@ case class Project(override val   id: Option[Int] = None,
     if (isDefined) update(Source)
   }
 
+  def topicId: Option[Int] = this._topicId
+
+  def topicId_=(_topicId: Int) = assertDefined {
+    this._topicId = Some(_topicId)
+    update(TopicId)
+  }
+
   /**
     * Returns a [[ModelSet]] of all [[ProjectRole]]s in this Project.
     *
@@ -420,6 +430,7 @@ case class Project(override val   id: Option[Int] = None,
     Try {
       now(Queries.Projects delete this).get
       FileUtils.deleteDirectory(ProjectFiles.projectDir(this.ownerName, this._name).toFile)
+      SpongeForums.Embed.deleteTopic(this)
     }
   }
 
@@ -447,6 +458,7 @@ case class Project(override val   id: Option[Int] = None,
   bind[Int](Stars, _._stars, stars => Seq(Queries.Projects.setInt(this, _.stars, stars)))
   bind[String](Issues, _._issues.orNull, issues => Seq(Queries.Projects.setString(this, _.issues, issues)))
   bind[String](Source, _._source.orNull, source => Seq(Queries.Projects.setString(this, _.source, source)))
+  bind[Int](TopicId, _._topicId.get, topicId => Seq(Queries.Projects.setInt(this, _.topicId, topicId)))
   bind[String](Description, _._description.orNull, description => {
     Seq(Queries.Projects.setString(this, _.description, description))
   })

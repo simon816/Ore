@@ -30,12 +30,13 @@ class ProjectTable(tag: Tag) extends NamedModelTable[Project](tag, "projects") {
   def issues                =   column[String]("issues")
   def source                =   column[String]("source")
   def description           =   column[String]("description")
+  def topicId               =   column[Int]("topic_id")
 
   override def modelName = this.name
 
   override def * = (id.?, createdAt.?, pluginId, name, slug, ownerName, ownerId, homepage.?, recommendedVersionId.?,
-                    category, views, downloads, stars, issues.?, source.?, description.?) <> ((Project.apply _).tupled,
-                    Project.unapply)
+                    category, views, downloads, stars, issues.?, source.?, description.?,
+                    topicId.?) <> ((Project.apply _).tupled, Project.unapply)
 
 }
 
