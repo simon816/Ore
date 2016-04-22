@@ -608,14 +608,14 @@ a > .fa {
 }
 
 .project-search {
-    padding: 3px;
-}
-
-.project-search > .input-group {
+    height: 40px;
     width: 0;
+    padding: 3px;
+    overflow: hidden;
 }
 
 .icon-project-search {
+    cursor: pointer;
     width: 40px;
     height: 40px;
     padding: 7px;
@@ -635,6 +635,7 @@ a > .fa {
 }
 
 .icon-project-search > i {
+    cursor: pointer;
     font-size: 25px;
     color: #e6b800;
     -webkit-transition: color 0.5s;

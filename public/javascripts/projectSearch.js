@@ -4,11 +4,14 @@ var CATEGORY_STRING = null;
 $(function() {
 
     $('.icon-project-search').click(function() {
-        var searchBar = $('.project-search').find('.input-group');
-        if (searchBar.is(':visible')) {
-            searchBar.animate({width: '0px'}, 100).fadeOut(100);
+        var searchBar = $('.project-search');
+        var input = searchBar.find('.input-group');
+        if (input.is(':visible')) {
+            searchBar.animate({width: '0px'}, 100);
+            input.fadeOut(100);
         } else {
-            searchBar.fadeIn(100).animate({width: '790px'}, 100);
+            input.fadeIn(100);
+            searchBar.animate({width: '790px'}, 100);
         }
     });
 
