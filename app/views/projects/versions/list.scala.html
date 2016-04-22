@@ -24,7 +24,8 @@ Versions page within Project overview.
                                   @defining(version.findChannelFrom(channels).get) { channel =>
                                     <tr>
                                         <td>
-                                            <i class="fa fa-circle channel-id" style="color: @channel.color.hex"></i> @version.versionString
+                                            <i title="@channel.name" class="fa fa-circle channel-id" style="color: @channel.color.hex"></i>
+                                            @version.versionString
                                         </td>
                                         <td>
                                             <div class="pull-right">

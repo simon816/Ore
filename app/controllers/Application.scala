@@ -93,7 +93,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
       var user = new User(userData._1, userData._2, userData._3, userData._4)
       user = now(Queries.Users.getOrInsert(user)).get
 
-      API.fetchRoles(user.username).andThen {
+      Users.fetchRoles(user.username).andThen {
         case roles => if (!roles.equals(user.globalRoleTypes)) user.globalRoleTypes = roles.get
       }
 

@@ -13,6 +13,7 @@ import ore.permission.role.RoleTypes
 import ore.project.ProjectFiles._
 import play.api.libs.Files.TemporaryFile
 import util.P._
+import util.forums.SpongeForums
 
 import scala.util.Try
 
@@ -56,6 +57,10 @@ object ProjectFactory {
     for (role <- pending.roles) {
       User.withId(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
     }
+
+    // Test
+    SpongeForums.Embed.createTopicAs(
+      user, user.username + " / " + newProject.name, newProject.description.getOrElse("No description"))
 
     newProject
   }

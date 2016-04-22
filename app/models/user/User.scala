@@ -160,7 +160,7 @@ object User extends ModelDAO[User] {
     * @return User if found, None otherwise
     */
   def withName(username: String): Option[User] = {
-    now(Queries.Users.withName(username)).get.orElse(now(SpongeForums.API.fetchUser(username)).get)
+    now(Queries.Users.withName(username)).get.orElse(now(SpongeForums.Users.fetch(username)).get)
   }
 
   /**

@@ -14,7 +14,7 @@ import scala.concurrent.Future
   */
 abstract class BaseController(ws: WSClient) extends Controller with I18nSupport with Secured {
 
-  if (API == null) init(ws)
+  if (Users == null) init(ws)
 
   protected[controllers] def withProject(author: String, slug: String)(f: Project => Result)
                                         (implicit request: RequestHeader): Result = {

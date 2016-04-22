@@ -7,6 +7,7 @@ import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 import play.api.libs.json.JsObject
 import play.api.libs.ws.{WSClient, WSResponse}
+import util.forums.SpongeForums.validate
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -16,7 +17,7 @@ import scala.concurrent.Future
   *
   * @param url Discourse URL
   */
-class DiscourseAPI(private val url: String, ws: WSClient) {
+class DiscourseUsers(url: String, ws: WSClient) {
 
   /**
     * Attempts to retrieve the user with the specified username from the forums
@@ -25,7 +26,7 @@ class DiscourseAPI(private val url: String, ws: WSClient) {
     * @param username Username to find
     * @return         New user or None
     */
-  def fetchUser(username: String): Future[Option[User]] = {
+  def fetch(username: String): Future[Option[User]] = {
     ws.url(userUrl(username)).get.map { response =>
       validate(response) { json =>
         val userObj = (json \ "user").as[JsObject]
@@ -82,30 +83,19 @@ class DiscourseAPI(private val url: String, ws: WSClient) {
     }).flatten.map(_.asInstanceOf[RoleType]).toSet
   }
 
-  private def validate[A](response: WSResponse)(f: JsObject => A): Option[A] = try {
-    val json = response.json.as[JsObject]
-    if (!json.keys.contains("errors")) {
-      Some(f(json))
-    } else {
-      None
-    }
-  } catch {
-    case e: Exception => None
-  }
-
   private def userUrl(username: String): String = {
     url + "/users/" + username + ".json"
   }
 
 }
 
-object DiscourseAPI {
+object DiscourseUsers {
 
   /**
     * Represents a DiscourseAPI object in a disabled state.
     */
-  object Disabled extends DiscourseAPI("", null) {
-    override def fetchUser(username: String) = Future(None)
+  object Disabled extends DiscourseUsers("", null) {
+    override def fetch(username: String) = Future(None)
     override def fetchRoles(username: String) = Future(Set())
     override def avatarUrl(username: String, size: Int) = ""
   }

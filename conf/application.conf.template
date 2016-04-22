@@ -58,10 +58,12 @@ slick.dbs.default.db.password   =   ${?JDBC_DATABASE_PASSWORD}
 
 
 # Discourse SSO
-discourse.sso.secret    =   ${?DISCOURSE_SSO_SECRET}
-discourse.sso.url       =   ${?DISCOURSE_SSO_URL}
-discourse.baseUrl       =   "https://forums.spongepowered.org"
-discourse.api.enabled   =   true
+discourse.sso.secret        =   ${?DISCOURSE_SSO_SECRET}
+discourse.sso.url           =   ${?DISCOURSE_SSO_URL}
+discourse.baseUrl           =   "https://forums.spongepowered.org"
+discourse.api.enabled       =   true
+discourse.api.key           =   ${?DISCOURSE_API_KEY}
+discourse.embed.categoryId  =   31
 
 
 # Sponge stuff
