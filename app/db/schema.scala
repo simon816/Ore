@@ -98,12 +98,12 @@ class VersionTable(tag: Tag) extends NamedModelTable[Version](tag, "versions") {
   def projectId       =   column[Int]("project_id")
   def channelId       =   column[Int]("channel_id")
   def fileSize        =   column[Long]("file_size")
+  def hash            =   column[String]("hash")
 
   override def modelName = this.versionString
 
-  override def * = (id.?, createdAt.?, versionString, dependencies, description.?,
-                    assets.?, downloads, projectId, channelId,
-                    fileSize) <> ((Version.apply _).tupled, Version.unapply)
+  override def * = (id.?, createdAt.?, versionString, dependencies, description.?, assets.?, downloads, projectId,
+                    channelId, fileSize, hash) <> ((Version.apply _).tupled, Version.unapply)
 }
 
 class VersionDownloadsTable(tag: Tag) extends Table[(Option[Int], Option[String],

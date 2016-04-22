@@ -1,5 +1,10 @@
 package util
 
+import java.nio.file.{Files, Path}
+import java.security.MessageDigest
+
+import org.apache.commons.codec.digest.DigestUtils
+
 /**
   * Helper class for handling User input.
   */
@@ -36,5 +41,7 @@ object Input {
     val trimmed = str.trim
     if (trimmed.nonEmpty) trimmed else null
   }
+
+  def md5(path: Path): String = DigestUtils.md5Hex(Files.newInputStream(path))
 
 }

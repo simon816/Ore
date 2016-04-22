@@ -16,6 +16,15 @@ class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => ne
 
   private val downloads = TableQuery[VersionDownloadsTable]
 
+  def hashExists(projectId: Int, hash: String): Future[Boolean] = {
+    val query = (for {
+      model <- this.models
+      if model.projectId === projectId
+      if model.hash === hash
+    } yield model.id).length > 0
+    run(query.result)
+  }
+
   /**
     * Returns all Versions in the specified seq of channels.
     *

@@ -13,7 +13,8 @@ import ore.project.{Dependency, PluginFile, ProjectFactory}
 import org.apache.commons.io.FileUtils
 import play.api.Play.current
 import play.api.cache.Cache
-import util.{Cacheable, PendingAction}
+import util.Input._
+import util.{Input, Cacheable, PendingAction}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
@@ -41,19 +42,20 @@ case class Version(override val   id: Option[Int] = None,
                    private var    _downloads: Int = 0,
                    override val   projectId: Int,
                    val            channelId: Int,
-                   val            fileSize: Long)
+                   val            fileSize: Long,
+                   val            hash: String)
                    extends        NamedModel
                    with           ProjectScope { self =>
 
   def this(versionString: String, dependencies: List[String], description: String,
-           assets: String, projectId: Int, channelId: Int, fileSize: Long) = {
+           assets: String, projectId: Int, channelId: Int, fileSize: Long, hash: String) = {
     this(None, None, versionString, dependencies, Option(description),
-         Option(assets), 0, projectId, channelId, fileSize)
+         Option(assets), 0, projectId, channelId, fileSize, hash)
   }
 
   def this(versionString: String, dependencies: List[String],
-           description: String, assets: String, projectId: Int, fileSize: Long) = {
-    this(versionString, dependencies, description, assets, projectId, -1, fileSize)
+           description: String, assets: String, projectId: Int, fileSize: Long, hash: String) = {
+    this(versionString, dependencies, description, assets, projectId, -1, fileSize, hash)
   }
 
   /**
@@ -133,6 +135,12 @@ case class Version(override val   id: Option[Int] = None,
     * @return Human readable file size
     */
   def humanFileSize: String = FileUtils.byteCountToDisplaySize(this.fileSize)
+
+  def exists: Boolean = {
+    this.projectId > -1 &&
+      ((this.channelId > -1 && this.channel.versions.withName(this.versionString).isDefined) ||
+      now(Queries.Versions.hashExists(this.projectId, this.hash)).get)
+  }
 
   override def name: String = this.versionString
 
@@ -230,8 +238,11 @@ object Version extends ModelDAO[Version] {
     // TODO: asset parsing
     val meta = plugin.meta.get
     val depends = for (depend <- meta.getRequiredDependencies) yield depend.getId + ":" + depend.getVersion
-    new Version(meta.getVersion, depends.toList, meta.getDescription, "",
-                project.id.getOrElse(-1), plugin.path.toFile.length)
+    val path = plugin.path
+    new Version(
+      meta.getVersion, depends.toList, meta.getDescription, "",
+      project.id.getOrElse(-1), path.toFile.length, md5(path)
+    )
   }
 
   override def withId(id: Int): Option[Version] = now(Queries.Versions.get(id)).get

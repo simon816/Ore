@@ -142,13 +142,18 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
               } else {
                 // Create version from meta file
                 val version = Version.fromMeta(project, plugin)
+                if (version.exists) {
+                  Redirect(self.showCreator(author, slug))
+                    .flashing("error" -> "Found a duplicate file in project. Plugin files may only be uploaded once.")
+                } else {
 
-                // Get first channel for default
-                val channelName: String = project.channels.values.head.name
+                  // Get first channel for default
+                  val channelName: String = project.channels.values.head.name
 
-                // Cache for later use
-                Version.setPending(author, slug, channelName, version, plugin)
-                Redirect(self.showCreatorWithMeta(author, slug, channelName, version.versionString))
+                  // Cache for later use
+                  Version.setPending(author, slug, channelName, version, plugin)
+                  Redirect(self.showCreatorWithMeta(author, slug, channelName, version.versionString))
+                }
               }
           }
       }

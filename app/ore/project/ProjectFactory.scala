@@ -1,6 +1,7 @@
 package ore.project
 
 import java.nio.file.Files
+import java.security.MessageDigest
 
 import com.google.common.base.Preconditions._
 import db.query.Queries
@@ -80,13 +81,14 @@ object ProjectFactory {
 
     // Create version
     val pendingVersion = pending.version
-    if (channel.versions.withName(pendingVersion.versionString).isDefined) {
+    if (pendingVersion.exists) {
       throw new IllegalArgumentException("Version already exists.")
     }
 
-    var newVersion = new Version(pendingVersion.versionString, pendingVersion.dependenciesIds,
-                                 pendingVersion.description.orNull, pendingVersion.assets.orNull,
-                                 project.id.get, channel.id.get, pending.plugin.path.toFile.length)
+    var newVersion = new Version(
+      pendingVersion.versionString, pendingVersion.dependenciesIds, pendingVersion.description.orNull,
+      pendingVersion.assets.orNull, project.id.get, channel.id.get, pendingVersion.fileSize, pendingVersion.hash
+    )
 
     newVersion = channel.versions.add(newVersion)
     uploadPlugin(channel, pending.plugin)
