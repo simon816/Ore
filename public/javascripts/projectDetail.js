@@ -30,10 +30,9 @@ $(function() {
                     event.preventDefault();
                     var navBar = $('.project-navbar');
                     var activeTab = navBar.find('li.active');
-                    console.log(activeTab);
                     var nextTab = activeTab.next();
-                    console.log(nextTab);
-                    if (nextTab.is('li')) {
+                    var nextId = nextTab.attr('id');
+                    if (nextTab.is('li') && nextId !== 'issues' && nextId !== 'source') {
                         window.location = nextTab.find('a').attr('href');
                     } else {
                         window.location = navBar.find('li:first').find('a').attr('href');
