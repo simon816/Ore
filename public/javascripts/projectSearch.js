@@ -12,6 +12,7 @@ $(function() {
         } else {
             input.fadeIn(100);
             searchBar.animate({width: '790px'}, 100);
+            input.find('input').focus();
         }
     });
 
