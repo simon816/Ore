@@ -2,6 +2,8 @@ var projectOwner = null;
 var projectSlug = null;
 var alreadyStarred = false;
 
+var KEY_TAB = 9;
+
 $(function() {
     // setup star button
     var increment = alreadyStarred ? -1 : 1;
@@ -18,5 +20,28 @@ $(function() {
         }
 
         increment *= -1;
+    });
+
+    $('body').keydown(function(event) {
+        var target = $(event.target);
+        if (target.is('body')) {
+            switch (event.keyCode) {
+                case KEY_TAB:
+                    event.preventDefault();
+                    var navBar = $('.project-navbar');
+                    var activeTab = navBar.find('li.active');
+                    console.log(activeTab);
+                    var nextTab = activeTab.next();
+                    console.log(nextTab);
+                    if (nextTab.is('li')) {
+                        window.location = nextTab.find('a').attr('href');
+                    } else {
+                        window.location = navBar.find('li:first').find('a').attr('href');
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
     });
 });
