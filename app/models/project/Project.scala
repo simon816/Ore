@@ -1,6 +1,8 @@
 package models.project
 
+import java.nio.file.{Path, Files}
 import java.sql.Timestamp
+import java.text.MessageFormat
 
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
@@ -22,6 +24,7 @@ import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.{configuration => config, current}
 import play.api.cache.Cache
 import util.Input.{compact, slugify}
+import util.P._
 import util.forums.SpongeForums
 import util.{Cacheable, PendingAction}
 
@@ -63,7 +66,8 @@ case class Project(override val   id: Option[Int] = None,
                    private var    _issues: Option[String] = None,
                    private var    _source: Option[String] = None,
                    private var    _description: Option[String] = None,
-                   private var    _topicId: Option[Int] = None)
+                   private var    _topicId: Option[Int] = None,
+                   private var    _postId: Option[Int] = None)
                    extends        NamedModel
                    with           ProjectScope { self =>
 
@@ -298,6 +302,13 @@ case class Project(override val   id: Option[Int] = None,
     update(TopicId)
   }
 
+  def postId: Option[Int] = this._postId
+
+  def postId_=(_postId: Int) = assertDefined {
+    this._postId = Some(_postId)
+    update(PostId)
+  }
+
   /**
     * Returns a [[ModelSet]] of all [[ProjectRole]]s in this Project.
     *
@@ -459,6 +470,7 @@ case class Project(override val   id: Option[Int] = None,
   bind[String](Issues, _._issues.orNull, issues => Seq(Queries.Projects.setString(this, _.issues, issues)))
   bind[String](Source, _._source.orNull, source => Seq(Queries.Projects.setString(this, _.source, source)))
   bind[Int](TopicId, _._topicId.get, topicId => Seq(Queries.Projects.setInt(this, _.topicId, topicId)))
+  bind[Int](PostId, _._postId.get, postId => Seq(Queries.Projects.setInt(this, _.postId, postId)))
   bind[String](Description, _._description.orNull, description => {
     Seq(Queries.Projects.setString(this, _.description, description))
   })
@@ -491,6 +503,8 @@ object Project extends ModelDAO[Project] {
     * The maximum amount of Projects that are loaded initially.
     */
   val InitialLoad: Int = config.getInt("ore.projects.init-load").get
+
+  val ForumTopicTemplatePath: Path = ConfDir.resolve("discourse/project_topic.md")
 
   /**
     * Represents a Project with an uploaded plugin that has not yet been
@@ -568,6 +582,12 @@ object Project extends ModelDAO[Project] {
     * @return       Project if found, None otherwise
     */
   def by(owner: String): Seq[Project] = now(Queries.Projects.by(owner)).get
+
+  def topicContentFor(project: Project): String = {
+    val template = new String(Files.readAllBytes(ForumTopicTemplatePath))
+    val url = config.getString("application.baseUrl").get + '/' + project.ownerName + '/' + project.slug
+    MessageFormat.format(template, project.name, url, project.homePage.contents)
+  }
 
   /**
     * Returns true if the Project's desired slug is available.

@@ -2,6 +2,7 @@ package ore.project
 
 import java.nio.file.{Files, Path}
 
+import models.project.Project
 import util.P._
 
 import scala.util.Try

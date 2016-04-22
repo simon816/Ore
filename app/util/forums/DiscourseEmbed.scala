@@ -12,17 +12,31 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
   def createTopic(project: Project) = {
     val username = project.ownerName
     val params = this.keyedRequest(username) + (
-      "title" -> Seq(username + " / " + project.name),
-      "raw" -> Seq(project.description.getOrElse("No descriptionnnnnnnnnnn")))
+      "title" -> Seq(username + " / " + project.name + project.description.map(" - " + _).getOrElse("")),
+      "raw" -> Seq(Project.topicContentFor(project)))
     ws.url(url + "/posts").post(params).map { response =>
       validate(response) { json =>
+        println(json)
+        val postId = (json \ "id").as[Int]
         val topicId = (json \ "topic_id").as[Int]
         val update = this.keyedRequest(username) + (
           "topic_id" -> Seq(topicId.toString),
           "category_id" -> Seq(this.categoryId.toString))
         project.topicId = topicId
+        project.postId = postId
         ws.url(url + "/t/" + topicId).put(update)
       }
+    }
+  }
+
+  def updateTopic(project: Project) = {
+    val postId = project.postId.get
+    println(Project.topicContentFor(project))
+    val params = this.keyedRequest(project.ownerName) + (
+      "post[raw]" -> Seq(Project.topicContentFor(project)))
+    ws.url(url + "/posts/" + postId).put(params).map { response =>
+      println(response)
+      println(response.json)
     }
   }
 
@@ -31,11 +45,7 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
     val params = this.keyedRequest(project.ownerName) + (
       "topic_id" -> Seq(topicId.toString),
       "title" -> Seq(project.ownerName + " / " + project.name))
-    println(params)
-    ws.url(url + "/t/" + topicId).put(params).map { response =>
-      println(response)
-      println(response.json)
-    }
+    ws.url(url + "/t/" + topicId).put(params)
   }
 
   def deleteTopic(project: Project) = {
@@ -53,6 +63,8 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
 object DiscourseEmbed {
   object Disabled extends DiscourseEmbed(null, null, -1, null) {
     override def createTopic(project: Project) = Future(None)
+    override def updateTopic(project: Project) = Future(null)
+    override def renameTopic(project: Project) = Future(null)
     override def deleteTopic(project: Project) = Future(null)
   }
 }

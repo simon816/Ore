@@ -1,6 +1,8 @@
 package models.project
 
+import java.nio.file.{Path, Files}
 import java.sql.Timestamp
+import java.text.MessageFormat
 
 import db.orm.dao.ModelDAO
 import db.orm.model.ModelKeys._
@@ -11,6 +13,8 @@ import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
 import play.api.Play.{configuration => config, current}
 import util.Input._
+import util.P._
+import util.forums.SpongeForums
 
 /**
   * Represents a documentation page within a project.
@@ -40,6 +44,8 @@ case class Page(override val  id: Option[Int] = None,
          slug=slugify(name), _contents=content, isDeletable=isDeletable)
   }
 
+  def project: Project = Project.withId(this.projectId).get
+
   /**
     * Returns the Markdown contents of this Page.
     *
@@ -54,7 +60,10 @@ case class Page(override val  id: Option[Int] = None,
     */
   def contents_=(_contents: String) = {
     this._contents = _contents
-    if (isDefined) update(Contents)
+    if (isDefined) {
+      if (this.name.equals(HomeName)) SpongeForums.Embed.updateTopic(this.project)
+      update(Contents)
+    }
   }
 
   /**
