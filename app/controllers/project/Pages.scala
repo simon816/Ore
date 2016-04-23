@@ -63,10 +63,13 @@ class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) exten
     */
   def save(author: String, slug: String, page: String) = {
     PageEditAction(author, slug) { implicit request =>
-      // TODO: Validate content size and title
-      val pageForm = Forms.PageEdit.bindFromRequest.get
-      request.project.getOrCreatePage(page).contents = pageForm._2
-      Redirect(self.show(author, slug, page))
+      Forms.PageEdit.bindFromRequest.fold(
+        hasErrors => Redirect(self.showEditor(author, slug, page)).flashing("error" -> hasErrors.errors.head.message),
+        pageData => {
+          request.project.getOrCreatePage(page).contents = pageData._2
+          Redirect(self.show(author, slug, page))
+        }
+      )
     }
   }
 

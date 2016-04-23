@@ -11,6 +11,7 @@ function uid() {
 }
 
 $(function() {
+    $('.alert-fade').fadeIn('slow');
     $('[data-toggle="tooltip"]').tooltip();
 
     /*

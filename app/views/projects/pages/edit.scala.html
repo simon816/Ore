@@ -1,13 +1,24 @@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.{Page, Project}
 @import views.html.helper.form
-@(model: Project, page: String, content: String)(implicit messages: Messages, session: Session, request: RequestHeader)
+@(model: Project, page: String, content: String)(implicit messages: Messages, session: Session,
+        request: RequestHeader, flash: Flash)
 
 @projects.view(model, "#docs") {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/pagePreview.js")"></script>
 
     <div class="container">
+
+        @if(flash.get("error").isDefined) {
+            <div class="alert alert-fade alert-danger alert-dismissable" role="alert" style="display: none;">
+                <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                @flash.get("error").get
+            </div>
+        }
+
         @form(action = projectRoutes.Pages.save(model.ownerName, model.slug, page)) {
             <div class="form-group form-inline">
                 <input class="form-control" type="text" name="name" value="@page" readonly>
@@ -52,7 +63,9 @@
             </ul>
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="edit">
-                    <textarea id="content" name="content" class="form-control" rows="20">@content</textarea>
+                    <textarea id="content" name="content" class="form-control" rows="20" maxlength="@Page.MaxLength">
+                        @content
+                    </textarea>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="preview"></div>
             </div>

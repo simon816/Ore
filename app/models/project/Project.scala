@@ -423,9 +423,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return       Page with name or new name if it doesn't exist
     */
   def getOrCreatePage(name: String): Page = assertDefined {
-    // TODO: Name validation
-    checkNotNull(name, "name cannot be null", "")
-    now(Queries.Pages.getOrInsert(new Page(this.id.get, name, Page.template(name), true))).get
+    now(Queries.Pages.getOrInsert(new Page(this.id.get, name, Page.template(name, Page.HomeMessage), true))).get
   }
 
   /**
@@ -434,7 +432,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return Project home page
     */
   def homePage: Page = assertDefined {
-    val page = new Page(this.id.get, Page.HomeName, Page.template(name, Page.HomeMessage), false)
+    val page = new Page(this.id.get, Page.HomeName, Page.template(this.name, Page.HomeMessage), false)
     now(Queries.Pages.getOrInsert(page)).get
   }
 

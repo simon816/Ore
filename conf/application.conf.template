@@ -33,6 +33,9 @@ ore.channels.name-default   =   "Release"
 
 ore.pages.home.name     =   "Home"
 ore.pages.home.message  =   "Welcome to your new project!"
+ore.pages.min-len       =   15
+ore.pages.max-len       =   32000
+ore.pages.name.max-len  =   255
 
 ore.projects.max-name-len   =   25
 ore.projects.max-pages      =   10

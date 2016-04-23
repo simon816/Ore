@@ -2,6 +2,7 @@ package models.project
 
 import java.sql.Timestamp
 
+import com.google.common.base.Preconditions._
 import db.orm.dao.ModelDAO
 import db.orm.model.ModelKeys._
 import db.orm.model.NamedModel
@@ -36,9 +37,16 @@ case class Page(override val  id: Option[Int] = None,
 
   import models.project.Page._
 
+  checkNotNull(this.name, "name cannot be null", "")
+  checkNotNull(this._contents, "contents cannot be null", "")
+
+  checkArgument(this.name.length <= MaxNameLength, "name too long", "")
+  checkArgument(_contents.length <= MaxLength, "contents too long", "")
+  checkArgument(_contents.length >= MinLength, "contents not long enough", "")
+
   def this(projectId: Int, name: String, content: String, isDeletable: Boolean) = {
     this(projectId=projectId, name=compact(name),
-         slug=slugify(name), _contents=content, isDeletable=isDeletable)
+         slug=slugify(name), _contents=content.trim, isDeletable=isDeletable)
   }
 
   def project: Project = Project.withId(this.projectId).get
@@ -56,6 +64,8 @@ case class Page(override val  id: Option[Int] = None,
     * @param _contents Markdown contents
     */
   def contents_=(_contents: String) = {
+    checkArgument(_contents.length <= MaxLength, "contents too long", "")
+    checkArgument(_contents.length >= MinLength, "contents not long enough", "")
     this._contents = _contents
     if (isDefined) {
       if (this.name.equals(HomeName)) SpongeForums.Embed.updateTopic(this.project)
@@ -94,6 +104,21 @@ object Page extends ModelDAO[Page] {
     * The Markdown processor.
     */
   val MarkdownProcessor: PegDownProcessor = new PegDownProcessor(ALL & ~ANCHORLINKS)
+
+  /**
+    * The minimum amount of characters a page may have.
+    */
+  val MinLength: Int = config.getInt("ore.pages.min-len").get
+
+  /**
+    * The maximum amount of characters a page may have.
+    */
+  val MaxLength: Int = config.getInt("ore.pages.max-len").get
+
+  /**
+    * The maximum amount of characters a page name may have.
+    */
+  val MaxNameLength: Int = config.getInt("ore.pages.name.max-len").get
 
   override def withId(id: Int): Option[Page] = Queries.now(Queries.Pages.get(id)).get
 
