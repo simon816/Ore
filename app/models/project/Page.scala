@@ -1,8 +1,6 @@
 package models.project
 
-import java.nio.file.{Path, Files}
 import java.sql.Timestamp
-import java.text.MessageFormat
 
 import db.orm.dao.ModelDAO
 import db.orm.model.ModelKeys._
@@ -13,7 +11,6 @@ import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
 import play.api.Play.{configuration => config, current}
 import util.Input._
-import util.P._
 import util.forums.SpongeForums
 
 /**

@@ -1,6 +1,6 @@
 package models.project
 
-import java.nio.file.{Path, Files}
+import java.nio.file.{Files, Path}
 import java.sql.Timestamp
 import java.text.MessageFormat
 

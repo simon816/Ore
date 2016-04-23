@@ -2,7 +2,7 @@ package util.forums
 
 import play.api.Play.{configuration => config, current}
 import play.api.libs.json.JsObject
-import play.api.libs.ws.{WSResponse, WSClient}
+import play.api.libs.ws.{WSClient, WSResponse}
 
 /**
   * Handles interactions between Ore and the Sponge forums.

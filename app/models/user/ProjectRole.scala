@@ -3,8 +3,8 @@ package models.user
 import java.sql.Timestamp
 
 import db.orm.dao.ModelDAO
+import db.orm.model.Model
 import db.orm.model.ModelKeys._
-import db.orm.model.{ModelKeys, Model}
 import db.query.Queries
 import ore.permission.role.Role
 import ore.permission.role.RoleTypes.RoleType

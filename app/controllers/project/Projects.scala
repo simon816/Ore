@@ -2,11 +2,9 @@ package controllers.project
 
 import javax.inject.Inject
 
-import db.OrePostgresDriver.api._
 import controllers.BaseController
 import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
-import db.query.Queries
 import models.project._
 import models.user.User
 import ore.permission.EditSettings

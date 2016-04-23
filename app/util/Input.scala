@@ -1,7 +1,6 @@
 package util
 
 import java.nio.file.{Files, Path}
-import java.security.MessageDigest
 
 import org.apache.commons.codec.digest.DigestUtils
 

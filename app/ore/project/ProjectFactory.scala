@@ -1,7 +1,6 @@
 package ore.project
 
 import java.nio.file.Files
-import java.security.MessageDigest
 
 import com.google.common.base.Preconditions._
 import db.query.Queries
