@@ -6,6 +6,38 @@ var currentlyLoaded = 0;
 
 $(function() {
 
+    // Setup category table
+    $('.category-table').find('tr').click(function() {
+        var categoryString = '';
+        var id = $(this).data('id');
+        if ($(this).hasClass('selected')) {
+            // Category is already selected
+            var self = $(this);
+            var selected = $('.category-table').find('.selected');
+            selected.each(function(i) {
+                if ($(this).is(self)) return; // Skip the clicked category
+                categoryString += $(this).data('id');
+                if (i < selected.length - 1) categoryString += ',';
+            });
+        } else if (CATEGORY_STRING) {
+            categoryString += CATEGORY_STRING + ',' + $(this).data('id');
+        } else {
+            categoryString += id;
+        }
+
+        // Build URL
+        var url = '/?';
+        if (categoryString.length > 0) {
+            url += 'categories=' + categoryString;
+            if (SORT_STRING) url += '&sort=' + SORT_STRING;
+        } else if (SORT_STRING) {
+            url += 'sort=' + SORT_STRING;
+        }
+
+        // Fly you fools!
+        window.location = url;
+    });
+
     // Initialize sorting selection
     $('.select-sort').on('change', function() {
         var url = '/?sort=' + $(this).find('option:selected').val();

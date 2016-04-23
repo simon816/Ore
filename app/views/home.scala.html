@@ -123,29 +123,15 @@ sorted according to different criteria.
                             @for(i <- 0 until Categories.values.size) {
                               @defining(Categories(i)) { category =>
                                 @if(category.isVisible) {
-                                  @if(visibleCategories.isDefined) {
-                                    @if(!visibleCategories.get.contains(category)) {
-                                        <tr onclick="location.href='@routes.Application.showHome(Some(
-                                        (visibleCategories.get.map(_.id) :+ i).mkString(",")), None, None)'">
-                                            <td>
-                                                <i class="fa @category.icon"></i>
-                                                <strong>@category.title</strong>
-                                            </td>
-                                    } else {
-                                        <tr class="glow" onclick="location.href='@routes.Application.showHome(Some(
-                                        visibleCategories.get.map(_.id).filterNot(id => id == i).mkString(",")), None, None)'">
-                                            <td>
-                                                <i class="fa @Categories(i).icon"></i>
-                                                <strong>@Categories(i).title</strong>
-                                            </td>
-                                    }
-                                  } else {
-                                      <tr onclick="location.href='@routes.Application.showHome(Some(Integer.toString(i)), None, None)'">
-                                          <td>
-                                              <i class="fa @category.icon"></i>
-                                              <strong>@category.title</strong>
-                                          </td>
-                                  }
+                                    <tr data-id="@category.id"
+                                        @if(visibleCategories.isDefined && visibleCategories.get.contains(category)) {
+                                            class="selected"
+                                    }>
+                                        <td>
+                                            <i class="fa @category.icon"></i>
+                                            <strong>@category.title</strong>
+                                        </td>
+                                    </tr>
                                 }
                               }
                             }
