@@ -3,7 +3,8 @@
 
 # Application configuration
 # Enable fakeUser to bypass standard authentication in a development environment
-application.baseUrl             =   ${BASE_URL}
+application.baseUrl             =   "http://localhost:9000"
+application.baseUrl             =   ${?BASE_URL}
 application.fakeUser.enabled    =   false
 application.fakeUser.enabled    =   ${?FAKE_USER}
 application.fakeUser.id         =   -1
@@ -50,14 +51,17 @@ ore.git.url     =   "https://github.com/SpongePowered/Ore"
 ore.git.ref     =   ".git/refs/heads/master"
 ore.git.ref-len =   7
 
+# Used in /admin/seed route. Run "gradle build" in OreTestPlugin before using that route
 ore.test-plugin = "OreTestPlugin/build/libs/ore-test-plugin-dev-SNAPSHOT.jar"
 
 
 # Slick configuration
 slick.dbs.default.driver        =   "slick.driver.PostgresDriver$"
 slick.dbs.default.db.driver     =   "org.postgresql.Driver"
-slick.dbs.default.db.url        =   ${JDBC_DATABASE_URL}
-slick.dbs.default.db.user       =   ${JDBC_DATABASE_USERNAME}
+slick.dbs.default.db.url        =   "jdbc:postgresql://localhost/ore"
+slick.dbs.default.db.url        =   ${?JDBC_DATABASE_URL}
+slick.dbs.default.db.user       =   "root"
+slick.dbs.default.db.user       =   ${?JDBC_DATABASE_USERNAME}
 slick.dbs.default.db.password   =   ""
 slick.dbs.default.db.password   =   ${?JDBC_DATABASE_PASSWORD}
 
