@@ -16,6 +16,14 @@ class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => ne
 
   private val downloads = TableQuery[VersionDownloadsTable]
 
+  /**
+    * Returns true if the specified hash is found in the specified
+    * [[models.project.Project]]'s [[Version]]s.
+    *
+    * @param projectId  Project ID
+    * @param hash       Version hash
+    * @return           True if found
+    */
   def hashExists(projectId: Int, hash: String): Future[Boolean] = {
     val query = (for {
       model <- this.models
@@ -48,7 +56,7 @@ class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => ne
     * @return           True if downloaded
     */
   def hasBeenDownloadedBy(versionId: Int, cookie: String): Future[Boolean] = {
-    val query = this.downloads.filter(vd => vd.versionId === versionId && vd.cookie === cookie).size > 0
+    val query = this.downloads.filter(vd => vd.versionId === versionId && vd.cookie === cookie).length > 0
     run(query.result)
   }
 
@@ -73,7 +81,7 @@ class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => ne
     * @return           True if downloaded
     */
   def hasBeenDownloadedBy(versionId: Int, userId: Int): Future[Boolean] = {
-    val query = this.downloads.filter(vd => vd.versionId === versionId && vd.userId === userId).size > 0
+    val query = this.downloads.filter(vd => vd.versionId === versionId && vd.userId === userId).length > 0
     run(query.result)
   }
 

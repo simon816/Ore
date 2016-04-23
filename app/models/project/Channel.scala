@@ -79,13 +79,6 @@ case class Channel(override val   id: Option[Int] = None,
   }
 
   /**
-    * Returns the Project this Channel belongs to.
-    *
-    * @return Project the Channel belongs to
-    */
-  def project: Project = Project.withId(this.projectId).get
-
-  /**
     * Returns all Versions in this channel.
     *
     * @return All versions

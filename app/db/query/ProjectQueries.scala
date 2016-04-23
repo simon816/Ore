@@ -87,7 +87,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @return           Projects matching criteria
     */
   def collect(categories: Array[Category]): Future[Seq[Project]] = {
-    collect(categories, -1, -1)
+    collect(categories, -1)
   }
 
   /**
@@ -97,7 +97,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @return      Projects matching criteria
     */
   def collect(limit: Int): Future[Seq[Project]] = {
-    collect(null.asInstanceOf[Array[Category]], limit, -1)
+    collect(null.asInstanceOf[Array[Category]], limit)
   }
 
   /**
@@ -107,7 +107,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @return           Projects by owner
     */
   def by(ownerName: String): Future[Seq[Project]] = {
-    run(this.models.filter(p => p.ownerName === ownerName).result)
+    run(this.models.filter(_.ownerName === ownerName).result)
   }
 
   /**
@@ -161,7 +161,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @return         True if cookie is found
     */
   def hasBeenViewedBy(projectId: Int, cookie: String): Future[Boolean] = {
-    val query = this.views.filter(pv => pv.projectId === projectId && pv.cookie === cookie).size > 0
+    val query = this.views.filter(pv => pv.projectId === projectId && pv.cookie === cookie).length > 0
     run(query.result)
   }
 
@@ -186,7 +186,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @return           True if user is found
     */
   def hasBeenViewedBy(projectId: Int, userId: Int): Future[Boolean] = {
-    val query = this.views.filter(pv => pv.projectId === projectId && pv.userId === userId).size > 0
+    val query = this.views.filter(pv => pv.projectId === projectId && pv.userId === userId).length > 0
     run(query.result)
   }
 
@@ -210,7 +210,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @return           True if Project is starred by user
     */
   def isStarredBy(projectId: Int, userId: Int): Future[Boolean] = {
-    val query = this.stars.filter(sp => sp.userId === userId && sp.projectId === projectId).size > 0
+    val query = this.stars.filter(sp => sp.userId === userId && sp.projectId === projectId).length > 0
     run(query.result)
   }
 
@@ -246,12 +246,12 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     */
   def starredBy(userId: Int, limit: Int = -1, offset: Int = -1): Future[Seq[Project]] = {
     val promise = Promise[Seq[Project]]
-    val starQuery = this.stars.filter(sp => sp.userId === userId)
+    val starQuery = this.stars.filter(_.userId === userId)
     run(starQuery.result).andThen {
       case Failure(thrown) => promise.failure(thrown)
       case Success(userStars) =>
         val projectIds = userStars.map(_._2)
-        var projectsQuery = this.models.filter(p => p.id inSetBind projectIds)
+        var projectsQuery = this.models.filter(_.id inSetBind projectIds)
         if (offset > -1) projectsQuery = projectsQuery.drop(offset)
         if (limit > -1) projectsQuery = projectsQuery.take(limit)
         promise.completeWith(run(projectsQuery.result))

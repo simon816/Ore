@@ -78,7 +78,7 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     * @param model Model to delete
     */
   def delete(model: M): Future[Int] = {
-    val query = this.models.filter(m => m.id === model.id.get)
+    val query = this.models.filter(_.id === model.id.get)
     run(query.delete)
   }
 
@@ -99,7 +99,7 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     * @return     Model if present, None otherwise
     */
   def get(id: Int): Future[Option[M]] = {
-    ?(m => m.id === id)
+    ?(_.id === id)
   }
 
   /**

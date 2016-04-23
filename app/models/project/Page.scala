@@ -2,6 +2,7 @@ package models.project
 
 import java.sql.Timestamp
 
+import com.google.common.base.Objects
 import com.google.common.base.Preconditions._
 import db.orm.dao.ModelDAO
 import db.orm.model.ModelKeys._
@@ -48,8 +49,6 @@ case class Page(override val  id: Option[Int] = None,
     this(projectId=projectId, name=compact(name),
          slug=slugify(name), _contents=content.trim, isDeletable=isDeletable)
   }
-
-  def project: Project = Project.withId(this.projectId).get
 
   /**
     * Returns the Markdown contents of this Page.
