@@ -7,8 +7,21 @@ import util.forums.SpongeForums.validate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+/**
+  * Handles forum topic management for Projects.
+  *
+  * @param url        Forum URL
+  * @param apiKey     Discourse API key
+  * @param categoryId Discourse category ID
+  * @param ws         HTTP client
+  */
 class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient) {
 
+  /**
+    * Creates a new topic for the specified [[Project]].
+    *
+    * @param project Project to create topic for
+    */
   def createTopic(project: Project) = {
     val username = project.ownerName
     val params = this.keyedRequest(username) + (
@@ -29,6 +42,11 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
     }
   }
 
+  /**
+    * Updates the specified [[Project]]'s topic with the appropriate content.
+    *
+    * @param project Project to update
+    */
   def updateTopic(project: Project) = {
     val postId = project.postId.get
     println(Project.topicContentFor(project))
@@ -39,6 +57,11 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
     }
   }
 
+  /**
+    * Performs a rename on the forum topic for the specified [[Project]].
+    *
+    * @param project Project that was renamed
+    */
   def renameTopic(project: Project) = {
     val topicId = project.topicId.get
     val params = this.keyedRequest(project.ownerName) + (
@@ -47,6 +70,11 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
     ws.url(url + "/t/" + topicId).put(params)
   }
 
+  /**
+    * Delete's the topic for the specified [[Project]].
+    *
+    * @param project Project to delete topic for
+    */
   def deleteTopic(project: Project) = {
     val k = "api_key" -> this.apiKey
     val u = "api_username" -> project.ownerName
@@ -60,10 +88,15 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
 }
 
 object DiscourseEmbed {
+
+  /**
+    * Represents a disabled state of [[DiscourseEmbed]].
+    */
   object Disabled extends DiscourseEmbed(null, null, -1, null) {
     override def createTopic(project: Project) = Future(None)
     override def updateTopic(project: Project) = Future(null)
     override def renameTopic(project: Project) = Future(null)
     override def deleteTopic(project: Project) = Future(null)
   }
+
 }

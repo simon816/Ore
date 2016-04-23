@@ -127,6 +127,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     * TODO: REMOVE BEFORE PRODUCTION
     */
   def reset = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
+    for (project <- now(Queries.Projects.collect()).get) project.delete.get
     val query: Query[UserTable, User, Seq] = Queries.Users.models
     now(Queries.DB.run(query.delete)).get
     FileUtils.deleteDirectory(P.UploadsDir.toFile)

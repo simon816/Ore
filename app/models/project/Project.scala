@@ -295,15 +295,35 @@ case class Project(override val   id: Option[Int] = None,
     if (isDefined) update(Source)
   }
 
+  /**
+    * Returns the forum topic ID for this Project.
+    *
+    * @return Forum topic ID
+    */
   def topicId: Option[Int] = this._topicId
 
+  /**
+    * Sets the forum topic ID for this Project.
+    *
+    * @param _topicId ID to set
+    */
   def topicId_=(_topicId: Int) = assertDefined {
     this._topicId = Some(_topicId)
     update(TopicId)
   }
 
+  /**
+    * Returns the forum post ID for this Project.
+    *
+    * @return Forum post ID
+    */
   def postId: Option[Int] = this._postId
 
+  /**
+    * Sets the forum post ID for this Project.
+    *
+    * @param _postId Forum post ID
+    */
   def postId_=(_postId: Int) = assertDefined {
     this._postId = Some(_postId)
     update(PostId)
@@ -583,6 +603,13 @@ object Project extends ModelDAO[Project] {
     */
   def by(owner: String): Seq[Project] = now(Queries.Projects.by(owner)).get
 
+  /**
+    * Returns the string to fill the specified Project's forum topic content
+    * with.
+    *
+    * @param project  Project of topic
+    * @return         Topic content string
+    */
   def topicContentFor(project: Project): String = {
     val template = new String(Files.readAllBytes(ForumTopicTemplatePath))
     val url = config.getString("application.baseUrl").get + '/' + project.ownerName + '/' + project.slug
