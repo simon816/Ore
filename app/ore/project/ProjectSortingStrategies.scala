@@ -8,9 +8,7 @@ import slick.lifted.ColumnOrdered
 
 object ProjectSortingStrategies {
 
-  val values: Seq[ProjectSortingStrategy] = Seq[ProjectSortingStrategy](
-    MostStars, MostDownloads, MostViews, New
-  )
+  val values: Seq[ProjectSortingStrategy] = Seq[ProjectSortingStrategy](MostStars, MostDownloads, MostViews, New)
 
   val Default = MostStars
 

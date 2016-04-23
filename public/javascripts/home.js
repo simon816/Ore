@@ -33,20 +33,16 @@ $(function() {
                     var category = project.category;
 
                     // Add received project to table
-                    // TODO: Use template in HTML
-                    $('.project-table').find('tbody').append(
-                          '<tr>'
-                          + '<td><i title="' + category.title + '" class="fa ' + category.icon + '"></i></td>'
-                          + '<td class="name">'
-                          +   '<strong><a href="' + project.href + '">' + project.name + '</a></strong>'
-                          +   '<i title="' + project.description + '" class="minor"> ' + project.description + '</i>'
-                          + '</td>'
-                          + '<td class="author"><a href="#">' + project.owner + '</a></td>'
-                          + '<td class="minor">' + project.views + '</td>'
-                          + '<td class="minor">' + project.downloads + '</td>'
-                          + '<td class="minor">' + project.stars + '</td>'
-                        + '</tr>'
-                    );
+                    var projectRow = $('#row-project').clone().attr('id', '');
+                    var nameCol = projectRow.find('.name');
+                    projectRow.find('.category').find('i').attr('title', category.title).addClass(category.icon);
+                    nameCol.find('strong').find('a').attr('href', project.href).text(project.name);
+                    nameCol.find('i').attr('title', project.description).text(project.description);
+                    projectRow.find('.author').find('a').attr('href', '/' + project.owner).text(project.owner);
+                    projectRow.find('.views').text(project.views);
+                    projectRow.find('.downloads').text(project.downloads);
+                    projectRow.find('.stars').text(project.stars);
+                    $('.project-table').find('tbody').append(projectRow);
                 }
                 currentlyLoaded += data.length;
                 $('.btn-more').html('<strong>More</strong>');

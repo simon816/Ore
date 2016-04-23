@@ -17,7 +17,7 @@ sorted according to different criteria.
 
 @core.layout(messages("general.title")) {
 
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/projectsMore.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/home.js")"></script>
     <script>
         @if(visibleCategories.isDefined) {
             CATEGORY_STRING = "@visibleCategories.get.map(_.id).mkString(",")";
@@ -28,7 +28,25 @@ sorted according to different criteria.
         currentlyLoaded = @models.size;
     </script>
 
+    <!-- Project row template -->
+    <table style="display: none;">
+        <tbody>
+            <tr id="row-project">
+                <td class="category"><i class="fa"></i></td>
+                <td class="name">
+                    <strong><a></a></strong>
+                    <i class="minor"></i>
+                </td>
+                <td class="author"><a></a></td>
+                <td class="views minor"></td>
+                <td class="downloads minor"></td>
+                <td class="stars minor"></td>
+            </tr>
+        </tbody>
+    </table>
+
     <div class="container" style="margin-top: 60px ;">
+        <!-- Header -->
         <div class="row index-header">
             <div class="col-md-12">
                 @if(flash.get("success").isDefined) {
@@ -49,20 +67,22 @@ sorted according to different criteria.
                     </div>
                 }
 
+                <!-- Buttons -->
                 <div class="table-controls pull-right">
                     <a href="@projectRoutes.showCreator"
-                    title="Submit a new project to Ore." data-toggle="tooltip"
-                    data-placement="bottom" class="btn-create btn btn-primary">
+                       title="Submit a new project to Ore." data-toggle="tooltip"
+                       data-placement="bottom" class="btn-create btn btn-primary">
                         <i class="fa fa-plus"></i> @messages("project.create")
                     </a>
                     @if(User.current.isDefined && (User.current.get can ResetOre in GlobalScope)) {
                         <a href="@routes.Application.reset" title="Reset Ore to factory settings" data-toggle="tooltip"
-                        data-placement="bottom" class="btn btn-danger">Reset Ore</a>
+                           data-placement="bottom" class="btn btn-danger">Reset Ore</a>
                     }
                 </div>
             </div>
         </div>
 
+        <!-- Sort select -->
         <div class="row select-sort">
             <div class="col-md-9">
                 <h3>
@@ -80,18 +100,22 @@ sorted according to different criteria.
             </div>
         </div>
 
+        <!-- Main content -->
         <div class="row">
+            <!-- Project table -->
             <div class="col-md-9">
                 @projects.table(models, visibleCategories)
             </div>
 
+            <!-- Category table -->
             <div class="col-md-3">
-                @* Category table *@
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">@messages("project.category.plural")</h3>
                         @if(visibleCategories.isDefined) {
-                            <a href="@routes.Application.showHome(None, None, None)"><i class="pull-right category-reset fa fa-times"></i></a>
+                            <a href="@routes.Application.showHome(None, None, None)">
+                                <i class="pull-right category-reset fa fa-times"></i>
+                            </a>
                         }
                     </div>
                     <table class="table panel-body category-table">
