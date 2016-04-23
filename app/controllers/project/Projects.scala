@@ -24,7 +24,7 @@ import scala.util.{Failure, Success}
   * TODO: Replace NotFounds, BadRequests, etc with pretty views
   * TODO: Localize
   */
-class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
+class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {
 
   private def SettingsEditAction(author: String, slug: String) = {
     AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditSettings)

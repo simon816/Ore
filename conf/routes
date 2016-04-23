@@ -4,6 +4,7 @@
 
 GET     /*path/                                                 @controllers.Application.removeTrail(path)
 GET     /admin/reset                                            @controllers.Application.reset
+GET     /admin/seed                                             @controllers.Application.seed
 
 # ---------- API (v1) ----------
 GET     /api/projects                                           @controllers.Api.projects(version = "v1", categories: Option[String], limit: Option[Int], offset: Option[Int])

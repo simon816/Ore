@@ -19,7 +19,7 @@ import scala.util.{Failure, Success}
 /**
   * Controller for handling Version related actions.
   */
-class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
+class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {
 
   private def VersionEditAction(author: String, slug: String) = {
     AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditVersions)

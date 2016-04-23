@@ -1,0 +1,18 @@
+group 'org.spongepowered'
+version 'dev-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    maven {
+        name 'sponge'
+        url 'http://repo.spongepowered.org/maven'
+    }
+}
+
+dependencies {
+    compile 'org.spongepowered:spongeapi:4.1.0-SNAPSHOT'
+}

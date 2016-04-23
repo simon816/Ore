@@ -186,3 +186,6 @@ local.properties
 /project/project/target
 uploads
 RUNNING_PID
+gradle
+.gradle
+build

@@ -1,7 +1,7 @@
 package util.form
 
+import models.project.Channel
 import models.project.Page._
-import models.project.{Page, Channel}
 import play.api.data.Form
 import play.api.data.Forms._
 

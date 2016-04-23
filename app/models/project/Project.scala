@@ -458,7 +458,7 @@ case class Project(override val   id: Option[Int] = None,
   def delete = assertDefined {
     now(Queries.Projects delete this).get
     FileUtils.deleteDirectory(ProjectFiles.projectDir(this.ownerName, this._name).toFile)
-    SpongeForums.Embed.deleteTopic(this)
+    if (this.topicId.isDefined) SpongeForums.Embed.deleteTopic(this)
   }
 
   override def projectId = assertDefined(this.id.get)
@@ -638,8 +638,10 @@ object Project extends ModelDAO[Project] {
     * @param project        Project that is pending
     * @param firstVersion   Uploaded plugin
     */
-  def setPending(project: Project, firstVersion: PluginFile) =  {
-    PendingProject(project, firstVersion).cache()
+  def setPending(project: Project, firstVersion: PluginFile): PendingProject =  {
+    val pendingProject = PendingProject(project, firstVersion)
+    pendingProject.cache()
+    pendingProject
   }
 
   /**

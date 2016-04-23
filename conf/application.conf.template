@@ -50,6 +50,8 @@ ore.git.url     =   "https://github.com/SpongePowered/Ore"
 ore.git.ref     =   ".git/refs/heads/master"
 ore.git.ref-len =   7
 
+ore.test-plugin = "OreTestPlugin/build/libs/ore-test-plugin-dev-SNAPSHOT.jar"
+
 
 # Slick configuration
 slick.dbs.default.driver        =   "slick.driver.PostgresDriver$"

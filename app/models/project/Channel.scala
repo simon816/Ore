@@ -18,8 +18,6 @@ import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
 import play.api.Play.{configuration => config, current}
 
-import scala.util.Try
-
 /**
   * Represents a release channel for Project Versions. Each project gets it's
   * own set of channels.

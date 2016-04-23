@@ -13,7 +13,7 @@ import views.html.projects.{pages => views}
 /**
   * Controller for handling Page related actions.
   */
-class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
+class Pages @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {
 
   private def PageEditAction(author: String, slug: String) = {
     AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditPages)

@@ -168,8 +168,8 @@ object Version extends ModelDAO[Version] {
     */
   case class PendingVersion(val       owner: String,
                             val       projectSlug: String,
-                            var       channelName: String,
-                            var       channelColor: Color,
+                            var       channelName: String = Channel.DefaultName,
+                            var       channelColor: Color = Channel.DefaultColor,
                             val       version: Version,
                             val       plugin: PluginFile)
                             extends   PendingAction[Version]

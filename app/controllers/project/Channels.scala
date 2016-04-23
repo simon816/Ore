@@ -13,7 +13,7 @@ import views.html.projects.{channels => views}
 /**
   * Controller for handling Channel related actions.
   */
-class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
+class Channels @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {
 
   private def ChannelEditAction(author: String, slug: String) = {
     AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditChannels)

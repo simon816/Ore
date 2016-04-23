@@ -2,7 +2,6 @@ package models.project
 
 import java.sql.Timestamp
 
-import com.google.common.base.Objects
 import com.google.common.base.Preconditions._
 import db.orm.dao.ModelDAO
 import db.orm.model.ModelKeys._

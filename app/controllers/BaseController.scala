@@ -5,16 +5,18 @@ import ore.Statistics
 import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import util.forums.SpongeForums._
+import util.DataUtils
+import util.forums.SpongeForums
 
 import scala.concurrent.Future
 
 /**
   * Represents a Secured base Controller for this application.
   */
-abstract class BaseController(ws: WSClient) extends Controller with I18nSupport with Secured {
+abstract class BaseController(implicit ws: WSClient) extends Controller with I18nSupport with Secured {
 
-  if (Users == null) init(ws)
+  SpongeForums.apply
+  DataUtils.apply
 
   protected[controllers] def withProject(author: String, slug: String)(f: Project => Result)
                                         (implicit request: RequestHeader): Result = {

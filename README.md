@@ -1,7 +1,7 @@
 Ore
 ===
 
-*Catchy tagline here*
+Repository software for Sponge plugins and Forge mods https://ore-staging.spongepowered.org/
  
 Ore is written in Scala using the [Play](https://www.playframework.com/) framework.
 
@@ -24,20 +24,12 @@ Namely, the differences include:
 
 ### Setup
 
-In production, Ore currently requires the `DISCOURSE_SSO_SECRET` and `DISCOURSE_SSO_URL` environment variables to be set.
-If you don't have access to these, you can bypass the standard authentication method by setting the 
-`application.fakeUser` setting to `true` in `conf/application.conf`. This will allow you to work with Ore in a 
-development environment without requiring authentication to Sponge services.
+After cloning Ore, the first thing you will want to do is create a new PostgreSQL database for the application to user.
+This is required in order for Ore to run. Learn more about PostgreSQL [here](http://www.postgresql.org/).
 
-You must also set some other environment variables:
-
-| Variable               | Description                                          | Typical Value                   | Required |
-| ---------------------- | ---------------------------------------------------- | ------------------------------- | -------- |
-| BASE_URL               | The full root URL of the instance                    | http://localhost:9000           | Yes      |
-| JDBC_DATABASE_URL      | PostgreSQL JDBC Database URL                         | jdbc:postgresql://localhost/ore | Yes      |
-| JDBC_DATABASE_USERNAME | PostgreSQL Database username                         | root                            | Yes      |
-| JDBC_DATABASE_PASSWORD | PostgreSQL Database password                         | hunter2                         | No       |
-| FAKE_USER              | Whether a "fake" user should be used for auth        | true                            | No       |
-| APPLICATION_SECRET     | The application secret for cryptography              | `REDACTED`                      | No       |
-| DISCOURSE_SSO_SECRET   | The secret key for authentication against the forums | `REDACTED`                      | No       |
-| DISCOURSE_SSO_URL      | The URL to redirect to for authentication            | `REDACTED`                      | No       |
+After setting up a database, create a copy of `conf/application.conf.template` named `conf/application.conf` and 
+configure the application. This file is in the `.gitignore` so it will not appear in your commits. In a typical 
+development environment, most of the defaults will do except you must set `application.fakeUser` to `true` to disable
+authentication to the Sponge forums. In addition, the SSL certification authority of https://forums.spongepowered.org is
+not typically recognized by the JVM so you will either have to manually add the cert to your JVM or set 
+`discourse.api.enabled` to `false` in the configuration file.

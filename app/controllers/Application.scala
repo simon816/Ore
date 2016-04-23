@@ -4,20 +4,19 @@ import javax.inject.Inject
 
 import controllers.routes.{Application => self}
 import db.OrePostgresDriver.api._
+import db.ProjectTable
 import db.query.Queries
 import db.query.Queries.now
-import db.{ProjectTable, UserTable}
 import models.project.Project._
 import models.user.{FakeUser, User}
-import ore.permission.ResetOre
+import ore.permission.{ResetOre, SeedOre}
 import ore.project.Categories
 import ore.project.Categories.Category
-import org.apache.commons.io.FileUtils
 import play.api.Play.{configuration => config, current}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import util.P
+import util.DataUtils
 import util.form.Forms
 import util.forums.SpongeForums._
 import views.{html => views}
@@ -27,7 +26,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Main entry point for application.
   */
-class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient) extends BaseController(ws) {
+class Application @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {
 
   /**
     * Display the home page.
@@ -38,7 +37,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     val categoryArray: Array[Category] = if (categories.isDefined) Categories.fromString(categories.get) else null
     val filter: ProjectTable => Rep[Boolean] = if (query.isDefined) {
       val q = '%' + query.get.toLowerCase + '%'
-      p => (p.name.toLowerCase like q) || (p.description like q) || (p.ownerName like q)
+      p => (p.name.toLowerCase like q) || (p.description.toLowerCase like q) || (p.ownerName.toLowerCase like q)
     } else null
     val projects = now(Queries.Projects.collect(filter, categoryArray, InitialLoad)).get
     Ok(views.home(projects, Option(categoryArray)))
@@ -127,10 +126,17 @@ class Application @Inject()(override val messagesApi: MessagesApi, ws: WSClient)
     * TODO: REMOVE BEFORE PRODUCTION
     */
   def reset = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
-    for (project <- now(Queries.Projects.collect()).get) project.delete
-    val query: Query[UserTable, User, Seq] = Queries.Users.models
-    now(Queries.DB.run(query.delete)).get
-    FileUtils.deleteDirectory(P.UploadsDir.toFile)
+    DataUtils.reset()
+    Redirect(self.showHome(None, None)).withNewSession
+  }
+
+  /**
+    * Fills Ore with some dummy data.
+    *
+    * @return Redirect home
+    */
+  def seed = (Authenticated andThen PermissionAction[AuthRequest](SeedOre)) { implicit request =>
+    DataUtils.seed()
     Redirect(self.showHome(None, None)).withNewSession
   }
 

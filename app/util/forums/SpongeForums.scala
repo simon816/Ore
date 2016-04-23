@@ -23,17 +23,19 @@ object SpongeForums {
     *
     * @param ws HTTP request client
     */
-  def init(ws: WSClient) = {
+  def apply(implicit ws: WSClient) = {
     if (config.getBoolean("discourse.api.enabled").get) {
       val baseUrl = config.getString("discourse.baseUrl").get
       val apiKey = config.getString("discourse.api.key").get
       val categoryId = config.getInt("discourse.embed.categoryId").get
       this.users = new DiscourseUsers(baseUrl, ws)
       this.embed = new DiscourseEmbed(baseUrl, apiKey, categoryId, ws)
-    } else {
-      this.users = DiscourseUsers.Disabled
-      this.embed = DiscourseEmbed.Disabled
-    }
+    } else disable()
+  }
+
+  def disable() = {
+    this.users = DiscourseUsers.Disabled
+    this.embed = DiscourseEmbed.Disabled
   }
 
   protected[forums] def validate[A](response: WSResponse)(f: JsObject => A): Option[A] = try {
