@@ -6,20 +6,38 @@ import db.OrePostgresDriver.api._
 import db.ProjectTable
 import slick.lifted.ColumnOrdered
 
+/**
+  * Collection of sorting strategies used to sort the home page.
+  */
 object ProjectSortingStrategies {
 
+  /** All sorting strategies. */
   val values: Seq[ProjectSortingStrategy] = Seq[ProjectSortingStrategy](MostStars, MostDownloads, MostViews, New)
 
-  val Default = MostStars
+  /** The default strategy. */
+  val Default = New
 
+  /**
+    * Returns the strategy with the specified ID.
+    *
+    * @param id ID to find
+    * @return   Strategy with ID
+    */
   def withId(id: Int): Option[ProjectSortingStrategy] = {
     this.values.find(_.id == id)
   }
 
+  /**
+    * Represents a strategy used to sort [[models.project.Project]]s.
+    */
   sealed trait ProjectSortingStrategy {
+    /** Type being sorted. */
     type A
+    /** Sorting function */
     def f: ProjectTable => ColumnOrdered[A]
+    /** Display name */
     def title: String
+    /** Unique ID */
     def id: Int
   }
 

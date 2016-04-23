@@ -9,5 +9,6 @@ import models.project.Project
   * @param name       Name of team
   */
 case class Team(override val project: Project,
-                override val name: String, members: Set[Member])
+                override val name: String,
+                val          members: Set[Member])
                 extends Member(project, name)

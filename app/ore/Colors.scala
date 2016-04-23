@@ -1,7 +1,7 @@
 package ore
 
 /**
-  * Represents a color.
+  * Collection of colors used in Ore.
   */
 object Colors extends Enumeration {
 
@@ -24,6 +24,7 @@ object Colors extends Enumeration {
   val Gray        =   Color(16,   "#A9A9A9")
   val Transparent =   Color(17,   "transparent")
 
+  /** Represents a color. */
   case class Color(i: Int, hex: String) extends super.Val(i, hex)
   implicit def convert(value: Value): Color = value.asInstanceOf[Color]
 
