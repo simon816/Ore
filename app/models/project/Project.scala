@@ -21,8 +21,9 @@ import ore.project.member.Member
 import ore.project.{Categories, PluginFile, ProjectFactory, ProjectFiles}
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
-import play.api.Play.{configuration => config, current}
+import play.api.Play.current
 import play.api.cache.Cache
+import util.C._
 import util.Input.{compact, slugify}
 import util.P._
 import util.forums.SpongeForums
@@ -498,27 +499,27 @@ object Project extends ModelDAO[Project] {
   /**
     * The maximum length for a Project name.
     */
-  val MaxNameLength: Int = config.getInt("ore.projects.max-name-len").get
+  val MaxNameLength: Int = ProjectsConf.getInt("max-name-len").get
 
   /**
     * The maximum length for a Project description.
     */
-  val MaxDescriptionLength: Int = config.getInt("ore.projects.max-desc-len").get
+  val MaxDescriptionLength: Int = ProjectsConf.getInt("max-desc-len").get
 
   /**
     * The maximum amount of Pages a Project can have.
     */
-  val MaxPages: Int = config.getInt("ore.projects.max-pages").get
+  val MaxPages: Int = ProjectsConf.getInt("max-pages").get
 
   /**
     * The maximum amount of Channels permitted in a single Project.
     */
-  val MaxChannels = config.getInt("ore.projects.max-channels").get
+  val MaxChannels = ProjectsConf.getInt("max-channels").get
 
   /**
     * The maximum amount of Projects that are loaded initially.
     */
-  val InitialLoad: Int = config.getInt("ore.projects.init-load").get
+  val InitialLoad: Int = ProjectsConf.getInt("init-load").get
 
   val ForumTopicTemplatePath: Path = ConfDir.resolve("discourse/project_topic.md")
 
@@ -608,7 +609,7 @@ object Project extends ModelDAO[Project] {
     */
   def topicContentFor(project: Project): String = {
     val template = new String(Files.readAllBytes(ForumTopicTemplatePath))
-    val url = config.getString("application.baseUrl").get + '/' + project.ownerName + '/' + project.slug
+    val url = AppConf.getString("baseUrl").get + '/' + project.ownerName + '/' + project.slug
     MessageFormat.format(template, project.name, url, project.homePage.contents)
   }
 

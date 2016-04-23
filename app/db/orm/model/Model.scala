@@ -4,7 +4,7 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
 import db.query.Queries
-import play.api.Play.{configuration => config, current}
+import util.C._
 
 import scala.concurrent.Future
 
@@ -18,7 +18,7 @@ abstract class Model { self =>
   /**
     * The format used for displaying dates for models.
     */
-  val DateFormat = new SimpleDateFormat(config.getString("ore.date-format").get)
+  val DateFormat = new SimpleDateFormat(OreConf.getString("date-format").get)
 
   private var tableBindings: Map[String, TableBinding[_]] = Map.empty
 

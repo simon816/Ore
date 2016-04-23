@@ -10,9 +10,9 @@ import models.project.Project
 import models.user.User
 import ore.project.ProjectFactory
 import org.apache.commons.io.FileUtils
-import play.api.Play.{configuration => config, current}
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.ws.WSClient
+import util.C._
 import util.P._
 import util.forums.SpongeForums
 
@@ -43,7 +43,7 @@ object DataUtils {
   def seed(users: Int = 200) = {
     SpongeForums.disable()
     this.reset()
-    val pluginPath = RootDir.resolve(config.getString("ore.test-plugin").get)
+    val pluginPath = RootDir.resolve(OreConf.getString("test-plugin").get)
     for (i <- 0 until users) {
       val pluginFile = Files.copy(pluginPath, pluginPath.getParent.resolve("plugin.jar")).toFile
       val user = now(Queries.Users.getOrInsert(new User(i, null, "User-" + i, null))).get

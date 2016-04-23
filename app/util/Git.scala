@@ -3,16 +3,17 @@ package util
 import java.nio.file.Files
 
 import play.api.Play
-import play.api.Play.{configuration => config, current}
+import play.api.Play.current
+import util.C._
 
 /**
   * Helper to retrieve current Git ref.
   */
 object Git {
 
-  private val repoUrl = config.getString("ore.git.url").get
-  private val branchFile = Play.application.path.toPath.resolve(config.getString("ore.git.ref").get)
-  private val refLength = config.getInt("ore.git.ref-len").get
+  private val repoUrl = GitConf.getString("url").get
+  private val branchFile = Play.application.path.toPath.resolve(GitConf.getString("ref").get)
+  private val refLength = GitConf.getInt("ref-len").get
 
   /**
     * Returns a shortened ref of the current git ref and the URL to the

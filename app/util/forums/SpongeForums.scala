@@ -1,16 +1,16 @@
 package util.forums
 
-import play.api.Play.{configuration => config, current}
 import play.api.libs.json.JsObject
 import play.api.libs.ws.{WSClient, WSResponse}
+import util.C._
 
 /**
   * Handles interactions between Ore and the Sponge forums.
   */
 object SpongeForums {
 
-  lazy val Auth = new DiscourseSSO(config.getString("discourse.sso.url").get,
-                                   config.getString("discourse.sso.secret").get)
+  lazy val Auth = new DiscourseSSO(DiscourseConf.getString("sso.url").get,
+                                   DiscourseConf.getString("sso.secret").get)
 
   private var users: DiscourseUsers = null
   def Users: DiscourseUsers = this.users
@@ -24,10 +24,10 @@ object SpongeForums {
     * @param ws HTTP request client
     */
   def apply(implicit ws: WSClient) = {
-    if (config.getBoolean("discourse.api.enabled").get) {
-      val baseUrl = config.getString("discourse.baseUrl").get
-      val apiKey = config.getString("discourse.api.key").get
-      val categoryId = config.getInt("discourse.embed.categoryId").get
+    if (DiscourseConf.getBoolean("api.enabled").get) {
+      val baseUrl = DiscourseConf.getString("baseUrl").get
+      val apiKey = DiscourseConf.getString("api.key").get
+      val categoryId = DiscourseConf.getInt("embed.categoryId").get
       this.users = new DiscourseUsers(baseUrl, ws)
       this.embed = new DiscourseEmbed(baseUrl, apiKey, categoryId, ws)
     } else disable()

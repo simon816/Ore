@@ -22,7 +22,7 @@ function initMember(memberRow) {
 
         // Mark user as changed
         var container = getItemContainer($(this)).addClass('user-changed');
-        var input = $('#select-role').clone().attr('id', '').attr('form', 'save');
+        var input = $('#select-role').clone().removeAttr('id').attr('form', 'save');
 
         // Add input
         container.find('span').replaceWith(input.show());
@@ -61,7 +61,7 @@ $(function() {
         }
 
         // Build result row
-        var resultRow = $('#row-user').clone().attr('id', '').addClass('user-new');
+        var resultRow = $('#row-user').clone().removeAttr('id').addClass('user-new');
         console.log(resultRow.first('a'));
         resultRow.find('a').attr('href', '/' + user.username).text(user.username);
         resultRow.find('input').attr('form', 'save').val(user.id);

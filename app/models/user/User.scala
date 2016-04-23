@@ -14,8 +14,8 @@ import ore.permission._
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
-import play.api.Play.{configuration => config, current => app}
 import play.api.mvc.Session
+import util.C._
 import util.forums.SpongeForums
 
 /**
@@ -146,12 +146,12 @@ object User extends ModelDAO[User] {
   /**
     * The amount of stars displayed in the stars panel per page.
     */
-  val StarsPerPage: Int = config.getInt("ore.users.stars-per-page").get
+  val StarsPerPage: Int = UsersConf.getInt("stars-per-page").get
 
   /**
     * The maximum length for User taglines.
     */
-  val MaxTaglineLength: Int = config.getInt("ore.users.max-tagline-len").get
+  val MaxTaglineLength: Int = UsersConf.getInt("max-tagline-len").get
 
   /**
     * Returns the user with the specified username.

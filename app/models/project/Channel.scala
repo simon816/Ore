@@ -16,7 +16,7 @@ import ore.project.ProjectFiles
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
-import play.api.Play.{configuration => config, current}
+import util.C._
 
 /**
   * Represents a release channel for Project Versions. Each project gets it's
@@ -146,22 +146,22 @@ object Channel extends ModelDAO[Channel] {
   /**
     * The maximum name size of a Channel.
     */
-  val MaxNameLength = config.getInt("ore.channels.max-name-len").get
+  val MaxNameLength = ChannelsConf.getInt("max-name-len").get
 
   /**
     * Regular expression for permitted Channel characters.
     */
-  val NameRegex = config.getString("ore.channels.name-regex").get
+  val NameRegex = ChannelsConf.getString("name-regex").get
 
   /**
     * The default color used for Channels.
     */
-  val DefaultColor: Color = Colors(config.getInt("ore.channels.color-default").get)
+  val DefaultColor: Color = Colors(ChannelsConf.getInt("color-default").get)
 
   /**
     * The default name used for Channels.
     */
-  val DefaultName: String = config.getString("ore.channels.name-default").get
+  val DefaultName: String = ChannelsConf.getString("name-default").get
 
   /**
     * Returns true if the specified string is a valid channel name.

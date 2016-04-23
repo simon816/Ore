@@ -56,16 +56,14 @@ $(function() {
         $.ajax({
             url: ajaxUrl,
             dataType: 'json',
-            success: function(data) {
-                for (var i in data) {
-                    if (!data.hasOwnProperty(i)) {
-                        continue;
-                    }
-                    var project = data[i];
+            success: function(projects) {
+                for (var i in projects) {
+                    if (!projects.hasOwnProperty(i)) continue;
+                    var project = projects[i];
                     var category = project.category;
 
                     // Add received project to table
-                    var projectRow = $('#row-project').clone().attr('id', '');
+                    var projectRow = $('#row-project').clone().removeAttr('id');
                     var nameCol = projectRow.find('.name');
                     projectRow.find('.category').find('i').attr('title', category.title).addClass(category.icon);
                     nameCol.find('strong').find('a').attr('href', project.href).text(project.name);
@@ -76,7 +74,7 @@ $(function() {
                     projectRow.find('.stars').text(project.stars);
                     $('.project-table').find('tbody').append(projectRow);
                 }
-                currentlyLoaded += data.length;
+                currentlyLoaded += projects.length;
                 $('.btn-more').html('<strong>More</strong>');
             }
         });

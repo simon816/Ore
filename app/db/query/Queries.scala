@@ -11,10 +11,10 @@ import db.query.Queries.DB.run
 import db.query.Queries._
 import db.query.user.UserQueries
 import play.api.Play
-import play.api.Play.{configuration => config, current}
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
 import slick.lifted.ColumnOrdered
+import util.C._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -208,7 +208,7 @@ object Queries {
   /**
     * The default timeout when awaiting a query result.
     */
-  val DefaultTimeout: Duration = Duration(config.getInt("application.db.default-timeout").get, TimeUnit.SECONDS)
+  val DefaultTimeout: Duration = Duration(AppConf.getInt("db.default-timeout").get, TimeUnit.SECONDS)
 
   /**
     * Awaits the result of the specified future and returns the result.

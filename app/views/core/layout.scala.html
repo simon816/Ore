@@ -4,6 +4,7 @@ this.
 *@
 @import play.api.Play
 @import play.twirl.api.Html
+@import util.C
 @(title: String)(content: Html)(implicit messages: Messages, session: Session, request: RequestHeader)
 
 <!DOCTYPE html>
@@ -15,7 +16,7 @@ this.
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="icon" type="image/png" href="@Play.current.configuration.getString("sponge.icon")">
+        <link rel="icon" type="image/png" href="@C.SpongeConf.getString("icon")">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("bootstrap/css/bootstrap.min.css")" />
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("highlight/styles/default.css")" />

@@ -12,10 +12,10 @@ import models.user.{FakeUser, User}
 import ore.permission.{ResetOre, SeedOre}
 import ore.project.{ProjectSortingStrategies, Categories}
 import ore.project.Categories.Category
-import play.api.Play.{configuration => config, current}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
+import util.C._
 import util.DataUtils
 import util.form.Forms
 import util.forums.SpongeForums._
@@ -82,11 +82,12 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     * @return     Logged in home
     */
   def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
+    val baseUrl = AppConf.getString("baseUrl").get
     if (FakeUser.IsEnabled) {
       now(Queries.Users.getOrInsert(FakeUser))
       Redirect(self.showHome(None, None, None)).withSession(Security.username -> FakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
-      Redirect(Auth.getRedirect(config.getString("application.baseUrl").get + "/login"))
+      Redirect(Auth.getRedirect(baseUrl + "/login"))
         .flashing("url" -> returnPath.getOrElse(request.path))
     } else {
       val userData = Auth.authenticate(sso.get, sig.get)
@@ -97,7 +98,6 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
         case roles => if (!roles.equals(user.globalRoleTypes)) user.globalRoleTypes = roles.get
       }
 
-      val baseUrl = config.getString("application.baseUrl").get
       Redirect(baseUrl + request2flash.get("url").get).withSession(Security.username -> user.username)
     }
   }

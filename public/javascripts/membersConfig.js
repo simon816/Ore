@@ -28,7 +28,7 @@ $(function() {
         }
 
         // Build the result row from the template
-        var newRow = $('#result-row').clone().attr('id', '');
+        var newRow = $('#result-row').clone().removeAttr('id');
         newRow.find('input').attr('form', 'form-continue').val(user.id);
         newRow.find('select').attr('form', 'form-continue');
         newRow.find('a').attr('href', '/' + user.username).text(user.username);

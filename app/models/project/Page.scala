@@ -10,7 +10,7 @@ import db.query.Queries
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
-import play.api.Play.{configuration => config, current}
+import util.C._
 import util.Input._
 import util.forums.SpongeForums
 
@@ -91,12 +91,12 @@ object Page extends ModelDAO[Page] {
   /**
     * The name of each Project's homepage.
     */
-  val HomeName: String = config.getString("ore.pages.home.name").get
+  val HomeName: String = PagesConf.getString("home.name").get
 
   /**
     * The template body for the Home page.
     */
-  val HomeMessage: String = config.getString("ore.pages.home.message").get
+  val HomeMessage: String = PagesConf.getString("home.message").get
 
   /**
     * The Markdown processor.
@@ -106,17 +106,17 @@ object Page extends ModelDAO[Page] {
   /**
     * The minimum amount of characters a page may have.
     */
-  val MinLength: Int = config.getInt("ore.pages.min-len").get
+  val MinLength: Int = PagesConf.getInt("min-len").get
 
   /**
     * The maximum amount of characters a page may have.
     */
-  val MaxLength: Int = config.getInt("ore.pages.max-len").get
+  val MaxLength: Int = PagesConf.getInt("max-len").get
 
   /**
     * The maximum amount of characters a page name may have.
     */
-  val MaxNameLength: Int = config.getInt("ore.pages.name.max-len").get
+  val MaxNameLength: Int = PagesConf.getInt("name.max-len").get
 
   override def withId(id: Int): Option[Page] = Queries.now(Queries.Pages.get(id)).get
 
