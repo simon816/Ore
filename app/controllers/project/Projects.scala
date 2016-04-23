@@ -14,7 +14,7 @@ import play.api.libs.ws.WSClient
 import play.api.mvc._
 import util.Input._
 import util.form.Forms
-import views.{html => views}
+import views.html.{projects => views}
 
 import scala.util.{Failure, Success}
 
@@ -36,7 +36,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @return Create project view
     */
   def showCreator = Authenticated { implicit request =>
-    Ok(views.projects.create(None))
+    Ok(views.create(None))
   }
 
   /**
@@ -77,7 +77,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   def showCreatorWithMeta(author: String, slug: String) = Authenticated { implicit request =>
     Project.getPending(author, slug) match {
       case None => Redirect(self.showCreator())
-      case Some(pending) => Ok(views.projects.create(Some(pending)))
+      case Some(pending) => Ok(views.create(Some(pending)))
     }
   }
 
@@ -93,7 +93,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
       case None => BadRequest("No pending project")
       case Some(pendingProject) =>
         Forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.project)
-        Ok(views.projects.members.config(pendingProject))
+        Ok(views.members.config(pendingProject))
     }
   }
 
@@ -126,7 +126,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   def show(author: String, slug: String) = {
     ProjectAction(author, slug, countView = true) { implicit request =>
       val project = request.project
-      Ok(views.projects.pages.view(project, project.homePage))
+      Ok(views.pages.view(project, project.homePage))
     }
   }
 
@@ -167,9 +167,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     */
   def setStarred(author: String, slug: String, starred: Boolean) = {
     AuthedProjectAction(author, slug) { implicit request =>
-      val project = request.project
-      val user = request.user
-      project.setStarredBy(user, starred)
+      request.project.setStarredBy(request.user, starred)
       Ok
     }
   }
@@ -183,7 +181,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     */
   def showDiscussion(author: String, slug: String) = {
     ProjectAction(author, slug, countView = true) { implicit request =>
-      Ok(views.projects.discuss(request.project))
+      Ok(views.discuss(request.project))
     }
   }
 
@@ -196,7 +194,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     */
   def showManager(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
-      Ok(views.projects.manage(request.project))
+      Ok(views.manage(request.project))
     }
   }
 
@@ -275,7 +273,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   def delete(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
-      project.delete.get
+      project.delete
       Redirect(app.showHome(None, None))
         .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
     }

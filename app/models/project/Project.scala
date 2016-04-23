@@ -457,12 +457,10 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Result
     */
-  def delete: Try[Unit] = assertDefined {
-    Try {
-      now(Queries.Projects delete this).get
-      FileUtils.deleteDirectory(ProjectFiles.projectDir(this.ownerName, this._name).toFile)
-      SpongeForums.Embed.deleteTopic(this)
-    }
+  def delete = assertDefined {
+    now(Queries.Projects delete this).get
+    FileUtils.deleteDirectory(ProjectFiles.projectDir(this.ownerName, this._name).toFile)
+    SpongeForums.Embed.deleteTopic(this)
   }
 
   override def projectId = assertDefined(this.id.get)

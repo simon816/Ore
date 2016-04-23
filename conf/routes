@@ -65,7 +65,7 @@ GET     /:author/:slug/pages/:page                              @controllers.pro
 
 GET     /:author/:slug/channels                                 @controllers.project.Channels.showList(author, slug)
 POST    /:author/:slug/channels                                 @controllers.project.Channels.create(author, slug)
-POST    /:author/:slug/channels/:channel                        @controllers.project.Channels.edit(author, slug, channel)
+POST    /:author/:slug/channels/:channel                        @controllers.project.Channels.save(author, slug, channel)
 GET     /:author/:slug/channels/:channel/delete                 @controllers.project.Channels.delete(author, slug, channel)
 
 

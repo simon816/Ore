@@ -4,7 +4,6 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.project.routes.{Versions => self}
-import controllers.routes.{Application => app}
 import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
 import ore.Statistics
@@ -13,7 +12,7 @@ import ore.project.{InvalidPluginFileException, ProjectFactory, ProjectFiles}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import util.form.Forms
-import views.{html => views}
+import views.html.projects.{versions => views}
 
 import scala.util.{Failure, Success}
 
@@ -42,7 +41,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
         case None => NotFound
         case Some(channel) => channel.versions.withName(versionString) match {
           case None => NotFound
-          case Some(version) => Ok(views.projects.versions.detail(project, channel, version))
+          case Some(version) => Ok(views.detail(project, channel, version))
         }
       }
     }
@@ -95,7 +94,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
         channelNames = None
       }
 
-      Ok(views.projects.versions.list(project, allChannels, versions, channelNames))
+      Ok(views.list(project, allChannels, versions, channelNames))
     }
   }
 
@@ -109,7 +108,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   def showCreator(author: String, slug: String) = {
     VersionEditAction(author, slug) { implicit request =>
       val project = request.project
-      Ok(views.projects.versions.create(project, None, Some(project.channels.values.toSeq), showFileControls = true))
+      Ok(views.create(project, None, Some(project.channels.values.toSeq), showFileControls = true))
     }
   }
 
@@ -180,11 +179,9 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
             case None => Redirect(self.showCreator(author, slug))
             case Some(p) => p match {
               case pending: PendingProject =>
-                Ok(views.projects.versions.create(pending.project, Some(pendingVersion),
-                                                  None, showFileControls = false))
+                Ok(views.create(pending.project, Some(pendingVersion), None, showFileControls = false))
               case real: Project =>
-                Ok(views.projects.versions.create(real, Some(pendingVersion),
-                                                  Some(real.channels.seq), showFileControls = true))
+                Ok(views.create(real, Some(pendingVersion), Some(real.channels.seq), showFileControls = true))
             }
           }
       }
@@ -270,7 +267,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
         case Some(channel) => channel.versions.withName(versionString) match {
           case None => NotFound("Version not found.")
           case Some(version) =>
-            channel.deleteVersion(version, project).get
+            channel.deleteVersion(version, project)
             Redirect(self.showList(author, slug, None))
         }
       }

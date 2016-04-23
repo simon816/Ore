@@ -8,7 +8,7 @@ import ore.permission.EditChannels
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import util.form.Forms
-import views.{html => views}
+import views.html.projects.{channels => views}
 
 /**
   * Controller for handling Channel related actions.
@@ -29,7 +29,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
   def showList(author: String, slug: String) = {
     ChannelEditAction(author, slug) { implicit request =>
       val project = request.project
-      Ok(views.projects.channels.list(project, project.channels.seq))
+      Ok(views.list(project, project.channels.seq))
     }
   }
 
@@ -60,7 +60,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
     * @param channelName Channel name
     * @return View of channels
     */
-  def edit(author: String, slug: String, channelName: String) = {
+  def save(author: String, slug: String, channelName: String) = {
     ChannelEditAction(author, slug) { implicit request =>
       implicit val project = request.project
       Forms.ChannelEdit.bindFromRequest.fold(
@@ -98,7 +98,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi, ws: WSClient) ex
               Redirect(self.showList(author, slug))
                 .flashing("error" -> "You cannot delete your only non-empty channel.")
             } else {
-              channel.delete(project).get
+              channel.delete(project)
               Redirect(self.showList(author, slug))
             }
         }

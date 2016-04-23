@@ -72,7 +72,7 @@
                                           initChannelDelete('#channel-delete-@channel.id', '@channel.name', @channel.versions.size);
                                           initChannelManager(
                                                   "#channel-edit-@channel.id", "@channel.name", "@channel.color.hex",
-                                                  "Edit channel", "@projectRoutes.Channels.edit(project.ownerName, project.slug, channel.name)",
+                                                  "Edit channel", "@projectRoutes.Channels.save(project.ownerName, project.slug, channel.name)",
                                                   "post", "Save changes"
                                           );
                                       });

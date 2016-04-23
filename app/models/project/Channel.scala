@@ -101,13 +101,11 @@ case class Channel(override val   id: Option[Int] = None,
     * @param context  Project for context
     * @return         Result
     */
-  def deleteVersion(version: Version, context: Project): Try[Unit] = assertDefined {
-    Try {
-      checkArgument(context.versions.size > 1, "only one version", "")
-      checkArgument(context.id.get == this.projectId, "invalid context id", "")
-      now(Queries.Versions delete version).get
-      Files.delete(ProjectFiles.uploadPath(context.ownerName, context.name, version.versionString, this._name))
-    }
+  def deleteVersion(version: Version, context: Project) = assertDefined {
+    checkArgument(context.versions.size > 1, "only one version", "")
+    checkArgument(context.id.get == this.projectId, "invalid context id", "")
+    now(Queries.Versions delete version).get
+    Files.delete(ProjectFiles.uploadPath(context.ownerName, context.name, version.versionString, this._name))
   }
 
   /**
@@ -116,17 +114,15 @@ case class Channel(override val   id: Option[Int] = None,
     * @param context  Project context
     * @return         Result
     */
-  def delete(context: Project): Try[Unit] = assertDefined {
-    Try {
-      checkArgument(context.id.get == this.projectId, "invalid context id", "")
+  def delete(context: Project) = assertDefined {
+    checkArgument(context.id.get == this.projectId, "invalid context id", "")
 
-      val channels = context.channels.values
-      checkArgument(channels.size > 1, "only one channel", "")
-      checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
+    val channels = context.channels.values
+    checkArgument(channels.size > 1, "only one channel", "")
+    checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
 
-      now(Queries.Channels delete this).get
-      FileUtils.deleteDirectory(ProjectFiles.projectDir(context.ownerName, context.name).resolve(this._name).toFile)
-    }
+    now(Queries.Channels delete this).get
+    FileUtils.deleteDirectory(ProjectFiles.projectDir(context.ownerName, context.name).resolve(this._name).toFile)
   }
 
   override def name: String = this._name

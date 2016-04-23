@@ -8,7 +8,7 @@ import ore.permission.EditPages
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import util.form.Forms
-import views.{html => views}
+import views.html.projects.{pages => views}
 
 /**
   * Controller for handling Page related actions.
@@ -32,7 +32,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) exten
       val project = request.project
       project.pages.withName(page) match {
         case None => NotFound
-        case Some(p) => Ok(views.projects.pages.view(project, p))
+        case Some(p) => Ok(views.view(project, p))
       }
     }
   }
@@ -49,7 +49,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi, ws: WSClient) exten
   def showEditor(author: String, slug: String, page: String) = {
     PageEditAction(author, slug) { implicit request =>
       val project = request.project
-      Ok(views.projects.pages.edit(project, page, project.getOrCreatePage(page).contents))
+      Ok(views.edit(project, page, project.getOrCreatePage(page).contents))
     }
   }
 
