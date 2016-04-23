@@ -7,6 +7,7 @@ import db.query.Queries.DB.run
 import db.{ProjectStarsTable, ProjectTable, ProjectViewsTable}
 import models.project.Project
 import ore.project.Categories.Category
+import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
 import ore.project.member.Member
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,8 +30,13 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @param offset Result set offset
     * @return       Projects matching criteria
     */
+  def collect(filter: ProjectTable => Rep[Boolean], sort: ProjectSortingStrategy,
+              limit: Int, offset: Int): Future[Seq[Project]] = {
+    collect(limit, offset, filter, Option(sort).map(_.f).orNull)
+  }
+
   def collect(filter: ProjectTable => Rep[Boolean], limit: Int, offset: Int): Future[Seq[Project]] = {
-    collect(limit, offset, filter)
+    collect(filter, null.asInstanceOf[ProjectSortingStrategy], limit, offset)
   }
 
   /**
@@ -45,19 +51,29 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
   }
 
   def collect(filter: ProjectTable => Rep[Boolean], categories: Array[Category],
-              limit: Int, offset: Int): Future[Seq[Project]] = {
+              limit: Int, offset: Int, sort: ProjectSortingStrategy): Future[Seq[Project]] = {
     val f: ProjectTable => Rep[Boolean] = if (categories != null) {
       val cf: ProjectTable => Rep[Boolean] = p => p.category inSetBind categories
       if (filter != null) p => cf(p) && filter(p) else cf
     } else filter
-    collect(f, limit, offset)
+    collect(f, sort, limit, offset)
+  }
+
+  def collect(filter: ProjectTable => Rep[Boolean], categories: Array[Category],
+              limit: Int, offset: Int): Future[Seq[Project]] = {
+    collect(filter, categories, limit, offset, null)
+  }
+
+  def collect(filter: ProjectTable => Rep[Boolean], categories: Array[Category], limit: Int,
+              sort: ProjectSortingStrategy): Future[Seq[Project]] = {
+    collect(filter, categories, limit, -1, sort)
   }
 
   def collect(filter: ProjectTable => Rep[Boolean], categories: Array[Category], limit: Int): Future[Seq[Project]] = {
-    collect(filter, categories, limit, -1)
+    collect(filter, categories, limit, null)
   }
 
-  /**
+    /**
     * Filters projects based on the given criteria.
     *
     * @param categories Categories of Projects

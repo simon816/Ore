@@ -10,7 +10,9 @@ sorted according to different criteria.
 @import ore.project.Categories
 @import ore.project.Categories._
 @import util.Git
-@(models: Seq[Project], visibleCategories: Option[Array[Category]])(implicit messages: Messages,
+@import ore.project.ProjectSortingStrategies._
+@import ore.project.ProjectSortingStrategies.values
+@(models: Seq[Project], visibleCategories: Option[Array[Category]], sort: ProjectSortingStrategy)(implicit messages: Messages,
         session: Session, flash: Flash, request: RequestHeader)
 
 @core.layout(messages("general.title")) {
@@ -19,6 +21,9 @@ sorted according to different criteria.
     <script>
         @if(visibleCategories.isDefined) {
             CATEGORY_STRING = "@visibleCategories.get.map(_.id).mkString(",")";
+        }
+        @if(!sort.equals(Default)) {
+            SORT_STRING = "@sort.id";
         }
         currentlyLoaded = @models.size;
     </script>
@@ -66,11 +71,11 @@ sorted according to different criteria.
                 </h3>
             </div>
             <div class="col-md-3">
-                <select class="form-control">
-                    <option selected>Hot</option>
-                    <option>Top</option>
-                    <option>Latest</option>
-                    <option>New</option>
+                <select class="form-control select-sort">
+                    <option selected value="@sort.id">@sort.title</option>
+                    @values.filterNot(_.equals(sort)).map { strategy =>
+                        <option value="@strategy.id">@strategy.title</option>
+                    }
                 </select>
             </div>
         </div>
@@ -86,7 +91,7 @@ sorted according to different criteria.
                     <div class="panel-heading">
                         <h3 class="panel-title">@messages("project.category.plural")</h3>
                         @if(visibleCategories.isDefined) {
-                            <a href="@routes.Application.showHome(None, None)"><i class="pull-right category-reset fa fa-times"></i></a>
+                            <a href="@routes.Application.showHome(None, None, None)"><i class="pull-right category-reset fa fa-times"></i></a>
                         }
                     </div>
                     <table class="table panel-body category-table">
@@ -97,21 +102,21 @@ sorted according to different criteria.
                                   @if(visibleCategories.isDefined) {
                                     @if(!visibleCategories.get.contains(category)) {
                                         <tr onclick="location.href='@routes.Application.showHome(Some(
-                                        (visibleCategories.get.map(_.id) :+ i).mkString(",")), None)'">
+                                        (visibleCategories.get.map(_.id) :+ i).mkString(",")), None, None)'">
                                             <td>
                                                 <i class="fa @category.icon"></i>
                                                 <strong>@category.title</strong>
                                             </td>
                                     } else {
                                         <tr class="glow" onclick="location.href='@routes.Application.showHome(Some(
-                                        visibleCategories.get.map(_.id).filterNot(id => id == i).mkString(",")), None)'">
+                                        visibleCategories.get.map(_.id).filterNot(id => id == i).mkString(",")), None, None)'">
                                             <td>
                                                 <i class="fa @Categories(i).icon"></i>
                                                 <strong>@Categories(i).title</strong>
                                             </td>
                                     }
                                   } else {
-                                      <tr onclick="location.href='@routes.Application.showHome(Some(Integer.toString(i)), None)'">
+                                      <tr onclick="location.href='@routes.Application.showHome(Some(Integer.toString(i)), None, None)'">
                                           <td>
                                               <i class="fa @category.icon"></i>
                                               <strong>@category.title</strong>

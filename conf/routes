@@ -21,7 +21,7 @@ GET     /api/:version/users/:user                               @controllers.Api
 
 # ---------- Application ----------
 
-GET     /                                                       @controllers.Application.showHome(categories: Option[String], q: Option[String])
+GET     /                                                       @controllers.Application.showHome(categories: Option[String], q: Option[String], sort: Option[Int])
 GET     /login                                                  @controllers.Application.logIn(sso: Option[String], sig: Option[String], returnUrl: Option[String])
 GET     /logout                                                 @controllers.Application.logOut
 

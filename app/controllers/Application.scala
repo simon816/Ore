@@ -10,7 +10,7 @@ import db.query.Queries.now
 import models.project.Project._
 import models.user.{FakeUser, User}
 import ore.permission.{ResetOre, SeedOre}
-import ore.project.Categories
+import ore.project.{ProjectSortingStrategies, Categories}
 import ore.project.Categories.Category
 import play.api.Play.{configuration => config, current}
 import play.api.i18n.MessagesApi
@@ -33,14 +33,15 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     *
     * @return Home page
     */
-  def showHome(categories: Option[String], query: Option[String]) = Action { implicit request =>
+  def showHome(categories: Option[String], query: Option[String], sort: Option[Int]) = Action { implicit request =>
     val categoryArray: Array[Category] = if (categories.isDefined) Categories.fromString(categories.get) else null
+    val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
     val filter: ProjectTable => Rep[Boolean] = if (query.isDefined) {
       val q = '%' + query.get.toLowerCase + '%'
       p => (p.name.toLowerCase like q) || (p.description.toLowerCase like q) || (p.ownerName.toLowerCase like q)
     } else null
-    val projects = now(Queries.Projects.collect(filter, categoryArray, InitialLoad)).get
-    Ok(views.home(projects, Option(categoryArray)))
+    val projects = now(Queries.Projects.collect(filter, categoryArray, InitialLoad, s)).get
+    Ok(views.home(projects, Option(categoryArray), s))
   }
 
   /**
@@ -83,7 +84,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
   def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
     if (FakeUser.IsEnabled) {
       now(Queries.Users.getOrInsert(FakeUser))
-      Redirect(self.showHome(None, None)).withSession(Security.username -> FakeUser.username)
+      Redirect(self.showHome(None, None, None)).withSession(Security.username -> FakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(Auth.getRedirect(config.getString("application.baseUrl").get + "/login"))
         .flashing("url" -> returnPath.getOrElse(request.path))
@@ -107,7 +108,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     * @return Home page
     */
   def logOut = Action { implicit request =>
-    Redirect(self.showHome(None, None)).withNewSession
+    Redirect(self.showHome(None, None, None)).withNewSession
   }
 
   /**
@@ -127,7 +128,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     */
   def reset = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
     DataUtils.reset()
-    Redirect(self.showHome(None, None)).withNewSession
+    Redirect(self.showHome(None, None, None)).withNewSession
   }
 
   /**
@@ -137,7 +138,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     */
   def seed = (Authenticated andThen PermissionAction[AuthRequest](SeedOre)) { implicit request =>
     DataUtils.seed()
-    Redirect(self.showHome(None, None)).withNewSession
+    Redirect(self.showHome(None, None, None)).withNewSession
   }
 
 }

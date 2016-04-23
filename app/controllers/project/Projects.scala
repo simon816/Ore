@@ -274,7 +274,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
       project.delete
-      Redirect(app.showHome(None, None))
+      Redirect(app.showHome(None, None, None))
         .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
     }
   }

@@ -14,6 +14,7 @@ import play.api.Play
 import play.api.Play.{configuration => config, current}
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
+import slick.lifted.ColumnOrdered
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -145,9 +146,11 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     * @param offset Offset to drop
     * @return       Collection of models
     */
-  def collect(limit: Int = -1, offset: Int = -1, filter: T => Rep[Boolean] = null): Future[Seq[M]] = {
+  def collect(limit: Int = -1, offset: Int = -1, filter: T => Rep[Boolean] = null,
+              sort: T => ColumnOrdered[_] = null): Future[Seq[M]] = {
     var query: Query[T, M, Seq] = this.models
     if (filter != null) query = query.filter(filter)
+    if (sort != null) query = query.sortBy(sort)
     if (offset > -1) query = query.drop(offset)
     if (limit > -1) query = query.take(limit)
     run(query.result)
