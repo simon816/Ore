@@ -2,9 +2,9 @@ package controllers.project
 
 import javax.inject.Inject
 
-import db.OrePostgresDriver.api._
 import controllers.BaseController
 import controllers.project.routes.{Versions => self}
+import db.OrePostgresDriver.api._
 import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
 import ore.Statistics
@@ -37,13 +37,15 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return Version view
     */
   def show(author: String, slug: String, channelName: String, versionString: String) = {
-    ProjectAction(author, slug, countView = true) { implicit request =>
+    ProjectAction(author, slug) { implicit request =>
       val project = request.project
       project.channels.withName(channelName) match {
         case None => NotFound
         case Some(channel) => channel.versions.withName(versionString) match {
           case None => NotFound
-          case Some(version) => Ok(views.detail(project, channel, version))
+          case Some(version) => Statistics.projectViewed { implicit request =>
+            Ok(views.detail(project, channel, version))
+          }
         }
       }
     }
@@ -81,7 +83,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return View of project
     */
   def showList(author: String, slug: String, channels: Option[String]) = {
-    ProjectAction(author, slug, countView = true) { implicit request =>
+    ProjectAction(author, slug) { implicit request =>
       val project = request.project
       val allChannels = project.channels.seq
 
@@ -94,7 +96,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
       val versions = project.versions.sorted(_.channelId inSetBind visibleIds, _.createdAt.desc, Version.InitialLoad)
       if (visibleNames.equals(allChannels.map(_.name.toLowerCase))) visibleNames = None
 
-      Ok(views.list(project, allChannels, versions, visibleNames))
+      Statistics.projectViewed(implicit request => Ok(views.list(project, allChannels, versions, visibleNames)))
     }
   }
 
@@ -290,9 +292,9 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
         case None => NotFound("Channel not found.")
         case Some(channel) => channel.versions.withName(versionString) match {
           case None => NotFound("Version not found.")
-          case Some(version) =>
-            Statistics.versionDownloaded(project, version)
+          case Some(version) => Statistics.versionDownloaded(version) { implicit request =>
             Ok.sendFile(ProjectFiles.uploadPath(author, slug, versionString, channelName).toFile)
+          }
         }
       }
     }
@@ -309,8 +311,9 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     ProjectAction(author, slug) { implicit request =>
       val project = request.project
       val rv = project.recommendedVersion
-      Statistics.versionDownloaded(project, rv)
-      Ok.sendFile(ProjectFiles.uploadPath(author, project.name, rv.versionString, rv.channel.name).toFile)
+      Statistics.versionDownloaded(rv) { implicit request =>
+        Ok.sendFile(ProjectFiles.uploadPath(author, project.name, rv.versionString, rv.channel.name).toFile)
+      }
     }
   }
 

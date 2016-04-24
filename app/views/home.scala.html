@@ -9,9 +9,8 @@ sorted according to different criteria.
 @import ore.permission.scope.GlobalScope
 @import ore.project.Categories
 @import ore.project.Categories._
+@import ore.project.ProjectSortingStrategies.{values, _}
 @import util.Git
-@import ore.project.ProjectSortingStrategies._
-@import ore.project.ProjectSortingStrategies.values
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], sort: ProjectSortingStrategy)(implicit messages: Messages,
         session: Session, flash: Flash, request: RequestHeader)
 

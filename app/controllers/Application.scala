@@ -2,16 +2,15 @@ package controllers
 
 import javax.inject.Inject
 
+import controllers.Requests.AuthRequest
 import controllers.routes.{Application => self}
-import db.OrePostgresDriver.api._
-import db.ProjectTable
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project._
 import models.user.{FakeUser, User}
 import ore.permission.{ResetOre, SeedOre}
-import ore.project.{ProjectSortingStrategies, Categories}
 import ore.project.Categories.Category
+import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._

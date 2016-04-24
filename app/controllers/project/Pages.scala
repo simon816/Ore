@@ -4,6 +4,7 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.project.routes.{Pages => self}
+import ore.Statistics
 import ore.permission.EditPages
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -28,11 +29,11 @@ class Pages @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
     * @return View of page
     */
   def show(author: String, slug: String, page: String) = {
-    ProjectAction(author, slug, countView = true) { implicit request =>
+    ProjectAction(author, slug) { implicit request =>
       val project = request.project
       project.pages.withName(page) match {
         case None => NotFound
-        case Some(p) => Ok(views.view(project, p))
+        case Some(p) => Statistics.projectViewed(implicit request => Ok(views.view(project, p)))
       }
     }
   }

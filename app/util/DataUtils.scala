@@ -1,14 +1,14 @@
 package util
 
-import java.nio.file.{Path, Files}
+import java.nio.file.Files
 
 import db.OrePostgresDriver.api._
 import db.query.Queries
 import db.query.Queries.DB._
 import db.query.Queries.now
-import models.project.Version.PendingVersion
-import models.project.{Version, Project}
 import models.project.Project.PendingProject
+import models.project.Version.PendingVersion
+import models.project.{Project, Version}
 import models.user.User
 import ore.project.ProjectFactory
 import org.apache.commons.io.FileUtils

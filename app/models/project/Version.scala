@@ -15,7 +15,7 @@ import play.api.Play.current
 import play.api.cache.Cache
 import util.C._
 import util.Input._
-import util.{C, Cacheable, PendingAction}
+import util.{Cacheable, PendingAction}
 
 import scala.collection.JavaConversions._
 import scala.util.Try

@@ -1,7 +1,7 @@
 package controllers
 
+import controllers.Requests.ProjectRequest
 import models.project.Project
-import ore.Statistics
 import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
 import play.api.mvc._
@@ -26,19 +26,10 @@ abstract class BaseController(implicit ws: WSClient) extends Controller with I18
     }
   }
 
-  /**
-    * A request that holds a [[Project]].
-    *
-    * @param project Project to hold
-    * @param request Request to wrap
-    */
-  class ProjectRequest[A](val project: Project, request: Request[A]) extends WrappedRequest[A](request)
-
-  private def projectAction(author: String, slug: String, countView: Boolean = false)
+  private def projectAction(author: String, slug: String)
     = new ActionRefiner[Request, ProjectRequest] {
       def refine[A](request: Request[A]) = Future.successful {
         Project.withSlug(author, slug).map { project =>
-          if (countView) Statistics.projectViewed(project)(request)
           new ProjectRequest(project, request)
         } toRight {
           NotFound
@@ -48,9 +39,7 @@ abstract class BaseController(implicit ws: WSClient) extends Controller with I18
 
   /** Action to retrieve a [[Project]] and add it to the request. */
   object ProjectAction {
-    def apply(author: String, slug: String, countView: Boolean = false) = {
-      Action andThen projectAction(author, slug, countView)
-    }
+    def apply(author: String, slug: String) = Action andThen projectAction(author, slug)
   }
 
 }

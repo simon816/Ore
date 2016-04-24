@@ -12,7 +12,6 @@ import models.user.{ProjectRole, User}
 import ore.permission.role.RoleTypes
 import ore.project.ProjectFiles._
 import play.api.libs.Files.TemporaryFile
-import util.C
 import util.C._
 import util.P._
 import util.forums.SpongeForums

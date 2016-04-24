@@ -1,10 +1,9 @@
 package controllers
 
+import controllers.Requests.{AuthRequest, AuthedProjectRequest, ScopedRequest}
 import models.project.Project
 import models.user.User
-import ore.Statistics
 import ore.permission.Permission
-import ore.permission.scope.ScopeSubject
 import play.api.mvc.Results._
 import play.api.mvc._
 
@@ -19,22 +18,7 @@ trait Secured {
     Redirect(routes.Application.logIn(None, None, Some(request.path)))
   }
 
-  /** Represents a Request with a [[User]] and [[ScopeSubject]] */
-  trait ScopedRequest[A] extends WrappedRequest[A] {
-    def user: User
-    def subject: ScopeSubject = this.user
-  }
-
   // Auth
-
-  /**
-    * A request that hold the currently authenticated [[User]].
-    *
-    * @param user     Authenticated user
-    * @param request  Request to wrap
-    */
-  case class AuthRequest[A](override val user: User, request: Request[A]) extends WrappedRequest[A](request)
-                                                                          with ScopedRequest[A]
 
   /** Action that ensures that the request is authenticated. */
   object Authenticated extends ActionBuilder[AuthRequest] with ActionRefiner[Request, AuthRequest] {
@@ -47,23 +31,10 @@ trait Secured {
 
   // Permissions
 
-  /**
-    * A request that hold a Project and a [[AuthRequest]].
-    *
-    * @param project Project to hold
-    * @param request An [[AuthRequest]]
-    */
-  class AuthedProjectRequest[A](val project: Project, request: AuthRequest[A])
-                                extends WrappedRequest[A](request) with ScopedRequest[A] {
-    override def user: User = request.user
-    override val subject: ScopeSubject = this.project
-  }
-
-  private def authedProjectAction(author: String, slug: String, countView: Boolean)
+  private def authedProjectAction(author: String, slug: String)
     = new ActionRefiner[AuthRequest, AuthedProjectRequest] {
       def refine[A](request: AuthRequest[A]) = Future.successful {
         Project.withSlug(author, slug).map { project =>
-          if (countView) Statistics.projectViewed(project)(request)
           new AuthedProjectRequest(project, request)
         } toRight {
           NotFound
@@ -73,9 +44,7 @@ trait Secured {
 
   /** Action to retrieve a [[Project]] after authentication has been performed. */
   object AuthedProjectAction {
-    def apply(author: String, slug: String, countView: Boolean = false) = {
-      Authenticated andThen authedProjectAction(author, slug, countView)
-    }
+    def apply(author: String, slug: String) = Authenticated andThen authedProjectAction(author, slug)
   }
 
   /**

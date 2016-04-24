@@ -7,6 +7,7 @@ import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
 import models.project._
 import models.user.User
+import ore.Statistics
 import ore.permission.EditSettings
 import ore.project.{InvalidPluginFileException, ProjectFactory}
 import play.api.i18n.MessagesApi
@@ -124,9 +125,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return View of project
     */
   def show(author: String, slug: String) = {
-    ProjectAction(author, slug, countView = true) { implicit request =>
+    ProjectAction(author, slug) { implicit request =>
       val project = request.project
-      Ok(views.pages.view(project, project.homePage))
+      Statistics.projectViewed(implicit request => Ok(views.pages.view(project, project.homePage)))
     }
   }
 
@@ -180,8 +181,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return View of project
     */
   def showDiscussion(author: String, slug: String) = {
-    ProjectAction(author, slug, countView = true) { implicit request =>
-      Ok(views.discuss(request.project))
+    ProjectAction(author, slug) { implicit request =>
+      Statistics.projectViewed(implicit request => Ok(views.discuss(request.project)))
     }
   }
 

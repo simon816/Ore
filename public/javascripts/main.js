@@ -6,20 +6,7 @@ var KEY_ENTER = 13;
 var CATEGORY_STRING = null;
 var SORT_STRING = null;
 
-function uid() {
-    // TODO: Move server-side
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-        return v.toString(16);
-    });
-}
-
 $(function() {
-    if (Cookies.get('uid') == null) {
-        // TODO: move this server-side
-        Cookies.set('uid', uid());
-    }
-
     $('.alert-fade').fadeIn('slow');
     $('[data-toggle="tooltip"]').tooltip();
 
