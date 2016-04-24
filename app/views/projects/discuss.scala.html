@@ -2,24 +2,21 @@
 Discussion page within Project overview.
 *@
 @import models.project.Project
+@import util.C._
 @(model: Project)(implicit messages: Messages, session: Session, request: RequestHeader)
 
 @projects.view(model, "#discussion") {
 
+    <script>
+        DiscourseEmbed = {
+            discourseUrl: '@DiscourseConf.getString("baseUrl").get/',
+            topicId: @model.topicId.get
+        };
+    </script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/projectDiscuss.js")"></script>
+
     <div class="container">
         <div id='discourse-comments'></div>
-
-        <script type="text/javascript">
-            DiscourseEmbed = { discourseUrl: 'https://forums.spongepowered.org/',
-                discourseEmbedUrl: 'https://ore-staging.spongepowered.org/@model.ownerName/@model.slug/discuss' };
-
-            (function() {
-                var d = document.createElement('script'); d.type = 'text/javascript'; d.async = true;
-                d.src = DiscourseEmbed.discourseUrl + 'javascripts/embed.js';
-                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(d);
-            })();
-        </script>
-
     </div>
 
 }
