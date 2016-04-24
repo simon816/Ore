@@ -15,7 +15,6 @@ function loadVersions(increment) {
     // Build url
     var url = '/api/projects/' + PLUGIN_ID + '/versions?offset=' + offset;
     if (CHANNEL_STRING) url += '&channels=' + CHANNEL_STRING;
-    console.log(url);
 
     // Request more versions
     var spinner = versionPanel.find('.fa-spinner').show();

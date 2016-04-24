@@ -125,7 +125,7 @@ class Api extends Controller {
         case None => NotFound
         case Some(project) =>
           val channelIds: Option[Seq[Int]] = channels.map(_.toLowerCase.split(',').map { name =>
-            project.channels.find(_.name === name).get.id.get
+            project.channels.find(_.name.toLowerCase === name).get.id.get
           })
           val filter = channelIds.map(Queries.Versions.channelFilter).orNull
           val lim = Math.max(limit.getOrElse(Version.InitialLoad), Version.InitialLoad)

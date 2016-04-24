@@ -53,8 +53,6 @@ $(function() {
         if (SORT_STRING) ajaxUrl += '&sort=' + SORT_STRING;
         if (QUERY_STRING) ajaxUrl += '&q=' + QUERY_STRING;
 
-        console.log(ajaxUrl);
-
         // Request more projects
         $('.btn-more').html('<i class="fa fa-spinner fa-spin"></i>');
         $.ajax({
