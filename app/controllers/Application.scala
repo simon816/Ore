@@ -33,7 +33,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     * @return Home page
     */
   def showHome(categories: Option[String], query: Option[String], sort: Option[Int]) = Action { implicit request =>
-    val categoryArray: Array[Category] = if (categories.isDefined) Categories.fromString(categories.get) else null
+    val categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
     val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
     val filter = query.map(Queries.Projects.searchFilter).orNull
     val projects = now(Queries.Projects.collect(filter, categoryArray, InitialLoad, s)).get

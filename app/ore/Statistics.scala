@@ -59,7 +59,7 @@ object Statistics {
             }
           }
           // Complete request with new cookie
-          f(request).withCookies(Cookie("uid", newCookie))
+          f(request).withCookies(Cookie(COOKIE_UID, newCookie))
         case Some(cookie) =>
           // User with cookie, has the user viewed the project?
           viewedByUser(project, user) { viewed =>

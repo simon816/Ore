@@ -39,7 +39,7 @@ $(function() {
     var body = $('body');
     body.keydown(function(event) {
         var target = $(event.target);
-        if (target.is('body')) {
+        if (target.is('body') && shouldExecuteHotkey(event)) {
             var navBar = $('.project-navbar');
             switch (event.keyCode) {
                 case KEY_PLUS:

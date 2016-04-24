@@ -3,8 +3,14 @@ var KEY_H = 72;
 var KEY_C = 67;
 var KEY_ESC = 27;
 var KEY_ENTER = 13;
+var KEY_PLUS = 61;
+var KEY_MINUS = 173;
 var CATEGORY_STRING = null;
 var SORT_STRING = null;
+
+function shouldExecuteHotkey(event) {
+    return !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey;
+}
 
 $(function() {
     $('.alert-fade').fadeIn('slow');
@@ -48,34 +54,41 @@ $(function() {
      * h    Go home
      * c    Create new project
      */
-    $('body').keydown(function(event) {
+    var body = $('body');
+    body.keydown(function(event) {
         var target = $(event.target);
         var searchIcon = $('.icon-project-search');
-        if (target.is('body')) {
-            switch (event.keyCode) {
-                case KEY_S:
-                    event.preventDefault();
-                    searchIcon.click();
-                    break;
-                case KEY_H:
-                    event.preventDefault();
-                    window.location = '/';
-                    break;
-                case KEY_C:
-                    event.preventDefault();
-                    window.location = '/new';
-                    break;
-                default:
-                    break;
-            }
-        } else if (target.is('.project-search input')) {
-            switch (event.keyCode) {
-                case KEY_ESC:
-                    event.preventDefault();
-                    searchIcon.click();
-                    break;
-                default:
-                    break;
+        if (shouldExecuteHotkey(event)) {
+            if (target.is('body')) {
+                switch (event.keyCode) {
+                    case KEY_S:
+                        event.preventDefault();
+                        searchIcon.click();
+                        break;
+                    case KEY_H:
+                        event.preventDefault();
+                        window.location = '/';
+                        break;
+                    case KEY_C:
+                        event.preventDefault();
+                        window.location = '/new';
+                        break;
+                    case KEY_PLUS:
+                        break;
+                    case KEY_MINUS:
+                        break;
+                    default:
+                        break;
+                }
+            } else if (target.is('.project-search input')) {
+                switch (event.keyCode) {
+                    case KEY_ESC:
+                        event.preventDefault();
+                        searchIcon.click();
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     });
