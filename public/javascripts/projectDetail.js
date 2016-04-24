@@ -2,7 +2,21 @@ var projectOwner = null;
 var projectSlug = null;
 var alreadyStarred = false;
 
-var KEY_T = 84;
+var KEY_PLUS = 61;
+var KEY_MINUS = 173;
+
+function getActiveTab() {
+    return $('.project-navbar').find('li.active');
+}
+
+function switchTabTo(tab, def) {
+    var id = tab.attr('id');
+    if (tab.is('li') && id !== 'issues' && id !== 'source') {
+        window.location = tab.find('a').attr('href');
+    } else {
+        window.location = def.find('a').attr('href');
+    }
+}
 
 $(function() {
     // setup star button
@@ -26,18 +40,15 @@ $(function() {
     body.keydown(function(event) {
         var target = $(event.target);
         if (target.is('body')) {
+            var navBar = $('.project-navbar');
             switch (event.keyCode) {
-                case KEY_T:
+                case KEY_PLUS:
                     event.preventDefault();
-                    var navBar = $('.project-navbar');
-                    var activeTab = navBar.find('li.active');
-                    var nextTab = activeTab.next();
-                    var nextId = nextTab.attr('id');
-                    if (nextTab.is('li') && nextId !== 'issues' && nextId !== 'source') {
-                        window.location = nextTab.find('a').attr('href');
-                    } else {
-                        window.location = navBar.find('li:first').find('a').attr('href');
-                    }
+                    switchTabTo(getActiveTab().next(), navBar.find('li:first'));
+                    break;
+                case KEY_MINUS:
+                    event.preventDefault();
+                    switchTabTo(getActiveTab().prev(), navBar.find('li:last'));
                     break;
                 default:
                     break;
