@@ -110,7 +110,7 @@ body {
     width: 1%;
 }
 
-.project-table th {
+.project-table th, .version-table th {
     color: gray;
     background-color: #f5f5f5;
 }

@@ -16,6 +16,8 @@ class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => ne
 
   private val downloads = TableQuery[VersionDownloadsTable]
 
+  def channelFilter(channelIds: Seq[Int]): VersionTable => Rep[Boolean] = _.channelId inSetBind channelIds
+
   /**
     * Returns true if the specified hash is found in the specified
     * [[models.project.Project]]'s [[Version]]s.

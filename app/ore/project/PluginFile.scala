@@ -134,6 +134,7 @@ class PluginFile(private var _path: Path, val owner: User) {
       }
 
       val metaList = McModInfo.DEFAULT.read(jarIn)
+      jarIn.close()
       if (metaList.size() > 1) {
         throw new InvalidPluginFileException("Multiple meta files found.")
       }

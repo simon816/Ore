@@ -36,10 +36,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
   def showHome(categories: Option[String], query: Option[String], sort: Option[Int]) = Action { implicit request =>
     val categoryArray: Array[Category] = if (categories.isDefined) Categories.fromString(categories.get) else null
     val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
-    val filter: ProjectTable => Rep[Boolean] = if (query.isDefined) {
-      val q = '%' + query.get.toLowerCase + '%'
-      p => (p.name.toLowerCase like q) || (p.description.toLowerCase like q) || (p.ownerName.toLowerCase like q)
-    } else null
+    val filter = query.map(Queries.Projects.searchFilter).orNull
     val projects = now(Queries.Projects.collect(filter, categoryArray, InitialLoad, s)).get
     Ok(views.home(projects, Option(categoryArray), s))
   }
@@ -123,10 +120,9 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
 
   /**
     * Helper route to reset Ore.
-    *
-    * TODO: REMOVE BEFORE PRODUCTION
     */
   def reset = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
+    checkDebug()
     DataUtils.reset()
     Redirect(self.showHome(None, None, None)).withNewSession
   }
@@ -136,9 +132,12 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     *
     * @return Redirect home
     */
-  def seed = (Authenticated andThen PermissionAction[AuthRequest](SeedOre)) { implicit request =>
-    DataUtils.seed()
-    Redirect(self.showHome(None, None, None)).withNewSession
+  def seed(users: Option[Int], versions: Option[Int]) = {
+    (Authenticated andThen PermissionAction[AuthRequest](SeedOre)) { implicit request =>
+      checkDebug()
+      DataUtils.seed(users.getOrElse(200), versions.getOrElse(0))
+      Redirect(self.showHome(None, None, None)).withNewSession
+    }
   }
 
 }

@@ -26,6 +26,9 @@ play.evolutions.db.default.autoApply    =   true
 
 # Ore configuration
 ore.date-format = "MM-dd-yyyy"
+ore.debug       =   true
+# Used in /admin/seed route. Run "gradle build" in OreTestPlugin before using that route
+ore.test-plugin = "OreTestPlugin/build/libs/ore-test-plugin-dev-SNAPSHOT.jar"
 
 ore.channels.max-name-len   =   15
 ore.channels.name-regex     =   "^[a-zA-Z0-9]+$"
@@ -38,11 +41,14 @@ ore.pages.min-len       =   15
 ore.pages.max-len       =   32000
 ore.pages.name.max-len  =   255
 
-ore.projects.max-name-len   =   25
-ore.projects.max-pages      =   10
-ore.projects.max-channels   =   5
-ore.projects.init-load      =   25
-ore.projects.max-desc-len   =   250
+ore.projects.max-name-len       =   25
+ore.projects.max-pages          =   10
+ore.projects.max-channels       =   5
+ore.projects.init-load          =   25
+ore.projects.init-version-load  =   10
+ore.projects.max-desc-len       =   250
+ore.projects.file-validate      =   true
+ore.projects.tmp-file-save      =   false
 
 ore.users.stars-per-page    =   5
 ore.users.max-tagline-len   =   100
@@ -50,10 +56,6 @@ ore.users.max-tagline-len   =   100
 ore.git.url     =   "https://github.com/SpongePowered/Ore"
 ore.git.ref     =   ".git/refs/heads/master"
 ore.git.ref-len =   7
-
-# Used in /admin/seed route. Run "gradle build" in OreTestPlugin before using that route
-ore.test-plugin = "OreTestPlugin/build/libs/ore-test-plugin-dev-SNAPSHOT.jar"
-
 
 # Slick configuration
 slick.dbs.default.driver        =   "slick.driver.PostgresDriver$"

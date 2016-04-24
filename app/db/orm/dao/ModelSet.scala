@@ -5,6 +5,7 @@ import db.orm.ModelTable
 import db.orm.model.Model
 import db.query.Queries
 import db.query.Queries.now
+import slick.lifted.ColumnOrdered
 
 /**
   * Represents a collection of models belonging to a parent model.
@@ -94,13 +95,31 @@ class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M],
     */
   def find(p: T => Rep[Boolean]): Option[M] = now(this.queries ? (m => parentRef(m) === parentId && p(m))).get
 
+  def sorted(p: T => Rep[Boolean], s: T => ColumnOrdered[_], limit: Int, offset: Int): Seq[M] = {
+    now(this.queries.collect(limit, offset, p, s)).get
+  }
+
+  def sorted(p: T => Rep[Boolean], s: T => ColumnOrdered[_], limit: Int): Seq[M] = sorted(p, s, limit, -1)
+
+  def sorted(s: T => ColumnOrdered[_], limit: Int, offset: Int): Seq[M] = sorted(null, s, limit, offset)
+
+  def sorted(s: T => ColumnOrdered[_], limit: Int): Seq[M] = sorted(s, limit, -1)
+
+  def sorted(s: T => ColumnOrdered[_]): Seq[M] = sorted(s, -1)
+
   /**
     * Filters the values in this set by the given predicate.
     *
     * @param p  Predicate filter
     * @return   Result sequence
     */
-  def filter(p: T => Rep[Boolean]): Seq[M] = now(this.queries.collect(filter = m => parentRef(m) === parentId && p(m))).get
+  def filter(p: T => Rep[Boolean], limit: Int, offset: Int): Seq[M] = {
+    now(this.queries.collect(filter = m => parentRef(m) === parentId && p(m))).get
+  }
+
+  def filter(p: T => Rep[Boolean], limit: Int): Seq[M] = filter(p, limit, -1)
+
+  def filter(p: T => Rep[Boolean]): Seq[M] = filter(p, -1)
 
   /**
     * Returns a Seq version of this set.

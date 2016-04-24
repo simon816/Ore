@@ -13,8 +13,9 @@ import ore.project.{Dependency, PluginFile, ProjectFactory}
 import org.apache.commons.io.FileUtils
 import play.api.Play.current
 import play.api.cache.Cache
+import util.C._
 import util.Input._
-import util.{Cacheable, PendingAction}
+import util.{C, Cacheable, PendingAction}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
@@ -155,6 +156,8 @@ case class Version(override val   id: Option[Int] = None,
 }
 
 object Version extends ModelDAO[Version] {
+
+  val InitialLoad: Int = ProjectsConf.getInt("init-version-load").get
   
   /**
     * Represents a pending version to be created later.

@@ -22,6 +22,11 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
   private val views = TableQuery[ProjectViewsTable]
   private val stars = TableQuery[ProjectStarsTable]
 
+  def searchFilter(query: String): ProjectTable => Rep[Boolean] = {
+    val q = '%' + query.toLowerCase + '%'
+    p => (p.name.toLowerCase like q) || (p.description.toLowerCase like q) || (p.ownerName.toLowerCase like q)
+  }
+
   /**
     * Filters projects based on the given criteria.
     *

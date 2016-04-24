@@ -25,14 +25,14 @@ Collection of all projects.
                 @defining(project.category) { category =>
                     <td><i title="@category.title" class="fa @category.icon"></i></td>
                 }
-            <td class="name">
-                <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
-                <i title="@project.description.getOrElse("")" class="minor">@project.description.getOrElse("")</i>
-            </td>
-            <td class="author"><a href="@routes.Application.showUser(project.ownerName)">@project.ownerName</a></td>
-            <td class="minor stat">@project.views</td>
-            <td class="minor stat">@project.downloads</td>
-            <td class="minor stat">@project.stars</td>
+                <td class="name">
+                    <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
+                    <i title="@project.description.getOrElse("")" class="minor">@project.description.getOrElse("")</i>
+                </td>
+                <td class="author"><a href="@routes.Application.showUser(project.ownerName)">@project.ownerName</a></td>
+                <td class="minor stat">@project.views</td>
+                <td class="minor stat">@project.downloads</td>
+                <td class="minor stat">@project.stars</td>
             </tr>
         }
         </tbody>

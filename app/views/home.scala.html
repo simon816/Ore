@@ -25,6 +25,9 @@ sorted according to different criteria.
         @if(!sort.equals(Default)) {
             SORT_STRING = "@sort.id";
         }
+        @if(request.getQueryString("q").isDefined) {
+            QUERY_STRING = "@request.getQueryString("q").get";
+        }
         currentlyLoaded = @models.size;
     </script>
 

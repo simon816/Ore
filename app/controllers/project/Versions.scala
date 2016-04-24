@@ -2,6 +2,7 @@ package controllers.project
 
 import javax.inject.Inject
 
+import db.OrePostgresDriver.api._
 import controllers.BaseController
 import controllers.project.routes.{Versions => self}
 import models.project.Project.PendingProject
@@ -11,6 +12,7 @@ import ore.permission.EditVersions
 import ore.project.{InvalidPluginFileException, ProjectFactory, ProjectFiles}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
+import util.C._
 import util.form.Forms
 import views.html.projects.{versions => views}
 
@@ -82,19 +84,17 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     ProjectAction(author, slug, countView = true) { implicit request =>
       val project = request.project
       val allChannels = project.channels.seq
-      var channelNames = if (channels.isDefined) Some(channels.get.toLowerCase.split(",")) else None
-      var visibleChannels = allChannels
-      if (channelNames.isDefined) {
-        visibleChannels = allChannels.filter(c => channelNames.get.contains(c.name.toLowerCase))
-      }
 
-      // Don't pass "visible channels" if all channels are visible
-      val versions = if (allChannels.equals(visibleChannels)) project.versions.seq else project.versionsIn(visibleChannels)
-      if (channelNames.isDefined && allChannels.map(_.name).toSet.subsetOf(channelNames.get.toSet)) {
-        channelNames = None
-      }
+      var visibleNames: Option[Array[String]] = channels.map(_.toLowerCase.split(','))
+      val visible: Option[Array[Channel]] = visibleNames.map(_.map { name =>
+        allChannels.find(_.name.equalsIgnoreCase(name)).get
+      })
+      val visibleIds: Array[Int] = visible.map(_.map(_.id.get)).getOrElse(allChannels.map(_.id.get).toArray)
 
-      Ok(views.list(project, allChannels, versions, channelNames))
+      val versions = project.versions.sorted(_.channelId inSetBind visibleIds, _.createdAt.desc, Version.InitialLoad)
+      if (visibleNames.equals(allChannels.map(_.name.toLowerCase))) visibleNames = None
+
+      Ok(views.list(project, allChannels, versions, visibleNames))
     }
   }
 
@@ -141,7 +141,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
               } else {
                 // Create version from meta file
                 val version = Version.fromMeta(project, plugin)
-                if (version.exists) {
+                if (version.exists && ProjectsConf.getBoolean("file-validate").get) {
                   Redirect(self.showCreator(author, slug))
                     .flashing("error" -> "Found a duplicate file in project. Plugin files may only be uploaded once.")
                 } else {

@@ -12,6 +12,8 @@ import models.user.{ProjectRole, User}
 import ore.permission.role.RoleTypes
 import ore.project.ProjectFiles._
 import play.api.libs.Files.TemporaryFile
+import util.C
+import util.C._
 import util.P._
 import util.forums.SpongeForums
 
@@ -33,7 +35,9 @@ object ProjectFactory {
     val tmpPath = TempDir.resolve(owner.username).resolve(name)
     val plugin = new PluginFile(tmpPath, owner)
     if (Files.notExists(tmpPath.getParent)) Files.createDirectories(tmpPath.getParent)
+    val oldPath = tmp.file.toPath
     tmp.moveTo(plugin.path.toFile, replace = true)
+    if (ProjectsConf.getBoolean("tmp-file-save").get) Files.copy(plugin.path, oldPath)
     plugin.loadMeta
     plugin
   }
@@ -80,7 +84,7 @@ object ProjectFactory {
 
     // Create version
     val pendingVersion = pending.version
-    if (pendingVersion.exists) {
+    if (pendingVersion.exists && ProjectsConf.getBoolean("file-validate").get) {
       throw new IllegalArgumentException("Version already exists.")
     }
 

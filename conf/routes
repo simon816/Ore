@@ -2,92 +2,99 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET     /*path/                                                 @controllers.Application.removeTrail(path)
-GET     /admin/reset                                            @controllers.Application.reset
-GET     /admin/seed                                             @controllers.Application.seed
+GET     /*path/                                                     @controllers.Application.removeTrail(path)
+GET     /admin/reset                                                @controllers.Application.reset
+GET     /admin/seed                                                 @controllers.Application.seed(users: Option[Int], versions: Option[Int])
 
 # ---------- API (v1) ----------
-GET     /api/projects                                           @controllers.Api.projects(version = "v1", categories: Option[String], limit: Option[Int], offset: Option[Int])
-GET     /api/project                                            @controllers.Api.project(version = "v1", pluginId: Option[String])
+GET     /api/projects                                               @controllers.Api.listProjects(version = "v1", categories: Option[String], sort: Option[Int], q: Option[String], limit: Option[Int], offset: Option[Int])
+GET     /api/projects/:pluginId                                     @controllers.Api.showProject(version = "v1", pluginId)
 
-GET     /api/users                                              @controllers.Api.users(version = "v1", limit: Option[Int], offset: Option[Int])
-GET     /api/users/:user                                        @controllers.Api.user(version = "v1", user)
+GET     /api/projects/:pluginId/versions                            @controllers.Api.listVersions(version = "v1", pluginId, channels: Option[String], limit: Option[Int], offset: Option[Int])
+GET     /api/projects/:pluginId/versions/:channel/:name             @controllers.Api.showVersion(version = "v1", pluginId, channel, name)
 
-GET     /api/:version/projects                                  @controllers.Api.projects(version, categories: Option[String], limit: Option[Int], offset: Option[Int])
-GET     /api/:version/project                                   @controllers.Api.project(version, pluginId: Option[String])
-GET     /api/:version/users                                     @controllers.Api.users(version, limit: Option[Int], offset: Option[Int])
-GET     /api/:version/users/:user                               @controllers.Api.user(version, user)
+GET     /api/users                                                  @controllers.Api.listUsers(version = "v1", limit: Option[Int], offset: Option[Int])
+GET     /api/users/:user                                            @controllers.Api.showUser(version = "v1", user)
+
+GET     /api/:version/projects                                      @controllers.Api.listProjects(version, categories: Option[String], sort: Option[Int], q: Option[String], limit: Option[Int], offset: Option[Int])
+GET     /api/:version/projects/:pluginId                            @controllers.Api.showProject(version, pluginId)
+
+GET     /api/:version/projects/:pluginId/versions                   @controllers.Api.listVersions(version, pluginId, channels: Option[String], limit: Option[Int], offset: Option[Int])
+GET     /api/:version/projects/:pluginId/versions/:channel/:name    @controllers.Api.showVersion(version, pluginId, channel, name)
+
+GET     /api/:version/users                                         @controllers.Api.listUsers(version, limit: Option[Int], offset: Option[Int])
+GET     /api/:version/users/:user                                   @controllers.Api.showUser(version, user)
 
 
 # ---------- Application ----------
 
-GET     /                                                       @controllers.Application.showHome(categories: Option[String], q: Option[String], sort: Option[Int])
-GET     /login                                                  @controllers.Application.logIn(sso: Option[String], sig: Option[String], returnUrl: Option[String])
-GET     /logout                                                 @controllers.Application.logOut
+GET     /                                                           @controllers.Application.showHome(categories: Option[String], q: Option[String], sort: Option[Int])
+GET     /login                                                      @controllers.Application.logIn(sso: Option[String], sig: Option[String], returnUrl: Option[String])
+GET     /logout                                                     @controllers.Application.logOut
 
 # ---------- Projects ----------
 
-GET     /p/:pluginId                                            @controllers.project.Projects.shortcut(pluginId)
+GET     /p/:pluginId                                                @controllers.project.Projects.shortcut(pluginId)
 
-GET     /new                                                    @controllers.project.Projects.showCreator
+GET     /new                                                        @controllers.project.Projects.showCreator
 
-POST    /new/upload                                             @controllers.project.Projects.upload
-GET     /new/:author/:slug                                      @controllers.project.Projects.showCreatorWithMeta(author, slug)
-POST    /new/:author/:slug/members                              @controllers.project.Projects.showMembersConfig(author, slug)
+POST    /new/upload                                                 @controllers.project.Projects.upload
+GET     /new/:author/:slug                                          @controllers.project.Projects.showCreatorWithMeta(author, slug)
+POST    /new/:author/:slug/members                                  @controllers.project.Projects.showMembersConfig(author, slug)
 
-GET     /:user                                                  @controllers.Application.showUser(user)
-POST    /:user/settings/tagline                                 @controllers.Application.saveTagline(user)
+GET     /:user                                                      @controllers.Application.showUser(user)
+POST    /:user/settings/tagline                                     @controllers.Application.saveTagline(user)
 
-POST    /:author/:slug                                          @controllers.project.Projects.showFirstVersionCreator(author, slug)
-GET     /:author/:slug                                          @controllers.project.Projects.show(author, slug)
-GET     /:author/:slug/star/:starred                            @controllers.project.Projects.setStarred(author, slug, starred: Boolean)
+POST    /:author/:slug                                              @controllers.project.Projects.showFirstVersionCreator(author, slug)
+GET     /:author/:slug                                              @controllers.project.Projects.show(author, slug)
+GET     /:author/:slug/star/:starred                                @controllers.project.Projects.setStarred(author, slug, starred: Boolean)
 
-GET     /:author/:slug/discuss                                  @controllers.project.Projects.showDiscussion(author, slug)
+GET     /:author/:slug/discuss                                      @controllers.project.Projects.showDiscussion(author, slug)
 
-GET     /:author/:slug/manage                                   @controllers.project.Projects.showManager(author, slug)
-POST    /:author/:slug/manage/save                              @controllers.project.Projects.save(author, slug)
-POST    /:author/:slug/manage/rename                            @controllers.project.Projects.rename(author, slug)
-POST    /:author/:slug/manage/delete                            @controllers.project.Projects.delete(author, slug)
-POST    /:author/:slug/manage/members/remove                    @controllers.project.Projects.removeMember(author, slug)
+GET     /:author/:slug/manage                                       @controllers.project.Projects.showManager(author, slug)
+POST    /:author/:slug/manage/save                                  @controllers.project.Projects.save(author, slug)
+POST    /:author/:slug/manage/rename                                @controllers.project.Projects.rename(author, slug)
+POST    /:author/:slug/manage/delete                                @controllers.project.Projects.delete(author, slug)
+POST    /:author/:slug/manage/members/remove                        @controllers.project.Projects.removeMember(author, slug)
 
-GET     /:author/:slug/issues                                   @controllers.project.Projects.showIssues(author, slug)
-GET     /:author/:slug/source                                   @controllers.project.Projects.showSource(author, slug)
+GET     /:author/:slug/issues                                       @controllers.project.Projects.showIssues(author, slug)
+GET     /:author/:slug/source                                       @controllers.project.Projects.showSource(author, slug)
 
 
 # ---------- Pages ----------
 
-GET     /:author/:slug/pages/:page/edit                         @controllers.project.Pages.showEditor(author, slug, page)
-POST    /:author/:slug/pages/:page/edit                         @controllers.project.Pages.save(author, slug, page)
-GET     /:author/:slug/pages/:page/delete                       @controllers.project.Pages.delete(author, slug, page)
-GET     /:author/:slug/pages/:page                              @controllers.project.Pages.show(author, slug, page)
+GET     /:author/:slug/pages/:page/edit                             @controllers.project.Pages.showEditor(author, slug, page)
+POST    /:author/:slug/pages/:page/edit                             @controllers.project.Pages.save(author, slug, page)
+GET     /:author/:slug/pages/:page/delete                           @controllers.project.Pages.delete(author, slug, page)
+GET     /:author/:slug/pages/:page                                  @controllers.project.Pages.show(author, slug, page)
 
 
 # ---------- Channels ----------
 
-GET     /:author/:slug/channels                                 @controllers.project.Channels.showList(author, slug)
-POST    /:author/:slug/channels                                 @controllers.project.Channels.create(author, slug)
-POST    /:author/:slug/channels/:channel                        @controllers.project.Channels.save(author, slug, channel)
-GET     /:author/:slug/channels/:channel/delete                 @controllers.project.Channels.delete(author, slug, channel)
+GET     /:author/:slug/channels                                     @controllers.project.Channels.showList(author, slug)
+POST    /:author/:slug/channels                                     @controllers.project.Channels.create(author, slug)
+POST    /:author/:slug/channels/:channel                            @controllers.project.Channels.save(author, slug, channel)
+GET     /:author/:slug/channels/:channel/delete                     @controllers.project.Channels.delete(author, slug, channel)
 
 
 # ---------- Versions ----------
 
-GET     /:author/:slug/versions                                 @controllers.project.Versions.showList(author, slug, channels: Option[String])
+GET     /:author/:slug/versions                                     @controllers.project.Versions.showList(author, slug, channels: Option[String])
 
-GET     /:author/:slug/versions/:channel/:version/delete        @controllers.project.Versions.delete(author, slug, channel, version)
+GET     /:author/:slug/versions/:channel/:version/delete            @controllers.project.Versions.delete(author, slug, channel, version)
 
-GET     /:author/:slug/versions/download/:channel/:version      @controllers.project.Versions.download(author, slug, channel, version)
-GET     /:author/:slug/versions/download/recommended            @controllers.project.Versions.downloadRecommended(author, slug)
+GET     /:author/:slug/versions/download/:channel/:version          @controllers.project.Versions.download(author, slug, channel, version)
+GET     /:author/:slug/versions/download/recommended                @controllers.project.Versions.downloadRecommended(author, slug)
 
-GET     /:author/:slug/versions/new                             @controllers.project.Versions.showCreator(author, slug)
-POST    /:author/:slug/versions/new/upload                      @controllers.project.Versions.upload(author, slug)
-GET     /:author/:slug/versions/new/:channel/:version           @controllers.project.Versions.showCreatorWithMeta(author, slug, channel, version)
+GET     /:author/:slug/versions/new                                 @controllers.project.Versions.showCreator(author, slug)
+POST    /:author/:slug/versions/new/upload                          @controllers.project.Versions.upload(author, slug)
+GET     /:author/:slug/versions/new/:channel/:version               @controllers.project.Versions.showCreatorWithMeta(author, slug, channel, version)
 
-POST    /:author/:slug/versions/:channel/:version               @controllers.project.Versions.create(author, slug, channel, version)
-GET     /:author/:slug/versions/:channel/:version               @controllers.project.Versions.show(author, slug, channel, version)
-POST    /:author/:slug/versions/:channel/:version/save          @controllers.project.Versions.saveDescription(author, slug, channel, version)
+POST    /:author/:slug/versions/:channel/:version                   @controllers.project.Versions.create(author, slug, channel, version)
+GET     /:author/:slug/versions/:channel/:version                   @controllers.project.Versions.show(author, slug, channel, version)
+POST    /:author/:slug/versions/:channel/:version/save              @controllers.project.Versions.saveDescription(author, slug, channel, version)
 
 
 # ---------- Other ----------
 
-GET     /assets/*file                                           controllers.Assets.at(path="/public", file)
+GET     /assets/*file                                               controllers.Assets.at(path="/public", file)

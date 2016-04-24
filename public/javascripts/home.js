@@ -1,6 +1,7 @@
 var PROJECTS_PER_CLICK = 50;
 var CATEGORY_STRING = null;
 var SORT_STRING = null;
+var QUERY_STRING = null;
 
 var currentlyLoaded = 0;
 
@@ -50,6 +51,9 @@ $(function() {
         var ajaxUrl = '/api/projects?limit=' + PROJECTS_PER_CLICK + '&offset=' + currentlyLoaded;
         if (CATEGORY_STRING) ajaxUrl += '&categories=' + CATEGORY_STRING;
         if (SORT_STRING) ajaxUrl += '&sort=' + SORT_STRING;
+        if (QUERY_STRING) ajaxUrl += '&q=' + QUERY_STRING;
+
+        console.log(ajaxUrl);
 
         // Request more projects
         $('.btn-more').html('<i class="fa fa-spinner fa-spin"></i>');
