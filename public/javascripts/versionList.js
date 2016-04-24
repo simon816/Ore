@@ -1,6 +1,8 @@
 var PLUGIN_ID = null;
 var CHANNEL_STRING = null;
 var VERSIONS_PER_PAGE = 10;
+var PROJECT_OWNER = null;
+var PROJECT_SLUG = null;
 
 var page = 1;
 
@@ -66,4 +68,31 @@ $(function() {
     var versionPanel = $('.version-panel');
     versionPanel.find('.next').click(function() { loadVersions(1) });
     versionPanel.find('.prev').click(function() { loadVersions(-1) });
+
+    // Setup channel list
+    $('.list-channel').find('li').find('a').click(function() {
+        var channelString = '';
+        var channelName = $(this).closest('.list-group-item').find('.channel').text();
+        if ($(this).hasClass('visible')) {
+            var self = $(this);
+            var visible = $('.list-channel').find('li').find('a.visible');
+            // Find visible channels
+            visible.each(function(i) {
+                if ($(this).is(self)) return; // Skip this channel
+                channelString += $(this).closest('.list-group-item').find('.channel').text();
+                if (i < visible.length - 1) channelString += ',';
+            });
+        } else if (CHANNEL_STRING) {
+            channelString += CHANNEL_STRING + ',' + channelName;
+        } else {
+            channelString += channelName;
+        }
+
+        // Build url
+        var url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/versions';
+        if (channelString.length > 0) url += '?channels=' + channelString;
+
+        // Booyah!
+        window.location = url;
+    });
 });

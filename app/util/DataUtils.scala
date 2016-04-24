@@ -8,7 +8,7 @@ import db.query.Queries.DB._
 import db.query.Queries.now
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
-import models.project.{Project, Version}
+import models.project.{Channel, Project, Version}
 import models.user.User
 import ore.project.ProjectFactory
 import org.apache.commons.io.FileUtils
@@ -43,7 +43,7 @@ object DataUtils {
     *
     * @param users Amount of users to create
     */
-  def seed(users: Int, versions: Int) = {
+  def seed(users: Int, versions: Int, channels: Int) = {
     // Note: Dangerous as hell, handle with care
     SpongeForums.disable() // Disable topic creation
     this.reset()
@@ -63,31 +63,44 @@ object DataUtils {
       meta.setId(pluginId)
 
       // Create project
-      val project = Project.fromMeta(user, meta)
-      PendingProject(project, plugin).complete.get
+      var project = Project.fromMeta(user, meta)
+      project = PendingProject(project, plugin).complete.get
 
-      println(versions)
+      // Create channels
+      var channelSeq: Seq[Channel] = Seq.empty
+      for (i <- 0 until channels) {
+        channelSeq :+= project.addChannel("Channel" + (i + 1).toString, Channel.Colors(i))
+      }
+
+      // Create additional versions
       for (i <- 0 until versions) {
-
         println("Version: " + i + '/' + versions)
 
-        // Initialize plugin
-        while (!pluginFile.exists()) pluginFile = copyPlugin
-        plugin = ProjectFactory.initUpload(TemporaryFile(pluginFile), pluginFile.getName, user).get
+        for ((channel, j) <- channelSeq.zipWithIndex) {
+          // Initialize plugin
+          while (!pluginFile.exists()) pluginFile = copyPlugin
+          plugin = ProjectFactory.initUpload(TemporaryFile(pluginFile), pluginFile.getName, user).get
 
-        // Modify meta
-        meta = plugin.meta.get
-        meta.setId(pluginId)
-        meta.setVersion(i.toString)
+          // Modify meta
+          meta = plugin.meta.get
+          meta.setId(pluginId)
+          meta.setVersion(i.toString)
 
-        // Create version
-        val version = Version.fromMeta(project, plugin)
-        PendingVersion(user.username, project.slug, version=version, plugin=plugin).complete.get
+          // Create version
+          val version = Version.fromMeta(project, plugin).copy(channelId=channel.id.get)
+          PendingVersion(user.username, project.slug, channel.name, version=version, plugin=plugin).complete.get
+        }
       }
     }
     SpongeForums.apply // Re-enable forum hooks
   }
 
-  private def copyPlugin = Files.copy(this.pluginPath, this.pluginPath.getParent.resolve("plugin.jar")).toFile
+  private def copyPlugin = {
+    val path = this.pluginPath.getParent.resolve("plugin.jar")
+    if (Files.notExists(path)) {
+      Files.copy(this.pluginPath, this.pluginPath.getParent.resolve("plugin.jar")).toFile
+    }
+    path.toFile
+  }
 
 }

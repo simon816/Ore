@@ -13,6 +13,8 @@ Versions page within Project overview.
     <script type="text/javascript" src="@routes.Assets.at("javascripts/versionList.js")"></script>
     <script>
         PLUGIN_ID = '@model.pluginId';
+        PROJECT_OWNER = '@model.ownerName';
+        PROJECT_SLUG = '@model.slug';
         @if(visibleChannels.isDefined) {
           CHANNEL_STRING = '@visibleChannels.get.mkString(",")';
         }
@@ -44,6 +46,7 @@ Versions page within Project overview.
                 <div class="row">
                     <div class="col-md-9">
                         <div class="panel panel-default version-panel">
+                            <!-- Version table -->
                             <table class="table version-table">
                                 <thead class="panel-heading">
                                     <tr class="panel-title">
@@ -110,37 +113,28 @@ Versions page within Project overview.
                                 }
                             </div>
 
-                            <ul class="list-group">
+                            <!-- Channel list -->
+                            <ul class="list-group list-channel">
                                 @channels.sorted.map { channel =>
                                   <li class="list-group-item">
-                                      <span class="channel"
-                                            style="background-color: @channel.color.hex;">@channel.name</span>
-                                      @if(visibleChannels.isDefined) {
-                                          @if(!visibleChannels.get.contains(channel.name)) {
-                                              <a class="pull-right"
-                                                 href="@projectRoutes.Versions.showList(model.ownerName, model.slug, Some(
-                                                     (visibleChannels.get :+ channel.name).mkString(",")
-                                                 ))"
-                                              >
-                                                  <i class="fa fa-eye-slash"></i>
-                                              </a>
-                                          } else {
-                                              <a class="pull-right"
-                                                 href="@projectRoutes.Versions.showList(model.ownerName, model.slug, Some(
-                                                     visibleChannels.get.filterNot(c => c.equals(channel.name)).mkString(",")
-                                                 ))"
-                                              >
+                                      <span class="channel" style="background-color: @channel.color.hex;">@channel.name</span>
+
+                                      @visibleChannels.map(_.map(_.toLowerCase)).map { channels =>
+                                        @defining(channels.contains(channel.name.toLowerCase)) { visible =>
+                                            <a href="#" class="pull-right @if(visible) { visible }">
+                                              @if(visible) {
                                                   <i class="fa fa-eye"></i>
-                                              </a>
-                                          }
-                                      } else {
-                                          <a href="@projectRoutes.Versions.showList(model.ownerName, model.slug, Some(channel.name))"
-                                             class="pull-right">
-                                              <i class="fa fa-eye"></i>
+                                              } else {
+                                                  <i class="fa fa-eye-slash"></i>
+                                              }
                                           </a>
+                                        }
+                                      }.getOrElse {
+                                          <a class="pull-right visible" href="#"><i class="fa fa-eye"></i></a>
                                       }
                                   </li>
                                 }
+
                                 @if(User.current.isDefined && (User.current.get can EditChannels in model)) {
                                     <li class="list-group-item text-right">
                                         <a href="@projectRoutes.Channels.showList(model.ownerName, model.slug)">

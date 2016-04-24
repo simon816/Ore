@@ -131,10 +131,10 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     *
     * @return Redirect home
     */
-  def seed(users: Option[Int], versions: Option[Int]) = {
+  def seed(users: Option[Int], versions: Option[Int], channels: Option[Int]) = {
     (Authenticated andThen PermissionAction[AuthRequest](SeedOre)) { implicit request =>
       checkDebug()
-      DataUtils.seed(users.getOrElse(200), versions.getOrElse(0))
+      DataUtils.seed(users.getOrElse(200), versions.getOrElse(0), channels.getOrElse(1))
       Redirect(self.showHome(None, None, None)).withNewSession
     }
   }
