@@ -80,11 +80,13 @@ Versions page within Project overview.
                             </table>
                             <div class="panel-footer">
                                 <span class="pull-left minor">
-                                    <strong><span class="offset">@Version.InitialLoad</span>/@model.versions.size</strong>
+                                    <strong><span class="offset">@versions.size</span>/@model.versions.size</strong>
                                 </span>
                                 <div class="pull-right">
                                     <a class="prev" href="#" style="display: none;"><i class="fa fa-arrow-left"></i></a>
-                                    <a class="next" href="#"><i class="fa fa-arrow-right"></i></a>
+                                    <a class="next" href="#" @if(versions.size < Version.InitialLoad) { style="display: none;" }>
+                                        <i class="fa fa-arrow-right"></i>
+                                    </a>
                                 </div>
                                 <div class="clearfix"></div>
                             </div>
