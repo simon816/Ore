@@ -151,12 +151,8 @@ body {
     background-color: #f3f2f0;
 }
 
-.category-table > tbody > tr > td {
-    padding: 0;
-}
-
-.category-table > tbody > tr > td  {
-    padding: 8px;
+.category-table tr.selected > td {
+    padding-top: 9px;
 }
 
 .category-table tr.selected {
