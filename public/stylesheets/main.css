@@ -6,29 +6,9 @@
     cursor: default;
 }
 
-.pre-beta {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    font-size: 14px;
-}
-
-.pre-beta .channel {
-    background-color: #B9F2FF;
-}
-
-.pre-beta a {
-    font-style: italic;
-    font-size: 12px;
-}
-
-.pre-beta a:hover {
-    text-decoration: underline;
-}
-
 .page-content {
     padding: 10px;
-    width: 100%;
+    max-width: 100%;
     overflow: hidden;
 }
 
@@ -36,14 +16,123 @@
     max-width: 100%;
 }
 
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    background-color: #f3f2f0;
+    margin-bottom: 60px;
+}
+
+.page-content {
+    padding: 10px;
+    width: 100%;
+}
+
 .page-content h1, .page-content h2, .page-content h3, .page-content h4, .page-content h5, .page-content h6 {
     border-bottom: 1px solid #ddd;
     padding-bottom: 5px;
 }
 
-
 body {
     background-color: #f3f2f0;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    min-height: 60px;
+    height: 60px;
+    padding: 10px;
+}
+
+.footer .col-md-4 {
+    font-size: 12px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 12px;
+    vertical-align: middle;
+    border-top: 1px solid #ddd;
+}
+
+.footer .col-spongie {
+    padding: 0;
+}
+
+#spongie {
+    display: block;
+    margin: 0 auto;
+}
+
+#spongie {
+    width: 50px;
+    height: 50px;
+}
+
+#spongie path {
+    -webkit-transition: fill 0.15s ease-in-out;
+    -moz-transition: fill 0.15s ease-in-out;
+    -ms-transition: fill 0.15s ease-in-out;
+    -o-transition: fill 0.15s ease-in-out;
+    transition: fill 0.15s ease-in-out;
+    fill: gray;
+}
+
+#spongie:hover path {
+    fill: #f8Ce0c;
+}
+
+.footer .info {
+    display: table;
+}
+
+.footer .info > * {
+    display: table-cell;
+    padding-right: 10px;
+}
+
+.footer > .navbar-default {
+    background-color: #CCCCCC;
+    border: 0;
+    border-top: 1px solid #A5A5A5;
+}
+
+.copyright {
+    font-family: Verdana, Geneva, sans-serif;
+}
+
+.social {
+    display: table;
+}
+
+.social > a {
+    color: #727272;
+    outline: none;
+    display: table-cell;
+    padding-left: 10px;
+}
+
+.social > a > .fa {
+    -webkit-transition: color 0.15s ease-in-out;
+    -moz-transition: color 0.15s ease-in-out;
+    -ms-transition: color 0.15s ease-in-out;
+    -o-transition: color 0.15s ease-in-out;
+    transition: color 0.15s ease-in-out;
+}
+
+.social > a > .fa-twitter:hover {
+    color: #00aced;
+}
+
+.social > a > .fa-facebook-official:hover {
+    color: #3b5998;
+}
+
+.social > a > .fa-reddit:hover {
+    color: #3399ff;
 }
 
 .navbar-main {
