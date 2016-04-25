@@ -6,41 +6,71 @@
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
         session: Session, request: RequestHeader)
 
+@canEdit = @{
+    User.current.isDefined && (User.current.get can EditVersions in project)
+}
+
 @projects.view(project, "#versions") {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/versionEdit.js")"></script>
 
     <div class="container">
+        <!-- Version header -->
         <div class="row">
             <div class="col-md-12 version-header">
+                <!-- Title -->
                 <div class="clearfix">
                     <h1 class="pull-left">@version.versionString</h1>
                     <span class="channel channel-head" style="background-color: @channel.color.hex;">@channel.name</span>
                 </div>
-                <p class="date pull-left">
-                    <a href="#"><strong>@project.ownerName</strong></a> released this version on @version.prettyDate
-                </p>
-                <div class="pull-right version-buttons">
-                    <span class="date">@version.humanFileSize</span>
-                    @if(User.current.isDefined && (User.current.get can EditVersions in project)) {
-                        <a class="btn btn-danger"
-                           @if(project.versions.size == 1) {
-                               disabled data-toggle="tooltip" data-placement="top"
-                               title="@messages("version.delete.cannot-last")"
-                           } else {
-                               href="@projectRoutes.Versions.delete(project.ownerName, project.slug, channel.name, version.versionString)"
-                           }
-                        >
-                            @messages("version.delete")
-                        </a>
-                    }
-                    <a class="btn btn-primary"
-                       href="@projectRoutes.Versions.download(project.ownerName, project.slug, channel.name, version.versionString)">
-                        @messages("version.download")
+
+                <!-- User info -->
+                <p class="user date pull-left">
+                    <a href="@routes.Application.showUser(project.ownerName)">
+                        <strong>@project.ownerName</strong>
                     </a>
+                    released this version on @version.prettyDate
+                </p>
+
+                <!-- Buttons -->
+                <div class="version-buttons pull-right">
+                    <div><span class="date">@version.humanFileSize</span></div>
+                    @if(project.recommendedVersion.equals(version)) {
+                        <div><i title="Recommended version" class="recommended fa fa-diamond"></i></div>
+                    } else { @if(canEdit) {
+                        <a class="btn btn-info"
+                           href="@projectRoutes.Versions.setRecommended(
+                               project.ownerName, project.slug, version.channel.name, version.versionString)">
+                            <i class="fa fa-diamond"></i> Set recommended
+                        </a>
+                    }}
+
+                    @if(canEdit) {
+                        <div>
+                            <a class="btn btn-danger"
+                               @if(project.versions.size == 1) {
+                                   disabled data-toggle="tooltip" data-placement="top"
+                                   title="@messages("version.delete.cannot-last")"
+                               } else {
+                                   href="@projectRoutes.Versions.delete(project.ownerName, project.slug, channel.name, version.versionString)"
+                               }
+                            >
+                                <i class="fa fa-trash"></i> @messages("version.delete")
+                            </a>
+                        </div>
+                    }
+
+                    <div>
+                        <a class="btn btn-primary"
+                           href="@projectRoutes.Versions.download(project.ownerName, project.slug, channel.name, version.versionString)">
+                            <i class="fa fa-download"></i> @messages("version.download")
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Description -->
         <div class="row version-description">
             <div id="description" class="col-md-8"></div>
 
@@ -90,6 +120,7 @@
             </div>
 
             @if(version.dependencies.nonEmpty) {
+                <!-- Dependencies -->
                 <div class="col-md-4">
                     <div class="panel panel-default">
                         <div class="panel-heading"><h3 class="panel-title">Dependencies</h3></div>

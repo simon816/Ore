@@ -67,6 +67,18 @@ object Forms {
   lazy val UserTagline = Form(single("tagline" -> text))
 
   /**
+    * Submits a new Version.
+    */
+  lazy val VersionCreate = Form(mapping(
+    "channel-input" -> text
+      .verifying("Invalid channel name.", Channel.isValidName(_)),
+    "channel-color-input" -> text
+      .verifying("Invalid channel color.", c => Channel.Colors.exists(_.hex.equalsIgnoreCase(c))),
+    "recommended" -> boolean
+  )(VersionData.apply)(VersionData.unapply))
+
+
+  /**
     * Submits a change to a Version's description.
     */
   lazy val VersionDescription = Form(single("description" -> text))

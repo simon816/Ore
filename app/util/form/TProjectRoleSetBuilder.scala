@@ -6,7 +6,7 @@ import ore.permission.role.RoleTypes
 /**
   * Takes form data and builds an uninitialized set of [[ProjectRole]].
   */
-trait TraitProjectRoleSetBuilder {
+trait TProjectRoleSetBuilder {
 
   /**
     * Returns the user IDs to use in building the set.

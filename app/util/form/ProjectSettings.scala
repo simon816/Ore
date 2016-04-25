@@ -17,7 +17,7 @@ case class ProjectSettings(val          categoryName: String,
                            override val roles: List[String],
                            val          userUps: List[String],
                            val          roleUps: List[String])
-                           extends      TraitProjectRoleSetBuilder {
+                           extends      TProjectRoleSetBuilder {
 
   /**
     * Saves these settings to the specified [[Project]].

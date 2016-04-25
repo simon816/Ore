@@ -4,6 +4,7 @@ import java.nio.file.Files
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
+import db.OrePostgresDriver.api._
 import db.VersionTable
 import db.orm.dao.{ModelDAO, NamedModelSet}
 import db.orm.model.ModelKeys._
@@ -92,10 +93,13 @@ case class Channel(override val   id: Option[Int] = None,
     * @param context  Project for context
     * @return         Result
     */
-  def deleteVersion(version: Version, context: Project) = assertDefined {
+  def deleteVersion(version: Version)(implicit context: Project) = assertDefined {
     checkArgument(context.versions.size > 1, "only one version", "")
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
+    val rv = context.recommendedVersion
     now(Queries.Versions delete version).get
+    // Set recommended version to latest version if the deleted version was the rv
+    if (version.equals(rv)) context.recommendedVersion = context.versions.sorted(_.createdAt.desc, 1).head
     Files.delete(ProjectFiles.uploadPath(context.ownerName, context.name, version.versionString, this._name))
   }
 

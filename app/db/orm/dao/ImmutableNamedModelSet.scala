@@ -19,4 +19,4 @@ class ImmutableNamedModelSet[T <: NamedModelTable[M],
                                               parentId: Int,
                                               parentRef: T => Rep[Int])
                                               extends NamedModelSet[T, M](queries, parentId, parentRef)
-                                              with TraitImmutableModelSet[T, M]
+                                              with TImmutableModelSet[T, M]

@@ -48,7 +48,7 @@ $(function() {
                     break;
                 case KEY_MINUS:
                     event.preventDefault();
-                    switchTabTo(getActiveTab().prev(), navBar.find('li:last'));
+                    switchTabTo(getActiveTab().prev(), navBar.find('#discussion'));
                     break;
                 default:
                     break;

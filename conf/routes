@@ -93,6 +93,7 @@ GET     /:author/:slug/versions/new/:channel/:version               @controllers
 POST    /:author/:slug/versions/:channel/:version                   @controllers.project.Versions.create(author, slug, channel, version)
 GET     /:author/:slug/versions/:channel/:version                   @controllers.project.Versions.show(author, slug, channel, version)
 POST    /:author/:slug/versions/:channel/:version/save              @controllers.project.Versions.saveDescription(author, slug, channel, version)
+GET     /:author/:slug/versions/:channel/:version/recommended       @controllers.project.Versions.setRecommended(author, slug, channel, version)
 
 
 # ---------- Other ----------

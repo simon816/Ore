@@ -75,6 +75,30 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
   }
 
   /**
+    * Sets the specified Version as the recommended download.
+    *
+    * @param author         Project owner
+    * @param slug           Project slug
+    * @param channelName    Version channel
+    * @param versionString  Version name
+    * @return               View of version
+    */
+  def setRecommended(author: String, slug: String, channelName: String, versionString: String) = {
+    VersionEditAction(author, slug) { implicit request =>
+      val project = request.project
+      project.channels.withName(channelName) match {
+        case None => NotFound
+        case Some(channel) => channel.versions.withName(versionString) match {
+          case None => NotFound
+          case Some(version) =>
+            project.recommendedVersion = version
+            Redirect(self.show(author, slug, channelName, versionString))
+        }
+      }
+    }
+  }
+
+  /**
     * Displays the "versions" tab within a Project view.
     *
     * @param author   Owner of project
@@ -215,14 +239,16 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
         case None => Redirect(self.showCreator(author, slug)) // Not found
         case Some(pendingVersion) =>
           // Get submitted channel
-          Forms.ChannelEdit.bindFromRequest.fold(
+          Forms.VersionCreate.bindFromRequest.fold(
             hasErrors => Redirect(self.showCreatorWithMeta(author, slug, channelName, versionString))
               .flashing("error" -> hasErrors.errors.head.message),
 
-            channelData => {
+            versionData => {
               // Channel is valid
-              pendingVersion.channelName = channelData.name.trim
-              pendingVersion.channelColor = channelData.color
+              pendingVersion.channelName = versionData.channelName.trim
+              pendingVersion.channelColor = versionData.color
+
+              println(versionData)
 
               // Check for pending project
               Project.getPending(author, slug) match {
@@ -231,12 +257,13 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
                   withProject(author, slug) { project =>
                     val existingChannel = project.channels.withName(pendingVersion.channelName).orNull
                     var channelResult: Either[String, Channel] = Right(existingChannel)
-                    if (existingChannel == null) channelResult = channelData.addTo(project)
+                    if (existingChannel == null) channelResult = versionData.addTo(project)
                     channelResult.fold(
                       error => Redirect(self.showCreatorWithMeta(author, slug, channelName, versionString))
                         .flashing("error" -> error),
                       channel => {
-                        pendingVersion.complete.get
+                        val newVersion = pendingVersion.complete.get
+                        if (versionData.recommended) project.recommendedVersion = newVersion
                         Redirect(self.show(author, slug, pendingVersion.channelName, versionString))
                       }
                     )
@@ -263,13 +290,13 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     */
   def delete(author: String, slug: String, channelName: String, versionString: String) = {
     VersionEditAction(author, slug) { implicit request =>
-      val project = request.project
+      implicit val project = request.project
       project.channels.withName(channelName) match {
         case None => NotFound("Channel not found.")
         case Some(channel) => channel.versions.withName(versionString) match {
           case None => NotFound("Version not found.")
           case Some(version) =>
-            channel.deleteVersion(version, project)
+            channel.deleteVersion(version)
             Redirect(self.showList(author, slug, None))
         }
       }
