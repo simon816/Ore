@@ -1,0 +1,221 @@
+diff --git a/app/views/core/footer.scala.html b/app/views/core/footer.scala.html
+index aac5eaa..3af4573 100644
+--- a/app/views/core/footer.scala.html
++++ b/app/views/core/footer.scala.html
+@@ -1,23 +1,35 @@
+-@import util.Git
+-@()
++@()(implicit messages: Messages)
+ 
+ <footer class="footer">
+-    <div class="navbar-main navbar navbar-default">
+-        <span class="release">
+-            @defining(Git.ref) { ref =>
+-                <a class="channel" target="_blank" href="@ref._2">Pre-beta</a>
+-            }
+-        </span>
+-        <span class="copyright">
+-            <i class="fa fa-copyright"> 2016 SpongePowered</i>
+-        </span>
+-        <span class="social">
+-            <a target="_blank" href="http://twitter.com">
+-                <i class="fa fa-twitter fa-3x"></i>
+-            </a>
+-            <a target="_blank" href="http://facebook.com">
+-                <i class="fa fa-facebook-official fa-3x"></i>
+-            </a>
+-        </span>
++    <div class="container">
++        <div class="row">
++            <div class="col-md-4">
++                <div class="info">
++                    <span class="minor copyright">&copy; 2016 SpongePowered</span>
++                    <a href="#">Terms</a>
++                    <a href="#">Contact</a>
++                    <a href="#">Help</a>
++                    <a href="#">About</a>
++                </div>
++            </div>
++            <div class="col-md-4 col-spongie">
++                <a href="https://spongepowered.org">
++                    <img width="50" height="50" id="spongie" class="svg" src="@routes.Assets.at("images/spongie-mark.svg")" />
++                </a>
++            </div>
++            <div class="col-md-4">
++                <div class="social pull-right">
++                    <a target="_blank" href="http://twitter.com">
++                        <i class="fa fa-twitter fa-2x"></i>
++                    </a>
++                    <a target="_blank" href="http://facebook.com">
++                        <i class="fa fa-facebook-official fa-2x"></i>
++                    </a>
++                    <a target="_blank" href="https://reddit.com">
++                        <i class="fa fa-reddit fa-2x"></i>
++                    </a>
++                </div>
++            </div>
++        </div>
+     </div>
+ </footer>
+diff --git a/app/views/core/layout.scala.html b/app/views/core/layout.scala.html
+index 004eff2..b02b3a4 100644
+--- a/app/views/core/layout.scala.html
++++ b/app/views/core/layout.scala.html
+@@ -29,6 +29,7 @@ this.
+         <script>hljs.initHighlightingOnLoad();</script>
+         <script type="text/javascript" src="@routes.Assets.at("javascripts/filesize.min.js")"></script>
+         <script type="text/javascript" src="@routes.Assets.at("javascripts/main.js")"></script>
++        <script type="text/javascript" src="@routes.Assets.at("javascripts/svg.js")"></script>
+     </head>
+     <body>
+         @core.header()
+diff --git a/public/stylesheets/main.css b/public/stylesheets/main.css
+index e727d6a..db34ac4 100644
+--- a/public/stylesheets/main.css
++++ b/public/stylesheets/main.css
+@@ -31,82 +31,96 @@ body {
+     width: 100%;
+ }
+ 
++.page-content h1, .page-content h2, .page-content h3, .page-content h4, .page-content h5, .page-content h6 {
++    border-bottom: 1px solid #ddd;
++    padding-bottom: 5px;
++}
++
++body {
++    background-color: #f3f2f0;
++}
++
+ .footer {
+     position: absolute;
+     bottom: 0;
+     width: 100%;
+     min-height: 60px;
+     height: 60px;
+-
+-    overflow: hidden;
++    padding: 10px;
+ }
+ 
+-.footer > div {
+-    text-align: center;
++.footer .col-md-4 {
++    font-size: 12px;
++    padding-left: 5px;
++    padding-right: 5px;
++    padding-top: 12px;
++    vertical-align: middle;
++    border-top: 1px solid #ddd;
+ }
+ 
+-.page-content h1, .page-content h2, .page-content h3, .page-content h4, .page-content h5, .page-content h6 {
+-    border-bottom: 1px solid #ddd;
+-    padding-bottom: 5px;
++.footer .col-spongie {
++    padding: 0;
+ }
+ 
+-body {
+-    background-color: #f3f2f0;
++#spongie {
++    display: block;
++    margin: 0 auto;
+ }
+ 
+-.footer > .navbar-default {
+-    background-color: #CCCCCC;
+-    border: 0;
+-    border-top: 1px solid #A5A5A5;
++#spongie {
++    width: 50px;
++    height: 50px;
+ }
+ 
+-.release {
+-    position: absolute;
+-    left: 10px;
+-    bottom: 21px;
++#spongie path {
++    -webkit-transition: fill 0.15s ease-in-out;
++    -moz-transition: fill 0.15s ease-in-out;
++    -ms-transition: fill 0.15s ease-in-out;
++    -o-transition: fill 0.15s ease-in-out;
++    transition: fill 0.15s ease-in-out;
++    fill: gray;
+ }
+ 
+-.release .channel {
+-    background-color: #FFB600;
+-    outline: none;
++#spongie:hover path {
++    fill: #f8Ce0c;
+ }
+ 
+-.release .channel:hover {
+-    cursor: pointer;
++.footer .info {
++    display: table;
+ }
+ 
+-.release a {
+-    font-size: 16px;
++.footer .info > * {
++    display: table-cell;
++    padding-right: 10px;
+ }
+ 
+-.release a:hover {
+-    color: white;
++.footer > .navbar-default {
++    background-color: #CCCCCC;
++    border: 0;
++    border-top: 1px solid #A5A5A5;
+ }
+ 
+ .copyright {
+-    position: absolute;
+-    bottom: 20px;
+-    font-weight: bold;
+-    font-size: 16px;
+-    margin-left: auto;
+-    margin-right: auto;
+-    left: 0;
+-    right: 0;
++    font-family: Verdana, Geneva, sans-serif;
+ }
+ 
+ .social {
+-    position: absolute;
+-    right: 10px;
+-    bottom: 11px;
++    display: table;
+ }
+ 
+ .social > a {
+     color: #727272;
+     outline: none;
++    display: table-cell;
++    padding-left: 10px;
+ }
+ 
+ .social > a > .fa {
+-    transition: all 0.15s ease-in-out;
++    -webkit-transition: color 0.15s ease-in-out;
++    -moz-transition: color 0.15s ease-in-out;
++    -ms-transition: color 0.15s ease-in-out;
++    -o-transition: color 0.15s ease-in-out;
++    transition: color 0.15s ease-in-out;
+ }
+ 
+ .social > a > .fa-twitter:hover {
+@@ -117,6 +131,10 @@ body {
+     color: #3b5998;
+ }
+ 
++.social > a > .fa-reddit:hover {
++    color: #3399ff;
++}
++
+ .navbar-main {
+     padding-top: 1px;
+     min-height: 63px; !important;
