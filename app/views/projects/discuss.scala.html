@@ -3,6 +3,8 @@ Discussion page within Project overview.
 *@
 @import models.project.Project
 @import util.C._
+@import views.html.helper.form
+@import controllers.project.{routes => projectRoutes}
 @(model: Project)(implicit messages: Messages, session: Session, request: RequestHeader)
 
 @projects.view(model, "#discussion") {
@@ -17,6 +19,19 @@ Discussion page within Project overview.
 
     <div class="container">
         <div id='discourse-comments'></div>
+        <div class="row">
+            <div class="col-md-8">
+                @form(action = projectRoutes.Projects.postDiscussionReply(model.ownerName, model.slug)) {
+                    <div class="reply-box"><textarea name="content" class="form-control"></textarea></div>
+                    <div class="reply-controls">
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-reply"></i> Reply</button>
+                        <a class="forums" target="_blank" href="https://forums.spongepowered.org/t/@model.topicId.get">
+                            View on Sponge forums
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 
 }

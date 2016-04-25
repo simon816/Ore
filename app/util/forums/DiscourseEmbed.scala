@@ -1,6 +1,7 @@
 package util.forums
 
 import models.project.Project
+import models.user.User
 import play.api.libs.ws.WSClient
 import util.forums.SpongeForums.validate
 
@@ -79,6 +80,16 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
     val k = "api_key" -> this.apiKey
     val u = "api_username" -> project.ownerName
     ws.url(url + "/t/" + project.topicId.get).withQueryString(k, u).delete()
+  }
+
+  def postReply(project: Project, user: User, content: String) = {
+    val params = this.keyedRequest(user.username) + (
+      "topic_id" -> Seq(project.topicId.get.toString),
+      "raw" -> Seq(content))
+    ws.url(url + "/posts").post(params).map { response =>
+      println(response)
+      println(response.json)
+    }
   }
 
   private def keyedRequest(username: String) = {

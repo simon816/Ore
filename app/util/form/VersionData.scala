@@ -8,6 +8,6 @@ package util.form
   * @param recommended      True if recommended version
   */
 case class VersionData(override val channelName: String,
-                  override protected val channelColorHex: String,
-                  val recommended: Boolean)
-                  extends TChannelData
+                       override protected val channelColorHex: String,
+                       val recommended: Boolean)
+                       extends TChannelData

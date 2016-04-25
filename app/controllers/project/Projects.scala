@@ -5,6 +5,7 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
+import db.query.Queries
 import models.project._
 import models.user.User
 import ore.Statistics
@@ -15,6 +16,7 @@ import play.api.libs.ws.WSClient
 import play.api.mvc._
 import util.Input._
 import util.form.Forms
+import util.forums.SpongeForums
 import views.html.{projects => views}
 
 import scala.util.{Failure, Success}
@@ -183,6 +185,19 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
   def showDiscussion(author: String, slug: String) = {
     ProjectAction(author, slug) { implicit request =>
       Statistics.projectViewed(implicit request => Ok(views.discuss(request.project)))
+    }
+  }
+
+  def postDiscussionReply(author: String, slug: String) = {
+    AuthedProjectAction(author, slug) { implicit request =>
+      Forms.ProjectReply.bindFromRequest.fold(
+        hasErrors => Redirect(self.showDiscussion(author, slug)).flashing("error" -> hasErrors.errors.head.message),
+        content => {
+          println(content)
+          Queries.now(SpongeForums.Embed.postReply(request.project, request.user, content)).get
+          Redirect(self.showDiscussion(author, slug))
+        }
+      )
     }
   }
 

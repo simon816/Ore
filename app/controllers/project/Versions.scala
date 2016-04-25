@@ -248,8 +248,6 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
               pendingVersion.channelName = versionData.channelName.trim
               pendingVersion.channelColor = versionData.color
 
-              println(versionData)
-
               // Check for pending project
               Project.getPending(author, slug) match {
                 case None =>

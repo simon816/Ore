@@ -792,3 +792,23 @@ a > .fa {
 .select-sort h3 {
     margin: 0 auto;
 }
+
+.reply-box textarea {
+    margin-bottom: 10px;
+    width: 100%;
+    height: 150px;
+}
+
+.reply-controls {
+    width: 100%;
+    display: table;
+}
+
+.reply-controls > * {
+    display: table-cell;
+}
+
+.reply-controls > .forums {
+    text-align: right;
+    vertical-align: top;
+}

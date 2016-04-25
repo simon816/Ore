@@ -61,6 +61,8 @@ object Forms {
     */
   lazy val ProjectRename = Form(single("name" -> text))
 
+  lazy val ProjectReply = Form(single("content" -> text(minLength = MinLength, maxLength = MaxLength)))
+
   /**
     * Submits a tagline change for a User.
     */
