@@ -6,9 +6,10 @@ import controllers.Requests.AuthRequest
 import controllers.routes.{Application => self}
 import db.query.Queries
 import db.query.Queries.now
+import models.project.Flag
 import models.project.Project._
 import models.user.{FakeUser, User}
-import ore.permission.{ResetOre, SeedOre}
+import ore.permission.{ReviewFlags, ResetOre, SeedOre}
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
@@ -27,6 +28,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
   */
 class Application @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {
 
+  private def FlagAction = Authenticated andThen PermissionAction[AuthRequest](ReviewFlags)
+
   /**
     * Display the home page.
     *
@@ -38,6 +41,19 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     val filter = query.map(Queries.Projects.searchFilter).orNull
     val projects = now(Queries.Projects.collect(filter, categoryArray, InitialLoad, s)).get
     Ok(views.home(projects, Option(categoryArray), s))
+  }
+
+  def showFlags() = FlagAction { implicit request =>
+    Ok(views.flags(Flag.unresolved))
+  }
+
+  def setFlagResolved(flagId: Int, resolved: Boolean) = FlagAction { implicit request =>
+    Flag.withId(flagId) match {
+      case None => NotFound
+      case Some(flag) =>
+        flag.setResolved(resolved)
+        Ok
+    }
   }
 
   /**

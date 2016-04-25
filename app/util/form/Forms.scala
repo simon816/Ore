@@ -2,6 +2,7 @@ package util.form
 
 import models.project.Channel
 import models.project.Page._
+import ore.project.FlagReasons
 import play.api.data.Form
 import play.api.data.Forms._
 
@@ -42,6 +43,8 @@ object Forms {
     "content" -> text(minLength = MinLength, maxLength = MaxLength)
   ))
 
+  lazy val ProjectFlag = Form(single("flag-reason" -> number))
+
   /**
     * Submits settings changes for a Project.
     */
@@ -61,6 +64,9 @@ object Forms {
     */
   lazy val ProjectRename = Form(single("name" -> text))
 
+  /**
+    * Submits a post reply for a project discussion.
+    */
   lazy val ProjectReply = Form(single("content" -> text(minLength = MinLength, maxLength = MaxLength)))
 
   /**

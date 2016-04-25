@@ -18,7 +18,18 @@ function switchTabTo(tab, def) {
     }
 }
 
+function initFlagList() {
+    var flagList = $('.list-flags');
+    if (!flagList.length) return;
+    flagList.find('li').click(function() {
+        flagList.find(':checked').removeAttr('checked');
+        $(this).find('input').prop('checked', true);
+    });
+}
+
 $(function() {
+    initFlagList();
+
     // setup star button
     var increment = alreadyStarred ? -1 : 1;
     $('.btn-star').click(function() {

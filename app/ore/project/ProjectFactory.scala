@@ -55,7 +55,7 @@ object ProjectFactory {
     val newProject = now(Queries.Projects insert pending.project).get
 
     // Add Project roles
-    val user = pending.file.owner
+    val user = pending.file.user
     user.projectRoles.add(new ProjectRole(user.id.get, RoleTypes.ProjectOwner, newProject.id.get))
     for (role <- pending.roles) {
       User.withId(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
@@ -101,7 +101,7 @@ object ProjectFactory {
     val meta = plugin.meta.get
     var oldPath = plugin.path
     if (!plugin.isZipped) oldPath = plugin.zip
-    val newPath = uploadPath(plugin.owner.username, meta.getName, meta.getVersion, channel.name)
+    val newPath = uploadPath(plugin.user.username, meta.getName, meta.getVersion, channel.name)
     if (!Files.exists(newPath.getParent)) Files.createDirectories(newPath.getParent)
     Files.move(oldPath, newPath)
     Files.delete(oldPath)

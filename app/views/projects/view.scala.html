@@ -5,6 +5,8 @@ Base template for Project overview.
 @import models.project.Project
 @import models.user.User
 @import ore.permission.EditSettings
+@import ore.project.FlagReasons
+@import views.html.helper.form
 @(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session, request: RequestHeader)
 
 @core.layout(project.ownerName + " / " + project.name) {
@@ -98,10 +100,41 @@ Base template for Project overview.
                                 </script>
                             }
                         }
-                        @if(User.current.isEmpty || !User.current.get.username.equals(project.ownerName)) {
-                            <button class="btn btn-default">
+
+                        @if(User.current.isDefined && !User.current.get.username.equals(project.ownerName)) {
+                            <button data-toggle="modal" data-target="#modal-flag" class="btn btn-default">
                                 <i class="fa fa-flag"></i> @messages("project.flag")
                             </button>
+                            <div class="modal fade" id="modal-flag" tabindex="-1" role="dialog" aria-labelledby="label-flag">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                            <h4 class="modal-title" id="label-flag">Flag project</h4>
+                                        </div>
+                                        @form(action = projectRoutes.Projects.flag(project.ownerName, project.slug)) {
+                                            <div class="modal-body">
+                                                <ul class="list-group list-flags">
+                                                @for(i <- 0 until FlagReasons.values.size) {
+                                                    <li class="list-group-item">
+                                                        <span>@FlagReasons(i).title</span>
+                                                        <span class="pull-right">
+                                                            <input type="radio" value="@FlagReasons(i).id" name="flag-reason"/>
+                                                        </span>
+                                                    </li>
+                                                }
+                                                </ul>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-primary">Flag</button>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
                         }
                         <a href="@projectRoutes.Versions.downloadRecommended(project.ownerName, project.slug)"
                         title="@messages("project.download.recommend")" data-toggle="tooltip"

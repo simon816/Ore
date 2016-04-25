@@ -17,6 +17,7 @@ import models.user.{ProjectRole, User}
 import ore.Colors.Color
 import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
+import ore.project.FlagReasons.FlagReason
 import ore.project.member.Member
 import ore.project.{Categories, PluginFile, ProjectFactory, ProjectFiles}
 import org.apache.commons.io.FileUtils
@@ -260,6 +261,12 @@ case class Project(override val   id: Option[Int] = None,
       now(Queries.Projects.unstarFor(this.id.get, user.id.get)).get
       update(Stars)
     }
+  }
+
+  def flagFor(user: User, reason: FlagReason) = assertDefined {
+    val userId = user.id.get
+    checkArgument(userId != this.ownerId, "cannot flag own project", "")
+    now(Queries.Projects.Flags insert new Flag(this.id.get, user.id.get, reason)).get
   }
 
   /**

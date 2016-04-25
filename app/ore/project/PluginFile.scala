@@ -5,6 +5,7 @@ import java.nio.file.{Files, Path, Paths}
 import java.util.jar.{JarEntry, JarInputStream}
 import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
+import db.orm.model.UserOwner
 import models.user.User
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 
@@ -15,7 +16,7 @@ import scala.util.control.Breaks._
   *
   * @param _path Path to uploaded file
   */
-class PluginFile(private var _path: Path, val owner: User) {
+class PluginFile(private var _path: Path, override val user: User) extends UserOwner {
 
   private val MetaFileName = "mcmod.info"
 
@@ -147,5 +148,7 @@ class PluginFile(private var _path: Path, val owner: User) {
       case e: Exception => throw new InvalidPluginFileException(cause = e)
     }
   }
+
+  override def userId: Int = this.user.id.get
 
 }

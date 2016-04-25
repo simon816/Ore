@@ -19,6 +19,8 @@ import scala.util.{Failure, Success}
   */
 class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => new ProjectTable(tag))) {
 
+  val Flags = new FlagQueries
+
   private val views = TableQuery[ProjectViewsTable]
   private val stars = TableQuery[ProjectStarsTable]
 

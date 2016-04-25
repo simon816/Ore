@@ -4,7 +4,12 @@ The main header displayed on each layout.
 @import models.user.User
 @import util.C
 @import util.forums.SpongeForums
+@import ore.permission.scope.GlobalScope
+@import ore.permission.ReviewFlags
+@import models.project.Flag
 @()(implicit messages: Messages, session: Session, request: RequestHeader)
+
+@canViewFlags(user: User) = @{ user can ReviewFlags in GlobalScope }
 
 <nav id="top" class="navbar-main navbar navbar-fixed-top navbar-inverse">
     <div class="container">
@@ -52,25 +57,43 @@ The main header displayed on each layout.
                 @User.current.map { user =>
                     @* Show user controls *@
                     <li class="dropdown">
-                        <a href="#" class="drop-down-toggle" data-toggle="dropdown">
-                            <img height="32" width="32" class="user-avatar" src="@SpongeForums.Users.avatarUrl(user.username, 100)" />
-                            <span class="caret"></span>
-                        </a>
-                        <ul class="user-dropdown dropdown-menu" aria-label="@messages("aria.dropdown.menu",1)">
-                            <li>
-                                <a href="@routes.Application.showUser(user.username)">
-                                    <span class="pull-left">@user.username</span>
-                                    <i class="pull-right fa fa-user"></i>
-                                </a>
-                            </li>
-                            <li role="separator" class="divider"></li>
-                            <li>
-                                <a href="@routes.Application.logOut">
-                                    <span class="pull-left">@messages("general.signout")</span>
-                                    <i class="pull-right fa fa-sign-out"></i>
-                                </a>
-                            </li>
-                        </ul>
+                        @defining(Flag.unresolved.size) { unresolved =>
+                            <a href="#" class="drop-down-toggle user-toggle" data-toggle="dropdown">
+                                @if(canViewFlags(user) && unresolved > 0) {
+                                    <span class="notif-num"><span>@unresolved</span></span>
+                                }
+                                <img height="32" width="32" class="user-avatar" src="@SpongeForums.Users.avatarUrl(user.username, 100)" />
+                                <span class="caret"></span>
+                            </a>
+                            <ul class="user-dropdown dropdown-menu" aria-label="@messages("aria.dropdown.menu", 1)">
+                                <li>
+                                    <a href="@routes.Application.showUser(user.username)">
+                                        <span class="pull-left">@user.username</span>
+                                        <i class="pull-right fa fa-user"></i>
+                                    </a>
+                                </li>
+                                @if(canViewFlags(user)) {
+                                    <li>
+                                        <a href="@routes.Application.showFlags()">
+                                            <span class="flags pull-left">
+                                                Flags
+                                                @if(unresolved > 0) {
+                                                    <span class="notif-num"><span>@unresolved</span></span>
+                                                }
+                                            </span>
+                                            <i class="pull-right fa fa-flag"></i>
+                                        </a>
+                                    </li>
+                                }
+                                <li role="separator" class="divider"></li>
+                                <li>
+                                    <a href="@routes.Application.logOut">
+                                        <span class="pull-left">@messages("general.signout")</span>
+                                        <i class="pull-right fa fa-sign-out"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        }
                     </li>
                 }.getOrElse {
                     <li>

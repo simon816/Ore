@@ -10,7 +10,7 @@ import models.project._
 import models.user.User
 import ore.Statistics
 import ore.permission.EditSettings
-import ore.project.{InvalidPluginFileException, ProjectFactory}
+import ore.project.{FlagReasons, InvalidPluginFileException, ProjectFactory}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
@@ -133,6 +133,12 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     }
   }
 
+  def flag(author: String, slug: String) = AuthedProjectAction(author, slug) { implicit request =>
+    val reason = FlagReasons(Forms.ProjectFlag.bindFromRequest.get)
+    request.project.flagFor(request.user, reason)
+    Redirect(self.show(author, slug))
+  }
+
   /**
     * Shortcut for navigating to a project.
     *
@@ -188,12 +194,18 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     }
   }
 
+  /**
+    * Posts a new discussion reply to the forums.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return       View of discussion with new post
+    */
   def postDiscussionReply(author: String, slug: String) = {
     AuthedProjectAction(author, slug) { implicit request =>
       Forms.ProjectReply.bindFromRequest.fold(
         hasErrors => Redirect(self.showDiscussion(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         content => {
-          println(content)
           Queries.now(SpongeForums.Embed.postReply(request.project, request.user, content)).get
           Redirect(self.showDiscussion(author, slug))
         }

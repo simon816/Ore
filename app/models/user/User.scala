@@ -6,7 +6,7 @@ import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
 import db.UserProjectRolesTable
 import db.orm.dao.{ModelDAO, ModelSet}
-import db.orm.model.NamedModel
+import db.orm.model.{UserOwner, NamedModel}
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project
@@ -36,6 +36,7 @@ case class User(override val  id: Option[Int] = None,
                 private var   _tagline: Option[String] = None,
                 private var   globalRoleIds: List[Int] = List())
                 extends       NamedModel
+                with          UserOwner
                 with          ScopeSubject {
 
   import models.user.User._
@@ -138,6 +139,8 @@ case class User(override val  id: Option[Int] = None,
   override val scope: Scope = GlobalScope
 
   override def name: String = this.username
+
+  override def userId = this.id.get
 
 }
 

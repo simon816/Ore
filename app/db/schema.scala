@@ -2,11 +2,12 @@ package db
 
 import db.OrePostgresDriver.api._
 import db.orm.{ModelTable, NamedModelTable}
-import models.project.{Channel, Page, Project, Version}
+import models.project._
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
+import ore.project.FlagReasons.FlagReason
 
 /*
  * Database schema definitions. Changes must be first applied as an evolutions
@@ -141,5 +142,16 @@ class UserProjectRolesTable(tag: Tag) extends ModelTable[ProjectRole](tag, "user
   def projectId   =   column[Int]("project_id")
 
   override def * = (id.?, createdAt.?, userId, roleType, projectId) <> ((ProjectRole.apply _).tupled, ProjectRole.unapply)
+
+}
+
+class FlagTable(tag: Tag) extends ModelTable[Flag](tag, "flags") {
+
+  def projectId = column[Int]("project_id")
+  def userId = column[Int]("user_id")
+  def reason = column[FlagReason]("reason")
+  def isResolved = column[Boolean]("is_resolved")
+
+  override def * = (id.?, createdAt.?, projectId, userId, reason, isResolved) <> ((Flag.apply _).tupled, Flag.unapply)
 
 }

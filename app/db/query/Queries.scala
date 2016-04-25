@@ -127,6 +127,11 @@ abstract class Queries[T <: ModelTable[M], M <: Model](val models: TableQuery[T]
     run(query.update(value))
   }
 
+  def setBoolean(model: M, key: T => Rep[Boolean], value: Boolean) = {
+    val query = for { m <- this.models if m.id === model.id.get } yield key(m)
+    run(query.update(value))
+  }
+
   /**
     * Sets an int array field on the Model.
     *

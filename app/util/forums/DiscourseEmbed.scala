@@ -82,14 +82,19 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
     ws.url(url + "/t/" + project.topicId.get).withQueryString(k, u).delete()
   }
 
+  /**
+    * Posts a new reply to the specified [[Project]] topic as the specified
+    * [[User]].
+    *
+    * @param project  Project to post to
+    * @param user     User to post as
+    * @param content  Content to post
+    */
   def postReply(project: Project, user: User, content: String) = {
     val params = this.keyedRequest(user.username) + (
       "topic_id" -> Seq(project.topicId.get.toString),
       "raw" -> Seq(content))
-    ws.url(url + "/posts").post(params).map { response =>
-      println(response)
-      println(response.json)
-    }
+    ws.url(url + "/posts").post(params)
   }
 
   private def keyedRequest(username: String) = {
