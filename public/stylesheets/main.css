@@ -1,3 +1,13 @@
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    background-color: #f3f2f0;
+    margin-bottom: 60px;
+}
+
 .logo {
     height: 40px;
 }
@@ -16,16 +26,6 @@
     max-width: 100%;
 }
 
-html {
-    position: relative;
-    min-height: 100%;
-}
-
-body {
-    background-color: #f3f2f0;
-    margin-bottom: 60px;
-}
-
 .page-content {
     padding: 10px;
     width: 100%;
@@ -34,10 +34,6 @@ body {
 .page-content h1, .page-content h2, .page-content h3, .page-content h4, .page-content h5, .page-content h6 {
     border-bottom: 1px solid #ddd;
     padding-bottom: 5px;
-}
-
-body {
-    background-color: #f3f2f0;
 }
 
 .footer {
@@ -89,9 +85,15 @@ body {
     display: table;
 }
 
-.footer .info > * {
+.footer .info > a, .footer .info > .copyright {
     display: table-cell;
     padding-right: 10px;
+    vertical-align: middle;
+}
+
+.copy {
+    font-size: 11px;
+    padding-right: 2px;
 }
 
 .footer > .navbar-default {
@@ -100,8 +102,12 @@ body {
     border-top: 1px solid #A5A5A5;
 }
 
+.footer a {
+    outline: none;
+}
+
 .copyright {
-    font-family: Verdana, Geneva, sans-serif;
+    font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .social {
@@ -109,10 +115,13 @@ body {
 }
 
 .social > a {
-    color: #727272;
-    outline: none;
     display: table-cell;
     padding-left: 10px;
+    vertical-align: middle;
+}
+
+.social > .social-icon {
+    color: #727272;
 }
 
 .social > a > .fa {
@@ -123,15 +132,15 @@ body {
     transition: color 0.15s ease-in-out;
 }
 
-.social > a > .fa-twitter:hover {
+.social .fa-twitter:hover {
     color: #00aced;
 }
 
-.social > a > .fa-facebook-official:hover {
+.social .fa-facebook-official:hover {
     color: #3b5998;
 }
 
-.social > a > .fa-reddit:hover {
+.social .fa-reddit:hover {
     color: #3399ff;
 }
 
@@ -242,6 +251,10 @@ body {
 
 .category-table tr.selected > td {
     padding-top: 9px;
+}
+
+.category-table tr.selected:first-child > td {
+    padding-top: 8px; !important;
 }
 
 .category-table tr.selected {
