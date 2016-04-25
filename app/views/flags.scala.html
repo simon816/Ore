@@ -10,8 +10,8 @@
         <h2 class="minor no-flags" @if(flags.nonEmpty) { style="display: none;" }>
             <i class="fa fa-thumbs-o-up"></i> There are no flags to review. Good for you!
         </h2>
-        @flags.map { flag =>
-            <ul class="list-group list-flags-admin">
+        <ul class="list-group list-flags-admin">
+            @flags.map { flag =>
                 <li data-flag-id="@flag.id.get" class="list-group-item">
                     <span class="description">
                         <a href="@routes.Application.showUser(flag.user.username)">
@@ -32,11 +32,13 @@
                             <i class="fa fa-reply"></i> Message project owner
                         </a>
                         <button class="btn btn-default"><i class="fa fa-eye-slash"></i> Hide project</button>
-                        <button type="submit" class="btn btn-primary btn-resolve"><i class="fa fa-check"></i> Mark resolved</button>
+                        <button type="submit" class="btn btn-primary btn-resolve">
+                            <i class="fa fa-check"></i> <strong>Mark resolved</strong>
+                        </button>
                     </span>
                 </li>
-            </ul>
-        }
+            }
+        </ul>
     </div>
 
 }
