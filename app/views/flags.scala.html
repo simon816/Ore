@@ -7,8 +7,11 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/flags.js")"></script>
 
     <div class="container" style="margin-top: 90px;">
-        <ul class="list-group list-flags-admin">
-            @flags.map { flag =>
+        <h2 class="minor no-flags" @if(flags.nonEmpty) { style="display: none;" }>
+            <i class="fa fa-thumbs-o-up"></i> There are no flags to review. Good for you!
+        </h2>
+        @flags.map { flag =>
+            <ul class="list-group list-flags-admin">
                 <li data-flag-id="@flag.id.get" class="list-group-item">
                     <span class="description">
                         <a href="@routes.Application.showUser(flag.user.username)">
@@ -32,8 +35,8 @@
                         <button type="submit" class="btn btn-primary btn-resolve"><i class="fa fa-check"></i> Mark resolved</button>
                     </span>
                 </li>
-            }
-        </ul>
+            </ul>
+        }
     </div>
 
 }

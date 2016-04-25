@@ -6,7 +6,7 @@ import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
 import db.UserProjectRolesTable
 import db.orm.dao.{ModelDAO, ModelSet}
-import db.orm.model.{UserOwner, NamedModel}
+import db.orm.model.{NamedModel, UserOwner}
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project

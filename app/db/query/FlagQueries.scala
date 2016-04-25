@@ -2,8 +2,8 @@ package db.query
 
 import java.sql.Timestamp
 
-import db.OrePostgresDriver.api._
 import db.FlagTable
+import db.OrePostgresDriver.api._
 import models.project.Flag
 
 class FlagQueries extends Queries[FlagTable, Flag](TableQuery[FlagTable]) {

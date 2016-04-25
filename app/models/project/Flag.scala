@@ -4,8 +4,8 @@ import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
 import db.orm.dao.ModelDAO
-import db.orm.model.{UserOwner, Model}
 import db.orm.model.ModelKeys._
+import db.orm.model.{Model, UserOwner}
 import db.query.Queries
 import db.query.Queries.now
 import ore.permission.scope.ProjectScope

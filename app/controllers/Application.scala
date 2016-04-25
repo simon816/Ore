@@ -9,7 +9,7 @@ import db.query.Queries.now
 import models.project.Flag
 import models.project.Project._
 import models.user.{FakeUser, User}
-import ore.permission.{ReviewFlags, ResetOre, SeedOre}
+import ore.permission.{ResetOre, ReviewFlags, SeedOre}
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi

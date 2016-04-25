@@ -817,36 +817,26 @@ a > .fa {
     position: relative;
 }
 
-.notif-num {
+.unread {
     position: absolute;
     bottom: 2px;
-    top: 3px;
+    top: 5px;
     left: 37px;
     -webkit-border-radius: 50%;
     -moz-border-radius: 50%;
     border-radius: 50%;
     padding: 1px;
-    width: 15px;
-    color: black;
-    height: 15px;
-    text-align: center;
-    background-color: #e6b800;
-}
-
-.notif-num > span {
-    font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-size: 11px;
-    top: 0;
-    position: absolute;
-    right: 4px;
+    width: 12px;
+    height: 12px;
+    background-image: linear-gradient(#e6b800, #FFD21A);
 }
 
 .user-toggle {
     position: relative;
 }
 
-.user-toggle .notif-num > span {
-    top: -2px;
+.user-toggle .unread {
+    top: 3px;
 }
 
 .list-flags > li {

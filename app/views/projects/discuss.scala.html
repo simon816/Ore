@@ -1,10 +1,10 @@
 @*
 Discussion page within Project overview.
 *@
+@import controllers.project.{routes => projectRoutes}
 @import models.project.Project
 @import util.C._
 @import views.html.helper.form
-@import controllers.project.{routes => projectRoutes}
 @(model: Project)(implicit messages: Messages, session: Session, request: RequestHeader)
 
 @projects.view(model, "#discussion") {

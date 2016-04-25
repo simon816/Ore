@@ -1,6 +1,6 @@
 package util.form
 
-import models.project.{Project, Channel}
+import models.project.{Channel, Project}
 import ore.Colors.Color
 
 /**

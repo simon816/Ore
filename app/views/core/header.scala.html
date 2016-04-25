@@ -1,12 +1,12 @@
 @*
 The main header displayed on each layout.
 *@
+@import models.project.Flag
 @import models.user.User
+@import ore.permission.ReviewFlags
+@import ore.permission.scope.GlobalScope
 @import util.C
 @import util.forums.SpongeForums
-@import ore.permission.scope.GlobalScope
-@import ore.permission.ReviewFlags
-@import models.project.Flag
 @()(implicit messages: Messages, session: Session, request: RequestHeader)
 
 @canViewFlags(user: User) = @{ user can ReviewFlags in GlobalScope }
@@ -60,7 +60,7 @@ The main header displayed on each layout.
                         @defining(Flag.unresolved.size) { unresolved =>
                             <a href="#" class="drop-down-toggle user-toggle" data-toggle="dropdown">
                                 @if(canViewFlags(user) && unresolved > 0) {
-                                    <span class="notif-num"><span>@unresolved</span></span>
+                                    <span class="unread"></span>
                                 }
                                 <img height="32" width="32" class="user-avatar" src="@SpongeForums.Users.avatarUrl(user.username, 100)" />
                                 <span class="caret"></span>
@@ -78,7 +78,7 @@ The main header displayed on each layout.
                                             <span class="flags pull-left">
                                                 Flags
                                                 @if(unresolved > 0) {
-                                                    <span class="notif-num"><span>@unresolved</span></span>
+                                                    <span class="unread"></span>
                                                 }
                                             </span>
                                             <i class="pull-right fa fa-flag"></i>

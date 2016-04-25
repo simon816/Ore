@@ -5,9 +5,9 @@ import ore.Colors
 import ore.Colors.Color
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
-import ore.project.{FlagReasons, Categories}
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
+import ore.project.{Categories, FlagReasons}
 
 /**
   * Custom Postgres driver to support array data and custom type mappings.
