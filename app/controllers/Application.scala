@@ -7,9 +7,9 @@ import controllers.routes.{Application => self}
 import db.OrePostgresDriver.api._
 import db.ProjectTable
 import db.query.Queries
-import db.query.Queries.{FilterWrapper, now, wrapperToFunction}
+import db.query.Queries.now
+import models.project.Flag
 import models.project.Project._
-import models.project.{Flag, Project}
 import models.user.{FakeUser, User}
 import ore.permission.{ResetOre, ReviewFlags, SeedOre}
 import ore.project.Categories.Category
@@ -46,7 +46,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     var filter: ProjectTable => Rep[Boolean] = query.map { q =>
       // Search filter + visible
       Queries.Projects.searchFilter(q) && (_.isVisible)
-    }.orNull[FilterWrapper[ProjectTable, Project]]
+    }.orNull
     if (filter == null) filter = _.isVisible
 
     val projects = now(Queries.Projects.collect(filter, categoryArray, InitialLoad, s)).get
