@@ -2,6 +2,9 @@ package controllers
 
 import controllers.Requests.ProjectRequest
 import models.project.Project
+import models.user.User
+import ore.permission.HideProjects
+import ore.permission.scope.GlobalScope
 import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
 import play.api.mvc._
@@ -29,10 +32,15 @@ abstract class BaseController(implicit ws: WSClient) extends Controller with I18
   private def projectAction(author: String, slug: String)
     = new ActionRefiner[Request, ProjectRequest] {
       def refine[A](request: Request[A]) = Future.successful {
-        Project.withSlug(author, slug).map { project =>
-          new ProjectRequest(project, request)
-        } toRight {
-          NotFound
+        Project.withSlug(author, slug) match {
+          case None => Left(NotFound)
+          case Some(project) =>
+            val user = User.current(request.session)
+            if (project.isVisible || user.isDefined && (user.get can HideProjects in GlobalScope)) {
+              Right(new ProjectRequest(project, request))
+            } else {
+              Left(NotFound)
+            }
         }
       }
   }

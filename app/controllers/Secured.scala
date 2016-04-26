@@ -3,7 +3,8 @@ package controllers
 import controllers.Requests.{AuthRequest, AuthedProjectRequest, ScopedRequest}
 import models.project.Project
 import models.user.User
-import ore.permission.Permission
+import ore.permission.scope.GlobalScope
+import ore.permission.{HideProjects, Permission}
 import play.api.mvc.Results._
 import play.api.mvc._
 
@@ -34,10 +35,14 @@ trait Secured {
   private def authedProjectAction(author: String, slug: String)
     = new ActionRefiner[AuthRequest, AuthedProjectRequest] {
       def refine[A](request: AuthRequest[A]) = Future.successful {
-        Project.withSlug(author, slug).map { project =>
-          new AuthedProjectRequest(project, request)
-        } toRight {
-          NotFound
+        Project.withSlug(author, slug) match {
+          case None => Left(NotFound)
+          case Some(project) =>
+            if (project.isVisible || (request.user can HideProjects in GlobalScope)) {
+              Right(new AuthedProjectRequest(project, request))
+            } else {
+              Left(NotFound)
+            }
         }
       }
   }
