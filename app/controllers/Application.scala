@@ -4,10 +4,12 @@ import javax.inject.Inject
 
 import controllers.Requests.AuthRequest
 import controllers.routes.{Application => self}
+import db.OrePostgresDriver.api._
+import db.ProjectTable
 import db.query.Queries
-import db.query.Queries.now
-import models.project.Flag
+import db.query.Queries.{FilterWrapper, now, wrapperToFunction}
 import models.project.Project._
+import models.project.{Flag, Project}
 import models.user.{FakeUser, User}
 import ore.permission.{ResetOre, ReviewFlags, SeedOre}
 import ore.project.Categories.Category
@@ -36,9 +38,17 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     * @return Home page
     */
   def showHome(categories: Option[String], query: Option[String], sort: Option[Int]) = Action { implicit request =>
+    // Get categories and sort strategy
     val categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
     val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
-    val filter = query.map(Queries.Projects.searchFilter).orNull
+
+    // Determine filter
+    var filter: ProjectTable => Rep[Boolean] = query.map { q =>
+      // Search filter + visible
+      Queries.Projects.searchFilter(q) && (_.isVisible)
+    }.orNull[FilterWrapper[ProjectTable, Project]]
+    if (filter == null) filter = _.isVisible
+
     val projects = now(Queries.Projects.collect(filter, categoryArray, InitialLoad, s)).get
     Ok(views.home(projects, Option(categoryArray), s))
   }

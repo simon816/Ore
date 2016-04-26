@@ -69,7 +69,8 @@ case class Project(override val   id: Option[Int] = None,
                    private var    _source: Option[String] = None,
                    private var    _description: Option[String] = None,
                    private var    _topicId: Option[Int] = None,
-                   private var    _postId: Option[Int] = None)
+                   private var    _postId: Option[Int] = None,
+                   private var    _isVisible: Boolean = true)
                    extends        NamedModel
                    with           ProjectScope { self =>
 
@@ -377,17 +378,6 @@ case class Project(override val   id: Option[Int] = None,
   }
 
   /**
-    * Returns all Versions belonging to the specified channels.
-    *
-    * @param channels   Channels to get versions for
-    * @return           All versions in channels
-    */
-  def versionsIn(channels: Seq[Channel]): Seq[Version] = assertDefined {
-    channels.foreach(c => checkArgument(c.projectId == this.id.get, "channel doesn't belong to project", ""))
-    now(Queries.Versions.inChannels(channels.map(_.id.get))).get
-  }
-
-  /**
     * Returns this Project's recommended version.
     *
     * @return Recommended version
@@ -445,6 +435,23 @@ case class Project(override val   id: Option[Int] = None,
   }
 
   /**
+    * Returns true if this Project is visible.
+    *
+    * @return True if visible
+    */
+  def isVisible: Boolean = this._isVisible
+
+  /**
+    * Sets whether this project is visible.
+    *
+    * @param visible True if visible
+    */
+  def setVisible(visible: Boolean) = {
+    this._isVisible = visible
+    if (isDefined) update(IsVisible)
+  }
+
+  /**
     * Returns true if this Project already exists.
     *
     * @return True if project exists, false otherwise
@@ -487,6 +494,11 @@ case class Project(override val   id: Option[Int] = None,
     Queries.Projects.setString(this, _.name, newName),
     Queries.Projects.setString(this, _.slug, slugify(newName))
   ))
+
+  bind[String](Description, _._description.orNull, description => {
+    Seq(Queries.Projects.setString(this, _.description, description))
+  })
+
   bind[Category](ModelKeys.Category, _._category, cat => Seq(Queries.Projects.setCategory(this, cat)))
   bind[Int](Views, _._views, views => Seq(Queries.Projects.setInt(this, _.views, views)))
   bind[Int](Downloads, _._downloads, downloads => Seq(Queries.Projects.setInt(this, _.downloads, downloads)))
@@ -495,9 +507,7 @@ case class Project(override val   id: Option[Int] = None,
   bind[String](Source, _._source.orNull, source => Seq(Queries.Projects.setString(this, _.source, source)))
   bind[Int](TopicId, _._topicId.get, topicId => Seq(Queries.Projects.setInt(this, _.topicId, topicId)))
   bind[Int](PostId, _._postId.get, postId => Seq(Queries.Projects.setInt(this, _.postId, postId)))
-  bind[String](Description, _._description.orNull, description => {
-    Seq(Queries.Projects.setString(this, _.description, description))
-  })
+  bind[Boolean](IsVisible, _._isVisible, visible => Seq(Queries.Projects.setBoolean(this, _.isVisible, visible)))
 
 }
 

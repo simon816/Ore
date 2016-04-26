@@ -10,6 +10,7 @@ case object EditChannels    extends Permission { val trust = Absolute }
 case object EditPages       extends Permission { val trust = Limited  }
 case object EditSettings    extends Permission { val trust = Absolute }
 case object EditVersions    extends Permission { val trust = Standard }
+case object HideProjects    extends Permission { val trust = Standard }
 case object ReviewFlags     extends Permission { val trust = Standard }
 case object ResetOre        extends Permission { val trust = Absolute }
 case object SeedOre         extends Permission { val trust = Absolute }

@@ -12,7 +12,7 @@
         </h2>
         <ul class="list-group list-flags-admin">
             @flags.map { flag =>
-                <li data-flag-id="@flag.id.get" class="list-group-item">
+                <li data-flag-id="@flag.id.get" data-project="@flag.project.ownerName/@flag.project.slug" class="list-group-item">
                     <span class="description">
                         <a href="@routes.Application.showUser(flag.user.username)">
                             <strong>@flag.user.username</strong>
@@ -31,7 +31,12 @@
                         <a target="_blank" href="https://forums.spongepowered.org/users/@flag.project.ownerName" class="btn btn-default">
                             <i class="fa fa-reply"></i> Message project owner
                         </a>
-                        <button class="btn btn-default"><i class="fa fa-eye-slash"></i> Hide project</button>
+                        @defining(flag.project.isVisible) { visible =>
+                            <button class="btn-hide btn btn-default">
+                                <i class="fa @if(visible) { fa-eye-slash } else { fa-eye }"></i>
+                                <span>@if(visible) { Hide } else { Unhide }</span> project
+                            </button>
+                        }
                         <button type="submit" class="btn btn-primary btn-resolve">
                             <i class="fa fa-check"></i> <strong>Mark resolved</strong>
                         </button>

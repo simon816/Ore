@@ -236,4 +236,16 @@ object Queries {
 
   protected[db] def theTime: Timestamp = new Timestamp(new Date().getTime)
 
+  case class FilterWrapper[T <: ModelTable[M], M <: Model](fn: T => Rep[Boolean]) {
+    def &&(fn2: T => Rep[Boolean]): FilterWrapper[T, M] = FilterWrapper(m => trueIfNull(fn)(m) && trueIfNull(fn2)(m))
+    def ||(fn2: T => Rep[Boolean]): FilterWrapper[T, M] = FilterWrapper(m => falseIfNull(fn)(m) || falseIfNull(fn2)(m))
+    private def trueIfNull(fn: T => Rep[Boolean]): T => Rep[Boolean] = if (fn == null) _ => true else fn
+    private def falseIfNull(fn: T => Rep[Boolean]): T => Rep[Boolean] = if (fn == null) _ => false else fn
+  }
+
+  implicit def wrapperToFunction[T <: ModelTable[M], M <: Model](filter: FilterWrapper[T, M]): T => Rep[Boolean] = {
+    if (filter == null) null else filter.fn
+  }
+  implicit def functionToWrapper[T <: ModelTable[M], M <: Model](fn: T => Rep[Boolean]): FilterWrapper[T, M] = FilterWrapper(fn)
+
 }

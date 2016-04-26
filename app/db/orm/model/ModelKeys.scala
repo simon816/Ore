@@ -19,5 +19,6 @@ object ModelKeys {
   val TopicId = "topicId"
   val PostId = "postId"
   val IsResolved = "isResolved"
+  val IsVisible = "isVisible"
 
 }

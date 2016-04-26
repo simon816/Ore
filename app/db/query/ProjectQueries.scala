@@ -4,6 +4,7 @@ import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
 import db.query.Queries.DB.run
+import db.query.Queries.FilterWrapper
 import db.{ProjectStarsTable, ProjectTable, ProjectViewsTable}
 import models.project.Project
 import ore.project.Categories.Category
@@ -24,9 +25,11 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
   private val views = TableQuery[ProjectViewsTable]
   private val stars = TableQuery[ProjectStarsTable]
 
-  def searchFilter(query: String): ProjectTable => Rep[Boolean] = {
+  def searchFilter(query: String): FilterWrapper[ProjectTable, Project] = {
     val q = '%' + query.toLowerCase + '%'
-    p => (p.name.toLowerCase like q) || (p.description.toLowerCase like q) || (p.ownerName.toLowerCase like q)
+    FilterWrapper(p => (p.name.toLowerCase like q)
+      || (p.description.toLowerCase like q)
+      || (p.ownerName.toLowerCase like q))
   }
 
   /**
