@@ -252,6 +252,10 @@ body {
     width: 40px;
 }
 
+.select-sort {
+    margin-bottom: 10px;
+}
+
 .category-table tr:hover {
     cursor: pointer;
     background-color: #f3f2f0;
@@ -791,14 +795,6 @@ a > .fa {
     -ms-transition: color 0.5s;
     -o-transition: color 0.5s;
     transition: color 0.5s;
-}
-
-.select-sort {
-    padding-bottom: 10px;
-}
-
-.select-sort h3 {
-    margin: 0 auto;
 }
 
 .reply-box textarea {

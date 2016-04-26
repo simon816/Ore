@@ -13,9 +13,9 @@ import scala.concurrent.Future
 /**
   * Represents a controller with user authentication / authorization.
   */
-trait Secured {
+trait Actions {
 
-  private def onUnauthorized(request: RequestHeader) = {
+  def onUnauthorized(request: RequestHeader) = {
     Redirect(routes.Application.logIn(None, None, Some(request.path)))
   }
 

@@ -16,7 +16,7 @@ import scala.concurrent.Future
 /**
   * Represents a Secured base Controller for this application.
   */
-abstract class BaseController(implicit ws: WSClient) extends Controller with I18nSupport with Secured {
+abstract class BaseController(implicit ws: WSClient) extends Controller with I18nSupport with Actions {
 
   SpongeForums.apply
   DataUtils.apply

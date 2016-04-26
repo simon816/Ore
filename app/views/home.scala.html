@@ -83,13 +83,11 @@ sorted according to different criteria.
             </div>
         </div>
 
-        <!-- Sort select -->
-        <div class="row select-sort">
+        <!-- Main content -->
+        <div class="row project-content">
+            <!-- Project table -->
             <div class="col-md-9">
-                <h3>
-                    @messages("table.welcome")
-                    <i class="date">@messages("table.welcome.description")</i>
-                </h3>
+                @projects.table(models, visibleCategories)
             </div>
             <div class="col-md-3">
                 <select class="form-control select-sort">
@@ -98,18 +96,7 @@ sorted according to different criteria.
                         <option value="@strategy.id">@strategy.title</option>
                     }
                 </select>
-            </div>
-        </div>
-
-        <!-- Main content -->
-        <div class="row">
-            <!-- Project table -->
-            <div class="col-md-9">
-                @projects.table(models, visibleCategories)
-            </div>
-
-            <!-- Category table -->
-            <div class="col-md-3">
+                <!-- Category table -->
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">@messages("project.category.plural")</h3>
@@ -121,21 +108,21 @@ sorted according to different criteria.
                     </div>
                     <table class="table panel-body category-table">
                         <tbody>
-                            @for(i <- 0 until Categories.values.size) {
-                              @defining(Categories(i)) { category =>
+                        @for(i <- 0 until Categories.values.size) {
+                            @defining(Categories(i)) { category =>
                                 @if(category.isVisible) {
                                     <tr data-id="@category.id"
                                         @if(visibleCategories.isDefined && visibleCategories.get.contains(category)) {
                                             class="selected"
-                                    }>
+                                            }>
                                         <td>
                                             <i class="fa @category.icon"></i>
                                             <strong>@category.title</strong>
                                         </td>
                                     </tr>
                                 }
-                              }
                             }
+                        }
                         </tbody>
                     </table>
                 </div>
