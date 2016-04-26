@@ -36,7 +36,7 @@ abstract class BaseController(implicit ws: WSClient) extends Controller with I18
           case None => Left(NotFound)
           case Some(project) =>
             val user = User.current(request.session)
-            if (project.isVisible || user.isDefined && (user.get can HideProjects in GlobalScope)) {
+            if (project.isVisible || (user.isDefined && (user.get can HideProjects in GlobalScope))) {
               Right(new ProjectRequest(project, request))
             } else {
               Left(NotFound)
