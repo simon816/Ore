@@ -21,7 +21,7 @@ Collection of all projects.
         </thead>
         <tbody class="panel-body">
         @models.map { project =>
-            <tr>
+            <tr @if(!project.isVisible) { class="project-hidden" }>
                 @defining(project.category) { category =>
                     <td><i title="@category.title" class="fa @category.icon"></i></td>
                 }

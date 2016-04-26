@@ -11,7 +11,8 @@ import db.query.Queries.{FilterWrapper, now, wrapperToFunction}
 import models.project.Project._
 import models.project.{Flag, Project}
 import models.user.{FakeUser, User}
-import ore.permission.{ResetOre, ReviewFlags, SeedOre}
+import ore.permission.scope.GlobalScope
+import ore.permission.{HideProjects, ResetOre, ReviewFlags, SeedOre}
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
@@ -43,11 +44,14 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
 
     // Determine filter
+    val canHideProjects = User.current.isDefined && (User.current.get can HideProjects in GlobalScope)
     var filter: ProjectTable => Rep[Boolean] = query.map { q =>
       // Search filter + visible
-      Queries.Projects.searchFilter(q) && (_.isVisible)
+      var f  = Queries.Projects.searchFilter(q)
+      if (!canHideProjects) f = f && (_.isVisible)
+      f
     }.orNull[FilterWrapper[ProjectTable, Project]]
-    if (filter == null) filter = _.isVisible
+    if (filter == null && !canHideProjects) filter = _.isVisible
 
     val projects = now(Queries.Projects.collect(filter, categoryArray, InitialLoad, s)).get
     Ok(views.home(projects, Option(categoryArray), s))

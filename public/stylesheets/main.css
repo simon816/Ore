@@ -235,6 +235,14 @@ body {
     text-align: right;
 }
 
+.project-table {
+    background: repeating-linear-gradient(45deg, #ddd, #ddd 10px, #f5f5f5 10px, #f5f5f5 20px);
+}
+
+.project-table tr:not(.project-hidden) {
+    background-color: white;
+}
+
 .project-panel .panel-footer {
     height: 34px;
 }

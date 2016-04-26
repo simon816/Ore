@@ -46,6 +46,7 @@ case class User(override val  id: Option[Int] = None,
     * here.
     */
   val can: PermissionPredicate = PermissionPredicate(this)
+  val cannot: PermissionPredicate = PermissionPredicate(this, not = true)
 
   def this(externalId: Int, name: String, username: String, email: String) = {
     this(id=Some(externalId), fullName=Option(name), username=username, email=Option(email))
