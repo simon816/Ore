@@ -83,12 +83,7 @@ Base template for Project overview.
                                     </li>
                                 }
                             </ul>
-                            <script>
-                                @* Set active tab *@
-                                $(function() {
-                                    $(".nav").find("@active").addClass("active");
-                                });
-                            </script>
+                            <script>$(function() { $(".nav").find("@active").addClass("active"); });</script>
                         </div>
                     </div>
 
@@ -99,7 +94,9 @@ Base template for Project overview.
                         }
 
                         @if(!project.isReviewed && hasUser && (user can ReviewProjects in GlobalScope)) {
-                            <a href="@projectRoutes.Projects.approve(project.ownerName, project.slug)" class="btn btn-success"><i class="fa fa-thumbs-up"></i> Approve</a>
+                            <a href="@projectRoutes.Projects.approve(project.ownerName, project.slug)" class="btn btn-success">
+                                <i class="fa fa-thumbs-up"></i> Approve
+                            </a>
                         }
 
                         @if(hasUser) {
@@ -112,9 +109,9 @@ Base template for Project overview.
                                     <span class="starred"> @project.stars</span>
                                 </button>
                                 <script>
-                                        var projectOwner = "@project.ownerName";
-                                        var projectSlug = "@project.slug";
-                                        var alreadyStarred = @alreadyStarred;
+                                    var projectOwner = "@project.ownerName";
+                                    var projectSlug = "@project.slug";
+                                    var alreadyStarred = @alreadyStarred;
                                 </script>
                             }
                         }

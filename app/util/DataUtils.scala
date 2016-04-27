@@ -10,6 +10,7 @@ import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
 import models.project.{Channel, Project, Version}
 import models.user.User
+import ore.project.Categories
 import ore.project.util.ProjectFactory
 import org.apache.commons.io.FileUtils
 import play.api.libs.Files.TemporaryFile
@@ -62,8 +63,7 @@ object DataUtils {
       meta.setId(pluginId)
 
       // Create project
-      var project = Project.fromMeta(user, meta)
-      project = PendingProject(project, plugin).complete.get
+      val project = PendingProject(Project.fromMeta(user, meta).copy(_category = Categories.Misc), plugin).complete.get
 
       // Create channels
       var channelSeq: Seq[Channel] = Seq.empty

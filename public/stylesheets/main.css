@@ -256,6 +256,11 @@ body {
     margin-bottom: 10px;
 }
 
+.category-table tr > td:first-child {
+    text-align: center;
+    padding-right: 0;
+}
+
 .category-table tr:hover {
     cursor: pointer;
     background-color: #f3f2f0;
