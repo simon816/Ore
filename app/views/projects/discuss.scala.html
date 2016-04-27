@@ -21,8 +21,8 @@ Discussion page within Project overview.
     <div class="container">
         <div id='discourse-comments'></div>
         <div class="row">
-            <div class="col-md-8">
-                @if(User.current.isDefined) {
+            @if(User.current.isDefined) {
+                <div class="col-md-8">
                     @form(action = projectRoutes.Projects.postDiscussionReply(model.ownerName, model.slug)) {
                         <div class="reply-box"><textarea name="content" class="form-control"></textarea></div>
                         <div class="reply-controls">
@@ -32,13 +32,13 @@ Discussion page within Project overview.
                             </a>
                         </div>
                     }
-                } else {
-                    <div class="pull-right">
-                        <a href="@routes.Users.logIn(None, None, Some(request.path))">Log in</a>
-                        <span class="minor"> to reply to this discussion</span>
-                    </div>
-                }
-            </div>
+                </div>
+            } else {
+                <div class="pull-right">
+                    <a href="@routes.Users.logIn(None, None, Some(request.path))">Log in</a>
+                    <span class="minor"> to reply to this discussion</span>
+                </div>
+            }
         </div>
     </div>
 
