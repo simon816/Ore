@@ -74,7 +74,7 @@ discourse.sso.url           =   ${?DISCOURSE_SSO_URL}
 discourse.baseUrl           =   "https://forums.spongepowered.org"
 discourse.api.enabled       =   true
 discourse.api.key           =   ${?DISCOURSE_API_KEY}
-discourse.embed.categoryId  =   27
+discourse.embed.categoryId  =   32
 
 
 # Sponge stuff
