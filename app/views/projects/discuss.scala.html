@@ -5,7 +5,7 @@ Discussion page within Project overview.
 @import models.project.Project
 @import util.C._
 @import views.html.helper.form
-@(model: Project)(implicit messages: Messages, session: Session, request: RequestHeader)
+@(model: Project)(implicit messages: Messages, session: Session, request: RequestHeader, flash: Flash)
 
 @projects.view(model, "#discussion") {
 

@@ -5,7 +5,7 @@ Documentation page within Project overview.
 @import models.project.{Page, Project}
 @import models.user.User
 @import ore.permission.EditPages
-@(model: Project, page: Page)(implicit messages: Messages, session: Session, request: RequestHeader)
+@(model: Project, page: Page)(implicit messages: Messages, session: Session, request: RequestHeader, flash: Flash)
 
 @canEditPages = @{
     User.current.isDefined && (User.current.get can EditPages in model)

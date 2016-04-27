@@ -3,8 +3,8 @@ package db.query.user
 import db.OrePostgresDriver.api._
 import db.orm.dao.ModelSet
 import db.query.Queries
-import db.{ProjectRolesTable, ProjectTable, UserTable}
-import models.project.Project
+import db.{FlagTable, ProjectRolesTable, ProjectTable, UserTable}
+import models.project.{Flag, Project}
 import models.user.{ProjectRole, User}
 
 import scala.concurrent.Future
@@ -41,6 +41,15 @@ class UserQueries extends Queries {
     */
   def getProjectRoles(user: User): ModelSet[UserTable, User, ProjectRolesTable, ProjectRole]
   = Queries.getModelSet[UserTable, User, ProjectRolesTable, ProjectRole](classOf[ProjectRole], _.userId, user)
+
+  /**
+    * Returns the [[Flag]]s submitted by the user.
+    *
+    * @param user User to get flags for
+    * @return     Flags submitted by user
+    */
+  def getFlags(user: User): ModelSet[UserTable, User, FlagTable, Flag]
+  = Queries.getModelSet[UserTable, User, FlagTable, Flag](classOf[Flag], _.userId, user)
 
   override def like(user: User): Future[Option[User]] = this.find(_.username.toLowerCase === user.username.toLowerCase)
 

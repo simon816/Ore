@@ -134,9 +134,16 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
   }
 
   def flag(author: String, slug: String) = AuthedProjectAction(author, slug) { implicit request =>
-    val reason = FlagReasons(Forms.ProjectFlag.bindFromRequest.get)
-    request.project.flagFor(request.user, reason)
-    Redirect(self.show(author, slug))
+    val user = request.user
+    val project = request.project
+    if (user.hasUnresolvedFlagFor(project)) {
+      // One flag per project, per user at a time
+      BadRequest
+    } else {
+      val reason = FlagReasons(Forms.ProjectFlag.bindFromRequest.get)
+      project.flagFor(user, reason)
+      Redirect(self.show(author, slug)).flashing("reported" -> "true")
+    }
   }
 
   def setVisible(author: String, slug: String, visible: Boolean) = {

@@ -4,7 +4,7 @@
 @import ore.permission.EditVersions
 @import views.html.helper.form
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
-        session: Session, request: RequestHeader)
+        session: Session, request: RequestHeader, flash: Flash)
 
 @canEdit = @{
     User.current.isDefined && (User.current.get can EditVersions in project)

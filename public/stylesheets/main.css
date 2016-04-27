@@ -889,3 +889,7 @@ a > .fa {
 #save {
     margin: 0;
 }
+
+.flag-msg {
+    color: #1f7199;
+}

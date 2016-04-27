@@ -8,8 +8,8 @@ import db.orm.dao.{ModelDAO, ModelSet}
 import db.orm.model.{Model, UserOwner}
 import db.query.Queries
 import db.query.Queries.now
-import db.{ProjectRolesTable, UserTable}
-import models.project.Project
+import db.{FlagTable, ProjectRolesTable, UserTable}
+import models.project.{Flag, Project}
 import ore.permission._
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.role._
@@ -107,6 +107,23 @@ case class User(override val  id: Option[Int] = None,
         this.projectRoles.find(_.projectId === pScope.projectId).map(_.roleType.trust).getOrElse(Default)
     }
   }
+
+  /**
+    * Returns the [[Flag]]s submitted by this User.
+    *
+    * @return Flags submitted by user
+    */
+  def flags: ModelSet[UserTable, User, FlagTable, Flag] = Queries.Users.getFlags(this)
+
+  /**
+    * Returns true if the User has an unresolved [[Flag]] on the specified
+    * [[Project]].
+    *
+    * @param project  Project to check
+    * @return         True if has pending flag on Project
+    */
+  def hasUnresolvedFlagFor(project: Project): Boolean
+  = this.flags.find(f => f.projectId === project.id.get && !f.isResolved).isDefined
 
   /**
     * Returns the Projects that this User has starred.

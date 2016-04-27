@@ -30,6 +30,11 @@ function initFlagList() {
 $(function() {
     initFlagList();
 
+    var flagMsg = $('.flag-msg');
+    if (flagMsg.length) {
+        flagMsg.hide().fadeIn(1000).delay(2000).fadeOut(1000);
+    }
+
     // setup star button
     var increment = alreadyStarred ? -1 : 1;
     $('.btn-star').click(function() {

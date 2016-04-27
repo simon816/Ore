@@ -6,7 +6,8 @@ Versions page within Project overview.
 @import models.user.User
 @import ore.permission.{EditChannels, EditVersions}
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
-  visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session, request: RequestHeader)
+  visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session,
+        request: RequestHeader, flash: Flash)
 
 @projects.view(model, "#versions") {
 
