@@ -9,7 +9,7 @@ import db.query.Queries
 import models.project._
 import models.user.User
 import ore.Statistics
-import ore.permission.{EditSettings, HideProjects}
+import ore.permission.{ReviewProjects, EditSettings, HideProjects}
 import ore.project.{FlagReasons, InvalidPluginFileException, ProjectFactory}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -150,6 +150,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(HideProjects)) { implicit request =>
       request.project.setVisible(visible)
       Ok
+    }
+  }
+
+  def approve(author: String, slug: String) = {
+    (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(ReviewProjects)) { implicit request =>
+      request.project.setReviewed(true)
+      Redirect(self.show(author, slug))
     }
   }
 

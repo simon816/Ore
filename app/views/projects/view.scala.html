@@ -7,6 +7,8 @@ Base template for Project overview.
 @import ore.permission.EditSettings
 @import ore.project.FlagReasons
 @import views.html.helper.form
+@import ore.permission.scope.GlobalScope
+@import ore.permission.ReviewProjects
 @(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session, request: RequestHeader, flash: Flash)
 
 @hasUser = @{ User.current.isDefined }
@@ -48,11 +50,13 @@ Base template for Project overview.
                                     </a>
                                 </li>
 
-                                <li id="discussion" class="">
-                                    <a href="@projectRoutes.Projects.showDiscussion(project.ownerName, project.slug)">
-                                        <i class="fa fa-users"></i> @messages("project.discuss")
-                                    </a>
-                                </li>
+                                @project.topicId.map { topicId =>
+                                    <li id="discussion" class="">
+                                        <a href="@projectRoutes.Projects.showDiscussion(project.ownerName, project.slug)">
+                                            <i class="fa fa-users"></i> @messages("project.discuss")
+                                        </a>
+                                    </li>
+                                }
 
                                 @if(hasUser && (user can EditSettings in project)) {
                                     @* Show manager if permitted *@
@@ -65,7 +69,7 @@ Base template for Project overview.
 
                                 @project.issues.map { issues =>
                                     <li id="issues">
-                                        <a title="@issues"
+                                        <a title="@issues" target="_blank"
                                            href="@projectRoutes.Projects.showIssues(project.ownerName, project.slug)">
                                             <i class="fa fa-bug"></i> Issues <i class="fa fa-external-link"></i></a>
                                     </li>
@@ -73,7 +77,7 @@ Base template for Project overview.
 
                                 @project.source.map { source =>
                                     <li id="source">
-                                        <a title="@source"
+                                        <a title="@source" target="_blank"
                                         href="@projectRoutes.Projects.showSource(project.ownerName, project.slug)">
                                             <i class="fa fa-code"></i> Source <i class="fa fa-external-link"></i>
                                         </a>
@@ -93,6 +97,10 @@ Base template for Project overview.
 
                         @flash.get("reported").map { r =>
                             <span class="flag-msg"><i class="fa fa-thumbs-up"></i> Flag submitted for review</span>
+                        }
+
+                        @if(!project.isReviewed && hasUser && (user can ReviewProjects in GlobalScope)) {
+                            <a href="@projectRoutes.Projects.approve(project.ownerName, project.slug)" class="btn btn-success"><i class="fa fa-thumbs-up"></i> Approve</a>
                         }
 
                         @if(hasUser) {

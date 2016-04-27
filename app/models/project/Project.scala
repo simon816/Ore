@@ -70,7 +70,8 @@ case class Project(override val   id: Option[Int] = None,
                    private var    _description: Option[String] = None,
                    private var    _topicId: Option[Int] = None,
                    private var    _postId: Option[Int] = None,
-                   private var    _isVisible: Boolean = true)
+                   private var    _isVisible: Boolean = true,
+                   private var    _isReviewed: Boolean = false)
                    extends        Model
                    with           ProjectScope { self =>
 
@@ -152,6 +153,7 @@ case class Project(override val   id: Option[Int] = None,
   def description_=(_description: String) = {
     checkArgument(_description == null || _description.length <= MaxDescriptionLength, "description too long", "")
     this._description = Option(_description)
+    if (this.topicId.isDefined) SpongeForums.Embed.renameTopic(this)
     if (isDefined) update(Description)
   }
 
@@ -461,6 +463,23 @@ case class Project(override val   id: Option[Int] = None,
   }
 
   /**
+    * Returns true if this Project has been reviewed by the moderation staff.
+    *
+    * @return True if reviewed
+    */
+  def isReviewed: Boolean = this._isReviewed
+
+  /**
+    * Sets whether this project is under review.
+    *
+    * @param reviewed True if reviewed by staff
+    */
+  def setReviewed(reviewed: Boolean) = {
+    this._isReviewed = reviewed
+    if (isDefined) update(IsReviewed)
+  }
+
+  /**
     * Returns true if this Project already exists.
     *
     * @return True if project exists, false otherwise
@@ -501,11 +520,8 @@ case class Project(override val   id: Option[Int] = None,
     Queries.Projects.setString(this, _.name, newName),
     Queries.Projects.setString(this, _.slug, slugify(newName))
   ))
-
-  bind[String](Description, _._description.orNull, description => {
-    Seq(Queries.Projects.setString(this, _.description, description))
-  })
-
+  bind[String](Description, _._description.orNull, description =>
+    Seq(Queries.Projects.setString(this, _.description, description)))
   bind[Category](ModelKeys.Category, _._category, cat => Seq(Queries.Projects.setCategory(this, cat)))
   bind[Int](Views, _._views, views => Seq(Queries.Projects.setInt(this, _.views, views)))
   bind[Int](Downloads, _._downloads, downloads => Seq(Queries.Projects.setInt(this, _.downloads, downloads)))
@@ -515,6 +531,7 @@ case class Project(override val   id: Option[Int] = None,
   bind[Int](TopicId, _._topicId.get, topicId => Seq(Queries.Projects.setInt(this, _.topicId, topicId)))
   bind[Int](PostId, _._postId.get, postId => Seq(Queries.Projects.setInt(this, _.postId, postId)))
   bind[Boolean](IsVisible, _._isVisible, visible => Seq(Queries.Projects.setBoolean(this, _.isVisible, visible)))
+  bind[Boolean](IsReviewed, _._isReviewed, reviewed => Seq(Queries.Projects.setBoolean(this, _.isReviewed, reviewed)))
 
 }
 

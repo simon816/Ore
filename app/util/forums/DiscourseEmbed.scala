@@ -26,7 +26,7 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
   def createTopic(project: Project) = {
     val username = project.ownerName
     val params = this.keyedRequest(username) + (
-      "title" -> Seq(username + " / " + project.name + project.description.map(" - " + _).getOrElse("")),
+      "title" -> Seq(project.name + project.description.map(" - " + _).getOrElse("")),
       "raw" -> Seq(Project.topicContentFor(project)))
     ws.url(url + "/posts").post(params).map { response =>
       validate(response) { json =>
@@ -67,7 +67,7 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
     val topicId = project.topicId.get
     val params = this.keyedRequest(project.ownerName) + (
       "topic_id" -> Seq(topicId.toString),
-      "title" -> Seq(project.ownerName + " / " + project.name + project.description.map(" - " + _).getOrElse("")))
+      "title" -> Seq(project.name + project.description.map(" - " + _).getOrElse("")))
     ws.url(url + "/t/" + topicId).put(params)
   }
 

@@ -16,8 +16,9 @@ object C {
   lazy val DiscourseConf = RootConf.getConfig("discourse").get
   lazy val SpongeConf = RootConf.getConfig("sponge").get
 
-  def checkDebug() = if(!OreConf.getBoolean("debug").get) {
-    throw new UnsupportedOperationException("this function is supported in debug mode only")
-  }
+  def isDebug: Boolean = OreConf.getBoolean("debug").get
+
+  def checkDebug()
+  = if(!isDebug) throw new UnsupportedOperationException("this function is supported in debug mode only")
 
 }

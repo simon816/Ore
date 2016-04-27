@@ -20,5 +20,6 @@ object ModelKeys {
   val PostId        =   "postId"
   val IsResolved    =   "isResolved"
   val IsVisible     =   "isVisible"
+  val IsReviewed    =   "isReviewed"
 
 }

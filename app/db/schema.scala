@@ -34,10 +34,11 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
   def topicId               =   column[Int]("topic_id")
   def postId                =   column[Int]("post_id")
   def isVisible             =   column[Boolean]("is_visible")
+  def isReviewed            =   column[Boolean]("is_reviewed")
 
   override def * = (id.?, createdAt.?, pluginId, name, slug, ownerName, ownerId, homepage.?, recommendedVersionId.?,
                     category, views, downloads, stars, issues.?, source.?, description.?, topicId.?, postId.?,
-                    isVisible) <> ((Project.apply _).tupled, Project.unapply)
+                    isVisible, isReviewed) <> ((Project.apply _).tupled, Project.unapply)
 
 }
 

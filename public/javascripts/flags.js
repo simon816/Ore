@@ -7,6 +7,11 @@ function removeSpinner(e) {
 }
 
 $(function() {
+    $('.btn-resolve-all').click(function() {
+        $('.btn-resolve').click();
+        $(this).fadeOut();
+    });
+
     $('.btn-resolve').click(function() {
         var listItem = $(this).closest('li');
         var flagId = listItem.data('flag-id');

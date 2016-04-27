@@ -22,7 +22,17 @@ Documentation page within Project overview.
                            class="btn btn-edit btn-default pull-right"><i class="fa fa-edit"></i> @messages("page.edit")</a>
                     }
                     @* Rendered markdown *@
-                    <div class="page-content pull-left">@Html(page.html)</div>
+                    <div class="page-content pull-left">
+
+                        @if(!model.isReviewed) {
+                            <div class="alert alert-info" role="alert">
+                                <i class="fa fa-info-circle"></i>
+                                This project is under review and may not be safe for downloading.
+                            </div>
+                        }
+
+                        @Html(page.html)
+                    </div>
                 </div>
                 <div class="col-md-3">
                     <div class="panel panel-default">

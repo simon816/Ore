@@ -869,6 +869,15 @@ a > .fa {
     margin-top: -5px;
 }
 
+.header-flags {
+    padding-right: 16px;
+    padding-bottom: 10px;
+}
+
+.header-flags {
+    text-align: center;
+}
+
 .panel-settings .panel-heading h3 {
     padding-top: 5px;
 }
@@ -882,7 +891,7 @@ a > .fa {
     border-bottom: 1px solid #ddd;
 }
 
-.danger-zone .btn-danger {
+.danger-zone .btn-delete {
     width: 260px;
 }
 
