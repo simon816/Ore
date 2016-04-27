@@ -150,51 +150,131 @@ body {
     color: #3399ff;
 }
 
+/* left nav */
+
 .navbar-main {
     padding-top: 1px;
-    min-height: 63px; !important;
+    height: 63px; !important;
+    min-height: 63px;
     box-shadow: 0 2px 4px -1px rgba(0,0,0,0.25);
 }
 
-.navbar-main > .container > .collapse > ul > li > a, .navbar-main > .container > .collapse > .navbar-nav {
-    padding-top: 5px; !important;
-    height: 57px;
-}
-
-.navbar-main > .container > .collapse > ul.navbar-right {
-    padding-top: 10px;
-}
-
-.navbar-main > .container > .collapse > ul.navbar-right > li > a {
-    height: 51px;
+.dropdown-sponge:hover {
+    background-color: #222;
 }
 
 .navbar-main li.dropdown:hover > ul.dropdown-menu {
     display: block;
 }
 
-.navbar-main > .container > .collapse > div.navbar-right {
-    padding-top: 14px;
+.navbar-main .navbar-left li > a {
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
-.navbar-main > .container > .collapse > div.navbar-right > a {
-    margin: 0 auto;
+.main-dropdown:hover {
+    display: block;
+}
+
+.main-dropdown li.active:hover > a {
+    background-color: #d2af08;
 }
 
 .main-dropdown {
     width: 100%;
 }
 
-.main-dropdown  li .fa {
-    margin-right: 10px;
-    min-width: 18px;
+.main-dropdown i {
+    padding-right: 5px;
 }
 
-.main-dropdown > li > a {
-    padding: 10px 20px;
+.navbar-nav > li > .main-dropdown {
+    margin-top: 2px;
+    padding: 10px 0 4px;
 }
 
-.user-dropdown {
+.navbar-nav > li > .main-dropdown, .user-dropdown {
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    border-radius: 0 0 4px 4px;
+    border: 1px solid #e4e4e4;
+}
+
+/* right nav */
+
+.navbar-main .navbar-right {
+    padding-top: 9px;
+    padding-bottom: 9px;
+    padding-right: 20px;
+}
+
+.navbar-main .navbar-right > li > a {
+    padding: 0;
+}
+
+.nav-search {
+    padding-right: 5px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+
+.project-search {
+    height: 40px;
+    width: 0;
+    padding: 3px;
+    overflow: hidden;
+}
+
+.icon-project-search {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    padding: 7px;
+    -webkit-transition: background-color 0.5s;
+    -moz-transition: background-color 0.5s;
+    -ms-transition: background-color 0.5s;
+    -o-transition: background-color 0.5s;
+    transition: background-color 0.5s;
+}
+
+.icon-project-search:hover {
+    background-color: white;
+}
+
+.icon-project-search:hover > i {
+    color: black;
+}
+
+.icon-project-search > i {
+    cursor: pointer;
+    font-size: 25px;
+    color: #F6CF17;
+    -webkit-transition: color 0.5s;
+    -moz-transition: color 0.5s;
+    -ms-transition: color 0.5s;
+    -o-transition: color 0.5s;
+    transition: color 0.5s;
+}
+
+.user-avatar {
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+}
+
+.user-controls {
+    padding-top: 5px;
+    padding-bottom: 16px;
+}
+
+.user-avatar:hover {
+    background-color: white;
+}
+
+.navbar-nav > li > .user-dropdown {
     width: 200px;
 }
 
@@ -205,6 +285,8 @@ body {
 .user-dropdown > li > a > i {
     transform: translateY(4px);
 }
+
+/* ----- */
 
 .table-controls {
     margin-top: 20px;
@@ -384,14 +466,6 @@ body {
 
 .no-border > tbody > tr > td {
     border: none;
-}
-
-.user-avatar {
-    -webkit-border-radius: 50%;
-    -moz-border-radius: 50%;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
 }
 
 .user-header {
@@ -763,44 +837,6 @@ a > .fa {
 
 .btn-group-login > a {
     margin: 0 auto;
-}
-
-.project-search {
-    height: 40px;
-    width: 0;
-    padding: 3px;
-    overflow: hidden;
-}
-
-.icon-project-search {
-    cursor: pointer;
-    width: 40px;
-    height: 40px;
-    padding: 7px;
-    -webkit-transition: background-color 0.5s;
-    -moz-transition: background-color 0.5s;
-    -ms-transition: background-color 0.5s;
-    -o-transition: background-color 0.5s;
-    transition: background-color 0.5s;
-}
-
-.icon-project-search:hover {
-    background-color: white;
-}
-
-.icon-project-search:hover > i {
-    color: black;
-}
-
-.icon-project-search > i {
-    cursor: pointer;
-    font-size: 25px;
-    color: #F6CF17;
-    -webkit-transition: color 0.5s;
-    -moz-transition: color 0.5s;
-    -ms-transition: color 0.5s;
-    -o-transition: color 0.5s;
-    transition: color 0.5s;
 }
 
 .reply-box textarea {

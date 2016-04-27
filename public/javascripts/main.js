@@ -23,7 +23,7 @@ $(function() {
             searchBar.animate({width: '0px'}, 100);
             input.fadeOut(100);
         } else {
-            var width = $('.user-avatar').length ? '870px' : '790px';
+            var width = $('.user-avatar').length ? '870px' : '760px';
             input.fadeIn(100);
             searchBar.animate({width: width}, 100);
             input.find('input').focus();

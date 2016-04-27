@@ -16,10 +16,10 @@ The main header displayed on each layout.
         <div class="collapse navbar-collapse">
             <!-- Left navbar -->
             <ul class="nav navbar-nav navbar-left">
-                <li class="dropdown">
+                <li class="dropdown dropdown-sponge">
                     <a href="@routes.Application.showHome(None, None, None)" class="main-dropdown-toggle drop-down-toggle disabled" data-toggle="dropdown">
                         <img class="logo" src="@C.SpongeConf.getString("logo").get" />
-                        <span class="caret"></span>
+                        <span class="fa fa-chevron-down"></span>
                     </a>
 
                     <ul class="dropdown-menu main-dropdown" aria-label="@messages("aria.dropdown.main")">
@@ -50,13 +50,13 @@ The main header displayed on each layout.
                     </div>
                 </li>
 
-                <li class="icon-project-search">
-                    <i class="fa fa-search"></i>
+                <li class="nav-search">
+                    <div class="icon-project-search"><i class="fa fa-search"></i></div>
                 </li>
 
                 @User.current.map { user =>
                     @* Show user controls *@
-                    <li class="dropdown">
+                    <li class="dropdown user-controls">
                         @defining(Flag.unresolved.size) { unresolved =>
                             <a href="#" class="drop-down-toggle user-toggle" data-toggle="dropdown">
                                 @if(canViewFlags(user) && unresolved > 0) {
