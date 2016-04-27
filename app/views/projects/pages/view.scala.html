@@ -17,12 +17,13 @@ Documentation page within Project overview.
         <div class="container">
             <div class="row">
                 <div class="col-md-9">
-                    @if(canEditPages) {
-                        <a href="@routes.Pages.showEditor(model.ownerName, model.slug, page.name)"
-                           class="btn btn-edit btn-default pull-right"><i class="fa fa-edit"></i> @messages("page.edit")</a>
-                    }
                     @* Rendered markdown *@
                     <div class="page-content pull-left">
+
+                        @if(canEditPages) {
+                            <a href="@routes.Pages.showEditor(model.ownerName, model.slug, page.name)"
+                            class="btn btn-edit btn-default pull-right"><i class="fa fa-edit"></i> @messages("page.edit")</a>
+                        }
 
                         @if(!model.isReviewed) {
                             <div class="alert alert-info" role="alert">
