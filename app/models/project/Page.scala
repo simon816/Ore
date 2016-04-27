@@ -68,7 +68,8 @@ case class Page(override val  id: Option[Int] = None,
     checkArgument(_contents.length >= MinLength, "contents not long enough", "")
     this._contents = _contents
     if (isDefined) {
-      if (this.name.equals(HomeName)) SpongeForums.Embed.updateTopic(this.project)
+      val project = this.project
+      if (this.name.equals(HomeName) && project.topicId.isDefined) SpongeForums.Embed.updateTopic(project)
       update(Contents)
     }
   }

@@ -868,3 +868,24 @@ a > .fa {
 .list-flags-admin .btn-group-sm {
     margin-top: -5px;
 }
+
+.panel-settings .panel-heading h3 {
+    padding-top: 5px;
+}
+
+.danger-zone {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+}
+
+.danger-zone .btn-danger {
+    width: 260px;
+}
+
+#save {
+    margin: 0;
+}

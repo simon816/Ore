@@ -126,7 +126,7 @@ case class Project(override val   id: Option[Int] = None,
     ProjectFiles.renameProject(this.ownerName, this.name, newName)
     this._name = newName
     this._slug = slugify(newName)
-    SpongeForums.Embed.renameTopic(this)
+    if (this.topicId.isDefined) SpongeForums.Embed.renameTopic(this)
     update(Name)
   }
 
