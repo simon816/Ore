@@ -22,7 +22,7 @@ Documentation page within Project overview.
 
                         @if(canEditPages) {
                             <a href="@routes.Pages.showEditor(model.ownerName, model.slug, page.name)"
-                            class="btn btn-edit btn-default pull-right"><i class="fa fa-edit"></i> @messages("page.edit")</a>
+                               class="btn btn-edit btn-default"><i class="fa fa-edit"></i> @messages("page.edit")</a>
                         }
 
                         @if(!model.isReviewed) {

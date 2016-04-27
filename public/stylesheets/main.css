@@ -22,6 +22,12 @@ body {
     overflow: hidden;
 }
 
+.btn-edit {
+    position: fixed;
+    left: 4px;
+    top: 250px;
+}
+
 .page-content img {
     max-width: 100%;
 }
@@ -222,7 +228,7 @@ body {
 
 .project-table .name {
     width: 1%;
-    max-width: 500px;
+    max-width: 457px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -789,7 +795,7 @@ a > .fa {
 .icon-project-search > i {
     cursor: pointer;
     font-size: 25px;
-    color: #e6b800;
+    color: #F6CF17;
     -webkit-transition: color 0.5s;
     -moz-transition: color 0.5s;
     -ms-transition: color 0.5s;
