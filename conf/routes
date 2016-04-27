@@ -10,34 +10,34 @@ GET     /admin/flags                                                @controllers
 GET     /admin/flags/:id/resolve/:resolved                          @controllers.Application.setFlagResolved(id: Int, resolved: Boolean)
 
 # ---------- API (v1) ----------
-GET     /api/projects                                               @controllers.Api.listProjects(version = "v1", categories: Option[String], sort: Option[Int], q: Option[String], limit: Option[Int], offset: Option[Int])
-GET     /api/projects/:pluginId                                     @controllers.Api.showProject(version = "v1", pluginId)
+GET     /api/projects                                               @controllers.ApiController.listProjects(version = "v1", categories: Option[String], sort: Option[Int], q: Option[String], limit: Option[Int], offset: Option[Int])
+GET     /api/projects/:pluginId                                     @controllers.ApiController.showProject(version = "v1", pluginId)
 
-GET     /api/projects/:pluginId/versions                            @controllers.Api.listVersions(version = "v1", pluginId, channels: Option[String], limit: Option[Int], offset: Option[Int])
-GET     /api/projects/:pluginId/versions/:channel/:name             @controllers.Api.showVersion(version = "v1", pluginId, channel, name)
+GET     /api/projects/:pluginId/versions                            @controllers.ApiController.listVersions(version = "v1", pluginId, channels: Option[String], limit: Option[Int], offset: Option[Int])
+GET     /api/projects/:pluginId/versions/:channel/:name             @controllers.ApiController.showVersion(version = "v1", pluginId, channel, name)
 
-GET     /api/users                                                  @controllers.Api.listUsers(version = "v1", limit: Option[Int], offset: Option[Int])
-GET     /api/users/:user                                            @controllers.Api.showUser(version = "v1", user)
+GET     /api/users                                                  @controllers.ApiController.listUsers(version = "v1", limit: Option[Int], offset: Option[Int])
+GET     /api/users/:user                                            @controllers.ApiController.showUser(version = "v1", user)
 
-GET     /api/:version/projects                                      @controllers.Api.listProjects(version, categories: Option[String], sort: Option[Int], q: Option[String], limit: Option[Int], offset: Option[Int])
-GET     /api/:version/projects/:pluginId                            @controllers.Api.showProject(version, pluginId)
+GET     /api/:version/projects                                      @controllers.ApiController.listProjects(version, categories: Option[String], sort: Option[Int], q: Option[String], limit: Option[Int], offset: Option[Int])
+GET     /api/:version/projects/:pluginId                            @controllers.ApiController.showProject(version, pluginId)
 
-GET     /api/:version/projects/:pluginId/versions                   @controllers.Api.listVersions(version, pluginId, channels: Option[String], limit: Option[Int], offset: Option[Int])
-GET     /api/:version/projects/:pluginId/versions/:channel/:name    @controllers.Api.showVersion(version, pluginId, channel, name)
+GET     /api/:version/projects/:pluginId/versions                   @controllers.ApiController.listVersions(version, pluginId, channels: Option[String], limit: Option[Int], offset: Option[Int])
+GET     /api/:version/projects/:pluginId/versions/:channel/:name    @controllers.ApiController.showVersion(version, pluginId, channel, name)
 
-GET     /api/:version/users                                         @controllers.Api.listUsers(version, limit: Option[Int], offset: Option[Int])
-GET     /api/:version/users/:user                                   @controllers.Api.showUser(version, user)
+GET     /api/:version/users                                         @controllers.ApiController.listUsers(version, limit: Option[Int], offset: Option[Int])
+GET     /api/:version/users/:user                                   @controllers.ApiController.showUser(version, user)
 
 
 # ---------- Application ----------
 
 GET     /                                                           @controllers.Application.showHome(categories: Option[String], q: Option[String], sort: Option[Int])
-GET     /login                                                      @controllers.Application.logIn(sso: Option[String], sig: Option[String], returnUrl: Option[String])
-GET     /logout                                                     @controllers.Application.logOut
+GET     /login                                                      @controllers.Users.logIn(sso: Option[String], sig: Option[String], returnUrl: Option[String])
+GET     /logout                                                     @controllers.Users.logOut
 
 # ---------- Projects ----------
 
-GET     /p/:pluginId                                                @controllers.project.Projects.shortcut(pluginId)
+GET     /p/:pluginId                                                @controllers.project.Projects.showProjectWithId(pluginId)
 
 GET     /new                                                        @controllers.project.Projects.showCreator
 
@@ -45,8 +45,10 @@ POST    /new/upload                                                 @controllers
 GET     /new/:author/:slug                                          @controllers.project.Projects.showCreatorWithMeta(author, slug)
 POST    /new/:author/:slug/members                                  @controllers.project.Projects.showMembersConfig(author, slug)
 
-GET     /:user                                                      @controllers.Application.showUser(user)
-POST    /:user/settings/tagline                                     @controllers.Application.saveTagline(user)
+# ---------- Users ----------
+GET     /:user                                                      @controllers.Users.show(user)
+POST    /:user/settings/tagline                                     @controllers.Users.saveTagline(user)
+# -------- End Users --------
 
 POST    /:author/:slug                                              @controllers.project.Projects.showFirstVersionCreator(author, slug)
 GET     /:author/:slug                                              @controllers.project.Projects.show(author, slug)
@@ -66,6 +68,7 @@ POST    /:author/:slug/manage/members/remove                        @controllers
 
 GET     /:author/:slug/issues                                       @controllers.project.Projects.showIssues(author, slug)
 GET     /:author/:slug/source                                       @controllers.project.Projects.showSource(author, slug)
+# ------- End Projects ---------
 
 
 # ---------- Pages ----------

@@ -23,7 +23,7 @@ Base template for Project overview.
                 <div class="col-md-12">
                     <div class="project-header pull-left">
                         <h1>
-                            <a href="@routes.Application.showUser(project.ownerName)">@project.ownerName</a>
+                            <a href="@routes.Users.show(project.ownerName)">@project.ownerName</a>
                             / <strong><a href="@projectRoutes.Projects.show(project.ownerName, project.slug)">@project.name</a></strong>
                         </h1>
                         @defining(project.description.getOrElse("")) { description =>

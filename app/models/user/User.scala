@@ -187,6 +187,8 @@ object User extends ModelDAO[User] {
     }
   }
 
+  def getOrCreate(user: User): User = now(Queries.Users.getOrInsert(user)).get
+
   /**
     * Returns the currently authenticated User.
     *

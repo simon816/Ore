@@ -27,7 +27,7 @@
             @flags.map { flag =>
                 <li data-flag-id="@flag.id.get" class="list-group-item">
                     <span class="description">
-                        <a href="@routes.Application.showUser(flag.user.username)">
+                        <a href="@routes.Users.show(flag.user.username)">
                             <strong>@flag.user.username</strong>
                         </a>
                         <span class="minor"> reported </span>

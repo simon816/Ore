@@ -56,7 +56,7 @@
             @model.members.map { member =>
                 <li class="list-group-item">
 
-                    <a class="username" href="@routes.Application.showUser(member.name)">@member.name</a>
+                    <a class="username" href="@routes.Users.show(member.name)">@member.name</a>
 
                     @if(canEdit && !member.headRole.roleType.equals(RoleTypes.ProjectOwner)) {
                         <a href="#">

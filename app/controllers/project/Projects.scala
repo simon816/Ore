@@ -167,7 +167,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @param pluginId Project pluginId
     * @return Redirect to project page.
     */
-  def shortcut(pluginId: String) = Action { implicit request =>
+  def showProjectWithId(pluginId: String) = Action { implicit request =>
     Project.withPluginId(pluginId) match {
       case None => NotFound
       case Some(project) => Redirect(self.show(project.ownerName, project.slug))
@@ -281,7 +281,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
   }
 
   /**
-    * Removes a [[ProjectMember]] from the specified project.
+    * Removes a [[ore.project.ProjectMember]] from the specified project.
     *
     * @param author Project owner
     * @param slug   Project slug

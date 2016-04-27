@@ -39,14 +39,10 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     */
   def show(author: String, slug: String, channelName: String, versionString: String) = {
     ProjectAction(author, slug) { implicit request =>
-      val project = request.project
-      project.channels.find(Queries.Channels.NameFilter(channelName)) match {
-        case None => NotFound
-        case Some(channel) => channel.versions.find(_.versionString === versionString) match {
-          case None => NotFound
-          case Some(version) => Statistics.projectViewed { implicit request =>
-            Ok(views.view(project, channel, version))
-          }
+      implicit val project = request.project
+      withVersion(channelName, versionString) { (channel, version) =>
+        Statistics.projectViewed { implicit request =>
+          Ok(views.view(project, channel, version))
         }
       }
     }
@@ -63,14 +59,10 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     */
   def saveDescription(author: String, slug: String, channelName: String, versionString: String) = {
     VersionEditAction(author, slug) { implicit request =>
-      request.project.channels.find(Queries.Channels.NameFilter(channelName)) match {
-        case None => NotFound
-        case Some(channel) => channel.versions.find(_.versionString === versionString) match {
-          case None => NotFound
-          case Some(version) =>
-            version.description = Forms.VersionDescription.bindFromRequest.get.trim
-            Redirect(self.show(author, slug, channelName, versionString))
-        }
+      implicit val project = request.project
+      withVersion(channelName, versionString) { (channel, version) =>
+        version.description = Forms.VersionDescription.bindFromRequest.get.trim
+        Redirect(self.show(author, slug, channelName, versionString))
       }
     }
   }
@@ -86,15 +78,10 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     */
   def setRecommended(author: String, slug: String, channelName: String, versionString: String) = {
     VersionEditAction(author, slug) { implicit request =>
-      val project = request.project
-      project.channels.find(Queries.Channels.NameFilter(channelName)) match {
-        case None => NotFound
-        case Some(channel) => channel.versions.find(_.versionString === versionString) match {
-          case None => NotFound
-          case Some(version) =>
-            project.recommendedVersion = version
-            Redirect(self.show(author, slug, channelName, versionString))
-        }
+      implicit val project = request.project
+      withVersion(channelName, versionString) { (channel, version) =>
+        project.recommendedVersion = version
+        Redirect(self.show(author, slug, channelName, versionString))
       }
     }
   }
@@ -121,7 +108,9 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
       val versions = project.versions.sorted(_.createdAt.desc, _.channelId inSetBind visibleIds, Version.InitialLoad)
       if (visibleNames.equals(allChannels.map(_.name.toLowerCase))) visibleNames = None
 
-      Statistics.projectViewed(implicit request => Ok(views.list(project, allChannels, versions, visibleNames)))
+      Statistics.projectViewed { implicit request =>
+        Ok(views.list(project, allChannels, versions, visibleNames))
+      }
     }
   }
 

@@ -56,7 +56,7 @@ User page for developers.
                                         </button>
                                         <h4 class="modal-title">@messages("user.tagline.edit")</h4>
                                     </div>
-                                    @form(action = routes.Application.saveTagline(user.username)) {
+                                    @form(action = routes.Users.saveTagline(user.username)) {
                                         <div class="modal-body">
                                             <label for="tagline">Tagline</label>
                                             <input class="form-control" type="text" value="@user.tagline.getOrElse("")" id="tagline"
