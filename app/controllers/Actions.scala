@@ -1,6 +1,6 @@
 package controllers
 
-import controllers.Requests.{ProjectRequest, AuthRequest, AuthedProjectRequest, ScopedRequest}
+import controllers.Requests.{AuthRequest, AuthedProjectRequest, ProjectRequest, ScopedRequest}
 import models.project.Project
 import models.user.User
 import ore.permission.scope.GlobalScope

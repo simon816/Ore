@@ -5,12 +5,12 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
-import db.{ChannelTable, VersionTable}
-import db.orm.dao.{ModelSet, ModelDAO}
+import db.orm.dao.{ModelDAO, ModelSet}
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, ModelKeys}
 import db.query.Queries
 import db.query.Queries.now
+import db.{ChannelTable, VersionTable}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
 import ore.project.ProjectFiles

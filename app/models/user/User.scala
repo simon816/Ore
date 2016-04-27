@@ -4,11 +4,11 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
-import db.{UserTable, ProjectRolesTable}
 import db.orm.dao.{ModelDAO, ModelSet}
 import db.orm.model.{Model, UserOwner}
 import db.query.Queries
 import db.query.Queries.now
+import db.{ProjectRolesTable, UserTable}
 import models.project.Project
 import ore.permission._
 import ore.permission.role.RoleTypes.RoleType

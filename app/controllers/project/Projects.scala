@@ -9,7 +9,7 @@ import db.query.Queries
 import models.project._
 import models.user.User
 import ore.Statistics
-import ore.permission.{HideProjects, EditSettings}
+import ore.permission.{EditSettings, HideProjects}
 import ore.project.{FlagReasons, InvalidPluginFileException, ProjectFactory}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient

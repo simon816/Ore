@@ -1,7 +1,7 @@
 package db.query
 
 import db.OrePostgresDriver.api._
-import db.{UserTable, PageTable}
+import db.PageTable
 import models.project.Page
 
 import scala.concurrent.Future

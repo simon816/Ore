@@ -6,12 +6,12 @@ import java.text.MessageFormat
 
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
+import db._
 import db.orm.dao.{ModelDAO, ModelSet}
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, ModelKeys}
 import db.query.Queries
-import db.query.Queries.{now, filterToFunction, functionToFilter}
-import db._
+import db.query.Queries.{filterToFunction, now}
 import models.project.Version.PendingVersion
 import models.user.{ProjectRole, User}
 import ore.Colors.Color

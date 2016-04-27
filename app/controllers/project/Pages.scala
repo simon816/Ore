@@ -2,9 +2,9 @@ package controllers.project
 
 import javax.inject.Inject
 
-import db.OrePostgresDriver.api._
 import controllers.BaseController
 import controllers.project.routes.{Pages => self}
+import db.OrePostgresDriver.api._
 import ore.Statistics
 import ore.permission.EditPages
 import play.api.i18n.MessagesApi

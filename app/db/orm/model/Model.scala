@@ -4,7 +4,6 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
 import db.query.Queries
-import models.project.Channel
 import util.C._
 
 import scala.concurrent.Future
