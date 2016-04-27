@@ -4,130 +4,132 @@ import db.OrePostgresDriver.api._
 import db.orm.ModelTable
 import db.orm.model.Model
 import db.query.Queries
-import db.query.Queries.now
+import db.query.Queries.{ModelFilter, now}
 import slick.lifted.ColumnOrdered
 
 /**
-  * Represents a collection of models belonging to a parent model.
+  * Represents a set of Models belonging to a Model parent.
   *
-  * @param queries    Queries class
-  * @param parentId   Parent model ID
-  * @param parentRef  Column that references the models contained in this set
-  * @tparam T         Table type
-  * @tparam M         Model type
+  * @param parentRef    Table column that references the parent in the child table
+  * @param parent       Parent model
+  * @tparam ParentTable Parent table
+  * @tparam Parent      Parent model
+  * @tparam ChildTable  Child table
+  * @tparam Child       Child model
   */
-class ModelSet[T <: ModelTable[M], M <: Model](queries: Queries[T, M],
-                                               parentId: Int,
-                                               parentRef: T => Rep[Int])
-                                               extends ModelDAO[M] {
+class ModelSet[ParentTable <: ModelTable[Parent], Parent <: Model, ChildTable <: ModelTable[Child], Child <: Model]
+              (childClass: Class[Child], parentRef: ChildTable => Rep[Int], parent: Parent) extends ModelDAO[Child] {
+
+  /* Filters models in ChildTable to models with a reference of Parent */
+  protected val childFilter: ModelFilter[ChildTable, Child] = ModelFilter(this.parentRef(_) === this.parent.id.get)
+  /* Filters models by ID */
+  protected def idFilter(id: Int): ModelFilter[ChildTable, Child] = ModelFilter(_.id === id)
 
   /**
-    * Returns all models in this set.
+    * Returns all the children of the parent model.
     *
-    * @return All models in set
+    * @return All model children
     */
-  def values: Set[M] = now(this.queries collect (filter = parentRef(_) === parentId)).get.toSet
+  def values: Set[Child] = now(Queries.collect(childClass, filter = childFilter)).get.toSet
 
   /**
-    * Returns the amount of models in this set.
+    * Returns a Seq of all the children of the parent model.
     *
-    * @return Amount of models in set
+    * @return Seq of values
     */
-  def size: Int = now(this.queries count (parentRef(_) === parentId)).get
+  def seq: Seq[Child] = this.values.toSeq
 
   /**
-    * Returns true if there are no models in this set.
+    * Returns the amount of children the parent model has.
+    *
+    * @return Amount of children
+    */
+  def size: Int = now(Queries count (childClass, childFilter)).get
+
+  /**
+    * Returns true if this set is empty.
     *
     * @return True if empty
     */
   def isEmpty: Boolean = this.size == 0
 
   /**
-    * Returns true if there are any models in this set.
+    * Returns true if this set is not empty.
     *
     * @return True if not empty
     */
   def nonEmpty: Boolean = this.size > 0
 
   /**
-    * Returns true if this set contains the given model.
+    * Returns true if the parent model has the specified child.
     *
-    * @param model  Model to look for
-    * @return       True if set contains model
+    * @param child  Child to look for
+    * @return       True if parent has child
     */
-  def contains(model: M): Boolean = {
-    now(this.queries count (t => parentRef(t) === parentId && t.id === model.id.get)).get > 0
-  }
+  def contains(child: Child): Boolean = now(Queries count (childClass, childFilter +& idFilter(child.id.get))).get > 0
 
   /**
-    * Adds a new model to the set.
+    * Inserts the specified child.
     *
-    * @param model  Model to add
-    * @return       The newly created model
+    * @param child  Child to insert
+    * @return       New child
     */
-  def add(model: M): M = now(this.queries insert model).get
+  def add(child: Child): Child = now(Queries insert child).get
 
   /**
-    * Removes a model from the set.
+    * Removes the child from the set.
     *
-    * @param model  Model to remove
-    * @return       True if the model was removed
+    * @param child  Child to remove
+    * @return       True if the set changed as a result
     */
-  def remove(model: M): Boolean = if (this.contains(model)) {
-    now(this.queries delete model).get
+  def remove(child: Child): Boolean = if (this.contains(child)) {
+    now(Queries delete child).get
     true
-  } else {
-    false
+  } else true
+
+  /**
+    * Removes all children matching the specified filter.
+    *
+    * @param filter Model filter
+    */
+  def removeWhere(filter: ChildTable => Rep[Boolean])
+  = now(Queries deleteWhere (childClass, this.childFilter && filter)).get
+
+  /**
+    * Finds the first child matching the specified filter.
+    *
+    * @param filter Model filter
+    * @return       First child
+    */
+  def find(filter: ChildTable => Rep[Boolean]): Option[Child]
+  = now(Queries find (childClass, this.childFilter && filter)).get
+
+  /**
+    * Returns a sorted Seq of child models.
+    *
+    * @param ordering Ordering of Seq
+    * @param filter   Model filter
+    * @param limit    Amount to take
+    * @param offset   Amount to drop
+    * @return         Sorted child models
+    */
+  def sorted(ordering: ChildTable => ColumnOrdered[_], filter: ChildTable => Rep[Boolean] = null,
+             limit: Int = -1, offset: Int = -1): Seq[Child] = {
+    now(Queries.collect(childClass, limit, offset, this.childFilter && filter, ordering)).get.toList
   }
 
   /**
-    * Removes all models matching the specified filter.
+    * Filters the children of the parent.
     *
-    * @param p Model filter
+    * @param filter Model filter
+    * @param limit  Amount to take
+    * @param offset Amount to drop
+    * @return       Filtered children
     */
-  def removeWhere(p: T => Rep[Boolean]) = now(this.queries deleteWhere p).get
-
-  /**
-    * Finds the first model that matches the given predicate.
-    *
-    * @param p  Predicate filter
-    * @return   First match
-    */
-  def find(p: T => Rep[Boolean]): Option[M] = now(this.queries ? (m => parentRef(m) === parentId && p(m))).get
-
-  def sorted(p: T => Rep[Boolean], s: T => ColumnOrdered[_], limit: Int, offset: Int): Seq[M] = {
-    now(this.queries.collect(limit, offset, p, s)).get
+  def filter(filter: ChildTable => Rep[Boolean], limit: Int = -1, offset: Int = -1): Seq[Child] = {
+    now(Queries.collect(childClass, limit, offset, this.childFilter && filter)).get
   }
 
-  def sorted(p: T => Rep[Boolean], s: T => ColumnOrdered[_], limit: Int): Seq[M] = sorted(p, s, limit, -1)
-
-  def sorted(s: T => ColumnOrdered[_], limit: Int, offset: Int): Seq[M] = sorted(null, s, limit, offset)
-
-  def sorted(s: T => ColumnOrdered[_], limit: Int): Seq[M] = sorted(s, limit, -1)
-
-  def sorted(s: T => ColumnOrdered[_]): Seq[M] = sorted(s, -1)
-
-  /**
-    * Filters the values in this set by the given predicate.
-    *
-    * @param p  Predicate filter
-    * @return   Result sequence
-    */
-  def filter(p: T => Rep[Boolean], limit: Int, offset: Int): Seq[M] = {
-    now(this.queries.collect(filter = m => parentRef(m) === parentId && p(m))).get
-  }
-
-  def filter(p: T => Rep[Boolean], limit: Int): Seq[M] = filter(p, limit, -1)
-
-  def filter(p: T => Rep[Boolean]): Seq[M] = filter(p, -1)
-
-  /**
-    * Returns a Seq version of this set.
-    *
-    * @return Sequence
-    */
-  def seq: Seq[M] = this.values.toSeq
-
-  override def withId(id: Int): Option[M] = now(this.queries.get(id)).get
+  override def withId(id: Int): Option[Child] = now(Queries.find(childClass, childFilter +& idFilter(id))).get
 
 }

@@ -2,9 +2,10 @@ package models.project
 
 import java.sql.Timestamp
 
+import db.OrePostgresDriver.api._
 import db.orm.dao.ModelDAO
+import db.orm.model.Model
 import db.orm.model.ModelKeys._
-import db.orm.model.NamedModel
 import db.query.Queries
 import db.query.Queries.now
 import ore.Colors.Color
@@ -45,8 +46,10 @@ case class Version(override val   id: Option[Int] = None,
                    val            channelId: Int,
                    val            fileSize: Long,
                    val            hash: String)
-                   extends        NamedModel
+                   extends        Model
                    with           ProjectScope { self =>
+
+  override type M <: Version { type M = self.M }
 
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int, fileSize: Long, hash: String) = {
@@ -58,6 +61,13 @@ case class Version(override val   id: Option[Int] = None,
            description: String, assets: String, projectId: Int, fileSize: Long, hash: String) = {
     this(versionString, dependencies, description, assets, projectId, -1, fileSize, hash)
   }
+
+  /**
+    * Returns the name of this Channel.
+    *
+    * @return Name of channel
+    */
+  def name: String = this.versionString
 
   /**
     * Returns the channel this version belongs to.
@@ -132,11 +142,11 @@ case class Version(override val   id: Option[Int] = None,
 
   def exists: Boolean = {
     this.projectId > -1 &&
-      ((this.channelId > -1 && this.channel.versions.withName(this.versionString).isDefined) ||
-      now(Queries.Versions.hashExists(this.projectId, this.hash)).get)
+      ((this.channelId > -1 && this.channel.versions.find(_.versionString === this.versionString).isDefined) ||
+        now(Queries.Versions.hashExists(this.projectId, this.hash)).get)
   }
 
-  override def name: String = this.versionString
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Version = this.copy(id = id, createdAt = theTime)
 
   override def hashCode: Int = this.id.hashCode
 
@@ -145,8 +155,6 @@ case class Version(override val   id: Option[Int] = None,
   }
 
   // Table bindings
-
-  override type M <: Version { type M = self.M }
 
   bind[String](Description, _._description.orNull, description => {
     Seq(Queries.Versions.setString(this, _.description, description))

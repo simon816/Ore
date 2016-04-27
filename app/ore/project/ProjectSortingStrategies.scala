@@ -34,7 +34,7 @@ object ProjectSortingStrategies {
     /** Type being sorted. */
     type A
     /** Sorting function */
-    def f: ProjectTable => ColumnOrdered[A]
+    def fn: ProjectTable => ColumnOrdered[A]
     /** Display name */
     def title: String
     /** Unique ID */
@@ -43,28 +43,28 @@ object ProjectSortingStrategies {
 
   case object MostStars extends ProjectSortingStrategy {
     override type A = Int
-    def f = _.stars.desc
+    def fn = _.stars.desc
     def title = "Most stars"
     def id = 0
   }
 
   case object MostDownloads extends ProjectSortingStrategy {
     override type A = Int
-    def f = _.downloads.desc
+    def fn = _.downloads.desc
     def title = "Most downloads"
     def id = 1
   }
 
   case object MostViews extends ProjectSortingStrategy {
     override type A = Int
-    def f = _.views.desc
+    def fn = _.views.desc
     def title = "Most views"
     def id = 2
   }
 
   case object New extends ProjectSortingStrategy {
     override type A = Timestamp
-    def f = _.createdAt.desc
+    def fn = _.createdAt.desc
     def title = "New"
     def id = 3
   }

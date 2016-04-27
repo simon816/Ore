@@ -1,35 +1,47 @@
 package db.query.user
 
-import java.sql.Timestamp
-
 import db.OrePostgresDriver.api._
-import db.UserTable
+import db.orm.dao.ModelSet
 import db.query.Queries
-import models.user.User
+import db.{ProjectRolesTable, ProjectTable, UserTable}
+import models.project.Project
+import models.user.{ProjectRole, User}
 
 import scala.concurrent.Future
 
 /**
   * User related queries.
   */
-class UserQueries extends Queries[UserTable, User](TableQuery(tag => new UserTable(tag))) {
+class UserQueries extends Queries {
+
+  override type Row = User
+  override type Table = UserTable
 
   val ProjectRoles = new ProjectRolesQueries
 
+  override val modelClass = classOf[User]
+  override val baseQuery = TableQuery[UserTable]
+
+  registerModel()
+
   /**
-    * Returns the User with the specified username.
+    * Returns the user's projects.
     *
-    * @param username   Username to find
-    * @return           User if found, None otherwise
+    * @param user User to get projects for
+    * @return     User projects
     */
-  def withName(username: String): Future[Option[User]] = {
-    ?(_.username === username)
-  }
+  def getProjects(user: User): ModelSet[UserTable, User, ProjectTable, Project]
+  = Queries.getModelSet[UserTable, User, ProjectTable, Project](classOf[Project], _.ownerId, user)
 
-  override def copyInto(id: Option[Int], theTime: Option[Timestamp], user: User): User = {
-    user.copy(createdAt = theTime)
-  }
+  /**
+    * Returns the ProjectRoles for all Projects this user is in.
+    *
+    * @param user User to get roles for
+    * @return ProjectRoles user has
+    */
+  def getProjectRoles(user: User): ModelSet[UserTable, User, ProjectRolesTable, ProjectRole]
+  = Queries.getModelSet[UserTable, User, ProjectRolesTable, ProjectRole](classOf[ProjectRole], _.userId, user)
 
-  override def named(user: User): Future[Option[User]] = withName(user.username)
+  override def like(user: User): Future[Option[User]] = this.find(_.username.toLowerCase === user.username.toLowerCase)
 
 }

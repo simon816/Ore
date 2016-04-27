@@ -31,6 +31,8 @@ case class ProjectRole(override val id: Option[Int] = None,
                        with         ProjectScope
                        with         Ordered[ProjectRole] { self =>
 
+  override type M <: ProjectRole { type M = self.M }
+
   def this(userId: Int, roleType: RoleType, projectId: Int) = {
     this(id=None, createdAt=None, userId=userId, _roleType=roleType, projectId=projectId)
   }
@@ -49,9 +51,11 @@ case class ProjectRole(override val id: Option[Int] = None,
 
   override def compare(that: ProjectRole) = this.roleType.trust compare that.roleType.trust
 
-  // Table bindings
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): ProjectRole = {
+    this.copy(id = id, createdAt = theTime)
+  }
 
-  override type M <: ProjectRole { type M = self.M }
+  // Table bindings
 
   bind[RoleType](RoleType, _._roleType, roleType => Seq(Queries.Users.ProjectRoles.setRoleType(this, roleType)))
 

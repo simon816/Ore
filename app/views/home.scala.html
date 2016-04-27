@@ -114,7 +114,8 @@ sorted according to different criteria.
                                     <tr data-id="@category.id"
                                         @if(visibleCategories.isDefined && visibleCategories.get.contains(category)) {
                                             class="selected"
-                                            }>
+                                        }
+                                    >
                                         <td>
                                             <i class="fa @category.icon"></i>
                                             <strong>@category.title</strong>

@@ -5,10 +5,10 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
-import db.VersionTable
-import db.orm.dao.{ModelDAO, NamedModelSet}
+import db.{ChannelTable, VersionTable}
+import db.orm.dao.{ModelSet, ModelDAO}
 import db.orm.model.ModelKeys._
-import db.orm.model.{ModelKeys, NamedModel}
+import db.orm.model.{Model, ModelKeys}
 import db.query.Queries
 import db.query.Queries.now
 import ore.Colors._
@@ -36,13 +36,17 @@ case class Channel(override val   id: Option[Int] = None,
                    private var    _name: String,
                    private var    _color: Color,
                    override val   projectId: Int)
-                   extends        NamedModel
+                   extends        Model
                    with           Ordered[Channel]
                    with           ProjectScope { self =>
 
   import models.project.Channel._
 
+  override type M <: Channel { type M = self.M }
+
   def this(name: String, color: Color, projectId: Int) = this(_name=name, _color=color, projectId=projectId)
+
+  def name: String = this._name
 
   /**
     * Sets the name of this channel for.
@@ -82,8 +86,8 @@ case class Channel(override val   id: Option[Int] = None,
     *
     * @return All versions
     */
-  def versions: NamedModelSet[VersionTable, Version] = assertDefined {
-    new NamedModelSet(Queries.Versions, this.id.get, _.channelId)
+  def versions: ModelSet[ChannelTable, Channel, VersionTable, Version] = assertDefined {
+    Queries.Channels.getVersions(this)
   }
 
   /**
@@ -99,7 +103,7 @@ case class Channel(override val   id: Option[Int] = None,
     val rv = context.recommendedVersion
     now(Queries.Versions delete version).get
     // Set recommended version to latest version if the deleted version was the rv
-    if (version.equals(rv)) context.recommendedVersion = context.versions.sorted(_.createdAt.desc, 1).head
+    if (version.equals(rv)) context.recommendedVersion = context.versions.sorted(_.createdAt.desc, limit = 1).head
     Files.delete(ProjectFiles.uploadPath(context.ownerName, context.name, version.versionString, this._name))
   }
 
@@ -120,7 +124,7 @@ case class Channel(override val   id: Option[Int] = None,
     FileUtils.deleteDirectory(ProjectFiles.projectDir(context.ownerName, context.name).resolve(this._name).toFile)
   }
 
-  override def name: String = this._name
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Channel = this.copy(id = id, createdAt = theTime)
 
   override def compare(that: Channel): Int = this._name compare that._name
 
@@ -131,8 +135,6 @@ case class Channel(override val   id: Option[Int] = None,
   }
 
   // Table bindings
-
-  override type M <: Channel { type M = self.M }
 
   bind[String](Name, _._name, name => Seq(Queries.Channels.setString(this, _.name, name)))
   bind[Color](ModelKeys.Color, _._color, color => Seq(Queries.Channels.setColor(this, color)))

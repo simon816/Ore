@@ -76,7 +76,7 @@ object ProjectFactory {
     val project = Project.withSlug(pending.owner, pending.projectSlug).get
 
     // Create channel if not exists
-    project.channels.withName(pending.channelName) match {
+    project.channels.find(Queries.Channels.NameFilter(pending.channelName)) match {
       case None => channel = project.addChannel(pending.channelName, pending.channelColor)
       case Some(existing) => channel = existing
     }

@@ -21,6 +21,8 @@ case class Flag(override val  id: Option[Int],
                 with          UserOwner
                 with          ProjectScope { self =>
 
+  override type M <: Flag { type M = self.M }
+
   def this(projectId: Int, userId: Int, reason: FlagReason) = {
     this(id=None, createdAt=None, projectId=projectId, userId=userId, reason=reason)
   }
@@ -32,9 +34,9 @@ case class Flag(override val  id: Option[Int],
     update(IsResolved)
   }
 
-  // Table bindings
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Flag = this.copy(id = id, createdAt = theTime)
 
-  override type M <: Flag { type M = self.M }
+  // Table bindings
 
   bind[Boolean](IsResolved, _._isResolved, isResolved => {
     Seq(Queries.Projects.Flags.setBoolean(this, _.isResolved, isResolved))
@@ -46,7 +48,7 @@ object Flag extends ModelDAO[Flag] {
 
   def all: Seq[Flag] = now(Queries.Projects.Flags.collect()).get
 
-  def unresolved: Seq[Flag] = now(Queries.Projects.Flags.collect(filter = !_.isResolved)).get
+  def unresolved: Seq[Flag] = now(Queries.Projects.Flags.filter(!_.isResolved)).get
 
   override def withId(id: Int): Option[Flag] = now(Queries.Projects.Flags.get(id)).get
 

@@ -2,6 +2,7 @@ package controllers.project
 
 import javax.inject.Inject
 
+import db.OrePostgresDriver.api._
 import controllers.BaseController
 import controllers.project.routes.{Pages => self}
 import ore.Statistics
@@ -31,7 +32,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
   def show(author: String, slug: String, page: String) = {
     ProjectAction(author, slug) { implicit request =>
       val project = request.project
-      project.pages.withName(page) match {
+      project.pages.find(_.name === page) match {
         case None => NotFound
         case Some(p) => Statistics.projectViewed(implicit request => Ok(views.view(project, p)))
       }
@@ -85,7 +86,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
   def delete(author: String, slug: String, page: String) = {
     PageEditAction(author, slug) { implicit request =>
       val project = request.project
-      project.pages.remove(project.pages.withName(page).get)
+      project.pages.remove(project.pages.find(_.name === page).get)
       Redirect(routes.Projects.show(author, slug))
     }
   }

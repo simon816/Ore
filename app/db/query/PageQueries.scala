@@ -1,9 +1,7 @@
 package db.query
 
-import java.sql.Timestamp
-
 import db.OrePostgresDriver.api._
-import db.PageTable
+import db.{UserTable, PageTable}
 import models.project.Page
 
 import scala.concurrent.Future
@@ -11,14 +9,18 @@ import scala.concurrent.Future
 /**
   * Page related queries.
   */
-class PageQueries extends Queries[PageTable, Page](TableQuery(tag => new PageTable(tag))) {
+class PageQueries extends Queries {
 
-  override def copyInto(id: Option[Int], theTime: Option[Timestamp], page: Page): Page = {
-    page.copy(id = id, createdAt = theTime)
-  }
+  override type Row = Page
+  override type Table = PageTable
 
-  override def named(page: Page): Future[Option[Page]] = {
-    ?(p => p.projectId === page.projectId && p.name.toLowerCase === page.name.toLowerCase)
+  override val modelClass = classOf[Page]
+  override val baseQuery = TableQuery[PageTable]
+
+  registerModel()
+
+  override def like(page: Page): Future[Option[Page]] = find { p =>
+    p.projectId === page.projectId && p.name.toLowerCase === page.name.toLowerCase
   }
 
 }

@@ -1,6 +1,6 @@
 package controllers
 
-import controllers.Requests.{AuthRequest, AuthedProjectRequest, ScopedRequest}
+import controllers.Requests.{ProjectRequest, AuthRequest, AuthedProjectRequest, ScopedRequest}
 import models.project.Project
 import models.user.User
 import ore.permission.scope.GlobalScope
@@ -15,9 +15,26 @@ import scala.concurrent.Future
   */
 trait Actions {
 
-  def onUnauthorized(request: RequestHeader) = {
-    Redirect(routes.Application.logIn(None, None, Some(request.path)))
+  def onUnauthorized(request: RequestHeader)
+  = Redirect(routes.Application.logIn(None, None, Some(request.path)))
+
+  private def projectAction(author: String, slug: String) = new ActionRefiner[Request, ProjectRequest] {
+    def refine[A](request: Request[A]) = Future.successful {
+      Project.withSlug(author, slug) match {
+        case None => Left(NotFound)
+        case Some(project) =>
+          val user = User.current(request.session)
+          if (project.isVisible || (user.isDefined && (user.get can HideProjects in GlobalScope))) {
+            Right(new ProjectRequest(project, request))
+          } else {
+            Left(NotFound)
+          }
+      }
+    }
   }
+
+  /** Action to retrieve a [[Project]] and add it to the request. */
+  object ProjectAction { def apply(author: String, slug: String) = Action andThen projectAction(author, slug) }
 
   // Auth
 

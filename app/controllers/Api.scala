@@ -129,7 +129,7 @@ class Api extends Controller {
           })
           val filter = channelIds.map(Queries.Versions.channelFilter).orNull
           val lim = Math.max(limit.getOrElse(Version.InitialLoad), Version.InitialLoad)
-          val versions = project.versions.sorted(filter, _.createdAt.desc, lim, offset.getOrElse(-1))
+          val versions = project.versions.sorted(_.createdAt.desc, filter, lim, offset.getOrElse(-1))
           Ok(Json.toJson(versions))
       }
       case gorp => BadRequest

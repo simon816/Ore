@@ -4,8 +4,8 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.orm.dao.ModelDAO
+import db.orm.model.Model
 import db.orm.model.ModelKeys._
-import db.orm.model.NamedModel
 import db.query.Queries
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
@@ -28,14 +28,16 @@ import util.forums.SpongeForums
 case class Page(override val  id: Option[Int] = None,
                 override val  createdAt: Option[Timestamp] = None,
                 override val  projectId: Int,
-                override val  name: String,
+                val           name: String,
                 val           slug: String,
                 private var   _contents: String,
                 val           isDeletable: Boolean = true)
-                extends       NamedModel
+                extends       Model
                 with          ProjectScope { self =>
 
   import models.project.Page._
+
+  override type M <: Page { type M = self.M }
 
   checkNotNull(this.name, "name cannot be null", "")
   checkNotNull(this._contents, "contents cannot be null", "")
@@ -78,9 +80,9 @@ case class Page(override val  id: Option[Int] = None,
     */
   def html: String = MarkdownProcessor.markdownToHtml(contents)
 
-  // Table bindings
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Page = this.copy(id = id, createdAt = theTime)
 
-  override type M <: Page { type M = self.M }
+  // Table bindings
 
   bind[String](Contents, _._contents, contents => Seq(Queries.Pages.setString(this, _.contents, contents)))
 

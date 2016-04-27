@@ -1,17 +1,36 @@
 package db.query
 
-import java.sql.Timestamp
-
-import db.ChannelTable
 import db.OrePostgresDriver.api._
-import db.query.Queries.DB.run
-import models.project.Channel
+import db.orm.dao.ModelSet
+import db.query.Queries.{ModelFilter, run}
+import db.{ChannelTable, VersionTable}
+import models.project.{Channel, Version}
 import ore.Colors.Color
 
 /**
   * Channel related queries.
   */
-class ChannelQueries extends Queries[ChannelTable, Channel](TableQuery(tag => new ChannelTable(tag))) {
+class ChannelQueries extends Queries {
+
+  override type Row = Channel
+  override type Table = ChannelTable
+
+  override val modelClass = classOf[Channel]
+  override val baseQuery = TableQuery[ChannelTable]
+
+  registerModel()
+
+  def NameFilter(name: String): ModelFilter[ChannelTable, Channel]
+  = ModelFilter(_.name.toLowerCase === name.toLowerCase)
+
+  /**
+    * Returns the [[Version]]'s for the specified Channel.
+    *
+    * @param channel  Channel to get versions for
+    * @return         Versions in channel
+    */
+  def getVersions(channel: Channel): ModelSet[ChannelTable, Channel, VersionTable, Version]
+  = Queries.getModelSet[ChannelTable, Channel, VersionTable, Version](classOf[Version], _.channelId, channel)
 
   /**
     * Sets the [[Color]] of the specified [[Channel]] in the database.
@@ -19,13 +38,7 @@ class ChannelQueries extends Queries[ChannelTable, Channel](TableQuery(tag => ne
     * @param channel  Channel to set color of
     * @param color    Color to set
     */
-  def setColor(channel: Channel, color: Color) = {
-    val query = for { model <- this.models if model.id === channel.id.get } yield model.color
-    run(query.update(color))
-  }
-
-  override def copyInto(id: Option[Int], theTime: Option[Timestamp], channel: Channel): Channel = {
-    channel.copy(id = id, createdAt = theTime)
-  }
+  def setColor(channel: Channel, color: Color)
+  = run((for {model <- this.baseQuery if model.id === channel.id.get } yield model.color).update(color))
 
 }

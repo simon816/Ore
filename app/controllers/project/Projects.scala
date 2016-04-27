@@ -93,7 +93,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     */
   def showMembersConfig(author: String, slug: String) = Authenticated { implicit request =>
     Project.getPending(author, slug) match {
-      case None => BadRequest("No pending project")
+      case None => Redirect(self.showCreator())
       case Some(pendingProject) =>
         Forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.project)
         Ok(views.members.config(pendingProject))
@@ -110,7 +110,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     */
   def showFirstVersionCreator(author: String, slug: String) = Authenticated { implicit request =>
     Project.getPending(author, slug) match {
-      case None => BadRequest("No project to create.")
+      case None => Redirect(self.showCreator())
       case Some(pendingProject) =>
         pendingProject.roles = Forms.MemberRoles.bindFromRequest.get.build()
         val pendingVersion = pendingProject.pendingVersion

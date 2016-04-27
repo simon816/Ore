@@ -4,8 +4,7 @@ import java.nio.file.Files
 
 import db.OrePostgresDriver.api._
 import db.query.Queries
-import db.query.Queries.DB._
-import db.query.Queries.now
+import db.query.Queries.{now, run}
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
 import models.project.{Channel, Project, Version}
@@ -34,7 +33,7 @@ object DataUtils {
     */
   def reset() = {
     for (project <- now(Queries.Projects.collect()).get) project.delete
-    now(run(Queries.Users.models.delete)).get
+    now(run(Queries.Users.baseQuery.delete)).get
     FileUtils.deleteDirectory(UploadsDir.toFile)
   }
 

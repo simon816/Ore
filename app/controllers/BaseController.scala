@@ -1,17 +1,13 @@
 package controllers
 
-import controllers.Requests.ProjectRequest
-import models.project.Project
-import models.user.User
-import ore.permission.HideProjects
-import ore.permission.scope.GlobalScope
+import db.OrePostgresDriver.api._
+import db.query.Queries
+import models.project.{Channel, Project, Version}
 import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import util.DataUtils
 import util.forums.SpongeForums
-
-import scala.concurrent.Future
 
 /**
   * Represents a Secured base Controller for this application.
@@ -29,25 +25,16 @@ abstract class BaseController(implicit ws: WSClient) extends Controller with I18
     }
   }
 
-  private def projectAction(author: String, slug: String)
-    = new ActionRefiner[Request, ProjectRequest] {
-      def refine[A](request: Request[A]) = Future.successful {
-        Project.withSlug(author, slug) match {
-          case None => Left(NotFound)
-          case Some(project) =>
-            val user = User.current(request.session)
-            if (project.isVisible || (user.isDefined && (user.get can HideProjects in GlobalScope))) {
-              Right(new ProjectRequest(project, request))
-            } else {
-              Left(NotFound)
-            }
-        }
+  protected[controllers] def withVersion(channelName: String, versionString: String)
+                                        (f: (Channel, Version) => Result)
+                                        (implicit request: RequestHeader, project: Project): Result = {
+    project.channels.find(Queries.Channels.NameFilter(channelName)) match {
+      case None => NotFound
+      case Some(channel) => channel.versions.find(_.versionString === versionString) match {
+        case None => NotFound
+        case Some(version) => f(channel, version)
       }
-  }
-
-  /** Action to retrieve a [[Project]] and add it to the request. */
-  object ProjectAction {
-    def apply(author: String, slug: String) = Action andThen projectAction(author, slug)
+    }
   }
 
 }

@@ -1,9 +1,7 @@
 package db.query
 
-import java.sql.Timestamp
-
 import db.OrePostgresDriver.api._
-import db.query.Queries.DB._
+import db.query.Queries.{ModelFilter, run}
 import db.{VersionDownloadsTable, VersionTable}
 import models.project.Version
 
@@ -12,11 +10,17 @@ import scala.concurrent.Future
 /**
   * Version related queries.
   */
-class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => new VersionTable(tag))) {
+class VersionQueries extends Queries {
+
+  override type Row = Version
+  override type Table = VersionTable
 
   private val downloads = TableQuery[VersionDownloadsTable]
 
-  def channelFilter(channelIds: Seq[Int]): VersionTable => Rep[Boolean] = _.channelId inSetBind channelIds
+  override val modelClass = classOf[Version]
+  override val baseQuery = TableQuery[VersionTable]
+
+  registerModel()
 
   /**
     * Returns true if the specified hash is found in the specified
@@ -26,28 +30,20 @@ class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => ne
     * @param hash       Version hash
     * @return           True if found
     */
-  def hashExists(projectId: Int, hash: String): Future[Boolean] = {
-    val query = (for {
-      model <- this.models
+  def hashExists(projectId: Int, hash: String): Future[Boolean] = run(((for {
+      model <- this.baseQuery
       if model.projectId === projectId
       if model.hash === hash
-    } yield model.id).length > 0
-    run(query.result)
-  }
+  } yield model.id).length > 0).result)
 
   /**
-    * Returns all Versions in the specified seq of channels.
+    * Returns a filter based on a Version's channel.
     *
-    * @param channelIds   Channel IDs
-    * @return             Versions in the Channel ID seq
+    * @param channelIds Channel IDs to filter versions with
+    * @return           Channel filter
     */
-  def inChannels(channelIds: Seq[Int]): Future[Seq[Version]] = {
-    val query = for {
-      version <- this.models
-      if version.channelId inSetBind channelIds
-    } yield version
-    run(query.result)
-  }
+  def channelFilter(channelIds: Seq[Int]): ModelFilter[VersionTable, Version]
+  = ModelFilter(_.channelId inSetBind channelIds)
 
   /**
     * Returns true if the specified Version has been downloaded by a client
@@ -58,7 +54,9 @@ class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => ne
     * @return           True if downloaded
     */
   def hasBeenDownloadedBy(versionId: Int, cookie: String): Future[Boolean] = {
-    val query = this.downloads.filter(vd => vd.versionId === versionId && vd.cookie === cookie).length > 0
+    val query = this.downloads.filter { vd =>
+      vd.versionId === versionId && vd.cookie === cookie
+    }.length > 0
     run(query.result)
   }
 
@@ -82,10 +80,9 @@ class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => ne
     * @param userId     User to look for
     * @return           True if downloaded
     */
-  def hasBeenDownloadedBy(versionId: Int, userId: Int): Future[Boolean] = {
-    val query = this.downloads.filter(vd => vd.versionId === versionId && vd.userId === userId).length > 0
-    run(query.result)
-  }
+  def hasBeenDownloadedBy(versionId: Int, userId: Int): Future[Boolean] = run((this.downloads.filter { vd =>
+    vd.versionId === versionId && vd.userId === userId
+  }.length > 0).result)
 
   /**
     * Sets the specified Version as downloaded by the specified User.
@@ -93,13 +90,6 @@ class VersionQueries extends Queries[VersionTable, Version](TableQuery(tag => ne
     * @param versionId  Version to set as downloaded
     * @param userId     To set as downloaded for
     */
-  def setDownloadedBy(versionId: Int, userId: Int) = {
-    val query = this.downloads += (None, None, Some(userId), versionId)
-    run(query)
-  }
-
-  override def copyInto(id: Option[Int], theTime: Option[Timestamp], version: Version): Version = {
-    version.copy(id = id, createdAt = theTime)
-  }
+  def setDownloadedBy(versionId: Int, userId: Int) = run(this.downloads += (None, None, Some(userId), versionId))
 
 }

@@ -6,12 +6,12 @@ import java.text.MessageFormat
 
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
-import db.orm.dao.{ImmutableNamedModelSet, ModelDAO, ModelSet, NamedModelSet}
+import db.orm.dao.{ModelDAO, ModelSet}
 import db.orm.model.ModelKeys._
-import db.orm.model.{ModelKeys, NamedModel}
+import db.orm.model.{Model, ModelKeys}
 import db.query.Queries
-import db.query.Queries.now
-import db.{ChannelTable, PageTable, UserProjectRolesTable, VersionTable}
+import db.query.Queries.{now, filterToFunction, functionToFilter}
+import db._
 import models.project.Version.PendingVersion
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
@@ -71,10 +71,12 @@ case class Project(override val   id: Option[Int] = None,
                    private var    _topicId: Option[Int] = None,
                    private var    _postId: Option[Int] = None,
                    private var    _isVisible: Boolean = true)
-                   extends        NamedModel
+                   extends        Model
                    with           ProjectScope { self =>
 
   import models.project.Project._
+
+  override type M <: Project { type M = self.M }
 
   def this(pluginId: String, name: String, owner: String, ownerId: Int, homepage: String) = {
     this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
@@ -93,7 +95,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return All Members of project
     */
-  def members: List[Member] = now(Queries.Projects.members(this)).get
+  def members: List[Member] = now(Queries.Projects.getMembers(this)).get
 
   /**
     * Removes the [[Member]] that belongs to the specified [[User]] from this
@@ -102,6 +104,13 @@ case class Project(override val   id: Option[Int] = None,
     * @param user User to remove
     */
   def removeMember(user: User) = this.roles.removeWhere(_.userId === user.id.get)
+
+  /**
+    * Returns the name of this Project.
+    *
+    * @return Name of project
+    */
+  def name: String = this._name
 
   /**
     * Sets the name of this project and performs all the necessary renames.
@@ -343,8 +352,8 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Set of all ProjectRoles
     */
-  def roles: ModelSet[UserProjectRolesTable, ProjectRole] = assertDefined {
-    new ModelSet(Queries.Users.ProjectRoles, this.id.get, _.projectId)
+  def roles: ModelSet[ProjectTable, Project, ProjectRolesTable, ProjectRole] = assertDefined {
+    Queries.Projects.getRoles(this)
   }
 
   /**
@@ -352,8 +361,8 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Channels in project
     */
-  def channels: ImmutableNamedModelSet[ChannelTable, Channel] = assertDefined {
-    new ImmutableNamedModelSet(Queries.Channels, this.id.get, _.projectId)
+  def channels: ModelSet[ProjectTable, Project, ChannelTable, Channel] = assertDefined {
+    Queries.Projects.getChannels(this)
   }
 
   /**
@@ -373,8 +382,8 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Versions in project
     */
-  def versions: NamedModelSet[VersionTable, Version] = assertDefined {
-    new NamedModelSet(Queries.Versions, this.id.get, _.projectId)
+  def versions: ModelSet[ProjectTable, Project, VersionTable, Version] = assertDefined {
+    Queries.Projects.getVersions(this)
   }
 
   /**
@@ -402,8 +411,8 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Pages in project
     */
-  def pages: NamedModelSet[PageTable, Page] = assertDefined {
-    new NamedModelSet(Queries.Pages, this.id.get, _.projectId)
+  def pages: ModelSet[ProjectTable, Project, PageTable, Page] = assertDefined {
+    Queries.Projects.getPages(this)
   }
 
   /**
@@ -412,7 +421,7 @@ case class Project(override val   id: Option[Int] = None,
     * @param name   Page name
     * @return       True if exists
     */
-  def pageExists(name: String): Boolean = pages.withName(name).isDefined
+  def pageExists(name: String): Boolean = this.pages.find(_.name === name).isDefined
 
   /**
     * Returns the specified Page or creates it if it doesn't exist.
@@ -478,7 +487,7 @@ case class Project(override val   id: Option[Int] = None,
 
   override def projectId = assertDefined(this.id.get)
 
-  override def name: String = this._name
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Project = this.copy(id = id, createdAt = theTime)
 
   override def hashCode: Int = this.id.get.hashCode
 
@@ -487,8 +496,6 @@ case class Project(override val   id: Option[Int] = None,
   }
 
   // Table bindings
-
-  override type M <: Project { type M = self.M }
 
   bind[String](Name, _._name, newName => Seq(
     Queries.Projects.setString(this, _.name, newName),
@@ -589,7 +596,9 @@ object Project extends ModelDAO[Project] {
     * @param slug   URL slug
     * @return       Project if found, None otherwise
     */
-  def withSlug(owner: String, slug: String): Option[Project] = now(Queries.Projects.withSlug(owner, slug)).get
+  def withSlug(owner: String, slug: String): Option[Project] = now(Queries.Projects.find {
+    Queries.Projects.ownerFilter(owner) && (_.slug === slug)
+  }).get
 
   /**
     * Returns the Project with the specified owner name and Project name, if
@@ -599,7 +608,9 @@ object Project extends ModelDAO[Project] {
     * @param name   Project name
     * @return       Project if found, None otherwise
     */
-  def withName(owner: String, name: String): Option[Project] = now(Queries.Projects.withName(owner, name)).get
+  def withName(owner: String, name: String): Option[Project] = now(Queries.Projects.find {
+    Queries.Projects.ownerFilter(owner) && (_.name === name)
+  }).get
 
   /**
     * Returns the Project with the specified plugin ID, if any.
@@ -607,7 +618,7 @@ object Project extends ModelDAO[Project] {
     * @param pluginId Plugin ID
     * @return         Project if found, None otherwise
     */
-  def withPluginId(pluginId: String): Option[Project] = now(Queries.Projects.withPluginId(pluginId)).get
+  def withPluginId(pluginId: String): Option[Project] = now(Queries.Projects.find(_.pluginId === pluginId)).get
 
   /**
     * Returns the all Projects created by the specified owner.
@@ -615,7 +626,7 @@ object Project extends ModelDAO[Project] {
     * @param owner  Owner name
     * @return       Project if found, None otherwise
     */
-  def by(owner: String): Seq[Project] = now(Queries.Projects.by(owner)).get
+  def by(owner: String): Seq[Project] = now(Queries.Projects.filter(Queries.Projects.ownerFilter(owner))).get
 
   /**
     * Returns the string to fill the specified Project's forum topic content

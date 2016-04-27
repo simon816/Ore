@@ -4,9 +4,9 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
-import db.UserProjectRolesTable
+import db.{UserTable, ProjectRolesTable}
 import db.orm.dao.{ModelDAO, ModelSet}
-import db.orm.model.{NamedModel, UserOwner}
+import db.orm.model.{Model, UserOwner}
 import db.query.Queries
 import db.query.Queries.now
 import models.project.Project
@@ -35,11 +35,13 @@ case class User(override val  id: Option[Int] = None,
                 val           email: Option[String],
                 private var   _tagline: Option[String] = None,
                 private var   globalRoleIds: List[Int] = List())
-                extends       NamedModel
+                extends       Model
                 with          UserOwner
-                with          ScopeSubject {
+                with          ScopeSubject { self =>
 
   import models.user.User._
+
+  override type M <: User { type M = self.M }
 
   /**
     * The User's [[PermissionPredicate]]. All permission checks go through
@@ -72,9 +74,8 @@ case class User(override val  id: Option[Int] = None,
     *
     * @return ProjectRoles
     */
-  def projectRoles: ModelSet[UserProjectRolesTable, ProjectRole] = assertDefined {
-    new ModelSet(Queries.Users.ProjectRoles, this.id.get, _.userId)
-  }
+  def projectRoles: ModelSet[UserTable, User, ProjectRolesTable, ProjectRole]
+  = assertDefined(Queries.Users.getProjectRoles(this))
 
   /**
     * Returns a Set of [[RoleType]]s that this User has globally.
@@ -139,9 +140,9 @@ case class User(override val  id: Option[Int] = None,
 
   override val scope: Scope = GlobalScope
 
-  override def name: String = this.username
-
   override def userId = this.id.get
+
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): User = this.copy(createdAt = theTime)
 
 }
 
@@ -164,7 +165,9 @@ object User extends ModelDAO[User] {
     * @return User if found, None otherwise
     */
   def withName(username: String): Option[User] = {
-    now(Queries.Users.withName(username)).get.orElse(now(SpongeForums.Users.fetch(username)).get)
+    now(Queries.Users.find(_.username.toLowerCase === username.toLowerCase)).get.orElse {
+      now(SpongeForums.Users.fetch(username)).get
+    }
   }
 
   /**

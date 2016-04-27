@@ -1,12 +1,11 @@
 package db.query
 
-import java.sql.Timestamp
-
 import db.OrePostgresDriver.api._
-import db.query.Queries.DB.run
-import db.query.Queries.FilterWrapper
-import db.{ProjectStarsTable, ProjectTable, ProjectViewsTable}
-import models.project.Project
+import db._
+import db.orm.dao.ModelSet
+import db.query.Queries._
+import models.project._
+import models.user.ProjectRole
 import ore.project.Categories.Category
 import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
 import ore.project.member.Member
@@ -18,19 +17,105 @@ import scala.util.{Failure, Success}
 /**
   * Project related queries
   */
-class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => new ProjectTable(tag))) {
+class ProjectQueries extends Queries {
+
+  override type Row = Project
+  override type Table = ProjectTable
 
   val Flags = new FlagQueries
 
   private val views = TableQuery[ProjectViewsTable]
   private val stars = TableQuery[ProjectStarsTable]
 
-  def searchFilter(query: String): FilterWrapper[ProjectTable, Project] = {
-    val q = '%' + query.toLowerCase + '%'
-    FilterWrapper(p => (p.name.toLowerCase like q)
-      || (p.description.toLowerCase like q)
-      || (p.ownerName.toLowerCase like q))
+  override val modelClass = classOf[Project]
+  override val baseQuery = TableQuery[ProjectTable]
+
+  registerModel()
+
+  /**
+    * Returns a [[ModelSet]] of the [[Project]]'s versions.
+    *
+    * @param project Project to get versions of
+    * @return Set of versions
+    */
+  def getVersions(project: Project): ModelSet[ProjectTable, Project, VersionTable, Version]
+  = Queries.getModelSet[ProjectTable, Project, VersionTable, Version](classOf[Version], _.projectId, project)
+
+  /**
+    * Returns a [[ModelSet]] of the [[Project]]'s channels.
+    *
+    * @param project Project to get channels of
+    * @return Set of channels
+    */
+  def getChannels(project: Project): ModelSet[ProjectTable, Project, ChannelTable, Channel]
+  = Queries.getModelSet[ProjectTable, Project, ChannelTable, Channel](classOf[Channel], _.projectId, project)
+
+  /**
+    * Returns the Pages in this Project.
+    *
+    * @param project Project to get pages for
+    * @return Pages in project
+    */
+  def getPages(project: Project): ModelSet[ProjectTable, Project, PageTable, Page]
+  = Queries.getModelSet[ProjectTable, Project, PageTable, Page](classOf[Page], _.projectId, project)
+
+  /**
+    * Returns the flags on this Project.
+    *
+    * @param project Project to get flags for
+    * @return Flags on project
+    */
+  def getFlags(project: Project): ModelSet[ProjectTable, Project, FlagTable, Flag]
+  = Queries.getModelSet[ProjectTable, Project, FlagTable, Flag](classOf[Flag], _.projectId, project)
+
+  /**
+    * Returns all the [[ProjectRole]]s for the Project.
+    *
+    * @param project Project to get roles for
+    * @return Project roles
+    */
+  def getRoles(project: Project): ModelSet[ProjectTable, Project, ProjectRolesTable, ProjectRole]
+  = Queries.getModelSet[ProjectTable, Project, ProjectRolesTable, ProjectRole](classOf[ProjectRole], _.projectId, project)
+
+  /**
+    * Returns the [[Member]]s in the specified Project, sorted by role.
+    *
+    * @param project Project to get Members for
+    * @return List of Members
+    */
+  def getMembers(project: Project): Future[List[Member]] = {
+    // TODO: handle this differently?
+    val promise = Promise[List[Member]]
+    Queries.Users.ProjectRoles.distinctUsersIn(project.id.get).andThen {
+      case Failure(thrown) => promise.failure(thrown)
+      case Success(users) =>
+        val members = for (user <- users) yield new Member(project, user.username)
+        promise.success(members.toList.sorted.reverse)
+    }
+    promise.future
   }
+
+  /**
+    * Returns a ModelFilter to match a string query
+    *
+    * @param query String query
+    * @return Project's matching query
+    */
+  def searchFilter(query: String): ModelFilter[ProjectTable, Project] = {
+    val q = '%' + query.toLowerCase + '%'
+    ModelFilter { p =>
+      (p.name.toLowerCase like q) || (p.description.toLowerCase like q) || (p.ownerName.toLowerCase like q)
+    }
+  }
+
+  /**
+    * Filters projects by owner name.
+    *
+    * @param ownerName Owner name
+    * @return Project filter
+    */
+  def ownerFilter(ownerName: String): ModelFilter[ProjectTable, Project]
+  = ModelFilter(p => p.ownerName.toLowerCase === ownerName.toLowerCase)
 
   /**
     * Filters projects based on the given criteria.
@@ -38,28 +123,22 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     * @param filter Filter to match Projects on
     * @param limit  Amount of Projects to get
     * @param offset Result set offset
-    * @return       Projects matching criteria
+    * @return Projects matching criteria
     */
   def collect(filter: ProjectTable => Rep[Boolean], sort: ProjectSortingStrategy,
-              limit: Int, offset: Int): Future[Seq[Project]] = {
-    collect(limit, offset, filter, Option(sort).map(_.f).orNull)
-  }
-
-  def collect(filter: ProjectTable => Rep[Boolean], limit: Int, offset: Int): Future[Seq[Project]] = {
-    collect(filter, null.asInstanceOf[ProjectSortingStrategy], limit, offset)
-  }
+              limit: Int, offset: Int): Future[Seq[Project]]
+  = collect(limit, offset, filter, Option(sort).map(_.fn).orNull)
 
   /**
     * Filters projects based on the given criteria.
     *
-    * @param filter Filter to match Projects on
-    * @param limit  Amount of Projects to get
-    * @return       Projects matching criteria
+    * @param filter     Model filter
+    * @param categories Project categories
+    * @param limit      Amount to take
+    * @param offset     Amount to drop
+    * @param sort       Ordering
+    * @return Filtered projects
     */
-  def collect(filter: ProjectTable => Rep[Boolean], limit: Int): Future[Seq[Project]] = {
-    collect(filter, limit, -1)
-  }
-
   def collect(filter: ProjectTable => Rep[Boolean], categories: Array[Category],
               limit: Int, offset: Int, sort: ProjectSortingStrategy): Future[Seq[Project]] = {
     val f: ProjectTable => Rep[Boolean] = if (categories != null) {
@@ -69,198 +148,86 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     collect(f, sort, limit, offset)
   }
 
-  def collect(filter: ProjectTable => Rep[Boolean], categories: Array[Category],
-              limit: Int, offset: Int): Future[Seq[Project]] = {
-    collect(filter, categories, limit, offset, null)
-  }
-
-  def collect(filter: ProjectTable => Rep[Boolean], categories: Array[Category], limit: Int,
-              sort: ProjectSortingStrategy): Future[Seq[Project]] = {
-    collect(filter, categories, limit, -1, sort)
-  }
-
-  def collect(filter: ProjectTable => Rep[Boolean], categories: Array[Category], limit: Int): Future[Seq[Project]] = {
-    collect(filter, categories, limit, null)
-  }
-
-    /**
-    * Filters projects based on the given criteria.
-    *
-    * @param categories Categories of Projects
-    * @param limit      Amount of Projects to get
-    * @param offset     Result set offset
-    * @return           Projects matching criteria
-    */
-  def collect(categories: Array[Category], limit: Int, offset: Int): Future[Seq[Project]] = {
-    collect(null, categories, limit, offset)
-  }
-
-  /**
-    * Filters projects based on the given criteria.
-    *
-    * @param categories Categories of Projects
-    * @param limit      Amount of Projects to get
-    * @return           Projects matching criteria
-    */
-  def collect(categories: Array[Category], limit: Int): Future[Seq[Project]] = {
-    collect(categories, limit, -1)
-  }
-
-  /**
-    * Filters projects based on the given criteria.
-    *
-    * @param categories Categories of Projects
-    * @return           Projects matching criteria
-    */
-  def collect(categories: Array[Category]): Future[Seq[Project]] = {
-    collect(categories, -1)
-  }
-
-  /**
-    * Filters projects based on the given criteria.
-    *
-    * @param limit Amount of Projects to get
-    * @return      Projects matching criteria
-    */
-  def collect(limit: Int): Future[Seq[Project]] = {
-    collect(null.asInstanceOf[Array[Category]], limit)
-  }
-
-  /**
-    * Returns all Projects by the specified User.
-    *
-    * @param ownerName  Project owner
-    * @return           Projects by owner
-    */
-  def by(ownerName: String): Future[Seq[Project]] = {
-    run(this.models.filter(_.ownerName === ownerName).result)
-  }
-
-  /**
-    * Returns the Project with the specified name, if any.
-    *
-    * @param owner  Project owner
-    * @param name   Project name
-    * @return       Project if any, None otherwise
-    */
-  def withName(owner: String, name: String): Future[Option[Project]] = {
-    ?(p => p.name.toLowerCase === name.toLowerCase && p.ownerName === owner)
-  }
-
-  /**
-    * Returns the Project with the specified plugin ID, if any.
-    *
-    * @param pluginId   Project plugin ID
-    * @return           Project if any, None otherwise
-    */
-  def withPluginId(pluginId: String): Future[Option[Project]] = {
-    ?(_.pluginId === pluginId)
-  }
-
-  /**
-    * Returns the Project with the specified slug, if any.
-    *
-    * @param slug   Project slug
-    * @return       Project if any, None otherwise
-    */
-  def withSlug(owner: String, slug: String): Future[Option[Project]] = {
-    ?(p => p.ownerName === owner && p.slug.toLowerCase === slug.toLowerCase)
-  }
-
   /**
     * Sets the category for the specified Project.
     *
     * @param project  Project to update
     * @param category Category to set
     */
-  def setCategory(project: Project, category: Category) = {
-    val query = for { model <- this.models if model.id === project.id.get } yield model.category
-    run(query.update(category))
-  }
+  def setCategory(project: Project, category: Category)
+  = run((for {model <- this.baseQuery if model.id === project.id.get} yield model.category).update(category))
 
   /**
     * Returns true if the specified Project has been viewed by a client with
     * the specified cookie.
     *
-    * @param projectId  Project to check
-    * @param cookie Cookie to look for
-    * @return         True if cookie is found
+    * @param projectId Project to check
+    * @param cookie    Cookie to look for
+    * @return True if cookie is found
     */
-  def hasBeenViewedBy(projectId: Int, cookie: String): Future[Boolean] = {
-    val query = this.views.filter(pv => pv.projectId === projectId && pv.cookie === cookie).length > 0
-    run(query.result)
-  }
+  def hasBeenViewedBy(projectId: Int, cookie: String): Future[Boolean] = run((this.views.filter { pv =>
+    pv.projectId === projectId && pv.cookie === cookie
+  }.length > 0).result)
 
   /**
     * Sets whether the specified Project has been viewed by a client with
     * the specified cookie.
     *
-    * @param projectId  Project to check
-    * @param cookie Cookie to look for
+    * @param projectId Project to check
+    * @param cookie    Cookie to look for
     */
-  def setViewedBy(projectId: Int, cookie: String): Future[Any] = {
-    val query = this.views += (None, Some(cookie), None, projectId)
-    run(query)
-  }
+  def setViewedBy(projectId: Int, cookie: String): Future[Any]
+  = run(this.views +=(None, Some(cookie), None, projectId))
 
   /**
     * Returns true if the specified Project has been viewed by the specified
     * User.
     *
-    * @param projectId  Project to check
-    * @param userId     User to look for
-    * @return           True if user is found
+    * @param projectId Project to check
+    * @param userId    User to look for
+    * @return True if user is found
     */
-  def hasBeenViewedBy(projectId: Int, userId: Int): Future[Boolean] = {
-    val query = this.views.filter(pv => pv.projectId === projectId && pv.userId === userId).length > 0
-    run(query.result)
-  }
+  def hasBeenViewedBy(projectId: Int, userId: Int): Future[Boolean] = run((this.views.filter { pv =>
+    pv.projectId === projectId && pv.userId === userId
+  }.length > 0).result)
 
   /**
     * Sets whether the specified Project has been viewed by the specified User.
     *
-    * @param projectId  Project to check
-    * @param userId     User to look for
-    * @return           True if user is found
+    * @param projectId Project to check
+    * @param userId    User to look for
+    * @return True if user is found
     */
-  def setViewedBy(projectId: Int, userId: Int): Future[Any] = {
-    val query = this.views += (None, None, Some(userId), projectId)
-    run(query)
-  }
+  def setViewedBy(projectId: Int, userId: Int): Future[Any] = run(this.views +=(None, None, Some(userId), projectId))
 
   /**
     * Returns true if the specified Project is starred by the specified User.
     *
-    * @param projectId  Project to check
-    * @param userId     User to look for
-    * @return           True if Project is starred by user
+    * @param projectId Project to check
+    * @param userId    User to look for
+    * @return True if Project is starred by user
     */
-  def isStarredBy(projectId: Int, userId: Int): Future[Boolean] = {
-    val query = this.stars.filter(sp => sp.userId === userId && sp.projectId === projectId).length > 0
-    run(query.result)
-  }
+  def isStarredBy(projectId: Int, userId: Int): Future[Boolean] = run((this.stars.filter { sp =>
+    sp.userId === userId && sp.projectId === projectId
+  }.length > 0).result)
 
   /**
     * Sets the specified Project as starred for the specified user.
     *
-    * @param projectId  Project to star
-    * @param userId     User to star for
+    * @param projectId Project to star
+    * @param userId    User to star for
     */
-  def starFor(projectId: Int, userId: Int): Future[Any] = {
-    val query = this.stars += (userId, projectId)
-    run(query)
-  }
+  def starFor(projectId: Int, userId: Int): Future[Any] = run(this.stars +=(userId, projectId))
 
   /**
     * Sets the specified Project as unstarred for the specified user.
     *
-    * @param projectId  Project to unstar
-    * @param userId     User to unstar for
+    * @param projectId Project to unstar
+    * @param userId    User to unstar for
     */
-  def unstarFor(projectId: Int, userId: Int) = {
-    val query = this.stars.filter(sp => sp.userId === userId && sp.projectId === projectId).delete
-    run(query)
-  }
+  def unstarFor(projectId: Int, userId: Int) = run(this.stars.filter { sp =>
+    sp.userId === userId && sp.projectId === projectId
+  }.delete)
 
   /**
     * Returns all the Projects that the specified User has starred.
@@ -277,7 +244,7 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
       case Failure(thrown) => promise.failure(thrown)
       case Success(userStars) =>
         val projectIds = userStars.map(_._2)
-        var projectsQuery = this.models.filter(_.id inSetBind projectIds)
+        var projectsQuery = this.baseQuery.filter(_.id inSetBind projectIds)
         if (offset > -1) projectsQuery = projectsQuery.drop(offset)
         if (limit > -1) projectsQuery = projectsQuery.take(limit)
         promise.completeWith(run(projectsQuery.result))
@@ -285,25 +252,8 @@ class ProjectQueries extends Queries[ProjectTable, Project](TableQuery(tag => ne
     promise.future
   }
 
-  /**
-    * Returns the [[Member]]s in the specified Project, sorted by role.
-    *
-    * @param project  Project to get Members for
-    * @return         List of Members
-    */
-  def members(project: Project): Future[List[Member]] = {
-    val promise = Promise[List[Member]]
-    Queries.Users.ProjectRoles.distinctUsersIn(project.id.get).andThen {
-      case Failure(thrown) => promise.failure(thrown)
-      case Success(users) =>
-        val members = for (user <- users) yield new Member(project, user.username)
-        promise.success(members.toList.sorted.reverse)
-    }
-    promise.future
-  }
-
-  override def copyInto(id: Option[Int], theTime: Option[Timestamp], project: Project): Project = {
-    project.copy(id = id, createdAt = theTime)
+  override def like(model: Project) = find { p =>
+    p.ownerName.toLowerCase === model.ownerName.toLowerCase && p.name.toLowerCase === model.name.toLowerCase
   }
 
 }

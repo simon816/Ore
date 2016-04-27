@@ -11,21 +11,21 @@ sealed trait Trust extends Ordered[Trust] {
 /**
   * User has the default level of trust granted by signing up.
   */
-case object Default   extends Trust { override val level = 0 }
+case object Default extends Trust { override val level = 0 }
 
 /**
   * User has a limited amount of trust and may perform certain actions not
   * afforded to regular [[models.user.User]]s.
   */
-case object Limited   extends Trust { override val level = 1 }
+case object Limited extends Trust { override val level = 1 }
 
 /**
   * User has a standard amount of trust and may perform moderator-like actions
   * within the site.
   */
-case object Standard  extends Trust { override val level = 2 }
+case object Standard extends Trust { override val level = 2 }
 
 /**
   * User is absolutely trusted and may perform any action.
   */
-case object Absolute  extends Trust { override val level = 3 }
+case object Absolute extends Trust { override val level = 3 }

@@ -4,6 +4,7 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
 import db.query.Queries
+import models.project.Channel
 import util.C._
 
 import scala.concurrent.Future
@@ -85,9 +86,20 @@ abstract class Model { self =>
     */
   def isDefined: Boolean = this.id.isDefined
 
+  /**
+    * Returns a copy of this model with an updated ID and timestamp.
+    *
+    * @param id       ID to set
+    * @param theTime  Timestamp
+    * @return         Copy of model
+    */
+  def copyWith(id: Option[Int], theTime: Option[Timestamp]): Model
+
   protected def assertDefined[A](f: => A): A = {
     if (isDefined) f else throw new IllegalStateException("model must exist")
   }
+
+  implicit def convert: M = this.asInstanceOf[M]
 
 
 }

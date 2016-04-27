@@ -5,6 +5,7 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Versions => self}
 import db.OrePostgresDriver.api._
+import db.query.Queries
 import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
 import ore.Statistics
@@ -39,9 +40,9 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
   def show(author: String, slug: String, channelName: String, versionString: String) = {
     ProjectAction(author, slug) { implicit request =>
       val project = request.project
-      project.channels.withName(channelName) match {
+      project.channels.find(Queries.Channels.NameFilter(channelName)) match {
         case None => NotFound
-        case Some(channel) => channel.versions.withName(versionString) match {
+        case Some(channel) => channel.versions.find(_.versionString === versionString) match {
           case None => NotFound
           case Some(version) => Statistics.projectViewed { implicit request =>
             Ok(views.detail(project, channel, version))
@@ -62,10 +63,10 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     */
   def saveDescription(author: String, slug: String, channelName: String, versionString: String) = {
     VersionEditAction(author, slug) { implicit request =>
-      request.project.channels.withName(channelName) match {
-        case None => NotFound("Channel not found.")
-        case Some(channel) => channel.versions.withName(versionString) match {
-          case None => NotFound("Version not found.")
+      request.project.channels.find(Queries.Channels.NameFilter(channelName)) match {
+        case None => NotFound
+        case Some(channel) => channel.versions.find(_.versionString === versionString) match {
+          case None => NotFound
           case Some(version) =>
             version.description = Forms.VersionDescription.bindFromRequest.get.trim
             Redirect(self.show(author, slug, channelName, versionString))
@@ -86,9 +87,9 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
   def setRecommended(author: String, slug: String, channelName: String, versionString: String) = {
     VersionEditAction(author, slug) { implicit request =>
       val project = request.project
-      project.channels.withName(channelName) match {
+      project.channels.find(Queries.Channels.NameFilter(channelName)) match {
         case None => NotFound
-        case Some(channel) => channel.versions.withName(versionString) match {
+        case Some(channel) => channel.versions.find(_.versionString === versionString) match {
           case None => NotFound
           case Some(version) =>
             project.recommendedVersion = version
@@ -117,7 +118,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
       })
       val visibleIds: Array[Int] = visible.map(_.map(_.id.get)).getOrElse(allChannels.map(_.id.get).toArray)
 
-      val versions = project.versions.sorted(_.channelId inSetBind visibleIds, _.createdAt.desc, Version.InitialLoad)
+      val versions = project.versions.sorted(_.createdAt.desc, _.channelId inSetBind visibleIds, Version.InitialLoad)
       if (visibleNames.equals(allChannels.map(_.name.toLowerCase))) visibleNames = None
 
       Statistics.projectViewed(implicit request => Ok(views.list(project, allChannels, versions, visibleNames)))
@@ -161,6 +162,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
             }
             case Success(plugin) =>
               val project = request.project
+              // Check plugin ID
               if (!plugin.meta.get.getId.equals(project.pluginId)) {
                 Redirect(self.showCreator(author, slug))
                   .flashing("error" -> "The uploaded plugin ID must match your project's plugin ID.")
@@ -253,7 +255,10 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
                 case None =>
                   // No pending project, create version for existing project
                   withProject(author, slug) { project =>
-                    val existingChannel = project.channels.withName(pendingVersion.channelName).orNull
+                    val existingChannel = project.channels.find {
+                      Queries.Channels.NameFilter(pendingVersion.channelName)
+                    }.orNull
+
                     var channelResult: Either[String, Channel] = Right(existingChannel)
                     if (existingChannel == null) channelResult = versionData.addTo(project)
                     channelResult.fold(
@@ -289,14 +294,9 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
   def delete(author: String, slug: String, channelName: String, versionString: String) = {
     VersionEditAction(author, slug) { implicit request =>
       implicit val project = request.project
-      project.channels.withName(channelName) match {
-        case None => NotFound("Channel not found.")
-        case Some(channel) => channel.versions.withName(versionString) match {
-          case None => NotFound("Version not found.")
-          case Some(version) =>
-            channel.deleteVersion(version)
-            Redirect(self.showList(author, slug, None))
-        }
+      withVersion(channelName, versionString) { (channel, version) =>
+        channel.deleteVersion(version)
+        Redirect(self.showList(author, slug, None))
       }
     }
   }
@@ -312,14 +312,10 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     */
   def download(author: String, slug: String, channelName: String, versionString: String) = {
     ProjectAction(author, slug) { implicit request =>
-      val project = request.project
-      project.channels.withName(channelName) match {
-        case None => NotFound("Channel not found.")
-        case Some(channel) => channel.versions.withName(versionString) match {
-          case None => NotFound("Version not found.")
-          case Some(version) => Statistics.versionDownloaded(version) { implicit request =>
-            Ok.sendFile(ProjectFiles.uploadPath(author, slug, versionString, channelName).toFile)
-          }
+      implicit val project = request.project
+      withVersion(channelName, versionString) { (channel, version) =>
+        Statistics.versionDownloaded(version) { implicit request =>
+          Ok.sendFile(ProjectFiles.uploadPath(author, slug, versionString, channelName).toFile)
         }
       }
     }
