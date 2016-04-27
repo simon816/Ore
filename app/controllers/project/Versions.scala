@@ -6,15 +6,15 @@ import controllers.BaseController
 import controllers.project.routes.{Versions => self}
 import db.OrePostgresDriver.api._
 import db.query.Queries
+import form.Forms
 import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
 import ore.Statistics
 import ore.permission.EditVersions
-import ore.project.{InvalidPluginFileException, ProjectFactory, ProjectFiles}
+import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectFiles}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import util.C._
-import util.form.Forms
 import views.html.projects.{versions => views}
 
 import scala.util.{Failure, Success}
@@ -45,7 +45,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
         case Some(channel) => channel.versions.find(_.versionString === versionString) match {
           case None => NotFound
           case Some(version) => Statistics.projectViewed { implicit request =>
-            Ok(views.detail(project, channel, version))
+            Ok(views.view(project, channel, version))
           }
         }
       }

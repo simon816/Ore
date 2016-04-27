@@ -1,9 +1,9 @@
-package util.forums
+package forums
 
+import forums.SpongeForums.validate
 import models.project.Project
 import models.user.User
 import play.api.libs.ws.WSClient
-import util.forums.SpongeForums.validate
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

@@ -8,7 +8,7 @@ Page used for uploading and creating new projects.
 @import views.html.helper.form
 @(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
 
-@projects.panelCreate(messages("project.create"), if (pending.isEmpty) 1 else 2) {
+@projects.util.panelCreate(messages("project.create"), if (pending.isEmpty) 1 else 2) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/projectCreateValidate.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/pluginUpload.js")"></script>
@@ -76,7 +76,7 @@ Page used for uploading and creating new projects.
 
         @if(pending.isDefined) {
             @* Category select *@
-            @projects.inputSettings("continue")
+            @projects.util.inputSettings("continue")
         }
 
         <div class="create-buttons">
@@ -109,7 +109,7 @@ Page used for uploading and creating new projects.
                 }
             }
 
-            @projects.alertFile()
+            @projects.util.alertFile()
         </div>
     </div>
 

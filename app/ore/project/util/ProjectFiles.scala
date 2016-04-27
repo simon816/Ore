@@ -1,4 +1,4 @@
-package ore.project
+package ore.project.util
 
 import java.nio.file.{Files, Path}
 

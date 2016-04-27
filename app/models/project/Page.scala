@@ -7,12 +7,13 @@ import db.orm.dao.ModelDAO
 import db.orm.model.Model
 import db.orm.model.ModelKeys._
 import db.query.Queries
+import forums.SpongeForums
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
 import util.C._
-import util.Input._
-import util.forums.SpongeForums
+import util.StringUtils
+import util.StringUtils._
 
 /**
   * Represents a documentation page within a project.

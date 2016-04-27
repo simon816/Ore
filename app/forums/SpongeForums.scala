@@ -1,4 +1,4 @@
-package util.forums
+package forums
 
 import play.api.libs.json.JsObject
 import play.api.libs.ws.{WSClient, WSResponse}

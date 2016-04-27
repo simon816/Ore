@@ -2,8 +2,8 @@
 User page for developers.
 *@
 @import controllers.project.{routes => projectRoutes}
+@import forums.SpongeForums
 @import models.user.User
-@import util.forums.SpongeForums
 @import views.html.helper.form
 @(user: User)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
 

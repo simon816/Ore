@@ -13,7 +13,7 @@ import db.query.Queries.now
 import db.{ChannelTable, VersionTable}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
-import ore.project.ProjectFiles
+import ore.project.util.ProjectFiles
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}

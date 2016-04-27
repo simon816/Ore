@@ -6,17 +6,18 @@ import controllers.BaseController
 import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
 import db.query.Queries
+import form.Forms
+import forums.SpongeForums
 import models.project._
 import models.user.User
 import ore.Statistics
-import ore.permission.{ReviewProjects, EditSettings, HideProjects}
-import ore.project.{FlagReasons, InvalidPluginFileException, ProjectFactory}
+import ore.permission.{EditSettings, HideProjects, ReviewProjects}
+import ore.project.FlagReasons
+import ore.project.util.{InvalidPluginFileException, ProjectFactory}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import util.Input._
-import util.form.Forms
-import util.forums.SpongeForums
+import util.StringUtils._
 import views.html.{projects => views}
 
 import scala.util.{Failure, Success}
@@ -241,9 +242,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @param slug   Project slug
     * @return Project manager
     */
-  def showManager(author: String, slug: String) = {
+  def showSettings(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
-      Ok(views.manage(request.project))
+      Ok(views.settings(request.project))
     }
   }
 
@@ -280,7 +281,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
   }
 
   /**
-    * Removes a [[ore.project.member.Member]] from the specified project.
+    * Removes a [[ProjectMember]] from the specified project.
     *
     * @param author Project owner
     * @param slug   Project slug
@@ -288,7 +289,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
   def removeMember(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
       request.project.removeMember(User.withName(Forms.MemberRemove.bindFromRequest.get.trim).get)
-      Redirect(self.showManager(author, slug))
+      Redirect(self.showSettings(author, slug))
     }
   }
 
@@ -303,7 +304,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     SettingsEditAction(author, slug) { implicit request =>
       val newName = compact(Forms.ProjectRename.bindFromRequest.get)
       if (!Project.isNamespaceAvailable(author, slugify(newName))) {
-        Redirect(self.showManager(author, slug)).flashing("error" -> "That name is not available.")
+        Redirect(self.showSettings(author, slug)).flashing("error" -> "That name is not available.")
       } else {
         val project = request.project
         project.name = newName

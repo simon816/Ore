@@ -1,7 +1,7 @@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.Version.PendingVersion
 @import models.project.{Channel, Project}
-@import util.Input
+@import util.StringUtils
 @import views.html.helper.form
 @(project: Project, pending: Option[PendingVersion],
   channels: Option[Seq[Channel]], showFileControls: Boolean)(implicit messages: Messages,
@@ -75,7 +75,7 @@
                                                         }
                                                     </select>
                                                     <a href="#">
-                                                        <i id="channel-new" class="fa fa-plus" data-toggle="modal" data-target="#channel-manage"></i>
+                                                        <i id="channel-new" class="fa fa-plus" data-toggle="modal" data-target="#channel-settings"></i>
                                                     </a>
                                                     <script type="text/javascript"
                                                             src="@routes.Assets.at("javascripts/versionCreateChannelNew.js")"></script>
@@ -86,7 +86,7 @@
                                                     </span>
                                                     <a href="#">
                                                         <i id="channel-edit" class="fa fa-edit"
-                                                           data-toggle="modal" data-target="#channel-manage"></i>
+                                                           data-toggle="modal" data-target="#channel-settings"></i>
                                                     </a>
                                                     <script>
                                                         $(function() {
@@ -123,7 +123,7 @@
                                     @messages("version.create.select-file")
                                 </label>
 
-                                @projects.alertFile()
+                                @projects.util.alertFile()
                             }
                         }
 
@@ -156,7 +156,7 @@
                 <span class="pull-left tos"><i>@Html(messages("version.create.tos", "#"))</i></span>
                 @if(!showFileControls) {
                     <span class="pull-right tos">
-                        <i>@Html(messages("project.create.destination", "<strong>" + project.ownerName + "/" + Input.slugify(project.name)
+                        <i>@Html(messages("project.create.destination", "<strong>" + project.ownerName + "/" + StringUtils.slugify(project.name)
                                 + "</strong>"))
                         </i>
                     </span>
@@ -165,6 +165,6 @@
         </div>
     </div>
 
-    @projects.channels.modalManage()
+    @projects.channels.util.modalManage()
 
 }

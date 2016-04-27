@@ -1,9 +1,9 @@
 @*
 Discussion page within Project overview.
 *@
+@import _root_.util.C._
 @import controllers.project.{routes => projectRoutes}
 @import models.project.Project
-@import util.C._
 @import views.html.helper.form
 @(model: Project)(implicit messages: Messages, session: Session, request: RequestHeader, flash: Flash)
 

@@ -1,4 +1,4 @@
-package util.form
+package form
 
 import models.project.{Channel, Project}
 import ore.Colors.Color

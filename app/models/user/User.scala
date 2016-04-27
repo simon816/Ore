@@ -9,6 +9,7 @@ import db.orm.model.{Model, UserOwner}
 import db.query.Queries
 import db.query.Queries.now
 import db.{FlagTable, ProjectRolesTable, UserTable}
+import forums.SpongeForums
 import models.project.{Flag, Project}
 import ore.permission._
 import ore.permission.role.RoleTypes.RoleType
@@ -16,7 +17,6 @@ import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
 import play.api.mvc.Session
 import util.C._
-import util.forums.SpongeForums
 
 /**
   * Represents a Sponge user.

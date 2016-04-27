@@ -1,4 +1,4 @@
-package ore.project
+package ore.project.util
 
 /**
   * Exception thrown when an uploaded PluginFile is invalid.

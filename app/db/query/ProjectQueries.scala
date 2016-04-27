@@ -7,8 +7,8 @@ import db.query.Queries._
 import models.project._
 import models.user.ProjectRole
 import ore.project.Categories.Category
+import ore.project.ProjectMember
 import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
-import ore.project.member.Member
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
@@ -78,18 +78,18 @@ class ProjectQueries extends Queries {
   = Queries.getModelSet[ProjectTable, Project, ProjectRolesTable, ProjectRole](classOf[ProjectRole], _.projectId, project)
 
   /**
-    * Returns the [[Member]]s in the specified Project, sorted by role.
+    * Returns the [[ProjectMember]]s in the specified Project, sorted by role.
     *
     * @param project Project to get Members for
     * @return List of Members
     */
-  def getMembers(project: Project): Future[List[Member]] = {
+  def getMembers(project: Project): Future[List[ProjectMember]] = {
     // TODO: handle this differently?
-    val promise = Promise[List[Member]]
+    val promise = Promise[List[ProjectMember]]
     Queries.Users.ProjectRoles.distinctUsersIn(project.id.get).andThen {
       case Failure(thrown) => promise.failure(thrown)
       case Success(users) =>
-        val members = for (user <- users) yield new Member(project, user.username)
+        val members = for (user <- users) yield new ProjectMember(project, user.username)
         promise.success(members.toList.sorted.reverse)
     }
     promise.future

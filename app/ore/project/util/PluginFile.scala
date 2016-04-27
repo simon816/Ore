@@ -1,4 +1,4 @@
-package ore.project
+package ore.project.util
 
 import java.io.{FileInputStream, FileOutputStream, IOException}
 import java.nio.file.{Files, Path, Paths}
@@ -7,6 +7,7 @@ import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
 import db.orm.model.UserOwner
 import models.user.User
+import org.apache.commons.codec.digest.DigestUtils
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 
 import scala.util.control.Breaks._
@@ -75,6 +76,9 @@ class PluginFile(private var _path: Path, override val user: User) extends UserO
     this._path = Paths.get(zipPath)
     this._path
   }
+
+  def md5: String = DigestUtils.md5Hex(Files.newInputStream(this.path))
+
 
   /**
     * Reads the temporary file's plugin meta file and returns the result.

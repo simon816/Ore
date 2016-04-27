@@ -10,12 +10,12 @@ import db.query.Queries
 import db.query.Queries.now
 import ore.Colors.Color
 import ore.permission.scope.ProjectScope
-import ore.project.{Dependency, PluginFile, ProjectFactory}
+import ore.project.Dependency
+import ore.project.util.{PluginFile, ProjectFactory}
 import org.apache.commons.io.FileUtils
 import play.api.Play.current
 import play.api.cache.Cache
 import util.C._
-import util.Input._
 import util.{Cacheable, PendingAction}
 
 import scala.collection.JavaConversions._
@@ -245,7 +245,7 @@ object Version extends ModelDAO[Version] {
     val path = plugin.path
     new Version(
       meta.getVersion, depends.toList, meta.getDescription, "",
-      project.id.getOrElse(-1), path.toFile.length, md5(path)
+      project.id.getOrElse(-1), path.toFile.length, plugin.md5
     )
   }
 

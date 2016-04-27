@@ -7,7 +7,7 @@
 @import scala.collection.JavaConversions._
 @(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
 
-@projects.panelCreate(messages("project.create"), 3) {
+@projects.util.panelCreate(messages("project.create"), 3) {
     @defining(User.current.get) { user =>
 
         <script type="text/javascript" src="@routes.Assets.at("javascripts/userSearch.js")"></script>
@@ -22,7 +22,7 @@
                         <i class="fa fa-times user-cancel"></i>
                         <a target="_blank" href=""></a>
                     </td>
-                    <td>@projects.members.roleSelect("")</td>
+                    <td>@projects.members.util.roleSelect("")</td>
                 </tr>
             </tbody>
         </table>
@@ -64,14 +64,14 @@
                                         </a>
                                     </strong>
                                 </td>
-                                <td>@projects.members.roleSelect()</td>
+                                <td>@projects.members.util.roleSelect()</td>
                             </tr>
                         }
                     }
 
                     <!-- User search -->
                     <tr>
-                        <td>@projects.members.userSearch()</td>
+                        <td>@projects.members.util.userSearch()</td>
                         <td></td>
                     </tr>
 

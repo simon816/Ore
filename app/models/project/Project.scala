@@ -12,22 +12,22 @@ import db.orm.model.ModelKeys._
 import db.orm.model.{Model, ModelKeys}
 import db.query.Queries
 import db.query.Queries.{filterToFunction, now}
+import forums.SpongeForums
 import models.project.Version.PendingVersion
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
 import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
-import ore.project.member.Member
-import ore.project.{Categories, PluginFile, ProjectFactory, ProjectFiles}
+import ore.project.util._
+import ore.project.{Categories, ProjectMember}
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
 import util.C._
-import util.Input.{compact, slugify}
 import util.P._
-import util.forums.SpongeForums
+import util.StringUtils.{compact, slugify}
 import util.{Cacheable, PendingAction}
 
 import scala.util.Try
@@ -85,21 +85,21 @@ case class Project(override val   id: Option[Int] = None,
   }
 
   /**
-    * Returns the owner [[Member]] of this project.
+    * Returns the owner [[ProjectMember]] of this project.
     *
     * @return Owner Member of project
     */
-  def owner: Member = new Member(this, this.ownerName)
+  def owner: ProjectMember = new ProjectMember(this, this.ownerName)
 
   /**
-    * Returns all [[Member]]s of this project.
+    * Returns all [[ProjectMember]]s of this project.
     *
     * @return All Members of project
     */
-  def members: List[Member] = now(Queries.Projects.getMembers(this)).get
+  def members: List[ProjectMember] = now(Queries.Projects.getMembers(this)).get
 
   /**
-    * Removes the [[Member]] that belongs to the specified [[User]] from this
+    * Removes the [[ProjectMember]] that belongs to the specified [[User]] from this
     * project.
     *
     * @param user User to remove

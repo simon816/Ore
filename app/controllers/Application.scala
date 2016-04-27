@@ -8,6 +8,8 @@ import db.OrePostgresDriver.api._
 import db.ProjectTable
 import db.query.Queries
 import db.query.Queries.{ModelFilter, filterToFunction, now}
+import form.Forms
+import forums.SpongeForums._
 import models.project.Project._
 import models.project.{Flag, Project}
 import models.user.{FakeUser, User}
@@ -20,8 +22,6 @@ import play.api.libs.ws.WSClient
 import play.api.mvc._
 import util.C._
 import util.DataUtils
-import util.form.Forms
-import util.forums.SpongeForums._
 import views.{html => views}
 
 import scala.concurrent.ExecutionContext.Implicits.global

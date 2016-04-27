@@ -1,4 +1,4 @@
-package ore.project.member
+package ore.project
 
 import com.google.common.base.MoreObjects
 import db.OrePostgresDriver.api._
@@ -12,7 +12,7 @@ import ore.permission.scope.{Scope, ScopeSubject}
   * @param project  Project this Member is a part of
   * @param name     Member name
   */
-class Member(val project: Project, val name: String) extends ScopeSubject with Ordered[Member] {
+class ProjectMember(val project: Project, val name: String) extends ScopeSubject with Ordered[ProjectMember] {
 
   /**
     * Returns the [[User]] this Member belongs to.
@@ -37,14 +37,14 @@ class Member(val project: Project, val name: String) extends ScopeSubject with O
 
   override val scope: Scope = project.scope
 
-  override def compare(that: Member) = this.headRole compare that.headRole
+  override def compare(that: ProjectMember) = this.headRole compare that.headRole
 
   override def toString: String = MoreObjects.toStringHelper(this).add("name", this.name).toString
 
   override def hashCode: Int = this.name.hashCode
 
   override def equals(o: Any): Boolean = {
-    o.isInstanceOf[Member] && o.asInstanceOf[Member].name.equals(this.name)
+    o.isInstanceOf[ProjectMember] && o.asInstanceOf[ProjectMember].name.equals(this.name)
   }
 
 }

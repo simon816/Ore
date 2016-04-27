@@ -11,7 +11,7 @@ import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.ProjectScope
 
 /**
-  * Represents a [[ore.project.member.Member]]'s role in a
+  * Represents a [[ore.project.ProjectMember]]'s role in a
   * [[models.project.Project]]. A ProjectRole determines what a Member can and
   * cannot do within a [[ProjectScope]].
   *

@@ -1,9 +1,10 @@
-package util.form
+package form
 
 import models.project.Project
 import ore.permission.role.RoleTypes
 import ore.project.Categories
-import util.Input._
+import util.StringUtils
+import util.StringUtils._
 
 /**
   * Represents the configurable Project settings that can be submitted via a

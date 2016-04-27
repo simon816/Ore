@@ -15,14 +15,14 @@
     @if(canEdit) {
         <script type="text/javascript" src="@routes.Assets.at("javascripts/userSearch.js")"></script>
         <script type="text/javascript" src="@routes.Assets.at("javascripts/memberList.js")"></script>
-        @projects.members.roleSelect("", "select-role", "pull-right", hidden = true)
+        @projects.members.util.roleSelect("", "select-role", "pull-right", hidden = true)
         <!-- Row template -->
         <ul style="display: none;">
             <li id="row-user" class="list-group-item">
                 <input type="hidden" />
                 <i class="fa fa-times user-cancel user-cancel2"></i>
                 <a></a>
-                @projects.members.roleSelect("", classes="pull-right")
+                @projects.members.util.roleSelect("", classes="pull-right")
             </li>
         </ul>
         <!-- Delete modal -->
@@ -73,7 +73,7 @@
             <!-- User search -->
             @if(canEdit) {
                 <li class="list-group-item">
-                    @projects.members.userSearch()
+                    @projects.members.util.userSearch()
                 </li>
             }
 

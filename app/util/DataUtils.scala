@@ -5,17 +5,17 @@ import java.nio.file.Files
 import db.OrePostgresDriver.api._
 import db.query.Queries
 import db.query.Queries.{now, run}
+import forums.SpongeForums
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
 import models.project.{Channel, Project, Version}
 import models.user.User
-import ore.project.ProjectFactory
+import ore.project.util.ProjectFactory
 import org.apache.commons.io.FileUtils
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.ws.WSClient
 import util.C._
 import util.P._
-import util.forums.SpongeForums
 
 /**
   * Utility class for performing some bulk actions on the application data.

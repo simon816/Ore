@@ -1,4 +1,4 @@
-package util.form
+package form
 
 /**
   * Represents submitted [[models.project.Version]] data.

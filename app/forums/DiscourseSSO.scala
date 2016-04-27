@@ -1,4 +1,4 @@
-package util.forums
+package forums
 
 import java.math.BigInteger
 import java.net.{URLDecoder, URLEncoder}

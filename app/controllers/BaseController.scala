@@ -2,12 +2,12 @@ package controllers
 
 import db.OrePostgresDriver.api._
 import db.query.Queries
+import forums.SpongeForums
 import models.project.{Channel, Project, Version}
 import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import util.DataUtils
-import util.forums.SpongeForums
 
 /**
   * Represents a Secured base Controller for this application.

@@ -1,20 +1,19 @@
-package ore.project
+package ore.project.util
 
 import java.nio.file.Files
 
 import com.google.common.base.Preconditions._
 import db.query.Queries
 import db.query.Queries.now
+import forums.SpongeForums
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
 import models.project.{Channel, Project, Version}
 import models.user.{ProjectRole, User}
 import ore.permission.role.RoleTypes
-import ore.project.ProjectFiles._
 import play.api.libs.Files.TemporaryFile
 import util.C._
 import util.P._
-import util.forums.SpongeForums
 
 import scala.util.Try
 
@@ -101,7 +100,7 @@ object ProjectFactory {
     val meta = plugin.meta.get
     var oldPath = plugin.path
     if (!plugin.isZipped) oldPath = plugin.zip
-    val newPath = uploadPath(plugin.user.username, meta.getName, meta.getVersion, channel.name)
+    val newPath = ProjectFiles.uploadPath(plugin.user.username, meta.getName, meta.getVersion, channel.name)
     if (!Files.exists(newPath.getParent)) Files.createDirectories(newPath.getParent)
     Files.move(oldPath, newPath)
     Files.delete(oldPath)

@@ -1,9 +1,9 @@
 @import controllers.project.routes.{Projects => projectRoutes}
 @import models.project.Project
-@import views.html.helper.form
 @import models.user.User
 @import ore.permission.HideProjects
 @import ore.permission.scope.GlobalScope
+@import views.html.helper.form
 @(project: Project)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
 
 @projects.view(project, "#settings") {
@@ -20,14 +20,14 @@
                         <h3 class="panel-title pull-left">@messages("project.settings")</h3>
 
                         @if(User.current.get can HideProjects in GlobalScope) {
-                            @projects.btnHide(project, "pull-right")
+                            @projects.util.btnHide(project, "pull-right")
                         }
 
                         <div class="clearfix"></div>
                     </div>
                     <div class="panel-body">
 
-                        @projects.inputSettings("save", project.issues, project.source, Some(project.category))
+                        @projects.util.inputSettings("save", project.issues, project.source, Some(project.category))
 
                         <label for="description">Project description</label>
                         <input form="save" class="form-control" type="text" id="description"

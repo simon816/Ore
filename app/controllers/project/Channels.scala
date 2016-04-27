@@ -4,10 +4,10 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.project.routes.{Channels => self}
+import form.Forms
 import ore.permission.EditChannels
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
-import util.form.Forms
 import views.html.projects.{channels => views}
 
 /**

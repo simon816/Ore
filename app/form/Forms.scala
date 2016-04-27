@@ -1,4 +1,4 @@
-package util.form
+package form
 
 import models.project.Channel
 import models.project.Page._

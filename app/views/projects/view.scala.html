@@ -4,11 +4,10 @@ Base template for Project overview.
 @import controllers.project.{routes => projectRoutes}
 @import models.project.Project
 @import models.user.User
-@import ore.permission.EditSettings
+@import ore.permission.{EditSettings, ReviewProjects}
+@import ore.permission.scope.GlobalScope
 @import ore.project.FlagReasons
 @import views.html.helper.form
-@import ore.permission.scope.GlobalScope
-@import ore.permission.ReviewProjects
 @(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session, request: RequestHeader, flash: Flash)
 
 @hasUser = @{ User.current.isDefined }
@@ -61,7 +60,7 @@ Base template for Project overview.
                                 @if(hasUser && (user can EditSettings in project)) {
                                     @* Show manager if permitted *@
                                     <li id="settings" class="">
-                                        <a href="@projectRoutes.Projects.showManager(project.ownerName, project.slug)">
+                                        <a href="@projectRoutes.Projects.showSettings(project.ownerName, project.slug)">
                                             <i class="fa fa-cog"></i> @messages("project.settings")
                                         </a>
                                     </li>

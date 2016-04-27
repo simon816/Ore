@@ -48,7 +48,7 @@
                                         @channel.name
                                         <div class="pull-right white">
                                             <a href="#">
-                                                <i data-toggle="modal" data-target="#channel-manage"
+                                                <i data-toggle="modal" data-target="#channel-settings"
                                                    id="channel-edit-@channel.id" class="fa fa-edit"></i>
                                             </a>
                                             <a id="channel-delete-@channel.id"
@@ -88,12 +88,12 @@
                                disabled data-toggle="tooltip" data-placement="left"
                                title="@messages("channel.edit.max-amount-reached")"
                            } else {
-                               data-toggle="modal" data-target="#channel-manage"
+                               data-toggle="modal" data-target="#channel-settings"
                            }
                         >
                             <i class="fa fa-plus"></i>
                         </a>
-                        @projects.channels.modalManage()
+                        @projects.channels.util.modalManage()
                     </div>
                 </div>
             </div>
