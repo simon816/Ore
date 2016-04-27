@@ -14,6 +14,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import slick.dbio.{DBIOAction, NoStream}
 import slick.driver.JdbcProfile
 import slick.lifted.ColumnOrdered
+import util.C
 import util.C._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -48,6 +49,7 @@ abstract class Queries {
   def setString(model: Row, key: Table => Rep[String], value: String) = Queries.setString(model, key, value)
   def setBoolean(model: Row, key: Table => Rep[Boolean], value: Boolean) = Queries.setBoolean(model, key, value)
   def setIntList(model: Row, key: Table => Rep[List[Int]], value: List[Int]) = Queries.setIntList(model, key, value)
+  def setTimestamp(model: Row, key: Table => Rep[Timestamp], value: Timestamp) = Queries.setTimestamp(model, key, value)
   def collect(limit: Int = -1, offset: Int = -1, filter: Table => Rep[Boolean] = null,
               sort: Table => ColumnOrdered[_] = null): Future[Seq[Row]]
   = Queries.collect(modelClass, limit, offset, filter, sort)
@@ -101,11 +103,11 @@ object Queries {
     */
   protected def registerModel[T <: ModelTable[M], M <: Model](modelClass: Class[M], query: TableQuery[T]) = {
     this.modelQueries += modelClass -> query
-    println("-- Model registered --")
-    println("Registered: " + modelQueries)
-    println("Class: " + modelClass)
-    println("Query: " + query)
-    println("-----------------------")
+    debug("-- Model registered --")
+    debug("Registered: " + modelQueries)
+    debug("Class: " + modelClass)
+    debug("Query: " + query)
+    debug("-----------------------")
   }
 
   /**
@@ -265,6 +267,16 @@ object Queries {
     * @param value  Value
     */
   def setIntList[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[List[Int]], value: List[Int])
+  = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
+
+  /**
+    * Sets a Timestamp field on the Model.
+    *
+    * @param model  Model to update
+    * @param key    Key to update
+    * @param value  Value
+    */
+  def setTimestamp[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[Timestamp], value: Timestamp)
   = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
 
   /**

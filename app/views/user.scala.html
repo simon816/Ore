@@ -5,6 +5,7 @@ User page for developers.
 @import forums.SpongeForums
 @import models.user.User
 @import views.html.helper.form
+@import util.StringUtils
 @(user: User)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
 
 @isThisUser = @{
@@ -82,7 +83,9 @@ User page for developers.
                     </ul>
                     <div class="user-info">
                         <i class="minor">@user.projects.size projects</i><br/>
-                        <i class="minor">A member since @user.prettyDate</i>
+                        <i class="minor">
+                            A member since @user.joinDate.map(StringUtils.prettyDate).getOrElse(user.prettyDate)
+                        </i>
                     </div>
                 </div>
             </div>

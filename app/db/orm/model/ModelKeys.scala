@@ -21,5 +21,11 @@ object ModelKeys {
   val IsResolved    =   "isResolved"
   val IsVisible     =   "isVisible"
   val IsReviewed    =   "isReviewed"
+  val FullName      =   "fullName"
+  val Username      =   "username"
+  val Email         =   "email"
+  val Tagline       =   "tagline"
+  val GlobalRoles   =   "globalRoles"
+  val JoinDate      =   "joinDate"
 
 }

@@ -1,6 +1,8 @@
 package forums
 
-import db.query.Queries
+import java.sql.Timestamp
+import java.text.SimpleDateFormat
+
 import db.query.Queries.now
 import forums.SpongeForums.validate
 import models.user.User
@@ -19,6 +21,8 @@ import scala.concurrent.Future
   */
 class DiscourseUsers(url: String, ws: WSClient) {
 
+  val DateFormat = new SimpleDateFormat("yyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+
   /**
     * Attempts to retrieve the user with the specified username from the forums
     * and creates them if they exist.
@@ -30,9 +34,10 @@ class DiscourseUsers(url: String, ws: WSClient) {
     ws.url(userUrl(username)).get.map { response =>
       validate(response) { json =>
         val userObj = (json \ "user").as[JsObject]
-        var user = new User((userObj \ "id").as[Int], (userObj \ "name").asOpt[String].orNull,
-                            (userObj \ "username").as[String], (userObj \ "email").asOpt[String].orNull)
-        user = now(Queries.Users.getOrInsert(user)).get
+        val user = new User(
+            (userObj \ "id").as[Int], (userObj \ "name").asOpt[String].orNull,
+            (userObj \ "username").as[String], (userObj \ "email").asOpt[String].orNull,
+            (userObj \ "created_at").asOpt[String].map(jd => new Timestamp(DateFormat.parse(jd).getTime)).orNull)
         val globalRoles = parseRoles(userObj)
         user.globalRoleTypes = globalRoles
         user

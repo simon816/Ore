@@ -4,6 +4,7 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
 import db.query.Queries
+import util.{StringUtils, C}
 import util.C._
 
 import scala.concurrent.Future
@@ -14,11 +15,6 @@ import scala.concurrent.Future
 abstract class Model { self =>
 
   type M <: Model { type M = self.M }
-
-  /**
-    * The format used for displaying dates for models.
-    */
-  val DateFormat = new SimpleDateFormat(OreConf.getString("date-format").get)
 
   private var tableBindings: Map[String, TableBinding[_]] = Map.empty
 
@@ -43,6 +39,7 @@ abstract class Model { self =>
   def update[A](key: String) = {
     val binding = this.tableBindings.get(key).get.asInstanceOf[TableBinding[A]]
     val value = binding.valueFunc(this.asInstanceOf[M])
+    debug("Updating key \"" + key + "\" in model " + getClass + " to " + value)
     for (f <- binding.updateFunc(value)) Queries.now(f).get
   }
 
@@ -76,7 +73,7 @@ abstract class Model { self =>
     *
     * @return Creation date string
     */
-  def prettyDate: String = DateFormat.format(this.createdAt.get)
+  def prettyDate: String = StringUtils.prettyDate(this.createdAt.get)
 
   /**
     * Returns true if this Project is defined in the database.

@@ -1,5 +1,7 @@
 package db
 
+import java.sql.Timestamp
+
 import db.OrePostgresDriver.api._
 import db.orm.ModelTable
 import models.project._
@@ -121,9 +123,10 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
   def email         =   column[String]("email")
   def tagline       =   column[String]("tagline")
   def globalRoles   =   column[List[Int]]("global_roles")
+  def joinDate      =   column[Timestamp]("join_date")
 
   override def * = (id.?, createdAt.?, name.?, username, email.?, tagline.?,
-                    globalRoles) <> ((User.apply _).tupled, User.unapply)
+                    globalRoles, joinDate.?) <> ((User.apply _).tupled, User.unapply)
 
 }
 

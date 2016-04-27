@@ -7,6 +7,9 @@ import java.util.Base64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
+import db.query.Queries
+import db.query.Queries.now
+import models.user.User
 import org.apache.commons.codec.binary.Hex
 
 /**
@@ -54,7 +57,7 @@ class DiscourseSSO(private val url: String, private val secret: String) {
     * @param sig  Signature to verify
     * @return     User data
     */
-  def authenticate(sso: String, sig: String): (Int, String, String, String) = {
+  def authenticate(sso: String, sig: String): User = {
     // check sig
     val hmac = hmac_sha256(sso.getBytes(this.charEncoding))
     if (!hmac.equals(sig)) {
@@ -81,7 +84,8 @@ class DiscourseSSO(private val url: String, private val secret: String) {
         case other => ;
       }
     }
-    (externalId, name, username, email)
+
+    User.withName(username).map(_.fill(new User(externalId, name, username, email, null))).get
   }
 
 }

@@ -52,7 +52,7 @@ object DataUtils {
       println("User: " + i + '/' + users)
 
       // Initialize plugin
-      val user = now(Queries.Users.getOrInsert(new User(i, null, "User-" + i, null))).get
+      val user = User.getOrCreate(new User(i, null, "User-" + i, null, null))
       while (!pluginFile.exists()) pluginFile = copyPlugin // /me throws up
       var plugin = ProjectFactory.initUpload(TemporaryFile(pluginFile), pluginFile.getName, user).get
       val pluginId = "pluginId." + i

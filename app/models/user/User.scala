@@ -5,6 +5,7 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
 import db.orm.dao.{ModelDAO, ModelSet}
+import db.orm.model.ModelKeys._
 import db.orm.model.{Model, UserOwner}
 import db.query.Queries
 import db.query.Queries.now
@@ -17,24 +18,26 @@ import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
 import play.api.mvc.Session
 import util.C._
+import util.StringUtils._
 
 /**
   * Represents a Sponge user.
   *
   * @param id           External ID provided by authentication.
   * @param createdAt    Date this user first logged onto Ore.
-  * @param fullName     Full name of user
-  * @param username     Username
-  * @param email        Email
+  * @param _fullName    Full name of user
+  * @param _username    Username
+  * @param _email       Email
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
 case class User(override val  id: Option[Int] = None,
                 override val  createdAt: Option[Timestamp] = None,
-                val           fullName: Option[String] = None,
-                val           username: String,
-                val           email: Option[String],
+                private var   _fullName: Option[String] = None,
+                private var   _username: String,
+                private var   _email: Option[String] = None,
                 private var   _tagline: Option[String] = None,
-                private var   globalRoleIds: List[Int] = List())
+                private var   globalRoleIds: List[Int] = List(),
+                private var   _joinDate: Option[Timestamp] = None)
                 extends       Model
                 with          UserOwner
                 with          ScopeSubject { self =>
@@ -50,8 +53,67 @@ case class User(override val  id: Option[Int] = None,
   val can: PermissionPredicate = PermissionPredicate(this)
   val cannot: PermissionPredicate = PermissionPredicate(this, not = true)
 
-  def this(externalId: Int, name: String, username: String, email: String) = {
-    this(id=Some(externalId), fullName=Option(name), username=username, email=Option(email))
+  def this(externalId: Int, name: String, username: String, email: String, joinDate: Timestamp) = {
+    this(id=Some(externalId), _fullName=Option(name), _username=username,
+         _email=Option(email), _joinDate=Option(joinDate))
+  }
+
+  def fullName: Option[String] = this._fullName
+
+  def fullName_=(_fullName: String) = {
+    this._fullName = Option(_fullName)
+    if (isDefined) update(FullName)
+  }
+
+  def username: String = this._username
+
+  def username_=(_username: String) = {
+    checkNotNull(_username, "username cannot be null", "")
+    this._username = _username
+    if (isDefined) update(Username)
+  }
+
+  def email: Option[String] = this._email
+
+  def email_=(_email: String) = {
+    this._email = Option(_email)
+    if (isDefined) update(Email)
+  }
+
+  def joinDate: Option[Timestamp] = this._joinDate
+
+  def joinDate_=(_joinDate: Timestamp) = {
+    this._joinDate = Option(_joinDate)
+    if (isDefined) update(JoinDate)
+  }
+
+  /**
+    * Returns this User's "tagline" that is displayed on the User page.
+    *
+    * @return User tagline
+    */
+  def tagline: Option[String] = this._tagline
+
+  /**
+    * Sets this User's "tagline" that is displayed on the User page.
+    *
+    * @param _tagline Tagline to display
+    */
+  def tagline_=(_tagline: String) = {
+    checkArgument(_tagline.length <= MaxTaglineLength, "tagline too long", "")
+    this._tagline = Option(nullIfEmpty(_tagline))
+    if (isDefined) update(Tagline)
+  }
+
+  def fill(user: User): User = {
+    if (user == null) return this
+    user.fullName.map(this.fullName = _)
+    user.email.map(this.email = _)
+    user.tagline.map(this.tagline = _)
+    user.joinDate.map(this.joinDate = _)
+    this.username = user.username
+    this.globalRoleTypes = user.globalRoleTypes
+    this
   }
 
   /**
@@ -90,9 +152,8 @@ case class User(override val  id: Option[Int] = None,
     * @param _roles Roles to set
     */
   def globalRoleTypes_=(_roles: Set[RoleType]) = {
-    val ids = _roles.map(_.roleId).toList
-    if (isDefined) now(Queries.Users.setIntList(this, _.globalRoles, ids)).get
-    this.globalRoleIds = ids
+    this.globalRoleIds = _roles.map(_.roleId).toList
+    if (isDefined) update(GlobalRoles)
   }
 
   /**
@@ -136,30 +197,22 @@ case class User(override val  id: Option[Int] = None,
     now(Queries.Projects.starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
   }
 
-  /**
-    * Returns this User's "tagline" that is displayed on the User page.
-    *
-    * @return User tagline
-    */
-  def tagline: Option[String] = this._tagline
-
-  /**
-    * Sets this User's "tagline" that is displayed on the User page.
-    *
-    * @param _tagline Tagline to display
-    */
-  def tagline_=(_tagline: String) = {
-    checkArgument(_tagline.length <= MaxTaglineLength, "tagline too long", "")
-    val tag = if (_tagline.nonEmpty) _tagline else null
-    if (isDefined) now(Queries.Users.setString(this, _.tagline, tag)).get
-    this._tagline = Option(tag)
-  }
-
   override val scope: Scope = GlobalScope
 
   override def userId = this.id.get
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): User = this.copy(createdAt = theTime)
+
+  // Table bindings
+
+  bind[String](FullName, _._fullName.orNull, fullName => Seq(Queries.Users.setString(this, _.name, fullName)))
+  bind[String](Username, _._username, username => Seq(Queries.Users.setString(this, _.username, username)))
+  bind[String](Email, _._email.orNull, email => Seq(Queries.Users.setString(this, _.email, email)))
+  bind[String](Tagline, _._tagline.orNull, tagline => Seq(Queries.Users.setString(this, _.tagline, tagline)))
+  bind[Timestamp](JoinDate, _._joinDate.orNull, joinDate =>
+    Seq(Queries.Users.setTimestamp(this,  _.joinDate, joinDate)))
+  bind[List[Int]](GlobalRoles, _.globalRoleIds, globalRoles =>
+    Seq(Queries.Users.setIntList(this, _.globalRoles, globalRoles)))
 
 }
 
@@ -183,7 +236,7 @@ object User extends ModelDAO[User] {
     */
   def withName(username: String): Option[User] = {
     now(Queries.Users.find(_.username.toLowerCase === username.toLowerCase)).get.orElse {
-      now(SpongeForums.Users.fetch(username)).get
+      now(SpongeForums.Users.fetch(username)).get.map(getOrCreate)
     }
   }
 

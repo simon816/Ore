@@ -18,6 +18,8 @@ object C {
 
   def isDebug: Boolean = OreConf.getBoolean("debug").get
 
+  def debug(msg: String) = if (isDebug) println(msg)
+
   def checkDebug()
   = if(!isDebug) throw new UnsupportedOperationException("this function is supported in debug mode only")
 

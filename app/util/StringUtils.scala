@@ -1,9 +1,18 @@
 package util
 
+import java.text.SimpleDateFormat
+import java.util.Date
+
+import util.C._
+
 /**
   * Helper class for handling User input.
   */
 object StringUtils {
+
+  val DateFormat = new SimpleDateFormat(OreConf.getString("date-format").get)
+
+  def prettyDate(date: Date) = DateFormat.format(date)
 
   /**
     * Returns a URL readable string from the specified string.

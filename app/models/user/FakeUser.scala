@@ -1,5 +1,8 @@
 package models.user
 
+import java.sql.Timestamp
+import java.util.Date
+
 import util.C._
 
 /**
@@ -9,7 +12,8 @@ import util.C._
 object FakeUser extends User(AppConf.getInt("fakeUser.id").get,
                              AppConf.getString("fakeUser.name").get,
                              AppConf.getString("fakeUser.username").get,
-                             AppConf.getString("fakeUser.email").get) {
+                             AppConf.getString("fakeUser.email").get,
+                             new Timestamp(new Date().getTime)) {
 
   /**
     * True if FakeUser should be used.

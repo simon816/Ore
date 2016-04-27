@@ -33,8 +33,7 @@ class Users @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
       Redirect(Auth.getRedirect(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
     } else {
       // Decode SSO payload and get Ore user
-      val userData = Auth.authenticate(sso.get, sig.get)
-      val user = User.getOrCreate(new User(userData._1, userData._2, userData._3, userData._4))
+      val user = Auth.authenticate(sso.get, sig.get)
 
       // Get groups from forums
       SpongeForums.Users.fetchRoles(user.username).andThen {
