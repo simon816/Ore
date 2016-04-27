@@ -33,6 +33,7 @@ object SpongeForums {
     } else disable()
   }
 
+  /** Disables SpongeForums access */
   def disable() = {
     this.users = DiscourseUsers.Disabled
     this.embed = DiscourseEmbed.Disabled

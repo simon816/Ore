@@ -12,6 +12,12 @@ object StringUtils {
 
   val DateFormat = new SimpleDateFormat(OreConf.getString("date-format").get)
 
+  /**
+    * Formats the specified date into the standard application form.
+    *
+    * @param date Date to format
+    * @return     Standard formatted date
+    */
   def prettyDate(date: Date) = DateFormat.format(date)
 
   /**

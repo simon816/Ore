@@ -20,7 +20,7 @@ class ApiController extends Controller {
   def listProjects(version: String, categories: Option[String], sort: Option[Int], q: Option[String],
                    limit: Option[Int], offset: Option[Int]) = Action {
     version match {
-      case "v1" => Ok(v1.listProjects(categories, sort, q, limit, offset))
+      case "v1" => Ok(v1.getProjectList(categories, sort, q, limit, offset))
       case zoinks => NotFound
     }
   }
@@ -34,7 +34,7 @@ class ApiController extends Controller {
     */
   def showProject(version: String, pluginId: String) = Action {
     version match {
-      case "v1" => ApiResult(v1.showProject(pluginId))
+      case "v1" => ApiResult(v1.getProject(pluginId))
       case yikes => NotFound
     }
   }
@@ -42,14 +42,14 @@ class ApiController extends Controller {
   def listVersions(version: String, pluginId: String, channels: Option[String],
                    limit: Option[Int], offset: Option[Int]) = Action {
     version match {
-      case "v1" => ApiResult(v1.listVersions(pluginId, channels, limit, offset))
+      case "v1" => ApiResult(v1.getVersionList(pluginId, channels, limit, offset))
       case gorp => NotFound
     }
   }
 
   def showVersion(version: String, pluginId: String, channel: String, name: String) = Action {
     version match {
-      case "v1" => ApiResult(v1.showVersion(pluginId, channel, name))
+      case "v1" => ApiResult(v1.getVersion(pluginId, channel, name))
       case fffffs => NotFound
     }
   }
@@ -64,7 +64,7 @@ class ApiController extends Controller {
     */
   def listUsers(version: String, limit: Option[Int], offset: Option[Int]) = Action {
     version match {
-      case "v1" => Ok(v1.listUsers(limit, offset))
+      case "v1" => Ok(v1.getUserList(limit, offset))
       case oops => NotFound
     }
   }
@@ -78,7 +78,7 @@ class ApiController extends Controller {
     */
   def showUser(version: String, username: String) = Action {
     version match {
-      case "v1" => ApiResult(v1.showUser(username))
+      case "v1" => ApiResult(v1.getUser(username))
       case sad => NotFound
     }
   }

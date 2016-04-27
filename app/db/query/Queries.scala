@@ -35,6 +35,7 @@ abstract class Queries {
   val modelClass: Class[Row]
   val baseQuery: TableQuery[Table]
 
+  /** Registers the Model of this class */
   def registerModel() = Queries.registerModel(this.modelClass, this.baseQuery)
 
   // Generic (delegate to companion object)
@@ -93,7 +94,7 @@ object Queries {
 
   // Setup registrar
 
-  var modelQueries: Map[Class[_ <: Model], TableQuery[_ <: ModelTable[_]]] = Map()
+  private var modelQueries: Map[Class[_ <: Model], TableQuery[_ <: ModelTable[_]]] = Map()
 
   /**
     * Registers a new model and maps it to a base query.

@@ -53,10 +53,22 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     Ok(views.home(projects, Option(categoryArray), s))
   }
 
+  /**
+    * Shows the overview page for flags.
+    *
+    * @return Flag overview
+    */
   def showFlags() = FlagAction { implicit request =>
     Ok(views.flags(Flag.unresolved))
   }
 
+  /**
+    * Sets the resolved state of the specified flag.
+    *
+    * @param flagId   Flag to set
+    * @param resolved Resolved state
+    * @return         Ok
+    */
   def setFlagResolved(flagId: Int, resolved: Boolean) = FlagAction { implicit request =>
     Flag.withId(flagId) match {
       case None => NotFound

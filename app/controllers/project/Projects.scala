@@ -134,6 +134,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     }
   }
 
+  /**
+    * Submits a flag on the specified project for further review.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return       View of project
+    */
   def flag(author: String, slug: String) = AuthedProjectAction(author, slug) { implicit request =>
     val user = request.user
     val project = request.project
@@ -147,6 +154,14 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     }
   }
 
+  /**
+    * Sets the visible state of the specified Project.
+    *
+    * @param author   Project owner
+    * @param slug     Project slug
+    * @param visible  Project visibility
+    * @return         Ok
+    */
   def setVisible(author: String, slug: String, visible: Boolean) = {
     (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(HideProjects)) { implicit request =>
       request.project.setVisible(visible)
@@ -154,6 +169,13 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     }
   }
 
+  /**
+    * Marks the specified Project as approved and no longer in need of review.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return       Project view
+    */
   def approve(author: String, slug: String) = {
     (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(ReviewProjects)) { implicit request =>
       request.project.setReviewed(true)

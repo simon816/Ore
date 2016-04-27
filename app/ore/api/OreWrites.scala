@@ -4,6 +4,9 @@ import models.project.{Channel, Project, Version}
 import models.user.User
 import play.api.libs.json._
 
+/**
+  * Contains implicit JSON [[Writes]] for the Ore API.
+  */
 object OreWrites {
 
   implicit val channelWrites = new Writes[Channel] {
@@ -18,10 +21,8 @@ object OreWrites {
           "roles" -> JsArray(member.roles.map(r => JsString(r.roleType.title)).toSeq)
         )
       }
-
       val category = project.category
       val rv = project.recommendedVersion
-
       Json.obj(
         "pluginId" -> project.pluginId,
         "createdAt" -> project.prettyDate,
@@ -46,7 +47,6 @@ object OreWrites {
       val dependencies: List[JsObject] = version.dependencies.map { dependency =>
         Json.obj("pluginId" -> dependency.pluginId, "version" -> dependency.version)
       }
-
       Json.obj(
         "id" -> version.id.get,
         "createdAt" -> version.prettyDate,

@@ -42,6 +42,9 @@ object Forms {
     "content" -> text(minLength = MinLength, maxLength = MaxLength)
   ))
 
+  /**
+    * Submits a flag on a project for further review.
+    */
   lazy val ProjectFlag = Form(single("flag-reason" -> number))
 
   /**

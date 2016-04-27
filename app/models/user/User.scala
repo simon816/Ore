@@ -58,30 +58,72 @@ case class User(override val  id: Option[Int] = None,
          _email=Option(email), _joinDate=Option(joinDate))
   }
 
+  /**
+    * Returns this User's full name.
+    *
+    * @return Full name of user
+    */
   def fullName: Option[String] = this._fullName
 
+  /**
+    * Sets this User's full name.
+    *
+    * @param _fullName Full name of user
+    */
   def fullName_=(_fullName: String) = {
     this._fullName = Option(_fullName)
     if (isDefined) update(FullName)
   }
 
+  /**
+    * Returns this User's username.
+    *
+    * @return Username of User
+    */
   def username: String = this._username
 
+  /**
+    * Sets this User's username.
+    *
+    * @param _username Username of User
+    */
   def username_=(_username: String) = {
     checkNotNull(_username, "username cannot be null", "")
     this._username = _username
     if (isDefined) update(Username)
   }
 
+  /**
+    * Returns this User's email.
+    *
+    * @return User email
+    */
   def email: Option[String] = this._email
 
+  /**
+    * Sets this User's email.
+    *
+    * @param _email User email
+    */
   def email_=(_email: String) = {
     this._email = Option(_email)
     if (isDefined) update(Email)
   }
 
+  /**
+    * Returns the Timestamp instant when this User joined Sponge for the first
+    * time.
+    *
+    * @return Sponge join date
+    */
   def joinDate: Option[Timestamp] = this._joinDate
 
+  /**
+    * Sets the Timestamp instant when this User joined Sponge for the first
+    * time.
+    *
+    * @param _joinDate Sponge join date
+    */
   def joinDate_=(_joinDate: Timestamp) = {
     this._joinDate = Option(_joinDate)
     if (isDefined) update(JoinDate)
@@ -103,17 +145,6 @@ case class User(override val  id: Option[Int] = None,
     checkArgument(_tagline.length <= MaxTaglineLength, "tagline too long", "")
     this._tagline = Option(nullIfEmpty(_tagline))
     if (isDefined) update(Tagline)
-  }
-
-  def fill(user: User): User = {
-    if (user == null) return this
-    user.fullName.map(this.fullName = _)
-    user.email.map(this.email = _)
-    user.tagline.map(this.tagline = _)
-    user.joinDate.map(this.joinDate = _)
-    this.username = user.username
-    this.globalRoleTypes = user.globalRoleTypes
-    this
   }
 
   /**
@@ -197,6 +228,24 @@ case class User(override val  id: Option[Int] = None,
     now(Queries.Projects.starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
   }
 
+  /**
+    * Fills the mutable field in this User with the specified User's
+    * non-missing mutable fields.
+    *
+    * @param user User to fill with
+    * @return     This user
+    */
+  def fill(user: User): User = {
+    if (user == null) return this
+    user.fullName.map(this.fullName = _)
+    user.email.map(this.email = _)
+    user.tagline.map(this.tagline = _)
+    user.joinDate.map(this.joinDate = _)
+    this.username = user.username
+    this.globalRoleTypes = user.globalRoleTypes
+    this
+  }
+
   override val scope: Scope = GlobalScope
 
   override def userId = this.id.get
@@ -240,6 +289,13 @@ object User extends ModelDAO[User] {
     }
   }
 
+  /**
+    * Attempts to find the specified User in the database or creates a new User
+    * if one does not exist.
+    *
+    * @param user User to find
+    * @return     Found or new User
+    */
   def getOrCreate(user: User): User = now(Queries.Users.getOrInsert(user)).get
 
   /**

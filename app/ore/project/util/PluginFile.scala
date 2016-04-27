@@ -77,6 +77,11 @@ class PluginFile(private var _path: Path, override val user: User) extends UserO
     this._path
   }
 
+  /**
+    * Returns an MD5 hash of this PluginFile.
+    *
+    * @return MD5 hash
+    */
   def md5: String = DigestUtils.md5Hex(Files.newInputStream(this.path))
 
 

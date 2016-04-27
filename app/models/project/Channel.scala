@@ -46,6 +46,11 @@ case class Channel(override val   id: Option[Int] = None,
 
   def this(name: String, color: Color, projectId: Int) = this(_name=name, _color=color, projectId=projectId)
 
+  /**
+    * Returns the name of this Channel.
+    *
+    * @return Name of channel
+    */
   def name: String = this._name
 
   /**

@@ -1,5 +1,8 @@
 package ore.project
 
+/**
+  * Represents the reasons for submitting a [[models.project.Flag]].
+  */
 object FlagReasons extends Enumeration {
 
   val InappropriateContent = FlagReason(0, "Inappropriate Content")

@@ -95,7 +95,4 @@ abstract class Model { self =>
     if (isDefined) f else throw new IllegalStateException("model must exist")
   }
 
-  implicit def convert: M = this.asInstanceOf[M]
-
-
 }

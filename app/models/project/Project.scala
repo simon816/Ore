@@ -562,6 +562,9 @@ object Project extends ModelDAO[Project] {
     */
   val InitialLoad: Int = ProjectsConf.getInt("init-load").get
 
+  /**
+    * The path to the template file to build a forum topic from.
+    */
   val ForumTopicTemplatePath: Path = ConfDir.resolve("discourse/project_topic.md")
 
   /**
