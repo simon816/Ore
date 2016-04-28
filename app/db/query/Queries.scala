@@ -119,7 +119,7 @@ object Queries {
     * @return   Base model query
     */
   def modelQuery[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M]): Query[T, M, Seq] = {
-    this.modelQueries.get(modelClass).get.asInstanceOf[Query[T, M, Seq]]
+    this.modelQueries.find(_._1.isAssignableFrom(modelClass)).get._2.asInstanceOf[Query[T, M, Seq]]
   }
 
   // Initialize queries (registers models)
