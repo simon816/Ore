@@ -132,7 +132,6 @@ case class User(override val  id: Option[Int] = None,
     * @return     Avatar URL
     */
   def avatarUrl(size: Int = 100): String = {
-    if (this._avatarUrl.isEmpty) this._avatarUrl = await(SpongeForums.Users.fetchAvatarUrl(this.username, size)).get
     this._avatarUrl.map(s => DiscourseConf.getString("baseUrl").get + s.replace("{size}", size.toString)).getOrElse("")
   }
 
