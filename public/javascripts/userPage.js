@@ -33,7 +33,7 @@ function loadStars(increment) {
 
                 // Request project data for this Star
                 $.ajax({
-                    url: 'api/project?pluginId=' + star,
+                    url: 'api/projects/' + star,
                     dataType: 'json',
                     success: function(projectData) {
                         var href = projectData.href;
