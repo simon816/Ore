@@ -10,11 +10,11 @@ import util.C._
   * Represents a "fake" User object for bypassing the standard authentication
   * method in a development environment.
   */
-object FakeUser extends User(AppConf.getInt("fakeUser.id").get,
-                             AppConf.getString("fakeUser.name").get,
-                             AppConf.getString("fakeUser.username").get,
-                             AppConf.getString("fakeUser.email").get,
-                             new Timestamp(new Date().getTime)) {
+object FakeUser extends User(id         =   AppConf.getInt("fakeUser.id"),
+                             _fullName  =   AppConf.getString("fakeUser.name"),
+                             _username  =   AppConf.getString("fakeUser.username").get,
+                             _email     =   AppConf.getString("fakeUser.email"),
+                             _joinDate  =   Some(new Timestamp(new Date().getTime))) {
 
   this.globalRoleTypes = Set(RoleTypes.Admin)
 

@@ -27,5 +27,6 @@ object ModelKeys {
   val Tagline       =   "tagline"
   val GlobalRoles   =   "globalRoles"
   val JoinDate      =   "joinDate"
+  val AvatarUrl     =   "avatarUrl"
 
 }

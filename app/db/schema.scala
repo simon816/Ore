@@ -124,9 +124,10 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
   def tagline       =   column[String]("tagline")
   def globalRoles   =   column[List[Int]]("global_roles")
   def joinDate      =   column[Timestamp]("join_date")
+  def avatarUrl     =   column[String]("avatar_url")
 
   override def * = (id.?, createdAt.?, name.?, username, email.?, tagline.?,
-                    globalRoles, joinDate.?) <> ((User.apply _).tupled, User.unapply)
+                    globalRoles, joinDate.?, avatarUrl.?) <> ((User.apply _).tupled, User.unapply)
 
 }
 

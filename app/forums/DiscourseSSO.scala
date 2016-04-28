@@ -85,7 +85,14 @@ class DiscourseSSO(private val url: String, private val secret: String) {
       }
     }
 
-    User.withName(username).map(_.fill(new User(externalId, name, username, email, null))).get
+    if (externalId == -1) throw new IllegalStateException("id not found")
+
+    User.getOrCreate(await(SpongeForums.Users.fetch(username)).get.get).fill(new User(
+      id          =   Some(externalId),
+      _fullName   =   Some(name),
+      _username   =   username,
+      _email      =   Some(email)
+    ))
   }
 
 }

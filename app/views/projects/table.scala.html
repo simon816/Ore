@@ -5,6 +5,7 @@ Collection of all projects.
 @import models.project.Project
 @import ore.project.Categories._
 @import forums.SpongeForums
+@import models.user.User
 @(models: Seq[Project], visibleCategories: Option[Array[Category]] = None)(implicit messages: Messages,
         session: Session, flash: Flash)
 
@@ -33,7 +34,7 @@ Collection of all projects.
                 <td class="author">
                     <a href="@routes.Users.show(project.ownerName)">
                         <img class="user-avatar" height="32" width="32" title="@project.ownerName"
-                             alt="@project.ownerName" src="@SpongeForums.Users.avatarUrl(project.ownerName, 100)" />
+                             alt="@project.ownerName" src="@User.withName(project.ownerName).get.avatarUrl(100)" />
                     </a>
                 </td>
                 <td class="minor stat">@project.views</td>

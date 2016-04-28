@@ -62,7 +62,7 @@ The main header displayed on each layout.
                                 @if(canViewFlags(user) && unresolved > 0) {
                                     <span class="unread"></span>
                                 }
-                                <img height="32" width="32" class="user-avatar" src="@SpongeForums.Users.avatarUrl(user.username, 100)" />
+                                <img height="32" width="32" class="user-avatar" src="@user.avatarUrl(100)" />
                                 <span class="caret"></span>
                             </a>
                             <ul class="user-dropdown dropdown-menu" aria-label="@messages("aria.dropdown.menu", 1)">

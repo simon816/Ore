@@ -35,9 +35,12 @@ class DiscourseUsers(url: String, ws: WSClient) {
       validate(response) { json =>
         val userObj = (json \ "user").as[JsObject]
         val user = new User(
-            (userObj \ "id").as[Int], (userObj \ "name").asOpt[String].orNull,
-            (userObj \ "username").as[String], (userObj \ "email").asOpt[String].orNull,
-            (userObj \ "created_at").asOpt[String].map(jd => new Timestamp(DateFormat.parse(jd).getTime)).orNull)
+            id          =   (userObj \ "id").asOpt[Int],
+            _fullName   =   (userObj \ "name").asOpt[String],
+            _username   =   (userObj \ "username").as[String],
+            _email      =   (userObj \ "email").asOpt[String],
+            _joinDate   =   (userObj \ "created_at").asOpt[String].map(jd => new Timestamp(DateFormat.parse(jd).getTime)),
+            _avatarUrl  =   (userObj \ "avatar_template").asOpt[String])
         val globalRoles = parseRoles(userObj)
         user.globalRoleTypes = globalRoles
         user
@@ -69,15 +72,13 @@ class DiscourseUsers(url: String, ws: WSClient) {
     * @param size     Size of avatar
     * @return         Avatar URL
     */
-  def avatarUrl(username: String, size: Int): String = {
-    await(ws.url(userUrl(username)).get.map { response =>
+  def fetchAvatarUrl(username: String, size: Int): Future[Option[String]] = {
+    ws.url(userUrl(username)).get.map { response =>
       validate(response) { json =>
         val template = (json \ "user" \ "avatar_template").as[String]
         this.url + template.replace("{size}", size.toString)
-      } getOrElse {
-        ""
       }
-    }).get
+    }
   }
 
   private def parseRoles(userObj: JsObject): Set[RoleType] = {
@@ -102,7 +103,7 @@ object DiscourseUsers {
   object Disabled extends DiscourseUsers("", null) {
     override def fetch(username: String) = Future(None)
     override def fetchRoles(username: String) = Future(Set())
-    override def avatarUrl(username: String, size: Int) = ""
+    override def fetchAvatarUrl(username: String, size: Int) = Future(None)
   }
 
 }

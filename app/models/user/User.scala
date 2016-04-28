@@ -17,6 +17,7 @@ import ore.permission.role.RoleTypes.RoleType
 import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
 import play.api.mvc.Session
+import util.C
 import util.C._
 import util.StringUtils._
 
@@ -37,7 +38,8 @@ case class User(override val  id: Option[Int] = None,
                 private var   _email: Option[String] = None,
                 private var   _tagline: Option[String] = None,
                 private var   globalRoleIds: List[Int] = List(),
-                private var   _joinDate: Option[Timestamp] = None)
+                private var   _joinDate: Option[Timestamp] = None,
+                private var   _avatarUrl: Option[String] = None)
                 extends       Model
                 with          UserOwner
                 with          ScopeSubject { self =>
@@ -52,11 +54,6 @@ case class User(override val  id: Option[Int] = None,
     */
   val can: PermissionPredicate = PermissionPredicate(this)
   val cannot: PermissionPredicate = PermissionPredicate(this, not = true)
-
-  def this(externalId: Int, name: String, username: String, email: String, joinDate: Timestamp) = {
-    this(id=Some(externalId), _fullName=Option(name), _username=username,
-         _email=Option(email), _joinDate=Option(joinDate))
-  }
 
   /**
     * Returns this User's full name.
@@ -127,6 +124,27 @@ case class User(override val  id: Option[Int] = None,
   def joinDate_=(_joinDate: Timestamp) = {
     this._joinDate = Option(_joinDate)
     if (isDefined) update(JoinDate)
+  }
+
+  /**
+    * Returns this User's avatar url with the specified size.
+    *
+    * @param size Size of avatar
+    * @return     Avatar URL
+    */
+  def avatarUrl(size: Int = 100): String = {
+    if (this._avatarUrl.isEmpty) this._avatarUrl = await(SpongeForums.Users.fetchAvatarUrl(this.username, size)).get
+    this._avatarUrl.map(s => DiscourseConf.getString("baseUrl").get + s.replace("{size}", size.toString)).getOrElse("")
+  }
+
+  /**
+    * Sets this User's avatar url.
+    *
+    * @param _avatarUrl Avatar url
+    */
+  def avatarUrl_=(_avatarUrl: String) = {
+    this._avatarUrl = Option(_avatarUrl)
+    if (isDefined) update(AvatarUrl)
   }
 
   /**
@@ -258,6 +276,7 @@ case class User(override val  id: Option[Int] = None,
   bind[String](Username, _._username, username => Seq(Queries.Users.setString(this, _.username, username)))
   bind[String](Email, _._email.orNull, email => Seq(Queries.Users.setString(this, _.email, email)))
   bind[String](Tagline, _._tagline.orNull, tagline => Seq(Queries.Users.setString(this, _.tagline, tagline)))
+  bind[String](AvatarUrl, _._avatarUrl.orNull, avatarUrl => Seq(Queries.Users.setString(this, _.avatarUrl, avatarUrl)))
   bind[Timestamp](JoinDate, _._joinDate.orNull, joinDate =>
     Seq(Queries.Users.setTimestamp(this,  _.joinDate, joinDate)))
   bind[List[Int]](GlobalRoles, _.globalRoleIds, globalRoles =>
