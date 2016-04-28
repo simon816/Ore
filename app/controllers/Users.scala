@@ -54,7 +54,7 @@ class Users @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
     * @return Home page
     */
   def logOut(returnPath: Option[String]) = Action { implicit request =>
-    Redirect(AppConf.getString("baseUrl").get + returnPath.getOrElse(request.path)).withNewSession
+    Redirect(AppConf.getString("baseUrl").get + returnPath.getOrElse(request.path)).withNewSession.flashing("noRedirect" -> "true")
   }
 
   /**
