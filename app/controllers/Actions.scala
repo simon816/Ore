@@ -16,10 +16,10 @@ import scala.concurrent.Future
 trait Actions {
 
   def onUnauthorized(request: RequestHeader) = {
-    if (request.flash.get("noRedirect").isDefined) {
-      Redirect(routes.Users.logIn(None, None, Some(request.path)))
+    request.flash.get("noRedirect") match {
+      case None => Redirect(routes.Users.logIn(None, None, Some(request.path)))
+      case Some(t) => Redirect(routes.Application.showHome(None, None, None))
     }
-    Redirect(routes.Application.showHome(None, None, None)).withNewSession
   }
 
   private def projectAction(author: String, slug: String) = new ActionRefiner[Request, ProjectRequest] {
