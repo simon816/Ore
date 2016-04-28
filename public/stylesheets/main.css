@@ -59,7 +59,7 @@ body {
     width: 100%;
     min-height: 60px;
     height: 60px;
-    padding: 10px;
+    padding: 0 10px 0 10px;
 }
 
 .footer .col-md-4 {
@@ -164,6 +164,7 @@ body {
 /* left nav */
 
 .navbar-main {
+    background-color: #333;
     padding-top: 1px;
     height: 63px; !important;
     min-height: 63px;
@@ -371,18 +372,14 @@ body {
 }
 
 .category-table tr.selected > td {
-    padding-top: 9px;
-}
-
-.category-table tr.selected:first-child > td {
-    padding-top: 8px; !important;
+    padding-top: 8px;
 }
 
 .category-table tr.selected {
     background: #f6d830;
 }
 
-.category-table tr.selected > td {
+.category-table tr.selected {
     -webkit-box-shadow: inset 0 0 5px #e6b800;
     -moz-box-shadow: inset 0 0 5px #e6b800;
     box-shadow: inset 0 0 5px #e6b800;
