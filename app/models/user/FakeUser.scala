@@ -3,6 +3,7 @@ package models.user
 import java.sql.Timestamp
 import java.util.Date
 
+import ore.permission.role.RoleTypes
 import util.C._
 
 /**
@@ -14,6 +15,8 @@ object FakeUser extends User(AppConf.getInt("fakeUser.id").get,
                              AppConf.getString("fakeUser.username").get,
                              AppConf.getString("fakeUser.email").get,
                              new Timestamp(new Date().getTime)) {
+
+  this.globalRoleTypes = Set(RoleTypes.Admin)
 
   /**
     * True if FakeUser should be used.
