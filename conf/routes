@@ -33,7 +33,7 @@ GET     /api/:version/users/:user                                   @controllers
 
 GET     /                                                           @controllers.Application.showHome(categories: Option[String], q: Option[String], sort: Option[Int])
 GET     /login                                                      @controllers.Users.logIn(sso: Option[String], sig: Option[String], returnUrl: Option[String])
-GET     /logout                                                     @controllers.Users.logOut
+GET     /logout                                                     @controllers.Users.logOut(returnUrl: Option[String])
 
 # ---------- Projects ----------
 

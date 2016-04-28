@@ -28,7 +28,7 @@ class Users @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
     val baseUrl = AppConf.getString("baseUrl").get
     if (FakeUser.IsEnabled) {
       User.getOrCreate(FakeUser)
-      Redirect(app.showHome(None, None, None)).withSession(Security.username -> FakeUser.username)
+      redirectBack(returnPath.getOrElse(request.path), FakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(Auth.getRedirect(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
     } else {
@@ -40,8 +40,12 @@ class Users @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
         case roles => if (!roles.equals(user.globalRoleTypes)) user.globalRoleTypes = roles.get
       }
 
-      Redirect(baseUrl + request2flash.get("url").get).withSession(Security.username -> user.username)
+      redirectBack(request2flash.get("url").get, user.username)
     }
+  }
+
+  private def redirectBack(url: String, username: String) = {
+    Redirect(AppConf.getString("baseUrl").get + url).withSession(Security.username -> username)
   }
 
   /**
@@ -49,8 +53,8 @@ class Users @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
     *
     * @return Home page
     */
-  def logOut = Action { implicit request =>
-    Redirect(app.showHome(None, None, None)).withNewSession
+  def logOut(returnPath: Option[String]) = Action { implicit request =>
+    Redirect(AppConf.getString("baseUrl").get + returnPath.getOrElse(request.path)).withNewSession
   }
 
   /**
