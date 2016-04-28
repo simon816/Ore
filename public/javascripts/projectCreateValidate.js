@@ -30,7 +30,7 @@ function failed(selector, message) {
 
 function checkId(pluginId, name, owner, slug) {
     $.ajax({
-        url: '/api/project?pluginId=' + pluginId,
+        url: '/api/projects/' + pluginId,
         statusCode: {
             404: function() {
                 success('.id-status', function() {
