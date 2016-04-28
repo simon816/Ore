@@ -24,8 +24,7 @@ body {
 
 .btn-edit {
     position: fixed;
-    left: 4px;
-    top: 250px;
+    margin-left: -75px;
 }
 
 .page-content img {
