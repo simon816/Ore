@@ -305,6 +305,7 @@ body {
     font-size: 18px;
     white-space: nowrap;
     overflow: hidden;
+    vertical-align: middle;
 }
 
 .project-table .name {

@@ -4,6 +4,7 @@ Collection of all projects.
 @import controllers.project.routes.{Projects => projectRoutes}
 @import models.project.Project
 @import ore.project.Categories._
+@import forums.SpongeForums
 @(models: Seq[Project], visibleCategories: Option[Array[Category]] = None)(implicit messages: Messages,
         session: Session, flash: Flash)
 
@@ -29,7 +30,12 @@ Collection of all projects.
                     <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
                     <i title="@project.description.getOrElse("")" class="minor">@project.description.getOrElse("")</i>
                 </td>
-                <td class="author"><a href="@routes.Users.show(project.ownerName)">@project.ownerName</a></td>
+                <td class="author">
+                    <a href="@routes.Users.show(project.ownerName)">
+                        <img class="user-avatar" height="32" width="32" title="@project.ownerName"
+                             alt="@project.ownerName" src="@SpongeForums.Users.avatarUrl(project.ownerName, 100)" />
+                    </a>
+                </td>
                 <td class="minor stat">@project.views</td>
                 <td class="minor stat">@project.downloads</td>
                 <td class="minor stat">@project.stars</td>
