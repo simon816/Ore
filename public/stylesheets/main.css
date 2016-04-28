@@ -20,20 +20,21 @@ body {
     padding: 10px;
     max-width: 100%;
     overflow: hidden;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.alert-review {
+    margin-bottom: 10px;
 }
 
 .btn-edit {
     position: absolute;
-    margin-left: -75px;
-}
-
-.page-content img {
-    max-width: 100%;
-}
-
-.page-content {
-    padding: 10px;
-    width: 100%;
+    margin-left: -59px;
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+    padding: 6px;
 }
 
 .page-content h1, .page-content h2, .page-content h3, .page-content h4, .page-content h5, .page-content h6 {
@@ -338,6 +339,10 @@ body {
 .project-table .stat {
     text-align: center;
     width: 40px;
+}
+
+.header-user {
+    padding-right: 9px;
 }
 
 .select-sort {

@@ -129,9 +129,7 @@ class PluginFile(private var _path: Path, override val user: User) extends UserO
       var entry: JarEntry = null
       var metaFound: Boolean = false
       breakable {
-        while ( {
-          entry = jarIn.getNextJarEntry; entry
-        } != null) {
+        while ({ entry = jarIn.getNextJarEntry; entry } != null) {
           if (entry.getName.equals(MetaFileName)) {
             metaFound = true
             break
@@ -140,13 +138,13 @@ class PluginFile(private var _path: Path, override val user: User) extends UserO
       }
 
       if (!metaFound) {
-        throw new InvalidPluginFileException("No plugin meta file found.")
+        throw new InvalidPluginFileException("No plugin meta entries found.")
       }
 
       val metaList = McModInfo.DEFAULT.read(jarIn)
       jarIn.close()
       if (metaList.size() > 1) {
-        throw new InvalidPluginFileException("Multiple meta files found.")
+        throw new InvalidPluginFileException("Multiple meta entries found.")
       }
 
       // Parse plugin meta info

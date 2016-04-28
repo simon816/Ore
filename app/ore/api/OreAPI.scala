@@ -36,7 +36,7 @@ object OreAPI {
       val filter = q.map(Queries.Projects.searchFilter).orNull
       val lim = Math.max(limit.getOrElse(Project.InitialLoad), Project.InitialLoad)
       val f = Queries.Projects.collect(filter, categoryArray, lim, offset.getOrElse(-1), s)
-      val projects = now(f).get
+      val projects = await(f).get
       Json.toJson(projects)
     }
 
@@ -94,7 +94,7 @@ object OreAPI {
       * @return       List of users
       */
     def getUserList(limit: Option[Int], offset: Option[Int]): JsValue
-    = Json.toJson(now(Queries.Users.collect(limit.getOrElse(-1), offset.getOrElse(-1))).get)
+    = Json.toJson(await(Queries.Users.collect(limit.getOrElse(-1), offset.getOrElse(-1))).get)
 
     /**
       * Returns a Json value of the User with the specified username.

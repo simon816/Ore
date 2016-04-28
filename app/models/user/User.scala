@@ -8,7 +8,7 @@ import db.orm.dao.{ModelDAO, ModelSet}
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, UserOwner}
 import db.query.Queries
-import db.query.Queries.now
+import db.query.Queries.await
 import db.{FlagTable, ProjectRolesTable, UserTable}
 import forums.SpongeForums
 import models.project.{Flag, Project}
@@ -225,7 +225,7 @@ case class User(override val  id: Option[Int] = None,
     */
   def starred(page: Int = -1): Seq[Project] = assertDefined {
     val limit = if (page < 1) -1 else StarsPerPage
-    now(Queries.Projects.starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
+    await(Queries.Projects.starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
   }
 
   /**
@@ -284,8 +284,8 @@ object User extends ModelDAO[User] {
     * @return User if found, None otherwise
     */
   def withName(username: String): Option[User] = {
-    now(Queries.Users.find(_.username.toLowerCase === username.toLowerCase)).get.orElse {
-      now(SpongeForums.Users.fetch(username)).get.map(getOrCreate)
+    await(Queries.Users.find(_.username.toLowerCase === username.toLowerCase)).get.orElse {
+      await(SpongeForums.Users.fetch(username)).get.map(getOrCreate)
     }
   }
 
@@ -296,7 +296,7 @@ object User extends ModelDAO[User] {
     * @param user User to find
     * @return     Found or new User
     */
-  def getOrCreate(user: User): User = now(Queries.Users.getOrInsert(user)).get
+  def getOrCreate(user: User): User = await(Queries.Users.getOrInsert(user)).get
 
   /**
     * Returns the currently authenticated User.
@@ -306,6 +306,6 @@ object User extends ModelDAO[User] {
     */
   def current(implicit session: Session): Option[User] = session.get("username").map(withName).getOrElse(None)
 
-  override def withId(id: Int): Option[User] = now(Queries.Users.get(id)).get
+  override def withId(id: Int): Option[User] = await(Queries.Users.get(id)).get
 
 }

@@ -3,7 +3,7 @@ package forums
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
-import db.query.Queries.now
+import db.query.Queries.await
 import forums.SpongeForums.validate
 import models.user.User
 import ore.permission.role.RoleTypes
@@ -70,7 +70,7 @@ class DiscourseUsers(url: String, ws: WSClient) {
     * @return         Avatar URL
     */
   def avatarUrl(username: String, size: Int): String = {
-    now(ws.url(userUrl(username)).get.map { response =>
+    await(ws.url(userUrl(username)).get.map { response =>
       validate(response) { json =>
         val template = (json \ "user" \ "avatar_template").as[String]
         this.url + template.replace("{size}", size.toString)

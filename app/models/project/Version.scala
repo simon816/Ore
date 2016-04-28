@@ -7,7 +7,7 @@ import db.orm.dao.ModelDAO
 import db.orm.model.Model
 import db.orm.model.ModelKeys._
 import db.query.Queries
-import db.query.Queries.now
+import db.query.Queries.await
 import ore.Colors.Color
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
@@ -74,7 +74,7 @@ case class Version(override val   id: Option[Int] = None,
     *
     * @return Channel
     */
-  def channel: Channel = now(Queries.Channels.get(this.channelId)).get.get
+  def channel: Channel = await(Queries.Channels.get(this.channelId)).get.get
 
   /**
     * Returns the channel this version belongs to from the specified collection
@@ -143,7 +143,7 @@ case class Version(override val   id: Option[Int] = None,
   def exists: Boolean = {
     this.projectId > -1 &&
       ((this.channelId > -1 && this.channel.versions.find(_.versionString === this.versionString).isDefined) ||
-        now(Queries.Versions.hashExists(this.projectId, this.hash)).get)
+        await(Queries.Versions.hashExists(this.projectId, this.hash)).get)
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Version = this.copy(id = id, createdAt = theTime)
@@ -249,6 +249,6 @@ object Version extends ModelDAO[Version] {
     )
   }
 
-  override def withId(id: Int): Option[Version] = now(Queries.Versions.get(id)).get
+  override def withId(id: Int): Option[Version] = await(Queries.Versions.get(id)).get
 
 }

@@ -7,7 +7,7 @@ import controllers.routes.{Application => self}
 import db.OrePostgresDriver.api._
 import db.ProjectTable
 import db.query.Queries
-import db.query.Queries.{ModelFilter, filterToFunction, now}
+import db.query.Queries.{ModelFilter, filterToFunction, await}
 import models.project.Project._
 import models.project.{Flag, Project}
 import models.user.User
@@ -49,7 +49,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     }.orNull[ModelFilter[ProjectTable, Project]]
     if (filter == null && !canHideProjects) filter = _.isVisible
 
-    val projects = now(Queries.Projects.collect(filter, categoryArray, InitialLoad, -1, s)).get
+    val projects = await(Queries.Projects.collect(filter, categoryArray, InitialLoad, -1, s)).get
     Ok(views.home(projects, Option(categoryArray), s))
   }
 

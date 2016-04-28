@@ -40,7 +40,7 @@ abstract class Model { self =>
     val binding = this.tableBindings.get(key).get.asInstanceOf[TableBinding[A]]
     val value = binding.valueFunc(this.asInstanceOf[M])
     debug("Updating key \"" + key + "\" in model " + getClass + " to " + value)
-    for (f <- binding.updateFunc(value)) Queries.now(f).get
+    for (f <- binding.updateFunc(value)) Queries.await(f).get
   }
 
   /**

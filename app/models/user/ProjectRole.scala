@@ -62,5 +62,5 @@ case class ProjectRole(override val id: Option[Int] = None,
 }
 
 object ProjectRole extends ModelDAO[ProjectRole] {
-  override def withId(id: Int): Option[ProjectRole] = Queries.now(Queries.Users.ProjectRoles.get(id)).get
+  override def withId(id: Int): Option[ProjectRole] = Queries.await(Queries.Users.ProjectRoles.get(id)).get
 }

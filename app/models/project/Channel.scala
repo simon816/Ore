@@ -9,7 +9,7 @@ import db.orm.dao.{ModelDAO, ModelSet}
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, ModelKeys}
 import db.query.Queries
-import db.query.Queries.now
+import db.query.Queries.await
 import db.{ChannelTable, VersionTable}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
@@ -106,7 +106,7 @@ case class Channel(override val   id: Option[Int] = None,
     checkArgument(context.versions.size > 1, "only one version", "")
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
     val rv = context.recommendedVersion
-    now(Queries.Versions delete version).get
+    await(Queries.Versions delete version).get
     // Set recommended version to latest version if the deleted version was the rv
     if (version.equals(rv)) context.recommendedVersion = context.versions.sorted(_.createdAt.desc, limit = 1).head
     Files.delete(ProjectFiles.uploadPath(context.ownerName, context.name, version.versionString, this._name))
@@ -125,7 +125,7 @@ case class Channel(override val   id: Option[Int] = None,
     checkArgument(channels.size > 1, "only one channel", "")
     checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
 
-    now(Queries.Channels delete this).get
+    await(Queries.Channels delete this).get
     FileUtils.deleteDirectory(ProjectFiles.projectDir(context.ownerName, context.name).resolve(this._name).toFile)
   }
 
@@ -197,7 +197,7 @@ object Channel extends ModelDAO[Channel] {
     firstString(new ComparableVersion(version).getItems).getOrElse(DefaultName)
   }
 
-  override def withId(id: Int): Option[Channel] = now(Queries.Channels.get(id)).get
+  override def withId(id: Int): Option[Channel] = await(Queries.Channels.get(id)).get
 
   private def firstString(items: ListItem): Option[String] = {
     // Get the first non-number component in the version string

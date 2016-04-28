@@ -36,12 +36,24 @@ $(function() {
     }
 
     var btnEdit = $('.btn-edit');
+
+    btnEdit.mouseenter(function() {
+        $('.page-content').css('background-color', '#e6e6e6').css('border-color', '#adadad');
+    }).mouseleave(function() {
+        $('.page-content').css('background-color', 'white').css('border-color', '#ccc');
+    });
+
     var origTop = btnEdit.position().top;
+
+    console.log(origTop);
+    console.log($(window).scrollTop());
+
     $(window).scroll(function() {
         var navHeight = $('.navbar-main').height();
         var top = $(this).scrollTop();
+        console.log(top);
         if (top > btnEdit.offset().top - navHeight - 10) {
-            btnEdit.css('position', 'fixed').css('top', navHeight + 10);
+            btnEdit.css('position', 'fixed').css('top', navHeight + 20);
         } else if (top - navHeight - 30 < origTop) {
             btnEdit.css('position', 'absolute').css('top', origTop);
         }

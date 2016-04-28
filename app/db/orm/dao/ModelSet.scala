@@ -4,7 +4,7 @@ import db.OrePostgresDriver.api._
 import db.orm.ModelTable
 import db.orm.model.Model
 import db.query.Queries
-import db.query.Queries.{ModelFilter, now}
+import db.query.Queries.{ModelFilter, await}
 import slick.lifted.ColumnOrdered
 
 /**
@@ -30,7 +30,7 @@ class ModelSet[ParentTable <: ModelTable[Parent], Parent <: Model, ChildTable <:
     *
     * @return All model children
     */
-  def values: Set[Child] = now(Queries.collect(childClass, filter = childFilter)).get.toSet
+  def values: Set[Child] = await(Queries.collect(childClass, filter = childFilter)).get.toSet
 
   /**
     * Returns a Seq of all the children of the parent model.
@@ -44,7 +44,7 @@ class ModelSet[ParentTable <: ModelTable[Parent], Parent <: Model, ChildTable <:
     *
     * @return Amount of children
     */
-  def size: Int = now(Queries count (childClass, childFilter)).get
+  def size: Int = await(Queries count (childClass, childFilter)).get
 
   /**
     * Returns true if this set is empty.
@@ -66,7 +66,7 @@ class ModelSet[ParentTable <: ModelTable[Parent], Parent <: Model, ChildTable <:
     * @param child  Child to look for
     * @return       True if parent has child
     */
-  def contains(child: Child): Boolean = now(Queries count (childClass, childFilter +& idFilter(child.id.get))).get > 0
+  def contains(child: Child): Boolean = await(Queries count (childClass, childFilter +& idFilter(child.id.get))).get > 0
 
   /**
     * Inserts the specified child.
@@ -74,7 +74,7 @@ class ModelSet[ParentTable <: ModelTable[Parent], Parent <: Model, ChildTable <:
     * @param child  Child to insert
     * @return       New child
     */
-  def add(child: Child): Child = now(Queries insert child).get
+  def add(child: Child): Child = await(Queries insert child).get
 
   /**
     * Removes the child from the set.
@@ -83,7 +83,7 @@ class ModelSet[ParentTable <: ModelTable[Parent], Parent <: Model, ChildTable <:
     * @return       True if the set changed as a result
     */
   def remove(child: Child): Boolean = if (this.contains(child)) {
-    now(Queries delete child).get
+    await(Queries delete child).get
     true
   } else true
 
@@ -93,7 +93,7 @@ class ModelSet[ParentTable <: ModelTable[Parent], Parent <: Model, ChildTable <:
     * @param filter Model filter
     */
   def removeWhere(filter: ChildTable => Rep[Boolean])
-  = now(Queries deleteWhere (childClass, this.childFilter && filter)).get
+  = await(Queries deleteWhere (childClass, this.childFilter && filter)).get
 
   /**
     * Finds the first child matching the specified filter.
@@ -102,7 +102,7 @@ class ModelSet[ParentTable <: ModelTable[Parent], Parent <: Model, ChildTable <:
     * @return       First child
     */
   def find(filter: ChildTable => Rep[Boolean]): Option[Child]
-  = now(Queries find (childClass, this.childFilter && filter)).get
+  = await(Queries find (childClass, this.childFilter && filter)).get
 
   /**
     * Returns a sorted Seq of child models.
@@ -115,7 +115,7 @@ class ModelSet[ParentTable <: ModelTable[Parent], Parent <: Model, ChildTable <:
     */
   def sorted(ordering: ChildTable => ColumnOrdered[_], filter: ChildTable => Rep[Boolean] = null,
              limit: Int = -1, offset: Int = -1): Seq[Child] = {
-    now(Queries.collect(childClass, limit, offset, this.childFilter && filter, ordering)).get.toList
+    await(Queries.collect(childClass, limit, offset, this.childFilter && filter, ordering)).get.toList
   }
 
   /**
@@ -127,9 +127,9 @@ class ModelSet[ParentTable <: ModelTable[Parent], Parent <: Model, ChildTable <:
     * @return       Filtered children
     */
   def filter(filter: ChildTable => Rep[Boolean], limit: Int = -1, offset: Int = -1): Seq[Child] = {
-    now(Queries.collect(childClass, limit, offset, this.childFilter && filter)).get
+    await(Queries.collect(childClass, limit, offset, this.childFilter && filter)).get
   }
 
-  override def withId(id: Int): Option[Child] = now(Queries.find(childClass, childFilter +& idFilter(id))).get
+  override def withId(id: Int): Option[Child] = await(Queries.find(childClass, childFilter +& idFilter(id))).get
 
 }

@@ -8,7 +8,7 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 import db.query.Queries
-import db.query.Queries.now
+import db.query.Queries.await
 import models.user.User
 import org.apache.commons.codec.binary.Hex
 

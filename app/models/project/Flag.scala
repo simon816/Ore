@@ -7,7 +7,7 @@ import db.orm.dao.ModelDAO
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, UserOwner}
 import db.query.Queries
-import db.query.Queries.now
+import db.query.Queries.await
 import ore.permission.scope.ProjectScope
 import ore.project.FlagReasons.FlagReason
 
@@ -72,8 +72,8 @@ object Flag extends ModelDAO[Flag] {
     *
     * @return All unresolved flags
     */
-  def unresolved: Seq[Flag] = now(Queries.Projects.Flags.filter(!_.isResolved)).get
+  def unresolved: Seq[Flag] = await(Queries.Projects.Flags.filter(!_.isResolved)).get
 
-  override def withId(id: Int): Option[Flag] = now(Queries.Projects.Flags.get(id)).get
+  override def withId(id: Int): Option[Flag] = await(Queries.Projects.Flags.get(id)).get
 
 }

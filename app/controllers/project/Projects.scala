@@ -250,7 +250,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
       Forms.ProjectReply.bindFromRequest.fold(
         hasErrors => Redirect(self.showDiscussion(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         content => {
-          Queries.now(SpongeForums.Embed.postReply(request.project, request.user, content)).get
+          Queries.await(SpongeForums.Embed.postReply(request.project, request.user, content)).get
           Redirect(self.showDiscussion(author, slug))
         }
       )

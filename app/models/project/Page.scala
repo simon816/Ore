@@ -122,7 +122,7 @@ object Page extends ModelDAO[Page] {
     */
   val MaxNameLength: Int = PagesConf.getInt("name.max-len").get
 
-  override def withId(id: Int): Option[Page] = Queries.now(Queries.Pages.get(id)).get
+  override def withId(id: Int): Option[Page] = Queries.await(Queries.Pages.get(id)).get
 
   /**
     * Returns a template for new Pages.

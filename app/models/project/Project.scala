@@ -11,7 +11,7 @@ import db.orm.dao.{ModelDAO, ModelSet}
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, ModelKeys}
 import db.query.Queries
-import db.query.Queries.{filterToFunction, now}
+import db.query.Queries.{filterToFunction, await}
 import forums.SpongeForums
 import models.project.Version.PendingVersion
 import models.user.{ProjectRole, User}
@@ -96,7 +96,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return All Members of project
     */
-  def members: List[ProjectMember] = now(Queries.Projects.getMembers(this)).get
+  def members: List[ProjectMember] = await(Queries.Projects.getMembers(this)).get
 
   /**
     * Removes the [[ProjectMember]] that belongs to the specified [[User]] from this
@@ -222,7 +222,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return       True if starred by User
     */
   def isStarredBy(user: User): Boolean = assertDefined {
-    now(Queries.Projects.isStarredBy(this.id.get, user.id.get)).get
+    await(Queries.Projects.isStarredBy(this.id.get, user.id.get)).get
   }
 
   /**
@@ -256,7 +256,7 @@ case class Project(override val   id: Option[Int] = None,
   def starFor(user: User) = assertDefined {
     if (!isStarredBy(user)) {
       this._stars += 1
-      now(Queries.Projects.starFor(this.id.get, user.id.get)).get
+      await(Queries.Projects.starFor(this.id.get, user.id.get)).get
       update(Stars)
     }
   }
@@ -270,7 +270,7 @@ case class Project(override val   id: Option[Int] = None,
   def unstarFor(user: User) = assertDefined {
     if (isStarredBy(user)) {
       this._stars -= 1
-      now(Queries.Projects.unstarFor(this.id.get, user.id.get)).get
+      await(Queries.Projects.unstarFor(this.id.get, user.id.get)).get
       update(Stars)
     }
   }
@@ -278,7 +278,7 @@ case class Project(override val   id: Option[Int] = None,
   def flagFor(user: User, reason: FlagReason) = assertDefined {
     val userId = user.id.get
     checkArgument(userId != this.ownerId, "cannot flag own project", "")
-    now(Queries.Projects.Flags insert new Flag(this.id.get, user.id.get, reason)).get
+    await(Queries.Projects.Flags insert new Flag(this.id.get, user.id.get, reason)).get
   }
 
   /**
@@ -376,7 +376,7 @@ case class Project(override val   id: Option[Int] = None,
   def addChannel(name: String, color: Color): Channel = assertDefined {
     checkArgument(Channel.isValidName(name), "invalid name", "")
     checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
-    now(Queries.Channels insert new Channel(name, color, this.id.get)).get
+    await(Queries.Channels insert new Channel(name, color, this.id.get)).get
   }
 
   /**
@@ -394,7 +394,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return Recommended version
     */
   def recommendedVersion: Version = assertDefined {
-    now(Queries.Versions.get(this.recommendedVersionId.get)).get.get
+    await(Queries.Versions.get(this.recommendedVersionId.get)).get.get
   }
 
   /**
@@ -404,7 +404,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return         Result
     */
   def recommendedVersion_=(_version: Version) = {
-    if (isDefined) now(Queries.Projects.setInt(this, _.recommendedVersionId, _version.id.get)).get
+    if (isDefined) await(Queries.Projects.setInt(this, _.recommendedVersionId, _version.id.get)).get
     this.recommendedVersionId = _version.id
   }
 
@@ -432,7 +432,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return       Page with name or new name if it doesn't exist
     */
   def getOrCreatePage(name: String): Page = assertDefined {
-    now(Queries.Pages.getOrInsert(new Page(this.id.get, name, Page.template(name, Page.HomeMessage), true))).get
+    await(Queries.Pages.getOrInsert(new Page(this.id.get, name, Page.template(name, Page.HomeMessage), true))).get
   }
 
   /**
@@ -442,7 +442,7 @@ case class Project(override val   id: Option[Int] = None,
     */
   def homePage: Page = assertDefined {
     val page = new Page(this.id.get, Page.HomeName, Page.template(this.name, Page.HomeMessage), false)
-    now(Queries.Pages.getOrInsert(page)).get
+    await(Queries.Pages.getOrInsert(page)).get
   }
 
   /**
@@ -499,7 +499,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return Result
     */
   def delete = assertDefined {
-    now(Queries.Projects delete this).get
+    await(Queries.Projects delete this).get
     FileUtils.deleteDirectory(ProjectFiles.projectDir(this.ownerName, this._name).toFile)
     if (this.topicId.isDefined) SpongeForums.Embed.deleteTopic(this)
   }
@@ -616,7 +616,7 @@ object Project extends ModelDAO[Project] {
     * @param slug   URL slug
     * @return       Project if found, None otherwise
     */
-  def withSlug(owner: String, slug: String): Option[Project] = now(Queries.Projects.find {
+  def withSlug(owner: String, slug: String): Option[Project] = await(Queries.Projects.find {
     Queries.Projects.ownerFilter(owner) && (_.slug === slug)
   }).get
 
@@ -628,7 +628,7 @@ object Project extends ModelDAO[Project] {
     * @param name   Project name
     * @return       Project if found, None otherwise
     */
-  def withName(owner: String, name: String): Option[Project] = now(Queries.Projects.find {
+  def withName(owner: String, name: String): Option[Project] = await(Queries.Projects.find {
     Queries.Projects.ownerFilter(owner) && (_.name === name)
   }).get
 
@@ -638,7 +638,7 @@ object Project extends ModelDAO[Project] {
     * @param pluginId Plugin ID
     * @return         Project if found, None otherwise
     */
-  def withPluginId(pluginId: String): Option[Project] = now(Queries.Projects.find(_.pluginId === pluginId)).get
+  def withPluginId(pluginId: String): Option[Project] = await(Queries.Projects.find(_.pluginId === pluginId)).get
 
   /**
     * Returns the all Projects created by the specified owner.
@@ -646,7 +646,7 @@ object Project extends ModelDAO[Project] {
     * @param owner  Owner name
     * @return       Project if found, None otherwise
     */
-  def by(owner: String): Seq[Project] = now(Queries.Projects.filter(Queries.Projects.ownerFilter(owner))).get
+  def by(owner: String): Seq[Project] = await(Queries.Projects.filter(Queries.Projects.ownerFilter(owner))).get
 
   /**
     * Returns the string to fill the specified Project's forum topic content
@@ -715,6 +715,6 @@ object Project extends ModelDAO[Project] {
     new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getUrl)
   }
 
-  override def withId(id: Int): Option[Project] = now(Queries.Projects.get(id)).get
+  override def withId(id: Int): Option[Project] = await(Queries.Projects.get(id)).get
 
 }

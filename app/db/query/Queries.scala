@@ -157,7 +157,7 @@ object Queries {
     * @tparam M       Return type
     * @return         Try of return type
     */
-  def now[M](f: Future[M], timeout: Duration = DefaultTimeout): Try[M] = Await.ready(f, timeout).value.get
+  def await[M](f: Future[M], timeout: Duration = DefaultTimeout): Try[M] = Await.ready(f, timeout).value.get
 
   /**
     * Creates the specified model in it's table.
