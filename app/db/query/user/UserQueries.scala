@@ -3,9 +3,11 @@ package db.query.user
 import db.OrePostgresDriver.api._
 import db.orm.dao.ModelSet
 import db.query.Queries
+import db.query.Queries.run
 import db.{FlagTable, ProjectRolesTable, ProjectTable, UserTable}
 import models.project.{Flag, Project}
 import models.user.{ProjectRole, User}
+import ore.permission.role.RoleTypes.RoleType
 
 import scala.concurrent.Future
 
@@ -50,6 +52,9 @@ class UserQueries extends Queries {
     */
   def getFlags(user: User): ModelSet[UserTable, User, FlagTable, Flag]
   = Queries.getModelSet[UserTable, User, FlagTable, Flag](classOf[Flag], _.userId, user)
+
+  def setGlobalRoles(user: User, globalRoles: List[RoleType])
+  = run((for { model <- this.baseQuery if model.id === user.id.get } yield model.globalRoles).update(globalRoles))
 
   override def like(user: User): Future[Option[User]] = this.find(_.username.toLowerCase === user.username.toLowerCase)
 

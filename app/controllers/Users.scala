@@ -35,10 +35,10 @@ class Users @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
       // Decode SSO payload and get Ore user
       val user = Auth.authenticate(sso.get, sig.get)
 
-      // Get groups from forums
-      SpongeForums.Users.fetchRoles(user.username).andThen {
-        case roles => if (!roles.equals(user.globalRoleTypes)) user.globalRoleTypes = roles.get
-      }
+//      // Get groups from forums
+//      SpongeForums.Users.fetchRoles(user.username).andThen {
+//        case roles => if (!roles.equals(user.globalRoleTypes)) user.globalRoleTypes = roles.get
+//      }
 
       redirectBack(request2flash.get("url").get, user.username)
     }

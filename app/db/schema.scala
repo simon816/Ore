@@ -122,7 +122,7 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
   def username      =   column[String]("username")
   def email         =   column[String]("email")
   def tagline       =   column[String]("tagline")
-  def globalRoles   =   column[List[Int]]("global_roles")
+  def globalRoles   =   column[List[RoleType]]("global_roles")
   def joinDate      =   column[Timestamp]("join_date")
   def avatarUrl     =   column[String]("avatar_url")
 

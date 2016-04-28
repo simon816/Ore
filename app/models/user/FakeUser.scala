@@ -16,7 +16,7 @@ object FakeUser extends User(id         =   AppConf.getInt("fakeUser.id"),
                              _email     =   AppConf.getString("fakeUser.email"),
                              _joinDate  =   Some(new Timestamp(new Date().getTime))) {
 
-  this.globalRoleTypes = Set(RoleTypes.Admin)
+  this.globalRoles = Set(RoleTypes.Admin)
 
   /**
     * True if FakeUser should be used.
