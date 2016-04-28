@@ -17,7 +17,6 @@ import ore.permission.role.RoleTypes.RoleType
 import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
 import play.api.mvc.Session
-import util.C
 import util.C._
 import util.StringUtils._
 
@@ -255,10 +254,11 @@ case class User(override val  id: Option[Int] = None,
     */
   def fill(user: User): User = {
     if (user == null) return this
-    user.fullName.map(this.fullName = _)
-    user.email.map(this.email = _)
-    user.tagline.map(this.tagline = _)
-    user.joinDate.map(this.joinDate = _)
+    user.fullName.foreach(this.fullName_=)
+    user.email.foreach(this.email_=)
+    user.tagline.foreach(this.tagline_=)
+    user.joinDate.foreach(this.joinDate_=)
+    user._avatarUrl.foreach(this.avatarUrl_=)
     this.username = user.username
     this.globalRoleTypes = user.globalRoleTypes
     this
