@@ -8,6 +8,10 @@ body {
     margin-bottom: 60px;
 }
 
+#edit textarea {
+    border-radius: 4px;
+}
+
 .logo {
     height: 40px;
 }
@@ -17,12 +21,14 @@ body {
 }
 
 .page-content {
-    padding: 10px;
+    min-height: 400px;
+    padding: 10px 20px 20px 20px;
     max-width: 100%;
     overflow: hidden;
     background-color: white;
     border: 1px solid #ccc;
     border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
 .alert-review {
@@ -31,10 +37,15 @@ body {
 
 .btn-edit {
     position: absolute;
-    margin-left: -59px;
+    margin-left: -69px;
+    margin-top: 10px;
     border-right: none;
     border-radius: 4px 0 0 4px;
     padding: 6px;
+}
+
+.btn-edit:focus {
+    outline: none;
 }
 
 .page-content h1, .page-content h2, .page-content h3, .page-content h4, .page-content h5, .page-content h6 {
@@ -634,6 +645,29 @@ form {
 
 .page-editor-tabs {
     margin-bottom: 15px;
+    border: none;
+}
+
+.page-editor-tabs > li > a:hover {
+    border-bottom: 1px solid #ddd;
+}
+
+.page-editor-tabs > li > a:hover,
+.page-editor-tabs > li.active > a,
+.page-editor-tabs > li.active > a:hover,
+.page-editor-tabs > li > a:focus,
+.page-editor-tabs > li.active > a:focus {
+    background-color: transparent; !important;
+    outline: none;
+}
+
+.page-editor-tabs > li.active > a, .page-editor-tabs > li.active > a:hover,
+.page-editor-tabs > li.active > a, .page-editor-tabs > li.active > a,
+.page-editor-tabs > li.active > a, .page-editor-tabs > li.active > a:focus {
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid black;
 }
 
 .new-page {

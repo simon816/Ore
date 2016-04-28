@@ -27,15 +27,9 @@ function initFlagList() {
     });
 }
 
-$(function() {
-    initFlagList();
-
-    var flagMsg = $('.flag-msg');
-    if (flagMsg.length) {
-        flagMsg.hide().fadeIn(1000).delay(2000).fadeOut(1000);
-    }
-
+function initBtnEdit() {
     var btnEdit = $('.btn-edit');
+    if (!btnEdit.length) return;
 
     btnEdit.mouseenter(function() {
         $('.page-content').css('background-color', '#e6e6e6').css('border-color', '#adadad');
@@ -44,20 +38,26 @@ $(function() {
     });
 
     var origTop = btnEdit.position().top;
-
-    console.log(origTop);
-    console.log($(window).scrollTop());
-
     $(window).scroll(function() {
         var navHeight = $('.navbar-main').height();
         var top = $(this).scrollTop();
         console.log(top);
-        if (top > btnEdit.offset().top - navHeight - 20) {
+        if (top > btnEdit.offset().top - navHeight - 30) {
             btnEdit.css('position', 'fixed').css('top', navHeight + 20);
         } else if (top - navHeight - 85 < origTop) {
             btnEdit.css('position', 'absolute').css('top', origTop);
         }
     });
+}
+
+$(function() {
+    initFlagList();
+    initBtnEdit();
+
+    var flagMsg = $('.flag-msg');
+    if (flagMsg.length) {
+        flagMsg.hide().fadeIn(1000).delay(2000).fadeOut(1000);
+    }
 
     // setup star button
     var increment = alreadyStarred ? -1 : 1;
