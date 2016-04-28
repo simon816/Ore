@@ -23,7 +23,7 @@ body {
 }
 
 .btn-edit {
-    position: fixed;
+    position: absolute;
     margin-left: -75px;
 }
 

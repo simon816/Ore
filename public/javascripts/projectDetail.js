@@ -35,6 +35,18 @@ $(function() {
         flagMsg.hide().fadeIn(1000).delay(2000).fadeOut(1000);
     }
 
+    var btnEdit = $('.btn-edit');
+    var origTop = btnEdit.position().top;
+    $(window).scroll(function() {
+        var navHeight = $('.navbar-main').height();
+        var top = $(this).scrollTop();
+        if (top > btnEdit.offset().top - navHeight - 10) {
+            btnEdit.css('position', 'fixed').css('top', navHeight + 10);
+        } else if (top - navHeight - 30 < origTop) {
+            btnEdit.css('position', 'absolute').css('top', origTop);
+        }
+    });
+
     // setup star button
     var increment = alreadyStarred ? -1 : 1;
     $('.btn-star').click(function() {
