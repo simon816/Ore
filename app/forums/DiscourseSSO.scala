@@ -87,11 +87,11 @@ class DiscourseSSO(private val url: String, private val secret: String) {
 
     if (externalId == -1) throw new IllegalStateException("id not found")
 
-    User.getOrCreate(await(SpongeForums.Users.fetch(username)).get.get).fill(new User(
-      id          =   Some(externalId),
-      _fullName   =   Some(name),
-      _username   =   username,
-      _email      =   Some(email)
+    User.withName(username).get.fill(await(SpongeForums.Users.fetch(username)).get.get.copy(
+      id = Some(externalId),
+      _fullName = Some(name),
+      _username = username,
+      _email = Some(email)
     ))
   }
 
