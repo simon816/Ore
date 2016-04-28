@@ -52,9 +52,9 @@ $(function() {
         var navHeight = $('.navbar-main').height();
         var top = $(this).scrollTop();
         console.log(top);
-        if (top > btnEdit.offset().top - navHeight - 10) {
+        if (top > btnEdit.offset().top - navHeight - 20) {
             btnEdit.css('position', 'fixed').css('top', navHeight + 20);
-        } else if (top - navHeight - 30 < origTop) {
+        } else if (top - navHeight - 85 < origTop) {
             btnEdit.css('position', 'absolute').css('top', origTop);
         }
     });
