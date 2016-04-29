@@ -607,15 +607,6 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
   def withPluginId(pluginId: String): Option[Project] = this.find(_.pluginId === pluginId)
 
   /**
-    * Returns the all Projects created by the specified owner.
-    *
-    * @param owner  Owner name
-    * @return       Project if found, None otherwise
-    */
-  def by(owner: String): Seq[Project]
-  = this.filter(ModelQueries.Projects.ownerFilter(owner))
-
-  /**
     * Returns the string to fill the specified Project's forum topic content
     * with.
     *

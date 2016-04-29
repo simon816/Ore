@@ -1,10 +1,10 @@
 package db.query
 
+import db.ChannelTable
 import db.OrePostgresDriver.api._
-import db.orm.dao.ChildModelSet
-import db.query.ModelQueries.{ModelFilter, run}
-import db.{ChannelTable, VersionTable}
-import models.project.{Channel, Version}
+import db.orm.dao.ModelFilter
+import db.query.ModelQueries.run
+import models.project.Channel
 import ore.Colors.Color
 
 /**
@@ -28,15 +28,6 @@ class ChannelQueries extends ModelQueries {
     */
   def NameFilter(name: String): ModelFilter[ChannelTable, Channel]
   = ModelFilter(_.name.toLowerCase === name.toLowerCase)
-
-  /**
-    * Returns the [[Version]]'s for the specified Channel.
-    *
-    * @param channel  Channel to get versions for
-    * @return         Versions in channel
-    */
-  def getVersions(channel: Channel): ChildModelSet[ChannelTable, Channel, VersionTable, Version]
-  = ModelQueries.getModelSet[ChannelTable, Channel, VersionTable, Version](classOf[Version], _.channelId, channel)
 
   /**
     * Sets the [[Color]] of the specified [[Channel]] in the database.

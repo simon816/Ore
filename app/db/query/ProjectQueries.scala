@@ -33,51 +33,6 @@ class ProjectQueries extends ModelQueries {
   registerModel()
 
   /**
-    * Returns a [[ChildModelSet]] of the [[Project]]'s versions.
-    *
-    * @param project Project to get versions of
-    * @return Set of versions
-    */
-  def getVersions(project: Project): ChildModelSet[ProjectTable, Project, VersionTable, Version]
-  = ModelQueries.getModelSet[ProjectTable, Project, VersionTable, Version](classOf[Version], _.projectId, project)
-
-  /**
-    * Returns a [[ChildModelSet]] of the [[Project]]'s channels.
-    *
-    * @param project Project to get channels of
-    * @return Set of channels
-    */
-  def getChannels(project: Project): ChildModelSet[ProjectTable, Project, ChannelTable, Channel]
-  = ModelQueries.getModelSet[ProjectTable, Project, ChannelTable, Channel](classOf[Channel], _.projectId, project)
-
-  /**
-    * Returns the Pages in this Project.
-    *
-    * @param project Project to get pages for
-    * @return Pages in project
-    */
-  def getPages(project: Project): ChildModelSet[ProjectTable, Project, PageTable, Page]
-  = ModelQueries.getModelSet[ProjectTable, Project, PageTable, Page](classOf[Page], _.projectId, project)
-
-  /**
-    * Returns the flags on this Project.
-    *
-    * @param project Project to get flags for
-    * @return Flags on project
-    */
-  def getFlags(project: Project): ChildModelSet[ProjectTable, Project, FlagTable, Flag]
-  = ModelQueries.getModelSet[ProjectTable, Project, FlagTable, Flag](classOf[Flag], _.projectId, project)
-
-  /**
-    * Returns all the [[ProjectRole]]s for the Project.
-    *
-    * @param project Project to get roles for
-    * @return Project roles
-    */
-  def getRoles(project: Project): ChildModelSet[ProjectTable, Project, ProjectRoleTable, ProjectRole]
-  = ModelQueries.getModelSet[ProjectTable, Project, ProjectRoleTable, ProjectRole](classOf[ProjectRole], _.projectId, project)
-
-  /**
     * Returns the [[ProjectMember]]s in the specified Project, sorted by role.
     *
     * @param project Project to get Members for

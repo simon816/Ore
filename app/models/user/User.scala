@@ -9,7 +9,7 @@ import db.orm.model.ModelKeys._
 import db.orm.model.{Model, UserOwner}
 import db.query.ModelQueries
 import db.query.ModelQueries.await
-import db.{FlagTable, ProjectRoleTable, UserTable}
+import db.{ProjectTable, FlagTable, ProjectRoleTable, UserTable}
 import forums.SpongeForums
 import models.project.{Flag, Project}
 import ore.permission._
@@ -181,7 +181,7 @@ case class User(override val  id: Option[Int] = None,
     *
     * @return All projects owned by User
     */
-  def projects: Seq[Project] = Project.by(this.username)
+  def projects = this.getChildren[ProjectTable, Project](classOf[Project])
 
   /**
     * Returns a [[ChildModelSet]] of [[ProjectRole]]s.
@@ -285,6 +285,7 @@ case class User(override val  id: Option[Int] = None,
   bind[List[RoleType]](GlobalRoles, _._globalRoles, globalRoles =>
     Seq(ModelQueries.Users.setGlobalRoles(this, globalRoles)))
 
+  bindChild[ProjectTable, Project](classOf[Project], _.ownerId)
   bindChild[ProjectRoleTable, ProjectRole](classOf[ProjectRole], _.userId)
   bindChild[FlagTable, Flag](classOf[Flag], _.userId)
 
