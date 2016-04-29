@@ -4,7 +4,6 @@ import javax.inject.Inject
 
 import controllers.routes.{Application => app, Users => self}
 import form.Forms
-import forums.SpongeForums
 import forums.SpongeForums._
 import models.user.{FakeUser, User}
 import play.api.i18n.MessagesApi
@@ -12,8 +11,6 @@ import play.api.libs.ws.WSClient
 import play.api.mvc.{Security, _}
 import util.C._
 import views.{html => views}
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class Users @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {
 
@@ -34,12 +31,6 @@ class Users @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
     } else {
       // Decode SSO payload and get Ore user
       val user = Auth.authenticate(sso.get, sig.get)
-
-//      // Get groups from forums
-//      SpongeForums.Users.fetchRoles(user.username).andThen {
-//        case roles => if (!roles.equals(user.globalRoleTypes)) user.globalRoleTypes = roles.get
-//      }
-
       redirectBack(request2flash.get("url").get, user.username)
     }
   }

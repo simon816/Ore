@@ -1,11 +1,10 @@
 package db.orm.model
 
 import java.sql.Timestamp
-import java.text.SimpleDateFormat
 
 import db.query.Queries
-import util.{StringUtils, C}
 import util.C._
+import util.StringUtils
 
 import scala.concurrent.Future
 

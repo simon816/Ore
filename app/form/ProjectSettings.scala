@@ -3,7 +3,6 @@ package form
 import models.project.Project
 import ore.permission.role.RoleTypes
 import ore.project.Categories
-import util.StringUtils
 import util.StringUtils._
 
 /**

@@ -12,7 +12,6 @@ import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
 import util.C._
-import util.StringUtils
 import util.StringUtils._
 
 /**

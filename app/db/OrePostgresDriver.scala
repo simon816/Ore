@@ -20,7 +20,7 @@ trait OrePostgresDriver extends ExPostgresDriver with PgArraySupport {
     implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
     implicit val colorTypeMapper = MappedJdbcType.base[Color, Int](_.id, Colors.apply)
     implicit val roleTypeTypeMapper = MappedJdbcType.base[RoleType, Int](_.roleId, RoleTypes.withId)
-    implicit val roleTypeListTypeMapper = new AdvancedArrayJdbcType[RoleType]("int",
+    implicit val roleTypeListTypeMapper = new AdvancedArrayJdbcType[RoleType]("int2",
       str => utils.SimpleArrayUtils.fromString[RoleType](s => RoleTypes.withId(Integer.parseInt(s)))(str).orNull,
       value => utils.SimpleArrayUtils.mkString[RoleType](_.roleId.toString)(value)
     ).to(_.toList)
