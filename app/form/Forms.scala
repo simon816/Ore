@@ -37,10 +37,7 @@ object Forms {
   /**
     * Submits changes on a documentation page.
     */
-  lazy val PageEdit = Form(tuple(
-    "name" -> text(minLength = 1, maxLength = MaxNameLength),
-    "content" -> text(minLength = MinLength, maxLength = MaxLength)
-  ))
+  lazy val PageEdit = Form(single("content" -> text(minLength = MinLength, maxLength = MaxLength)))
 
   /**
     * Submits a flag on a project for further review.

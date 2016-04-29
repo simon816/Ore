@@ -1,6 +1,7 @@
 var projectOwner = null;
 var projectSlug = null;
 var alreadyStarred = false;
+var markdown = new showdown.Converter();
 
 var KEY_PLUS = 61;
 var KEY_MINUS = 173;
@@ -27,25 +28,123 @@ function initFlagList() {
     });
 }
 
+function animateEditBtn(e, marginLeft, andThen) {
+    e.animate({ marginLeft: marginLeft }, 'fast', function() {
+        if (andThen) andThen();
+    });
+}
+
+function showEditBtn(e, andThen) {
+    animateEditBtn(e, '-34px', function() {
+        e.css('z-index', '1000');
+        if (andThen) andThen();
+    });
+}
+
+function hideEditBtn(e, andThen) {
+    animateEditBtn(e, '0', andThen);
+}
+
 function initBtnEdit() {
     var btnEdit = $('.btn-edit');
     if (!btnEdit.length) return;
 
+    var pageBtns = $('.btn-page');
+    var otherBtns = $('.btn-edit-container');
+
+    // highlight content on edit hover
     btnEdit.mouseenter(function() {
         $('.page-content').css('background-color', '#e6e6e6').css('border-color', '#adadad');
     }).mouseleave(function() {
         $('.page-content').css('background-color', 'white').css('border-color', '#ccc');
     });
 
+    // highlight with textarea
+    var editText = $('.page-edit').find('textarea');
+    editText.focus(function() {
+        btnEdit
+            .css('border-color', '#66afe9')
+            .css('border-right', '1px solid white')
+            .css('box-shadow', 'inset 0 1px 1px rgba(0,0,0,.075), -3px 0 8px rgba(102, 175, 233, 0.6)');
+        otherBtns.find('.btn').css('border-right-color', '#66afe9')
+    }).blur(function() {
+        $('.btn-page').css('border', '1px solid #ccc').css('box-shadow', 'none');
+        $('button.open').css('border-right', 'white');
+    });
+
+    pageBtns.click(function() {
+        if ($(this).hasClass('open')) return;
+
+        $('button.open').removeClass('open').css('border', '1px solid #ccc');
+        $(this).addClass('open').css('border-right-color', 'white');
+
+        var editor = $('.page-edit');
+
+        if ($(this).hasClass('btn-edit')) {
+            var content = $('.page-content');
+            editor.find('textarea').css('height', content.css('height'));
+            content.hide();
+            editor.show();
+
+            // show buttons
+            showEditBtn($('.btn-preview-container'), function() {
+                showEditBtn($('.btn-save-container'), function() {
+                    showEditBtn($('.btn-cancel-container'), function() {
+                        showEditBtn($('.btn-delete-container'));
+                    });
+                });
+            });
+
+            btnEdit.addClass('open');
+        }
+
+        else if ($(this).hasClass('btn-preview')) {
+            var preview = $('.page-preview').html(markdown.makeHtml(editor.find('textarea').val()));
+            editor.hide();
+            preview.show();
+        }
+    });
+
+    $('.btn-cancel').click(function() {
+        $('.page-edit').hide();
+        $('.page-preview').hide();
+        $('.page-content').show();
+
+        $('.btn-edit-container').css('z-index', '-1000');
+
+        var fromSave = function() {
+            hideEditBtn($('.btn-save-container'), function() {
+                hideEditBtn($('.btn-preview-container'));
+            });
+        };
+
+        var btnDelete = $('.btn-delete-container');
+        var btnCancel = $('.btn-cancel-container');
+        if (btnDelete.length) {
+            hideEditBtn(btnDelete, function() { hideEditBtn(btnCancel, fromSave) });
+        } else {
+            hideEditBtn(btnCancel, fromSave);
+        }
+    });
+
+    // move with scroll
     var origTop = btnEdit.position().top;
+    var origOff = btnEdit.offset().top;
     $(window).scroll(function() {
         var navHeight = $('.navbar-main').height();
         var top = $(this).scrollTop();
-        console.log(top);
-        if (top > btnEdit.offset().top - navHeight - 30) {
-            btnEdit.css('position', 'fixed').css('top', navHeight + 20);
-        } else if (top - navHeight - 85 < origTop) {
+        if (top > btnEdit.offset().top - navHeight - 40) {
+            var editTop = navHeight + 20;
+            btnEdit.css('position', 'fixed').css('top', editTop);
+            otherBtns.each(function() {
+                editTop += 0.5;
+                $(this).css('position', 'fixed').css('top', editTop);
+            });
+        } else if (top < origOff - navHeight - 40) {
             btnEdit.css('position', 'absolute').css('top', origTop);
+            otherBtns.each(function() {
+                $(this).css('position', 'absolute').css('top', origTop);
+            });
         }
     });
 }

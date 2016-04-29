@@ -5,13 +5,18 @@ Documentation page within Project overview.
 @import models.project.{Page, Project}
 @import models.user.User
 @import ore.permission.EditPages
-@(model: Project, page: Page)(implicit messages: Messages, session: Session, request: RequestHeader, flash: Flash)
+@import views.html.helper.form
+@(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages, session: Session, request: RequestHeader, flash: Flash)
 
 @canEditPages = @{
     User.current.isDefined && (User.current.get can EditPages in model)
 }
 
 @projects.view(model, "#docs") {
+
+    @if(editorOpen) {
+        <script>$(function() { $('.btn-edit').click(); });</script>
+    }
 
     <div class="project-wiki">
         <div class="container">
@@ -29,14 +34,71 @@ Documentation page within Project overview.
                     </div>
                     <div class="row">
                         <div class="col-md-12">
-                            @* Rendered markdown *@
-                            <div class="page-content">
+                            @if(canEditPages) {
+                                @form(action = routes.Pages.save(model.ownerName, model.slug, page.name)) {
+                                    <button type="button" class="btn btn-sm btn-edit btn-page btn-default">
+                                        <i class="fa fa-edit"></i> @messages("page.edit")
+                                    </button>
 
-                                @if(canEditPages) {
-                                    <a href="@routes.Pages.showEditor(model.ownerName, model.slug, page.name)"
-                                    class="btn btn-sm btn-edit btn-default"><i class="fa fa-edit"></i> @messages("page.edit")</a>
+                                    <div class="btn-edit-container btn-preview-container">
+                                        <button type="button" class="btn btn-sm btn-preview btn-page btn-default">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="btn-edit-container btn-save-container">
+                                        <button type="submit" class="btn btn-sm btn-save btn-page btn-default">
+                                            <i class="fa fa-save"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="btn-edit-container btn-cancel-container">
+                                        <button type="button" class="btn btn-sm btn-cancel btn-page btn-default">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    </div>
+
+                                    @if(!page.isHome) {
+                                        <div class="btn-edit-container btn-delete-container">
+                                            <button type="button" class="btn btn-sm btn-page-delete btn-page btn-default"
+                                                    data-toggle="modal" data-target="modal-page-delete">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    }
+
+                                    <div class="page-edit" style="display: none ;">
+                                        <textarea name="content" class="form-control">@page.contents</textarea>
+                                    </div>
+
+                                    <div class="page-preview page-rendered" style="display: none ;"></div>
+
+                                    <div class="modal fade" id="modal-page-delete" tabindex="-1" role="dialog"
+                                         aria-labelledby="label-page-delete">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                    <h4 class="modal-title" id="label-page-delete">Delete page</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to delete this page? This cannot be undone.
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                    <a href="@routes.Pages.delete(model.ownerName, model.slug, page.name)"
+                                                       type="button" class="btn btn-danger">Delete</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 }
+                            }
 
+                            <div class="page-content page-rendered">
                                 @Html(page.html)
                             </div>
                         </div>
@@ -57,10 +119,6 @@ Documentation page within Project overview.
                             @for(page <- model.pages.values) {
                                 <li class="list-group-item">
                                     <a href="@routes.Pages.show(model.ownerName, model.slug, page.name)">@page.name</a>
-                                    @if(canEditPages) {
-                                        <a href="@routes.Pages.showEditor(model.ownerName, model.slug, page.name)"
-                                           class="pull-right"><i title="Edit" class="fa fa-edit"></i></a>
-                                    }
                                 </li>
                             }
                         </ul>

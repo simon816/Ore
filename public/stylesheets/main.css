@@ -20,14 +20,20 @@ body {
     cursor: default;
 }
 
-.page-content {
+/* docs page */
+
+.page-rendered, .page-edit textarea {
     min-height: 350px;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.page-rendered {
     padding: 10px 20px 20px 20px;
-    max-width: 100%;
     overflow: hidden;
     background-color: white;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    max-width: 100%;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
@@ -35,23 +41,63 @@ body {
     margin-bottom: 10px;
 }
 
-.btn-edit {
-    position: absolute;
-    margin-left: -69px;
-    margin-top: 10px;
-    border-right: none;
-    border-radius: 4px 0 0 4px;
-    padding: 6px;
+button.open:hover {
+    background-color: white;
+    cursor: default;
+    border-color: #ccc;
 }
 
-.btn-edit:focus {
+.btn-page {
+    border-radius: 4px 0 0 4px;
+    padding: 6px;
+    z-index: 1000;
+    -webkit-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    -moz-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    -ms-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+}
+
+.btn-page:focus {
     outline: none;
 }
 
-.page-content h1, .page-content h2, .page-content h3, .page-content h4, .page-content h5, .page-content h6 {
+.btn-edit {
+    position: absolute;
+    margin-top: 20px;
+    margin-left: -49px;
+}
+
+.btn-edit-container {
+    position: absolute;
+    overflow: hidden;
+    z-index: -1000;
+}
+
+.btn-edit-container .btn {
+    width: 35px;
+}
+
+.btn-preview-container { margin-top: 58px;  }
+.btn-save-container    { margin-top: 96px;  }
+.btn-cancel-container  { margin-top: 135px; }
+.btn-delete-container  { margin-top: 175px; }
+
+.btn-page-delete {
+    color: #c12e2a;
+}
+
+.page-content h1,
+.page-content h2,
+.page-content h3,
+.page-content h4,
+.page-content h5,
+.page-content h6 {
     border-bottom: 1px solid #ddd;
     padding-bottom: 5px;
 }
+
+/* ---------- */
 
 .footer {
     position: absolute;

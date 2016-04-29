@@ -51,7 +51,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
   def showEditor(author: String, slug: String, page: String) = {
     PageEditAction(author, slug) { implicit request =>
       val project = request.project
-      Ok(views.edit(project, page, project.getOrCreatePage(page).contents))
+      Ok(views.view(project, project.getOrCreatePage(page), editorOpen = true))
     }
   }
 
@@ -66,9 +66,9 @@ class Pages @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
   def save(author: String, slug: String, page: String) = {
     PageEditAction(author, slug) { implicit request =>
       Forms.PageEdit.bindFromRequest.fold(
-        hasErrors => Redirect(self.showEditor(author, slug, page)).flashing("error" -> hasErrors.errors.head.message),
+        hasErrors => Redirect(self.show(author, slug, page)).flashing("error" -> hasErrors.errors.head.message),
         pageData => {
-          request.project.getOrCreatePage(page).contents = pageData._2
+          request.project.getOrCreatePage(page).contents = pageData
           Redirect(self.show(author, slug, page))
         }
       )

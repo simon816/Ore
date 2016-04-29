@@ -82,6 +82,8 @@ case class Page(override val  id: Option[Int] = None,
     */
   def html: String = MarkdownProcessor.markdownToHtml(contents)
 
+  def isHome: Boolean = this.name.equals(HomeName)
+
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Page = this.copy(id = id, createdAt = theTime)
 
   // Table bindings
