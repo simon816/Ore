@@ -96,6 +96,10 @@ function initBtnEdit() {
             editor.hide();
             preview.show();
         }
+
+        else if ($(this).hasClass('btn-save') || $(this).hasClass('btn-delete')) {
+            $(this).find('i').removeClass('fa-save').addClass('fa-spinner fa-spin');
+        }
     });
 
     $('.btn-cancel').click(function() {
