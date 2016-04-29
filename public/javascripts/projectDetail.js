@@ -52,13 +52,6 @@ function initBtnEdit() {
     var pageBtns = $('.btn-page');
     var otherBtns = $('.btn-edit-container');
 
-    // highlight content on edit hover
-    btnEdit.mouseenter(function() {
-        $('.page-content').css('background-color', '#e6e6e6').css('border-color', '#adadad');
-    }).mouseleave(function() {
-        $('.page-content').css('background-color', 'white').css('border-color', '#ccc');
-    });
-
     // highlight with textarea
     var editText = $('.page-edit').find('textarea');
     editText.focus(function() {

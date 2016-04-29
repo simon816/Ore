@@ -11,7 +11,7 @@ import db.orm.dao.{ModelDAO, ModelSet}
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, ModelKeys}
 import db.query.Queries
-import db.query.Queries.{filterToFunction, await}
+import db.query.Queries.{await, filterToFunction}
 import forums.SpongeForums
 import models.project.Version.PendingVersion
 import models.user.{ProjectRole, User}

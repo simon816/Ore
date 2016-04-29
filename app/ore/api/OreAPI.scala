@@ -3,10 +3,10 @@ package ore.api
 import db.OrePostgresDriver.api._
 import db.query.Queries
 import db.query.Queries._
-import models.project.{Version, Project}
+import models.project.{Project, Version}
 import models.user.User
-import ore.project.{ProjectSortingStrategies, Categories}
 import ore.project.Categories.Category
+import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.libs.json.{JsValue, Json}
 
 /**

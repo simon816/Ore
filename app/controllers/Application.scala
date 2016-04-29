@@ -7,7 +7,7 @@ import controllers.routes.{Application => self}
 import db.OrePostgresDriver.api._
 import db.ProjectTable
 import db.query.Queries
-import db.query.Queries.{ModelFilter, filterToFunction, await}
+import db.query.Queries.{ModelFilter, await, filterToFunction}
 import models.project.Project._
 import models.project.{Flag, Project}
 import models.user.User
