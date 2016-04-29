@@ -4,7 +4,8 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions
 import db.OrePostgresDriver.api._
-import db.orm.dao.TModelSet
+import db.VersionTable
+import db.orm.dao.{ModelSet, TModelSet}
 import db.orm.model.Model
 import db.orm.model.ModelKeys._
 import db.query.ModelQueries
@@ -52,6 +53,7 @@ case class Version(override val   id: Option[Int] = None,
                    with           ProjectScope { self =>
 
   override type M <: Version { type M = self.M }
+  override type T = VersionTable
 
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int, fileSize: Long, hash: String) = {
@@ -171,44 +173,9 @@ case class Version(override val   id: Option[Int] = None,
 
 }
 
-object Version extends TModelSet[Version] {
+object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
 
   val InitialLoad: Int = ProjectsConf.getInt("init-version-load").get
-  
-  /**
-    * Represents a pending version to be created later.
-    *
-    * @param owner          Name of project owner
-    * @param projectSlug    Project slug
-    * @param channelName    Name of channel this version will be in
-    * @param channelColor   Color of channel for this version
-    * @param version        Version that is pending
-    * @param plugin         Uploaded plugin
-    */
-  case class PendingVersion(val       owner: String,
-                            val       projectSlug: String,
-                            var       channelName: String = Channel.DefaultName,
-                            var       channelColor: Color = Channel.DefaultColor,
-                            val       version: Version,
-                            val       plugin: PluginFile)
-                            extends   PendingAction[Version]
-                            with      Cacheable {
-
-    override def complete: Try[Version] = Try {
-      free()
-      return ProjectFactory.createVersion(this)
-    }
-    
-    override def cancel() = {
-      free()
-      this.plugin.delete()
-    }
-
-    override def key: String = {
-      this.owner + '/' + this.projectSlug + '/' + this.channelName + '/' + this.version.versionString
-    }
-
-  }
 
   /**
     * Marks the specified Version as pending and caches it for later use.
@@ -257,6 +224,39 @@ object Version extends TModelSet[Version] {
     )
   }
 
-  override def withId(id: Int): Option[Version] = await(ModelQueries.Versions.get(id)).get
+  /**
+    * Represents a pending version to be created later.
+    *
+    * @param owner          Name of project owner
+    * @param projectSlug    Project slug
+    * @param channelName    Name of channel this version will be in
+    * @param channelColor   Color of channel for this version
+    * @param version        Version that is pending
+    * @param plugin         Uploaded plugin
+    */
+  case class PendingVersion(val       owner: String,
+                            val       projectSlug: String,
+                            var       channelName: String = Channel.DefaultName,
+                            var       channelColor: Color = Channel.DefaultColor,
+                            val       version: Version,
+                            val       plugin: PluginFile)
+    extends   PendingAction[Version]
+      with      Cacheable {
+
+    override def complete: Try[Version] = Try {
+      free()
+      return ProjectFactory.createVersion(this)
+    }
+
+    override def cancel() = {
+      free()
+      this.plugin.delete()
+    }
+
+    override def key: String = {
+      this.owner + '/' + this.projectSlug + '/' + this.channelName + '/' + this.version.versionString
+    }
+
+  }
 
 }

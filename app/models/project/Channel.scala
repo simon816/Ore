@@ -5,11 +5,10 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
-import db.orm.dao.{TModelSet, ChildModelSet}
+import db.orm.dao.ModelSet
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, ModelKeys}
 import db.query.ModelQueries
-import db.query.ModelQueries.await
 import db.{ChannelTable, VersionTable}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
@@ -43,6 +42,7 @@ case class Channel(override val   id: Option[Int] = None,
   import models.project.Channel._
 
   override type M <: Channel { type M = self.M }
+  override type T = ChannelTable
 
   def this(name: String, color: Color, projectId: Int) = this(_name=name, _color=color, projectId=projectId)
 
@@ -91,9 +91,7 @@ case class Channel(override val   id: Option[Int] = None,
     *
     * @return All versions
     */
-  def versions: ChildModelSet[ChannelTable, Channel, VersionTable, Version] = assertDefined {
-    ModelQueries.Channels.getVersions(this)
-  }
+  def versions = this.getChildren[VersionTable, Version](classOf[Version])
 
   /**
     * Deletes the specified Version within this channel.
@@ -106,7 +104,7 @@ case class Channel(override val   id: Option[Int] = None,
     checkArgument(context.versions.size > 1, "only one version", "")
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
     val rv = context.recommendedVersion
-    await(ModelQueries.Versions delete version).get
+    this.versions.remove(version)
     // Set recommended version to latest version if the deleted version was the rv
     if (version.equals(rv)) context.recommendedVersion = context.versions.sorted(_.createdAt.desc, limit = 1).head
     Files.delete(ProjectFiles.uploadPath(context.ownerName, context.name, version.versionString, this._name))
@@ -125,7 +123,7 @@ case class Channel(override val   id: Option[Int] = None,
     checkArgument(channels.size > 1, "only one channel", "")
     checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
 
-    await(ModelQueries.Channels delete this).get
+    remove(this)
     FileUtils.deleteDirectory(ProjectFiles.projectDir(context.ownerName, context.name).resolve(this._name).toFile)
   }
 
@@ -144,9 +142,11 @@ case class Channel(override val   id: Option[Int] = None,
   bind[String](Name, _._name, name => Seq(ModelQueries.Channels.setString(this, _.name, name)))
   bind[Color](ModelKeys.Color, _._color, color => Seq(ModelQueries.Channels.setColor(this, color)))
 
+  bindChild[VersionTable, Version](classOf[Version], _.channelId)
+
 }
 
-object Channel extends TModelSet[Channel] {
+object Channel extends ModelSet[ChannelTable, Channel](classOf[Channel]) {
 
   /**
     * The colors a Channel is allowed to have.
@@ -180,9 +180,7 @@ object Channel extends TModelSet[Channel] {
     * @param name   Name to check
     * @return       True if valid channel name
     */
-  def isValidName(name: String): Boolean = {
-    name.length >= 1 && name.length <= MaxNameLength && name.matches(NameRegex)
-  }
+  def isValidName(name: String): Boolean = name.length >= 1 && name.length <= MaxNameLength && name.matches(NameRegex)
 
   /**
     * Attempts to determine a Channel name from the specified version string.
@@ -193,11 +191,8 @@ object Channel extends TModelSet[Channel] {
     * @param version  Version string to parse
     * @return         Suggested channel name
     */
-  def getSuggestedNameForVersion(version: String): String = {
-    firstString(new ComparableVersion(version).getItems).getOrElse(DefaultName)
-  }
-
-  override def withId(id: Int): Option[Channel] = await(ModelQueries.Channels.get(id)).get
+  def getSuggestedNameForVersion(version: String): String
+  = firstString(new ComparableVersion(version).getItems).getOrElse(DefaultName)
 
   private def firstString(items: ListItem): Option[String] = {
     // Get the first non-number component in the version string

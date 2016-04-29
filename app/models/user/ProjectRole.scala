@@ -2,7 +2,8 @@ package models.user
 
 import java.sql.Timestamp
 
-import db.orm.dao.TModelSet
+import db.ProjectRoleTable
+import db.orm.dao.{ModelSet, TModelSet}
 import db.orm.model.Model
 import db.orm.model.ModelKeys._
 import db.query.ModelQueries
@@ -32,6 +33,7 @@ case class ProjectRole(override val id: Option[Int] = None,
                        with         Ordered[ProjectRole] { self =>
 
   override type M <: ProjectRole { type M = self.M }
+  override type T = ProjectRoleTable
 
   def this(userId: Int, roleType: RoleType, projectId: Int) = {
     this(id=None, createdAt=None, userId=userId, _roleType=roleType, projectId=projectId)
@@ -61,6 +63,4 @@ case class ProjectRole(override val id: Option[Int] = None,
 
 }
 
-object ProjectRole extends TModelSet[ProjectRole] {
-  override def withId(id: Int): Option[ProjectRole] = ModelQueries.await(ModelQueries.Users.ProjectRoles.get(id)).get
-}
+object ProjectRole extends ModelSet[ProjectRoleTable, ProjectRole](classOf[ProjectRole])

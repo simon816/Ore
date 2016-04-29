@@ -2,8 +2,9 @@ package models.project
 
 import java.sql.Timestamp
 
+import db.FlagTable
 import db.OrePostgresDriver.api._
-import db.orm.dao.TModelSet
+import db.orm.dao.{ModelSet, TModelSet}
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, UserOwner}
 import db.query.ModelQueries
@@ -32,6 +33,7 @@ case class Flag(override val  id: Option[Int],
                 with          ProjectScope { self =>
 
   override type M <: Flag { type M = self.M }
+  override type T = FlagTable
 
   def this(projectId: Int, userId: Int, reason: FlagReason) = {
     this(id=None, createdAt=None, projectId=projectId, userId=userId, reason=reason)
@@ -65,15 +67,13 @@ case class Flag(override val  id: Option[Int],
 
 }
 
-object Flag extends TModelSet[Flag] {
+object Flag extends ModelSet[FlagTable, Flag](classOf[Flag]) {
 
   /**
     * Returns all Flags that are unresolved.
     *
     * @return All unresolved flags
     */
-  def unresolved: Seq[Flag] = await(ModelQueries.Projects.Flags.filter(!_.isResolved)).get
-
-  override def withId(id: Int): Option[Flag] = await(ModelQueries.Projects.Flags.get(id)).get
+  def unresolved: Seq[Flag] = this.filter(!_.isResolved)
 
 }

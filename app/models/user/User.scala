@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
-import db.orm.dao.{TModelSet, ChildModelSet}
+import db.orm.dao.{ModelSet, TModelSet, ChildModelSet}
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, UserOwner}
 import db.query.ModelQueries
@@ -46,6 +46,7 @@ case class User(override val  id: Option[Int] = None,
   import models.user.User._
 
   override type M <: User { type M = self.M }
+  override type T = UserTable
 
   /**
     * The User's [[PermissionPredicate]]. All permission checks go through
@@ -187,8 +188,7 @@ case class User(override val  id: Option[Int] = None,
     *
     * @return ProjectRoles
     */
-  def projectRoles: ChildModelSet[UserTable, User, ProjectRoleTable, ProjectRole]
-  = assertDefined(ModelQueries.Users.getProjectRoles(this))
+  def projectRoles = this.getChildren[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns a Set of [[RoleType]]s that this User has globally.
@@ -200,7 +200,7 @@ case class User(override val  id: Option[Int] = None,
   /**
     * Sets the [[RoleTypes]]s that this User has globally.
     *
-    * @param _roles Roles to set
+    * @param _globalRoles Roles to set
     */
   def globalRoles_=(_globalRoles: Set[RoleType]) = {
     this._globalRoles = _globalRoles.toList
@@ -285,9 +285,12 @@ case class User(override val  id: Option[Int] = None,
   bind[List[RoleType]](GlobalRoles, _._globalRoles, globalRoles =>
     Seq(ModelQueries.Users.setGlobalRoles(this, globalRoles)))
 
+  bindChild[ProjectRoleTable, ProjectRole](classOf[ProjectRole], _.userId)
+  bindChild[FlagTable, Flag](classOf[Flag], _.userId)
+
 }
 
-object User extends TModelSet[User] {
+object User extends ModelSet[UserTable, User](classOf[User]) {
 
   /**
     * The amount of stars displayed in the stars panel per page.
@@ -306,7 +309,7 @@ object User extends TModelSet[User] {
     * @return User if found, None otherwise
     */
   def withName(username: String): Option[User] = {
-    await(ModelQueries.Users.find(_.username.toLowerCase === username.toLowerCase)).get.orElse {
+    this.find(_.username.toLowerCase === username.toLowerCase).orElse {
       await(SpongeForums.Users.fetch(username)).get.map(getOrCreate)
     }
   }
@@ -327,7 +330,5 @@ object User extends TModelSet[User] {
     * @return         Authenticated user, if any, None otherwise
     */
   def current(implicit session: Session): Option[User] = session.get("username").map(withName).getOrElse(None)
-
-  override def withId(id: Int): Option[User] = await(ModelQueries.Users.get(id)).get
 
 }

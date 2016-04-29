@@ -3,7 +3,8 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.orm.dao.TModelSet
+import db.PageTable
+import db.orm.dao.{ModelSet, TModelSet}
 import db.orm.model.Model
 import db.orm.model.ModelKeys._
 import db.query.ModelQueries
@@ -39,6 +40,7 @@ case class Page(override val  id: Option[Int] = None,
   import models.project.Page._
 
   override type M <: Page { type M = self.M }
+  override type T = PageTable
 
   checkNotNull(this.name, "name cannot be null", "")
   checkNotNull(this._contents, "contents cannot be null", "")
@@ -92,7 +94,7 @@ case class Page(override val  id: Option[Int] = None,
 
 }
 
-object Page extends TModelSet[Page] {
+object Page extends ModelSet[PageTable, Page](classOf[Page]) {
 
   /**
     * The name of each Project's homepage.
@@ -124,8 +126,6 @@ object Page extends TModelSet[Page] {
     */
   val MaxNameLength: Int = PagesConf.getInt("name.max-len").get
 
-  override def withId(id: Int): Option[Page] = ModelQueries.await(ModelQueries.Pages.get(id)).get
-
   /**
     * Returns a template for new Pages.
     *
@@ -133,8 +133,6 @@ object Page extends TModelSet[Page] {
     * @param body   Default message
     * @return       Template
     */
-  def template(title: String, body: String = ""): String = {
-    "# " + title + "\n" + body
-  }
+  def Template(title: String, body: String = ""): String = "# " + title + "\n" + body
 
 }

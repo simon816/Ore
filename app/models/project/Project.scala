@@ -7,7 +7,7 @@ import java.text.MessageFormat
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
 import db._
-import db.orm.dao.{ModelSet, TModelSet, ChildModelSet}
+import db.orm.dao.{ChildModelSet, ModelSet}
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, ModelKeys}
 import db.query.ModelQueries
@@ -436,7 +436,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return       Page with name or new name if it doesn't exist
     */
   def getOrCreatePage(name: String): Page = assertDefined {
-    await(ModelQueries.Pages.getOrInsert(new Page(this.id.get, name, Page.template(name, Page.HomeMessage), true))).get
+    await(ModelQueries.Pages.getOrInsert(new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true))).get
   }
 
   /**
@@ -445,7 +445,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return Project home page
     */
   def homePage: Page = assertDefined {
-    val page = new Page(this.id.get, Page.HomeName, Page.template(this.name, Page.HomeMessage), false)
+    val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false)
     await(ModelQueries.Pages.getOrInsert(page)).get
   }
 
