@@ -3,7 +3,6 @@ package forums
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
-import db.query.Queries.await
 import forums.SpongeForums.validate
 import models.user.User
 import ore.permission.role.RoleTypes
@@ -35,32 +34,15 @@ class DiscourseUsers(url: String, ws: WSClient) {
       validate(response) { json =>
         val userObj = (json \ "user").as[JsObject]
         val user = new User(
-            id          =   (userObj \ "id").asOpt[Int],
-            _fullName   =   (userObj \ "name").asOpt[String],
-            _username   =   (userObj \ "username").as[String],
-            _email      =   (userObj \ "email").asOpt[String],
-            _joinDate   =   (userObj \ "created_at").asOpt[String].map(jd => new Timestamp(DateFormat.parse(jd).getTime)),
-            _avatarUrl  =   (userObj \ "avatar_template").asOpt[String])
-        val globalRoles = parseRoles(userObj)
-        user.globalRoleTypes = globalRoles
+            id            =   (userObj \ "id").asOpt[Int],
+            _fullName     =   (userObj \ "name").asOpt[String],
+            _username     =   (userObj \ "username").as[String],
+            _email        =   (userObj \ "email").asOpt[String],
+            _joinDate     =   (userObj \ "created_at").asOpt[String]
+                                .map(jd => new Timestamp(DateFormat.parse(jd).getTime)),
+            _avatarUrl    =   (userObj \ "avatar_template").asOpt[String],
+            _globalRoles  =   parseRoles(userObj).toList)
         user
-      }
-    }
-  }
-
-  /**
-    * Returns a set of UserRoles that the specified User has on the Sponge
-    * forums.
-    *
-    * @param username   User to get roles for
-    * @return           Set of roles the user has
-    */
-  def fetchRoles(username: String): Future[Set[RoleType]] = {
-    ws.url(userUrl(username)).get.map { response =>
-      validate(response) { json =>
-        parseRoles((json \ "user").as[JsObject])
-      } getOrElse {
-        Set()
       }
     }
   }
@@ -102,7 +84,6 @@ object DiscourseUsers {
     */
   object Disabled extends DiscourseUsers("", null) {
     override def fetch(username: String) = Future(None)
-    override def fetchRoles(username: String) = Future(Set())
     override def fetchAvatarUrl(username: String, size: Int) = Future(None)
   }
 

@@ -36,7 +36,7 @@ case class User(override val  id: Option[Int] = None,
                 private var   _username: String,
                 private var   _email: Option[String] = None,
                 private var   _tagline: Option[String] = None,
-                private var   globalRoleIds: List[Int] = List(),
+                private var   _globalRoles: List[RoleType] = List(),
                 private var   _joinDate: Option[Timestamp] = None,
                 private var   _avatarUrl: Option[String] = None)
                 extends       Model
@@ -191,15 +191,15 @@ case class User(override val  id: Option[Int] = None,
     *
     * @return Global RoleTypes.
     */
-  def globalRoleTypes: Set[RoleType] = (for (roleId <- globalRoleIds) yield RoleTypes.withId(roleId)).toSet
+  def globalRoles: Set[RoleType] = this._globalRoles.toSet
 
   /**
     * Sets the [[RoleTypes]]s that this User has globally.
     *
     * @param _roles Roles to set
     */
-  def globalRoleTypes_=(_roles: Set[RoleType]) = {
-    this.globalRoleIds = _roles.map(_.roleId).toList
+  def globalRoles_=(_globalRoles: Set[RoleType]) = {
+    this._globalRoles = _globalRoles.toList
     if (isDefined) update(GlobalRoles)
   }
 
@@ -210,7 +210,7 @@ case class User(override val  id: Option[Int] = None,
     */
   def trustIn(scope: Scope = GlobalScope): Trust = assertDefined {
     scope match {
-      case GlobalScope => this.globalRoleTypes.map(_.trust).toList.sorted.reverse.headOption.getOrElse(Default)
+      case GlobalScope => this.globalRoles.map(_.trust).toList.sorted.reverse.headOption.getOrElse(Default)
       case pScope: ProjectScope =>
         this.projectRoles.find(_.projectId === pScope.projectId).map(_.roleType.trust).getOrElse(Default)
     }
@@ -259,7 +259,7 @@ case class User(override val  id: Option[Int] = None,
     user.joinDate.foreach(this.joinDate_=)
     user._avatarUrl.foreach(this.avatarUrl_=)
     this.username = user.username
-    this.globalRoleTypes = user.globalRoleTypes
+    this.globalRoles = user.globalRoles
     this
   }
 
@@ -278,8 +278,8 @@ case class User(override val  id: Option[Int] = None,
   bind[String](AvatarUrl, _._avatarUrl.orNull, avatarUrl => Seq(Queries.Users.setString(this, _.avatarUrl, avatarUrl)))
   bind[Timestamp](JoinDate, _._joinDate.orNull, joinDate =>
     Seq(Queries.Users.setTimestamp(this,  _.joinDate, joinDate)))
-  bind[List[Int]](GlobalRoles, _.globalRoleIds, globalRoles =>
-    Seq(Queries.Users.setIntList(this, _.globalRoles, globalRoles)))
+  bind[List[RoleType]](GlobalRoles, _._globalRoles, globalRoles =>
+    Seq(Queries.Users.setGlobalRoles(this, globalRoles)))
 
 }
 

@@ -65,7 +65,7 @@ object OreWrites {
         "id" -> user.id,
         "createdAt" -> user.prettyDate,
         "username" -> user.username,
-        "roles" -> user.globalRoleTypes.map(_.title),
+        "roles" -> user.globalRoles.map(_.title),
         "starred" -> user.starred().map(p => p.pluginId)
       )
     }
