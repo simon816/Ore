@@ -131,7 +131,7 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
 
 }
 
-class ProjectRolesTable(tag: Tag) extends ModelTable[ProjectRole](tag, "user_project_roles") {
+class ProjectRoleTable(tag: Tag) extends ModelTable[ProjectRole](tag, "user_project_roles") {
 
   def userId      =   column[Int]("user_id")
   def roleType    =   column[RoleType]("role_type")

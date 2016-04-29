@@ -4,12 +4,12 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
-import db.orm.dao.{ModelDAO, ModelSet}
+import db.orm.dao.{TModelSet, ChildModelSet}
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, UserOwner}
-import db.query.Queries
-import db.query.Queries.await
-import db.{FlagTable, ProjectRolesTable, UserTable}
+import db.query.ModelQueries
+import db.query.ModelQueries.await
+import db.{FlagTable, ProjectRoleTable, UserTable}
 import forums.SpongeForums
 import models.project.{Flag, Project}
 import ore.permission._
@@ -183,12 +183,12 @@ case class User(override val  id: Option[Int] = None,
   def projects: Seq[Project] = Project.by(this.username)
 
   /**
-    * Returns a [[ModelSet]] of [[ProjectRole]]s.
+    * Returns a [[ChildModelSet]] of [[ProjectRole]]s.
     *
     * @return ProjectRoles
     */
-  def projectRoles: ModelSet[UserTable, User, ProjectRolesTable, ProjectRole]
-  = assertDefined(Queries.Users.getProjectRoles(this))
+  def projectRoles: ChildModelSet[UserTable, User, ProjectRoleTable, ProjectRole]
+  = assertDefined(ModelQueries.Users.getProjectRoles(this))
 
   /**
     * Returns a Set of [[RoleType]]s that this User has globally.
@@ -225,7 +225,7 @@ case class User(override val  id: Option[Int] = None,
     *
     * @return Flags submitted by user
     */
-  def flags: ModelSet[UserTable, User, FlagTable, Flag] = Queries.Users.getFlags(this)
+  def flags: ChildModelSet[UserTable, User, FlagTable, Flag] = ModelQueries.Users.getFlags(this)
 
   /**
     * Returns true if the User has an unresolved [[Flag]] on the specified
@@ -245,7 +245,7 @@ case class User(override val  id: Option[Int] = None,
     */
   def starred(page: Int = -1): Seq[Project] = assertDefined {
     val limit = if (page < 1) -1 else StarsPerPage
-    await(Queries.Projects.starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
+    await(ModelQueries.Projects.starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
   }
 
   /**
@@ -275,19 +275,19 @@ case class User(override val  id: Option[Int] = None,
 
   // Table bindings
 
-  bind[String](FullName, _._fullName.orNull, fullName => Seq(Queries.Users.setString(this, _.name, fullName)))
-  bind[String](Username, _._username, username => Seq(Queries.Users.setString(this, _.username, username)))
-  bind[String](Email, _._email.orNull, email => Seq(Queries.Users.setString(this, _.email, email)))
-  bind[String](Tagline, _._tagline.orNull, tagline => Seq(Queries.Users.setString(this, _.tagline, tagline)))
-  bind[String](AvatarUrl, _._avatarUrl.orNull, avatarUrl => Seq(Queries.Users.setString(this, _.avatarUrl, avatarUrl)))
+  bind[String](FullName, _._fullName.orNull, fullName => Seq(ModelQueries.Users.setString(this, _.name, fullName)))
+  bind[String](Username, _._username, username => Seq(ModelQueries.Users.setString(this, _.username, username)))
+  bind[String](Email, _._email.orNull, email => Seq(ModelQueries.Users.setString(this, _.email, email)))
+  bind[String](Tagline, _._tagline.orNull, tagline => Seq(ModelQueries.Users.setString(this, _.tagline, tagline)))
+  bind[String](AvatarUrl, _._avatarUrl.orNull, avatarUrl => Seq(ModelQueries.Users.setString(this, _.avatarUrl, avatarUrl)))
   bind[Timestamp](JoinDate, _._joinDate.orNull, joinDate =>
-    Seq(Queries.Users.setTimestamp(this,  _.joinDate, joinDate)))
+    Seq(ModelQueries.Users.setTimestamp(this,  _.joinDate, joinDate)))
   bind[List[RoleType]](GlobalRoles, _._globalRoles, globalRoles =>
-    Seq(Queries.Users.setGlobalRoles(this, globalRoles)))
+    Seq(ModelQueries.Users.setGlobalRoles(this, globalRoles)))
 
 }
 
-object User extends ModelDAO[User] {
+object User extends TModelSet[User] {
 
   /**
     * The amount of stars displayed in the stars panel per page.
@@ -306,7 +306,7 @@ object User extends ModelDAO[User] {
     * @return User if found, None otherwise
     */
   def withName(username: String): Option[User] = {
-    await(Queries.Users.find(_.username.toLowerCase === username.toLowerCase)).get.orElse {
+    await(ModelQueries.Users.find(_.username.toLowerCase === username.toLowerCase)).get.orElse {
       await(SpongeForums.Users.fetch(username)).get.map(getOrCreate)
     }
   }
@@ -318,7 +318,7 @@ object User extends ModelDAO[User] {
     * @param user User to find
     * @return     Found or new User
     */
-  def getOrCreate(user: User): User = await(Queries.Users.getOrInsert(user)).get
+  def getOrCreate(user: User): User = await(ModelQueries.Users.getOrInsert(user)).get
 
   /**
     * Returns the currently authenticated User.
@@ -328,6 +328,6 @@ object User extends ModelDAO[User] {
     */
   def current(implicit session: Session): Option[User] = session.get("username").map(withName).getOrElse(None)
 
-  override def withId(id: Int): Option[User] = await(Queries.Users.get(id)).get
+  override def withId(id: Int): Option[User] = await(ModelQueries.Users.get(id)).get
 
 }

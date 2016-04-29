@@ -7,11 +7,11 @@ import java.text.MessageFormat
 import com.google.common.base.Preconditions._
 import db.OrePostgresDriver.api._
 import db._
-import db.orm.dao.{ModelDAO, ModelSet}
+import db.orm.dao.{ModelSet, TModelSet, ChildModelSet}
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, ModelKeys}
-import db.query.Queries
-import db.query.Queries.{await, filterToFunction}
+import db.query.ModelQueries
+import db.query.ModelQueries.{await, filterToFunction}
 import forums.SpongeForums
 import models.project.Version.PendingVersion
 import models.user.{ProjectRole, User}
@@ -78,6 +78,7 @@ case class Project(override val   id: Option[Int] = None,
   import models.project.Project._
 
   override type M <: Project { type M = self.M }
+  override type T = ProjectTable
 
   def this(pluginId: String, name: String, owner: String, ownerId: Int, homepage: String) = {
     this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
@@ -96,7 +97,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return All Members of project
     */
-  def members: List[ProjectMember] = await(Queries.Projects.getMembers(this)).get
+  def members: List[ProjectMember] = await(ModelQueries.Projects.getMembers(this)).get
 
   /**
     * Removes the [[ProjectMember]] that belongs to the specified [[User]] from this
@@ -104,7 +105,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @param user User to remove
     */
-  def removeMember(user: User) = this.roles.removeWhere(_.userId === user.id.get)
+  def removeMember(user: User) = this.roles.removeAll(_.userId === user.id.get)
 
   /**
     * Returns the name of this Project.
@@ -225,7 +226,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return       True if starred by User
     */
   def isStarredBy(user: User): Boolean = assertDefined {
-    await(Queries.Projects.isStarredBy(this.id.get, user.id.get)).get
+    await(ModelQueries.Projects.isStarredBy(this.id.get, user.id.get)).get
   }
 
   /**
@@ -259,7 +260,7 @@ case class Project(override val   id: Option[Int] = None,
   def starFor(user: User) = assertDefined {
     if (!isStarredBy(user)) {
       this._stars += 1
-      await(Queries.Projects.starFor(this.id.get, user.id.get)).get
+      await(ModelQueries.Projects.starFor(this.id.get, user.id.get)).get
       update(Stars)
     }
   }
@@ -273,15 +274,21 @@ case class Project(override val   id: Option[Int] = None,
   def unstarFor(user: User) = assertDefined {
     if (isStarredBy(user)) {
       this._stars -= 1
-      await(Queries.Projects.unstarFor(this.id.get, user.id.get)).get
+      await(ModelQueries.Projects.unstarFor(this.id.get, user.id.get)).get
       update(Stars)
     }
   }
 
+  /**
+    * Submits a flag on this project for the specified user.
+    *
+    * @param user   Flagger
+    * @param reason Reason for flagging
+    */
   def flagFor(user: User, reason: FlagReason) = assertDefined {
     val userId = user.id.get
     checkArgument(userId != this.ownerId, "cannot flag own project", "")
-    await(Queries.Projects.Flags insert new Flag(this.id.get, user.id.get, reason)).get
+    await(ModelQueries.Projects.Flags insert new Flag(this.id.get, user.id.get, reason)).get
   }
 
   /**
@@ -353,21 +360,19 @@ case class Project(override val   id: Option[Int] = None,
   }
 
   /**
-    * Returns a [[ModelSet]] of all [[ProjectRole]]s in this Project.
+    * Returns a [[ChildModelSet]] of all [[ProjectRole]]s in this Project.
     *
     * @return Set of all ProjectRoles
     */
-  def roles: ModelSet[ProjectTable, Project, ProjectRolesTable, ProjectRole] = assertDefined {
-    Queries.Projects.getRoles(this)
-  }
+  def roles = this.getChildren[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns the Channels in this Project.
     *
     * @return Channels in project
     */
-  def channels: ModelSet[ProjectTable, Project, ChannelTable, Channel] = assertDefined {
-    Queries.Projects.getChannels(this)
+  def channels: ChildModelSet[ProjectTable, Project, ChannelTable, Channel] = assertDefined {
+    ModelQueries.Projects.getChannels(this)
   }
 
   /**
@@ -379,7 +384,7 @@ case class Project(override val   id: Option[Int] = None,
   def addChannel(name: String, color: Color): Channel = assertDefined {
     checkArgument(Channel.isValidName(name), "invalid name", "")
     checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
-    await(Queries.Channels insert new Channel(name, color, this.id.get)).get
+    await(ModelQueries.Channels insert new Channel(name, color, this.id.get)).get
   }
 
   /**
@@ -387,9 +392,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Versions in project
     */
-  def versions: ModelSet[ProjectTable, Project, VersionTable, Version] = assertDefined {
-    Queries.Projects.getVersions(this)
-  }
+  def versions = this.getChildren[VersionTable, Version](classOf[Version])
 
   /**
     * Returns this Project's recommended version.
@@ -397,7 +400,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return Recommended version
     */
   def recommendedVersion: Version = assertDefined {
-    await(Queries.Versions.get(this.recommendedVersionId.get)).get.get
+    await(ModelQueries.Versions.get(this.recommendedVersionId.get)).get.get
   }
 
   /**
@@ -407,7 +410,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return         Result
     */
   def recommendedVersion_=(_version: Version) = {
-    if (isDefined) await(Queries.Projects.setInt(this, _.recommendedVersionId, _version.id.get)).get
+    if (isDefined) await(ModelQueries.Projects.setInt(this, _.recommendedVersionId, _version.id.get)).get
     this.recommendedVersionId = _version.id
   }
 
@@ -416,9 +419,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Pages in project
     */
-  def pages: ModelSet[ProjectTable, Project, PageTable, Page] = assertDefined {
-    Queries.Projects.getPages(this)
-  }
+  def pages = this.getChildren[PageTable, Page](classOf[Page])
 
   /**
     * Returns true if a page with the specified name exists.
@@ -435,7 +436,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return       Page with name or new name if it doesn't exist
     */
   def getOrCreatePage(name: String): Page = assertDefined {
-    await(Queries.Pages.getOrInsert(new Page(this.id.get, name, Page.template(name, Page.HomeMessage), true))).get
+    await(ModelQueries.Pages.getOrInsert(new Page(this.id.get, name, Page.template(name, Page.HomeMessage), true))).get
   }
 
   /**
@@ -445,7 +446,7 @@ case class Project(override val   id: Option[Int] = None,
     */
   def homePage: Page = assertDefined {
     val page = new Page(this.id.get, Page.HomeName, Page.template(this.name, Page.HomeMessage), false)
-    await(Queries.Pages.getOrInsert(page)).get
+    await(ModelQueries.Pages.getOrInsert(page)).get
   }
 
   /**
@@ -502,7 +503,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return Result
     */
   def delete = assertDefined {
-    await(Queries.Projects delete this).get
+    await(ModelQueries.Projects delete this).get
     FileUtils.deleteDirectory(ProjectFiles.projectDir(this.ownerName, this._name).toFile)
     if (this.topicId.isDefined) SpongeForums.Embed.deleteTopic(this)
   }
@@ -520,25 +521,31 @@ case class Project(override val   id: Option[Int] = None,
   // Table bindings
 
   bind[String](Name, _._name, newName => Seq(
-    Queries.Projects.setString(this, _.name, newName),
-    Queries.Projects.setString(this, _.slug, slugify(newName))
+    ModelQueries.Projects.setString(this, _.name, newName),
+    ModelQueries.Projects.setString(this, _.slug, slugify(newName))
   ))
   bind[String](Description, _._description.orNull, description =>
-    Seq(Queries.Projects.setString(this, _.description, description)))
-  bind[Category](ModelKeys.Category, _._category, cat => Seq(Queries.Projects.setCategory(this, cat)))
-  bind[Int](Views, _._views, views => Seq(Queries.Projects.setInt(this, _.views, views)))
-  bind[Int](Downloads, _._downloads, downloads => Seq(Queries.Projects.setInt(this, _.downloads, downloads)))
-  bind[Int](Stars, _._stars, stars => Seq(Queries.Projects.setInt(this, _.stars, stars)))
-  bind[String](Issues, _._issues.orNull, issues => Seq(Queries.Projects.setString(this, _.issues, issues)))
-  bind[String](Source, _._source.orNull, source => Seq(Queries.Projects.setString(this, _.source, source)))
-  bind[Int](TopicId, _._topicId.get, topicId => Seq(Queries.Projects.setInt(this, _.topicId, topicId)))
-  bind[Int](PostId, _._postId.get, postId => Seq(Queries.Projects.setInt(this, _.postId, postId)))
-  bind[Boolean](IsVisible, _._isVisible, visible => Seq(Queries.Projects.setBoolean(this, _.isVisible, visible)))
-  bind[Boolean](IsReviewed, _._isReviewed, reviewed => Seq(Queries.Projects.setBoolean(this, _.isReviewed, reviewed)))
+    Seq(ModelQueries.Projects.setString(this, _.description, description)))
+  bind[Category](ModelKeys.Category, _._category, cat => Seq(ModelQueries.Projects.setCategory(this, cat)))
+  bind[Int](Views, _._views, views => Seq(ModelQueries.Projects.setInt(this, _.views, views)))
+  bind[Int](Downloads, _._downloads, downloads => Seq(ModelQueries.Projects.setInt(this, _.downloads, downloads)))
+  bind[Int](Stars, _._stars, stars => Seq(ModelQueries.Projects.setInt(this, _.stars, stars)))
+  bind[String](Issues, _._issues.orNull, issues => Seq(ModelQueries.Projects.setString(this, _.issues, issues)))
+  bind[String](Source, _._source.orNull, source => Seq(ModelQueries.Projects.setString(this, _.source, source)))
+  bind[Int](TopicId, _._topicId.get, topicId => Seq(ModelQueries.Projects.setInt(this, _.topicId, topicId)))
+  bind[Int](PostId, _._postId.get, postId => Seq(ModelQueries.Projects.setInt(this, _.postId, postId)))
+  bind[Boolean](IsVisible, _._isVisible, visible => Seq(ModelQueries.Projects.setBoolean(this, _.isVisible, visible)))
+  bind[Boolean](IsReviewed, _._isReviewed, reviewed => Seq(ModelQueries.Projects.setBoolean(this, _.isReviewed, reviewed)))
+
+  bindChild[ChannelTable, Channel](classOf[Channel], _.projectId)
+  bindChild[VersionTable, Version](classOf[Version], _.projectId)
+  bindChild[FlagTable, Flag](classOf[Flag], _.projectId)
+  bindChild[PageTable, Page](classOf[Page], _.projectId)
+  bindChild[ProjectRoleTable, ProjectRole](classOf[ProjectRole], _.projectId)
 
 }
 
-object Project extends ModelDAO[Project] {
+object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
 
   /**
     * The maximum length for a Project name.
@@ -571,57 +578,14 @@ object Project extends ModelDAO[Project] {
   val ForumTopicTemplatePath: Path = ConfDir.resolve("discourse/project_topic.md")
 
   /**
-    * Represents a Project with an uploaded plugin that has not yet been
-    * created.
-    *
-    * @param project  Pending project
-    * @param file     Uploaded plugin
-    */
-  case class PendingProject(val project: Project,
-                            val file: PluginFile,
-                            var roles: Set[ProjectRole] = Set())
-                            extends PendingAction[Project]
-                            with Cacheable {
-
-    /**
-      * The first [[PendingVersion]] for this PendingProject.
-      */
-    val pendingVersion: PendingVersion = {
-      val version = Version.fromMeta(this.project, this.file)
-      Version.setPending(project.ownerName, project.slug,
-        Channel.getSuggestedNameForVersion(version.versionString), version, this.file)
-    }
-
-    override def complete: Try[Project] = Try {
-      free()
-      val newProject = ProjectFactory.createProject(this).get
-      val newVersion = ProjectFactory.createVersion(this.pendingVersion).get
-      newProject.recommendedVersion = newVersion
-      newProject
-    }
-
-    override def cancel() = {
-      free()
-      this.file.delete()
-      if (project.isDefined) {
-        project.delete
-      }
-    }
-
-    override def key: String = this.project.ownerName + '/' + this.project.slug
-
-  }
-
-  /**
     * Returns the Project with the specified owner name and URL slug, if any.
     *
     * @param owner  Owner name
     * @param slug   URL slug
     * @return       Project if found, None otherwise
     */
-  def withSlug(owner: String, slug: String): Option[Project] = await(Queries.Projects.find {
-    Queries.Projects.ownerFilter(owner) && (_.slug === slug)
-  }).get
+  def withSlug(owner: String, slug: String): Option[Project]
+  = this.find(ModelQueries.Projects.ownerFilter(owner) && (_.slug === slug))
 
   /**
     * Returns the Project with the specified owner name and Project name, if
@@ -631,9 +595,8 @@ object Project extends ModelDAO[Project] {
     * @param name   Project name
     * @return       Project if found, None otherwise
     */
-  def withName(owner: String, name: String): Option[Project] = await(Queries.Projects.find {
-    Queries.Projects.ownerFilter(owner) && (_.name === name)
-  }).get
+  def withName(owner: String, name: String): Option[Project]
+  = this.find(ModelQueries.Projects.ownerFilter(owner) && (_.name.toLowerCase === name.toLowerCase))
 
   /**
     * Returns the Project with the specified plugin ID, if any.
@@ -641,7 +604,7 @@ object Project extends ModelDAO[Project] {
     * @param pluginId Plugin ID
     * @return         Project if found, None otherwise
     */
-  def withPluginId(pluginId: String): Option[Project] = await(Queries.Projects.find(_.pluginId === pluginId)).get
+  def withPluginId(pluginId: String): Option[Project] = this.find(_.pluginId === pluginId)
 
   /**
     * Returns the all Projects created by the specified owner.
@@ -649,7 +612,8 @@ object Project extends ModelDAO[Project] {
     * @param owner  Owner name
     * @return       Project if found, None otherwise
     */
-  def by(owner: String): Seq[Project] = await(Queries.Projects.filter(Queries.Projects.ownerFilter(owner))).get
+  def by(owner: String): Seq[Project]
+  = this.filter(ModelQueries.Projects.ownerFilter(owner))
 
   /**
     * Returns the string to fill the specified Project's forum topic content
@@ -718,6 +682,46 @@ object Project extends ModelDAO[Project] {
     new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getUrl)
   }
 
-  override def withId(id: Int): Option[Project] = await(Queries.Projects.get(id)).get
+  /**
+    * Represents a Project with an uploaded plugin that has not yet been
+    * created.
+    *
+    * @param project  Pending project
+    * @param file     Uploaded plugin
+    */
+  case class PendingProject(val project: Project,
+                            val file: PluginFile,
+                            var roles: Set[ProjectRole] = Set())
+    extends PendingAction[Project]
+      with Cacheable {
+
+    /**
+      * The first [[PendingVersion]] for this PendingProject.
+      */
+    val pendingVersion: PendingVersion = {
+      val version = Version.fromMeta(this.project, this.file)
+      Version.setPending(project.ownerName, project.slug,
+        Channel.getSuggestedNameForVersion(version.versionString), version, this.file)
+    }
+
+    override def complete: Try[Project] = Try {
+      free()
+      val newProject = ProjectFactory.createProject(this).get
+      val newVersion = ProjectFactory.createVersion(this.pendingVersion).get
+      newProject.recommendedVersion = newVersion
+      newProject
+    }
+
+    override def cancel() = {
+      free()
+      this.file.delete()
+      if (project.isDefined) {
+        project.delete
+      }
+    }
+
+    override def key: String = this.project.ownerName + '/' + this.project.slug
+
+  }
 
 }

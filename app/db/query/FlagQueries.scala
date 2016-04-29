@@ -7,7 +7,7 @@ import models.project.Flag
 /**
   * Flag related queries.
   */
-class FlagQueries extends Queries {
+class FlagQueries extends ModelQueries {
   override type Row = Flag
   override type Table = FlagTable
   override val modelClass = classOf[Flag]

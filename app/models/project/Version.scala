@@ -4,11 +4,11 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions
 import db.OrePostgresDriver.api._
-import db.orm.dao.ModelDAO
+import db.orm.dao.TModelSet
 import db.orm.model.Model
 import db.orm.model.ModelKeys._
-import db.query.Queries
-import db.query.Queries.await
+import db.query.ModelQueries
+import db.query.ModelQueries.await
 import ore.Colors.Color
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
@@ -76,7 +76,7 @@ case class Version(override val   id: Option[Int] = None,
     *
     * @return Channel
     */
-  def channel: Channel = await(Queries.Channels.get(this.channelId)).get.get
+  def channel: Channel = await(ModelQueries.Channels.get(this.channelId)).get.get
 
   /**
     * Returns the channel this version belongs to from the specified collection
@@ -151,7 +151,7 @@ case class Version(override val   id: Option[Int] = None,
   def exists: Boolean = {
     this.projectId > -1 &&
       ((this.channelId > -1 && this.channel.versions.find(_.versionString === this.versionString).isDefined) ||
-        await(Queries.Versions.hashExists(this.projectId, this.hash)).get)
+        await(ModelQueries.Versions.hashExists(this.projectId, this.hash)).get)
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Version = this.copy(id = id, createdAt = theTime)
@@ -165,13 +165,13 @@ case class Version(override val   id: Option[Int] = None,
   // Table bindings
 
   bind[String](Description, _._description.orNull, description => {
-    Seq(Queries.Versions.setString(this, _.description, description))
+    Seq(ModelQueries.Versions.setString(this, _.description, description))
   })
-  bind[Int](Downloads, _._downloads, downloads => Seq(Queries.Versions.setInt(this, _.downloads, downloads)))
+  bind[Int](Downloads, _._downloads, downloads => Seq(ModelQueries.Versions.setInt(this, _.downloads, downloads)))
 
 }
 
-object Version extends ModelDAO[Version] {
+object Version extends TModelSet[Version] {
 
   val InitialLoad: Int = ProjectsConf.getInt("init-version-load").get
   
@@ -257,6 +257,6 @@ object Version extends ModelDAO[Version] {
     )
   }
 
-  override def withId(id: Int): Option[Version] = await(Queries.Versions.get(id)).get
+  override def withId(id: Int): Option[Version] = await(ModelQueries.Versions.get(id)).get
 
 }

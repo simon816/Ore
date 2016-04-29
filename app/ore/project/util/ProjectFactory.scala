@@ -3,8 +3,8 @@ package ore.project.util
 import java.nio.file.Files
 
 import com.google.common.base.Preconditions._
-import db.query.Queries
-import db.query.Queries.await
+import db.query.ModelQueries
+import db.query.ModelQueries.await
 import forums.SpongeForums
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
@@ -51,7 +51,7 @@ object ProjectFactory {
     checkArgument(!pending.project.exists, "project already exists", "")
     checkArgument(pending.project.isNamespaceAvailable, "slug not available", "")
     checkArgument(Project.isValidName(pending.project.name), "invalid name", "")
-    val newProject = await(Queries.Projects insert pending.project).get
+    val newProject = await(ModelQueries.Projects insert pending.project).get
 
     // Add Project roles
     val user = pending.file.user
@@ -75,7 +75,7 @@ object ProjectFactory {
     val project = Project.withSlug(pending.owner, pending.projectSlug).get
 
     // Create channel if not exists
-    project.channels.find(Queries.Channels.NameFilter(pending.channelName)) match {
+    project.channels.find(ModelQueries.Channels.NameFilter(pending.channelName)) match {
       case None => channel = project.addChannel(pending.channelName, pending.channelColor)
       case Some(existing) => channel = existing
     }

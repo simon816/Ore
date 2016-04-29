@@ -3,11 +3,11 @@ package models.project
 import java.sql.Timestamp
 
 import db.OrePostgresDriver.api._
-import db.orm.dao.ModelDAO
+import db.orm.dao.TModelSet
 import db.orm.model.ModelKeys._
 import db.orm.model.{Model, UserOwner}
-import db.query.Queries
-import db.query.Queries.await
+import db.query.ModelQueries
+import db.query.ModelQueries.await
 import ore.permission.scope.ProjectScope
 import ore.project.FlagReasons.FlagReason
 
@@ -60,20 +60,20 @@ case class Flag(override val  id: Option[Int],
   // Table bindings
 
   bind[Boolean](IsResolved, _._isResolved, isResolved => {
-    Seq(Queries.Projects.Flags.setBoolean(this, _.isResolved, isResolved))
+    Seq(ModelQueries.Projects.Flags.setBoolean(this, _.isResolved, isResolved))
   })
 
 }
 
-object Flag extends ModelDAO[Flag] {
+object Flag extends TModelSet[Flag] {
 
   /**
     * Returns all Flags that are unresolved.
     *
     * @return All unresolved flags
     */
-  def unresolved: Seq[Flag] = await(Queries.Projects.Flags.filter(!_.isResolved)).get
+  def unresolved: Seq[Flag] = await(ModelQueries.Projects.Flags.filter(!_.isResolved)).get
 
-  override def withId(id: Int): Option[Flag] = await(Queries.Projects.Flags.get(id)).get
+  override def withId(id: Int): Option[Flag] = await(ModelQueries.Projects.Flags.get(id)).get
 
 }

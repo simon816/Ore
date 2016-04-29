@@ -9,7 +9,7 @@ import scala.concurrent.Future
 /**
   * Page related queries.
   */
-class PageQueries extends Queries {
+class PageQueries extends ModelQueries {
 
   override type Row = Page
   override type Table = PageTable

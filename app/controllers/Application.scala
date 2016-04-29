@@ -6,8 +6,8 @@ import controllers.Requests.AuthRequest
 import controllers.routes.{Application => self}
 import db.OrePostgresDriver.api._
 import db.ProjectTable
-import db.query.Queries
-import db.query.Queries.{ModelFilter, await, filterToFunction}
+import db.query.ModelQueries
+import db.query.ModelQueries.{ModelFilter, await, filterToFunction}
 import models.project.Project._
 import models.project.{Flag, Project}
 import models.user.User
@@ -43,7 +43,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     val canHideProjects = User.current.isDefined && (User.current.get can HideProjects in GlobalScope)
     var filter: ProjectTable => Rep[Boolean] = query.map { q =>
       // Search filter + visible
-      var f  = Queries.Projects.searchFilter(q)
+      var f  = ModelQueries.Projects.searchFilter(q)
       if (!canHideProjects) f = f && (_.isVisible)
       f
     }.orNull[ModelFilter[ProjectTable, Project]]

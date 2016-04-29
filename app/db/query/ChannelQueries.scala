@@ -1,8 +1,8 @@
 package db.query
 
 import db.OrePostgresDriver.api._
-import db.orm.dao.ModelSet
-import db.query.Queries.{ModelFilter, run}
+import db.orm.dao.ChildModelSet
+import db.query.ModelQueries.{ModelFilter, run}
 import db.{ChannelTable, VersionTable}
 import models.project.{Channel, Version}
 import ore.Colors.Color
@@ -10,7 +10,7 @@ import ore.Colors.Color
 /**
   * Channel related queries.
   */
-class ChannelQueries extends Queries {
+class ChannelQueries extends ModelQueries {
 
   override type Row = Channel
   override type Table = ChannelTable
@@ -35,8 +35,8 @@ class ChannelQueries extends Queries {
     * @param channel  Channel to get versions for
     * @return         Versions in channel
     */
-  def getVersions(channel: Channel): ModelSet[ChannelTable, Channel, VersionTable, Version]
-  = Queries.getModelSet[ChannelTable, Channel, VersionTable, Version](classOf[Version], _.channelId, channel)
+  def getVersions(channel: Channel): ChildModelSet[ChannelTable, Channel, VersionTable, Version]
+  = ModelQueries.getModelSet[ChannelTable, Channel, VersionTable, Version](classOf[Version], _.channelId, channel)
 
   /**
     * Sets the [[Color]] of the specified [[Channel]] in the database.

@@ -2,8 +2,8 @@ package db.query
 
 import db.OrePostgresDriver.api._
 import db._
-import db.orm.dao.ModelSet
-import db.query.Queries._
+import db.orm.dao.{ModelFilter, ChildModelSet}
+import db.query.ModelQueries._
 import models.project._
 import models.user.ProjectRole
 import ore.project.Categories.Category
@@ -17,7 +17,7 @@ import scala.util.{Failure, Success}
 /**
   * Project related queries
   */
-class ProjectQueries extends Queries {
+class ProjectQueries extends ModelQueries {
 
   override type Row = Project
   override type Table = ProjectTable
@@ -33,22 +33,22 @@ class ProjectQueries extends Queries {
   registerModel()
 
   /**
-    * Returns a [[ModelSet]] of the [[Project]]'s versions.
+    * Returns a [[ChildModelSet]] of the [[Project]]'s versions.
     *
     * @param project Project to get versions of
     * @return Set of versions
     */
-  def getVersions(project: Project): ModelSet[ProjectTable, Project, VersionTable, Version]
-  = Queries.getModelSet[ProjectTable, Project, VersionTable, Version](classOf[Version], _.projectId, project)
+  def getVersions(project: Project): ChildModelSet[ProjectTable, Project, VersionTable, Version]
+  = ModelQueries.getModelSet[ProjectTable, Project, VersionTable, Version](classOf[Version], _.projectId, project)
 
   /**
-    * Returns a [[ModelSet]] of the [[Project]]'s channels.
+    * Returns a [[ChildModelSet]] of the [[Project]]'s channels.
     *
     * @param project Project to get channels of
     * @return Set of channels
     */
-  def getChannels(project: Project): ModelSet[ProjectTable, Project, ChannelTable, Channel]
-  = Queries.getModelSet[ProjectTable, Project, ChannelTable, Channel](classOf[Channel], _.projectId, project)
+  def getChannels(project: Project): ChildModelSet[ProjectTable, Project, ChannelTable, Channel]
+  = ModelQueries.getModelSet[ProjectTable, Project, ChannelTable, Channel](classOf[Channel], _.projectId, project)
 
   /**
     * Returns the Pages in this Project.
@@ -56,8 +56,8 @@ class ProjectQueries extends Queries {
     * @param project Project to get pages for
     * @return Pages in project
     */
-  def getPages(project: Project): ModelSet[ProjectTable, Project, PageTable, Page]
-  = Queries.getModelSet[ProjectTable, Project, PageTable, Page](classOf[Page], _.projectId, project)
+  def getPages(project: Project): ChildModelSet[ProjectTable, Project, PageTable, Page]
+  = ModelQueries.getModelSet[ProjectTable, Project, PageTable, Page](classOf[Page], _.projectId, project)
 
   /**
     * Returns the flags on this Project.
@@ -65,8 +65,8 @@ class ProjectQueries extends Queries {
     * @param project Project to get flags for
     * @return Flags on project
     */
-  def getFlags(project: Project): ModelSet[ProjectTable, Project, FlagTable, Flag]
-  = Queries.getModelSet[ProjectTable, Project, FlagTable, Flag](classOf[Flag], _.projectId, project)
+  def getFlags(project: Project): ChildModelSet[ProjectTable, Project, FlagTable, Flag]
+  = ModelQueries.getModelSet[ProjectTable, Project, FlagTable, Flag](classOf[Flag], _.projectId, project)
 
   /**
     * Returns all the [[ProjectRole]]s for the Project.
@@ -74,8 +74,8 @@ class ProjectQueries extends Queries {
     * @param project Project to get roles for
     * @return Project roles
     */
-  def getRoles(project: Project): ModelSet[ProjectTable, Project, ProjectRolesTable, ProjectRole]
-  = Queries.getModelSet[ProjectTable, Project, ProjectRolesTable, ProjectRole](classOf[ProjectRole], _.projectId, project)
+  def getRoles(project: Project): ChildModelSet[ProjectTable, Project, ProjectRoleTable, ProjectRole]
+  = ModelQueries.getModelSet[ProjectTable, Project, ProjectRoleTable, ProjectRole](classOf[ProjectRole], _.projectId, project)
 
   /**
     * Returns the [[ProjectMember]]s in the specified Project, sorted by role.
@@ -86,7 +86,7 @@ class ProjectQueries extends Queries {
   def getMembers(project: Project): Future[List[ProjectMember]] = {
     // TODO: handle this differently?
     val promise = Promise[List[ProjectMember]]
-    Queries.Users.ProjectRoles.distinctUsersIn(project.id.get).andThen {
+    ModelQueries.Users.ProjectRoles.distinctUsersIn(project.id.get).andThen {
       case Failure(thrown) => promise.failure(thrown)
       case Success(users) =>
         val members = for (user <- users) yield new ProjectMember(project, user.username)

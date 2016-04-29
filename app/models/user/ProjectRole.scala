@@ -2,10 +2,10 @@ package models.user
 
 import java.sql.Timestamp
 
-import db.orm.dao.ModelDAO
+import db.orm.dao.TModelSet
 import db.orm.model.Model
 import db.orm.model.ModelKeys._
-import db.query.Queries
+import db.query.ModelQueries
 import ore.permission.role.Role
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.ProjectScope
@@ -57,10 +57,10 @@ case class ProjectRole(override val id: Option[Int] = None,
 
   // Table bindings
 
-  bind[RoleType](RoleType, _._roleType, roleType => Seq(Queries.Users.ProjectRoles.setRoleType(this, roleType)))
+  bind[RoleType](RoleType, _._roleType, roleType => Seq(ModelQueries.Users.ProjectRoles.setRoleType(this, roleType)))
 
 }
 
-object ProjectRole extends ModelDAO[ProjectRole] {
-  override def withId(id: Int): Option[ProjectRole] = Queries.await(Queries.Users.ProjectRoles.get(id)).get
+object ProjectRole extends TModelSet[ProjectRole] {
+  override def withId(id: Int): Option[ProjectRole] = ModelQueries.await(ModelQueries.Users.ProjectRoles.get(id)).get
 }

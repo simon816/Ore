@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit
 
 import db.OrePostgresDriver.api._
 import db.orm.ModelTable
-import db.orm.dao.ModelSet
+import db.orm.dao.{ModelFilter, ChildModelSet}
 import db.orm.model.Model
 import db.query.user.UserQueries
 import play.api.Play
@@ -24,7 +24,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Base class for handling Model queries.
   */
-abstract class Queries {
+abstract class ModelQueries {
 
   /** The model to be retrieved from the Table */
   type Row <: Model
@@ -35,26 +35,26 @@ abstract class Queries {
   val baseQuery: TableQuery[Table]
 
   /** Registers the Model of this class */
-  def registerModel() = Queries.registerModel(this.modelClass, this.baseQuery)
+  def registerModel() = ModelQueries.registerModel(this.modelClass, this.baseQuery)
 
   // Generic (delegate to companion object)
 
-  def find(predicate: Table => Rep[Boolean]): Future[Option[Row]] = Queries.find(modelClass, predicate)
-  def count(filter: Table => Rep[Boolean] = null): Future[Int] = Queries.count(modelClass, filter)
-  def insert(model: Row): Future[Row] = Queries.insert(model)
-  def delete(model: Row): Future[Int] = Queries.delete(model)
-  def deleteWhere(filter: Table => Rep[Boolean]) = Queries.deleteWhere(modelClass, filter)
-  def get(id: Int): Future[Option[Row]] = Queries.get(modelClass, id)
-  def setInt(model: Row, key: Table => Rep[Int], value: Int) = Queries.setInt(model, key, value)
-  def setString(model: Row, key: Table => Rep[String], value: String) = Queries.setString(model, key, value)
-  def setBoolean(model: Row, key: Table => Rep[Boolean], value: Boolean) = Queries.setBoolean(model, key, value)
-  def setIntList(model: Row, key: Table => Rep[List[Int]], value: List[Int]) = Queries.setIntList(model, key, value)
-  def setTimestamp(model: Row, key: Table => Rep[Timestamp], value: Timestamp) = Queries.setTimestamp(model, key, value)
+  def find(predicate: Table => Rep[Boolean]) = ModelQueries.find(modelClass, predicate)
+  def count(filter: Table => Rep[Boolean] = null) = ModelQueries.count(modelClass, filter)
+  def insert(model: Row) = ModelQueries.insert(model)
+  def delete(model: Row, filter: Table => Rep[Boolean] = null) = ModelQueries.delete(model, filter)
+  def deleteWhere(filter: Table => Rep[Boolean]) = ModelQueries.deleteWhere(modelClass, filter)
+  def get(id: Int) = ModelQueries.get(modelClass, id)
+  def setInt(model: Row, key: Table => Rep[Int], value: Int) = ModelQueries.setInt(model, key, value)
+  def setString(model: Row, key: Table => Rep[String], value: String) = ModelQueries.setString(model, key, value)
+  def setBoolean(model: Row, key: Table => Rep[Boolean], value: Boolean) = ModelQueries.setBoolean(model, key, value)
+  def setIntList(model: Row, key: Table => Rep[List[Int]], value: List[Int]) = ModelQueries.setIntList(model, key, value)
+  def setTimestamp(model: Row, key: Table => Rep[Timestamp], value: Timestamp) = ModelQueries.setTimestamp(model, key, value)
   def collect(limit: Int = -1, offset: Int = -1, filter: Table => Rep[Boolean] = null,
-              sort: Table => ColumnOrdered[_] = null): Future[Seq[Row]]
-  = Queries.collect(modelClass, limit, offset, filter, sort)
+              sort: Table => ColumnOrdered[_] = null)
+  = ModelQueries.collect(modelClass, filter, sort, limit, offset)
   def filter(filter: Table => Rep[Boolean], limit: Int = -1, offset: Int = -1)
-  = Queries.filter(modelClass, filter, limit, offset)
+  = ModelQueries.filter(modelClass, filter, limit, offset)
 
   // Model specific
 
@@ -89,7 +89,7 @@ abstract class Queries {
 /**
   * Contains all queries for retrieving models from the database.
   */
-object Queries {
+object ModelQueries extends Setters {
 
   // Setup registrar
 
@@ -120,6 +120,9 @@ object Queries {
   def modelQuery[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M]): Query[T, M, Seq] = {
     this.modelQueries.find(_._1.isAssignableFrom(modelClass)).get._2.asInstanceOf[Query[T, M, Seq]]
   }
+
+  /** Filters models by ID */
+  def IdFilter[T <: ModelTable[M], M <: Model](id: Int): ModelFilter[T, M] = ModelFilter(_.id === id)
 
   // Initialize queries (registers models)
 
@@ -209,15 +212,18 @@ object Queries {
     *
     * @param model Model to delete
     */
-  def delete[T <: ModelTable[M], M <: Model](model: M): Future[Int]
-  = run(modelQuery[T, M](model.getClass).filter(_.id === model.id.get).delete)
+  def delete[T <: ModelTable[M], M <: Model](model: M, filter: T => Rep[Boolean] = null): Future[Int]
+  = run(modelQuery[T, M](model.getClass).filter(IdFilter[T, M](model.id.get) && filter).delete)
 
   /**
-    * Deletes all the models that match the specified filter.
+    * Deletes all the models meeting the specified filter.
     *
-    * @param filter Filter to delete models
+    * @param modelClass Model class
+    * @param filter     Filter to use
+    * @tparam T         Table
+    * @tparam M         Model
     */
-  def deleteWhere[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M], filter: T => Rep[Boolean])
+  def deleteWhere[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M], filter: T => Rep[Boolean]): Future[Int]
   = run(modelQuery[T, M](modelClass).filter(filter).delete)
 
   /**
@@ -226,58 +232,9 @@ object Queries {
     * @param id   Model with ID
     * @return     Model if present, None otherwise
     */
-  def get[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M], id: Int): Future[Option[M]]
-  = find[T, M](modelClass, _.id === id)
-
-  /**
-    * Sets an Int field on the Model.
-    *
-    * @param model  Model to update
-    * @param key    Key to update
-    * @param value  Value to set
-    */
-  def setInt[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[Int], value: Int)
-  = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
-
-  /**
-    * Sets a String field on the Model.
-    *
-    * @param model  Model to update
-    * @param key    Key to update
-    * @param value  Value to set
-    */
-  def setString[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[String], value: String)
-  = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
-
-  /**
-    * Sets a Boolean field on the Model.
-    *
-    * @param model  Model to update
-    * @param key    Key to update
-    * @param value  Value to set
-    */
-  def setBoolean[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[Boolean], value: Boolean)
-  = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
-
-  /**
-    * Sets an int array field on the Model.
-    *
-    * @param model  Model to update
-    * @param key    Key to update
-    * @param value  Value
-    */
-  def setIntList[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[List[Int]], value: List[Int])
-  = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
-
-  /**
-    * Sets a Timestamp field on the Model.
-    *
-    * @param model  Model to update
-    * @param key    Key to update
-    * @param value  Value
-    */
-  def setTimestamp[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[Timestamp], value: Timestamp)
-  = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
+  def get[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M], id: Int,
+                                          filter: T => Rep[Boolean] = null): Future[Option[M]]
+  = find[T, M](modelClass, IdFilter[T, M](id) && filter)
 
   /**
     * Returns a collection of models with the specified limit and offset.
@@ -286,9 +243,9 @@ object Queries {
     * @param offset Offset to drop
     * @return       Collection of models
     */
-  def collect[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M], limit: Int = -1, offset: Int = -1,
-                                              filter: T => Rep[Boolean] = null,
-                                              sort: T => ColumnOrdered[_] = null): Future[Seq[M]] = {
+  def collect[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M], filter: T => Rep[Boolean] = null,
+                                              sort: T => ColumnOrdered[_] = null,
+                                              limit: Int = -1, offset: Int = -1): Future[Seq[M]] = {
     var query = modelQuery[T, M](modelClass)
     if (filter != null) query = query.filter(filter)
     if (sort != null) query = query.sortBy(sort)
@@ -312,7 +269,7 @@ object Queries {
   = collect(modelClass, filter = filter, limit = limit, offset = offset)
 
   /**
-    * Returns a [[ModelSet]] for the specified relation.
+    * Returns a [[ChildModelSet]] for the specified relation.
     *
     * @param parentRef    Reference to parent in ChildTable
     * @param parent       Parent model
@@ -325,22 +282,8 @@ object Queries {
   def getModelSet[ParentTable <: ModelTable[Parent], Parent <: Model,
                   ChildTable <: ModelTable[Child], Child <: Model]
                   (childClass: Class[Child], parentRef: ChildTable => Rep[Int], parent: Parent):
-                  ModelSet[ParentTable, Parent, ChildTable, Child]
-  = new ModelSet[ParentTable, Parent, ChildTable, Child](childClass, parentRef, parent)
-
-  /** Allows application of logical operators on model filters. */
-  case class ModelFilter[T <: ModelTable[M], M <: Model](fn: T => Rep[Boolean]) {
-    /** Applies && to the wrapped function */
-    def &&(fn2: T => Rep[Boolean]): ModelFilter[T, M] = ModelFilter(m => trueIfNull(fn)(m) && trueIfNull(fn2)(m))
-    /** Applies && to the specified filter's wrapped function */
-    def +&(filter: ModelFilter[T, M]): ModelFilter[T, M] = this && filter.fn
-    /** Applies || to the wrapped function */
-    def ||(fn2: T => Rep[Boolean]): ModelFilter[T, M] = ModelFilter(m => falseIfNull(fn)(m) || falseIfNull(fn2)(m))
-    /** Applies || to the specified filter's wrapped function */
-    def +|(filter: ModelFilter[T, M]): ModelFilter[T, M] = this || filter.fn
-    private def trueIfNull(fn: T => Rep[Boolean]): T => Rep[Boolean] = if (fn == null) _ => true else fn
-    private def falseIfNull(fn: T => Rep[Boolean]): T => Rep[Boolean] = if (fn == null) _ => false else fn
-  }
+                  ChildModelSet[ParentTable, Parent, ChildTable, Child]
+  = new ChildModelSet[ParentTable, Parent, ChildTable, Child](childClass, parentRef, parent)
 
   implicit def filterToFunction[T <: ModelTable[M], M <: Model](filter: ModelFilter[T, M]): T => Rep[Boolean]
   = if (filter == null) null else filter.fn

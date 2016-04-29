@@ -1,7 +1,7 @@
 package controllers
 
 import db.OrePostgresDriver.api._
-import db.query.Queries
+import db.query.ModelQueries
 import forums.SpongeForums
 import models.project.{Channel, Project, Version}
 import play.api.i18n.I18nSupport
@@ -28,7 +28,7 @@ abstract class BaseController(implicit ws: WSClient) extends Controller with I18
   protected[controllers] def withVersion(channelName: String, versionString: String)
                                         (f: (Channel, Version) => Result)
                                         (implicit request: RequestHeader, project: Project): Result = {
-    project.channels.find(Queries.Channels.NameFilter(channelName)) match {
+    project.channels.find(ModelQueries.Channels.NameFilter(channelName)) match {
       case None => NotFound
       case Some(channel) => channel.versions.find(_.versionString === versionString) match {
         case None => NotFound

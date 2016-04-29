@@ -1,8 +1,8 @@
 package ore.api
 
 import db.OrePostgresDriver.api._
-import db.query.Queries
-import db.query.Queries._
+import db.query.ModelQueries
+import db.query.ModelQueries._
 import models.project.{Project, Version}
 import models.user.User
 import ore.project.Categories.Category
@@ -33,9 +33,9 @@ object OreAPI {
                        limit: Option[Int], offset: Option[Int]): JsValue = {
       val categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
       val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
-      val filter = q.map(Queries.Projects.searchFilter).orNull
+      val filter = q.map(ModelQueries.Projects.searchFilter).orNull
       val lim = Math.max(limit.getOrElse(Project.InitialLoad), Project.InitialLoad)
-      val f = Queries.Projects.collect(filter, categoryArray, lim, offset.getOrElse(-1), s)
+      val f = ModelQueries.Projects.collect(filter, categoryArray, lim, offset.getOrElse(-1), s)
       val projects = await(f).get
       Json.toJson(projects)
     }
@@ -65,7 +65,7 @@ object OreAPI {
           project.channels.find(_.name.toLowerCase === name).get.id.get
         })
         // Only allow versions in the specified channels
-        val filter = channelIds.map(Queries.Versions.channelFilter).orNull
+        val filter = channelIds.map(ModelQueries.Versions.channelFilter).orNull
         val lim = Math.max(limit.getOrElse(Version.InitialLoad), Version.InitialLoad)
         Json.toJson(project.versions.sorted(_.createdAt.desc, filter, lim, offset.getOrElse(-1)))
       }
@@ -94,7 +94,7 @@ object OreAPI {
       * @return       List of users
       */
     def getUserList(limit: Option[Int], offset: Option[Int]): JsValue
-    = Json.toJson(await(Queries.Users.collect(limit.getOrElse(-1), offset.getOrElse(-1))).get)
+    = Json.toJson(await(ModelQueries.Users.collect(limit.getOrElse(-1), offset.getOrElse(-1))).get)
 
     /**
       * Returns a Json value of the User with the specified username.

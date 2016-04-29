@@ -5,7 +5,7 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Versions => self}
 import db.OrePostgresDriver.api._
-import db.query.Queries
+import db.query.ModelQueries
 import form.Forms
 import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
@@ -247,7 +247,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
                   // No pending project, create version for existing project
                   withProject(author, slug) { project =>
                     val existingChannel = project.channels.find {
-                      Queries.Channels.NameFilter(pendingVersion.channelName)
+                      ModelQueries.Channels.NameFilter(pendingVersion.channelName)
                     }.orNull
 
                     var channelResult: Either[String, Channel] = Right(existingChannel)

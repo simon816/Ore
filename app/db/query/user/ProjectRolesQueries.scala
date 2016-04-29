@@ -1,9 +1,9 @@
 package db.query.user
 
 import db.OrePostgresDriver.api._
-import db.ProjectRolesTable
-import db.query.Queries
-import db.query.Queries.run
+import db.ProjectRoleTable
+import db.query.ModelQueries
+import db.query.ModelQueries.run
 import models.user.{ProjectRole, User}
 import ore.permission.role.RoleTypes.RoleType
 
@@ -11,13 +11,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 
-class ProjectRolesQueries extends Queries {
+class ProjectRolesQueries extends ModelQueries {
 
   override type Row = ProjectRole
-  override type Table = ProjectRolesTable
+  override type Table = ProjectRoleTable
 
   override val modelClass = classOf[ProjectRole]
-  override val baseQuery = TableQuery[ProjectRolesTable]
+  override val baseQuery = TableQuery[ProjectRoleTable]
 
   registerModel()
 

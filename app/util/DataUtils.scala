@@ -3,8 +3,8 @@ package util
 import java.nio.file.Files
 
 import db.OrePostgresDriver.api._
-import db.query.Queries
-import db.query.Queries.{await, run}
+import db.query.ModelQueries
+import db.query.ModelQueries.{await, run}
 import forums.SpongeForums
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
@@ -33,8 +33,8 @@ object DataUtils {
     * Resets the application to factory defaults.
     */
   def reset() = {
-    for (project <- await(Queries.Projects.collect()).get) project.delete
-    await(run(Queries.Users.baseQuery.delete)).get
+    for (project <- await(ModelQueries.Projects.collect()).get) project.delete
+    await(run(ModelQueries.Users.baseQuery.delete)).get
     FileUtils.deleteDirectory(UploadsDir.toFile)
   }
 

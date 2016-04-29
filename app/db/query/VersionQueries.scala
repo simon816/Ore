@@ -1,7 +1,7 @@
 package db.query
 
 import db.OrePostgresDriver.api._
-import db.query.Queries.{ModelFilter, run}
+import db.query.ModelQueries.{ModelFilter, run}
 import db.{VersionDownloadsTable, VersionTable}
 import models.project.Version
 
@@ -10,7 +10,7 @@ import scala.concurrent.Future
 /**
   * Version related queries.
   */
-class VersionQueries extends Queries {
+class VersionQueries extends ModelQueries {
 
   override type Row = Version
   override type Table = VersionTable

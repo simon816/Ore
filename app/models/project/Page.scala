@@ -3,10 +3,10 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.orm.dao.ModelDAO
+import db.orm.dao.TModelSet
 import db.orm.model.Model
 import db.orm.model.ModelKeys._
-import db.query.Queries
+import db.query.ModelQueries
 import forums.SpongeForums
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
@@ -88,11 +88,11 @@ case class Page(override val  id: Option[Int] = None,
 
   // Table bindings
 
-  bind[String](Contents, _._contents, contents => Seq(Queries.Pages.setString(this, _.contents, contents)))
+  bind[String](Contents, _._contents, contents => Seq(ModelQueries.Pages.setString(this, _.contents, contents)))
 
 }
 
-object Page extends ModelDAO[Page] {
+object Page extends TModelSet[Page] {
 
   /**
     * The name of each Project's homepage.
@@ -124,7 +124,7 @@ object Page extends ModelDAO[Page] {
     */
   val MaxNameLength: Int = PagesConf.getInt("name.max-len").get
 
-  override def withId(id: Int): Option[Page] = Queries.await(Queries.Pages.get(id)).get
+  override def withId(id: Int): Option[Page] = ModelQueries.await(ModelQueries.Pages.get(id)).get
 
   /**
     * Returns a template for new Pages.
