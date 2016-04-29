@@ -68,13 +68,15 @@ function initBtnEdit() {
     pageBtns.click(function() {
         if ($(this).hasClass('open')) return;
 
+        // toggle button
         $('button.open').removeClass('open').css('border', '1px solid #ccc');
         $(this).addClass('open').css('border-right-color', 'white');
 
         var editor = $('.page-edit');
 
         if ($(this).hasClass('btn-edit')) {
-            var content = $('.page-content');
+            // open editor
+            var content = $('.page-rendered');
             editor.find('textarea').css('height', content.css('height'));
             content.hide();
             editor.show();
@@ -87,28 +89,31 @@ function initBtnEdit() {
                     });
                 });
             });
-
-            btnEdit.addClass('open');
         }
 
         else if ($(this).hasClass('btn-preview')) {
+            // render markdown
             var preview = $('.page-preview').html(markdown.makeHtml(editor.find('textarea').val()));
             editor.hide();
             preview.show();
         }
 
         else if ($(this).hasClass('btn-save')) {
+            // add spinner
             $(this).find('i').removeClass('fa-save').addClass('fa-spinner fa-spin');
         }
     });
 
     $('.btn-cancel').click(function() {
+        // hide editor; show content
         $('.page-edit').hide();
         $('.page-preview').hide();
         $('.page-content').show();
 
+        // move buttons behind
         $('.btn-edit-container').css('z-index', '-1000');
 
+        // hide buttons
         var fromSave = function() {
             hideEditBtn($('.btn-save-container'), function() {
                 hideEditBtn($('.btn-preview-container'));
@@ -150,6 +155,7 @@ $(function() {
     initFlagList();
     initBtnEdit();
 
+    // flag button alert
     var flagMsg = $('.flag-msg');
     if (flagMsg.length) {
         flagMsg.hide().fadeIn(1000).delay(2000).fadeOut(1000);
@@ -172,6 +178,7 @@ $(function() {
         increment *= -1;
     });
 
+    // hotkeys
     var body = $('body');
     body.keydown(function(event) {
         var target = $(event.target);
