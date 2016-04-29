@@ -29,7 +29,7 @@ function initFlagList() {
 }
 
 function animateEditBtn(e, marginLeft, andThen) {
-    e.animate({ marginLeft: marginLeft }, 'fast', function() {
+    e.animate({ marginLeft: marginLeft }, 100, function() {
         if (andThen) andThen();
     });
 }

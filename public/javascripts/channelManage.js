@@ -14,7 +14,7 @@ function rgbToHex(rgb) {
 }
 
 function getModal() {
-    return $('#channel-manage');
+    return $('#channel-settings');
 }
 
 var onCustomSubmit = function(toggle, channelName, channelHex, title, submit) {
@@ -41,6 +41,9 @@ function initChannelManager(toggle, channelName, channelHex, title, call, method
     $(toggle).off('click'); // Unbind previous click handlers
     $(toggle).click(function() {
         var modal = getModal();
+        console.log(modal);
+        console.log(channelName);
+        console.log(title);
         var preview = modal.find('.preview');
         var submitInput = modal.find('input[type="submit"]');
 

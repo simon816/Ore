@@ -25,6 +25,7 @@
                 @projects.members.util.roleSelect("", classes="pull-right")
             </li>
         </ul>
+
         <!-- Delete modal -->
         <div class="modal fade" id="modal-user-delete" tabindex="-1" role="dialog" aria-labelledby="label-user-delete">
             <div class="modal-dialog" role="document">
@@ -56,7 +57,10 @@
             @model.members.map { member =>
                 <li class="list-group-item">
 
-                    <a class="username" href="@routes.Users.show(member.name)">@member.name</a>
+                    <a class="username" href="@routes.Users.show(member.name)">
+                        <img class="user-avatar" src="@member.user.avatarUrl(100)" width="32" height="32" />
+                        @member.name
+                    </a>
 
                     @if(canEdit && !member.headRole.roleType.equals(RoleTypes.ProjectOwner)) {
                         <a href="#">
