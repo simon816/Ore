@@ -78,7 +78,6 @@ case class Project(override val   id: Option[Int] = None,
   import models.project.Project._
 
   override type M <: Project { type M = self.M }
-  override type T = ProjectTable
 
   def this(pluginId: String, name: String, owner: String, ownerId: Int, homepage: String) = {
     this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
@@ -371,9 +370,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Channels in project
     */
-  def channels: ChildModelSet[ProjectTable, Project, ChannelTable, Channel] = assertDefined {
-    ModelQueries.Projects.getChannels(this)
-  }
+  def channels = this.getChildren[ChannelTable, Channel](classOf[Channel])
 
   /**
     * Creates a new Channel for this project with the specified name.

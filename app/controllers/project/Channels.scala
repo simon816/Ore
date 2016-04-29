@@ -29,7 +29,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi, implicit val ws:
   def showList(author: String, slug: String) = {
     ChannelEditAction(author, slug) { implicit request =>
       val project = request.project
-      Ok(views.list(project, project.channels.seq))
+      Ok(views.list(project, project.channels.toSeq))
     }
   }
 

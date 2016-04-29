@@ -33,7 +33,6 @@ case class Flag(override val  id: Option[Int],
                 with          ProjectScope { self =>
 
   override type M <: Flag { type M = self.M }
-  override type T = FlagTable
 
   def this(projectId: Int, userId: Int, reason: FlagReason) = {
     this(id=None, createdAt=None, projectId=projectId, userId=userId, reason=reason)

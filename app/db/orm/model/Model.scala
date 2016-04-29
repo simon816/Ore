@@ -82,7 +82,8 @@ abstract class Model { self =>
   def getChildren[ChildTable <: ModelTable[Child], Child <: Model](modelClass: Class[_ <: Child]) = {
     val binding = this.childBindings.find(_._1.isAssignableFrom(modelClass)).get._2
       .asInstanceOf[ChildBinding[ChildTable, Child]]
-    new ChildModelSet[T, M, ChildTable, Child](binding.childClass.asInstanceOf[Class[Child]], binding.ref, this)
+    new ChildModelSet[T, M, ChildTable, Child](binding.childClass.asInstanceOf[Class[Child]], binding.ref,
+      this.asInstanceOf[M])
   }
 
   /**

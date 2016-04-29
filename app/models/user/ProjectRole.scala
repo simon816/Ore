@@ -33,7 +33,6 @@ case class ProjectRole(override val id: Option[Int] = None,
                        with         Ordered[ProjectRole] { self =>
 
   override type M <: ProjectRole { type M = self.M }
-  override type T = ProjectRoleTable
 
   def this(userId: Int, roleType: RoleType, projectId: Int) = {
     this(id=None, createdAt=None, userId=userId, _roleType=roleType, projectId=projectId)

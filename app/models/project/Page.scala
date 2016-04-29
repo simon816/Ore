@@ -40,7 +40,6 @@ case class Page(override val  id: Option[Int] = None,
   import models.project.Page._
 
   override type M <: Page { type M = self.M }
-  override type T = PageTable
 
   checkNotNull(this.name, "name cannot be null", "")
   checkNotNull(this._contents, "contents cannot be null", "")

@@ -2,6 +2,7 @@ package controllers
 
 import db.OrePostgresDriver.api._
 import db.query.ModelQueries
+import db.query.ModelQueries.filterToFunction
 import forums.SpongeForums
 import models.project.{Channel, Project, Version}
 import play.api.i18n.I18nSupport

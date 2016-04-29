@@ -6,8 +6,9 @@ import controllers.Requests.AuthRequest
 import controllers.routes.{Application => self}
 import db.OrePostgresDriver.api._
 import db.ProjectTable
+import db.orm.dao.ModelFilter
 import db.query.ModelQueries
-import db.query.ModelQueries.{ModelFilter, await, filterToFunction}
+import db.query.ModelQueries.{await, filterToFunction}
 import models.project.Project._
 import models.project.{Flag, Project}
 import models.user.User

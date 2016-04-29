@@ -42,7 +42,6 @@ case class Channel(override val   id: Option[Int] = None,
   import models.project.Channel._
 
   override type M <: Channel { type M = self.M }
-  override type T = ChannelTable
 
   def this(name: String, color: Color, projectId: Int) = this(_name=name, _color=color, projectId=projectId)
 

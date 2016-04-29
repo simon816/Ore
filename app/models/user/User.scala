@@ -46,7 +46,6 @@ case class User(override val  id: Option[Int] = None,
   import models.user.User._
 
   override type M <: User { type M = self.M }
-  override type T = UserTable
 
   /**
     * The User's [[PermissionPredicate]]. All permission checks go through
@@ -225,7 +224,7 @@ case class User(override val  id: Option[Int] = None,
     *
     * @return Flags submitted by user
     */
-  def flags: ChildModelSet[UserTable, User, FlagTable, Flag] = ModelQueries.Users.getFlags(this)
+  def flags = this.getChildren[FlagTable, Flag](classOf[Flag])
 
   /**
     * Returns true if the User has an unresolved [[Flag]] on the specified

@@ -53,7 +53,6 @@ case class Version(override val   id: Option[Int] = None,
                    with           ProjectScope { self =>
 
   override type M <: Version { type M = self.M }
-  override type T = VersionTable
 
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int, fileSize: Long, hash: String) = {

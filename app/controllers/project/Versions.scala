@@ -6,6 +6,7 @@ import controllers.BaseController
 import controllers.project.routes.{Versions => self}
 import db.OrePostgresDriver.api._
 import db.query.ModelQueries
+import db.query.ModelQueries.filterToFunction
 import form.Forms
 import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
@@ -97,7 +98,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
   def showList(author: String, slug: String, channels: Option[String]) = {
     ProjectAction(author, slug) { implicit request =>
       val project = request.project
-      val allChannels = project.channels.seq
+      val allChannels = project.channels.toSeq
 
       var visibleNames: Option[Array[String]] = channels.map(_.toLowerCase.split(','))
       val visible: Option[Array[Channel]] = visibleNames.map(_.map { name =>
@@ -200,7 +201,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
               case pending: PendingProject =>
                 Ok(views.create(pending.project, Some(pendingVersion), None, showFileControls = false))
               case real: Project =>
-                Ok(views.create(real, Some(pendingVersion), Some(real.channels.seq), showFileControls = true))
+                Ok(views.create(real, Some(pendingVersion), Some(real.channels.toSeq), showFileControls = true))
             }
           }
       }

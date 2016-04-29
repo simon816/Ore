@@ -31,7 +31,7 @@ object OreWrites {
         "description" -> project.description,
         "href" -> ('/' + project.ownerName + '/' + project.slug),
         "members" -> members,
-        "channels" -> Json.toJson(project.channels.seq),
+        "channels" -> Json.toJson(project.channels.toSeq),
         "recommended" -> Json.obj("channel" -> rv.channel.name, "version" -> rv.versionString),
         "category" -> Json.obj("title" -> category.title, "icon" -> category.icon),
         "views" -> project.views,

@@ -4,7 +4,7 @@ import java.nio.file.Files
 
 import com.google.common.base.Preconditions._
 import db.query.ModelQueries
-import db.query.ModelQueries.await
+import db.query.ModelQueries.{await, filterToFunction}
 import forums.SpongeForums
 import models.project.Project.PendingProject
 import models.project.Version.PendingVersion
