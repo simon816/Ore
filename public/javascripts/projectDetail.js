@@ -97,7 +97,7 @@ function initBtnEdit() {
             preview.show();
         }
 
-        else if ($(this).hasClass('btn-save') || $(this).hasClass('btn-delete')) {
+        else if ($(this).hasClass('btn-save')) {
             $(this).find('i').removeClass('fa-save').addClass('fa-spinner fa-spin');
         }
     });
