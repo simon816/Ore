@@ -1,5 +1,5 @@
 var PLUGIN_ID = null;
-var CHANNEL_STRING = null;
+var CHANNEL_STRING = '';
 var VERSIONS_PER_PAGE = 10;
 var PROJECT_OWNER = null;
 var PROJECT_SLUG = null;
@@ -70,29 +70,67 @@ $(function() {
     versionPanel.find('.prev').click(function() { loadVersions(-1) });
 
     // Setup channel list
-    $('.list-channel').find('li').find('a').click(function() {
-        var channelString = '';
+
+    $('.list-channel').find('li').find('input').on('change', function() {
+        var channelString = CHANNEL_STRING;
         var channelName = $(this).closest('.list-group-item').find('.channel').text();
-        if ($(this).hasClass('visible')) {
-            var self = $(this);
-            var visible = $('.list-channel').find('li').find('a.visible');
-            // Find visible channels
-            visible.each(function(i) {
-                if ($(this).is(self)) return; // Skip this channel
-                channelString += $(this).closest('.list-group-item').find('.channel').text();
-                if (i < visible.length - 1) channelString += ',';
-            });
-        } else if (CHANNEL_STRING) {
-            channelString += CHANNEL_STRING + ',' + channelName;
-        } else {
+        if ($(this).is(":checked")) {
+            if (channelString.length) channelString += ',';
             channelString += channelName;
+        } else {
+            channelString = '';
+            var checked = $('.list-channel').find('li').find('input:checked');
+            checked.each(function(i) {
+                channelString += $(this).closest('.list-group-item').find('.channel').text();
+                if (i < checked.length - 1) channelString += ',';
+            });
         }
 
-        // Build url
         var url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/versions';
-        if (channelString.length > 0) url += '?channels=' + channelString;
+        if (channelString.length) url += '?channels=' + channelString;
 
-        // Booyah!
         window.location = url;
     });
+
+    $('.channels-all').on('change', function() {
+        var channelString = '';
+        if (!$(this).is(":checked")) {
+            var checked = $('.list-channel').find('li').find('input');
+            checked.each(function(i) {
+                channelString += $(this).closest('.list-group-item').find('.channel').text();
+                if (i < checked.length - 1) channelString += ',';
+            });
+        }
+
+        var url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/versions';
+        if (channelString.length) url += '?channels=' + channelString;
+
+        window.location = url;
+    });
+
+    //$('.list-channel').find('li').find('input').on('change', function() {
+    //    var channelString = '';
+    //    var channelName = $(this).closest('.list-group-item').find('.channel').text();
+    //    if ($(this).hasClass('visible')) {
+    //        var self = $(this);
+    //        var visible = $('.list-channel').find('li').find('input.visible');
+    //        // Find visible channels
+    //        visible.each(function(i) {
+    //            if ($(this).is(self)) return; // Skip this channel
+    //            channelString += $(this).closest('.list-group-item').find('.channel').text();
+    //            if (i < visible.length - 1) channelString += ',';
+    //        });
+    //    } else if (CHANNEL_STRING) {
+    //        channelString += CHANNEL_STRING + ',' + channelName;
+    //    } else {
+    //        channelString += channelName;
+    //    }
+    //
+    //    // Build url
+    //    var url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/versions';
+    //    if (channelString.length > 0) url += '?channels=' + channelString;
+    //
+    //    // Booyah!
+    //    window.location = url;
+    //});
 });

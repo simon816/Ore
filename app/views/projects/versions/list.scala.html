@@ -106,12 +106,10 @@ Versions page within Project overview.
                         }
                         <div class="panel panel-default channels">
                             <div class="panel-heading">
-                                <h3 class="panel-title">Channels</h3>
-                                @if(visibleChannels.isDefined) {
-                                    <a href="@projectRoutes.Versions.showList(model.ownerName, model.slug, None)">
-                                        <i class="pull-right channel-reset fa fa-times"></i>
-                                    </a>
-                                }
+                                <h3 class="panel-title pull-left">Channels</h3>
+                                <input type="checkbox" class="pull-right channels-all"
+                                      @if(visibleChannels.isEmpty) { checked } />
+                                <div class="clearfix"></div>
                             </div>
 
                             <!-- Channel list -->
@@ -122,16 +120,11 @@ Versions page within Project overview.
 
                                       @visibleChannels.map(_.map(_.toLowerCase)).map { channels =>
                                         @defining(channels.contains(channel.name.toLowerCase)) { visible =>
-                                            <a href="#" class="pull-right @if(visible) { visible }">
-                                              @if(visible) {
-                                                  <i class="fa fa-eye"></i>
-                                              } else {
-                                                  <i class="fa fa-eye-slash"></i>
-                                              }
-                                          </a>
+                                            <input type="checkbox" class="pull-right"
+                                                   @if(visible) { checked } />
                                         }
                                       }.getOrElse {
-                                          <a class="pull-right visible" href="#"><i class="fa fa-eye"></i></a>
+                                          <input type="checkbox" checked class="pull-right" />
                                       }
                                   </li>
                                 }
