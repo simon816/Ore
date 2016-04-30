@@ -249,7 +249,7 @@ button.open:hover {
 
 .navbar-main .navbar-left li > a {
     padding-top: 10px;
-    padding-bottom: 10px;
+    padding-bottom: 12px;
 }
 
 .main-dropdown:hover {
@@ -268,17 +268,17 @@ button.open:hover {
     padding-right: 5px;
 }
 
-.navbar-nav > li > .main-dropdown {
-    margin-top: 2px;
-    padding: 10px 0 4px;
-}
-
 .navbar-nav > li > .main-dropdown, .user-dropdown {
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
     box-shadow: none;
     border-radius: 0 0 4px 4px;
     border: 1px solid #e4e4e4;
+}
+
+.navbar-nav > li > .main-dropdown {
+    padding: 10px 0 4px;
+    border-top: none; !important;
 }
 
 /* right nav */
