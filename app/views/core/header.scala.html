@@ -6,6 +6,7 @@ The main header displayed on each layout.
 @import ore.permission.ReviewFlags
 @import ore.permission.scope.GlobalScope
 @import util.C
+@import controllers.project.{routes => projectRoutes}
 @()(implicit messages: Messages, session: Session, request: RequestHeader)
 
 @canViewFlags(user: User) = @{ user can ReviewFlags in GlobalScope }
@@ -69,6 +70,12 @@ The main header displayed on each layout.
                                     <a href="@routes.Users.show(user.username)">
                                         <span class="pull-left">@user.username</span>
                                         <i class="pull-right fa fa-user"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="@projectRoutes.Projects.showCreator()">
+                                        <span class="pull-left">New</span>
+                                        <i class="pull-right fa fa-plus"></i>
                                     </a>
                                 </li>
                                 @if(canViewFlags(user)) {
