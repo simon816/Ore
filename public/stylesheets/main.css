@@ -369,7 +369,9 @@ button.open:hover {
 /* project content */
 
 .table-controls {
-    margin-top: 20px;
+    position: absolute;
+    bottom: 0;
+    right: 20px;
 }
 
 .project-table > tbody > tr > td:first-child {
@@ -675,7 +677,8 @@ form {
 }
 
 .index-header {
-    margin-bottom: 15px;
+    padding-top: 20px;
+    padding-bottom: 20px;
 }
 
 .index-header .alert {
