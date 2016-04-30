@@ -10,6 +10,9 @@ import ore.Statistics
 import ore.permission.EditPages
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
+import models.project.Page
+import play.api.mvc.Action
+import play.libs.Json
 import views.html.projects.{pages => views}
 
 /**
@@ -53,6 +56,15 @@ class Pages @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
       val project = request.project
       Ok(views.view(project, project.getOrCreatePage(page), editorOpen = true))
     }
+  }
+
+  /**
+    * Renders the submitted page content and returns the result.
+    *
+    * @return Rendered content
+    */
+  def showPreview = Action { implicit request =>
+    Ok(Page.MarkdownProcessor.markdownToHtml((request.body.asJson.get \ "raw").as[String]))
   }
 
   /**

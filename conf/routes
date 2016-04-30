@@ -45,6 +45,8 @@ POST    /new/upload                                                 @controllers
 GET     /new/:author/:slug                                          @controllers.project.Projects.showCreatorWithMeta(author, slug)
 POST    /new/:author/:slug/members                                  @controllers.project.Projects.showMembersConfig(author, slug)
 
+POST    /pages/preview                                              @controllers.project.Pages.showPreview
+
 # ---------- Users ----------
 GET     /:user                                                      @controllers.Users.show(user)
 POST    /:user/settings/tagline                                     @controllers.Users.saveTagline(user)

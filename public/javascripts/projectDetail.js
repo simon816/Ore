@@ -93,9 +93,20 @@ function initBtnEdit() {
 
         else if ($(this).hasClass('btn-preview')) {
             // render markdown
-            var preview = $('.page-preview').html(markdown.makeHtml(editor.find('textarea').val()));
+            var preview = $('.page-preview');
+            var raw = editor.find('textarea').val();
             editor.hide();
             preview.show();
+            var icon = $(this).find('i').removeClass('fa-eye').addClass('fa-spinner fa-spin');
+            console.log(raw);
+            $.post({
+                url: '/pages/preview',
+                data: JSON.stringify({ raw: raw }),
+                contentType: 'application/json',
+                dataType: 'html',
+                complete: function() { icon.removeClass('fa-spinner fa-spin').addClass('fa-eye'); },
+                success: function(cooked) { preview.html(cooked); }
+            });
         }
 
         else if ($(this).hasClass('btn-save')) {

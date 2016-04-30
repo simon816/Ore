@@ -37,6 +37,24 @@ body {
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
+.page-rendered table tr > th {
+    padding: 5px;
+}
+
+.page-rendered table tr:nth-child(2n) {
+    background-color: #F5F5F5;
+}
+
+.page-rendered table tr > td, .page-rendered table tr > th {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.page-rendered code {
+    background-color: rgba(0,0,0,0.04);
+    color: black;
+}
+
 .alert-review {
     margin-bottom: 10px;
 }
@@ -87,12 +105,7 @@ button.open:hover {
     color: #c12e2a;
 }
 
-.page-content h1,
-.page-content h2,
-.page-content h3,
-.page-content h4,
-.page-content h5,
-.page-content h6 {
+.page-rendered h1, .page-rendered h2 {
     border-bottom: 1px solid #ddd;
     padding-bottom: 5px;
 }
