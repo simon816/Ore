@@ -71,14 +71,6 @@ sorted according to different criteria.
                         @flash.get("error").get
                     </div>
                 }
-
-                <!-- Buttons -->
-                <div class="table-controls pull-right">
-                    @if(C.isDebug && User.current.isDefined && (User.current.get can ResetOre in GlobalScope)) {
-                        <a href="@routes.Application.reset" title="Reset Ore to factory settings" data-toggle="tooltip"
-                           data-placement="bottom" class="btn btn-danger">Reset Ore</a>
-                    }
-                </div>
             </div>
         </div>
 

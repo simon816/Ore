@@ -369,9 +369,7 @@ button.open:hover {
 /* project content */
 
 .table-controls {
-    position: absolute;
-    bottom: 0;
-    right: 20px;
+   padding-top: 26px;
 }
 
 .project-table > tbody > tr > td:first-child {
@@ -693,8 +691,33 @@ form {
 }
 
 .plugin-meta-table {
-    border-collapse: separate;
-    border-spacing: 10px;
+    margin-top: 5px;
+    width: 100%;
+    border: 1px solid #ddd;
+    -webkit-box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+    -moz-box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.plugin-meta-table input[type="text"] {
+    width: 100%;
+}
+
+.plugin-meta-table tr {
+    width: 100%;
+}
+
+.plugin-meta-table td {
+    padding: 10px;
+}
+
+.plugin-meta tr:nth-child(2n) {
+    background-color: #f5f5f5;
+}
+
+.plugin-meta-table tr > td:nth-child(2n) {
+    text-align: right;
+    float: right;
 }
 
 .plugin-meta-table .recommended {
@@ -703,8 +726,8 @@ form {
 
 .plugin-meta {
     border-bottom: 1px solid #ddd;
-    padding-top: 20px;
-    padding-bottom: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 .category-select {
@@ -781,6 +804,10 @@ form {
 .project-body {
     padding-bottom: 10px; !important;
     padding-top: 10px; !important;
+}
+
+.create-buttons {
+    border-top: 1px solid #ddd;
 }
 
 .create-buttons > form {

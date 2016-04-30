@@ -32,34 +32,36 @@ Page used for uploading and creating new projects.
             @* Display plugin metadata *@
             @defining(pending.get.project) { project =>
                 <div class="plugin-meta">
+                    <i class="minor">mcmod.info</i>
                     <table class="plugin-meta-table">
                         <tbody>
                             <tr>
-                                <td><strong>@messages("project.create.uid")</strong></td>
+                                <td colspan="2"><strong>@messages("project.create.uid")</strong></td>
                                 <td>@project.pluginId <i class="id-status fa fa-spinner fa-spin"></i></td>
                             </tr>
                             <tr>
-                                <td><strong>@messages("project.name")</strong></td>
+                                <td colspan="2"><strong>@messages("project.name")</strong></td>
                                 <td>@project.name <i class="name-status fa fa-spinner fa-spin"></i></td>
                             </tr>
                             <tr>
-                                <td><strong>@messages("project.owner")</strong></td>
+                                <td colspan="2"><strong>@messages("project.owner")</strong></td>
                                 <td>@project.ownerName</td>
                             </tr>
                             <tr>
-                                <td><label for="description">Description</label></td>
-                                <td>
-                                @defining(pending.get.pendingVersion.version.description) { description =>
-                                    <input form="continue" class="form-control-sm" type="text" id="description"
-                                            name="description" maxlength="@Project.MaxDescriptionLength"
-                                        @description.map { value =>
+                                <td colspan="2">
+                                    <label for="description">Description</label>
+                                    @defining(pending.get.pendingVersion.version.description) { description =>
+                                        <input form="continue" class="form-control" type="text" id="description"
+                                        name="description" maxlength="@Project.MaxDescriptionLength"
+                                            @description.map { value =>
                                             value="@value"
-                                        }.getOrElse {
-                                            placeholder="@messages("version.create.no-description")"
-                                }
-                                    />
-                                }
+                                            }.getOrElse {
+                                                placeholder="@messages("version.create.no-description")"
+                                    }
+                                        />
+                                    }
                                 </td>
+                                <td></td>
                             </tr>
                         </tbody>
                     </table>
