@@ -51,7 +51,7 @@ body {
 }
 
 .page-rendered code {
-    background-color: rgba(0,0,0,0.04);
+    background-color: #F0F0F0;
     color: black;
 }
 
