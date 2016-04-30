@@ -20,7 +20,7 @@ body {
     cursor: default;
 }
 
-/* docs page */
+/* pages */
 
 .page-rendered, .page-edit textarea {
     min-height: 350px;
@@ -53,6 +53,20 @@ body {
 .page-rendered code {
     background-color: #F0F0F0;
     color: black;
+}
+
+.page-rendered h1, .page-rendered h2 {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.page-rendered h1,
+.page-rendered h2,
+.page-rendered h3,
+.page-rendered h4,
+.page-rendered h5,
+.page-rendered h6 {
+    font-weight: bold;
 }
 
 .alert-review {
@@ -105,12 +119,7 @@ button.open:hover {
     color: #c12e2a;
 }
 
-.page-rendered h1, .page-rendered h2 {
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 5px;
-}
-
-/* ---------- */
+/* footer */
 
 .footer {
     position: absolute;
@@ -357,7 +366,7 @@ button.open:hover {
     transform: translateY(4px);
 }
 
-/* ----- */
+/* project content */
 
 .table-controls {
     margin-top: 20px;
