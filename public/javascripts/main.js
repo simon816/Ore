@@ -32,7 +32,7 @@ $(function() {
             searchBar.animate({width: '0px'}, 100);
             input.fadeOut(100);
         } else {
-            var width = $('.user-avatar').length ? '765px' : '760px';
+            var width = $('.user-controls').find('.user-avatar').length ? '873px' : '768px';
             input.fadeIn(100);
             searchBar.animate({width: width}, 100);
             input.find('input').focus();
