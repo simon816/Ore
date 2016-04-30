@@ -88,6 +88,6 @@ object Forms {
   /**
     * Submits a change to a Version's description.
     */
-  lazy val VersionDescription = Form(single("description" -> text))
+  lazy val VersionDescription = Form(single("content" -> text))
 
 }

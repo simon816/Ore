@@ -11,6 +11,7 @@ import forums.SpongeForums
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
+import play.twirl.api.Html
 import util.C._
 import util.StringUtils._
 
@@ -79,7 +80,7 @@ case class Page(override val  id: Option[Int] = None,
     *
     * @return HTML representation
     */
-  def html: String = MarkdownProcessor.markdownToHtml(contents)
+  def html: Html = Html(MarkdownProcessor.markdownToHtml(contents))
 
   def isHome: Boolean = this.name.equals(HomeName)
 

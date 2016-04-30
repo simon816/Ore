@@ -2,6 +2,7 @@ package models.project
 
 import java.sql.Timestamp
 
+import com.google.common.base.Preconditions
 import db.OrePostgresDriver.api._
 import db.orm.dao.ModelDAO
 import db.orm.model.Model
@@ -15,6 +16,7 @@ import ore.project.util.{PluginFile, ProjectFactory}
 import org.apache.commons.io.FileUtils
 import play.api.Play.current
 import play.api.cache.Cache
+import play.twirl.api.Html
 import util.C._
 import util.{Cacheable, PendingAction}
 
@@ -92,7 +94,9 @@ case class Version(override val   id: Option[Int] = None,
     *
     * @return Version description
     */
-  def description: Option[String] = this._description
+  def description: Option[String] = {
+    this._description
+  }
 
   /**
     * Sets this Version's description.
@@ -100,9 +104,13 @@ case class Version(override val   id: Option[Int] = None,
     * @param _description Version description
     */
   def description_=(_description: String) = {
+    Preconditions.checkArgument(_description.length <= Page.MaxLength, "content too long", "")
     this._description = Some(_description)
     if (isDefined) update(Description)
   }
+
+  def descriptionHtml: Html
+  = this.description.map(str => Html(Page.MarkdownProcessor.markdownToHtml(str))).getOrElse(Html(""))
 
   /**
     * Returns this Versions plugin dependencies.

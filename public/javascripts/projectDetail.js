@@ -1,7 +1,6 @@
 var projectOwner = null;
 var projectSlug = null;
 var alreadyStarred = false;
-var markdown = new showdown.Converter();
 
 var KEY_PLUS = 61;
 var KEY_MINUS = 173;
