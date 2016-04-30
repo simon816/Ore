@@ -176,7 +176,7 @@ $(function() {
     $('.btn-star').click(function() {
         var starred = $(this).find('.starred');
         starred.html(' ' + (parseInt(starred.text()) + increment).toString());
-        $.ajax('/' + projectOwner + '/' + projectSlug + '/star/' + (increment > 0));
+        $.ajax(decodeHtml('/' + projectOwner + '/' + projectSlug) + '/star/' + (increment > 0));
 
         var icon = $('#icon-star');
         if (increment > 0) {

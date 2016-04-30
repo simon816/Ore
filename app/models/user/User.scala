@@ -54,6 +54,8 @@ case class User(override val  id: Option[Int] = None,
   val can: PermissionPredicate = PermissionPredicate(this)
   val cannot: PermissionPredicate = PermissionPredicate(this, not = true)
 
+  private val forumsUrl = DiscourseConf.getString("baseUrl").get
+
   /**
     * Returns this User's full name.
     *
@@ -132,8 +134,10 @@ case class User(override val  id: Option[Int] = None,
     * @return     Avatar URL
     */
   def avatarUrl(size: Int = 100): String = {
-    this._avatarUrl.map(s => DiscourseConf.getString("baseUrl").get + s.replace("{size}", size.toString)).getOrElse("")
+    this._avatarUrl.map(s => this.forumsUrl + s.replace("{size}", size.toString)).getOrElse("")
   }
+
+  def avatarTemplate: Option[String] = this._avatarUrl.map(this.forumsUrl + _)
 
   /**
     * Sets this User's avatar url.

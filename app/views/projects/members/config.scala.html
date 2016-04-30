@@ -19,6 +19,7 @@
                 <tr id="result-row">
                     <td>
                         <input type="hidden"/>
+                        <img class="user-avatar" width="32" height="32" />
                         <i class="fa fa-times user-cancel"></i>
                         <a target="_blank" href=""></a>
                     </td>
@@ -48,7 +49,10 @@
                 <tbody>
                     <!-- Owner (not submitted) -->
                     <tr>
-                        <td><strong>@user.username</strong></td>
+                        <td>
+                            <img class="user-avatar" width="32" height="32" src="@user.avatarUrl(100)" />
+                            <strong>@user.username</strong>
+                        </td>
                         <td><i class="minor">Owner</i></td>
                     </tr>
 
@@ -58,11 +62,10 @@
                             <tr>
                                 <td>
                                     <input form="form-continue" type="hidden" value="@user.id.get" />
-                                    <strong>
-                                        <a target="_blank" href="@routes.Users.show(user.username)">
-                                            @user.username
-                                        </a>
-                                    </strong>
+                                    <img class="user-avatar" width="32" height="32" src="@user.avatarUrl(100)" />
+                                    <a target="_blank" href="@routes.Users.show(user.username)">
+                                        @user.username
+                                    </a>
                                 </td>
                                 <td>@projects.members.util.roleSelect()</td>
                             </tr>

@@ -33,6 +33,15 @@ $(function() {
         newRow.find('select').attr('form', 'form-continue');
         newRow.find('a').attr('href', '/' + user.username).text(user.username);
 
+
+        var avatarImg = newRow.find('img');
+        if (user.hasOwnProperty('avatarTemplate')) {
+            var avatarUrl = user.avatarTemplate.replace('{size}', '100');
+            avatarImg.attr('src', avatarUrl);
+        } else {
+            avatarImg.remove();
+        }
+        
         // Bind cancel button
         newRow.find('.user-cancel').click(function() {
             $(this).closest('tr').remove();

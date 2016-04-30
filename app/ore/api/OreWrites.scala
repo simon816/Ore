@@ -28,7 +28,7 @@ object OreWrites {
         "createdAt" -> project.prettyDate,
         "name" -> project.name,
         "owner" -> project.ownerName,
-        "description" -> project.description.getOrElse("").toString,
+        "description" -> project.description,
         "href" -> ('/' + project.ownerName + '/' + project.slug),
         "members" -> members,
         "channels" -> Json.toJson(project.channels.seq),
@@ -66,7 +66,8 @@ object OreWrites {
         "createdAt" -> user.prettyDate,
         "username" -> user.username,
         "roles" -> user.globalRoles.map(_.title),
-        "starred" -> user.starred().map(p => p.pluginId)
+        "starred" -> user.starred().map(p => p.pluginId),
+        "avatarTemplate" -> user.avatarTemplate
       )
     }
   }

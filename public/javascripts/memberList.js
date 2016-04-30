@@ -71,6 +71,15 @@ $(function() {
             updateIndices();
         });
 
+
+        var avatarImg = resultRow.find('img');
+        if (user.hasOwnProperty('avatarTemplate')) {
+            var avatarUrl = user.avatarTemplate.replace('{size}', '100');
+            avatarImg.attr('src', avatarUrl);
+        } else {
+            avatarImg.remove();
+        }
+
         // Add result to list
         $('.user-search').parent().before(resultRow);
         updateIndices();

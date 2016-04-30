@@ -924,7 +924,7 @@ a > .fa {
     position: absolute;
     color: gray;
     left: -7px;
-    bottom: 12px;
+    bottom: 16px;
 }
 
 .user-cancel:hover {
@@ -932,7 +932,7 @@ a > .fa {
 }
 
 .user-cancel2 {
-    left: 0; !important;
+    left: 1px; !important;
 }
 
 .btn-group-login {
@@ -1051,4 +1051,8 @@ a > .fa {
 
 .list-members > li > span {
     padding: 6px;
+}
+
+.list-members .username > .user-avatar > img {
+    margin-right: 5px;
 }
