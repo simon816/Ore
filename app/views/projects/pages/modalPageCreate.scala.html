@@ -4,9 +4,8 @@
 
 <script type="text/javascript" src="@routes.Assets.at("javascripts/pageEdit.js")"></script>
 <script>
-    var onNewPage = function(newPage) {
-        window.location = "@projectRoutes.Projects.show(model.ownerName, model.slug)/pages/" + newPage + "/edit"
-    }
+    PROJECT_OWNER = '@model.ownerName';
+    PROJECT_SLUG = '@model.slug';
 </script>
 
 <div class="modal fade" id="new-page" tabindex="-1" role="dialog" aria-labelledby="new-page-label">

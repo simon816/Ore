@@ -106,10 +106,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
       val visibleIds: Array[Int] = visible.map(_.map(_.id.get)).getOrElse(allChannels.map(_.id.get).toArray)
 
       val versions = project.versions.sorted(_.createdAt.desc, _.channelId inSetBind visibleIds, Version.InitialLoad)
-      if (visibleNames.isDefined) println(visibleNames.get)
-      println(allChannels.map(_.name.toLowerCase))
       if (visibleNames.isDefined && visibleNames.get.toSet.equals(allChannels.map(_.name.toLowerCase).toSet)) {
-        println("debug")
         visibleNames = None
       }
 

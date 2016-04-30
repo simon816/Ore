@@ -1026,3 +1026,7 @@ a > .fa {
 .flag-msg {
     color: #1f7199;
 }
+
+.list-members > li > span {
+    padding: 6px;
+}

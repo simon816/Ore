@@ -107,30 +107,4 @@ $(function() {
 
         window.location = url;
     });
-
-    //$('.list-channel').find('li').find('input').on('change', function() {
-    //    var channelString = '';
-    //    var channelName = $(this).closest('.list-group-item').find('.channel').text();
-    //    if ($(this).hasClass('visible')) {
-    //        var self = $(this);
-    //        var visible = $('.list-channel').find('li').find('input.visible');
-    //        // Find visible channels
-    //        visible.each(function(i) {
-    //            if ($(this).is(self)) return; // Skip this channel
-    //            channelString += $(this).closest('.list-group-item').find('.channel').text();
-    //            if (i < visible.length - 1) channelString += ',';
-    //        });
-    //    } else if (CHANNEL_STRING) {
-    //        channelString += CHANNEL_STRING + ',' + channelName;
-    //    } else {
-    //        channelString += channelName;
-    //    }
-    //
-    //    // Build url
-    //    var url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/versions';
-    //    if (channelString.length > 0) url += '?channels=' + channelString;
-    //
-    //    // Booyah!
-    //    window.location = url;
-    //});
 });
