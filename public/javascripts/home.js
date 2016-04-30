@@ -36,14 +36,14 @@ $(function() {
         }
 
         // Fly you fools!
-        window.location = url;
+        go(url);
     });
 
     // Initialize sorting selection
     $('.select-sort').on('change', function() {
         var url = '/?sort=' + $(this).find('option:selected').val();
         if (CATEGORY_STRING) url += '&categories=' + CATEGORY_STRING;
-        window.location = url;
+        go(url);
     });
 
     // Initialize more button

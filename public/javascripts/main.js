@@ -12,6 +12,15 @@ function shouldExecuteHotkey(event) {
     return !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey;
 }
 
+function decodeHtml(html) {
+    // lol
+    return $('<textarea>').html(html).val();
+}
+
+function go(str) {
+    window.location = decodeHtml(str);
+}
+
 $(function() {
     $('.alert-fade').fadeIn('slow');
     $('[data-toggle="tooltip"]').tooltip();
@@ -43,7 +52,7 @@ $(function() {
         var url = '/?q=' + query;
         if (CATEGORY_STRING) url += '&categories=' + CATEGORY_STRING;
         if (SORT_STRING) url += '&sort=' + SORT_STRING;
-        window.location = url;
+        go(url);
     });
 
     /*

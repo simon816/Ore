@@ -39,8 +39,8 @@ function loadVersions(increment) {
                 row.find('.version-str').text(version.name);
                 row.find('.created').text(version.createdAt);
                 row.find('.size').text(filesize(version.fileSize));
-                row.find('.info').attr('href', window.location + '/versions/' + slug);
-                row.find('.dl').attr('href', window.location + '/versions/download/' + slug);
+                row.find('.info').attr('href', window.location + '/versions/' + decodeHtml(slug));
+                row.find('.dl').attr('href', window.location + '/versions/download/' + decodeHtml(slug));
 
                 // Append to content string
                 content += $('<div>').append(row).html();
@@ -89,7 +89,7 @@ $(function() {
         var url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/versions';
         if (channelString.length) url += '?channels=' + channelString;
 
-        window.location = url;
+        go(url);
     });
 
     $('.channels-all').on('change', function() {
@@ -105,6 +105,6 @@ $(function() {
         var url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/versions';
         if (channelString.length) url += '?channels=' + channelString;
 
-        window.location = url;
+        go(url);
     });
 });
