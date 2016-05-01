@@ -44,6 +44,9 @@ function hideEditBtn(e, andThen) {
     animateEditBtn(e, '0', andThen);
 }
 
+var editing = false;
+var previewing = false;
+
 function initBtnEdit() {
     var btnEdit = $('.btn-edit');
     if (!btnEdit.length) return;
@@ -64,6 +67,7 @@ function initBtnEdit() {
         $('button.open').css('border-right', 'white');
     });
 
+    // handle button clicks
     pageBtns.click(function() {
         if ($(this).hasClass('open')) return;
 
@@ -72,8 +76,12 @@ function initBtnEdit() {
         $(this).addClass('open').css('border-right-color', 'white');
 
         var editor = $('.page-edit');
-
         if ($(this).hasClass('btn-edit')) {
+            editing = true;
+            previewing = false;
+            $(this).css('position', 'absolute').css('top', '');
+            $(otherBtns).css('position', 'absolute').css('top', '');
+
             // open editor
             var content = $('.page-rendered');
             editor.find('textarea').css('height', content.css('height'));
@@ -97,7 +105,7 @@ function initBtnEdit() {
             editor.hide();
             preview.show();
             var icon = $(this).find('i').removeClass('fa-eye').addClass('fa-spinner fa-spin');
-            console.log(raw);
+
             $.post({
                 url: '/pages/preview',
                 data: JSON.stringify({ raw: raw }),
@@ -106,6 +114,9 @@ function initBtnEdit() {
                 complete: function() { icon.removeClass('fa-spinner fa-spin').addClass('fa-eye'); },
                 success: function(cooked) { preview.html(cooked); }
             });
+
+            editing = false;
+            previewing = true;
         }
 
         else if ($(this).hasClass('btn-save')) {
@@ -115,6 +126,9 @@ function initBtnEdit() {
     });
 
     $('.btn-cancel').click(function() {
+        editing = false;
+        previewing = false;
+
         // hide editor; show content
         $('.page-edit').hide();
         $('.page-preview').hide();
@@ -140,23 +154,25 @@ function initBtnEdit() {
     });
 
     // move with scroll
-    var origTop = btnEdit.position().top;
-    var origOff = btnEdit.offset().top;
     $(window).scroll(function() {
-        var navHeight = $('.navbar-main').height();
-        var top = $(this).scrollTop();
-        if (top > btnEdit.offset().top - navHeight - 40) {
-            var editTop = navHeight + 20;
-            btnEdit.css('position', 'fixed').css('top', editTop);
+        var scrollTop = $(this).scrollTop();
+        var editHeight = btnEdit.height();
+        var page = previewing ? $('.page-preview') : $('.page-content');
+        var pageTop = page.position().top;
+        var pto = page.offset().top;
+        var pos = btnEdit.css('position');
+        var bound = pto - editHeight - 30;
+
+        if (scrollTop > bound && pos === 'absolute' && !editing) {
+            var newTop = pageTop + editHeight + 20;
+            btnEdit.css('position', 'fixed').css('top', newTop);
             otherBtns.each(function() {
-                editTop += 0.5;
-                $(this).css('position', 'fixed').css('top', editTop);
+                newTop += 0.5;
+                $(this).css('position', 'fixed').css('top', newTop);
             });
-        } else if (top < origOff - navHeight - 40) {
-            btnEdit.css('position', 'absolute').css('top', origTop);
-            otherBtns.each(function() {
-                $(this).css('position', 'absolute').css('top', origTop);
-            });
+        } else if (scrollTop < bound && pos === 'fixed') {
+            btnEdit.css('position', 'absolute').css('top', '');
+            otherBtns.css('position', 'absolute').css('top', '');
         }
     });
 }
