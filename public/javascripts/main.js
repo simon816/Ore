@@ -32,9 +32,14 @@ $(function() {
             searchBar.animate({width: '0px'}, 100);
             input.fadeOut(100);
         } else {
-            var width = $('.user-controls').find('.user-avatar').length ? '873px' : '768px';
+            var startPos = searchBar.position();
+            var dropdown = $('.dropdown-sponge');
+            var endPos = dropdown.position();
+            var a = startPos.left - (endPos.left + dropdown.width());
+            var b = startPos.top - endPos.top;
+            var distance = Math.sqrt(a*a + b*b);
             input.fadeIn(100);
-            searchBar.animate({width: width}, 100);
+            searchBar.animate({width: distance}, 100);
             input.find('input').focus();
         }
     });
