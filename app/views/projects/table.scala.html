@@ -30,7 +30,7 @@ Collection of all projects.
                     <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
                     <i title="@project.description.getOrElse("")" class="minor">@project.description.getOrElse("")</i>
                 </td>
-                <td class="author">
+                <td>
                     <a href="@routes.Users.show(project.ownerName)">
                         <img class="user-avatar" height="32" width="32" title="@project.ownerName"
                              alt="@project.ownerName" src="@User.withName(project.ownerName).get.avatarUrl(100)" />

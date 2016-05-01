@@ -29,7 +29,7 @@ $(function() {
         var searchBar = $('.project-search');
         var input = searchBar.find('.input-group');
         if (input.is(':visible')) {
-            searchBar.animate({width: '0px'}, 100);
+            searchBar.animate({width: '0'}, 100);
             input.fadeOut(100);
         } else {
             var startPos = searchBar.position();
