@@ -12,10 +12,10 @@ import slick.lifted.ColumnOrdered
 object ProjectSortingStrategies {
 
   /** All sorting strategies. */
-  val values: Seq[ProjectSortingStrategy] = Seq[ProjectSortingStrategy](MostStars, MostDownloads, MostViews, New)
+  val values: Seq[ProjectSortingStrategy] = Seq[ProjectSortingStrategy](MostStars, MostDownloads, MostViews, Newest)
 
   /** The default strategy. */
-  val Default = New
+  val Default = Newest
 
   /**
     * Returns the strategy with the specified ID.
@@ -62,10 +62,10 @@ object ProjectSortingStrategies {
     def id = 2
   }
 
-  case object New extends ProjectSortingStrategy {
+  case object Newest extends ProjectSortingStrategy {
     override type A = Timestamp
     def fn = _.createdAt.desc
-    def title = "New"
+    def title = "Newest"
     def id = 3
   }
 
