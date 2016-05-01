@@ -69,6 +69,10 @@ body {
     font-weight: bold;
 }
 
+.page-rendered img {
+    max-width: 100%;
+}
+
 .alert-review {
     margin-bottom: 10px;
 }
