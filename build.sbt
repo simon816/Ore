@@ -15,9 +15,6 @@ resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 routesGenerator := InjectedRoutesGenerator
 
 // Additional dependencies
-
-SassKeys.syntaxDetection := ForceScss
-
 resolvers ++= Seq(
   //"maven local" at "file://" + Path.userHome.absolutePath + "/.m2/repository"
   "sponge" at "https://repo.spongepowered.org/maven"
