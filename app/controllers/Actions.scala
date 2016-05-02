@@ -1,6 +1,7 @@
 package controllers
 
 import controllers.Requests.{AuthRequest, AuthedProjectRequest, ProjectRequest, ScopedRequest}
+import forums.SpongeForums
 import models.project.Project
 import models.user.User
 import ore.permission.scope.GlobalScope
@@ -22,18 +23,21 @@ trait Actions {
     }
   }
 
+  private def processProject(project: Project, user: Option[User]): Option[Project] = {
+    if (project.isVisible || (user.isDefined && (user.get can HideProjects in GlobalScope))) {
+      if (project.topicId.isEmpty) SpongeForums.Embed.createTopic(project)
+      Some(project)
+    } else {
+      None
+    }
+  }
+
   private def projectAction(author: String, slug: String) = new ActionRefiner[Request, ProjectRequest] {
     def refine[A](request: Request[A]) = Future.successful {
-      Project.withSlug(author, slug) match {
-        case None => Left(NotFound)
-        case Some(project) =>
-          val user = User.current(request.session)
-          if (project.isVisible || (user.isDefined && (user.get can HideProjects in GlobalScope))) {
-            Right(new ProjectRequest(project, request))
-          } else {
-            Left(NotFound)
-          }
-      }
+      Project.withSlug(author, slug)
+        .flatMap(processProject(_, User.current(request.session)))
+        .map(new ProjectRequest[A](_, request))
+        .toRight(NotFound)
     }
   }
 
@@ -56,15 +60,10 @@ trait Actions {
   private def authedProjectAction(author: String, slug: String)
     = new ActionRefiner[AuthRequest, AuthedProjectRequest] {
       def refine[A](request: AuthRequest[A]) = Future.successful {
-        Project.withSlug(author, slug) match {
-          case None => Left(NotFound)
-          case Some(project) =>
-            if (project.isVisible || (request.user can HideProjects in GlobalScope)) {
-              Right(new AuthedProjectRequest(project, request))
-            } else {
-              Left(NotFound)
-            }
-        }
+        Project.withSlug(author, slug)
+          .flatMap(processProject(_, Some(request.user)))
+          .map(new AuthedProjectRequest[A](_, request))
+          .toRight(NotFound)
       }
   }
 
