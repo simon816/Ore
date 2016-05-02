@@ -237,13 +237,6 @@ form {
     text-align: right;
   }
 
-  td {
-    overflow: hidden;
-    white-space: nowrap;
-    vertical-align: middle;
-    text-overflow: ellipsis;
-  }
-
   .stat {
     text-align: center;
     width: 40px;
@@ -262,6 +255,9 @@ form {
 .project-table > tbody > tr > td {
   font-size: 18px;
   white-space: nowrap;
+  overflow: hidden;
+  vertical-align: middle;
+  text-overflow: ellipsis;
 }
 
 .project-panel .panel-footer {
