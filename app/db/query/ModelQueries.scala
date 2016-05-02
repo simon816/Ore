@@ -4,7 +4,7 @@ import java.sql.Timestamp
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-import db.dao.{ChildModelSet, ModelFilter}
+import db.dao.ModelFilter
 import db.driver.OrePostgresDriver.api._
 import db.model.{Model, ModelTable}
 import db.query.user.UserQueries
@@ -254,23 +254,6 @@ object ModelQueries extends Setters {
   def filter[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M], filter: T => Rep[Boolean],
                                              limit: Int = -1, offset: Int = -1): Future[Seq[M]]
   = collect(modelClass, filter = filter, limit = limit, offset = offset)
-
-  /**
-    * Returns a [[ChildModelSet]] for the specified relation.
-    *
-    * @param parentRef    Reference to parent in ChildTable
-    * @param parent       Parent model
-    * @tparam ParentTable Parent table
-    * @tparam Parent      Parent model
-    * @tparam ChildTable  Child table
-    * @tparam Child       Child model
-    * @return             ModelSet of relation
-    */
-  def getModelSet[ParentTable <: ModelTable[Parent], Parent <: Model,
-                  ChildTable <: ModelTable[Child], Child <: Model]
-                  (childClass: Class[Child], parentRef: ChildTable => Rep[Int], parent: Parent):
-                  ChildModelSet[ParentTable, Parent, ChildTable, Child]
-  = new ChildModelSet[ParentTable, Parent, ChildTable, Child](childClass, parentRef, parent)
 
   implicit def filterToFunction[T <: ModelTable[M], M <: Model](filter: ModelFilter[T, M]): T => Rep[Boolean]
   = if (filter == null) null else filter.fn

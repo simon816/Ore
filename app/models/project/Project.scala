@@ -4,15 +4,15 @@ import java.nio.file.{Files, Path}
 import java.sql.Timestamp
 import java.text.MessageFormat
 
-import _root_.ore.Colors.Color
-import _root_.ore.permission.scope.ProjectScope
-import _root_.ore.project.Categories.Category
-import _root_.ore.project.FlagReasons.FlagReason
-import _root_.ore.project.util._
-import _root_.ore.project.{Categories, ProjectMember}
+import ore.Colors.Color
+import ore.permission.scope.ProjectScope
+import ore.project.Categories.Category
+import ore.project.FlagReasons.FlagReason
+import ore.project.util._
+import ore.project.{Categories, ProjectMember}
 import com.google.common.base.Preconditions._
 import db._
-import db.dao.{ChildModelSet, ModelSet}
+import db.dao.ModelSet
 import db.driver.OrePostgresDriver.api._
 import db.model.ModelKeys._
 import db.model._
@@ -74,7 +74,7 @@ case class Project(override val id: Option[Int] = None,
                    @(Bind @field) private var _postId: Option[Int] = None,
                    @(Bind @field) private var _isVisible: Boolean = true,
                    @(Bind @field) private var _isReviewed: Boolean = false)
-                   extends Model with ProjectScope { self =>
+                   extends Model(id, createdAt) with ProjectScope { self =>
 
   import models.project.Project._
 
@@ -128,7 +128,7 @@ case class Project(override val id: Option[Int] = None,
     * @param _name   New name
     * @return       Future result
     */
-  def name_=(_name: String) = assertDefined {
+  def name_=(_name: String) = Defined {
     val newName = compact(_name)
     val newSlug = slugify(newName)
     checkArgument(isValidName(newName), "invalid name", "")
@@ -234,7 +234,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to check if starred for
     * @return       True if starred by User
     */
-  def isStarredBy(user: User): Boolean = assertDefined {
+  def isStarredBy(user: User): Boolean = Defined {
     await(ModelQueries.Projects.isStarredBy(this.id.get, user.id.get)).get
   }
 
@@ -245,7 +245,7 @@ case class Project(override val id: Option[Int] = None,
     * @param username   To get User of
     * @return           True if starred by User
     */
-  def isStarredBy(username: String): Boolean = assertDefined {
+  def isStarredBy(username: String): Boolean = Defined {
     val user = User.withName(username)
     isStarredBy(user.get)
   }
@@ -266,7 +266,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to star for
     * @return       Future result
     */
-  def starFor(user: User) = assertDefined {
+  def starFor(user: User) = Defined {
     if (!isStarredBy(user)) {
       this._stars += 1
       await(ModelQueries.Projects.starFor(this.id.get, user.id.get)).get
@@ -280,7 +280,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to unstar for
     * @return       Future result
     */
-  def unstarFor(user: User) = assertDefined {
+  def unstarFor(user: User) = Defined {
     if (isStarredBy(user)) {
       this._stars -= 1
       await(ModelQueries.Projects.unstarFor(this.id.get, user.id.get)).get
@@ -294,7 +294,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   Flagger
     * @param reason Reason for flagging
     */
-  def flagFor(user: User, reason: FlagReason) = assertDefined {
+  def flagFor(user: User, reason: FlagReason) = Defined {
     val userId = user.id.get
     checkArgument(userId != this.ownerId, "cannot flag own project", "")
     await(ModelQueries insert new Flag(this.id.get, user.id.get, reason)).get
@@ -346,7 +346,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _topicId ID to set
     */
-  def topicId_=(_topicId: Int) = assertDefined {
+  def topicId_=(_topicId: Int) = Defined {
     this._topicId = Some(_topicId)
     update(TopicId)
   }
@@ -363,13 +363,13 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _postId Forum post ID
     */
-  def postId_=(_postId: Int) = assertDefined {
+  def postId_=(_postId: Int) = Defined {
     this._postId = Some(_postId)
     update(PostId)
   }
 
   /**
-    * Returns a [[ChildModelSet]] of all [[ProjectRole]]s in this Project.
+    * Returns a [[ModelSet]] of all [[ProjectRole]]s in this Project.
     *
     * @return Set of all ProjectRoles
     */
@@ -388,7 +388,7 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Name of channel
     * @return       New channel
     */
-  def addChannel(name: String, color: Color): Channel = assertDefined {
+  def addChannel(name: String, color: Color): Channel = Defined {
     checkArgument(Channel.isValidName(name), "invalid name", "")
     checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
     await(ModelQueries insert new Channel(name, color, this.id.get)).get
@@ -440,7 +440,7 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Page name
     * @return       Page with name or new name if it doesn't exist
     */
-  def getOrCreatePage(name: String): Page = assertDefined {
+  def getOrCreatePage(name: String): Page = Defined {
     await(ModelQueries.Pages.getOrInsert(new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true))).get
   }
 
@@ -449,7 +449,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Project home page
     */
-  def homePage: Page = assertDefined {
+  def homePage: Page = Defined {
     val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false)
     await(ModelQueries.Pages.getOrInsert(page)).get
   }
@@ -507,13 +507,13 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Result
     */
-  def delete = assertDefined {
+  def delete = Defined {
     await(ModelQueries delete this).get
     FileUtils.deleteDirectory(ProjectFiles.projectDir(this.ownerName, this._name).toFile)
     if (this.topicId.isDefined) SpongeForums.Embed.deleteTopic(this)
   }
 
-  override def projectId = assertDefined(this.id.get)
+  override def projectId = Defined(this.id.get)
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Project = this.copy(id = id, createdAt = theTime)
 

@@ -51,7 +51,7 @@ case class Version(override val id: Option[Int] = None,
                                 hash: String,
                    @(Bind @field) private var _description: Option[String] = None,
                    @(Bind @field) private var _downloads: Int = 0)
-                   extends Model with ProjectScope { self =>
+                   extends Model(id, createdAt) with ProjectScope { self =>
 
   override type M <: Version { type M = self.M }
 
@@ -89,7 +89,7 @@ case class Version(override val id: Option[Int] = None,
     * @param channels   Channels to search
     * @return           Channel if present, None otherwise
     */
-  def findChannelFrom(channels: Seq[Channel]): Option[Channel] = assertDefined {
+  def findChannelFrom(channels: Seq[Channel]): Option[Channel] = Defined {
     channels.find(_.id.get == this.channelId)
   }
 

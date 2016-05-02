@@ -3,7 +3,7 @@ package models.user
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.dao.{ChildModelSet, ModelSet}
+import db.dao.ModelSet
 import db.driver.OrePostgresDriver.api._
 import db.model.Model
 import db.model.ModelKeys._
@@ -43,7 +43,7 @@ case class User(override val  id: Option[Int] = None,
                 @(Bind @field) private var _globalRoles: List[RoleType] = List(),
                 @(Bind @field) private var _joinDate: Option[Timestamp] = None,
                 @(Bind @field) private var _avatarUrl: Option[String] = None)
-                extends Model with UserOwner with ScopeSubject { self =>
+                extends Model(id, createdAt) with UserOwner with ScopeSubject { self =>
 
   import models.user.User._
 
@@ -191,7 +191,7 @@ case class User(override val  id: Option[Int] = None,
   def projects = this.getChildren[ProjectTable, Project](classOf[Project])
 
   /**
-    * Returns a [[ChildModelSet]] of [[ProjectRole]]s.
+    * Returns a [[ModelSet]] of [[ProjectRole]]s.
     *
     * @return ProjectRoles
     */
@@ -219,7 +219,7 @@ case class User(override val  id: Option[Int] = None,
     *
     * @return Highest level of trust
     */
-  def trustIn(scope: Scope = GlobalScope): Trust = assertDefined {
+  def trustIn(scope: Scope = GlobalScope): Trust = Defined {
     scope match {
       case GlobalScope => this.globalRoles.map(_.trust).toList.sorted.reverse.headOption.getOrElse(Default)
       case pScope: ProjectScope =>
@@ -250,7 +250,7 @@ case class User(override val  id: Option[Int] = None,
     * @param page Page of user stars
     * @return     Projects user has starred
     */
-  def starred(page: Int = -1): Seq[Project] = assertDefined {
+  def starred(page: Int = -1): Seq[Project] = Defined {
     val limit = if (page < 1) -1 else StarsPerPage
     await(ModelQueries.Projects.starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
   }

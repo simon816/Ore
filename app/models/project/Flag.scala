@@ -30,7 +30,7 @@ case class Flag(override val  id: Option[Int],
                 override val  userId: Int,
                               reason: FlagReason,
                 @(Bind @field) private var _isResolved: Boolean = false)
-                extends Model with UserOwner with ProjectScope { self =>
+                extends Model(id, createdAt) with UserOwner with ProjectScope { self =>
 
   override type M <: Flag { type M = self.M }
 
@@ -53,7 +53,7 @@ case class Flag(override val  id: Option[Int],
     *
     * @param resolved True if resolved
     */
-  def setResolved(resolved: Boolean) = assertDefined {
+  def setResolved(resolved: Boolean) = Defined {
     this._isResolved = resolved
     update(IsResolved)
   }

@@ -36,7 +36,7 @@ case class Page(override val  id: Option[Int] = None,
                               slug: String,
                               isDeletable: Boolean = true,
                 @(Bind @field) private var _contents: String)
-                extends Model with ProjectScope { self =>
+                extends Model(id, createdAt) with ProjectScope { self =>
 
   import models.project.Page._
 

@@ -29,7 +29,7 @@ case class ProjectRole(override val id: Option[Int] = None,
                        override val userId: Int,
                        override val projectId: Int,
                        @(Bind @field) private var  _roleType: RoleType)
-                       extends Model with Role with ProjectScope with Ordered[ProjectRole] { self =>
+                       extends Model(id, createdAt) with Role with ProjectScope with Ordered[ProjectRole] { self =>
 
   override type M <: ProjectRole { type M = self.M }
 

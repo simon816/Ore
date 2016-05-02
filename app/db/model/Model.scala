@@ -2,7 +2,7 @@ package db.model
 
 import java.sql.Timestamp
 
-import db.dao.ChildModelSet
+import db.dao.{ModelFilter, ModelSet}
 import db.driver.OrePostgresDriver.api._
 import db.query.ModelQueries
 import util.C._
@@ -11,9 +11,9 @@ import util.StringUtils
 import scala.concurrent.Future
 
 /**
-  * Represents a Model in the Database.
+  * Represents a Model that may or may not exist in the database.
   */
-abstract class Model { self =>
+abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { self =>
 
   type M <: Model { type M = self.M }
   type T <: ModelTable[M]
@@ -75,34 +75,20 @@ abstract class Model { self =>
   }
 
   /**
-    * Returns a [[ChildModelSet]] of the children for the specified child class.
+    * Returns a [[ModelSet]] of the children for the specified child class.
     *
     * @param modelClass   Model class
     * @tparam ChildTable  Child table
     * @tparam Child       Child
     * @return             Set of children
     */
-  def getChildren[ChildTable <: ModelTable[Child], Child <: Model](modelClass: Class[_ <: Child]) = {
+  def getChildren[ChildTable <: ModelTable[Child], Child <: Model](modelClass: Class[_ <: Child]) =  Defined {
     val binding = this.childBindings
       .find(_._1.isAssignableFrom(modelClass))
       .map(_._2.asInstanceOf[ChildBinding[ChildTable, Child]])
       .getOrElse(throw new RuntimeException("No child binding found for model " + modelClass + " in model " + this))
-    new ChildModelSet[T, M, ChildTable, Child](binding.childClass.asInstanceOf[Class[Child]], binding.ref, this)
+    new ModelSet[ChildTable, Child](binding.childClass.asInstanceOf[Class[Child]], ModelFilter(binding.ref(_) === this.id.get))
   }
-
-  /**
-    * Model ID
-    *
-    * @return ID of model
-    */
-  def id: Option[Int]
-
-  /**
-    * The Timestamp instant that this Model was created.
-    *
-    * @return Instant of creation
-    */
-  def createdAt: Option[Timestamp]
 
   /**
     * Returns a presentable date string of this models's creation date.
@@ -127,7 +113,7 @@ abstract class Model { self =>
     */
   def copyWith(id: Option[Int], theTime: Option[Timestamp]): Model
 
-  protected def assertDefined[A](f: => A): A = {
+  protected def Defined[A](f: => A): A = {
     if (isDefined) f else throw new IllegalStateException("model must exist")
   }
 

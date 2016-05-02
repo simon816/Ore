@@ -37,7 +37,7 @@ case class Channel(override val id: Option[Int] = None,
                    override val projectId: Int,
                    @(Bind @field) private var _name: String,
                    @(Bind @field) private var _color: Color)
-                   extends Model with Ordered[Channel] with ProjectScope { self =>
+                   extends Model(id, createdAt) with Ordered[Channel] with ProjectScope { self =>
 
   import models.project.Channel._
 
@@ -63,7 +63,7 @@ case class Channel(override val id: Option[Int] = None,
     * @param _name     New channel name
     * @return         Future result
     */
-  def name_=(_name: String)(implicit context: Project) = assertDefined {
+  def name_=(_name: String)(implicit context: Project) = Defined {
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
     checkArgument(isValidName(name), "invalid name", "")
     ProjectFiles.renameChannel(context.ownerName, context.name, this._name, name)
@@ -84,7 +84,7 @@ case class Channel(override val id: Option[Int] = None,
     * @param _color  Color of channel
     * @return       Future result
     */
-  def color_=(_color: Color) = assertDefined {
+  def color_=(_color: Color) = Defined {
     this._color = _color
     update(ModelKeys.Color)
   }
@@ -103,7 +103,7 @@ case class Channel(override val id: Option[Int] = None,
     * @param context  Project for context
     * @return         Result
     */
-  def deleteVersion(version: Version)(implicit context: Project) = assertDefined {
+  def deleteVersion(version: Version)(implicit context: Project) = Defined {
     checkArgument(context.versions.size > 1, "only one version", "")
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
     val rv = context.recommendedVersion
@@ -119,7 +119,7 @@ case class Channel(override val id: Option[Int] = None,
     * @param context  Project context
     * @return         Result
     */
-  def delete(context: Project) = assertDefined {
+  def delete(context: Project) = Defined {
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
 
     val channels = context.channels.values
