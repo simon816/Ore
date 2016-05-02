@@ -9,5 +9,5 @@ package form
   */
 case class VersionData(override val channelName: String,
                        override protected val channelColorHex: String,
-                       val recommended: Boolean)
+                       recommended: Boolean)
                        extends TChannelData

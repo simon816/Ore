@@ -1,4 +1,4 @@
-package db
+package db.driver
 
 import com.github.tminglei.slickpg._
 import ore.Colors
@@ -16,7 +16,7 @@ trait OrePostgresDriver extends ExPostgresDriver with PgArraySupport {
 
   override val api = OreDriver
 
-  object OreDriver extends API with ArrayImplicits {
+  object OreDriver extends API with ArrayImplicits with OreTypes {
     implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
     implicit val colorTypeMapper = MappedJdbcType.base[Color, Int](_.id, Colors.apply)
     implicit val roleTypeTypeMapper = MappedJdbcType.base[RoleType, Int](_.roleId, RoleTypes.withId)

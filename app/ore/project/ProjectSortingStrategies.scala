@@ -2,8 +2,8 @@ package ore.project
 
 import java.sql.Timestamp
 
-import db.OrePostgresDriver.api._
 import db.ProjectTable
+import db.driver.OrePostgresDriver.api._
 import slick.lifted.ColumnOrdered
 
 /**

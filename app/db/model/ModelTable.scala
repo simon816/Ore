@@ -1,9 +1,8 @@
-package db.orm
+package db.model
 
 import java.sql.Timestamp
 
-import db.OrePostgresDriver.api._
-import db.orm.model.Model
+import db.driver.OrePostgresDriver.api._
 import slick.lifted.Tag
 
 /** Represents a Table in the database that contains Models. */

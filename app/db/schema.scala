@@ -2,8 +2,8 @@ package db
 
 import java.sql.Timestamp
 
-import db.OrePostgresDriver.api._
-import db.orm.ModelTable
+import db.driver.OrePostgresDriver.api._
+import db.model.ModelTable
 import models.project._
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
@@ -38,9 +38,9 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
   def isVisible             =   column[Boolean]("is_visible")
   def isReviewed            =   column[Boolean]("is_reviewed")
 
-  override def * = (id.?, createdAt.?, pluginId, name, slug, ownerName, ownerId, homepage.?, recommendedVersionId.?,
-                    category, views, downloads, stars, issues.?, source.?, description.?, topicId.?, postId.?,
-                    isVisible, isReviewed) <> ((Project.apply _).tupled, Project.unapply)
+  override def * = (id.?, createdAt.?, pluginId, ownerName, ownerId, homepage.?, name, slug, recommendedVersionId.?,
+    category, views, downloads, stars, issues.?, source.?, description.?, topicId.?, postId.?,
+    isVisible, isReviewed) <> ((Project.apply _).tupled, Project.unapply)
 
 }
 
@@ -73,8 +73,8 @@ class PageTable(tag: Tag) extends ModelTable[Page](tag, "pages") {
   def contents      =   column[String]("contents")
   def isDeletable   =   column[Boolean]("is_deletable")
 
-  override def * = (id.?, createdAt.?, projectId,
-                    name, slug, contents, isDeletable) <> ((Page.apply _).tupled, Page.unapply)
+  override def * = (id.?, createdAt.?, projectId, name, slug, isDeletable,
+                    contents) <> ((Page.apply _).tupled, Page.unapply)
 
 }
 
@@ -84,7 +84,7 @@ class ChannelTable(tag: Tag) extends ModelTable[Channel](tag, "channels") {
   def color       =   column[Color]("color")
   def projectId   =   column[Int]("project_id")
 
-  override def * = (id.?, createdAt.?, name, color, projectId) <> ((Channel.apply _).tupled, Channel.unapply)
+  override def * = (id.?, createdAt.?, projectId, name, color) <> ((Channel.apply _).tupled, Channel.unapply)
 }
 
 class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions") {
@@ -99,8 +99,8 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions") {
   def fileSize        =   column[Long]("file_size")
   def hash            =   column[String]("hash")
 
-  override def * = (id.?, createdAt.?, versionString, dependencies, description.?, assets.?, downloads, projectId,
-                    channelId, fileSize, hash) <> ((Version.apply _).tupled, Version.unapply)
+  override def * = (id.?, createdAt.?, projectId, versionString, dependencies, assets.?, channelId,
+                    fileSize, hash, description.?, downloads) <> ((Version.apply _).tupled, Version.unapply)
 }
 
 class VersionDownloadsTable(tag: Tag) extends Table[(Option[Int], Option[String],
@@ -137,7 +137,7 @@ class ProjectRoleTable(tag: Tag) extends ModelTable[ProjectRole](tag, "user_proj
   def roleType    =   column[RoleType]("role_type")
   def projectId   =   column[Int]("project_id")
 
-  override def * = (id.?, createdAt.?, userId, roleType, projectId) <> ((ProjectRole.apply _).tupled, ProjectRole.unapply)
+  override def * = (id.?, createdAt.?, userId, projectId, roleType) <> ((ProjectRole.apply _).tupled, ProjectRole.unapply)
 
 }
 

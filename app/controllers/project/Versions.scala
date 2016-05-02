@@ -4,7 +4,7 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.project.routes.{Versions => self}
-import db.OrePostgresDriver.api._
+import db.driver.OrePostgresDriver.api._
 import db.query.ModelQueries
 import db.query.ModelQueries.filterToFunction
 import form.Forms

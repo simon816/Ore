@@ -9,15 +9,15 @@ import util.StringUtils._
   * Represents the configurable Project settings that can be submitted via a
   * form.
   */
-case class ProjectSettings(val          categoryName: String,
-                           val          issues: String,
-                           val          source: String,
-                           val          description: String,
+case class ProjectSettings(categoryName: String,
+                           issues: String,
+                           source: String,
+                           description: String,
                            override val users: List[Int],
                            override val roles: List[String],
-                           val          userUps: List[String],
-                           val          roleUps: List[String])
-                           extends      TProjectRoleSetBuilder {
+                           userUps: List[String],
+                           roleUps: List[String])
+                           extends TProjectRoleSetBuilder {
 
   /**
     * Saves these settings to the specified [[Project]].

@@ -1,7 +1,7 @@
 package db.query
 
-import db.OrePostgresDriver.api._
-import db.orm.dao.ModelFilter
+import db.dao.ModelFilter
+import db.driver.OrePostgresDriver.api._
 import db.query.ModelQueries.run
 import db.{VersionDownloadsTable, VersionTable}
 import models.project.Version

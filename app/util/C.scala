@@ -1,6 +1,6 @@
 package util
 
-import play.api.Play.{configuration => config, current}
+import play.api.Play.{current, configuration => config}
 
 object C {
 

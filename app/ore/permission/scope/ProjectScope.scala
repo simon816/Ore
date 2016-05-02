@@ -1,6 +1,6 @@
 package ore.permission.scope
 
-import db.orm.model.ProjectOwner
+import ore.ProjectOwner
 
 /**
   * Represents a scope of a certain Project.

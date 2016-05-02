@@ -4,10 +4,9 @@ import java.sql.Timestamp
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-import db.OrePostgresDriver.api._
-import db.orm.ModelTable
-import db.orm.dao.{ModelFilter, ChildModelSet}
-import db.orm.model.Model
+import db.dao.{ChildModelSet, ModelFilter}
+import db.driver.OrePostgresDriver.api._
+import db.model.{Model, ModelTable}
 import db.query.user.UserQueries
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
@@ -41,15 +40,8 @@ abstract class ModelQueries {
 
   def find(predicate: Table => Rep[Boolean]) = ModelQueries.find(modelClass, predicate)
   def count(filter: Table => Rep[Boolean] = null) = ModelQueries.count(modelClass, filter)
-  def insert(model: Row) = ModelQueries.insert(model)
-  def delete(model: Row, filter: Table => Rep[Boolean] = null) = ModelQueries.delete(model, filter)
   def deleteWhere(filter: Table => Rep[Boolean]) = ModelQueries.deleteWhere(modelClass, filter)
   def get(id: Int) = ModelQueries.get(modelClass, id)
-  def setInt(model: Row, key: Table => Rep[Int], value: Int) = ModelQueries.setInt(model, key, value)
-  def setString(model: Row, key: Table => Rep[String], value: String) = ModelQueries.setString(model, key, value)
-  def setBoolean(model: Row, key: Table => Rep[Boolean], value: Boolean) = ModelQueries.setBoolean(model, key, value)
-  def setIntList(model: Row, key: Table => Rep[List[Int]], value: List[Int]) = ModelQueries.setIntList(model, key, value)
-  def setTimestamp(model: Row, key: Table => Rep[Timestamp], value: Timestamp) = ModelQueries.setTimestamp(model, key, value)
   def collect(limit: Int = -1, offset: Int = -1, filter: Table => Rep[Boolean] = null,
               sort: Table => ColumnOrdered[_] = null)
   = ModelQueries.collect(modelClass, filter, sort, limit, offset)
@@ -70,7 +62,7 @@ abstract class ModelQueries {
       case Failure(thrown) => modelPromise.failure(thrown)
       case Success(modelOpt) => modelOpt match {
         case Some(existing) => modelPromise.success(existing)
-        case None => modelPromise.completeWith(insert(model))
+        case None => modelPromise.completeWith(ModelQueries insert model)
       }
     }
     modelPromise.future
@@ -103,11 +95,6 @@ object ModelQueries extends Setters {
     */
   protected def registerModel[T <: ModelTable[M], M <: Model](modelClass: Class[M], query: TableQuery[T]) = {
     this.modelQueries += modelClass -> query
-    debug("-- Model registered --")
-    debug("Registered: " + modelQueries)
-    debug("Class: " + modelClass)
-    debug("Query: " + query)
-    debug("-----------------------")
   }
 
   /**

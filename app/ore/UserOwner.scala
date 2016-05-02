@@ -1,4 +1,4 @@
-package db.orm.model
+package ore
 
 import models.user.User
 

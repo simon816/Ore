@@ -4,23 +4,24 @@ import java.nio.file.{Files, Path}
 import java.sql.Timestamp
 import java.text.MessageFormat
 
+import _root_.ore.Colors.Color
+import _root_.ore.permission.scope.ProjectScope
+import _root_.ore.project.Categories.Category
+import _root_.ore.project.FlagReasons.FlagReason
+import _root_.ore.project.util._
+import _root_.ore.project.{Categories, ProjectMember}
 import com.google.common.base.Preconditions._
-import db.OrePostgresDriver.api._
 import db._
-import db.orm.dao.{ChildModelSet, ModelSet}
-import db.orm.model.ModelKeys._
-import db.orm.model.{Model, ModelKeys}
+import db.dao.{ChildModelSet, ModelSet}
+import db.driver.OrePostgresDriver.api._
+import db.model.ModelKeys._
+import db.model._
+import db.model.annotation.{Bind, BindingsGenerator}
 import db.query.ModelQueries
 import db.query.ModelQueries.{await, filterToFunction}
 import forums.SpongeForums
 import models.project.Version.PendingVersion
 import models.user.{ProjectRole, User}
-import ore.Colors.Color
-import ore.permission.scope.ProjectScope
-import ore.project.Categories.Category
-import ore.project.FlagReasons.FlagReason
-import ore.project.util._
-import ore.project.{Categories, ProjectMember}
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
@@ -30,6 +31,7 @@ import util.P._
 import util.StringUtils.{compact, slugify}
 import util.{Cacheable, PendingAction}
 
+import scala.annotation.meta.field
 import scala.util.Try
 
 /**
@@ -52,32 +54,39 @@ import scala.util.Try
   * @param _source                External link to source code
   * @param _description           Short description of Project
   */
-case class Project(override val   id: Option[Int] = None,
-                   override val   createdAt: Option[Timestamp] = None,
-                   val            pluginId: String,
-                   private var    _name: String,
-                   private var    _slug: String,
-                   val            ownerName: String,
-                   val            ownerId: Int,
-                   val            homepage: Option[String] = None,
-                   private var    recommendedVersionId: Option[Int] = None,
-                   private var    _category: Category = Categories.Undefined,
-                   private var    _views: Int = 0,
-                   private var    _downloads: Int = 0,
-                   private var    _stars: Int = 0,
-                   private var    _issues: Option[String] = None,
-                   private var    _source: Option[String] = None,
-                   private var    _description: Option[String] = None,
-                   private var    _topicId: Option[Int] = None,
-                   private var    _postId: Option[Int] = None,
-                   private var    _isVisible: Boolean = true,
-                   private var    _isReviewed: Boolean = false)
-                   extends        Model
-                   with           ProjectScope { self =>
+case class Project(override val id: Option[Int] = None,
+                   override val createdAt: Option[Timestamp] = None,
+                                pluginId: String,
+                                ownerName: String,
+                                ownerId: Int,
+                                homepage: Option[String] = None,
+                   @(Bind @field) private var _name: String,
+                   @(Bind @field) private var _slug: String,
+                   @(Bind @field) private var recommendedVersionId: Option[Int] = None,
+                   @(Bind @field) private var _category: Category = Categories.Undefined,
+                   @(Bind @field) private var _views: Int = 0,
+                   @(Bind @field) private var _downloads: Int = 0,
+                   @(Bind @field) private var _stars: Int = 0,
+                   @(Bind @field) private var _issues: Option[String] = None,
+                   @(Bind @field) private var _source: Option[String] = None,
+                   @(Bind @field) private var _description: Option[String] = None,
+                   @(Bind @field) private var _topicId: Option[Int] = None,
+                   @(Bind @field) private var _postId: Option[Int] = None,
+                   @(Bind @field) private var _isVisible: Boolean = true,
+                   @(Bind @field) private var _isReviewed: Boolean = false)
+                   extends Model with ProjectScope { self =>
 
   import models.project.Project._
 
   override type M <: Project { type M = self.M }
+
+  BindingsGenerator.generateFor(this)
+
+  bindChild[ChannelTable, Channel](classOf[Channel], _.projectId)
+  bindChild[VersionTable, Version](classOf[Version], _.projectId)
+  bindChild[FlagTable, Flag](classOf[Flag], _.projectId)
+  bindChild[PageTable, Page](classOf[Page], _.projectId)
+  bindChild[ProjectRoleTable, ProjectRole](classOf[ProjectRole], _.projectId)
 
   def this(pluginId: String, name: String, owner: String, ownerId: Int, homepage: String) = {
     this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
@@ -132,6 +141,7 @@ case class Project(override val   id: Option[Int] = None,
       SpongeForums.Embed.updateTopic(this)
     }
     update(Name)
+    update(Slug)
   }
 
   /**
@@ -287,7 +297,7 @@ case class Project(override val   id: Option[Int] = None,
   def flagFor(user: User, reason: FlagReason) = assertDefined {
     val userId = user.id.get
     checkArgument(userId != this.ownerId, "cannot flag own project", "")
-    await(ModelQueries.Projects.Flags insert new Flag(this.id.get, user.id.get, reason)).get
+    await(ModelQueries insert new Flag(this.id.get, user.id.get, reason)).get
   }
 
   /**
@@ -363,14 +373,14 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Set of all ProjectRoles
     */
-  def roles = this.getChildren[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+  val roles = this.getChildren[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns the Channels in this Project.
     *
     * @return Channels in project
     */
-  def channels = this.getChildren[ChannelTable, Channel](classOf[Channel])
+  val channels = this.getChildren[ChannelTable, Channel](classOf[Channel])
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -381,7 +391,7 @@ case class Project(override val   id: Option[Int] = None,
   def addChannel(name: String, color: Color): Channel = assertDefined {
     checkArgument(Channel.isValidName(name), "invalid name", "")
     checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
-    await(ModelQueries.Channels insert new Channel(name, color, this.id.get)).get
+    await(ModelQueries insert new Channel(name, color, this.id.get)).get
   }
 
   /**
@@ -389,16 +399,14 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Versions in project
     */
-  def versions = this.getChildren[VersionTable, Version](classOf[Version])
+  val versions = this.getChildren[VersionTable, Version](classOf[Version])
 
   /**
     * Returns this Project's recommended version.
     *
     * @return Recommended version
     */
-  def recommendedVersion: Version = assertDefined {
-    await(ModelQueries.Versions.get(this.recommendedVersionId.get)).get.get
-  }
+  def recommendedVersion: Version = this.versions.withId(this.recommendedVersionId.get).get
 
   /**
     * Updates this project's recommended version.
@@ -407,8 +415,8 @@ case class Project(override val   id: Option[Int] = None,
     * @return         Result
     */
   def recommendedVersion_=(_version: Version) = {
-    if (isDefined) await(ModelQueries.Projects.setInt(this, _.recommendedVersionId, _version.id.get)).get
     this.recommendedVersionId = _version.id
+    if (isDefined) update(RecommendedVersionId)
   }
 
   /**
@@ -416,7 +424,7 @@ case class Project(override val   id: Option[Int] = None,
     *
     * @return Pages in project
     */
-  def pages = this.getChildren[PageTable, Page](classOf[Page])
+  val pages = this.getChildren[PageTable, Page](classOf[Page])
 
   /**
     * Returns true if a page with the specified name exists.
@@ -500,7 +508,7 @@ case class Project(override val   id: Option[Int] = None,
     * @return Result
     */
   def delete = assertDefined {
-    await(ModelQueries.Projects delete this).get
+    await(ModelQueries delete this).get
     FileUtils.deleteDirectory(ProjectFiles.projectDir(this.ownerName, this._name).toFile)
     if (this.topicId.isDefined) SpongeForums.Embed.deleteTopic(this)
   }
@@ -514,31 +522,6 @@ case class Project(override val   id: Option[Int] = None,
   override def equals(o: Any): Boolean = {
     o.isInstanceOf[Project] && o.asInstanceOf[Project].id.get == this.id.get
   }
-
-  // Table bindings
-
-  bind[String](Name, _._name, newName => Seq(
-    ModelQueries.Projects.setString(this, _.name, newName),
-    ModelQueries.Projects.setString(this, _.slug, slugify(newName))
-  ))
-  bind[String](Description, _._description.orNull, description =>
-    Seq(ModelQueries.Projects.setString(this, _.description, description)))
-  bind[Category](ModelKeys.Category, _._category, cat => Seq(ModelQueries.Projects.setCategory(this, cat)))
-  bind[Int](Views, _._views, views => Seq(ModelQueries.Projects.setInt(this, _.views, views)))
-  bind[Int](Downloads, _._downloads, downloads => Seq(ModelQueries.Projects.setInt(this, _.downloads, downloads)))
-  bind[Int](Stars, _._stars, stars => Seq(ModelQueries.Projects.setInt(this, _.stars, stars)))
-  bind[String](Issues, _._issues.orNull, issues => Seq(ModelQueries.Projects.setString(this, _.issues, issues)))
-  bind[String](Source, _._source.orNull, source => Seq(ModelQueries.Projects.setString(this, _.source, source)))
-  bind[Int](TopicId, _._topicId.get, topicId => Seq(ModelQueries.Projects.setInt(this, _.topicId, topicId)))
-  bind[Int](PostId, _._postId.get, postId => Seq(ModelQueries.Projects.setInt(this, _.postId, postId)))
-  bind[Boolean](IsVisible, _._isVisible, visible => Seq(ModelQueries.Projects.setBoolean(this, _.isVisible, visible)))
-  bind[Boolean](IsReviewed, _._isReviewed, reviewed => Seq(ModelQueries.Projects.setBoolean(this, _.isReviewed, reviewed)))
-
-  bindChild[ChannelTable, Channel](classOf[Channel], _.projectId)
-  bindChild[VersionTable, Version](classOf[Version], _.projectId)
-  bindChild[FlagTable, Flag](classOf[Flag], _.projectId)
-  bindChild[PageTable, Page](classOf[Page], _.projectId)
-  bindChild[ProjectRoleTable, ProjectRole](classOf[ProjectRole], _.projectId)
 
 }
 
@@ -677,8 +660,8 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @param project  Pending project
     * @param file     Uploaded plugin
     */
-  case class PendingProject(val project: Project,
-                            val file: PluginFile,
+  case class PendingProject(project: Project,
+                            file: PluginFile,
                             var roles: Set[ProjectRole] = Set())
     extends PendingAction[Project]
       with Cacheable {

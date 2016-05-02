@@ -3,11 +3,12 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions
-import db.OrePostgresDriver.api._
 import db.VersionTable
-import db.orm.dao.{ModelSet, TModelSet}
-import db.orm.model.Model
-import db.orm.model.ModelKeys._
+import db.dao.ModelSet
+import db.driver.OrePostgresDriver.api._
+import db.model.Model
+import db.model.ModelKeys._
+import db.model.annotation.{Bind, BindingsGenerator}
 import db.query.ModelQueries
 import db.query.ModelQueries.await
 import ore.Colors.Color
@@ -21,6 +22,7 @@ import play.twirl.api.Html
 import util.C._
 import util.{Cacheable, PendingAction}
 
+import scala.annotation.meta.field
 import scala.collection.JavaConversions._
 import scala.util.Try
 
@@ -38,26 +40,27 @@ import scala.util.Try
   * @param projectId        ID of project this version belongs to
   * @param channelId        ID of channel this version belongs to
   */
-case class Version(override val   id: Option[Int] = None,
-                   override val   createdAt: Option[Timestamp] = None,
-                   val            versionString: String,
-                   val            dependenciesIds: List[String] = List(),
-                   private var    _description: Option[String] = None,
-                   val            assets: Option[String] = None,
-                   private var    _downloads: Int = 0,
-                   override val   projectId: Int,
-                   val            channelId: Int,
-                   val            fileSize: Long,
-                   val            hash: String)
-                   extends        Model
-                   with           ProjectScope { self =>
+case class Version(override val id: Option[Int] = None,
+                   override val createdAt: Option[Timestamp] = None,
+                   override val projectId: Int,
+                                versionString: String,
+                                dependenciesIds: List[String] = List(),
+                                assets: Option[String] = None,
+                                channelId: Int,
+                                fileSize: Long,
+                                hash: String,
+                   @(Bind @field) private var _description: Option[String] = None,
+                   @(Bind @field) private var _downloads: Int = 0)
+                   extends Model with ProjectScope { self =>
 
   override type M <: Version { type M = self.M }
 
+  BindingsGenerator.generateFor(this)
+
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int, fileSize: Long, hash: String) = {
-    this(None, None, versionString, dependencies, Option(description),
-         Option(assets), 0, projectId, channelId, fileSize, hash)
+    this(None, None, projectId, versionString, dependencies,
+         Option(assets), channelId, fileSize, hash, Option(description), 0)
   }
 
   def this(versionString: String, dependencies: List[String],
@@ -163,13 +166,6 @@ case class Version(override val   id: Option[Int] = None,
     o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get
   }
 
-  // Table bindings
-
-  bind[String](Description, _._description.orNull, description => {
-    Seq(ModelQueries.Versions.setString(this, _.description, description))
-  })
-  bind[Int](Downloads, _._downloads, downloads => Seq(ModelQueries.Versions.setInt(this, _.downloads, downloads)))
-
 }
 
 object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
@@ -233,12 +229,12 @@ object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
     * @param version        Version that is pending
     * @param plugin         Uploaded plugin
     */
-  case class PendingVersion(val       owner: String,
-                            val       projectSlug: String,
-                            var       channelName: String = Channel.DefaultName,
-                            var       channelColor: Color = Channel.DefaultColor,
-                            val       version: Version,
-                            val       plugin: PluginFile)
+  case class PendingVersion(owner: String,
+                            projectSlug: String,
+                            var channelName: String = Channel.DefaultName,
+                            var channelColor: Color = Channel.DefaultColor,
+                            version: Version,
+                            plugin: PluginFile)
     extends   PendingAction[Version]
       with      Cacheable {
 

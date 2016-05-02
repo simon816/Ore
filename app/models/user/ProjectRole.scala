@@ -3,13 +3,15 @@ package models.user
 import java.sql.Timestamp
 
 import db.ProjectRoleTable
-import db.orm.dao.{ModelSet, TModelSet}
-import db.orm.model.Model
-import db.orm.model.ModelKeys._
-import db.query.ModelQueries
+import db.dao.ModelSet
+import db.model.Model
+import db.model.ModelKeys._
+import db.model.annotation.{Bind, BindingsGenerator}
 import ore.permission.role.Role
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.ProjectScope
+
+import scala.annotation.meta.field
 
 /**
   * Represents a [[ore.project.ProjectMember]]'s role in a
@@ -25,14 +27,13 @@ import ore.permission.scope.ProjectScope
 case class ProjectRole(override val id: Option[Int] = None,
                        override val createdAt: Option[Timestamp] = None,
                        override val userId: Int,
-                       private var  _roleType: RoleType,
-                       override val projectId: Int)
-                       extends      Model
-                       with         Role
-                       with         ProjectScope
-                       with         Ordered[ProjectRole] { self =>
+                       override val projectId: Int,
+                       @(Bind @field) private var  _roleType: RoleType)
+                       extends Model with Role with ProjectScope with Ordered[ProjectRole] { self =>
 
   override type M <: ProjectRole { type M = self.M }
+
+  BindingsGenerator.generateFor(this)
 
   def this(userId: Int, roleType: RoleType, projectId: Int) = {
     this(id=None, createdAt=None, userId=userId, _roleType=roleType, projectId=projectId)
@@ -55,10 +56,6 @@ case class ProjectRole(override val id: Option[Int] = None,
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): ProjectRole = {
     this.copy(id = id, createdAt = theTime)
   }
-
-  // Table bindings
-
-  bind[RoleType](RoleType, _._roleType, roleType => Seq(ModelQueries.Users.ProjectRoles.setRoleType(this, roleType)))
 
 }
 

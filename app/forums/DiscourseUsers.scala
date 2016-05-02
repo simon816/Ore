@@ -35,7 +35,7 @@ class DiscourseUsers(url: String, ws: WSClient) {
         val userObj = (json \ "user").as[JsObject]
         val user = new User(
             id            =   (userObj \ "id").asOpt[Int],
-            _fullName     =   (userObj \ "name").asOpt[String],
+            _name         =   (userObj \ "name").asOpt[String],
             _username     =   (userObj \ "username").as[String],
             _email        =   (userObj \ "email").asOpt[String],
             _joinDate     =   (userObj \ "created_at").asOpt[String]

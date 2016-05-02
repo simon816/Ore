@@ -1,12 +1,12 @@
 @*
 The main header displayed on each layout.
 *@
+@import controllers.project.{routes => projectRoutes}
 @import models.project.Flag
 @import models.user.User
 @import ore.permission.ReviewFlags
 @import ore.permission.scope.GlobalScope
 @import util.C
-@import controllers.project.{routes => projectRoutes}
 @()(implicit messages: Messages, session: Session, request: RequestHeader)
 
 @canViewFlags(user: User) = @{ user can ReviewFlags in GlobalScope }

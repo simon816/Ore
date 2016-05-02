@@ -4,9 +4,9 @@ import javax.inject.Inject
 
 import controllers.Requests.AuthRequest
 import controllers.routes.{Application => self}
-import db.OrePostgresDriver.api._
 import db.ProjectTable
-import db.orm.dao.ModelFilter
+import db.dao.ModelFilter
+import db.driver.OrePostgresDriver.api._
 import db.query.ModelQueries
 import db.query.ModelQueries.{await, filterToFunction}
 import models.project.Project._
@@ -50,7 +50,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     }.orNull[ModelFilter[ProjectTable, Project]]
     if (filter == null && !canHideProjects) filter = _.isVisible
 
-    val projects = await(Queries.Projects.collect(filter, categoryArray, InitialLoad, -1, s)).get
+    val projects = await(ModelQueries.Projects.collect(filter, categoryArray, InitialLoad, -1, s)).get
     if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet)) categoryArray = null
     Ok(views.home(projects, Option(categoryArray), s))
   }

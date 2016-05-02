@@ -1,7 +1,7 @@
 package db.query
 
 import db.FlagTable
-import db.OrePostgresDriver.api._
+import db.driver.OrePostgresDriver.api._
 import models.project.Flag
 
 /**

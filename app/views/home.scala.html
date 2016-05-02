@@ -4,13 +4,9 @@ sorted according to different criteria.
 *@
 @import controllers.project.routes.{Projects => projectRoutes}
 @import models.project.Project
-@import models.user.User
-@import ore.permission.ResetOre
-@import ore.permission.scope.GlobalScope
 @import ore.project.Categories
 @import ore.project.Categories._
 @import ore.project.ProjectSortingStrategies.{values, _}
-@import util.C
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], sort: ProjectSortingStrategy)(implicit messages: Messages,
         session: Session, flash: Flash, request: RequestHeader)
 

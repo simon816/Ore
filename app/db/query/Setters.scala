@@ -2,10 +2,13 @@ package db.query
 
 import java.sql.Timestamp
 
-import db.OrePostgresDriver.api._
+import db.driver.OrePostgresDriver.api._
+import db.model.{Model, ModelTable}
 import db.query.ModelQueries._
-import db.orm.ModelTable
-import db.orm.model.Model
+import ore.Colors.Color
+import ore.permission.role.RoleTypes.RoleType
+import ore.project.Categories.Category
+import ore.project.FlagReasons.FlagReason
 
 trait Setters {
 
@@ -59,5 +62,19 @@ trait Setters {
   def setTimestamp[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[Timestamp], value: Timestamp)
   = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
 
+  def setColor[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[Color], value: Color)
+  = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
+
+  def setRoleType[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[RoleType], value: RoleType)
+  = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
+
+  def setRoleTypeList[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[List[RoleType]], value: List[RoleType])
+  = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
+
+  def setCategory[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[Category], value: Category)
+  = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
+
+  def setFlagReason[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[FlagReason], value: FlagReason)
+  = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
 
 }

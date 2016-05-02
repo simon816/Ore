@@ -5,7 +5,6 @@ Documentation page within Project overview.
 @import models.project.{Page, Project}
 @import models.user.User
 @import ore.permission.EditPages
-@import views.html.helper.form
 @(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages, session: Session, request: RequestHeader, flash: Flash)
 
 @canEditPages = @{

@@ -1,7 +1,6 @@
-package db.orm.dao
+package db.dao
 
-import db.orm.ModelTable
-import db.orm.model.Model
+import db.model.{Model, ModelTable}
 
 /**
   * Represents the base ModelSet containing all models in the table.

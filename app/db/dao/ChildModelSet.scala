@@ -1,8 +1,7 @@
-package db.orm.dao
+package db.dao
 
-import db.OrePostgresDriver.api._
-import db.orm.ModelTable
-import db.orm.model.Model
+import db.driver.OrePostgresDriver.api._
+import db.model.{Model, ModelTable}
 
 /**
   * Represents a set of Models belonging to a Model parent.

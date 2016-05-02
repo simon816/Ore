@@ -1,7 +1,7 @@
 package ore.project
 
 import com.google.common.base.MoreObjects
-import db.OrePostgresDriver.api._
+import db.driver.OrePostgresDriver.api._
 import models.project.Project
 import models.user.{ProjectRole, User}
 import ore.permission.scope.{Scope, ScopeSubject}

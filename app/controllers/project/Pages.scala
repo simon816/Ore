@@ -4,15 +4,14 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.project.routes.{Pages => self}
-import db.OrePostgresDriver.api._
+import db.driver.OrePostgresDriver.api._
 import form.Forms
+import models.project.Page
 import ore.Statistics
 import ore.permission.EditPages
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
-import models.project.Page
 import play.api.mvc.Action
-import play.libs.Json
 import views.html.projects.{pages => views}
 
 /**

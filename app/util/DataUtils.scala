@@ -2,7 +2,7 @@ package util
 
 import java.nio.file.Files
 
-import db.OrePostgresDriver.api._
+import db.driver.OrePostgresDriver.api._
 import db.query.ModelQueries
 import db.query.ModelQueries.{await, run}
 import forums.SpongeForums

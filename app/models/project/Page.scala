@@ -4,10 +4,10 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.PageTable
-import db.orm.dao.{ModelSet, TModelSet}
-import db.orm.model.Model
-import db.orm.model.ModelKeys._
-import db.query.ModelQueries
+import db.dao.ModelSet
+import db.model.Model
+import db.model.ModelKeys._
+import db.model.annotation.{Bind, BindingsGenerator}
 import forums.SpongeForums
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
@@ -15,6 +15,8 @@ import org.pegdown.PegDownProcessor
 import play.twirl.api.Html
 import util.C._
 import util.StringUtils._
+
+import scala.annotation.meta.field
 
 /**
   * Represents a documentation page within a project.
@@ -30,16 +32,17 @@ import util.StringUtils._
 case class Page(override val  id: Option[Int] = None,
                 override val  createdAt: Option[Timestamp] = None,
                 override val  projectId: Int,
-                val           name: String,
-                val           slug: String,
-                private var   _contents: String,
-                val           isDeletable: Boolean = true)
-                extends       Model
-                with          ProjectScope { self =>
+                              name: String,
+                              slug: String,
+                              isDeletable: Boolean = true,
+                @(Bind @field) private var _contents: String)
+                extends Model with ProjectScope { self =>
 
   import models.project.Page._
 
   override type M <: Page { type M = self.M }
+
+  BindingsGenerator.generateFor(this)
 
   checkNotNull(this.name, "name cannot be null", "")
   checkNotNull(this._contents, "contents cannot be null", "")
@@ -86,10 +89,6 @@ case class Page(override val  id: Option[Int] = None,
   def isHome: Boolean = this.name.equals(HomeName)
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Page = this.copy(id = id, createdAt = theTime)
-
-  // Table bindings
-
-  bind[String](Contents, _._contents, contents => Seq(ModelQueries.Pages.setString(this, _.contents, contents)))
 
 }
 

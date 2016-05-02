@@ -1,11 +1,10 @@
 package db.query
 
-import db.OrePostgresDriver.api._
 import db._
-import db.orm.dao.{ModelFilter, ChildModelSet}
+import db.dao.ModelFilter
+import db.driver.OrePostgresDriver.api._
 import db.query.ModelQueries._
 import models.project._
-import models.user.ProjectRole
 import ore.project.Categories.Category
 import ore.project.ProjectMember
 import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
@@ -102,15 +101,6 @@ class ProjectQueries extends ModelQueries {
     } else filter
     collect(f, sort, limit, offset)
   }
-
-  /**
-    * Sets the category for the specified Project.
-    *
-    * @param project  Project to update
-    * @param category Category to set
-    */
-  def setCategory(project: Project, category: Category)
-  = run((for {model <- this.baseQuery if model.id === project.id.get} yield model.category).update(category))
 
   /**
     * Returns true if the specified Project has been viewed by a client with

@@ -1,9 +1,8 @@
-package db.orm.dao
+package db.dao
 
-import db.OrePostgresDriver.api._
+import db.driver.OrePostgresDriver.api._
+import db.model.{Model, ModelTable}
 import db.query.ModelQueries.functionToFilter
-import db.orm.ModelTable
-import db.orm.model.Model
 
 /**
   * A wrapper class for a T => Rep[Boolean] on a ModelTable. This allows for easier

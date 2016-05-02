@@ -5,8 +5,8 @@ import java.nio.file.{Files, Path, Paths}
 import java.util.jar.{JarEntry, JarInputStream}
 import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
-import db.orm.model.UserOwner
 import models.user.User
+import ore.UserOwner
 import org.apache.commons.codec.digest.DigestUtils
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 

@@ -1,6 +1,6 @@
 package ore.permission.role
 
-import db.orm.model.UserOwner
+import ore.UserOwner
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.ScopeSubject
 

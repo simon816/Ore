@@ -1,6 +1,6 @@
 package controllers
 
-import db.OrePostgresDriver.api._
+import db.driver.OrePostgresDriver.api._
 import db.query.ModelQueries
 import db.query.ModelQueries.filterToFunction
 import forums.SpongeForums

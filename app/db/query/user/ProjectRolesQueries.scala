@@ -1,11 +1,10 @@
 package db.query.user
 
-import db.OrePostgresDriver.api._
 import db.ProjectRoleTable
+import db.driver.OrePostgresDriver.api._
 import db.query.ModelQueries
 import db.query.ModelQueries.run
 import models.user.{ProjectRole, User}
-import ore.permission.role.RoleTypes.RoleType
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
@@ -37,14 +36,5 @@ class ProjectRolesQueries extends ModelQueries {
     }
     promise.future
   }
-
-  /**
-    * Sets the [[RoleType]] of the specified [[ProjectRole]].
-    *
-    * @param role     Role to update
-    * @param roleType Role type to set
-    */
-  def setRoleType(role: ProjectRole, roleType: RoleType)
-  = run((for { model <- this.baseQuery if model.id === role.id.get } yield model.roleType).update(roleType))
 
 }

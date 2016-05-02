@@ -1,8 +1,7 @@
-package db.orm.dao
+package db.dao
 
-import db.OrePostgresDriver.api._
-import db.orm.ModelTable
-import db.orm.model.Model
+import db.driver.OrePostgresDriver.api._
+import db.model.{Model, ModelTable}
 import db.query.ModelQueries
 import db.query.ModelQueries._
 import slick.lifted.ColumnOrdered

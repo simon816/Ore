@@ -4,11 +4,11 @@ import java.nio.file.Files
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.OrePostgresDriver.api._
-import db.orm.dao.ModelSet
-import db.orm.model.ModelKeys._
-import db.orm.model.{Model, ModelKeys}
-import db.query.ModelQueries
+import db.dao.ModelSet
+import db.driver.OrePostgresDriver.api._
+import db.model.ModelKeys._
+import db.model.annotation.{Bind, BindingsGenerator}
+import db.model.{Model, ModelKeys}
 import db.{ChannelTable, VersionTable}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
@@ -17,6 +17,8 @@ import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
 import util.C._
+
+import scala.annotation.meta.field
 
 /**
   * Represents a release channel for Project Versions. Each project gets it's
@@ -30,18 +32,20 @@ import util.C._
   * @param _color       Color used to represent this Channel
   * @param projectId    ID of project this channel belongs to
   */
-case class Channel(override val   id: Option[Int] = None,
-                   override val   createdAt: Option[Timestamp] = None,
-                   private var    _name: String,
-                   private var    _color: Color,
-                   override val   projectId: Int)
-                   extends        Model
-                   with           Ordered[Channel]
-                   with           ProjectScope { self =>
+case class Channel(override val id: Option[Int] = None,
+                   override val createdAt: Option[Timestamp] = None,
+                   override val projectId: Int,
+                   @(Bind @field) private var _name: String,
+                   @(Bind @field) private var _color: Color)
+                   extends Model with Ordered[Channel] with ProjectScope { self =>
 
   import models.project.Channel._
 
   override type M <: Channel { type M = self.M }
+
+  BindingsGenerator.generateFor(this)
+
+  bindChild[VersionTable, Version](classOf[Version], _.channelId)
 
   def this(name: String, color: Color, projectId: Int) = this(_name=name, _color=color, projectId=projectId)
 
@@ -135,13 +139,6 @@ case class Channel(override val   id: Option[Int] = None,
   override def equals(o: Any): Boolean = {
     o.isInstanceOf[Channel] && o.asInstanceOf[Channel].id.get == this.id.get
   }
-
-  // Table bindings
-
-  bind[String](Name, _._name, name => Seq(ModelQueries.Channels.setString(this, _.name, name)))
-  bind[Color](ModelKeys.Color, _._color, color => Seq(ModelQueries.Channels.setColor(this, color)))
-
-  bindChild[VersionTable, Version](classOf[Version], _.channelId)
 
 }
 

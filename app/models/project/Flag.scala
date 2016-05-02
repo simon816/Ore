@@ -3,14 +3,16 @@ package models.project
 import java.sql.Timestamp
 
 import db.FlagTable
-import db.OrePostgresDriver.api._
-import db.orm.dao.{ModelSet, TModelSet}
-import db.orm.model.ModelKeys._
-import db.orm.model.{Model, UserOwner}
-import db.query.ModelQueries
-import db.query.ModelQueries.await
+import db.dao.ModelSet
+import db.driver.OrePostgresDriver.api._
+import db.model.Model
+import db.model.ModelKeys._
+import db.model.annotation.{Bind, BindingsGenerator}
+import ore.UserOwner
 import ore.permission.scope.ProjectScope
 import ore.project.FlagReasons.FlagReason
+
+import scala.annotation.meta.field
 
 /**
   * Represents a flag on a Project that requires staff attention.
@@ -26,13 +28,13 @@ case class Flag(override val  id: Option[Int],
                 override val  createdAt: Option[Timestamp],
                 override val  projectId: Int,
                 override val  userId: Int,
-                val           reason: FlagReason,
-                private var   _isResolved: Boolean = false)
-                extends       Model
-                with          UserOwner
-                with          ProjectScope { self =>
+                              reason: FlagReason,
+                @(Bind @field) private var _isResolved: Boolean = false)
+                extends Model with UserOwner with ProjectScope { self =>
 
   override type M <: Flag { type M = self.M }
+
+  BindingsGenerator.generateFor(this)
 
   def this(projectId: Int, userId: Int, reason: FlagReason) = {
     this(id=None, createdAt=None, projectId=projectId, userId=userId, reason=reason)
@@ -57,12 +59,6 @@ case class Flag(override val  id: Option[Int],
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Flag = this.copy(id = id, createdAt = theTime)
-
-  // Table bindings
-
-  bind[Boolean](IsResolved, _._isResolved, isResolved => {
-    Seq(ModelQueries.Projects.Flags.setBoolean(this, _.isResolved, isResolved))
-  })
 
 }
 
