@@ -9,7 +9,7 @@
     User.current.isDefined && (User.current.get can EditVersions in project)
 }
 
-@projects.view(project, "#versions") {
+@projects.view(project, "#versions", noButtons = true) {
 
     <div class="container">
         <!-- Version header -->
@@ -57,12 +57,10 @@
                         </div>
                     }
 
-                    <div>
-                        <a class="btn btn-primary"
-                           href="@projectRoutes.Versions.download(project.ownerName, project.slug, channel.name, version.versionString)">
-                            <i class="fa fa-download"></i> @messages("version.download")
-                        </a>
-                    </div>
+                    <a class="btn btn-primary"
+                    href="@projectRoutes.Versions.download(project.ownerName, project.slug, channel.name, version.versionString)">
+                        <i class="fa fa-download"></i> @messages("version.download")
+                    </a>
                 </div>
             </div>
         </div>

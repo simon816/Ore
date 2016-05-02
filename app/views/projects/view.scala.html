@@ -8,7 +8,8 @@ Base template for Project overview.
 @import ore.permission.{EditSettings, ReviewProjects}
 @import ore.project.FlagReasons
 @import views.html.helper.form
-@(project: Project, active: String)(content: Html)(implicit messages: Messages, session: Session, request: RequestHeader, flash: Flash)
+@(project: Project, active: String, noButtons: Boolean = false)(content: Html)(implicit messages: Messages,
+        session: Session, request: RequestHeader, flash: Flash)
 
 @hasUser = @{ User.current.isDefined }
 @user = @{ User.current.get }
@@ -87,79 +88,81 @@ Base template for Project overview.
                         </div>
                     </div>
 
-                    <div class="pull-right project-controls">
+                    @if(!noButtons) {
+                        <div class="pull-right project-controls">
 
-                        @flash.get("reported").map { r =>
-                            <span class="flag-msg"><i class="fa fa-thumbs-up"></i> Flag submitted for review</span>
-                        }
-
-                        @if(!project.isReviewed && hasUser && (user can ReviewProjects in GlobalScope)) {
-                            <a href="@projectRoutes.Projects.approve(project.ownerName, project.slug)" class="btn btn-success">
-                                <i class="fa fa-thumbs-up"></i> Approve
-                            </a>
-                        }
-
-                        @if(hasUser) {
-                            @defining(project.isStarredBy(user.username)) { alreadyStarred =>
-                                <button class="btn btn-default btn-star">
-                                    <i id="icon-star" @if(alreadyStarred) {
-                                        class="fa fa-star"
-                                    } else {
-                                        class="fa fa-star-o" }></i>
-                                    <span class="starred"> @project.stars</span>
-                                </button>
-                                <script>
-                                    var projectOwner = "@project.ownerName";
-                                    var projectSlug = "@project.slug";
-                                    var alreadyStarred = @alreadyStarred;
-                                </script>
+                            @flash.get("reported").map { r =>
+                                <span class="flag-msg"><i class="fa fa-thumbs-up"></i> Flag submitted for review</span>
                             }
-                        }
 
-                        <!-- Flag button -->
-                        @if(hasUser && !user.username.equals(project.ownerName) && !user.hasUnresolvedFlagFor(project)) {
-                            <button data-toggle="modal" data-target="#modal-flag" class="btn btn-default">
-                                <i class="fa fa-flag"></i> @messages("project.flag")
-                            </button>
-                            <div class="modal fade" id="modal-flag" tabindex="-1" role="dialog" aria-labelledby="label-flag">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                            <h4 class="modal-title" id="label-flag">Flag project</h4>
+                            @if(!project.isReviewed && hasUser && (user can ReviewProjects in GlobalScope)) {
+                                <a href="@projectRoutes.Projects.approve(project.ownerName, project.slug)" class="btn btn-success">
+                                    <i class="fa fa-thumbs-up"></i> Approve
+                                </a>
+                            }
+
+                            @if(hasUser) {
+                                @defining(project.isStarredBy(user.username)) { alreadyStarred =>
+                                    <button class="btn btn-default btn-star">
+                                        <i id="icon-star" @if(alreadyStarred) {
+                                            class="fa fa-star"
+                                        } else {
+                                            class="fa fa-star-o" }></i>
+                                        <span class="starred"> @project.stars</span>
+                                    </button>
+                                    <script>
+                                        var projectOwner = "@project.ownerName";
+                                        var projectSlug = "@project.slug";
+                                        var alreadyStarred = @alreadyStarred;
+                                    </script>
+                                }
+                            }
+
+                            <!-- Flag button -->
+                            @if(hasUser && !user.username.equals(project.ownerName) && !user.hasUnresolvedFlagFor(project)) {
+                                <button data-toggle="modal" data-target="#modal-flag" class="btn btn-default">
+                                    <i class="fa fa-flag"></i> @messages("project.flag")
+                                </button>
+                                <div class="modal fade" id="modal-flag" tabindex="-1" role="dialog" aria-labelledby="label-flag">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                                <h4 class="modal-title" id="label-flag">Flag project</h4>
+                                            </div>
+                                            @form(action = projectRoutes.Projects.flag(project.ownerName, project.slug)) {
+                                                <div class="modal-body">
+                                                    <ul class="list-group list-flags">
+                                                    @for(i <- 0 until FlagReasons.values.size) {
+                                                        <li class="list-group-item">
+                                                            <span>@FlagReasons(i).title</span>
+                                                            <span class="pull-right">
+                                                                <input required type="radio" value="@FlagReasons(i).id" name="flag-reason"/>
+                                                            </span>
+                                                        </li>
+                                                    }
+                                                    </ul>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                    <button type="submit" class="btn btn-primary">Flag</button>
+                                                </div>
+                                            }
                                         </div>
-                                        @form(action = projectRoutes.Projects.flag(project.ownerName, project.slug)) {
-                                            <div class="modal-body">
-                                                <ul class="list-group list-flags">
-                                                @for(i <- 0 until FlagReasons.values.size) {
-                                                    <li class="list-group-item">
-                                                        <span>@FlagReasons(i).title</span>
-                                                        <span class="pull-right">
-                                                            <input required type="radio" value="@FlagReasons(i).id" name="flag-reason"/>
-                                                        </span>
-                                                    </li>
-                                                }
-                                                </ul>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                                <button type="submit" class="btn btn-primary">Flag</button>
-                                            </div>
-                                        }
                                     </div>
                                 </div>
-                            </div>
-                        }
+                            }
 
-                        <!-- Download button -->
-                        <a href="@projectRoutes.Versions.downloadRecommended(project.ownerName, project.slug)"
-                           title="@messages("project.download.recommend")" data-toggle="tooltip"
-                           data-placement="bottom" class="btn btn-primary">
-                            <i class="fa fa-download"></i> @messages("project.download")
-                        </a>
-                    </div>
+                            <!-- Download button -->
+                            <a href="@projectRoutes.Versions.downloadRecommended(project.ownerName, project.slug)"
+                               title="@messages("project.download.recommend")" data-toggle="tooltip"
+                               data-placement="bottom" class="btn btn-primary">
+                                <i class="fa fa-download"></i> @messages("project.download")
+                            </a>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
