@@ -36,7 +36,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     */
   def showHome(categories: Option[String], query: Option[String], sort: Option[Int]) = Action { implicit request =>
     // Get categories and sort strategy
-    val categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
+    var categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
     val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
 
     // Determine filter
@@ -50,6 +50,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     if (filter == null && !canHideProjects) filter = _.isVisible
 
     val projects = await(Queries.Projects.collect(filter, categoryArray, InitialLoad, -1, s)).get
+    if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet)) categoryArray = null
     Ok(views.home(projects, Option(categoryArray), s))
   }
 

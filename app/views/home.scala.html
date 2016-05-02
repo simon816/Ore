@@ -99,22 +99,18 @@ sorted according to different criteria.
                     </div>
                     <table class="table panel-body category-table">
                         <tbody>
-                        @for(i <- 0 until Categories.values.size) {
-                            @defining(Categories(i)) { category =>
-                                @if(category.isVisible) {
-                                    <tr data-id="@category.id"
-                                        @if(visibleCategories.isDefined && visibleCategories.get.contains(category)) {
-                                            class="selected"
-                                        }
-                                    >
-                                        <td><i class="fa @category.icon"></i></td>
-                                        <td>
-                                            <strong>@category.title</strong>
-                                        </td>
-                                    </tr>
-                                }
+                            @for(category <- Categories.visible) {
+                                <tr data-id="@category.id"
+                                    @if(visibleCategories.isDefined && visibleCategories.get.contains(category)) {
+                                        class="selected"
+                                    }
+                                >
+                                    <td><i class="fa @category.icon"></i></td>
+                                    <td>
+                                        <strong>@category.title</strong>
+                                    </td>
+                                </tr>
                             }
-                        }
                         </tbody>
                     </table>
                 </div>

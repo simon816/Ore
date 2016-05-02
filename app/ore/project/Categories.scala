@@ -18,6 +18,13 @@ object Categories extends Enumeration {
   val Undefined   =   Category(10, "Undefined",         null, isVisible = false)
 
   /**
+    * Returns the visible Categories.
+    *
+    * @return Visible categories
+    */
+  def visible: Seq[Category] = this.values.filter(_.isVisible).toSeq.sortBy(_.id).map(_.asInstanceOf[Category])
+
+  /**
     * Returns an Array of categories from a comma separated string of IDs.
     *
     * @param str  Comma separated string of IDs
