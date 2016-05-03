@@ -15,3 +15,4 @@ case object ReviewFlags     extends Permission { val trust = Standard }
 case object ReviewProjects  extends Permission { val trust = Standard }
 case object ResetOre        extends Permission { val trust = Absolute }
 case object SeedOre         extends Permission { val trust = Absolute }
+case object MigrateOre      extends Permission { val trust = Absolute }

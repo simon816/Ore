@@ -13,7 +13,7 @@ import models.project.Project._
 import models.project.{Flag, Project}
 import models.user.User
 import ore.permission.scope.GlobalScope
-import ore.permission.{HideProjects, ResetOre, ReviewFlags, SeedOre}
+import ore.permission._
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
@@ -110,6 +110,11 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
       DataUtils.seed(users.getOrElse(200), versions.getOrElse(0), channels.getOrElse(1))
       Redirect(self.showHome(None, None, None)).withNewSession
     }
+  }
+
+  def migrate() = (Authenticated andThen PermissionAction[AuthRequest](MigrateOre)) { implicit request =>
+    DataUtils.migrate()
+    Redirect(self.showHome(None, None, None))
   }
 
 }

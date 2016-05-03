@@ -17,11 +17,10 @@ object ProjectFiles {
     * @param owner    Project owner
     * @param name     Project name
     * @param version  Project version
-    * @param channel  Project channel
     * @return         Path to supposed file
     */
-  def uploadPath(owner: String, name: String, version: String, channel: String): Path = {
-    projectDir(owner, name).resolve(channel).resolve("%s-%s.zip".format(name, version.toLowerCase))
+  def uploadPath(owner: String, name: String, version: String): Path = {
+    projectDir(owner, name).resolve("%s-%s.zip".format(name, version))
   }
 
   /**
@@ -63,7 +62,7 @@ object ProjectFiles {
         for (pluginFile <- channelDir.listFiles()) {
           val fileName = pluginFile.getName
           val versionString = fileName.substring(fileName.indexOf('-') + 1, fileName.lastIndexOf('.'))
-          Files.move(pluginFile.toPath, uploadPath(owner, newName, versionString, channelName))
+          Files.move(pluginFile.toPath, uploadPath(owner, newName, versionString))
         }
       }
     }

@@ -368,14 +368,14 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Set of all ProjectRoles
     */
-  val roles = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+  def roles = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns the Channels in this Project.
     *
     * @return Channels in project
     */
-  val channels = this.getMany[ChannelTable, Channel](classOf[Channel])
+  def channels = this.getMany[ChannelTable, Channel](classOf[Channel])
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -394,7 +394,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Versions in project
     */
-  val versions = this.getMany[VersionTable, Version](classOf[Version])
+  def versions = this.getMany[VersionTable, Version](classOf[Version])
 
   /**
     * Returns this Project's recommended version.
@@ -419,7 +419,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Pages in project
     */
-  val pages = this.getMany[PageTable, Page](classOf[Page])
+  def pages = this.getMany[PageTable, Page](classOf[Page])
 
   /**
     * Returns true if a page with the specified name exists.
@@ -427,7 +427,7 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Page name
     * @return       True if exists
     */
-  def pageExists(name: String): Boolean = this.pages.find(_.name === name).isDefined
+  def pageExists(name: String): Boolean = this.pages.exists(_.name === name)
 
   /**
     * Returns the specified Page or creates it if it doesn't exist.

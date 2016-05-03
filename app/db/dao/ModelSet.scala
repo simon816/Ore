@@ -57,6 +57,14 @@ class ModelSet[T <: ModelTable[M], M <: Model](modelClass: Class[M],
   def contains(model: M): Boolean = await(count (this.modelClass, this.baseFilter +&& IdFilter(model.id.get))).get > 0
 
   /**
+    * Returns true if any models match the specified filter.
+    *
+    * @param filter Filter to use
+    * @return       True if any model matches
+    */
+  def exists(filter: T => Rep[Boolean]) = await(count (this.modelClass, this.baseFilter && filter)).get > 0
+
+  /**
     * Adds a new model to it's table.
     *
     * @param model Model to add

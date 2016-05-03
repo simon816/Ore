@@ -75,14 +75,12 @@ object OreAPI {
       * Returns a Json value of the specified version.
       *
       * @param pluginId Project plugin ID
-      * @param channel  Version channel
       * @param name     Version name
       * @return         JSON version if found, None otherwise
       */
-    def getVersion(pluginId: String, channel: String, name: String): Option[JsValue] = {
+    def getVersion(pluginId: String, name: String): Option[JsValue] = {
       Project.withPluginId(pluginId)
-        .flatMap(_.channels.find(_.name.toLowerCase === name.toLowerCase)
-        .flatMap(_.versions.find(_.versionString === name)))
+        .flatMap(_.versions.find(_.versionString === name))
         .map(Json.toJson(_))
     }
 

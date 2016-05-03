@@ -37,7 +37,7 @@
                     } else { @if(canEdit) {
                         <a class="btn btn-info"
                            href="@projectRoutes.Versions.setRecommended(
-                               project.ownerName, project.slug, version.channel.name, version.versionString)">
+                               project.ownerName, project.slug, version.versionString)">
                             <i class="fa fa-diamond"></i> Set recommended
                         </a>
                     }}
@@ -49,7 +49,7 @@
                                    disabled data-toggle="tooltip" data-placement="top"
                                    title="@messages("version.delete.cannot-last")"
                                } else {
-                                   href="@projectRoutes.Versions.delete(project.ownerName, project.slug, channel.name, version.versionString)"
+                                   href="@projectRoutes.Versions.delete(project.ownerName, project.slug, version.versionString)"
                                }
                             >
                                 <i class="fa fa-trash"></i> @messages("version.delete")
@@ -58,7 +58,7 @@
                     }
 
                     <a class="btn btn-primary"
-                    href="@projectRoutes.Versions.download(project.ownerName, project.slug, channel.name, version.versionString)">
+                    href="@projectRoutes.Versions.download(project.ownerName, project.slug, version.versionString)">
                         <i class="fa fa-download"></i> @messages("version.download")
                     </a>
                 </div>
@@ -70,7 +70,7 @@
             <div id="description" class="col-md-8">
                 @projects.util.editor(
                     saveCall = projectRoutes.Versions.saveDescription(
-                        project.ownerName, project.slug, channel.name, version.versionString
+                        project.ownerName, project.slug, version.versionString
                     ),
                     enabled = canEdit,
                     raw = version.description.getOrElse(""),

@@ -47,9 +47,9 @@ class ApiController extends Controller {
     }
   }
 
-  def showVersion(version: String, pluginId: String, channel: String, name: String) = Action {
+  def showVersion(version: String, pluginId: String, name: String) = Action {
     version match {
-      case "v1" => ApiResult(v1.getVersion(pluginId, channel, name))
+      case "v1" => ApiResult(v1.getVersion(pluginId, name))
       case fffffs => NotFound
     }
   }

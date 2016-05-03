@@ -1,8 +1,11 @@
 package models.project
 
+import java.nio.file.Files
 import java.sql.Timestamp
 
+import db.driver.OrePostgresDriver.api._
 import com.google.common.base.Preconditions
+import com.google.common.base.Preconditions._
 import db.VersionTable
 import db.dao.ModelSet
 import db.driver.OrePostgresDriver.api._
@@ -14,7 +17,7 @@ import db.query.ModelQueries.await
 import ore.Colors.Color
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
-import ore.project.util.{PluginFile, ProjectFactory}
+import ore.project.util.{PluginFile, ProjectFactory, ProjectFiles}
 import org.apache.commons.io.FileUtils
 import play.api.Play.current
 import play.api.cache.Cache
@@ -52,6 +55,8 @@ case class Version(override val id: Option[Int] = None,
                    @(Bind @field) private var _description: Option[String] = None,
                    @(Bind @field) private var _downloads: Int = 0)
                    extends Model(id, createdAt) with ProjectScope { self =>
+
+  import models.project.Version._
 
   override type M <: Version { type M = self.M }
 
@@ -152,10 +157,29 @@ case class Version(override val id: Option[Int] = None,
     */
   def humanFileSize: String = FileUtils.byteCountToDisplaySize(this.fileSize)
 
+  /**
+    * Returns true if a project ID is defined on this Model, there is no
+    * matching hash in the Project, and there is no duplicate version with
+    * the same name in the Project.
+    *
+    * @return True if exists
+    */
   def exists: Boolean = {
-    this.projectId > -1 &&
-      ((this.channelId > -1 && this.channel.versions.find(_.versionString === this.versionString).isDefined) ||
-        await(ModelQueries.Versions.hashExists(this.projectId, this.hash)).get)
+    this.projectId > -1 && (await(ModelQueries.Versions.hashExists(this.projectId, this.hash)).get
+      || this.project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase))
+  }
+
+  def delete()(implicit project: Project) = Defined {
+    checkArgument(project.versions.size > 1, "only one version", "")
+    checkArgument(project.id.get == this.projectId, "invalid context id", "")
+    val rv = project.recommendedVersion
+    remove(this)
+    // Set recommended version to latest version if the deleted version was the rv
+    if (this.equals(rv)) project.recommendedVersion = project.versions.sorted(_.createdAt.desc, limit = 1).head
+    Files.delete(ProjectFiles.uploadPath(project.ownerName, project.name, project.versionString))
+    // Delete channel if now empty
+    val channel: Channel = this.channel
+    if (channel.versions.isEmpty) channel.delete(project)
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Version = this.copy(id = id, createdAt = theTime)
@@ -193,12 +217,11 @@ object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
     *
     * @param owner    Name of owner
     * @param slug     Project slug
-    * @param channel  Name of channel
     * @param version  Name of version
     * @return         PendingVersion, if present, None otherwise
     */
-  def getPending(owner: String, slug: String, channel: String, version: String): Option[PendingVersion] = {
-    Cache.getAs[PendingVersion](owner + '/' + slug + '/' + channel + '/' + version)
+  def getPending(owner: String, slug: String, version: String): Option[PendingVersion] = {
+    Cache.getAs[PendingVersion](owner + '/' + slug + '/' + version)
   }
 
   /**
@@ -249,7 +272,7 @@ object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
     }
 
     override def key: String = {
-      this.owner + '/' + this.projectSlug + '/' + this.channelName + '/' + this.version.versionString
+      this.owner + '/' + this.projectSlug + '/' + this.version.versionString
     }
 
   }

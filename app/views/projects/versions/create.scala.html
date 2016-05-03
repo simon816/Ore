@@ -134,7 +134,7 @@
                             @* Ready to go! *@
                             @defining(pending.get.version) { version =>
                                 @form(action = projectRoutes.Versions.create(
-                                    project.ownerName, project.slug, pending.get.channelName, version.versionString),
+                                    project.ownerName, project.slug, version.versionString),
                                     'id -> "form-publish", 'class -> "pull-right") {
                                     @if(!showFileControls) {
                                         <input type="hidden" class="channel-input" name="channel-input" value="@pending.get.channelName" />

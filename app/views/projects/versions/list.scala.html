@@ -68,11 +68,11 @@ Versions page within Project overview.
                                                     <span class="date">@version.prettyDate</span>
                                                     <span class="date">@version.humanFileSize</span>
                                                     <a href="@projectRoutes.Versions.show(
-                                                        model.ownerName, model.slug, channel.name, version.versionString)">
+                                                        model.ownerName, model.slug, version.versionString)">
                                                         <i title="Details" class="fa fa-info-circle"></i>
                                                     </a>
                                                     <a href="@projectRoutes.Versions.download(
-                                                        model.ownerName, model.slug, channel.name, version.versionString)">
+                                                        model.ownerName, model.slug, version.versionString)">
                                                         <i title="Download" class="fa fa-download"></i>
                                                     </a>
                                                 </div>

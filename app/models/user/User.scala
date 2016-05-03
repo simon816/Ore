@@ -239,7 +239,7 @@ case class User(override val id: Option[Int] = None,
     * @return         True if has pending flag on Project
     */
   def hasUnresolvedFlagFor(project: Project): Boolean
-  = this.flags.find(f => f.projectId === project.id.get && !f.isResolved).isDefined
+  = this.flags.exists(f => f.projectId === project.id.get && !f.isResolved)
 
   /**
     * Returns the Projects that this User has starred.

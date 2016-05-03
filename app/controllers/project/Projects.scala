@@ -116,7 +116,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
         pendingProject.roles = Forms.MemberRoles.bindFromRequest.get.build()
         val pendingVersion = pendingProject.pendingVersion
         Redirect(routes.Versions.showCreatorWithMeta(
-          author, slug, pendingVersion.channelName, pendingVersion.version.versionString))
+          author, slug, pendingVersion.version.versionString))
     }
   }
 

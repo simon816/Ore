@@ -34,16 +34,15 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     *
     * @param author        Owner name
     * @param slug          Project slug
-    * @param channelName   Channel name
     * @param versionString Version name
     * @return Version view
     */
-  def show(author: String, slug: String, channelName: String, versionString: String) = {
+  def show(author: String, slug: String, versionString: String) = {
     ProjectAction(author, slug) { implicit request =>
       implicit val project = request.project
-      withVersion(channelName, versionString) { (channel, version) =>
+      withVersion(versionString) { version =>
         Statistics.projectViewed { implicit request =>
-          Ok(views.view(project, channel, version))
+          Ok(views.view(project, version.channel, version))
         }
       }
     }
@@ -54,16 +53,15 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     *
     * @param author        Project owner
     * @param slug          Project slug
-    * @param channelName   Version channel
     * @param versionString Version name
     * @return View of Version
     */
-  def saveDescription(author: String, slug: String, channelName: String, versionString: String) = {
+  def saveDescription(author: String, slug: String, versionString: String) = {
     VersionEditAction(author, slug) { implicit request =>
       implicit val project = request.project
-      withVersion(channelName, versionString) { (channel, version) =>
+      withVersion(versionString) { version =>
         version.description = Forms.VersionDescription.bindFromRequest.get.trim
-        Redirect(self.show(author, slug, channelName, versionString))
+        Redirect(self.show(author, slug, versionString))
       }
     }
   }
@@ -73,16 +71,15 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     *
     * @param author         Project owner
     * @param slug           Project slug
-    * @param channelName    Version channel
     * @param versionString  Version name
     * @return               View of version
     */
-  def setRecommended(author: String, slug: String, channelName: String, versionString: String) = {
+  def setRecommended(author: String, slug: String, versionString: String) = {
     VersionEditAction(author, slug) { implicit request =>
       implicit val project = request.project
-      withVersion(channelName, versionString) { (channel, version) =>
+      withVersion(versionString) { version =>
         project.recommendedVersion = version
-        Redirect(self.show(author, slug, channelName, versionString))
+        Redirect(self.show(author, slug, versionString))
       }
     }
   }
@@ -171,7 +168,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
 
                   // Cache for later use
                   Version.setPending(author, slug, channelName, version, plugin)
-                  Redirect(self.showCreatorWithMeta(author, slug, channelName, version.versionString))
+                  Redirect(self.showCreatorWithMeta(author, slug, version.versionString))
                 }
               }
           }
@@ -184,14 +181,13 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     *
     * @param author        Owner name
     * @param slug          Project slug
-    * @param channelName   Channel name
     * @param versionString Version name
     * @return Version create view
     */
-  def showCreatorWithMeta(author: String, slug: String, channelName: String, versionString: String) = {
+  def showCreatorWithMeta(author: String, slug: String, versionString: String) = {
     Authenticated { implicit request =>
       // Get pending version
-      Version.getPending(author, slug, channelName, versionString) match {
+      Version.getPending(author, slug, versionString) match {
         case None => Redirect(self.showCreator(author, slug))
         case Some(pendingVersion) =>
           // Get project
@@ -222,19 +218,18 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     *
     * @param author        Owner name
     * @param slug          Project slug
-    * @param channelName   Channel name
     * @param versionString Version name
     * @return New version view
     */
-  def create(author: String, slug: String, channelName: String, versionString: String) = {
+  def create(author: String, slug: String, versionString: String) = {
     Authenticated { implicit request =>
       // First get the pending Version
-      Version.getPending(author, slug, channelName, versionString) match {
+      Version.getPending(author, slug, versionString) match {
         case None => Redirect(self.showCreator(author, slug)) // Not found
         case Some(pendingVersion) =>
           // Get submitted channel
           Forms.VersionCreate.bindFromRequest.fold(
-            hasErrors => Redirect(self.showCreatorWithMeta(author, slug, channelName, versionString))
+            hasErrors => Redirect(self.showCreatorWithMeta(author, slug, versionString))
               .flashing("error" -> hasErrors.errors.head.message),
 
             versionData => {
@@ -254,12 +249,12 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
                     var channelResult: Either[String, Channel] = Right(existingChannel)
                     if (existingChannel == null) channelResult = versionData.addTo(project)
                     channelResult.fold(
-                      error => Redirect(self.showCreatorWithMeta(author, slug, channelName, versionString))
+                      error => Redirect(self.showCreatorWithMeta(author, slug, versionString))
                         .flashing("error" -> error),
                       channel => {
                         val newVersion = pendingVersion.complete.get
                         if (versionData.recommended) project.recommendedVersion = newVersion
-                        Redirect(self.show(author, slug, pendingVersion.channelName, versionString))
+                        Redirect(self.show(author, slug, versionString))
                       }
                     )
                   }
@@ -279,15 +274,14 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     *
     * @param author        Owner name
     * @param slug          Project slug
-    * @param channelName   Channel name
     * @param versionString Version name
     * @return Versions page
     */
-  def delete(author: String, slug: String, channelName: String, versionString: String) = {
+  def delete(author: String, slug: String, versionString: String) = {
     VersionEditAction(author, slug) { implicit request =>
       implicit val project = request.project
-      withVersion(channelName, versionString) { (channel, version) =>
-        channel.deleteVersion(version)
+      withVersion(versionString) { version =>
+        version.delete()
         Redirect(self.showList(author, slug, None))
       }
     }
@@ -298,16 +292,15 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     *
     * @param author        Project owner
     * @param slug          Project slug
-    * @param channelName   Version channel
     * @param versionString Version string
     * @return Sent file
     */
-  def download(author: String, slug: String, channelName: String, versionString: String) = {
+  def download(author: String, slug: String, versionString: String) = {
     ProjectAction(author, slug) { implicit request =>
       implicit val project = request.project
-      withVersion(channelName, versionString) { (channel, version) =>
+      withVersion(versionString) { version =>
         Statistics.versionDownloaded(version) { implicit request =>
-          Ok.sendFile(ProjectFiles.uploadPath(author, slug, versionString, channelName).toFile)
+          Ok.sendFile(ProjectFiles.uploadPath(author, slug, versionString).toFile)
         }
       }
     }
@@ -325,7 +318,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
       val project = request.project
       val rv = project.recommendedVersion
       Statistics.versionDownloaded(rv) { implicit request =>
-        Ok.sendFile(ProjectFiles.uploadPath(author, project.name, rv.versionString, rv.channel.name).toFile)
+        Ok.sendFile(ProjectFiles.uploadPath(author, project.name, rv.versionString).toFile)
       }
     }
   }

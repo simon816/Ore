@@ -6,6 +6,7 @@ GET     /*path/                                                     @controllers
 
 GET     /admin/reset                                                @controllers.Application.reset
 GET     /admin/seed                                                 @controllers.Application.seed(users: Option[Int], versions: Option[Int], channels: Option[Int])
+GET     /admin/migrate                                              @controllers.Application.migrate
 GET     /admin/flags                                                @controllers.Application.showFlags()
 GET     /admin/flags/:id/resolve/:resolved                          @controllers.Application.setFlagResolved(id: Int, resolved: Boolean)
 
@@ -14,7 +15,7 @@ GET     /api/projects                                               @controllers
 GET     /api/projects/:pluginId                                     @controllers.ApiController.showProject(version = "v1", pluginId)
 
 GET     /api/projects/:pluginId/versions                            @controllers.ApiController.listVersions(version = "v1", pluginId, channels: Option[String], limit: Option[Int], offset: Option[Int])
-GET     /api/projects/:pluginId/versions/:channel/:name             @controllers.ApiController.showVersion(version = "v1", pluginId, channel, name)
+GET     /api/projects/:pluginId/versions/:name                      @controllers.ApiController.showVersion(version = "v1", pluginId, name)
 
 GET     /api/users                                                  @controllers.ApiController.listUsers(version = "v1", limit: Option[Int], offset: Option[Int])
 GET     /api/users/:user                                            @controllers.ApiController.showUser(version = "v1", user)
@@ -23,7 +24,7 @@ GET     /api/:version/projects                                      @controllers
 GET     /api/:version/projects/:pluginId                            @controllers.ApiController.showProject(version, pluginId)
 
 GET     /api/:version/projects/:pluginId/versions                   @controllers.ApiController.listVersions(version, pluginId, channels: Option[String], limit: Option[Int], offset: Option[Int])
-GET     /api/:version/projects/:pluginId/versions/:channel/:name    @controllers.ApiController.showVersion(version, pluginId, channel, name)
+GET     /api/:version/projects/:pluginId/versions/:name             @controllers.ApiController.showVersion(version, pluginId, name)
 
 GET     /api/:version/users                                         @controllers.ApiController.listUsers(version, limit: Option[Int], offset: Option[Int])
 GET     /api/:version/users/:user                                   @controllers.ApiController.showUser(version, user)
@@ -93,19 +94,19 @@ GET     /:author/:slug/channels/:channel/delete                     @controllers
 
 GET     /:author/:slug/versions                                     @controllers.project.Versions.showList(author, slug, channels: Option[String])
 
-GET     /:author/:slug/versions/:channel/:version/delete            @controllers.project.Versions.delete(author, slug, channel, version)
+GET     /:author/:slug/versions/:version/delete                     @controllers.project.Versions.delete(author, slug, version)
 
-GET     /:author/:slug/versions/download/:channel/:version          @controllers.project.Versions.download(author, slug, channel, version)
 GET     /:author/:slug/versions/download/recommended                @controllers.project.Versions.downloadRecommended(author, slug)
+GET     /:author/:slug/versions/download/:version                   @controllers.project.Versions.download(author, slug, version)
 
 GET     /:author/:slug/versions/new                                 @controllers.project.Versions.showCreator(author, slug)
 POST    /:author/:slug/versions/new/upload                          @controllers.project.Versions.upload(author, slug)
-GET     /:author/:slug/versions/new/:channel/:version               @controllers.project.Versions.showCreatorWithMeta(author, slug, channel, version)
+GET     /:author/:slug/versions/new/:version                        @controllers.project.Versions.showCreatorWithMeta(author, slug, version)
 
-POST    /:author/:slug/versions/:channel/:version                   @controllers.project.Versions.create(author, slug, channel, version)
-GET     /:author/:slug/versions/:channel/:version                   @controllers.project.Versions.show(author, slug, channel, version)
-POST    /:author/:slug/versions/:channel/:version/save              @controllers.project.Versions.saveDescription(author, slug, channel, version)
-GET     /:author/:slug/versions/:channel/:version/recommended       @controllers.project.Versions.setRecommended(author, slug, channel, version)
+POST    /:author/:slug/versions/:version                            @controllers.project.Versions.create(author, slug, version)
+GET     /:author/:slug/versions/:version                            @controllers.project.Versions.show(author, slug, version)
+POST    /:author/:slug/versions/:version/save                       @controllers.project.Versions.saveDescription(author, slug, version)
+GET     /:author/:slug/versions/:version/recommended                @controllers.project.Versions.setRecommended(author, slug, version)
 
 
 # ---------- Other ----------

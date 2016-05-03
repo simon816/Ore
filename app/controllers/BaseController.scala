@@ -27,16 +27,8 @@ abstract class BaseController(implicit ws: WSClient) extends Controller with I18
     }
   }
 
-  protected[controllers] def withVersion(channelName: String, versionString: String)
-                                        (f: (Channel, Version) => Result)
-                                        (implicit request: RequestHeader, project: Project): Result = {
-    project.channels.find(ModelQueries.Channels.NameFilter(channelName)) match {
-      case None => NotFound
-      case Some(channel) => channel.versions.find(_.versionString === versionString) match {
-        case None => NotFound
-        case Some(version) => f(channel, version)
-      }
-    }
-  }
+  protected[controllers] def withVersion(versionString: String)(fn: Version => Result)
+                                        (implicit request: RequestHeader, project: Project): Result
+  = project.versions.find(_.versionString.toLowerCase === versionString.toLowerCase).map(fn).getOrElse(NotFound)
 
 }

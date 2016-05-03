@@ -96,23 +96,6 @@ case class Channel(override val id: Option[Int] = None,
   def versions = this.getMany[VersionTable, Version](classOf[Version])
 
   /**
-    * Deletes the specified Version within this channel.
-    *
-    * @param version  Version to delete
-    * @param context  Project for context
-    * @return         Result
-    */
-  def deleteVersion(version: Version)(implicit context: Project) = Defined {
-    checkArgument(context.versions.size > 1, "only one version", "")
-    checkArgument(context.id.get == this.projectId, "invalid context id", "")
-    val rv = context.recommendedVersion
-    this.versions.remove(version)
-    // Set recommended version to latest version if the deleted version was the rv
-    if (version.equals(rv)) context.recommendedVersion = context.versions.sorted(_.createdAt.desc, limit = 1).head
-    Files.delete(ProjectFiles.uploadPath(context.ownerName, context.name, version.versionString, this._name))
-  }
-
-  /**
     * Irreversibly deletes this channel and all version associated with it.
     *
     * @param context  Project context
@@ -120,11 +103,9 @@ case class Channel(override val id: Option[Int] = None,
     */
   def delete(context: Project) = Defined {
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
-
     val channels = context.channels.values
     checkArgument(channels.size > 1, "only one channel", "")
     checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
-
     remove(this)
     FileUtils.deleteDirectory(ProjectFiles.projectDir(context.ownerName, context.name).resolve(this._name).toFile)
   }

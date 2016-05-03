@@ -1,7 +1,10 @@
 package util
 
-import java.nio.file.Files
+import java.nio.file.Files._
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file._
 
+import scala.collection.JavaConverters._
 import db.driver.OrePostgresDriver.api._
 import db.query.ModelQueries
 import db.query.ModelQueries.{await, run}
@@ -94,10 +97,28 @@ object DataUtils {
     SpongeForums.enable() // Re-enable forum hooks
   }
 
+  def migrate() = {
+    walkFileTree(PluginsDir, new SimpleFileVisitor[Path] {
+      override def visitFile(file: Path, attrs: BasicFileAttributes) = {
+        if (!attrs.isDirectory) {
+          val channelDir = file.getParent
+          copy(file, channelDir.getParent.resolve(file.getFileName))
+          delete(file)
+        }
+        FileVisitResult.CONTINUE
+      }
+    })
+
+    for (userDir <- newDirectoryStream(PluginsDir).asScala)
+      for (projectDir <- newDirectoryStream(userDir).asScala)
+        for (channelDir <- newDirectoryStream(projectDir).asScala)
+          if (isDirectory(channelDir) && !newDirectoryStream(channelDir).iterator.hasNext) delete(channelDir)
+  }
+
   private def copyPlugin = {
     val path = this.pluginPath.getParent.resolve("plugin.jar")
-    if (Files.notExists(path)) {
-      Files.copy(this.pluginPath, this.pluginPath.getParent.resolve("plugin.jar")).toFile
+    if (notExists(path)) {
+      copy(this.pluginPath, this.pluginPath.getParent.resolve("plugin.jar")).toFile
     }
     path.toFile
   }
