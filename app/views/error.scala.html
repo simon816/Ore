@@ -1,0 +1,15 @@
+@(message: String)(implicit messages: Messages, session: Session, request: RequestHeader)
+
+@core.layout("Error") {
+
+    <div class="container-error container">
+        <img src="@routes.Assets.at("images/ore-dark.png")" />
+        <h1 class="minor">Ore is experiencing difficulties.</h1>
+        <i class="minor">@message</i>
+        <p class="minor">
+            If you suspect this is a bug, please take a minute to report it to
+            <a target="_blank" href="https://github.com/SpongePowered/Ore">the issue tracker.</a>
+        </p>
+    </div>
+
+}
