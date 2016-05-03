@@ -97,23 +97,7 @@ object DataUtils {
     SpongeForums.enable() // Re-enable forum hooks
   }
 
-  def migrate() = {
-    walkFileTree(PluginsDir, new SimpleFileVisitor[Path] {
-      override def visitFile(file: Path, attrs: BasicFileAttributes) = {
-        if (!attrs.isDirectory) {
-          val channelDir = file.getParent
-          copy(file, channelDir.getParent.resolve(file.getFileName))
-          delete(file)
-        }
-        FileVisitResult.CONTINUE
-      }
-    })
-
-    for (userDir <- newDirectoryStream(PluginsDir).asScala)
-      for (projectDir <- newDirectoryStream(userDir).asScala)
-        for (channelDir <- newDirectoryStream(projectDir).asScala)
-          if (isDirectory(channelDir) && !newDirectoryStream(channelDir).iterator.hasNext) delete(channelDir)
-  }
+  def migrate() = Unit
 
   private def copyPlugin = {
     val path = this.pluginPath.getParent.resolve("plugin.jar")
