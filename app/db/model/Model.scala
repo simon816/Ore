@@ -19,7 +19,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
   type T <: ModelTable[M]
 
   private var fieldBindings: Map[String, FieldBinding[M, _]] = Map.empty
-  private var childBindings: Map[Class[_ <: Model], ChildBinding[_, _]] = Map.empty
+  private var manyBindings: Map[Class[_ <: Model], ManyBinding] = Map.empty
 
   implicit def convertSelf(self: Model): M = self.asInstanceOf[M]
 
@@ -65,29 +65,24 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
     *
     * @param childClass   Child model class
     * @param ref          Reference column to this model in child table
-    * @tparam ChildTable  Child table
-    * @tparam Child       Child model
     */
-  def bindChild[ChildTable <: ModelTable[Child], Child <: Model](childClass: Class[_ <: Child],
-                                                                 ref: ChildTable => Rep[Int]) = {
+  def bindMany(childClass: Class[_ <: Model], ref: ModelTable[_] => Rep[Int]) = {
     debug("Binding child " + childClass + " to model " + this)
-    this.childBindings += childClass -> ChildBinding[ChildTable, Child](childClass, ref)
+    this.manyBindings += childClass -> ManyBinding(childClass, ref)
   }
 
   /**
     * Returns a [[ModelSet]] of the children for the specified child class.
     *
-    * @param modelClass   Model class
-    * @tparam ChildTable  Child table
-    * @tparam Child       Child
-    * @return             Set of children
+    * @param modelClass  Model class
+    * @tparam Many       Child
+    * @return            Set of children
     */
-  def getChildren[ChildTable <: ModelTable[Child], Child <: Model](modelClass: Class[_ <: Child]) =  Defined {
-    val binding = this.childBindings
+  def getMany[ManyTable <: ModelTable[Many], Many <: Model](modelClass: Class[Many]) =  Defined {
+    val binding = this.manyBindings
       .find(_._1.isAssignableFrom(modelClass))
-      .map(_._2.asInstanceOf[ChildBinding[ChildTable, Child]])
-      .getOrElse(throw new RuntimeException("No child binding found for model " + modelClass + " in model " + this))
-    new ModelSet[ChildTable, Child](binding.childClass.asInstanceOf[Class[Child]], ModelFilter(binding.ref(_) === this.id.get))
+      .getOrElse(throw new RuntimeException("No child binding found for model " + modelClass + " in model " + this))._2
+    new ModelSet[ManyTable, Many](modelClass, ModelFilter(binding.ref(_) === this.id.get))
   }
 
   /**

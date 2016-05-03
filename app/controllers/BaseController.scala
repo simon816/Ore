@@ -8,15 +8,16 @@ import models.project.{Channel, Project, Version}
 import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import util.DataUtils
+import util.C.isDebug
+import util.{C, DataUtils}
 
 /**
   * Represents a Secured base Controller for this application.
   */
 abstract class BaseController(implicit ws: WSClient) extends Controller with I18nSupport with Actions {
 
-  SpongeForums.apply
-  DataUtils.apply
+  SpongeForums.enable()
+  if (isDebug) DataUtils.enable()
 
   protected[controllers] def withProject(author: String, slug: String)(f: Project => Result)
                                         (implicit request: RequestHeader): Result = {

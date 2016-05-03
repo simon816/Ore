@@ -27,7 +27,7 @@ class Users @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
       User.getOrCreate(FakeUser)
       redirectBack(returnPath.getOrElse(request.path), FakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
-      Redirect(Auth.getRedirect(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
+      Redirect(Auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
     } else {
       // Decode SSO payload and get Ore user
       val user = Auth.authenticate(sso.get, sig.get)

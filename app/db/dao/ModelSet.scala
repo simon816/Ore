@@ -9,7 +9,8 @@ import slick.lifted.ColumnOrdered
 /**
   * A basic Model data access object.
   */
-class ModelSet[T <: ModelTable[M], M <: Model](modelClass: Class[M], baseFilter: ModelFilter[T, M] = ModelFilter[T, M]()) {
+class ModelSet[T <: ModelTable[M], M <: Model](modelClass: Class[M],
+                                               baseFilter: ModelFilter[T, M] = ModelFilter[T, M]()) {
 
   /**
     * Returns the model with the specified ID.

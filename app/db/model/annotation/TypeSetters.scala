@@ -4,6 +4,7 @@ import java.lang.reflect.Field
 import java.sql.Timestamp
 
 import db.driver.OrePostgresDriver.api._
+import db.model.annotation.BindingsGenerator.getRep
 import db.model.{Model, ModelTable}
 import db.query.ModelQueries
 
@@ -41,9 +42,6 @@ object TypeSetters {
   def get[A](clazz: Class[A]): Option[TypeSetter[A]]
   = setters.find(_._1.isAssignableFrom(clazz)).map(_._2.asInstanceOf[TypeSetter[A]])
 
-  private def getRep[A](name: String, table: ModelTable[_])
-  = table.getClass.getDeclaredMethod(name).invoke(table).asInstanceOf[Rep[A]]
-
   /**
     * A class to handle delegation of binding update functions to models.
     *
@@ -79,7 +77,7 @@ object TypeSetters {
         case a: A => a
         case _ => throw new RuntimeException("Invalid type mapping for key " + key + " in model " + model)
       }
-      model.bind[A](key, v, v => this.apply[T, M](model, t => getRep[A](key, t), v))
+      model.bind[A](key, v, v => this.apply[T, M](model, getRep[A](key, _), v))
     }
   }
 

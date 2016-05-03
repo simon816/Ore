@@ -7,7 +7,7 @@ import db.dao.ModelSet
 import db.driver.OrePostgresDriver.api._
 import db.model.Model
 import db.model.ModelKeys._
-import db.model.annotation.{Bind, BindingsGenerator}
+import db.model.annotation._
 import db.query.ModelQueries
 import db.query.ModelQueries.await
 import db.{FlagTable, ProjectRoleTable, ProjectTable, UserTable}
@@ -34,8 +34,9 @@ import scala.annotation.meta.field
   * @param _email       Email
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
-case class User(override val  id: Option[Int] = None,
-                override val  createdAt: Option[Timestamp] = None,
+@HasMany(Array(classOf[Project], classOf[ProjectRole], classOf[Flag]))
+case class User(override val id: Option[Int] = None,
+                override val createdAt: Option[Timestamp] = None,
                 @(Bind @field) private var _name: Option[String] = None,
                 @(Bind @field) private var _username: String,
                 @(Bind @field) private var _email: Option[String] = None,
@@ -48,10 +49,6 @@ case class User(override val  id: Option[Int] = None,
   import models.user.User._
 
   BindingsGenerator.generateFor(this)
-
-  bindChild[ProjectTable, Project](classOf[Project], _.ownerId)
-  bindChild[ProjectRoleTable, ProjectRole](classOf[ProjectRole], _.userId)
-  bindChild[FlagTable, Flag](classOf[Flag], _.userId)
 
   override type M <: User { type M = self.M }
 
@@ -188,14 +185,14 @@ case class User(override val  id: Option[Int] = None,
     *
     * @return All projects owned by User
     */
-  def projects = this.getChildren[ProjectTable, Project](classOf[Project])
+  def projects = this.getMany[ProjectTable, Project](classOf[Project])
 
   /**
     * Returns a [[ModelSet]] of [[ProjectRole]]s.
     *
     * @return ProjectRoles
     */
-  def projectRoles = this.getChildren[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+  def projectRoles = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns a Set of [[RoleType]]s that this User has globally.
@@ -232,7 +229,7 @@ case class User(override val  id: Option[Int] = None,
     *
     * @return Flags submitted by user
     */
-  def flags = this.getChildren[FlagTable, Flag](classOf[Flag])
+  def flags = this.getMany[FlagTable, Flag](classOf[Flag])
 
   /**
     * Returns true if the User has an unresolved [[Flag]] on the specified

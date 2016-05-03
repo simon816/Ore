@@ -40,7 +40,7 @@ class DiscourseSSO(private val url: String, private val secret: String) {
     * @param returnUrl  URL to tell Discourse to return to
     * @return           Redirect URL
     */
-  def getRedirect(returnUrl: String): String = {
+  def toForums(returnUrl: String): String = {
     val payload = "require_validation=true&return_sso_url=" + returnUrl + "&nonce=" + nonce
     val encoded = new String(Base64.getEncoder.encode(payload.getBytes("UTF-8")))
     val urlEncoded = URLEncoder.encode(encoded, "UTF-8")

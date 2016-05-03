@@ -1,5 +1,6 @@
 package db.model.annotation
 
+import db.driver.OrePostgresDriver.api._
 import db.model.{Model, ModelTable}
 import util.C.debug
 
@@ -14,20 +15,25 @@ object BindingsGenerator {
   /**
     * Generates bindings for the specified model.
     *
-    * TODO: Children binding
-    *
     * @param model  Model to bind
     * @tparam T     Model table
     * @tparam M     Model type
     */
   def generateFor[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
     debug("Generating bindings for model " + model)
+    generateFieldsFor(model)
+    generateRelationsFor(model)
+  }
+
+  def generateFieldsFor[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
+    debug("Generating field for model " + model)
     // Bind marked fields
     val modelClass = model.getClass
     //noinspection ComparingUnrelatedTypes
     val bindFields = modelClass.getDeclaredFields
-      .filter(_.getDeclaredAnnotations.exists(_.annotationType().equals(classOf[Bind])))
+      .filter(_.getDeclaredAnnotations.exists(_.annotationType.equals(classOf[Bind])))
     bindFields.foreach(f => debug(f.toString))
+
     for (bindField <- bindFields) {
       val bindData = bindField.getAnnotation(classOf[Bind])
       val fieldName = bindField.getName.substring(bindField.getName.lastIndexOf("$") + 1)
@@ -52,5 +58,19 @@ object BindingsGenerator {
         .bindTo(model, key, bindField)
     }
   }
+
+  def generateRelationsFor[T <: ModelTable[M], M <: Model](model: M) = {
+    debug("Generating relations for model " + model)
+    val modelClass = model.getClass
+    val key = modelClass.getSimpleName.toLowerCase + "Id"
+    //noinspection ComparingUnrelatedTypes
+    if (modelClass.getDeclaredAnnotations.exists(_.annotationType.equals(classOf[HasMany]))) {
+      val relations = modelClass.getDeclaredAnnotation(classOf[HasMany])
+      for (relation <- relations.value) model.bindMany(relation, t => getRep[Int](key, t))
+    }
+  }
+
+  def getRep[A](name: String, table: ModelTable[_])
+  = table.getClass.getDeclaredMethod(name).invoke(table).asInstanceOf[Rep[A]]
 
 }

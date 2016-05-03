@@ -7,7 +7,7 @@ import com.google.common.base.Preconditions._
 import db.dao.ModelSet
 import db.driver.OrePostgresDriver.api._
 import db.model.ModelKeys._
-import db.model.annotation.{Bind, BindingsGenerator}
+import db.model.annotation.{Bind, BindingsGenerator, HasMany}
 import db.model.{Model, ModelKeys}
 import db.{ChannelTable, VersionTable}
 import ore.Colors._
@@ -32,6 +32,7 @@ import scala.annotation.meta.field
   * @param _color       Color used to represent this Channel
   * @param projectId    ID of project this channel belongs to
   */
+@HasMany(Array(classOf[Version]))
 case class Channel(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                    override val projectId: Int,
@@ -44,8 +45,6 @@ case class Channel(override val id: Option[Int] = None,
   override type M <: Channel { type M = self.M }
 
   BindingsGenerator.generateFor(this)
-
-  bindChild[VersionTable, Version](classOf[Version], _.channelId)
 
   def this(name: String, color: Color, projectId: Int) = this(_name=name, _color=color, projectId=projectId)
 
@@ -94,7 +93,7 @@ case class Channel(override val id: Option[Int] = None,
     *
     * @return All versions
     */
-  def versions = this.getChildren[VersionTable, Version](classOf[Version])
+  def versions = this.getMany[VersionTable, Version](classOf[Version])
 
   /**
     * Deletes the specified Version within this channel.

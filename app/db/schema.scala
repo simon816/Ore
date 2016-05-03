@@ -23,7 +23,7 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
   def name                  =   column[String]("name")
   def slug                  =   column[String]("slug")
   def ownerName             =   column[String]("owner_name")
-  def ownerId               =   column[Int]("owner_id")
+  def userId                =   column[Int]("owner_id")
   def homepage              =   column[String]("homepage")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
   def category              =   column[Category]("category")
@@ -38,7 +38,7 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
   def isVisible             =   column[Boolean]("is_visible")
   def isReviewed            =   column[Boolean]("is_reviewed")
 
-  override def * = (id.?, createdAt.?, pluginId, ownerName, ownerId, homepage.?, name, slug, recommendedVersionId.?,
+  override def * = (id.?, createdAt.?, pluginId, ownerName, userId, homepage.?, name, slug, recommendedVersionId.?,
     category, views, downloads, stars, issues.?, source.?, description.?, topicId.?, postId.?,
     isVisible, isReviewed) <> ((Project.apply _).tupled, Project.unapply)
 

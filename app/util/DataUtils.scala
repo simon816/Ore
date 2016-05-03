@@ -27,7 +27,7 @@ object DataUtils {
   implicit private var ws: WSClient = null
   private val pluginPath = RootDir.resolve(OreConf.getString("test-plugin").get)
 
-  def apply(implicit ws: WSClient) = this.ws = ws
+  def enable()(implicit ws: WSClient) = this.ws = ws
 
   /**
     * Resets the application to factory defaults.
@@ -91,7 +91,7 @@ object DataUtils {
         }
       }
     }
-    SpongeForums.apply // Re-enable forum hooks
+    SpongeForums.enable() // Re-enable forum hooks
   }
 
   private def copyPlugin = {

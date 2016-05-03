@@ -16,7 +16,7 @@ import db.dao.ModelSet
 import db.driver.OrePostgresDriver.api._
 import db.model.ModelKeys._
 import db.model._
-import db.model.annotation.{Bind, BindingsGenerator}
+import db.model.annotation.{Bind, BindingsGenerator, HasMany}
 import db.query.ModelQueries
 import db.query.ModelQueries.{await, filterToFunction}
 import forums.SpongeForums
@@ -54,6 +54,7 @@ import scala.util.Try
   * @param _source                External link to source code
   * @param _description           Short description of Project
   */
+@HasMany(Array(classOf[Channel], classOf[Version], classOf[Page], classOf[Flag], classOf[ProjectRole]))
 case class Project(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                                 pluginId: String,
@@ -81,12 +82,6 @@ case class Project(override val id: Option[Int] = None,
   override type M <: Project { type M = self.M }
 
   BindingsGenerator.generateFor(this)
-
-  bindChild[ChannelTable, Channel](classOf[Channel], _.projectId)
-  bindChild[VersionTable, Version](classOf[Version], _.projectId)
-  bindChild[FlagTable, Flag](classOf[Flag], _.projectId)
-  bindChild[PageTable, Page](classOf[Page], _.projectId)
-  bindChild[ProjectRoleTable, ProjectRole](classOf[ProjectRole], _.projectId)
 
   def this(pluginId: String, name: String, owner: String, ownerId: Int, homepage: String) = {
     this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
@@ -373,14 +368,14 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Set of all ProjectRoles
     */
-  val roles = this.getChildren[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+  val roles = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns the Channels in this Project.
     *
     * @return Channels in project
     */
-  val channels = this.getChildren[ChannelTable, Channel](classOf[Channel])
+  val channels = this.getMany[ChannelTable, Channel](classOf[Channel])
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -399,7 +394,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Versions in project
     */
-  val versions = this.getChildren[VersionTable, Version](classOf[Version])
+  val versions = this.getMany[VersionTable, Version](classOf[Version])
 
   /**
     * Returns this Project's recommended version.
@@ -424,7 +419,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Pages in project
     */
-  val pages = this.getChildren[PageTable, Page](classOf[Page])
+  val pages = this.getMany[PageTable, Page](classOf[Page])
 
   /**
     * Returns true if a page with the specified name exists.
