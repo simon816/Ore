@@ -5,7 +5,7 @@ import forums.SpongeForums
 import models.project.Project
 import models.user.User
 import ore.permission.scope.GlobalScope
-import ore.permission.{HideProjects, Permission}
+import ore.permission.{HideProjects, Permission, ReviewProjects}
 import play.api.mvc.Results._
 import play.api.mvc._
 

@@ -10,11 +10,11 @@ import db.query.ModelQueries.filterToFunction
 import form.Forms
 import models.project.{Channel, Project, Version}
 import ore.Statistics
-import ore.permission.EditVersions
+import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFactory, ProjectFiles}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
-import util.C._
+import util.Conf._
 import views.html.projects.{versions => views}
 
 import scala.util.{Failure, Success}
@@ -78,6 +78,24 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
       implicit val project = request.project
       withVersion(versionString) { version =>
         project.recommendedVersion = version
+        Redirect(self.show(author, slug, versionString))
+      }
+    }
+  }
+
+  /**
+    * Sets the specified Version as approved by the moderation staff.
+    *
+    * @param author         Project owner
+    * @param slug           Project slug
+    * @param versionString  Version name
+    * @return               View of version
+    */
+  def approve(author: String, slug: String, versionString: String) = {
+    (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(ReviewProjects)) { implicit request =>
+      implicit val project = request.project
+      withVersion(versionString) { version =>
+        version.setReviewed(true)
         Redirect(self.show(author, slug, versionString))
       }
     }

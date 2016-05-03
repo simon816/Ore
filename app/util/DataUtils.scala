@@ -14,8 +14,8 @@ import ore.project.util.{PendingProject, ProjectFactory}
 import org.apache.commons.io.FileUtils
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.ws.WSClient
-import util.C._
-import util.P._
+import util.Conf._
+import util.Sys._
 
 /**
   * Utility class for performing some bulk actions on the application data.

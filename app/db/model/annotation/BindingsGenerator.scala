@@ -2,7 +2,7 @@ package db.model.annotation
 
 import db.driver.OrePostgresDriver.api._
 import db.model.{Model, ModelTable}
-import util.C.debug
+import util.Conf.debug
 
 import scala.reflect.runtime.universe._
 

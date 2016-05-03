@@ -25,8 +25,8 @@ import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
-import util.C._
-import util.P._
+import util.Conf._
+import util.Sys._
 import util.StringUtils.{compact, slugify}
 
 import scala.annotation.meta.field
@@ -70,8 +70,7 @@ case class Project(override val id: Option[Int] = None,
                    @(Bind @field) private var _description: Option[String] = None,
                    @(Bind @field) private var _topicId: Option[Int] = None,
                    @(Bind @field) private var _postId: Option[Int] = None,
-                   @(Bind @field) private var _isVisible: Boolean = true,
-                   @(Bind @field) private var _isReviewed: Boolean = false)
+                   @(Bind @field) private var _isVisible: Boolean = true)
                    extends Model(id, createdAt) with ProjectScope { self =>
 
   import models.project.Project._
@@ -468,23 +467,6 @@ case class Project(override val id: Option[Int] = None,
   def setVisible(visible: Boolean) = {
     this._isVisible = visible
     if (isDefined) update(IsVisible)
-  }
-
-  /**
-    * Returns true if this Project has been reviewed by the moderation staff.
-    *
-    * @return True if reviewed
-    */
-  def isReviewed: Boolean = this._isReviewed
-
-  /**
-    * Sets whether this project is under review.
-    *
-    * @param reviewed True if reviewed by staff
-    */
-  def setReviewed(reviewed: Boolean) = {
-    this._isReviewed = reviewed
-    if (isDefined) update(IsReviewed)
   }
 
   /**

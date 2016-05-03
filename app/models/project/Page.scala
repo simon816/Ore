@@ -13,7 +13,7 @@ import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
 import play.twirl.api.Html
-import util.C._
+import util.Conf._
 import util.StringUtils._
 
 import scala.annotation.meta.field

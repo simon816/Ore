@@ -10,8 +10,8 @@ import models.project.{Channel, Project, Version}
 import models.user.{ProjectRole, User}
 import ore.permission.role.RoleTypes
 import play.api.libs.Files.TemporaryFile
-import util.C._
-import util.P._
+import util.Conf._
+import util.Sys._
 
 import scala.util.Try
 

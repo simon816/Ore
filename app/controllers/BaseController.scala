@@ -8,8 +8,8 @@ import models.project.{Channel, Project, Version}
 import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import util.C.isDebug
-import util.{C, DataUtils}
+import util.Conf.isDebug
+import util.{Conf, DataUtils}
 
 /**
   * Represents a Secured base Controller for this application.

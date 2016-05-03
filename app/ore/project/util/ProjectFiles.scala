@@ -2,7 +2,7 @@ package ore.project.util
 
 import java.nio.file.{Files, Path}
 
-import util.P._
+import util.Sys._
 
 import scala.util.Try
 

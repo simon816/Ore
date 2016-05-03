@@ -19,7 +19,7 @@ import ore.permission.role.RoleTypes.RoleType
 import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
 import play.api.mvc.Session
-import util.C._
+import util.Conf._
 import util.StringUtils._
 
 import scala.annotation.meta.field

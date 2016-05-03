@@ -3,7 +3,7 @@ package util
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import util.C._
+import util.Conf._
 
 /**
   * Helper class for handling User input.

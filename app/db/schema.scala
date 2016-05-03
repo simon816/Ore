@@ -36,11 +36,10 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
   def topicId               =   column[Int]("topic_id")
   def postId                =   column[Int]("post_id")
   def isVisible             =   column[Boolean]("is_visible")
-  def isReviewed            =   column[Boolean]("is_reviewed")
 
   override def * = (id.?, createdAt.?, pluginId, ownerName, userId, homepage.?, name, slug, recommendedVersionId.?,
-    category, views, downloads, stars, issues.?, source.?, description.?, topicId.?, postId.?,
-    isVisible, isReviewed) <> ((Project.apply _).tupled, Project.unapply)
+                    category, views, downloads, stars, issues.?, source.?, description.?, topicId.?, postId.?,
+                    isVisible) <> ((Project.apply _).tupled, Project.unapply)
 
 }
 
@@ -98,9 +97,10 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions") {
   def channelId       =   column[Int]("channel_id")
   def fileSize        =   column[Long]("file_size")
   def hash            =   column[String]("hash")
+  def isReviewed      =   column[Boolean]("is_reviewed")
 
-  override def * = (id.?, createdAt.?, projectId, versionString, dependencies, assets.?, channelId,
-                    fileSize, hash, description.?, downloads) <> ((Version.apply _).tupled, Version.unapply)
+  override def * = (id.?, createdAt.?, projectId, versionString, dependencies, assets.?, channelId, fileSize, hash,
+                    description.?, downloads, isReviewed) <> ((Version.apply _).tupled, Version.unapply)
 }
 
 class VersionDownloadsTable(tag: Tag) extends Table[(Option[Int], Option[String],

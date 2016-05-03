@@ -6,7 +6,7 @@ import play.api.Play.current
 /**
   * Helper class for getting commonly used Paths.
   */
-object P {
+object Sys {
 
   lazy val RootDir      =   Play.application.path.toPath
   lazy val ConfDir      =   RootDir.resolve("conf")

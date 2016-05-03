@@ -2,12 +2,16 @@
 @import models.project.{Channel, Project, Version}
 @import models.user.User
 @import ore.permission.EditVersions
+@import ore.permission.ReviewProjects
+@import ore.permission.scope.GlobalScope
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash)
 
-@canEdit = @{
-    User.current.isDefined && (User.current.get can EditVersions in project)
-}
+@hasUser = @{ User.current.isDefined }
+@user = @{ User.current.get }
+@canEdit = @{ hasUser && (user can EditVersions in project) }
+@canApprove = @{ hasUser && (user can ReviewProjects in GlobalScope) }
+@isRecommended = @{ project.recommendedVersion.equals(version) }
 
 @projects.view(project, "#versions", noButtons = true) {
 
@@ -32,18 +36,29 @@
                 <!-- Buttons -->
                 <div class="version-buttons pull-right">
                     <div><span class="date">@version.humanFileSize</span></div>
-                    @if(project.recommendedVersion.equals(version)) {
-                        <div><i title="Recommended version" class="recommended fa fa-diamond"></i></div>
-                    } else { @if(canEdit) {
-                        <a class="btn btn-info"
-                           href="@projectRoutes.Versions.setRecommended(
-                               project.ownerName, project.slug, version.versionString)">
-                            <i class="fa fa-diamond"></i> Set recommended
-                        </a>
-                    }}
 
-                    @if(canEdit) {
-                        <div>
+                    @if(isRecommended) {
+                        <div><i title="Recommended version" class="recommended fa fa-diamond"></i></div>
+                    }
+
+                    <div class="btn-group">
+
+                        @if(!isRecommended && canEdit) {
+                            <a class="btn btn-info"
+                               href="@projectRoutes.Versions.setRecommended(
+                                   project.ownerName, project.slug, version.versionString)">
+                                <i class="fa fa-diamond"></i> Set recommended
+                            </a>
+                        }
+
+                        @if(!version.isReviewed && canApprove) {
+                            <a class="btn btn-success"
+                               href="@projectRoutes.Versions.approve(project.ownerName, project.slug, version.name)">
+                                <i class="fa fa-thumbs-up"></i> Approve
+                            </a>
+                        }
+
+                        @if(canEdit) {
                             <a class="btn btn-danger"
                                @if(project.versions.size == 1) {
                                    disabled data-toggle="tooltip" data-placement="top"
@@ -54,29 +69,43 @@
                             >
                                 <i class="fa fa-trash"></i> @messages("version.delete")
                             </a>
-                        </div>
-                    }
+                        }
 
-                    <a class="btn btn-primary"
-                    href="@projectRoutes.Versions.download(project.ownerName, project.slug, version.versionString)">
-                        <i class="fa fa-download"></i> @messages("version.download")
-                    </a>
+                        <a class="btn btn-primary"
+                           href="@projectRoutes.Versions.download(project.ownerName, project.slug, version.versionString)">
+                            <i class="fa fa-download"></i> @messages("version.download")
+                        </a>
+
+                    </div>
                 </div>
             </div>
         </div>
 
+
         <!-- Description -->
         <div class="row version-description">
             <div id="description" class="col-md-8">
-                @projects.util.editor(
-                    saveCall = projectRoutes.Versions.saveDescription(
-                        project.ownerName, project.slug, version.versionString
-                    ),
-                    enabled = canEdit,
-                    raw = version.description.getOrElse(""),
-                    cooked = version.descriptionHtml,
-                    subject = "Version"
-                )
+                <div class="row">
+                    @if(!version.isReviewed) {
+                        <div class="col-md-12">
+                            <div class="alert-review alert alert-info" role="alert">
+                                <i class="fa fa-info-circle"></i>
+                                This project is under review and may not be safe for downloading.
+                            </div>
+                        </div>
+                    }
+                    <div class="col-md-12">
+                        @projects.util.editor(
+                            saveCall = projectRoutes.Versions.saveDescription(
+                                project.ownerName, project.slug, version.versionString
+                            ),
+                            enabled = canEdit,
+                            raw = version.description.getOrElse(""),
+                            cooked = version.descriptionHtml,
+                            subject = "Version"
+                        )
+                    </div>
+                </div>
             </div>
 
 

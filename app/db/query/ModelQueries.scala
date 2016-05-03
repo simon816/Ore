@@ -13,7 +13,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import slick.dbio.{DBIOAction, NoStream}
 import slick.driver.JdbcProfile
 import slick.lifted.ColumnOrdered
-import util.C._
+import util.Conf._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration

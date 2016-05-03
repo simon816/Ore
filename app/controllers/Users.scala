@@ -9,7 +9,7 @@ import models.user.{FakeUser, User}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Security, _}
-import util.C._
+import util.Conf._
 import views.{html => views}
 
 class Users @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {

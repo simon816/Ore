@@ -95,12 +95,6 @@ Base template for Project overview.
                                 <span class="flag-msg"><i class="fa fa-thumbs-up"></i> Flag submitted for review</span>
                             }
 
-                            @if(!project.isReviewed && hasUser && (user can ReviewProjects in GlobalScope)) {
-                                <a href="@projectRoutes.Projects.approve(project.ownerName, project.slug)" class="btn btn-success">
-                                    <i class="fa fa-thumbs-up"></i> Approve
-                                </a>
-                            }
-
                             @if(hasUser) {
                                 @defining(project.isStarredBy(user.username)) { alreadyStarred =>
                                     <button class="btn btn-default btn-star">
@@ -156,11 +150,42 @@ Base template for Project overview.
                             }
 
                             <!-- Download button -->
-                            <a href="@projectRoutes.Versions.downloadRecommended(project.ownerName, project.slug)"
-                               title="@messages("project.download.recommend")" data-toggle="tooltip"
-                               data-placement="bottom" class="btn btn-primary">
-                                <i class="fa fa-download"></i> @messages("project.download")
-                            </a>
+                            @if(project.recommendedVersion.isReviewed) {
+                                <a href="@projectRoutes.Versions.downloadRecommended(project.ownerName, project.slug)"
+                                   title="@messages("project.download.recommend")"
+                                   data-toggle="tooltip"
+                                   data-placement="bottom"
+                                   class="btn btn-primary">
+                                    <i class="fa fa-download"></i> @messages("project.download")
+                                </a>
+                            } else {
+                                <button class="btn btn-primary" data-toggle="modal" data-target="#modal-download">
+                                    <i class="fa fa-download"></i> @messages("project.download")
+                                </button>
+
+                                <div class="modal fade" id="modal-download" tabindex="-1" role="dialog" aria-labelledby="label-download">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                                <h4 class="modal-title" id="label-download">Notice</h4>
+                                            </div>
+                                            <div class="modal-body">
+                                                This project's recommended version has not been reviewed by our moderation
+                                                staff and may not be safe for download.
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                <a href="@projectRoutes.Versions.downloadRecommended(project.ownerName, project.slug)"
+                                                   class="btn btn-primary">Continue</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            }
                         </div>
                     }
                 </div>

@@ -121,6 +121,17 @@ class ModelSet[T <: ModelTable[M], M <: Model](modelClass: Class[M],
   = await(ModelQueries.filter(this.modelClass, filter, limit, offset)).get
 
   /**
+    * Filters this set by the opposite of the given function.
+    *
+    * @param filter Filter to use
+    * @param limit  Amount to take
+    * @param offset Amount to drop
+    * @return       Filtered models
+    */
+  def filterNot(filter: T => Rep[Boolean], limit: Int = -1, offset: Int = -1): Seq[M]
+  = this.filter(!filter(_), limit, offset)
+
+  /**
     * Returns a Seq of this set.
     *
     * @return Seq of set

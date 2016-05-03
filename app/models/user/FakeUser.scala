@@ -4,7 +4,7 @@ import java.sql.Timestamp
 import java.util.Date
 
 import ore.permission.role.RoleTypes
-import util.C._
+import util.Conf._
 
 /**
   * Represents a "fake" User object for bypassing the standard authentication

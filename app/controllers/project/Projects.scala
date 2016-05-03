@@ -170,20 +170,6 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
   }
 
   /**
-    * Marks the specified Project as approved and no longer in need of review.
-    *
-    * @param author Project owner
-    * @param slug   Project slug
-    * @return       Project view
-    */
-  def approve(author: String, slug: String) = {
-    (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(ReviewProjects)) { implicit request =>
-      request.project.setReviewed(true)
-      Redirect(self.show(author, slug))
-    }
-  }
-
-  /**
     * Shortcut for navigating to a project.
     *
     * @param pluginId Project pluginId

@@ -23,7 +23,6 @@ $(function() {
                 $.when(listItem.fadeOut('slow')).done(function() {
                     listItem.remove();
                     if (!$('.list-flags-admin').find('li').length) {
-                        $('.unread').remove();
                         $('.no-flags').fadeIn();
                     }
                 });

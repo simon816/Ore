@@ -2,7 +2,7 @@ package util
 
 import play.api.Play.{current, configuration => config}
 
-object C {
+object Conf {
 
   lazy val RootConf = config
   lazy val AppConf = config.getConfig("application").get

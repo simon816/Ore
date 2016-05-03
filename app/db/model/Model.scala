@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import db.dao.{ModelFilter, ModelSet}
 import db.driver.OrePostgresDriver.api._
 import db.query.ModelQueries
-import util.C._
+import util.Conf._
 import util.StringUtils
 
 import scala.concurrent.Future

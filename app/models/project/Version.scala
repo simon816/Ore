@@ -20,10 +20,10 @@ import org.apache.commons.io.FileUtils
 import play.api.Play.current
 import play.api.cache.Cache
 import play.twirl.api.Html
-import util.C._
+import util.Conf._
 
 import scala.annotation.meta.field
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
   * Represents a single version of a Project.
@@ -49,7 +49,8 @@ case class Version(override val id: Option[Int] = None,
                                 fileSize: Long,
                                 hash: String,
                    @(Bind @field) private var _description: Option[String] = None,
-                   @(Bind @field) private var _downloads: Int = 0)
+                   @(Bind @field) private var _downloads: Int = 0,
+                   @(Bind @field) private var _isReviewed: Boolean = false)
                    extends Model(id, createdAt) with ProjectScope { self =>
 
   import models.project.Version._
@@ -114,8 +115,30 @@ case class Version(override val id: Option[Int] = None,
     if (isDefined) update(Description)
   }
 
+  /**
+    * Returns this Version's markdown description in HTML.
+    *
+    * @return Description in html
+    */
   def descriptionHtml: Html
   = this.description.map(str => Html(Page.MarkdownProcessor.markdownToHtml(str))).getOrElse(Html(""))
+
+  /**
+    * Returns true if this version has been reviewed by the moderation staff.
+    *
+    * @return True if reviewed
+    */
+  def isReviewed: Boolean = this._isReviewed
+
+  /**
+    * Sets whether this version has been reviewed by the moderation staff.
+    *
+    * @param reviewed True if reviewed
+    */
+  def setReviewed(reviewed: Boolean) = {
+    this._isReviewed = reviewed
+    if (isDefined) update(IsReviewed)
+  }
 
   /**
     * Returns this Versions plugin dependencies.
@@ -193,6 +216,13 @@ object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
   val InitialLoad: Int = ProjectsConf.getInt("init-version-load").get
 
   /**
+    * Returns all Versions that have not been reviewed by the moderation staff.
+    *
+    * @return All versions not reviewed
+    */
+  def unreviewed: Seq[Version] = this.sorted(_.createdAt.desc, !_.isReviewed)
+
+  /**
     * Marks the specified Version as pending and caches it for later use.
     *
     * @param owner    Name of owner
@@ -230,7 +260,7 @@ object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
   def fromMeta(project: Project, plugin: PluginFile): Version = {
     // TODO: asset parsing
     val meta = plugin.meta.get
-    val depends = for (depend <- meta.getRequiredDependencies) yield depend.getId + ":" + depend.getVersion
+    val depends = for (depend <- meta.getRequiredDependencies.asScala) yield depend.getId + ":" + depend.getVersion
     val path = plugin.path
     new Version(
       meta.getVersion, depends.toList, meta.getDescription, "",

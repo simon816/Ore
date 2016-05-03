@@ -3,7 +3,7 @@ Base layout template for website. Most templates within the project will extend
 this.
 *@
 @import play.twirl.api.Html
-@import util.C
+@import util.Conf
 @(title: String)(content: Html)(implicit messages: Messages, session: Session, request: RequestHeader)
 
 <!DOCTYPE html>
@@ -15,7 +15,7 @@ this.
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="icon" type="image/png" href="@C.SpongeConf.getString("icon")">
+        <link rel="icon" type="image/png" href="@Conf.SpongeConf.getString("icon")">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("bootstrap/css/bootstrap.min.css")" />
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("highlight/styles/default.css")" />

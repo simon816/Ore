@@ -23,16 +23,6 @@ Documentation page within Project overview.
                 <div class="col-md-9">
                     <div class="row">
                         <div class="col-md-12">
-                            @if(!model.isReviewed) {
-                                <div class="alert-review alert alert-info" role="alert">
-                                    <i class="fa fa-info-circle"></i>
-                                    This project is under review and may not be safe for downloading.
-                                </div>
-                            }
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
                             @projects.util.editor(
                                 saveCall = routes.Pages.save(model.ownerName, model.slug, page.name),
                                 deleteCall = routes.Pages.delete(model.ownerName, model.slug, page.name),

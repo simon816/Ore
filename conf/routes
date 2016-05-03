@@ -7,7 +7,8 @@ GET     /*path/                                                     @controllers
 GET     /admin/reset                                                @controllers.Application.reset
 GET     /admin/seed                                                 @controllers.Application.seed(users: Option[Int], versions: Option[Int], channels: Option[Int])
 GET     /admin/migrate                                              @controllers.Application.migrate
-GET     /admin/flags                                                @controllers.Application.showFlags()
+GET     /admin/queue                                                @controllers.Application.showQueue
+GET     /admin/flags                                                @controllers.Application.showFlags
 GET     /admin/flags/:id/resolve/:resolved                          @controllers.Application.setFlagResolved(id: Int, resolved: Boolean)
 
 # ---------- API (v1) ----------
@@ -58,7 +59,6 @@ GET     /:author/:slug                                              @controllers
 GET     /:author/:slug/star/:starred                                @controllers.project.Projects.setStarred(author, slug, starred: Boolean)
 POST    /:author/:slug/flag                                         @controllers.project.Projects.flag(author, slug)
 GET     /:author/:slug/visible/:visible                             @controllers.project.Projects.setVisible(author, slug, visible: Boolean)
-GET     /:author/:slug/approve                                      @controllers.project.Projects.approve(author, slug)
 
 GET     /:author/:slug/discuss                                      @controllers.project.Projects.showDiscussion(author, slug)
 POST    /:author/:slug/discuss/reply                                @controllers.project.Projects.postDiscussionReply(author, slug)
@@ -94,6 +94,7 @@ GET     /:author/:slug/channels/:channel/delete                     @controllers
 
 GET     /:author/:slug/versions                                     @controllers.project.Versions.showList(author, slug, channels: Option[String])
 
+GET     /:author/:slug/versions/:version/approve                    @controllers.project.Versions.approve(author, slug, version)
 GET     /:author/:slug/versions/:version/delete                     @controllers.project.Versions.delete(author, slug, version)
 
 GET     /:author/:slug/versions/download/recommended                @controllers.project.Versions.downloadRecommended(author, slug)

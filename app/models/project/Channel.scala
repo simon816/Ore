@@ -16,7 +16,7 @@ import ore.project.util.ProjectFiles
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
-import util.C._
+import util.Conf._
 
 import scala.annotation.meta.field
 

@@ -10,7 +10,7 @@ import db.driver.OrePostgresDriver.api._
 import db.query.ModelQueries
 import db.query.ModelQueries.{await, filterToFunction}
 import models.project.Project._
-import models.project.{Flag, Project}
+import models.project.{Flag, Project, Version}
 import models.user.User
 import ore.permission.scope.GlobalScope
 import ore.permission._
@@ -19,7 +19,7 @@ import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import util.C._
+import util.Conf._
 import util.DataUtils
 import views.{html => views}
 
@@ -56,12 +56,23 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
   }
 
   /**
+    * Shows the moderation queue for unreviewed versions.
+    *
+    * @return View of unreviewed versions.
+    */
+  def showQueue() = {
+    (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) { implicit request =>
+      Ok(views.admin.queue(Version.unreviewed.map(v => (v.project, v))))
+    }
+  }
+
+  /**
     * Shows the overview page for flags.
     *
     * @return Flag overview
     */
   def showFlags() = FlagAction { implicit request =>
-    Ok(views.flags(Flag.unresolved))
+    Ok(views.admin.flags(Flag.unresolved))
   }
 
   /**
