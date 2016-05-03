@@ -8,11 +8,10 @@ import db.driver.OrePostgresDriver.api._
 import db.query.ModelQueries
 import db.query.ModelQueries.filterToFunction
 import form.Forms
-import models.project.Project.PendingProject
 import models.project.{Channel, Project, Version}
 import ore.Statistics
 import ore.permission.EditVersions
-import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectFiles}
+import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFactory, ProjectFiles}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import util.C._

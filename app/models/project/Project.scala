@@ -4,12 +4,6 @@ import java.nio.file.{Files, Path}
 import java.sql.Timestamp
 import java.text.MessageFormat
 
-import ore.Colors.Color
-import ore.permission.scope.ProjectScope
-import ore.project.Categories.Category
-import ore.project.FlagReasons.FlagReason
-import ore.project.util._
-import ore.project.{Categories, ProjectMember}
 import com.google.common.base.Preconditions._
 import db._
 import db.dao.ModelSet
@@ -20,8 +14,13 @@ import db.model.annotation.{Bind, BindingsGenerator, HasMany}
 import db.query.ModelQueries
 import db.query.ModelQueries.{await, filterToFunction}
 import forums.SpongeForums
-import models.project.Version.PendingVersion
 import models.user.{ProjectRole, User}
+import ore.Colors.Color
+import ore.permission.scope.ProjectScope
+import ore.project.Categories.Category
+import ore.project.FlagReasons.FlagReason
+import ore.project.util._
+import ore.project.{Categories, ProjectMember}
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
@@ -29,10 +28,8 @@ import play.api.cache.Cache
 import util.C._
 import util.P._
 import util.StringUtils.{compact, slugify}
-import util.{Cacheable, PendingAction}
 
 import scala.annotation.meta.field
-import scala.util.Try
 
 /**
   * Represents an Ore package.
@@ -292,7 +289,7 @@ case class Project(override val id: Option[Int] = None,
   def flagFor(user: User, reason: FlagReason) = Defined {
     val userId = user.id.get
     checkArgument(userId != this.ownerId, "cannot flag own project", "")
-    await(ModelQueries insert new Flag(this.id.get, user.id.get, reason)).get
+    this.flags.add(new Flag(this.id.get, user.id.get, reason))
   }
 
   /**
@@ -386,7 +383,7 @@ case class Project(override val id: Option[Int] = None,
   def addChannel(name: String, color: Color): Channel = Defined {
     checkArgument(Channel.isValidName(name), "invalid name", "")
     checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
-    await(ModelQueries insert new Channel(name, color, this.id.get)).get
+    this.channels.add(new Channel(name, color, this.id.get))
   }
 
   /**
@@ -438,6 +435,13 @@ case class Project(override val id: Option[Int] = None,
   def getOrCreatePage(name: String): Page = Defined {
     await(ModelQueries.Pages.getOrInsert(new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true))).get
   }
+
+  /**
+    * Returns all flags on this project.
+    *
+    * @return Flags on project
+    */
+  def flags = this.getMany[FlagTable, Flag](classOf[Flag])
 
   /**
     * Returns this Project's home page.
@@ -503,7 +507,7 @@ case class Project(override val id: Option[Int] = None,
     * @return Result
     */
   def delete = Defined {
-    await(ModelQueries delete this).get
+    remove(this)
     FileUtils.deleteDirectory(ProjectFiles.projectDir(this.ownerName, this._name).toFile)
     if (this.topicId.isDefined) SpongeForums.Embed.deleteTopic(this)
   }
@@ -646,48 +650,6 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     */
   def fromMeta(owner: User, meta: PluginMetadata): Project = {
     new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getUrl)
-  }
-
-  /**
-    * Represents a Project with an uploaded plugin that has not yet been
-    * created.
-    *
-    * @param project  Pending project
-    * @param file     Uploaded plugin
-    */
-  case class PendingProject(project: Project,
-                            file: PluginFile,
-                            var roles: Set[ProjectRole] = Set())
-    extends PendingAction[Project]
-      with Cacheable {
-
-    /**
-      * The first [[PendingVersion]] for this PendingProject.
-      */
-    val pendingVersion: PendingVersion = {
-      val version = Version.fromMeta(this.project, this.file)
-      Version.setPending(project.ownerName, project.slug,
-        Channel.getSuggestedNameForVersion(version.versionString), version, this.file)
-    }
-
-    override def complete: Try[Project] = Try {
-      free()
-      val newProject = ProjectFactory.createProject(this).get
-      val newVersion = ProjectFactory.createVersion(this.pendingVersion).get
-      newProject.recommendedVersion = newVersion
-      newProject
-    }
-
-    override def cancel() = {
-      free()
-      this.file.delete()
-      if (project.isDefined) {
-        project.delete
-      }
-    }
-
-    override def key: String = this.project.ownerName + '/' + this.project.slug
-
   }
 
 }

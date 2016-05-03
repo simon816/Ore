@@ -4,10 +4,8 @@ import java.nio.file.Files
 
 import com.google.common.base.Preconditions._
 import db.query.ModelQueries
-import db.query.ModelQueries.{await, filterToFunction}
+import db.query.ModelQueries.filterToFunction
 import forums.SpongeForums
-import models.project.Project.PendingProject
-import models.project.Version.PendingVersion
 import models.project.{Channel, Project, Version}
 import models.user.{ProjectRole, User}
 import ore.permission.role.RoleTypes
@@ -51,7 +49,7 @@ object ProjectFactory {
     checkArgument(!pending.project.exists, "project already exists", "")
     checkArgument(pending.project.isNamespaceAvailable, "slug not available", "")
     checkArgument(Project.isValidName(pending.project.name), "invalid name", "")
-    val newProject = await(ModelQueries insert pending.project).get
+    val newProject = Project.add(pending.project)
 
     // Add Project roles
     val user = pending.file.user

@@ -1,10 +1,10 @@
 @import controllers.project.{routes => projectRoutes}
-@import models.project.Project.PendingProject
 @import models.user.User
 @import play.twirl.api.Html
 @import views.html.helper.form
 
 @import scala.collection.JavaConversions._
+@import ore.project.util.PendingProject
 @(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
 
 @projects.util.panelCreate(messages("project.create"), 3) {

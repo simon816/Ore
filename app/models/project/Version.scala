@@ -3,7 +3,6 @@ package models.project
 import java.nio.file.Files
 import java.sql.Timestamp
 
-import db.driver.OrePostgresDriver.api._
 import com.google.common.base.Preconditions
 import com.google.common.base.Preconditions._
 import db.VersionTable
@@ -14,20 +13,17 @@ import db.model.ModelKeys._
 import db.model.annotation.{Bind, BindingsGenerator}
 import db.query.ModelQueries
 import db.query.ModelQueries.await
-import ore.Colors.Color
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
-import ore.project.util.{PluginFile, ProjectFactory, ProjectFiles}
+import ore.project.util.{PendingVersion, PluginFile, ProjectFiles}
 import org.apache.commons.io.FileUtils
 import play.api.Play.current
 import play.api.cache.Cache
 import play.twirl.api.Html
 import util.C._
-import util.{Cacheable, PendingAction}
 
 import scala.annotation.meta.field
 import scala.collection.JavaConversions._
-import scala.util.Try
 
 /**
   * Represents a single version of a Project.
@@ -240,41 +236,6 @@ object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
       meta.getVersion, depends.toList, meta.getDescription, "",
       project.id.getOrElse(-1), path.toFile.length, plugin.md5
     )
-  }
-
-  /**
-    * Represents a pending version to be created later.
-    *
-    * @param owner          Name of project owner
-    * @param projectSlug    Project slug
-    * @param channelName    Name of channel this version will be in
-    * @param channelColor   Color of channel for this version
-    * @param version        Version that is pending
-    * @param plugin         Uploaded plugin
-    */
-  case class PendingVersion(owner: String,
-                            projectSlug: String,
-                            var channelName: String = Channel.DefaultName,
-                            var channelColor: Color = Channel.DefaultColor,
-                            version: Version,
-                            plugin: PluginFile)
-    extends   PendingAction[Version]
-      with      Cacheable {
-
-    override def complete: Try[Version] = Try {
-      free()
-      return ProjectFactory.createVersion(this)
-    }
-
-    override def cancel() = {
-      free()
-      this.plugin.delete()
-    }
-
-    override def key: String = {
-      this.owner + '/' + this.projectSlug + '/' + this.version.versionString
-    }
-
   }
 
 }
