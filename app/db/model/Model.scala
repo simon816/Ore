@@ -21,8 +21,6 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
   private var fieldBindings: Map[String, FieldBinding[M, _]] = Map.empty
   private var manyBindings: Map[Class[_ <: Model], ManyBinding] = Map.empty
 
-  implicit def convertSelf(self: Model): M = self.asInstanceOf[M]
-
   /**
     * Binds a new update function to the specified field name.
     *
@@ -44,7 +42,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
     val binding = this.fieldBindings
       .getOrElse(key, throw new RuntimeException("No field binding found for key " + key + " in model " + this))
       .asInstanceOf[FieldBinding[M, A]]
-    val value = binding.valueFunc(this)
+    val value = binding.valueFunc(this.asInstanceOf[M])
     debug("Updating key \"" + key + "\" in model " + getClass + " to " + value)
     for (f <- binding.updateFunc(value)) ModelQueries.await(f).get
   }
@@ -57,7 +55,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
     * @return     Value of key
     */
   def get[A](key: String): Option[A] = {
-    this.fieldBindings.get(key).map(_.asInstanceOf[FieldBinding[M, A]].valueFunc(this))
+    this.fieldBindings.get(key).map(_.asInstanceOf[FieldBinding[M, A]].valueFunc(this.asInstanceOf[M]))
   }
 
   /**

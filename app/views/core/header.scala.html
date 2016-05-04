@@ -14,7 +14,7 @@ The main header displayed on each layout.
 @canViewFlags(user: User) = @{ user can ReviewFlags in GlobalScope }
 @canReviewProjects(user: User) = @{ user can ReviewProjects in GlobalScope }
 @hasFlags = @{ Flag.unresolved.nonEmpty }
-@queueNonEmpty = @{ Version.unreviewed.nonEmpty }
+@queueNonEmpty = @{ Version.notReviewed.nonEmpty }
 
 <nav id="top" class="navbar-main navbar navbar-fixed-top navbar-inverse">
     <div class="container">

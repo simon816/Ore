@@ -195,7 +195,7 @@ case class Version(override val id: Option[Int] = None,
     remove(this)
     // Set recommended version to latest version if the deleted version was the rv
     if (this.equals(rv)) project.recommendedVersion = project.versions.sorted(_.createdAt.desc, limit = 1).head
-    Files.delete(ProjectFiles.uploadPath(project.ownerName, project.name, project.versionString))
+    Files.delete(ProjectFiles.uploadPath(project.ownerName, project.name, this.versionString))
     // Delete channel if now empty
     val channel: Channel = this.channel
     if (channel.versions.isEmpty) channel.delete(project)
@@ -220,7 +220,7 @@ object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
     *
     * @return All versions not reviewed
     */
-  def unreviewed: Seq[Version] = this.sorted(_.createdAt.desc, !_.isReviewed)
+  def notReviewed: Seq[Version] = this.sorted(_.createdAt.desc, !_.isReviewed)
 
   /**
     * Marks the specified Version as pending and caches it for later use.

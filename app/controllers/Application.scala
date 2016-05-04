@@ -62,7 +62,7 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     */
   def showQueue() = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) { implicit request =>
-      Ok(views.admin.queue(Version.unreviewed.map(v => (v.project, v))))
+      Ok(views.admin.queue(Version.notReviewed.map(v => (v.project, v))))
     }
   }
 
