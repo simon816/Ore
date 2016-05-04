@@ -21,6 +21,11 @@ function go(str) {
     window.location = decodeHtml(str);
 }
 
+function clearUnread(e) {
+    e.find('.unread').remove();
+    if (!$('.user-dropdown .unread').length) $('.unread').remove();
+}
+
 $(function() {
     $('.alert-fade').fadeIn('slow');
     $('[data-toggle="tooltip"]').tooltip();

@@ -12,6 +12,7 @@ $(function() {
                     listItem.remove();
                     if (!$('.list-versions').find('li').length) {
                         $('.no-versions').fadeIn();
+                        clearUnread($('a[href="/admin/queue"]'));
                     }
                 });
             }

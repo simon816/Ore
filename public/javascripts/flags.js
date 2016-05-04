@@ -7,7 +7,8 @@ function removeSpinner(e) {
 }
 
 $(function() {
-    $('.btn-resolve-all').click(function() {
+    var resolveAll = $('.btn-resolve-all');
+    resolveAll.click(function() {
         $('.btn-resolve').click();
         $(this).fadeOut();
     });
@@ -23,7 +24,9 @@ $(function() {
                 $.when(listItem.fadeOut('slow')).done(function() {
                     listItem.remove();
                     if (!$('.list-flags-admin').find('li').length) {
+                        resolveAll.fadeOut();
                         $('.no-flags').fadeIn();
+                        clearUnread($('a[href="/admin/flags"]'));
                     }
                 });
             }
