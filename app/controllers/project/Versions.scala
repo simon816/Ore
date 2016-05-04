@@ -317,7 +317,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
       implicit val project = request.project
       withVersion(versionString) { version =>
         Statistics.versionDownloaded(version) { implicit request =>
-          Ok.sendFile(ProjectFiles.uploadPath(author, slug, versionString).toFile)
+          Ok.sendFile(ProjectFiles.uploadPath(author, project.name, versionString).toFile)
         }
       }
     }
