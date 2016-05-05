@@ -26,8 +26,9 @@ import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
 import util.Conf._
+import util.StringUtils
 import util.Sys._
-import util.StringUtils.{compact, slugify}
+import util.StringUtils.{compact, equalsIgnoreCase, slugify}
 
 import scala.annotation.meta.field
 
@@ -546,7 +547,7 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @return       Project if found, None otherwise
     */
   def withSlug(owner: String, slug: String): Option[Project]
-  = this.find(ModelQueries.Projects.ownerFilter(owner) && (_.slug === slug))
+  = this.find(ModelQueries.Projects.ownerFilter(owner) && equalsIgnoreCase(_.slug, slug))
 
   /**
     * Returns the Project with the specified owner name and Project name, if
@@ -557,7 +558,7 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @return       Project if found, None otherwise
     */
   def withName(owner: String, name: String): Option[Project]
-  = this.find(ModelQueries.Projects.ownerFilter(owner) && (_.name.toLowerCase === name.toLowerCase))
+  = this.find(ModelQueries.Projects.ownerFilter(owner) && equalsIgnoreCase(_.name, name))
 
   /**
     * Returns the Project with the specified plugin ID, if any.
@@ -565,7 +566,7 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @param pluginId Plugin ID
     * @return         Project if found, None otherwise
     */
-  def withPluginId(pluginId: String): Option[Project] = this.find(_.pluginId === pluginId)
+  def withPluginId(pluginId: String): Option[Project] = this.find(equalsIgnoreCase(_.pluginId, pluginId))
 
   /**
     * Returns the string to fill the specified Project's forum topic content

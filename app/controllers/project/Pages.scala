@@ -4,7 +4,6 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.project.routes.{Pages => self}
-import db.driver.OrePostgresDriver.api._
 import form.Forms
 import models.project.Page
 import ore.Statistics
@@ -12,6 +11,7 @@ import ore.permission.EditPages
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc.Action
+import util.StringUtils.equalsIgnoreCase
 import views.html.projects.{pages => views}
 
 /**
@@ -34,7 +34,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
   def show(author: String, slug: String, page: String) = {
     ProjectAction(author, slug) { implicit request =>
       val project = request.project
-      project.pages.find(_.name === page) match {
+      project.pages.find(equalsIgnoreCase(_.name, page)) match {
         case None => NotFound
         case Some(p) => Statistics.projectViewed(implicit request => Ok(views.view(project, p)))
       }
@@ -97,7 +97,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
   def delete(author: String, slug: String, page: String) = {
     PageEditAction(author, slug) { implicit request =>
       val project = request.project
-      project.pages.remove(project.pages.find(_.name === page).get)
+      project.pages.remove(project.pages.find(equalsIgnoreCase(_.name, page)).get)
       Redirect(routes.Projects.show(author, slug))
     }
   }

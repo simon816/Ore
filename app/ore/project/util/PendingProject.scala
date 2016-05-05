@@ -37,9 +37,7 @@ case class PendingProject(project: Project,
   override def cancel() = {
     free()
     this.file.delete()
-    if (project.isDefined) {
-      project.delete
-    }
+    if (project.isDefined) project.delete
   }
 
   override def key: String = this.project.ownerName + '/' + this.project.slug

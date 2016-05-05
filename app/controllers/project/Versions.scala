@@ -15,6 +15,8 @@ import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFact
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import util.Conf._
+import util.StringUtils
+import util.StringUtils.equalsIgnoreCase
 import views.html.projects.{versions => views}
 
 import scala.util.{Failure, Success}
@@ -260,7 +262,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
                   // No pending project, create version for existing project
                   withProject(author, slug) { project =>
                     val existingChannel = project.channels.find {
-                      ModelQueries.Channels.NameFilter(pendingVersion.channelName)
+                      equalsIgnoreCase(_.name, pendingVersion.channelName)
                     }.orNull
 
                     var channelResult: Either[String, Channel] = Right(existingChannel)

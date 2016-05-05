@@ -9,7 +9,8 @@ import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import util.Conf.isDebug
-import util.{Conf, DataUtils}
+import util.StringUtils.equalsIgnoreCase
+import util.{Conf, DataUtils, StringUtils}
 
 /**
   * Represents a Secured base Controller for this application.
@@ -29,6 +30,6 @@ abstract class BaseController(implicit ws: WSClient) extends Controller with I18
 
   protected[controllers] def withVersion(versionString: String)(fn: Version => Result)
                                         (implicit request: RequestHeader, project: Project): Result
-  = project.versions.find(_.versionString.toLowerCase === versionString.toLowerCase).map(fn).getOrElse(NotFound)
+  = project.versions.find(equalsIgnoreCase(_.versionString, versionString)).map(fn).getOrElse(NotFound)
 
 }

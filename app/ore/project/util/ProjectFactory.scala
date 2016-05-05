@@ -11,6 +11,8 @@ import models.user.{ProjectRole, User}
 import ore.permission.role.RoleTypes
 import play.api.libs.Files.TemporaryFile
 import util.Conf._
+import util.StringUtils
+import util.StringUtils.equalsIgnoreCase
 import util.Sys._
 
 import scala.util.Try
@@ -73,7 +75,7 @@ object ProjectFactory {
     val project = Project.withSlug(pending.owner, pending.projectSlug).get
 
     // Create channel if not exists
-    project.channels.find(ModelQueries.Channels.NameFilter(pending.channelName)) match {
+    project.channels.find(equalsIgnoreCase(_.name, pending.channelName)) match {
       case None => channel = project.addChannel(pending.channelName, pending.channelColor)
       case Some(existing) => channel = existing
     }

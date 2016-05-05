@@ -1,5 +1,6 @@
 package util
 
+import db.driver.OrePostgresDriver.api._
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -51,5 +52,15 @@ object StringUtils {
     val trimmed = str.trim
     if (trimmed.nonEmpty) trimmed else null
   }
+
+  /**
+    * Compares a Rep[String] to a String after converting them to lower case.
+    *
+    * @param str1 String 1
+    * @param str2 String 2
+    * @return     Result
+    */
+  def equalsIgnoreCase[T <: Table[_]](str1: T => Rep[String], str2: String): T => Rep[Boolean]
+  = str1(_).toLowerCase === str2
 
 }

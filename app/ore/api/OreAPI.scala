@@ -8,6 +8,8 @@ import models.user.User
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.libs.json.{JsValue, Json}
+import util.StringUtils
+import util.StringUtils.equalsIgnoreCase
 
 /**
   * The Ore API
@@ -62,7 +64,7 @@ object OreAPI {
       Project.withPluginId(pluginId).map { project =>
         // Map channel names to IDs
         val channelIds: Option[Seq[Int]] = channels.map(_.toLowerCase.split(',').map { name =>
-          project.channels.find(_.name.toLowerCase === name).get.id.get
+          project.channels.find(equalsIgnoreCase(_.name, name)).get.id.get
         })
         // Only allow versions in the specified channels
         val filter = channelIds.map(ModelQueries.Versions.channelFilter).orNull
@@ -80,7 +82,7 @@ object OreAPI {
       */
     def getVersion(pluginId: String, name: String): Option[JsValue] = {
       Project.withPluginId(pluginId)
-        .flatMap(_.versions.find(_.versionString === name))
+        .flatMap(_.versions.find(equalsIgnoreCase(_.versionString, name)))
         .map(Json.toJson(_))
     }
 

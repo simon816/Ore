@@ -31,6 +31,7 @@ case class PendingVersion(owner: String,
   override def cancel() = {
     free()
     this.plugin.delete()
+    if (this.version.isDefined) this.version.delete()
   }
 
   override def key: String = {

@@ -20,6 +20,7 @@ import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
 import play.api.mvc.Session
 import util.Conf._
+import util.StringUtils
 import util.StringUtils._
 
 import scala.annotation.meta.field
@@ -298,7 +299,7 @@ object User extends ModelSet[UserTable, User](classOf[User]) {
     * @return User if found, None otherwise
     */
   def withName(username: String): Option[User] = {
-    this.find(_.username.toLowerCase === username.toLowerCase).orElse {
+    this.find(equalsIgnoreCase(_.username, username)).orElse {
       await(SpongeForums.Users.fetch(username)).get.map(getOrCreate)
     }
   }

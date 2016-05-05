@@ -18,13 +18,4 @@ class ChannelQueries extends ModelQueries {
 
   registerModel()
 
-  /**
-    * Returns a filter that filters channels based on the specified name.
-    *
-    * @param name Name to find
-    * @return     Name filter
-    */
-  def NameFilter(name: String): ModelFilter[ChannelTable, Channel]
-  = ModelFilter(_.name.toLowerCase === name.toLowerCase)
-
 }

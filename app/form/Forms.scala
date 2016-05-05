@@ -8,6 +8,7 @@ import play.api.data.Forms._
 /**
   * Collection of forms used in this application.
   */
+//noinspection ConvertibleToMethodValue
 object Forms {
 
   /**
