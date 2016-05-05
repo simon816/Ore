@@ -1,0 +1,57 @@
+@import 'pallette';
+@import 'utils';
+
+// user page
+
+.user-header {
+  @include size(100%, 150px);
+  padding: 20px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 40px;
+
+  .user-badge { width: 80%; }
+  .user-badge > h1 { float: left; }
+  .pull-right { @include size(20%, 100%); }
+  .user-roles li { display: inline; }
+
+  .header-body {
+    @include size(100%, 100%);
+    position: relative;
+    margin-top: 4px;
+  }
+
+  .user-badge > img {
+    @include circle();
+    float: left;
+    margin-right: 20px;
+  }
+
+  .user-info {
+    @include fromBottomRight(0, 0);
+    text-align: right;
+  }
+
+  .user-roles {
+    @include fromTopRight(0, 0);
+    list-style-type: none;
+  }
+}
+
+.panel-stars {
+  .panel-footer > .pull-right { font-size: 16px; }
+  .panel-stars .panel-footer > .pull-left { margin-top: 2px; }
+  tr { height: 42px; }
+  td > .pull-left { margin-right: 5px; }
+  td > .pull-right > span { font-size: 12px; }
+  td > .pull-right > i { font-size: 18px; }
+
+  .panel-footer {
+    height: 34px;
+    padding: 5px 10px;
+  }
+
+  tr:hover {
+    background-color: $mainBackground;
+    cursor: pointer;
+  }
+}

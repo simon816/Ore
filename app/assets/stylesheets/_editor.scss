@@ -1,55 +1,41 @@
 @import 'pallette';
+@import 'utils';
 
 .page-rendered, .page-edit textarea {
+  @include rounded-corners();
   min-height: 350px;
   margin-bottom: 20px;
-  border-radius: 4px;
   width: 100%;
 }
 
 .page-rendered {
+  @include basic-border();
+  @include box-shadow4(0, 1px, 1px, rgba(0, 0, 0, 0.05));
+
   padding: 10px 20px 20px 20px;
   overflow: hidden;
   background-color: white;
-  border: 1px solid $light;
   max-width: 100%;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-}
 
-.page-rendered table tr > th {
-  padding: 5px;
-}
+  table tr > th { padding: 5px; }
+  table tr:nth-child(2n) { background-color: #F5F5F5; }
+  h1, h2, h3, h4, h5, h6 { font-weight: bold; }
+  img { max-width: 100%; }
 
-.page-rendered table tr:nth-child(2n) {
-  background-color: #F5F5F5;
-}
+  table tr > td, .page-rendered table tr > th {
+    padding: 10px;
+    @include basic-border();
+  }
 
-.page-rendered table tr > td, .page-rendered table tr > th {
-  padding: 10px;
-  border: 1px solid $lighter;
-}
+  code {
+    background-color: #f5f5f5;
+    color: black;
+  }
 
-.page-rendered code {
-  background-color: #f5f5f5;
-  color: black;
-}
-
-.page-rendered h1, .page-rendered h2 {
-  border-bottom: 1px solid $lighter;
-  padding-bottom: 5px;
-}
-
-.page-rendered h1,
-.page-rendered h2,
-.page-rendered h3,
-.page-rendered h4,
-.page-rendered h5,
-.page-rendered h6 {
-  font-weight: bold;
-}
-
-.page-rendered img {
-  max-width: 100%;
+  h1, h2 {
+    border-bottom: 1px solid $lighter;
+    padding-bottom: 5px;
+  }
 }
 
 button.open:hover {
@@ -59,14 +45,10 @@ button.open:hover {
 }
 
 .btn-page {
+  @include transition6(border-color, ease-in-out, .15s, box-shadow, ease-in-out, .15s);
   border-radius: 4px 0 0 4px;
   padding: 6px;
   z-index: 1000;
-  -webkit-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-  -moz-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-  -ms-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-  -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-  transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
 }
 
 .btn-page:focus {
@@ -74,9 +56,8 @@ button.open:hover {
 }
 
 .btn-edit {
+  @include towardsBottomRight(-49px, 20px);
   position: absolute;
-  margin-top: 20px;
-  margin-left: -49px;
 }
 
 .btn-edit-container {
@@ -126,11 +107,16 @@ button.open:hover {
 }
 
 .new-page {
-  position: absolute;
-  right: 34px;
-  top: 14px;
+  @include fromTopRight(34px, 14px);
 }
 
 .channel-reset {
   margin-top: -15px;
+}
+
+.version-edit-tabs {
+  position: absolute;
+  margin-left: -45px;
+  margin-top: 20px;
+  border-bottom: none;
 }

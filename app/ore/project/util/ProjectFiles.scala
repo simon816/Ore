@@ -58,7 +58,6 @@ object ProjectFiles {
     // Rename plugin files
     for (channelDir <- newProjectDir.toFile.listFiles()) {
       if (channelDir.isDirectory) {
-        val channelName = channelDir.getName
         for (pluginFile <- channelDir.listFiles()) {
           val fileName = pluginFile.getName
           val versionString = fileName.substring(fileName.indexOf('-') + 1, fileName.lastIndexOf('.'))

@@ -1,4 +1,5 @@
 @import 'pallette';
+@import 'utils';
 
 .alert-review {
   margin-bottom: 10px;
@@ -6,6 +7,10 @@
 
 .btn-version {
   margin-bottom: 15px;
+}
+
+.form-rename {
+  margin-bottom: 10px;
 }
 
 .version-header {
@@ -41,8 +46,7 @@
 }
 
 .color-input {
-  width: 34px;
-  height: 34px;
+  @include size(32px, 32px);
 }
 
 .recommended {
@@ -55,14 +59,12 @@
 }
 
 .project-header-container {
-  margin-top: 60px;
+  @include margin-vert(60px, 15px);
   border-bottom: 1px solid $lighter;
-  margin-bottom: 15px;
 }
 
 .project-header {
-  padding-top: 20px;
-  padding-bottom: 10px;
+  @include padding-vert(20px, 10px);
   white-space: nowrap;
   width: 100%;
   overflow: hidden;
@@ -70,11 +72,10 @@
 }
 
 .project-header > h1 {
+  @include margin-vert(0, 0);
   font-size: 20px;
   font-weight: normal;
   float: left;
-  margin-top: 0;
-  margin-bottom: 0;
   padding-right: 5px;
 }
 
@@ -93,14 +94,11 @@
 }
 
 .row-nav  .navbar-nav > li > a {
-  padding-top: 5px;
-  padding-bottom: 10px;
+  @include padding-vert(5px, 10px);
 }
 
 .project-navbar {
   border: none;
-  -webkit-border-radius: 0;
-  -moz-border-radius: 0;
   border-radius: 0;
   margin: 0;
 }
@@ -123,10 +121,9 @@
 }
 
 .channel-head {
+  @include towardsBottomRight(15px, 23px);
   font-size: 20px;
   display: inline-block;
-  margin-top: 23px;
-  margin-left: 15px;
 }
 
 .channel-flat {
@@ -134,8 +131,7 @@
 }
 
 .project-body {
-  padding-bottom: 10px;
-  padding-top: 10px;
+  @include padding-vert(10px, 10px);
 }
 
 .version-edit-tabs > li.active > a, .version-edit-tabs > li.active > a:hover,
@@ -157,10 +153,8 @@
 }
 
 .danger-zone {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  @include margin-vert(10px, 10px);
+  @include padding-vert(10px, 10px);
   border-top: 1px solid $lighter;
   border-bottom: 1px solid $lighter;
 }
@@ -178,8 +172,7 @@
 }
 
 .list-members .list-group-item {
-  padding-left: 10px;
-  padding-right: 10px;
+  @include padding-horiz(10px, 10px);
 }
 
 .list-members .username > .user-avatar > img {
