@@ -27,8 +27,8 @@ object Forms {
   lazy val MemberRemove = Form(single("username" -> text))
 
   /**
-    * Submits changes to a [[baseQuery.project.Project]]'s
-    * [[baseQuery.user.ProjectRole]]s.
+    * Submits changes to a [[models.project.Project]]'s
+    * [[models.user.ProjectRole]]s.
     */
   lazy val MemberRoles = Form(mapping(
     "users" -> list(number),
