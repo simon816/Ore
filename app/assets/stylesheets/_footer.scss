@@ -35,9 +35,8 @@
   border-top: 1px solid #A5A5A5;
 }
 
-#spongie {
+#spongie, .col-spongie > div {
   @include size(50px, 50px);
-  cursor: pointer;
   display: block;
   margin: 0 auto;
   path {
@@ -46,8 +45,8 @@
   }
 }
 
-#spongie:hover path {
-  fill: #F7CF0D;
+.col-spongie > div {
+  cursor: pointer;
 }
 
 .copy {

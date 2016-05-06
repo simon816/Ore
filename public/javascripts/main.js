@@ -29,7 +29,12 @@ function clearUnread(e) {
 $(function() {
     $('.alert-fade').fadeIn('slow');
     $('[data-toggle="tooltip"]').tooltip();
-    $('.col-spongie').find('div').click(function() { window.location = 'https://spongepowered.org' });
+
+    var spongie = $('.col-spongie').find('div');
+    spongie.click(function() { window.location = 'https://spongepowered.org' });
+    spongie
+        .mouseenter(function() { $('#spongie').find('path').css('fill', '#F7CF0D'); })
+        .mouseleave(function() { $('#spongie').find('path').css('fill', 'gray'); });
 
     $('.icon-project-search').click(function() {
         var searchBar = $('.project-search');
