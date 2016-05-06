@@ -83,9 +83,9 @@ $(function() {
                     nameCol.find('strong').find('a').attr('href', project.href).text(project.name);
                     nameCol.find('i').attr('title', project.description).text(project.description);
                     projectRow.find('.author').find('a').attr('href', '/' + project.owner).text(project.owner);
-                    projectRow.find('.views').text(project.views);
-                    projectRow.find('.downloads').text(project.downloads);
-                    projectRow.find('.stars').text(project.stars);
+                    projectRow.find('.views').text(abbreviateStat(project.views));
+                    projectRow.find('.downloads').text(abbreviateStat(project.downloads));
+                    projectRow.find('.stars').text(abbreviateStat(project.stars));
                     $('.project-table').find('tbody').append(projectRow);
                 }
                 currentlyLoaded += projects.length;

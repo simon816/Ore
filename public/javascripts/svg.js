@@ -12,7 +12,7 @@ $(function() {
 
         $.get(imgURL, function(data) {
             // Get the SVG tag, ignore the rest
-            var $svg = jQuery(data).find('svg');
+            var $svg = $(data).find('svg');
 
             // Add replaced image's ID to the new SVG
             if(typeof imgID !== 'undefined') {
