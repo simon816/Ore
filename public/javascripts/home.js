@@ -3,9 +3,21 @@ var CATEGORY_STRING = null;
 var SORT_STRING = null;
 var QUERY_STRING = null;
 
+var NUM_SUFFIXES = ["", "k", "m"];
 var currentlyLoaded = 0;
 
+function abbreviateStat(stat) {
+    stat = stat.trim();
+    if (parseInt(stat) < 1000) return stat;
+    var suffix = NUM_SUFFIXES[Math.min(2, Math.floor(stat.length / 3))];
+    return stat[0] + '.' + stat[1] + suffix;
+}
+
 $(function() {
+
+    $('.project-table').find('tbody').find('.stat').each(function() {
+        $(this).text(abbreviateStat($(this).text()));
+    });
 
     // Setup category table
     $('.category-table').find('tr').click(function() {

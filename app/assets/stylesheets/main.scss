@@ -63,8 +63,9 @@ form {
   }
 
   .stat {
+    @include padding-horiz(0, 0);
     text-align: center;
-    width: 40px;
+    width: 41px;
   }
 
   th {
