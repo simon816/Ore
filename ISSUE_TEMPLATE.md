@@ -1,7 +1,8 @@
-| ----------------------------------------- |
-| Browser & Version | `changeme` |
-| Operating System: | `changeme` |
-| Error message (if applicable): | `changeme` |
+Browser & Version: `changeme`
+
+Operating System: `changeme`
+
+Error message (if applicable): `changeme`
 
 Steps to reproduce:
 
