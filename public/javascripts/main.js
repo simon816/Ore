@@ -29,7 +29,7 @@ function clearUnread(e) {
 $(function() {
     $('.alert-fade').fadeIn('slow');
     $('[data-toggle="tooltip"]').tooltip();
-    $('#spongie').append('<a href="https://spongepowered.org"></a>');
+    $('.col-spongie').find('div').click(function() { window.location = 'https://spongepowered.org' });
 
     $('.icon-project-search').click(function() {
         var searchBar = $('.project-search');
