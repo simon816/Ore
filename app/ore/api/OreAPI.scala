@@ -15,6 +15,8 @@ import util.StringUtils.equalsIgnoreCase
   */
 object OreAPI {
 
+  import OreWrites._
+
   /** Iteration #1 */
   object v1 {
 
