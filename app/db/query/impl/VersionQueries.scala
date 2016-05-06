@@ -1,7 +1,8 @@
-package db.query
+package db.query.impl
 
 import db.dao.ModelFilter
 import db.driver.OrePostgresDriver.api._
+import db.query.ModelQueries
 import db.query.ModelQueries.run
 import db.{VersionDownloadsTable, VersionTable}
 import models.project.Version
@@ -11,17 +12,9 @@ import scala.concurrent.Future
 /**
   * Version related queries.
   */
-class VersionQueries extends ModelQueries {
-
-  override type Row = Version
-  override type Table = VersionTable
+class VersionQueries extends ModelQueries[VersionTable, Version](classOf[Version], TableQuery[VersionTable]) {
 
   private val downloads = TableQuery[VersionDownloadsTable]
-
-  override val modelClass = classOf[Version]
-  override val baseQuery = TableQuery[VersionTable]
-
-  registerModel()
 
   /**
     * Returns true if the specified hash is found in the specified

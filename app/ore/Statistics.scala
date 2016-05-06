@@ -3,7 +3,7 @@ package ore
 import java.util.UUID
 
 import controllers.Requests.ProjectRequest
-import db.query.ModelQueries
+import db.model.Models
 import models.project.{Project, Version}
 import models.user.User
 import play.api.mvc.{Cookie, RequestHeader, Result}
@@ -179,20 +179,20 @@ object Statistics {
   }
 
   private def viewedByCookie(project: Project, cookie: String)(f: Boolean => Unit) = {
-    ModelQueries.Projects.hasBeenViewedBy(project.id.get, cookie).onSuccess {
+    Models.Projects.hasBeenViewedBy(project.id.get, cookie).onSuccess {
       case viewed: Boolean => f(viewed)
     }
   }
 
   private def viewedByUser(project: Project, user: User)(f: Boolean => Unit) = {
-    ModelQueries.Projects.hasBeenViewedBy(project.id.get, user.id.get).onSuccess {
+    Models.Projects.hasBeenViewedBy(project.id.get, user.id.get).onSuccess {
       case viewed: Boolean => f(viewed)
     }
   }
 
-  private def markCookieView(project: Project, cookie: String) = ModelQueries.Projects.setViewedBy(project.id.get, cookie)
+  private def markCookieView(project: Project, cookie: String) = Models.Projects.setViewedBy(project.id.get, cookie)
 
-  private def markUserView(project: Project, user: User) = ModelQueries.Projects.setViewedBy(project.id.get, user.id.get)
+  private def markUserView(project: Project, user: User) = Models.Projects.setViewedBy(project.id.get, user.id.get)
 
   private def newCookieDownload(version: Version): String = {
     val cookie = newCookie
@@ -201,23 +201,23 @@ object Statistics {
   }
 
   private def downloadedByCookie(version: Version, cookie: String)(f: Boolean => Unit) = {
-    ModelQueries.Versions.hasBeenDownloadedBy(version.id.get, cookie).onSuccess {
+    Models.Versions.hasBeenDownloadedBy(version.id.get, cookie).onSuccess {
       case downloaded: Boolean => f(downloaded)
     }
   }
 
   private def downloadedByUser(version: Version, user: User)(f: Boolean => Unit) = {
-    ModelQueries.Versions.hasBeenDownloadedBy(version.id.get, user.id.get).onSuccess {
+    Models.Versions.hasBeenDownloadedBy(version.id.get, user.id.get).onSuccess {
       case downloaded: Boolean => f(downloaded)
     }
   }
 
   private def markCookieDownload(version: Version, cookie: String) = {
-    ModelQueries.Versions.setDownloadedBy(version.id.get, cookie)
+    Models.Versions.setDownloadedBy(version.id.get, cookie)
   }
 
   private def markUserDownload(version: Version, user: User) = {
-    ModelQueries.Versions.setDownloadedBy(version.id.get, user.id.get)
+    Models.Versions.setDownloadedBy(version.id.get, user.id.get)
   }
 
 }

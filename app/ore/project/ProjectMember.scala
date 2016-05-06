@@ -43,8 +43,7 @@ class ProjectMember(val project: Project, val name: String) extends ScopeSubject
 
   override def hashCode: Int = this.name.hashCode
 
-  override def equals(o: Any): Boolean = {
-    o.isInstanceOf[ProjectMember] && o.asInstanceOf[ProjectMember].name.equals(this.name)
-  }
+  override def equals(o: Any): Boolean
+  = o.isInstanceOf[ProjectMember] && o.asInstanceOf[ProjectMember].name.equals(this.name)
 
 }

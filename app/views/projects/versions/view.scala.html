@@ -1,8 +1,7 @@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.{Channel, Project, Version}
 @import models.user.User
-@import ore.permission.EditVersions
-@import ore.permission.ReviewProjects
+@import ore.permission.{EditVersions, ReviewProjects}
 @import ore.permission.scope.GlobalScope
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash)

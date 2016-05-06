@@ -5,11 +5,15 @@ import java.sql.Timestamp
 import db.driver.OrePostgresDriver.api._
 import db.model.{Model, ModelTable}
 import db.query.ModelQueries._
+import db.query.ModelQueries.registrar.modelQuery
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 
+/**
+  * Contains setter function for updating models.
+  */
 trait Setters {
 
   /**
@@ -20,7 +24,7 @@ trait Setters {
     * @param value  Value to set
     */
   def setInt[T <: ModelTable[M], M <: Model](model: M, key: T => Rep[Int], value: Int)
-  = run((for { m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
+  = run((for {m <- modelQuery[T, M](model.getClass) if m.id === model.id.get } yield key(m)).update(value))
 
   /**
     * Sets a String field on the Model.

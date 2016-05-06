@@ -15,12 +15,12 @@ object OreWrites {
 
   implicit val projectWrites = new Writes[Project] {
     def writes(project: Project) = {
-      val members: List[JsObject] = for (member <- project.members) yield {
+      val members: List[JsObject] = (for (member <- project.members) yield {
         Json.obj(
           "name" -> JsString(member.name),
           "roles" -> JsArray(member.roles.map(r => JsString(r.roleType.title)).toSeq)
         )
-      }
+      }).toList
       val category = project.category
       val rv = project.recommendedVersion
       Json.obj(

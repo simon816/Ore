@@ -1,16 +1,13 @@
 package controllers
 
-import db.driver.OrePostgresDriver.api._
-import db.query.ModelQueries
-import db.query.ModelQueries.filterToFunction
 import forums.SpongeForums
-import models.project.{Channel, Project, Version}
+import models.project.{Project, Version}
 import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import util.Conf.isDebug
+import util.DataUtils
 import util.StringUtils.equalsIgnoreCase
-import util.{Conf, DataUtils, StringUtils}
 
 /**
   * Represents a Secured base Controller for this application.

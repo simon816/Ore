@@ -54,9 +54,8 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
     * @tparam A   Value type
     * @return     Value of key
     */
-  def get[A](key: String): Option[A] = {
-    this.fieldBindings.get(key).map(_.asInstanceOf[FieldBinding[M, A]].valueFunc(this.asInstanceOf[M]))
-  }
+  def get[A](key: String): Option[A]
+  = this.fieldBindings.get(key).map(_.asInstanceOf[FieldBinding[M, A]].valueFunc(this.asInstanceOf[M]))
 
   /**
     * Marks the specified model class as a child of this model.

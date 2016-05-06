@@ -6,8 +6,7 @@ import java.util.concurrent.TimeUnit
 
 import db.dao.ModelFilter
 import db.driver.OrePostgresDriver.api._
-import db.model.{Model, ModelTable}
-import db.query.user.UserQueries
+import db.model.{Model, ModelRegistrar, ModelTable, Models}
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
 import slick.dbio.{DBIOAction, NoStream}
@@ -23,25 +22,17 @@ import scala.util.{Failure, Success, Try}
 /**
   * Base class for handling Model queries.
   */
-abstract class ModelQueries {
-
-  /** The model to be retrieved from the Table */
-  type Row <: Model
-  /** The table to retrieve the model from */
-  type Table <: ModelTable[Row]
-
-  val modelClass: Class[Row]
-  val baseQuery: TableQuery[Table]
-
-  /** Registers the Model of this class */
-  def registerModel() = ModelQueries.registerModel(this.modelClass, this.baseQuery)
+class ModelQueries[Table <: ModelTable[Row], Row <: Model](val modelClass: Class[Row],
+                                                           val baseQuery: TableQuery[Table]) {
 
   // Generic (delegate to companion object)
 
+  def insert(model: Row) = ModelQueries.insert(model)
   def find(predicate: Table => Rep[Boolean]) = ModelQueries.find(modelClass, predicate)
   def count(filter: Table => Rep[Boolean] = null) = ModelQueries.count(modelClass, filter)
+  def delete(model: Row) = ModelQueries.delete(model)
   def deleteWhere(filter: Table => Rep[Boolean]) = ModelQueries.deleteWhere(modelClass, filter)
-  def get(id: Int) = ModelQueries.get(modelClass, id)
+  def get(id: Int, filter: Table => Rep[Boolean]) = ModelQueries.get(modelClass, id, filter)
   def collect(limit: Int = -1, offset: Int = -1, filter: Table => Rep[Boolean] = null,
               sort: Table => ColumnOrdered[_] = null)
   = ModelQueries.collect(modelClass, filter, sort, limit, offset)
@@ -83,41 +74,18 @@ abstract class ModelQueries {
   */
 object ModelQueries extends Setters {
 
-  // Setup registrar
-
-  private var modelQueries: Map[Class[_ <: Model], TableQuery[_ <: ModelTable[_]]] = Map()
-
-  /**
-    * Registers a new model and maps it to a base query.
-    *
-    * @param query Base query
-    * @tparam M Model
-    */
-  protected def registerModel[T <: ModelTable[M], M <: Model](modelClass: Class[M], query: TableQuery[T]) = {
-    this.modelQueries += modelClass -> query
-  }
-
-  /**
-    * Returns a base query for a Model.
-    *
-    * @tparam T Model table
-    * @tparam M Model
-    * @return   Base model query
-    */
-  def modelQuery[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M]): Query[T, M, Seq] = {
-    this.modelQueries.find(_._1.isAssignableFrom(modelClass)).get._2.asInstanceOf[Query[T, M, Seq]]
-  }
+  implicit def unwrapFilter[T <: ModelTable[M], M <: Model](filter: ModelFilter[T, M]): T => Rep[Boolean]
+  = if (filter == null) null else filter.fn
+  implicit def wrapFilter[T <: ModelTable[M], M <: Model](fn: T => Rep[Boolean]): ModelFilter[T, M]
+  = ModelFilter(fn)
 
   /** Filters models by ID */
   def IdFilter[T <: ModelTable[M], M <: Model](id: Int): ModelFilter[T, M] = ModelFilter(_.id === id)
 
-  // Initialize queries (registers models)
+  val registrar = new ModelRegistrar
+  import registrar.modelQuery
 
-  val Users     =   new UserQueries
-  val Projects  =   new ProjectQueries
-  val Channels  =   new ChannelQueries
-  val Versions  =   new VersionQueries
-  val Pages     =   new PageQueries
+  Models // Initialize models
 
   protected[db] val Config = DatabaseConfigProvider.get[JdbcProfile](Play.current)
   protected val DB = Config.db
@@ -254,9 +222,5 @@ object ModelQueries extends Setters {
   def filter[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M], filter: T => Rep[Boolean],
                                              limit: Int = -1, offset: Int = -1): Future[Seq[M]]
   = collect(modelClass, filter = filter, limit = limit, offset = offset)
-
-  implicit def filterToFunction[T <: ModelTable[M], M <: Model](filter: ModelFilter[T, M]): T => Rep[Boolean]
-  = if (filter == null) null else filter.fn
-  implicit def functionToFilter[T <: ModelTable[M], M <: Model](fn: T => Rep[Boolean]): ModelFilter[T, M] = ModelFilter(fn)
 
 }

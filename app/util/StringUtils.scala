@@ -1,9 +1,9 @@
 package util
 
-import db.driver.OrePostgresDriver.api._
 import java.text.SimpleDateFormat
 import java.util.Date
 
+import db.driver.OrePostgresDriver.api._
 import util.Conf._
 
 /**
@@ -61,6 +61,6 @@ object StringUtils {
     * @return     Result
     */
   def equalsIgnoreCase[T <: Table[_]](str1: T => Rep[String], str2: String): T => Rep[Boolean]
-  = str1(_).toLowerCase === str2
+  = str1(_).toLowerCase === str2.toLowerCase
 
 }

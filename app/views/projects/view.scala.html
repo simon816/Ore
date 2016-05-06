@@ -4,8 +4,7 @@ Base template for Project overview.
 @import controllers.project.{routes => projectRoutes}
 @import models.project.Project
 @import models.user.User
-@import ore.permission.scope.GlobalScope
-@import ore.permission.{EditSettings, ReviewProjects}
+@import ore.permission.EditSettings
 @import ore.project.FlagReasons
 @import views.html.helper.form
 @(project: Project, active: String, noButtons: Boolean = false)(content: Html)(implicit messages: Messages,

@@ -3,14 +3,13 @@ package util
 import java.nio.file.Files._
 
 import db.driver.OrePostgresDriver.api._
-import db.query.ModelQueries
+import db.model.Models
 import db.query.ModelQueries.{await, run}
 import forums.SpongeForums
-import ore.project.util.PendingVersion
 import models.project.{Channel, Project, Version}
 import models.user.User
 import ore.project.Categories
-import ore.project.util.{PendingProject, ProjectFactory}
+import ore.project.util.{PendingProject, PendingVersion, ProjectFactory}
 import org.apache.commons.io.FileUtils
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.ws.WSClient
@@ -32,8 +31,8 @@ object DataUtils {
     * Resets the application to factory defaults.
     */
   def reset() = {
-    for (project <- await(ModelQueries.Projects.collect()).get) project.delete
-    await(run(ModelQueries.Users.baseQuery.delete)).get
+    for (project <- Project.values) project.delete
+    await(run(Models.Users.baseQuery.delete)).get
     FileUtils.deleteDirectory(UploadsDir.toFile)
   }
 

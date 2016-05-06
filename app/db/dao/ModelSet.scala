@@ -3,7 +3,7 @@ package db.dao
 import db.driver.OrePostgresDriver.api._
 import db.model.{Model, ModelTable}
 import db.query.ModelQueries
-import db.query.ModelQueries._
+import db.query.ModelQueries.{IdFilter, await, unwrapFilter}
 import slick.lifted.ColumnOrdered
 
 /**
@@ -12,27 +12,29 @@ import slick.lifted.ColumnOrdered
 class ModelSet[T <: ModelTable[M], M <: Model](modelClass: Class[M],
                                                baseFilter: ModelFilter[T, M] = ModelFilter[T, M]()) {
 
+  val baseQuery: ModelQueries[T, M] = ModelQueries.registrar.get[T, M](modelClass)
+
   /**
     * Returns the model with the specified ID.
     *
     * @param id   ID to lookup
     * @return     Model with ID or None if not found
     */
-  def withId(id: Int): Option[M] = await(get(this.modelClass, id, this.baseFilter)).get
+  def withId(id: Int): Option[M] = await(baseQuery.get(id, this.baseFilter.fn)).get
 
   /**
     * Returns all the [[Model]]s in the set.
     *
     * @return All models in set
     */
-  def values: Set[M] = await(ModelQueries.filter(this.modelClass, this.baseFilter)).get.toSet
+  def values: Set[M] = await(baseQuery.filter(this.baseFilter)).get.toSet
 
   /**
     * Returns the size of this set.
     *
     * @return Size of set
     */
-  def size: Int = await(count (this.modelClass, this.baseFilter)).get
+  def size: Int = await(baseQuery count this.baseFilter).get
 
   /**
     * Returns true if this set is empty.
@@ -54,7 +56,7 @@ class ModelSet[T <: ModelTable[M], M <: Model](modelClass: Class[M],
     * @param model Model to look for
     * @return True if contained in set
     */
-  def contains(model: M): Boolean = await(count (this.modelClass, this.baseFilter +&& IdFilter(model.id.get))).get > 0
+  def contains(model: M): Boolean = await(baseQuery count (this.baseFilter +&& IdFilter(model.id.get))).get > 0
 
   /**
     * Returns true if any models match the specified filter.
@@ -62,7 +64,7 @@ class ModelSet[T <: ModelTable[M], M <: Model](modelClass: Class[M],
     * @param filter Filter to use
     * @return       True if any model matches
     */
-  def exists(filter: T => Rep[Boolean]) = await(count (this.modelClass, this.baseFilter && filter)).get > 0
+  def exists(filter: T => Rep[Boolean]) = await(baseQuery count (this.baseFilter && filter)).get > 0
 
   /**
     * Adds a new model to it's table.
@@ -70,21 +72,21 @@ class ModelSet[T <: ModelTable[M], M <: Model](modelClass: Class[M],
     * @param model Model to add
     * @return New model
     */
-  def add(model: M): M = await(insert(model)).get
+  def add(model: M): M = await(baseQuery insert model).get
 
   /**
     * Removes the specified model from this set if it is contained.
     *
     * @param model Model to remove
     */
-  def remove(model: M) = await(delete(model, this.baseFilter)).get
+  def remove(model: M) = await(baseQuery delete model).get
 
   /**
     * Removes all the models from this set matching the given filter.
     *
     * @param filter Filter to use
     */
-  def removeAll(filter: T => Rep[Boolean]) = await(deleteWhere(modelClass, this.baseFilter && filter))
+  def removeAll(filter: T => Rep[Boolean]) = await(baseQuery deleteWhere (this.baseFilter && filter))
 
   /**
     * Returns the first model matching the specified filter.
@@ -92,8 +94,7 @@ class ModelSet[T <: ModelTable[M], M <: Model](modelClass: Class[M],
     * @param filter Filter to use
     * @return       Model matching filter, if any
     */
-  def find(filter: T => Rep[Boolean]): Option[M]
-  = await(ModelQueries.find(this.modelClass, this.baseFilter && filter)).get
+  def find(filter: T => Rep[Boolean]): Option[M] = await(baseQuery.find(this.baseFilter && filter)).get
 
   /**
     * Returns a sorted Seq by the specified [[ColumnOrdered]].
@@ -105,9 +106,8 @@ class ModelSet[T <: ModelTable[M], M <: Model](modelClass: Class[M],
     * @return         Sorted models
     */
   def sorted(ordering: T => ColumnOrdered[_], filter: T => Rep[Boolean] = null,
-             limit: Int = -1, offset: Int = -1): Seq[M] = {
-    await(collect(this.modelClass, this.baseFilter && filter, ordering, limit, offset)).get
-  }
+             limit: Int = -1, offset: Int = -1): Seq[M]
+  = await(baseQuery.collect(limit, offset, this.baseFilter && filter, ordering)).get
 
   /**
     * Filters this set by the given function.
@@ -118,7 +118,7 @@ class ModelSet[T <: ModelTable[M], M <: Model](modelClass: Class[M],
     * @return       Filtered models
     */
   def filter(filter: T => Rep[Boolean], limit: Int = -1, offset: Int = -1): Seq[M]
-  = await(ModelQueries.filter(this.modelClass, filter, limit, offset)).get
+  = await(baseQuery.filter(filter, limit, offset)).get
 
   /**
     * Filters this set by the opposite of the given function.

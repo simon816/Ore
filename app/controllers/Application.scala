@@ -7,13 +7,13 @@ import controllers.routes.{Application => self}
 import db.ProjectTable
 import db.dao.ModelFilter
 import db.driver.OrePostgresDriver.api._
-import db.query.ModelQueries
-import db.query.ModelQueries.{await, filterToFunction}
+import db.model.Models
+import db.query.ModelQueries.{await, unwrapFilter}
 import models.project.Project._
 import models.project.{Flag, Project, Version}
 import models.user.User
-import ore.permission.scope.GlobalScope
 import ore.permission._
+import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
@@ -44,13 +44,13 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     val canHideProjects = User.current.isDefined && (User.current.get can HideProjects in GlobalScope)
     var filter: ProjectTable => Rep[Boolean] = query.map { q =>
       // Search filter + visible
-      var f  = ModelQueries.Projects.searchFilter(q)
+      var f  = Models.Projects.searchFilter(q)
       if (!canHideProjects) f = f && (_.isVisible)
       f
     }.orNull[ModelFilter[ProjectTable, Project]]
     if (filter == null && !canHideProjects) filter = _.isVisible
 
-    val projects = await(ModelQueries.Projects.collect(filter, categoryArray, InitialLoad, -1, s)).get
+    val projects = await(Models.Projects.collect(filter, categoryArray, InitialLoad, -1, s)).get
     if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet)) categoryArray = null
     Ok(views.home(projects, Option(categoryArray), s))
   }

@@ -30,7 +30,6 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
       "raw" -> Seq(Project.topicContentFor(project)))
     ws.url(url + "/posts").post(params).map { response =>
       validate(response) { json =>
-        println(json)
         val postId = (json \ "id").as[Int]
         val topicId = (json \ "topic_id").as[Int]
         val update = this.keyedRequest(username) + (
@@ -50,12 +49,8 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient)
     */
   def updateTopic(project: Project) = {
     val postId = project.postId.get
-    println(Project.topicContentFor(project))
     val params = this.keyedRequest(project.ownerName) + ("post[raw]" -> Seq(Project.topicContentFor(project)))
-    ws.url(url + "/posts/" + postId).put(params).map { response =>
-      println(response)
-      println(response.json)
-    }
+    ws.url(url + "/posts/" + postId).put(params)
   }
 
   /**

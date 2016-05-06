@@ -1,11 +1,9 @@
 package models.project
 
-import java.nio.file.Files
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.dao.ModelSet
-import db.driver.OrePostgresDriver.api._
 import db.model.ModelKeys._
 import db.model.annotation.{Bind, BindingsGenerator, HasMany}
 import db.model.{Model, ModelKeys}
@@ -101,13 +99,14 @@ case class Channel(override val id: Option[Int] = None,
     * @param context  Project context
     * @return         Result
     */
-  def delete(context: Project) = Defined {
-    checkArgument(context.id.get == this.projectId, "invalid context id", "")
-    val channels = context.channels.values
+  def delete()(implicit context: Project = null) = Defined {
+    val proj = if (context != null) context else this.project
+    checkArgument(proj.id.get == this.projectId, "invalid proj id", "")
+    val channels = proj.channels.values
     checkArgument(channels.size > 1, "only one channel", "")
     checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
     remove(this)
-    FileUtils.deleteDirectory(ProjectFiles.projectDir(context.ownerName, context.name).resolve(this._name).toFile)
+    FileUtils.deleteDirectory(ProjectFiles.projectDir(proj.ownerName, proj.name).resolve(this._name).toFile)
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Channel = this.copy(id = id, createdAt = theTime)

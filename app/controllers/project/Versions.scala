@@ -5,8 +5,6 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Versions => self}
 import db.driver.OrePostgresDriver.api._
-import db.query.ModelQueries
-import db.query.ModelQueries.filterToFunction
 import form.Forms
 import models.project.{Channel, Project, Version}
 import ore.Statistics
@@ -15,7 +13,6 @@ import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFact
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import util.Conf._
-import util.StringUtils
 import util.StringUtils.equalsIgnoreCase
 import views.html.projects.{versions => views}
 

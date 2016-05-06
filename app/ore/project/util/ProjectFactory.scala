@@ -3,15 +3,12 @@ package ore.project.util
 import java.nio.file.Files
 
 import com.google.common.base.Preconditions._
-import db.query.ModelQueries
-import db.query.ModelQueries.filterToFunction
 import forums.SpongeForums
 import models.project.{Channel, Project, Version}
 import models.user.{ProjectRole, User}
 import ore.permission.role.RoleTypes
 import play.api.libs.Files.TemporaryFile
 import util.Conf._
-import util.StringUtils
 import util.StringUtils.equalsIgnoreCase
 import util.Sys._
 

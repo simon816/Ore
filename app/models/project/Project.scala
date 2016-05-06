@@ -11,8 +11,7 @@ import db.driver.OrePostgresDriver.api._
 import db.model.ModelKeys._
 import db.model._
 import db.model.annotation.{Bind, BindingsGenerator, HasMany}
-import db.query.ModelQueries
-import db.query.ModelQueries.{await, filterToFunction}
+import db.query.ModelQueries.{await, unwrapFilter}
 import forums.SpongeForums
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
@@ -26,9 +25,8 @@ import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.Play.current
 import play.api.cache.Cache
 import util.Conf._
-import util.StringUtils
-import util.Sys._
 import util.StringUtils.{compact, equalsIgnoreCase, slugify}
+import util.Sys._
 
 import scala.annotation.meta.field
 
@@ -97,7 +95,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return All Members of project
     */
-  def members: List[ProjectMember] = await(ModelQueries.Projects.getMembers(this)).get
+  def members: Set[ProjectMember] = await(Models.Projects.getMembers(this)).get.toSet
 
   /**
     * Removes the [[ProjectMember]] that belongs to the specified [[User]] from this
@@ -227,7 +225,7 @@ case class Project(override val id: Option[Int] = None,
     * @return       True if starred by User
     */
   def isStarredBy(user: User): Boolean = Defined {
-    await(ModelQueries.Projects.isStarredBy(this.id.get, user.id.get)).get
+    await(Models.Projects.isStarredBy(this.id.get, user.id.get)).get
   }
 
   /**
@@ -261,7 +259,7 @@ case class Project(override val id: Option[Int] = None,
   def starFor(user: User) = Defined {
     if (!isStarredBy(user)) {
       this._stars += 1
-      await(ModelQueries.Projects.starFor(this.id.get, user.id.get)).get
+      await(Models.Projects.starFor(this.id.get, user.id.get)).get
       update(Stars)
     }
   }
@@ -275,7 +273,7 @@ case class Project(override val id: Option[Int] = None,
   def unstarFor(user: User) = Defined {
     if (isStarredBy(user)) {
       this._stars -= 1
-      await(ModelQueries.Projects.unstarFor(this.id.get, user.id.get)).get
+      await(Models.Projects.unstarFor(this.id.get, user.id.get)).get
       update(Stars)
     }
   }
@@ -433,7 +431,7 @@ case class Project(override val id: Option[Int] = None,
     * @return       Page with name or new name if it doesn't exist
     */
   def getOrCreatePage(name: String): Page = Defined {
-    await(ModelQueries.Pages.getOrInsert(new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true))).get
+    await(Models.Pages.getOrInsert(new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true))).get
   }
 
   /**
@@ -450,7 +448,7 @@ case class Project(override val id: Option[Int] = None,
     */
   def homePage: Page = Defined {
     val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false)
-    await(ModelQueries.Pages.getOrInsert(page)).get
+    await(Models.Pages.getOrInsert(page)).get
   }
 
   /**
@@ -547,7 +545,7 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @return       Project if found, None otherwise
     */
   def withSlug(owner: String, slug: String): Option[Project]
-  = this.find(ModelQueries.Projects.ownerFilter(owner) && equalsIgnoreCase(_.slug, slug))
+  = this.find(Models.Projects.ownerFilter(owner) && equalsIgnoreCase(_.slug, slug))
 
   /**
     * Returns the Project with the specified owner name and Project name, if
@@ -558,7 +556,7 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @return       Project if found, None otherwise
     */
   def withName(owner: String, name: String): Option[Project]
-  = this.find(ModelQueries.Projects.ownerFilter(owner) && equalsIgnoreCase(_.name, name))
+  = this.find(Models.Projects.ownerFilter(owner) && equalsIgnoreCase(_.name, name))
 
   /**
     * Returns the Project with the specified plugin ID, if any.

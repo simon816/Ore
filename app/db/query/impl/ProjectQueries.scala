@@ -1,10 +1,13 @@
-package db.query
+package db.query.impl
 
 import db._
 import db.dao.ModelFilter
 import db.driver.OrePostgresDriver.api._
+import db.model.Models
+import db.query.ModelQueries
 import db.query.ModelQueries._
 import models.project._
+import models.user.User
 import ore.project.Categories.Category
 import ore.project.ProjectMember
 import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
@@ -16,20 +19,12 @@ import scala.util.{Failure, Success}
 /**
   * Project related queries
   */
-class ProjectQueries extends ModelQueries {
+class ProjectQueries extends ModelQueries[ProjectTable, Project](classOf[Project], TableQuery[ProjectTable]) {
 
-  override type Row = Project
-  override type Table = ProjectTable
-
-  val Flags = new FlagQueries
+  val Flags = registrar.register(new ModelQueries[FlagTable, Flag](classOf[Flag], TableQuery[FlagTable]))
 
   private val views = TableQuery[ProjectViewsTable]
   private val stars = TableQuery[ProjectStarsTable]
-
-  override val modelClass = classOf[Project]
-  override val baseQuery = TableQuery[ProjectTable]
-
-  registerModel()
 
   /**
     * Returns the [[ProjectMember]]s in the specified Project, sorted by role.
@@ -37,16 +32,14 @@ class ProjectQueries extends ModelQueries {
     * @param project Project to get Members for
     * @return List of Members
     */
-  def getMembers(project: Project): Future[List[ProjectMember]] = {
-    // TODO: handle this differently?
-    val promise = Promise[List[ProjectMember]]
-    ModelQueries.Users.ProjectRoles.distinctUsersIn(project.id.get).andThen {
-      case Failure(thrown) => promise.failure(thrown)
-      case Success(users) =>
-        val members = for (user <- users) yield new ProjectMember(project, user.username)
-        promise.success(members.toList.sorted.reverse)
-    }
-    promise.future
+  def getMembers(project: Project): Future[Seq[ProjectMember]] = {
+    val distinctUserIds = (for (role <- Models.Users.ProjectRoles.baseQuery.filter {
+      _.projectId === project.id.get
+    }) yield role.userId).distinct.result
+
+    run(distinctUserIds)
+      .map(_.map(User.withId(_).get))
+      .map(for (user <- _) yield new ProjectMember(project, user.username))
   }
 
   /**
@@ -197,8 +190,9 @@ class ProjectQueries extends ModelQueries {
     promise.future
   }
 
-  override def like(model: Project) = find { p =>
-    p.ownerName.toLowerCase === model.ownerName.toLowerCase && p.name.toLowerCase === model.name.toLowerCase
+  override def like(model: Project) = {
+    find(p => p.ownerName.toLowerCase === model.ownerName.toLowerCase
+      && p.name.toLowerCase === model.name.toLowerCase)
   }
 
 }

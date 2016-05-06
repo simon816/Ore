@@ -5,10 +5,9 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions._
 import db.dao.ModelSet
 import db.driver.OrePostgresDriver.api._
-import db.model.Model
 import db.model.ModelKeys._
 import db.model.annotation._
-import db.query.ModelQueries
+import db.model.{Model, Models}
 import db.query.ModelQueries.await
 import db.{FlagTable, ProjectRoleTable, ProjectTable, UserTable}
 import forums.SpongeForums
@@ -20,7 +19,6 @@ import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
 import play.api.mvc.Session
 import util.Conf._
-import util.StringUtils
 import util.StringUtils._
 
 import scala.annotation.meta.field
@@ -250,7 +248,7 @@ case class User(override val id: Option[Int] = None,
     */
   def starred(page: Int = -1): Seq[Project] = Defined {
     val limit = if (page < 1) -1 else StarsPerPage
-    await(ModelQueries.Projects.starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
+    await(Models.Projects.starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
   }
 
   /**
@@ -311,7 +309,7 @@ object User extends ModelSet[UserTable, User](classOf[User]) {
     * @param user User to find
     * @return     Found or new User
     */
-  def getOrCreate(user: User): User = await(ModelQueries.Users.getOrInsert(user)).get
+  def getOrCreate(user: User): User = await(Models.Users.getOrInsert(user)).get
 
   /**
     * Returns the currently authenticated User.

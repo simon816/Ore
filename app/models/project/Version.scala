@@ -8,10 +8,9 @@ import com.google.common.base.Preconditions._
 import db.VersionTable
 import db.dao.ModelSet
 import db.driver.OrePostgresDriver.api._
-import db.model.Model
 import db.model.ModelKeys._
 import db.model.annotation.{Bind, BindingsGenerator}
-import db.query.ModelQueries
+import db.model.{Model, Models}
 import db.query.ModelQueries.await
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
@@ -82,7 +81,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Channel
     */
-  def channel: Channel = await(ModelQueries.Channels.get(this.channelId)).get.get
+  def channel: Channel = Channel.withId(this.channelId).get
 
   /**
     * Returns the channel this version belongs to from the specified collection
@@ -184,21 +183,26 @@ case class Version(override val id: Option[Int] = None,
     * @return True if exists
     */
   def exists: Boolean = {
-    this.projectId > -1 && (await(ModelQueries.Versions.hashExists(this.projectId, this.hash)).get
+    this.projectId > -1 && (await(Models.Versions.hashExists(this.projectId, this.hash)).get
       || this.project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase))
   }
 
-  def delete()(implicit project: Project) = Defined {
-    checkArgument(project.versions.size > 1, "only one version", "")
-    checkArgument(project.id.get == this.projectId, "invalid context id", "")
-    val rv = project.recommendedVersion
+  def delete()(implicit project: Project = null) = Defined {
+    val proj = if (project != null) project else this.project
+    checkArgument(proj.versions.size > 1, "only one version", "")
+    checkArgument(proj.id.get == this.projectId, "invalid context id", "")
+
+    val rv = proj.recommendedVersion
     remove(this)
+
     // Set recommended version to latest version if the deleted version was the rv
-    if (this.equals(rv)) project.recommendedVersion = project.versions.sorted(_.createdAt.desc, limit = 1).head
-    Files.delete(ProjectFiles.uploadPath(project.ownerName, project.name, this.versionString))
+    if (this.equals(rv)) proj.recommendedVersion = proj.versions.sorted(_.createdAt.desc, limit = 1).head
+
+    Files.delete(ProjectFiles.uploadPath(proj.ownerName, proj.name, this.versionString))
+
     // Delete channel if now empty
     val channel: Channel = this.channel
-    if (channel.versions.isEmpty) channel.delete(project)
+    if (channel.versions.isEmpty) channel.delete()(proj)
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Version = this.copy(id = id, createdAt = theTime)
