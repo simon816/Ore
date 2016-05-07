@@ -1,8 +1,11 @@
 @import 'utils';
+@import 'fontawesome/font-awesome';
 
-.reply-box textarea {
-  @include size(100%, 150px);
-  margin-bottom: 10px;
+.reply-box {
+  .icon-save { @extend .fa-reply }
+  .page-rendered, .page-edit textarea {
+    min-height: 200px;
+  }
 }
 
 .reply-controls {

@@ -121,7 +121,7 @@ function initBtnEdit() {
 
         else if ($(this).hasClass('btn-save')) {
             // add spinner
-            $(this).find('i').removeClass('fa-save').addClass('fa-spinner fa-spin');
+            $(this).find('i').removeClass('icon-save').addClass('fa-spinner fa-spin');
         }
     });
 

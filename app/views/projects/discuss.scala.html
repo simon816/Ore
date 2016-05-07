@@ -17,21 +17,35 @@ Discussion page within Project overview.
         };
     </script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/projectDiscuss.js")"></script>
+    <script>$(function() { $('.btn-edit').click(); });</script>
 
     <div class="container">
         <div id='discourse-comments'></div>
         <div class="row">
             @if(User.current.isDefined) {
                 <div class="col-md-8">
-                    @form(action = projectRoutes.Projects.postDiscussionReply(model.ownerName, model.slug)) {
-                        <div class="reply-box"><textarea name="content" class="form-control"></textarea></div>
-                        <div class="reply-controls">
-                            <button type="submit" class="btn btn-primary"><i class="fa fa-reply"></i> Reply</button>
-                            <a class="forums" target="_blank" href="https://forums.spongepowered.org/t/@model.topicId.get">
-                                View on Sponge forums
-                            </a>
-                        </div>
-                    }
+                    <div class="reply-box">
+
+                        @if(flash.get("error").isDefined) {
+                            <div class="alert alert-fade alert-danger alert-dismissable" role="alert" style="display: none;">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <strong>@messages("project.create.error")</strong> @messages(flash.get("error").get)
+                            </div>
+                        }
+
+                        @projects.util.editor(
+                            saveCall = projectRoutes.Projects.postDiscussionReply(model.ownerName, model.slug),
+                            cancellable = false,
+                            enabled = true
+                        )
+                    </div>
+                    <div class="reply-controls">
+                        <a class="forums" target="_blank" href="https://forums.spongepowered.org/t/@model.topicId.get">
+                            View on Sponge forums
+                        </a>
+                    </div>
                 </div>
             } else {
                 <div class="pull-right">

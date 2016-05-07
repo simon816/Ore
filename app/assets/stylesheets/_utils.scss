@@ -1,4 +1,9 @@
 @import 'pallette';
+@import 'fontawesome/font-awesome';
+
+.icon-save {
+  @extend .fa-save
+}
 
 .fa {
   cursor: default;

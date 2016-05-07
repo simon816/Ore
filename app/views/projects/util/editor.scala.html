@@ -1,6 +1,7 @@
 @import views.html.helper.form
 @(saveCall: Call, deleteCall: Call = null, deletable: Boolean = false, enabled: Boolean,
-        raw: String, cooked: Html, subject: String)(implicit messages: Messages)
+        raw: String = "", cooked: Html = Html(""), subject: String = null,
+        cancellable: Boolean = true)(implicit messages: Messages)
 
 @if(enabled) {
     @form(action = saveCall) {
@@ -16,15 +17,17 @@
 
         <div class="btn-edit-container btn-save-container">
             <button type="submit" class="btn btn-sm btn-save btn-page btn-default">
-                <i class="fa fa-save"></i>
+                <i class="fa icon-save"></i>
             </button>
         </div>
 
-        <div class="btn-edit-container btn-cancel-container">
-            <button type="button" class="btn btn-sm btn-cancel btn-page btn-default">
-                <i class="fa fa-times"></i>
-            </button>
-        </div>
+        @if(cancellable) {
+            <div class="btn-edit-container btn-cancel-container">
+                <button type="button" class="btn btn-sm btn-cancel btn-page btn-default">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+        }
 
         @if(deletable) {
             <div class="btn-edit-container btn-delete-container">

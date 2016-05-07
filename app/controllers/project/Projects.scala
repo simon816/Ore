@@ -6,6 +6,7 @@ import controllers.BaseController
 import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
 import db.query.ModelQueries
+import db.query.ModelQueries.await
 import form.Forms
 import forums.SpongeForums
 import models.project._
@@ -236,8 +237,10 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
       Forms.ProjectReply.bindFromRequest.fold(
         hasErrors => Redirect(self.showDiscussion(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         content => {
-          ModelQueries.await(SpongeForums.Embed.postReply(request.project, request.user, content)).get
-          Redirect(self.showDiscussion(author, slug))
+          val error = await(SpongeForums.Embed.postReply(request.project, request.user, content)).get
+          var result = Redirect(self.showDiscussion(author, slug))
+          if (error.isDefined) result = result.flashing("error" -> error.get)
+          result
         }
       )
     }
