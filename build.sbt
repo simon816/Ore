@@ -27,5 +27,6 @@ libraryDependencies ++= Seq(
   "org.postgresql"        %   "postgresql"              % "9.4.1208.jre7",
   "com.github.tminglei"   %%  "slick-pg"                % "0.12.0",
   "org.apache.commons"    %   "commons-io"              % "1.3.2",
-  "org.pegdown"           %   "pegdown"                 % "1.6.0"
+  "org.pegdown"           %   "pegdown"                 % "1.6.0",
+  "com.getsentry.raven"   %   "raven-logback"           % "7.2.2"
 )

@@ -40,6 +40,8 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     var categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
     val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
 
+    new Object().asInstanceOf[Int]
+
     // Determine filter
     val canHideProjects = User.current.isDefined && (User.current.get can HideProjects in GlobalScope)
     var filter: ProjectTable => Rep[Boolean] = query.map { q =>
