@@ -5,13 +5,14 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions
 import com.google.common.base.Preconditions._
-import db.VersionTable
+import db.{VersionDownloadsTable, VersionTable}
 import db.dao.ModelSet
 import db.driver.OrePostgresDriver.api._
 import db.model.ModelKeys._
-import db.model.annotation.{Bind, BindingsGenerator}
+import db.model.annotation.{Bind, BindingsGenerator, HasMany}
 import db.model.{Model, Models}
 import db.query.ModelQueries.await
+import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
 import ore.project.util.{PendingVersion, PluginFile, ProjectFiles}
@@ -34,10 +35,10 @@ import scala.collection.JavaConverters._
   *                         version separated by a ':'
   * @param _description     User description of version
   * @param assets           Path to assets directory within plugin
-  * @param _downloads       The amount of times this version has been downloaded
   * @param projectId        ID of project this version belongs to
   * @param channelId        ID of channel this version belongs to
   */
+@HasMany(Array(classOf[VersionDownload]))
 case class Version(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                    override val projectId: Int,
@@ -61,7 +62,7 @@ case class Version(override val id: Option[Int] = None,
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int, fileSize: Long, hash: String) = {
     this(None, None, projectId, versionString, dependencies,
-         Option(assets), channelId, fileSize, hash, Option(description), 0)
+         Option(assets), channelId, fileSize, hash, Option(description))
   }
 
   def this(versionString: String, dependencies: List[String],
@@ -151,22 +152,14 @@ case class Version(override val id: Option[Int] = None,
     }
   }
 
-  /**
-    * Returns the amount of unique downloads this Version has.
-    *
-    * @return Amount of unique downloads
-    */
   def downloads: Int = this._downloads
 
-  /**
-    * Increments this Version's download count by one.
-    *
-    * @return Future result
-    */
   def addDownload() = {
     this._downloads += 1
-    if (isDefined) update(Downloads)
+    update(Downloads)
   }
+
+  def downloadEntries = this.getMany[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
 
   /**
     * Returns a human readable file size for this Version.

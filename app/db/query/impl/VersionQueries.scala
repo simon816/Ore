@@ -6,6 +6,7 @@ import db.query.ModelQueries
 import db.query.ModelQueries.run
 import db.{VersionDownloadsTable, VersionTable}
 import models.project.Version
+import models.statistic.VersionDownload
 
 import scala.concurrent.Future
 
@@ -14,7 +15,9 @@ import scala.concurrent.Future
   */
 class VersionQueries extends ModelQueries[VersionTable, Version](classOf[Version], TableQuery[VersionTable]) {
 
-  private val downloads = TableQuery[VersionDownloadsTable]
+  val Downloads = ModelQueries.registrar.register(new StatQueries[VersionDownloadsTable, VersionDownload, Version](
+    classOf[VersionDownload], TableQuery[VersionDownloadsTable]
+  ))
 
   /**
     * Returns true if the specified hash is found in the specified
@@ -38,52 +41,5 @@ class VersionQueries extends ModelQueries[VersionTable, Version](classOf[Version
     */
   def channelFilter(channelIds: Seq[Int]): ModelFilter[VersionTable, Version]
   = ModelFilter(_.channelId inSetBind channelIds)
-
-  /**
-    * Returns true if the specified Version has been downloaded by a client
-    * with the specified cookie.
-    *
-    * @param versionId  Version to check
-    * @param cookie     Cookie to look for
-    * @return           True if downloaded
-    */
-  def hasBeenDownloadedBy(versionId: Int, cookie: String): Future[Boolean] = {
-    val query = this.downloads.filter { vd =>
-      vd.versionId === versionId && vd.cookie === cookie
-    }.length > 0
-    run(query.result)
-  }
-
-  /**
-    * Sets the specified Version as downloaded by the client with the specified
-    * cookie.
-    *
-    * @param versionId  Version to set as downloaded
-    * @param cookie     To set as downloaded for
-    */
-  def setDownloadedBy(versionId: Int, cookie: String) = {
-    val query = this.downloads += (None, Some(cookie), None, versionId)
-    run(query)
-  }
-
-  /**
-    * Returns true if the specified Version has been downloaded by the
-    * specified User.
-    *
-    * @param versionId  Version to check
-    * @param userId     User to look for
-    * @return           True if downloaded
-    */
-  def hasBeenDownloadedBy(versionId: Int, userId: Int): Future[Boolean] = run((this.downloads.filter { vd =>
-    vd.versionId === versionId && vd.userId === userId
-  }.length > 0).result)
-
-  /**
-    * Sets the specified Version as downloaded by the specified User.
-    *
-    * @param versionId  Version to set as downloaded
-    * @param userId     To set as downloaded for
-    */
-  def setDownloadedBy(versionId: Int, userId: Int) = run(this.downloads += (None, None, Some(userId), versionId))
 
 }

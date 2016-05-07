@@ -13,6 +13,7 @@ import db.model._
 import db.model.annotation.{Bind, BindingsGenerator, HasMany}
 import db.query.ModelQueries.{await, unwrapFilter}
 import forums.SpongeForums
+import models.statistic.ProjectView
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
 import ore.permission.scope.ProjectScope
@@ -43,14 +44,16 @@ import scala.annotation.meta.field
   * @param homepage               The external project URL
   * @param recommendedVersionId   The ID of this project's recommended version
   * @param _category              The project's Category
-  * @param _views                 How many times this project has been views
   * @param _downloads             How many times this project has been downloaded in total
   * @param _stars                 How many times this project has been starred
   * @param _issues                External link to issue tracker
   * @param _source                External link to source code
   * @param _description           Short description of Project
   */
-@HasMany(Array(classOf[Channel], classOf[Version], classOf[Page], classOf[Flag], classOf[ProjectRole]))
+@HasMany(Array(
+  classOf[Channel], classOf[Version], classOf[Page],
+  classOf[Flag], classOf[ProjectRole], classOf[ProjectView]
+))
 case class Project(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                                 pluginId: String,
@@ -177,21 +180,13 @@ case class Project(override val id: Option[Int] = None,
     if (isDefined) update(ModelKeys.Category)
   }
 
-  /**
-    * Returns the amount of unique views on this Project.
-    *
-    * @return Unique views on project
-    */
+  def viewEntries = this.getMany[ProjectViewsTable, ProjectView](classOf[ProjectView])
+
   def views: Int = this._views
 
-  /**
-    * Increments this Project's view count by one.
-    *
-    * @return Future result
-    */
   def addView() = {
     this._views += 1
-    if (isDefined) update(Views)
+    update(Views)
   }
 
   /**
