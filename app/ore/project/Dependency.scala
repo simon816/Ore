@@ -1,5 +1,6 @@
 package ore.project
 
+import db.ModelService
 import models.project.Project
 
 /**
@@ -15,6 +16,6 @@ case class Dependency(pluginId: String, version: String) {
     *
     * @return Project if dependency is on Ore, empty otherwise.
     */
-  def project: Option[Project] = Project.withPluginId(this.pluginId)
+  def project(implicit service: ModelService): Option[Project] = Project.withPluginId(this.pluginId)
 
 }

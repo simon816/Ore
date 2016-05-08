@@ -1,5 +1,6 @@
 package form
 
+import db.ModelService
 import models.project.Project
 import ore.permission.role.RoleTypes
 import ore.project.Categories
@@ -24,7 +25,7 @@ case class ProjectSettings(categoryName: String,
     *
     * @param project Project to save to
     */
-  def saveTo(project: Project) = {
+  def saveTo(project: Project)(implicit service: ModelService) = {
     project.category = Categories.withName(categoryName)
     project.issues = nullIfEmpty(issues)
     project.source = nullIfEmpty(source)

@@ -3,11 +3,11 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.dao.ModelSet
-import db.model.ModelKeys._
-import db.model.annotation.{Bind, BindingsGenerator, HasMany}
-import db.model.{Model, ModelKeys}
-import db.{ChannelTable, VersionTable}
+import db.impl.{ChannelTable, ModelKeys, VersionTable}
+import ModelKeys._
+import db.{Model, ModelService}
+import db.meta.{Bind, BindingsGenerator, HasMany}
+import db.query.{ModelQueries, ModelSet}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
 import ore.project.util.ProjectFiles
@@ -36,13 +36,11 @@ case class Channel(override val id: Option[Int] = None,
                    override val projectId: Int,
                    @(Bind @field) private var _name: String,
                    @(Bind @field) private var _color: Color)
-                   extends Model(id, createdAt) with Ordered[Channel] with ProjectScope { self =>
+                   extends Model[ModelQueries[ChannelTable, Channel]](id, createdAt)
+                     with Ordered[Channel]
+                     with ProjectScope { self =>
 
   import models.project.Channel._
-
-  override type M <: Channel { type M = self.M }
-
-  BindingsGenerator.generateFor(this)
 
   def this(name: String, color: Color, projectId: Int) = this(_name=name, _color=color, projectId=projectId)
 
@@ -60,7 +58,7 @@ case class Channel(override val id: Option[Int] = None,
     * @param _name     New channel name
     * @return         Future result
     */
-  def name_=(_name: String)(implicit context: Project) = Defined {
+  def name_=(_name: String)(implicit context: Project, service: ModelService) = Defined {
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
     checkArgument(isValidName(name), "invalid name", "")
     ProjectFiles.renameChannel(context.ownerName, context.name, this._name, name)
@@ -81,7 +79,7 @@ case class Channel(override val id: Option[Int] = None,
     * @param _color  Color of channel
     * @return       Future result
     */
-  def color_=(_color: Color) = Defined {
+  def color_=(_color: Color)(implicit service: ModelService) = Defined {
     this._color = _color
     update(ModelKeys.Color)
   }
@@ -91,7 +89,7 @@ case class Channel(override val id: Option[Int] = None,
     *
     * @return All versions
     */
-  def versions = this.getMany[VersionTable, Version](classOf[Version])
+  def versions(implicit service: ModelService) = this.getMany[VersionTable, Version](classOf[Version])
 
   /**
     * Irreversibly deletes this channel and all version associated with it.
@@ -99,7 +97,7 @@ case class Channel(override val id: Option[Int] = None,
     * @param context  Project context
     * @return         Result
     */
-  def delete()(implicit context: Project = null) = Defined {
+  def delete()(implicit context: Project = null, service: ModelService) = Defined {
     val proj = if (context != null) context else this.project
     checkArgument(proj.id.get == this.projectId, "invalid proj id", "")
     val channels = proj.channels.values

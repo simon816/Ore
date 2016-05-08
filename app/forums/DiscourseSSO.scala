@@ -7,7 +7,7 @@ import java.util.Base64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
-import db.query.ModelQueries.await
+import db.ModelService
 import models.user.User
 import org.apache.commons.codec.binary.Hex
 
@@ -56,7 +56,7 @@ class DiscourseSSO(private val url: String, private val secret: String) {
     * @param sig  Signature to verify
     * @return     User data
     */
-  def authenticate(sso: String, sig: String): User = {
+  def authenticate(sso: String, sig: String)(implicit service: ModelService): User = {
     // check sig
     val hmac = hmac_sha256(sso.getBytes(this.charEncoding))
     if (!hmac.equals(sig)) {
@@ -87,7 +87,7 @@ class DiscourseSSO(private val url: String, private val secret: String) {
     if (externalId == -1) throw new IllegalStateException("id not found")
 
     // Send another request to get more info to fill the user with
-    User.withName(username).get.fill(await(SpongeForums.Users.fetch(username)).get.get.copy(
+    User.withName(username).get.fill(service.await(SpongeForums.Users.fetch(username)).get.get.copy(
       id = Some(externalId),
       _name = Some(name),
       _username = username,

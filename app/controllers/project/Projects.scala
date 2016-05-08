@@ -5,8 +5,7 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
-import db.query.ModelQueries
-import db.query.ModelQueries.await
+import db.ModelService
 import form.Forms
 import forums.SpongeForums
 import models.project._
@@ -29,18 +28,19 @@ import scala.util.{Failure, Success}
   * TODO: Replace NotFounds, BadRequests, etc with pretty views
   * TODO: Localize
   */
-class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {
+class Projects @Inject()(override val messagesApi: MessagesApi,
+                         implicit val ws: WSClient,
+                         implicit val service: ModelService) extends BaseController {
 
-  private def SettingsEditAction(author: String, slug: String) = {
-    AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditSettings)
-  }
+  private def SettingsEditAction(author: String, slug: String)
+  = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditSettings)
 
   /**
     * Displays the "create project" page.
     *
     * @return Create project view
     */
-  def showCreator = Authenticated { implicit request =>
+  def showCreator = Authenticated(service) { implicit request =>
     Ok(views.create(None))
   }
 
@@ -49,7 +49,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     *
     * @return Result
     */
-  def upload = Authenticated { implicit request =>
+  def upload = Authenticated(service) { implicit request =>
     request.body.asMultipartFormData.get.file("pluginFile") match {
       case None => Redirect(self.showCreator()).flashing("error" -> "No file submitted.")
       case Some(tmpFile) =>
@@ -79,7 +79,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @param slug   Project slug
     * @return Create project view
     */
-  def showCreatorWithMeta(author: String, slug: String) = Authenticated { implicit request =>
+  def showCreatorWithMeta(author: String, slug: String) = Authenticated(service) { implicit request =>
     Project.getPending(author, slug) match {
       case None => Redirect(self.showCreator())
       case Some(pending) => Ok(views.create(Some(pending)))
@@ -93,7 +93,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @param slug     Project slug
     * @return         View of members config
     */
-  def showMembersConfig(author: String, slug: String) = Authenticated { implicit request =>
+  def showMembersConfig(author: String, slug: String) = Authenticated(service) { implicit request =>
     Project.getPending(author, slug) match {
       case None => Redirect(self.showCreator())
       case Some(pendingProject) =>
@@ -110,7 +110,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @param slug   Project slug
     * @return Redirection to project page if successful
     */
-  def showFirstVersionCreator(author: String, slug: String) = Authenticated { implicit request =>
+  def showFirstVersionCreator(author: String, slug: String) = Authenticated(service) { implicit request =>
     Project.getPending(author, slug) match {
       case None => Redirect(self.showCreator())
       case Some(pendingProject) =>
@@ -129,7 +129,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return View of project
     */
   def show(author: String, slug: String) = {
-    ProjectAction(author, slug) { implicit request =>
+    ProjectAction(author, slug)(service) { implicit request =>
       val project = request.project
       Statistics.projectViewed(implicit request => Ok(views.pages.view(project, project.homePage)))
     }
@@ -142,16 +142,18 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @param slug   Project slug
     * @return       View of project
     */
-  def flag(author: String, slug: String) = AuthedProjectAction(author, slug) { implicit request =>
-    val user = request.user
-    val project = request.project
-    if (user.hasUnresolvedFlagFor(project)) {
-      // One flag per project, per user at a time
-      BadRequest
-    } else {
-      val reason = FlagReasons(Forms.ProjectFlag.bindFromRequest.get)
-      project.flagFor(user, reason)
-      Redirect(self.show(author, slug)).flashing("reported" -> "true")
+  def flag(author: String, slug: String) = {
+    AuthedProjectAction(author, slug)(service) { implicit request =>
+      val user = request.user
+      val project = request.project
+      if (user.hasUnresolvedFlagFor(project)) {
+        // One flag per project, per user at a time
+        BadRequest
+      } else {
+        val reason = FlagReasons(Forms.ProjectFlag.bindFromRequest.get)
+        project.flagFor(user, reason)
+        Redirect(self.show(author, slug)).flashing("reported" -> "true")
+      }
     }
   }
 
@@ -206,7 +208,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return Result code
     */
   def setStarred(author: String, slug: String, starred: Boolean) = {
-    AuthedProjectAction(author, slug) { implicit request =>
+    AuthedProjectAction(author, slug)(service) { implicit request =>
       request.project.setStarredBy(request.user, starred)
       Ok
     }
@@ -220,7 +222,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return View of project
     */
   def showDiscussion(author: String, slug: String) = {
-    ProjectAction(author, slug) { implicit request =>
+    ProjectAction(author, slug)(service) { implicit request =>
       Statistics.projectViewed(implicit request => Ok(views.discuss(request.project)))
     }
   }
@@ -233,11 +235,11 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return       View of discussion with new post
     */
   def postDiscussionReply(author: String, slug: String) = {
-    AuthedProjectAction(author, slug) { implicit request =>
+    AuthedProjectAction(author, slug)(service) { implicit request =>
       Forms.ProjectReply.bindFromRequest.fold(
         hasErrors => Redirect(self.showDiscussion(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         content => {
-          val error = await(SpongeForums.Embed.postReply(request.project, request.user, content)).get
+          val error = service.await(SpongeForums.Embed.postReply(request.project, request.user, content)).get
           var result = Redirect(self.showDiscussion(author, slug))
           if (error.isDefined) result = result.flashing("error" -> error.get)
           result
@@ -267,7 +269,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return Issue tracker
     */
   def showIssues(author: String, slug: String) = {
-    ProjectAction(author, slug) { implicit request =>
+    ProjectAction(author, slug)(service) { implicit request =>
       request.project.issues match {
         case None => NotFound
         case Some(link) => Redirect(link)
@@ -283,7 +285,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return Source code
     */
   def showSource(author: String, slug: String) = {
-    ProjectAction(author, slug) { implicit request =>
+    ProjectAction(author, slug)(service) { implicit request =>
       request.project.source match {
         case None => NotFound
         case Some(link) => Redirect(link)

@@ -1,7 +1,7 @@
-package db.model
+package db
 
 import com.github.tminglei.slickpg.InetString
-import db.driver.OrePostgresDriver.api._
+import db.impl.OrePostgresDriver.api._
 import models.statistic.StatEntry
 
 /**
@@ -11,9 +11,9 @@ import models.statistic.StatEntry
   * @param name         Table name
   * @param modelIdName  Column name of model ID field
   */
-abstract class StatTable[M <: StatEntry[_]](tag: Tag,
-                                            name: String,
-                                            modelIdName: String) extends ModelTable[M](tag, name) {
+abstract class StatTable[M <: StatEntry[_, _]](tag: Tag,
+                                               name: String,
+                                               modelIdName: String) extends ModelTable[M](tag, name) {
 
   def modelId = column[Int](modelIdName)
   def address = column[InetString]("address")

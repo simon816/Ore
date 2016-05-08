@@ -1,5 +1,6 @@
 package controllers
 
+import db.ModelService
 import models.project.Project
 import models.user.User
 import ore.permission.scope.ScopeSubject
@@ -16,12 +17,14 @@ object Requests {
     * @param project Project to hold
     * @param request Request to wrap
     */
-  class ProjectRequest[A](val project: Project, request: Request[A]) extends WrappedRequest[A](request)
+  class ProjectRequest[A](val project: Project, val service: ModelService, request: Request[A])
+    extends WrappedRequest[A](request)
 
   /** Represents a Request with a [[User]] and [[ScopeSubject]] */
   trait ScopedRequest[A] extends WrappedRequest[A] {
     def user: User
     def subject: ScopeSubject = this.user
+    def service: ModelService
   }
 
   /**
@@ -30,8 +33,11 @@ object Requests {
     * @param user     Authenticated user
     * @param request  Request to wrap
     */
-  case class AuthRequest[A](override val user: User, request: Request[A]) extends WrappedRequest[A](request)
-                                                                          with ScopedRequest[A]
+  case class AuthRequest[A](override val user: User,
+                            override val service: ModelService,
+                            request: Request[A])
+    extends WrappedRequest[A](request)
+      with ScopedRequest[A]
 
   /**
     * A request that hold a Project and a [[AuthRequest]].
@@ -39,8 +45,10 @@ object Requests {
     * @param project Project to hold
     * @param request An [[AuthRequest]]
     */
-  case class AuthedProjectRequest[A](override val project: Project, request: AuthRequest[A])
-                                     extends ProjectRequest[A](project, request) with ScopedRequest[A] {
+  case class AuthedProjectRequest[A](override val project: Project,
+                                     override val service: ModelService,
+                                     request: AuthRequest[A])
+                                     extends ProjectRequest[A](project, service, request) with ScopedRequest[A] {
     override def user: User = request.user
     override val subject: ScopeSubject = this.project
   }

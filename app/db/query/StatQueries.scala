@@ -1,15 +1,15 @@
-package db.query.impl
+package db.query
 
-import db.dao.ModelFilter
-import db.driver.OrePostgresDriver.api._
-import db.model.{Model, StatTable}
-import db.query.ModelQueries
+import db.{ModelService, StatTable}
+import db.impl.OrePostgresDriver.api._
 import models.statistic.StatEntry
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 
-class StatQueries[T <: StatTable[M], M <: StatEntry[S], S <: Model](statEntryClass: Class[M], baseQuery: TableQuery[T])
+class StatQueries[T <: StatTable[M], M <: StatEntry[_, _]](statEntryClass: Class[M],
+                                                           baseQuery: TableQuery[T])
+                                                          (implicit service: ModelService)
   extends ModelQueries(statEntryClass, baseQuery) {
 
   /**

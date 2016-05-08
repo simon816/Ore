@@ -1,7 +1,8 @@
 package ore.project
 
 import com.google.common.base.MoreObjects
-import db.driver.OrePostgresDriver.api._
+import db.ModelService
+import db.impl.OrePostgresDriver.api._
 import models.project.Project
 import models.user.{ProjectRole, User}
 import ore.permission.scope.{Scope, ScopeSubject}
@@ -12,7 +13,9 @@ import ore.permission.scope.{Scope, ScopeSubject}
   * @param project  Project this Member is a part of
   * @param name     Member name
   */
-class ProjectMember(val project: Project, val name: String) extends ScopeSubject with Ordered[ProjectMember] {
+class ProjectMember(val project: Project,
+                    val name: String)(implicit service: ModelService)
+                    extends ScopeSubject with Ordered[ProjectMember] {
 
   /**
     * Returns the [[User]] this Member belongs to.

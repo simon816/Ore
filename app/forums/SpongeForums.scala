@@ -1,5 +1,6 @@
 package forums
 
+import db.ModelService
 import play.api.libs.json.JsObject
 import play.api.libs.ws.{WSClient, WSResponse}
 import util.Conf._
@@ -20,13 +21,13 @@ object SpongeForums {
     *
     * @param ws HTTP request client
     */
-  def enable()(implicit ws: WSClient) = {
+  def enable()(implicit ws: WSClient, service: ModelService) = {
     if (DiscourseConf.getBoolean("api.enabled").get) {
       val baseUrl = DiscourseConf.getString("baseUrl").get
       val apiKey = DiscourseConf.getString("api.key").get
       val categoryId = DiscourseConf.getInt("embed.categoryId").get
       this.Users = new DiscourseUsers(baseUrl, ws)
-      this.Embed = new DiscourseEmbed(baseUrl, apiKey, categoryId, ws)
+      this.Embed = new DiscourseEmbed(baseUrl, apiKey, categoryId, ws, service)
     } else disable()
   }
 

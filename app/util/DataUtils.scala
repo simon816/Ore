@@ -2,9 +2,9 @@ package util
 
 import java.nio.file.Files._
 
-import db.driver.OrePostgresDriver.api._
-import db.model.Models
-import db.query.ModelQueries.{await, run}
+import db.ModelService
+import db.impl.OrePostgresDriver.api._
+import db.impl.query.user.UserQueries
 import forums.SpongeForums
 import models.project.{Channel, Project, Version}
 import models.user.User
@@ -30,9 +30,9 @@ object DataUtils {
   /**
     * Resets the application to factory defaults.
     */
-  def reset() = {
+  def reset()(implicit service: ModelService) = {
     for (project <- Project.values) project.delete
-    await(run(Models.Users.baseQuery.delete)).get
+    service.await(service.run(service.provide[UserQueries].baseQuery.delete)).get
     FileUtils.deleteDirectory(UploadsDir.toFile)
   }
 
@@ -41,7 +41,7 @@ object DataUtils {
     *
     * @param users Amount of users to create
     */
-  def seed(users: Int, versions: Int, channels: Int) = {
+  def seed(users: Int, versions: Int, channels: Int)(implicit service: ModelService) = {
     // Note: Dangerous as hell, handle with care
     SpongeForums.disable() // Disable topic creation
     this.reset()

@@ -4,7 +4,8 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.project.routes.{Versions => self}
-import db.driver.OrePostgresDriver.api._
+import db.ModelService
+import db.impl.OrePostgresDriver.api._
 import form.Forms
 import models.project.{Channel, Project, Version}
 import ore.Statistics
@@ -21,11 +22,12 @@ import scala.util.{Failure, Success}
 /**
   * Controller for handling Version related actions.
   */
-class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {
+class Versions @Inject()(override val messagesApi: MessagesApi,
+                         implicit val ws: WSClient,
+                         implicit val service: ModelService) extends BaseController {
 
-  private def VersionEditAction(author: String, slug: String) = {
-    AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditVersions)
-  }
+  private def VersionEditAction(author: String, slug: String)
+  = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditVersions)
 
   /**
     * Shows the specified version view page.
@@ -36,7 +38,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return Version view
     */
   def show(author: String, slug: String, versionString: String) = {
-    ProjectAction(author, slug) { implicit request =>
+    ProjectAction(author, slug)(service) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
         Statistics.projectViewed { implicit request =>
@@ -94,7 +96,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(ReviewProjects)) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
-        version.setReviewed(true)
+        version.setReviewed(reviewed = true)
         Redirect(self.show(author, slug, versionString))
       }
     }
@@ -109,7 +111,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return View of project
     */
   def showList(author: String, slug: String, channels: Option[String]) = {
-    ProjectAction(author, slug) { implicit request =>
+    ProjectAction(author, slug)(service) { implicit request =>
       val project = request.project
       val allChannels = project.channels.toSeq
 
@@ -201,7 +203,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return Version create view
     */
   def showCreatorWithMeta(author: String, slug: String, versionString: String) = {
-    Authenticated { implicit request =>
+    Authenticated(service) { implicit request =>
       // Get pending version
       Version.getPending(author, slug, versionString) match {
         case None => Redirect(self.showCreator(author, slug))
@@ -238,7 +240,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return New version view
     */
   def create(author: String, slug: String, versionString: String) = {
-    Authenticated { implicit request =>
+    Authenticated(service) { implicit request =>
       // First get the pending Version
       Version.getPending(author, slug, versionString) match {
         case None => Redirect(self.showCreator(author, slug)) // Not found
@@ -312,7 +314,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return Sent file
     */
   def download(author: String, slug: String, versionString: String) = {
-    ProjectAction(author, slug) { implicit request =>
+    ProjectAction(author, slug)(service) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
         Statistics.versionDownloaded(version) { implicit request =>
@@ -330,7 +332,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi, implicit val ws:
     * @return Sent file
     */
   def downloadRecommended(author: String, slug: String) = {
-    ProjectAction(author, slug) { implicit request =>
+    ProjectAction(author, slug)(service) { implicit request =>
       val project = request.project
       val rv = project.recommendedVersion
       Statistics.versionDownloaded(rv) { implicit request =>

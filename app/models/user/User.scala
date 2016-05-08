@@ -3,13 +3,14 @@ package models.user
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.dao.ModelSet
-import db.driver.OrePostgresDriver.api._
-import db.model.ModelKeys._
-import db.model.annotation._
-import db.model.{Model, Models}
-import db.query.ModelQueries.await
-import db.{FlagTable, ProjectRoleTable, ProjectTable, UserTable}
+import db.{Model, ModelService}
+import db.impl.ModelKeys._
+import db.impl.OrePostgresDriver.api._
+import db.impl._
+import db.impl.query.ProjectQueries
+import db.impl.query.user.UserQueries
+import db.meta._
+import db.query.ModelSet
 import forums.SpongeForums
 import models.project.{Flag, Project}
 import ore.UserOwner
@@ -43,13 +44,9 @@ case class User(override val id: Option[Int] = None,
                 @(Bind @field) private var _globalRoles: List[RoleType] = List(),
                 @(Bind @field) private var _joinDate: Option[Timestamp] = None,
                 @(Bind @field) private var _avatarUrl: Option[String] = None)
-                extends Model(id, createdAt) with UserOwner with ScopeSubject { self =>
+                extends Model[UserQueries](id, createdAt) with UserOwner with ScopeSubject { self =>
 
   import models.user.User._
-
-  BindingsGenerator.generateFor(this)
-
-  override type M <: User { type M = self.M }
 
   /**
     * The User's [[PermissionPredicate]]. All permission checks go through
@@ -72,7 +69,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _fullName Full name of user
     */
-  def name_=(_fullName: String) = {
+  def name_=(_fullName: String)(implicit service: ModelService) = {
     this._name = Option(_fullName)
     if (isDefined) update(Name)
   }
@@ -89,7 +86,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _username Username of User
     */
-  def username_=(_username: String) = {
+  def username_=(_username: String)(implicit service: ModelService) = {
     checkNotNull(_username, "username cannot be null", "")
     this._username = _username
     if (isDefined) update(Username)
@@ -107,7 +104,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _email User email
     */
-  def email_=(_email: String) = {
+  def email_=(_email: String)(implicit service: ModelService) = {
     this._email = Option(_email)
     if (isDefined) update(Email)
   }
@@ -126,7 +123,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _joinDate Sponge join date
     */
-  def joinDate_=(_joinDate: Timestamp) = {
+  def joinDate_=(_joinDate: Timestamp)(implicit service: ModelService) = {
     this._joinDate = Option(_joinDate)
     if (isDefined) update(JoinDate)
   }
@@ -148,7 +145,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _avatarUrl Avatar url
     */
-  def avatarUrl_=(_avatarUrl: String) = {
+  def avatarUrl_=(_avatarUrl: String)(implicit service: ModelService) = {
     this._avatarUrl = Option(_avatarUrl)
     if (isDefined) update(AvatarUrl)
   }
@@ -165,7 +162,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _tagline Tagline to display
     */
-  def tagline_=(_tagline: String) = {
+  def tagline_=(_tagline: String)(implicit service: ModelService) = {
     checkArgument(_tagline.length <= MaxTaglineLength, "tagline too long", "")
     this._tagline = Option(nullIfEmpty(_tagline))
     if (isDefined) update(Tagline)
@@ -177,21 +174,21 @@ case class User(override val id: Option[Int] = None,
     * @param name   Name of project
     * @return       Owned project, if any, None otherwise
     */
-  def getProject(name: String): Option[Project] = Project.withName(this.username, name)
+  def getProject(name: String)(implicit service: ModelService): Option[Project] = Project.withName(this.username, name)
 
   /**
     * Returns all Projects owned by this User.
     *
     * @return All projects owned by User
     */
-  def projects = this.getMany[ProjectTable, Project](classOf[Project])
+  def projects(implicit service: ModelService) = this.getMany[ProjectTable, Project](classOf[Project])
 
   /**
     * Returns a [[ModelSet]] of [[ProjectRole]]s.
     *
     * @return ProjectRoles
     */
-  def projectRoles = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+  def projectRoles(implicit service: ModelService) = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns a Set of [[RoleType]]s that this User has globally.
@@ -205,7 +202,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _globalRoles Roles to set
     */
-  def globalRoles_=(_globalRoles: Set[RoleType]) = {
+  def globalRoles_=(_globalRoles: Set[RoleType])(implicit service: ModelService) = {
     this._globalRoles = _globalRoles.toList
     if (isDefined) update(GlobalRoles)
   }
@@ -215,7 +212,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Highest level of trust
     */
-  def trustIn(scope: Scope = GlobalScope): Trust = Defined {
+  def trustIn(scope: Scope = GlobalScope)(implicit service: ModelService): Trust = Defined {
     scope match {
       case GlobalScope => this.globalRoles.map(_.trust).toList.sorted.reverse.headOption.getOrElse(Default)
       case pScope: ProjectScope =>
@@ -228,7 +225,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Flags submitted by user
     */
-  def flags = this.getMany[FlagTable, Flag](classOf[Flag])
+  def flags(implicit service: ModelService) = this.getMany[FlagTable, Flag](classOf[Flag])
 
   /**
     * Returns true if the User has an unresolved [[Flag]] on the specified
@@ -237,7 +234,7 @@ case class User(override val id: Option[Int] = None,
     * @param project  Project to check
     * @return         True if has pending flag on Project
     */
-  def hasUnresolvedFlagFor(project: Project): Boolean
+  def hasUnresolvedFlagFor(project: Project)(implicit service: ModelService): Boolean
   = this.flags.exists(f => f.projectId === project.id.get && !f.isResolved)
 
   /**
@@ -246,9 +243,9 @@ case class User(override val id: Option[Int] = None,
     * @param page Page of user stars
     * @return     Projects user has starred
     */
-  def starred(page: Int = -1): Seq[Project] = Defined {
+  def starred(page: Int = -1)(implicit service: ModelService): Seq[Project] = Defined {
     val limit = if (page < 1) -1 else StarsPerPage
-    await(Models.Projects.starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
+    service.await(service.provide[ProjectQueries].starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
   }
 
   /**
@@ -258,7 +255,7 @@ case class User(override val id: Option[Int] = None,
     * @param user User to fill with
     * @return     This user
     */
-  def fill(user: User): User = {
+  def fill(user: User)(implicit service: ModelService): User = {
     if (user == null) return this
     user.name.foreach(this.name_=)
     user.email.foreach(this.email_=)
@@ -296,9 +293,9 @@ object User extends ModelSet[UserTable, User](classOf[User]) {
     * @param username Username of user
     * @return User if found, None otherwise
     */
-  def withName(username: String): Option[User] = {
+  def withName(username: String)(implicit service: ModelService): Option[User] = {
     this.find(equalsIgnoreCase(_.username, username)).orElse {
-      await(SpongeForums.Users.fetch(username)).get.map(getOrCreate)
+      service.await(SpongeForums.Users.fetch(username)).get.map(getOrCreate)
     }
   }
 
@@ -309,7 +306,7 @@ object User extends ModelSet[UserTable, User](classOf[User]) {
     * @param user User to find
     * @return     Found or new User
     */
-  def getOrCreate(user: User): User = await(Models.Users.getOrInsert(user)).get
+  def getOrCreate(user: User)(implicit service: ModelService): User = service.await(user.queries.getOrInsert(user)).get
 
   /**
     * Returns the currently authenticated User.
@@ -317,6 +314,7 @@ object User extends ModelSet[UserTable, User](classOf[User]) {
     * @param session  Current session
     * @return         Authenticated user, if any, None otherwise
     */
-  def current(implicit session: Session): Option[User] = session.get("username").map(withName).getOrElse(None)
+  def current(implicit session: Session, service: ModelService): Option[User]
+  = session.get("username").map(withName).getOrElse(None)
 
 }

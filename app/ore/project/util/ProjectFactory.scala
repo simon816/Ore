@@ -3,6 +3,7 @@ package ore.project.util
 import java.nio.file.Files
 
 import com.google.common.base.Preconditions._
+import db.ModelService
 import forums.SpongeForums
 import models.project.{Channel, Project, Version}
 import models.user.{ProjectRole, User}
@@ -44,7 +45,7 @@ object ProjectFactory {
     * @return         New Project
     * @throws         IllegalArgumentException if the project already exists
     */
-  def createProject(pending: PendingProject): Try[Project] = Try {
+  def createProject(pending: PendingProject)(implicit service: ModelService): Try[Project] = Try {
     checkArgument(!pending.project.exists, "project already exists", "")
     checkArgument(pending.project.isNamespaceAvailable, "slug not available", "")
     checkArgument(Project.isValidName(pending.project.name), "invalid name", "")
@@ -67,7 +68,7 @@ object ProjectFactory {
     * @param pending  PendingVersion
     * @return         New version
     */
-  def createVersion(pending: PendingVersion): Try[Version] = Try {
+  def createVersion(pending: PendingVersion)(implicit service: ModelService): Try[Version] = Try {
     var channel: Channel = null
     val project = Project.withSlug(pending.owner, pending.projectSlug).get
 

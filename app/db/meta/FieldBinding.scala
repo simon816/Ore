@@ -1,4 +1,6 @@
-package db.model
+package db.meta
+
+import db.Model
 
 import scala.concurrent.Future
 
@@ -11,4 +13,4 @@ import scala.concurrent.Future
   * @tparam M         Model
   * @tparam A         Field type
   */
-case class FieldBinding[M <: Model, A](valueFunc: M => A, updateFunc: A => Seq[Future[_]])
+case class FieldBinding[M <: Model[_], A](valueFunc: M => A, updateFunc: A => Future[_])

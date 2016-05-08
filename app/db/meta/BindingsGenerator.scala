@@ -1,7 +1,7 @@
-package db.model.annotation
+package db.meta
 
-import db.driver.OrePostgresDriver.api._
-import db.model.{Model, ModelTable}
+import db.{Model, ModelService, ModelTable}
+import db.impl.OrePostgresDriver.api._
 import util.Conf.debug
 
 import scala.reflect.runtime.universe._
@@ -19,13 +19,13 @@ object BindingsGenerator {
     * @tparam T     Model table
     * @tparam M     Model type
     */
-  def generateFor[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
+  def generateFor[T <: ModelTable[M], M <: Model[_]: WeakTypeTag](model: M)(implicit service: ModelService) = {
     debug("Generating bindings for model " + model)
     generateFieldsFor(model)
     generateRelationsFor(model)
   }
 
-  def generateFieldsFor[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
+  def generateFieldsFor[T <: ModelTable[M], M <: Model[_]: WeakTypeTag](model: M)(implicit service: ModelService) = {
     debug("Generating field for model " + model)
     // Bind marked fields
     val modelClass = model.getClass
@@ -47,19 +47,19 @@ object BindingsGenerator {
       if (fieldType.equals(classOf[Option[_]])) {
         // Lift type out of option
         fieldType = runtimeMirror(getClass.getClassLoader)
-          .runtimeClass(typeTag[M].tpe.members
+          .runtimeClass(weakTypeTag[M].tpe.members
             .filterNot(_.isMethod)
             .filter(m => m.name.decodedName.toString.trim.equals(fieldName))
             .map(_.typeSignature.typeArgs.head).head.typeSymbol.asClass)
       }
 
-      TypeSetters.get(fieldType)
+      service.registrar.getSetter(fieldType)
         .getOrElse(throw new RuntimeException("No type setter found for type: " + fieldType))
         .bindTo(model, key, bindField)
     }
   }
 
-  def generateRelationsFor[T <: ModelTable[M], M <: Model](model: M) = {
+  def generateRelationsFor[T <: ModelTable[M], M <: Model[_]](model: M) = {
     debug("Generating relations for model " + model)
     val modelClass = model.getClass
     val key = modelClass.getSimpleName.toLowerCase + "Id"

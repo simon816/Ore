@@ -3,7 +3,7 @@ package util
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import db.driver.OrePostgresDriver.api._
+import db.impl.OrePostgresDriver.api._
 import util.Conf._
 
 /**

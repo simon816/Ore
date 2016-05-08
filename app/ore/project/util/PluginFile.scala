@@ -17,7 +17,7 @@ import scala.util.control.Breaks._
   *
   * @param _path Path to uploaded file
   */
-class PluginFile(private var _path: Path, override val user: User) extends UserOwner {
+class PluginFile(private var _path: Path, val user: User) extends UserOwner {
 
   private val MetaFileName = "mcmod.info"
 

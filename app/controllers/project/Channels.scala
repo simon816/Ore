@@ -4,6 +4,7 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.project.routes.{Channels => self}
+import db.ModelService
 import form.Forms
 import ore.permission.EditChannels
 import play.api.i18n.MessagesApi
@@ -13,11 +14,12 @@ import views.html.projects.{channels => views}
 /**
   * Controller for handling Channel related actions.
   */
-class Channels @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {
+class Channels @Inject()(override val messagesApi: MessagesApi,
+                         implicit val ws: WSClient,
+                         implicit val service: ModelService) extends BaseController {
 
-  private def ChannelEditAction(author: String, slug: String) = {
-    AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditChannels)
-  }
+  private def ChannelEditAction(author: String, slug: String)
+  = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditChannels)
 
   /**
     * Displays a view of the specified Project's Channels.

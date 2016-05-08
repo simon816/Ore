@@ -4,8 +4,10 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
-import db.model.Model
-import db.model.annotation.{Bind, BindingsGenerator}
+import db.{Model, ModelService}
+import db.impl.ProjectViewsTable
+import db.meta.{Bind, BindingsGenerator}
+import db.query.StatQueries
 import models.project.Project
 import models.user.User
 import ore.{ProjectOwner, Statistics}
@@ -28,13 +30,14 @@ case class ProjectView(override val id: Option[Int] = None,
                        override val address: InetString,
                        override val cookie: String,
                        @(Bind @field) private var userId: Option[Int] = None)
-                       extends StatEntry[Project](id, createdAt, modelId, address, cookie, userId) with ProjectOwner {
+                       extends StatEntry[Project, StatQueries[ProjectViewsTable, ProjectView]](
+                         id, createdAt, modelId, address, cookie, userId
+                       ) with ProjectOwner {
 
-  BindingsGenerator.generateFor(this)
+  override def subject(implicit service: ModelService): Project = Project.withId(this.modelId).get
 
-  override def subject: Project = Project.withId(this.modelId).get
-
-  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Model = this.copy(id = id, createdAt = theTime)
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): ProjectView
+  = this.copy(id = id, createdAt = theTime)
 
   override def projectId: Int = this.modelId
 
@@ -50,7 +53,7 @@ object ProjectView {
     * @return         New ProjectView
     */
   def bindFromRequest()(implicit request: ProjectRequest[_]): ProjectView = {
-    val userId = User.current(request.session).flatMap(_.id)
+    val userId = User.current(request.session, request.service).flatMap(_.id)
     val cookie = Statistics.getStatCookie
     ProjectView(
       modelId = request.project.id.get,

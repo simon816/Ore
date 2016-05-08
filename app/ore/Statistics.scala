@@ -3,7 +3,6 @@ package ore
 import java.util.UUID
 
 import controllers.Requests.ProjectRequest
-import db.model.Models
 import models.project.Version
 import models.statistic.{ProjectView, VersionDownload}
 import play.api.mvc.{Cookie, RequestHeader, Result}
@@ -34,9 +33,10 @@ object Statistics {
     * @param request Request to view the project
     */
   def projectViewed(f: ProjectRequest[_] => Result)(implicit request: ProjectRequest[_]): Result = {
+    implicit val service = request.service
     val project = request.project
     val statEntry = ProjectView.bindFromRequest
-    Models.Projects.Views.record(statEntry).andThen {
+    project.queries.Views.record(statEntry).andThen {
       case recorded => if (recorded.get) project.addView()
     }
     f(request).withCookies(Cookie(COOKIE_UID, statEntry.cookie))
@@ -51,8 +51,9 @@ object Statistics {
     * @param request Request to download the version
     */
   def versionDownloaded(version: Version)(f: ProjectRequest[_] => Result)(implicit request: ProjectRequest[_]): Result = {
+    implicit val service = request.service
     val statEntry = VersionDownload.bindFromRequest(version)
-    Models.Versions.Downloads.record(statEntry).andThen {
+    version.queries.Downloads.record(statEntry).andThen {
       case recorded => if (recorded.get) {
         version.addDownload()
         request.project.addDownload()

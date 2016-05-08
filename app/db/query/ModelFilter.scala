@@ -1,8 +1,7 @@
-package db.dao
+package db.query
 
-import db.driver.OrePostgresDriver.api._
-import db.model.{Model, ModelTable}
-import db.query.ModelQueries.wrapFilter
+import db.{Model, ModelTable}
+import db.impl.OrePostgresDriver.api._
 
 /**
   * A wrapper class for a T => Rep[Boolean] on a ModelTable. This allows for easier
@@ -13,7 +12,7 @@ import db.query.ModelQueries.wrapFilter
   * @tparam T   Table type
   * @tparam M   Model type
   */
-case class ModelFilter[T <: ModelTable[M], M <: Model](fn: T => Rep[Boolean] = null) {
+case class ModelFilter[T <: ModelTable[M], M <: Model[_]](fn: T => Rep[Boolean] = null) {
 
   /**
     * Applies && to the wrapped function and returns a new filter.
@@ -87,5 +86,17 @@ case class ModelFilter[T <: ModelTable[M], M <: Model](fn: T => Rep[Boolean] = n
 
   private def trueIfNull(fn: T => Rep[Boolean]): T => Rep[Boolean] = if (fn == null) _ => true else fn
   private def falseIfNull(fn: T => Rep[Boolean]): T => Rep[Boolean] = if (fn == null) _ => false else fn
+
+}
+
+object ModelFilter {
+
+  implicit def unwrapFilter[T <: ModelTable[M], M <: Model[_]](filter: ModelFilter[T, M]): T => Rep[Boolean]
+  = if (filter == null) null else filter.fn
+  implicit def wrapFilter[T <: ModelTable[M], M <: Model[_]](fn: T => Rep[Boolean]): ModelFilter[T, M]
+  = ModelFilter(fn)
+
+  /** Filters models by ID */
+  def IdFilter[T <: ModelTable[M], M <: Model[_]](id: Int): ModelFilter[T, M] = ModelFilter(_.id === id)
 
 }

@@ -1,5 +1,8 @@
 package controllers
 
+import javax.inject.Inject
+
+import db.ModelService
 import ore.api.OreAPI.v1
 import play.api.libs.json._
 import play.api.mvc._
@@ -7,7 +10,7 @@ import play.api.mvc._
 /**
   * Ore API (v1)
   */
-class ApiController extends Controller {
+class ApiController @Inject()(implicit val models: ModelService) extends Controller {
 
   def ApiResult(json: Option[JsValue]): Result = json.map(Ok(_)).getOrElse(NotFound)
 

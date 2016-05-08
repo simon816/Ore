@@ -3,11 +3,12 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.PageTable
-import db.dao.ModelSet
-import db.model.Model
-import db.model.ModelKeys._
-import db.model.annotation.{Bind, BindingsGenerator}
+import db.impl.{ModelKeys, PageTable}
+import ModelKeys._
+import db.{Model, ModelService}
+import db.impl.query.PageQueries
+import db.meta.{Bind, BindingsGenerator}
+import db.query.ModelSet
 import forums.SpongeForums
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
@@ -36,13 +37,9 @@ case class Page(override val  id: Option[Int] = None,
                               slug: String,
                               isDeletable: Boolean = true,
                 @(Bind @field) private var _contents: String)
-                extends Model(id, createdAt) with ProjectScope { self =>
+                extends Model[PageQueries](id, createdAt) with ProjectScope { self =>
 
   import models.project.Page._
-
-  override type M <: Page { type M = self.M }
-
-  BindingsGenerator.generateFor(this)
 
   checkNotNull(this.name, "name cannot be null", "")
   checkNotNull(this._contents, "contents cannot be null", "")
@@ -68,7 +65,7 @@ case class Page(override val  id: Option[Int] = None,
     *
     * @param _contents Markdown contents
     */
-  def contents_=(_contents: String) = {
+  def contents_=(_contents: String)(implicit service: ModelService) = {
     checkArgument(_contents.length <= MaxLength, "contents too long", "")
     checkArgument(_contents.length >= MinLength, "contents not long enough", "")
     this._contents = _contents

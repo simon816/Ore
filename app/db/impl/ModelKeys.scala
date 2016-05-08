@@ -1,4 +1,4 @@
-package db.model
+package db.impl
 
 /**
   * Collection of String keys used for table bindings within Models.

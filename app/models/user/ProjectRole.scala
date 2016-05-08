@@ -2,11 +2,11 @@ package models.user
 
 import java.sql.Timestamp
 
-import db.ProjectRoleTable
-import db.dao.ModelSet
-import db.model.Model
-import db.model.ModelKeys._
-import db.model.annotation.{Bind, BindingsGenerator}
+import db.impl.{ModelKeys, ProjectRoleTable}
+import ModelKeys._
+import db.{Model, ModelService}
+import db.meta.{Bind, BindingsGenerator}
+import db.query.{ModelQueries, ModelSet}
 import ore.permission.role.Role
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.ProjectScope
@@ -29,11 +29,10 @@ case class ProjectRole(override val id: Option[Int] = None,
                        override val userId: Int,
                        override val projectId: Int,
                        @(Bind @field) private var  _roleType: RoleType)
-                       extends Model(id, createdAt) with Role with ProjectScope with Ordered[ProjectRole] { self =>
-
-  override type M <: ProjectRole { type M = self.M }
-
-  BindingsGenerator.generateFor(this)
+                       extends Model[ModelQueries[ProjectRoleTable, ProjectRole]](id, createdAt)
+                         with Role
+                         with ProjectScope
+                         with Ordered[ProjectRole] { self =>
 
   def this(userId: Int, roleType: RoleType, projectId: Int) = {
     this(id=None, createdAt=None, userId=userId, _roleType=roleType, projectId=projectId)
@@ -44,7 +43,7 @@ case class ProjectRole(override val id: Option[Int] = None,
     *
     * @param _roleType Role type to set
     */
-  def roleType_=(_roleType: RoleType) = {
+  def roleType_=(_roleType: RoleType)(implicit service: ModelService) = {
     this._roleType = _roleType
     if (isDefined) update(RoleType)
   }

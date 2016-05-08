@@ -1,6 +1,6 @@
-package db.model.annotation;
+package db.meta;
 
-import db.model.Model;
+import db.Model;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -19,6 +19,6 @@ public @interface HasMany {
      *
      * @return Model class
      */
-    Class<? extends Model>[] value();
+    Class<? extends Model<?>>[] value();
 
 }

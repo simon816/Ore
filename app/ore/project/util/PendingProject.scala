@@ -1,5 +1,6 @@
 package ore.project.util
 
+import db.ModelService
 import models.project.{Channel, Project, Version}
 import models.user.ProjectRole
 import util.{Cacheable, PendingAction}
@@ -15,7 +16,8 @@ import scala.util.Try
   */
 case class PendingProject(project: Project,
                           file: PluginFile,
-                          var roles: Set[ProjectRole] = Set()) extends PendingAction[Project] with Cacheable {
+                          var roles: Set[ProjectRole] = Set())(implicit service: ModelService)
+                          extends PendingAction[Project] with Cacheable {
 
   /**
     * The first [[PendingVersion]] for this PendingProject.

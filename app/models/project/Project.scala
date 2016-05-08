@@ -6,12 +6,12 @@ import java.text.MessageFormat
 
 import com.google.common.base.Preconditions._
 import db._
-import db.dao.ModelSet
-import db.driver.OrePostgresDriver.api._
-import db.model.ModelKeys._
-import db.model._
-import db.model.annotation.{Bind, BindingsGenerator, HasMany}
-import db.query.ModelQueries.{await, unwrapFilter}
+import db.impl.ModelKeys._
+import db.impl.OrePostgresDriver.api._
+import db.impl._
+import db.impl.query.ProjectQueries
+import db.meta.{Bind, BindingsGenerator, HasMany}
+import db.query.ModelSet
 import forums.SpongeForums
 import models.statistic.ProjectView
 import models.user.{ProjectRole, User}
@@ -73,13 +73,9 @@ case class Project(override val id: Option[Int] = None,
                    @(Bind @field) private var _topicId: Option[Int] = None,
                    @(Bind @field) private var _postId: Option[Int] = None,
                    @(Bind @field) private var _isVisible: Boolean = true)
-                   extends Model(id, createdAt) with ProjectScope { self =>
+                   extends Model[ProjectQueries](id, createdAt) with ProjectScope { self =>
 
   import models.project.Project._
-
-  override type M <: Project { type M = self.M }
-
-  BindingsGenerator.generateFor(this)
 
   def this(pluginId: String, name: String, owner: String, ownerId: Int, homepage: String) = {
     this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
@@ -91,14 +87,15 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Owner Member of project
     */
-  def owner: ProjectMember = new ProjectMember(this, this.ownerName)
+  def owner(implicit service: ModelService): ProjectMember = new ProjectMember(this, this.ownerName)
 
   /**
     * Returns all [[ProjectMember]]s of this project.
     *
     * @return All Members of project
     */
-  def members: Set[ProjectMember] = await(Models.Projects.getMembers(this)).get.toSet
+  def members(implicit service: ModelService): Set[ProjectMember]
+  = service.await(this.queries.getMembers(this)).get.toSet
 
   /**
     * Removes the [[ProjectMember]] that belongs to the specified [[User]] from this
@@ -106,7 +103,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param user User to remove
     */
-  def removeMember(user: User) = this.roles.removeAll(_.userId === user.id.get)
+  def removeMember(user: User)(implicit service: ModelService) = this.roles.removeAll(_.userId === user.id.get)
 
   /**
     * Returns the name of this Project.
@@ -121,7 +118,7 @@ case class Project(override val id: Option[Int] = None,
     * @param _name   New name
     * @return       Future result
     */
-  def name_=(_name: String) = Defined {
+  def name_=(_name: String)(implicit service: ModelService) = Defined {
     val newName = compact(_name)
     val newSlug = slugify(newName)
     checkArgument(isValidName(newName), "invalid name", "")
@@ -156,7 +153,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _description Description to set
     */
-  def description_=(_description: String) = {
+  def description_=(_description: String)(implicit service: ModelService) = {
     checkArgument(_description == null || _description.length <= MaxDescriptionLength, "description too long", "")
     this._description = Option(_description)
     if (this.topicId.isDefined) SpongeForums.Embed.renameTopic(this)
@@ -175,16 +172,16 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _category Category to set
     */
-  def category_=(_category: Category) = {
+  def category_=(_category: Category)(implicit service: ModelService) = {
     this._category = _category
     if (isDefined) update(ModelKeys.Category)
   }
 
-  def viewEntries = this.getMany[ProjectViewsTable, ProjectView](classOf[ProjectView])
+  def viewEntries(implicit service: ModelService) = this.getMany[ProjectViewsTable, ProjectView](classOf[ProjectView])
 
   def views: Int = this._views
 
-  def addView() = {
+  def addView()(implicit service: ModelService) = {
     this._views += 1
     update(Views)
   }
@@ -201,7 +198,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Future result
     */
-  def addDownload() = {
+  def addDownload()(implicit service: ModelService) = {
     this._downloads += 1
     if (isDefined) update(Downloads)
   }
@@ -219,8 +216,8 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to check if starred for
     * @return       True if starred by User
     */
-  def isStarredBy(user: User): Boolean = Defined {
-    await(Models.Projects.isStarredBy(this.id.get, user.id.get)).get
+  def isStarredBy(user: User)(implicit service: ModelService): Boolean = Defined {
+    service.await(this.queries.isStarredBy(this.id.get, user.id.get)).get
   }
 
   /**
@@ -230,7 +227,7 @@ case class Project(override val id: Option[Int] = None,
     * @param username   To get User of
     * @return           True if starred by User
     */
-  def isStarredBy(username: String): Boolean = Defined {
+  def isStarredBy(username: String)(implicit service: ModelService): Boolean = Defined {
     val user = User.withName(username)
     isStarredBy(user.get)
   }
@@ -241,7 +238,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user User to set starred state of
     * @param starred True if should star
     */
-  def setStarredBy(user: User, starred: Boolean) = {
+  def setStarredBy(user: User, starred: Boolean)(implicit service: ModelService) = {
     if (starred) starFor(user) else unstarFor(user)
   }
 
@@ -251,10 +248,10 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to star for
     * @return       Future result
     */
-  def starFor(user: User) = Defined {
+  def starFor(user: User)(implicit service: ModelService) = Defined {
     if (!isStarredBy(user)) {
       this._stars += 1
-      await(Models.Projects.starFor(this.id.get, user.id.get)).get
+      service.await(this.queries.starFor(this.id.get, user.id.get)).get
       update(Stars)
     }
   }
@@ -265,10 +262,10 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to unstar for
     * @return       Future result
     */
-  def unstarFor(user: User) = Defined {
+  def unstarFor(user: User)(implicit service: ModelService) = Defined {
     if (isStarredBy(user)) {
       this._stars -= 1
-      await(Models.Projects.unstarFor(this.id.get, user.id.get)).get
+      service.await(this.queries.unstarFor(this.id.get, user.id.get)).get
       update(Stars)
     }
   }
@@ -279,7 +276,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   Flagger
     * @param reason Reason for flagging
     */
-  def flagFor(user: User, reason: FlagReason) = Defined {
+  def flagFor(user: User, reason: FlagReason)(implicit service: ModelService) = Defined {
     val userId = user.id.get
     checkArgument(userId != this.ownerId, "cannot flag own project", "")
     this.flags.add(new Flag(this.id.get, user.id.get, reason))
@@ -297,7 +294,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _issues Issue tracker link
     */
-  def issues_=(_issues: String) = {
+  def issues_=(_issues: String)(implicit service: ModelService) = {
     this._issues = Option(_issues)
     if (isDefined) update(Issues)
   }
@@ -314,7 +311,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _source Source code link
     */
-  def source_=(_source: String) = {
+  def source_=(_source: String)(implicit service: ModelService) = {
     this._source = Option(_source)
     if (isDefined) update(Source)
   }
@@ -331,7 +328,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _topicId ID to set
     */
-  def topicId_=(_topicId: Int) = Defined {
+  def topicId_=(_topicId: Int)(implicit service: ModelService) = Defined {
     this._topicId = Some(_topicId)
     update(TopicId)
   }
@@ -348,7 +345,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _postId Forum post ID
     */
-  def postId_=(_postId: Int) = Defined {
+  def postId_=(_postId: Int)(implicit service: ModelService) = Defined {
     this._postId = Some(_postId)
     update(PostId)
   }
@@ -358,14 +355,14 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Set of all ProjectRoles
     */
-  def roles = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+  def roles(implicit service: ModelService) = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns the Channels in this Project.
     *
     * @return Channels in project
     */
-  def channels = this.getMany[ChannelTable, Channel](classOf[Channel])
+  def channels(implicit service: ModelService) = this.getMany[ChannelTable, Channel](classOf[Channel])
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -373,7 +370,7 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Name of channel
     * @return       New channel
     */
-  def addChannel(name: String, color: Color): Channel = Defined {
+  def addChannel(name: String, color: Color)(implicit service: ModelService): Channel = Defined {
     checkArgument(Channel.isValidName(name), "invalid name", "")
     checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
     this.channels.add(new Channel(name, color, this.id.get))
@@ -384,14 +381,14 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Versions in project
     */
-  def versions = this.getMany[VersionTable, Version](classOf[Version])
+  def versions(implicit service: ModelService) = this.getMany[VersionTable, Version](classOf[Version])
 
   /**
     * Returns this Project's recommended version.
     *
     * @return Recommended version
     */
-  def recommendedVersion: Version = this.versions.withId(this.recommendedVersionId.get).get
+  def recommendedVersion(implicit service: ModelService): Version = this.versions.withId(this.recommendedVersionId.get).get
 
   /**
     * Updates this project's recommended version.
@@ -399,7 +396,7 @@ case class Project(override val id: Option[Int] = None,
     * @param _version  Version to set
     * @return         Result
     */
-  def recommendedVersion_=(_version: Version) = {
+  def recommendedVersion_=(_version: Version)(implicit service: ModelService) = {
     this.recommendedVersionId = _version.id
     if (isDefined) update(RecommendedVersionId)
   }
@@ -409,7 +406,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Pages in project
     */
-  def pages = this.getMany[PageTable, Page](classOf[Page])
+  def pages(implicit service: ModelService) = this.getMany[PageTable, Page](classOf[Page])
 
   /**
     * Returns true if a page with the specified name exists.
@@ -417,7 +414,7 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Page name
     * @return       True if exists
     */
-  def pageExists(name: String): Boolean = this.pages.exists(_.name === name)
+  def pageExists(name: String)(implicit service: ModelService): Boolean = this.pages.exists(_.name === name)
 
   /**
     * Returns the specified Page or creates it if it doesn't exist.
@@ -425,8 +422,9 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Page name
     * @return       Page with name or new name if it doesn't exist
     */
-  def getOrCreatePage(name: String): Page = Defined {
-    await(Models.Pages.getOrInsert(new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true))).get
+  def getOrCreatePage(name: String)(implicit service: ModelService): Page = Defined {
+    val page = new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true)
+    service.await(page.queries.getOrInsert(page)).get
   }
 
   /**
@@ -434,16 +432,16 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Flags on project
     */
-  def flags = this.getMany[FlagTable, Flag](classOf[Flag])
+  def flags(implicit service: ModelService) = this.getMany[FlagTable, Flag](classOf[Flag])
 
   /**
     * Returns this Project's home page.
     *
     * @return Project home page
     */
-  def homePage: Page = Defined {
+  def homePage(implicit service: ModelService): Page = Defined {
     val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false)
-    await(Models.Pages.getOrInsert(page)).get
+    service.await(page.queries.getOrInsert(page)).get
   }
 
   /**
@@ -458,7 +456,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param visible True if visible
     */
-  def setVisible(visible: Boolean) = {
+  def setVisible(visible: Boolean)(implicit service: ModelService) = {
     this._isVisible = visible
     if (isDefined) update(IsVisible)
   }
@@ -468,21 +466,21 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return True if project exists, false otherwise
     */
-  def exists: Boolean = withName(this.ownerName, this.name).isDefined
+  def exists(implicit service: ModelService): Boolean = withName(this.ownerName, this.name).isDefined
 
   /**
     * Returns true if the Project's desired slug is available.
     *
     * @return True if slug is available
     */
-  def isNamespaceAvailable: Boolean = Project.isNamespaceAvailable(this.ownerName, this._slug)
+  def isNamespaceAvailable(implicit service: ModelService): Boolean = Project.isNamespaceAvailable(this.ownerName, this._slug)
 
   /**
     * Immediately deletes this projects and any associated files.
     *
     * @return Result
     */
-  def delete = Defined {
+  def delete(implicit service: ModelService) = Defined {
     remove(this)
     FileUtils.deleteDirectory(ProjectFiles.projectDir(this.ownerName, this._name).toFile)
     if (this.topicId.isDefined) SpongeForums.Embed.deleteTopic(this)
@@ -539,8 +537,8 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @param slug   URL slug
     * @return       Project if found, None otherwise
     */
-  def withSlug(owner: String, slug: String): Option[Project]
-  = this.find(Models.Projects.ownerFilter(owner) && equalsIgnoreCase(_.slug, slug))
+  def withSlug(owner: String, slug: String)(implicit service: ModelService): Option[Project]
+  = this.find(service.provide[ProjectQueries].ownerFilter(owner) && equalsIgnoreCase(_.slug, slug))
 
   /**
     * Returns the Project with the specified owner name and Project name, if
@@ -550,8 +548,8 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @param name   Project name
     * @return       Project if found, None otherwise
     */
-  def withName(owner: String, name: String): Option[Project]
-  = this.find(Models.Projects.ownerFilter(owner) && equalsIgnoreCase(_.name, name))
+  def withName(owner: String, name: String)(implicit service: ModelService): Option[Project]
+  = this.find(service.provide[ProjectQueries].ownerFilter(owner) && equalsIgnoreCase(_.name, name))
 
   /**
     * Returns the Project with the specified plugin ID, if any.
@@ -559,7 +557,8 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @param pluginId Plugin ID
     * @return         Project if found, None otherwise
     */
-  def withPluginId(pluginId: String): Option[Project] = this.find(equalsIgnoreCase(_.pluginId, pluginId))
+  def withPluginId(pluginId: String)(implicit service: ModelService): Option[Project]
+  = this.find(equalsIgnoreCase(_.pluginId, pluginId))
 
   /**
     * Returns the string to fill the specified Project's forum topic content
@@ -568,7 +567,7 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @param project  Project of topic
     * @return         Topic content string
     */
-  def topicContentFor(project: Project): String = {
+  def topicContentFor(project: Project)(implicit service: ModelService): String = {
     val template = new String(Files.readAllBytes(ForumTopicTemplatePath))
     val url = AppConf.getString("baseUrl").get + '/' + project.ownerName + '/' + project.slug
     MessageFormat.format(template, project.name, url, project.homePage.contents)
@@ -579,7 +578,7 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     *
     * @return True if slug is available
     */
-  def isNamespaceAvailable(owner: String, slug: String): Boolean = {
+  def isNamespaceAvailable(owner: String, slug: String)(implicit service: ModelService): Boolean = {
     withSlug(owner, slug).isEmpty
   }
 
@@ -600,7 +599,7 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @param project        Project that is pending
     * @param firstVersion   Uploaded plugin
     */
-  def setPending(project: Project, firstVersion: PluginFile): PendingProject =  {
+  def setPending(project: Project, firstVersion: PluginFile)(implicit service: ModelService): PendingProject =  {
     val pendingProject = PendingProject(project, firstVersion)
     pendingProject.cache()
     pendingProject

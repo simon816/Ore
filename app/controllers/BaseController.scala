@@ -1,5 +1,6 @@
 package controllers
 
+import db.ModelService
 import forums.SpongeForums
 import models.project.{Project, Version}
 import play.api.i18n.I18nSupport
@@ -12,7 +13,9 @@ import util.StringUtils.equalsIgnoreCase
 /**
   * Represents a Secured base Controller for this application.
   */
-abstract class BaseController(implicit ws: WSClient) extends Controller with I18nSupport with Actions {
+abstract class BaseController(implicit ws: WSClient, service: ModelService) extends Controller
+                                                                              with I18nSupport
+                                                                              with Actions {
 
   SpongeForums.enable()
   if (isDebug) DataUtils.enable()

@@ -1,5 +1,6 @@
 package form
 
+import db.ModelService
 import models.project.{Channel, Project}
 import ore.Colors.Color
 
@@ -24,7 +25,7 @@ trait TChannelData {
     * @param project  Project to add Channel to
     * @return         Either the new channel or an error message
     */
-  def addTo(project: Project): Either[String, Channel] = {
+  def addTo(project: Project)(implicit service: ModelService): Either[String, Channel] = {
     val channels = project.channels.values
     if (channels.size >= Project.MaxChannels) {
       Left("A project may only have up to five channels.")
@@ -47,7 +48,7 @@ trait TChannelData {
     * @param project  Project of channel
     * @return         Error, if any
     */
-  def saveTo(oldName: String)(implicit project: Project): Option[String] = {
+  def saveTo(oldName: String)(implicit project: Project, service: ModelService): Option[String] = {
     val channels = project.channels.values
     val channel = channels.find(_.name.equalsIgnoreCase(oldName)).get
     val colorChan = channels.find(_.color.equals(this.color))

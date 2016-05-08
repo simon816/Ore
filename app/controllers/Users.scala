@@ -3,6 +3,7 @@ package controllers
 import javax.inject.Inject
 
 import controllers.routes.{Application => app, Users => self}
+import db.ModelService
 import form.Forms
 import forums.SpongeForums._
 import models.user.{FakeUser, User}
@@ -12,7 +13,9 @@ import play.api.mvc.{Security, _}
 import util.Conf._
 import views.{html => views}
 
-class Users @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {
+class Users @Inject()(override val messagesApi: MessagesApi,
+                      implicit val ws: WSClient,
+                      implicit val service: ModelService) extends BaseController {
 
   /**
     * Redirect to forums for SSO authentication and then back here again.
@@ -45,7 +48,8 @@ class Users @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
     * @return Home page
     */
   def logOut(returnPath: Option[String]) = Action { implicit request =>
-    Redirect(AppConf.getString("baseUrl").get + returnPath.getOrElse(request.path)).withNewSession.flashing("noRedirect" -> "true")
+    Redirect(AppConf.getString("baseUrl").get + returnPath.getOrElse(request.path))
+      .withNewSession.flashing("noRedirect" -> "true")
   }
 
   /**
@@ -67,7 +71,7 @@ class Users @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
     * @param username   User to update
     * @return           View of user page
     */
-  def saveTagline(username: String) = Authenticated { implicit request =>
+  def saveTagline(username: String) = Authenticated(service) { implicit request =>
     val user = request.user
     val tagline = Forms.UserTagline.bindFromRequest.get.trim
     if (tagline.length > User.MaxTaglineLength) {

@@ -4,6 +4,7 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.project.routes.{Pages => self}
+import db.ModelService
 import form.Forms
 import models.project.Page
 import ore.Statistics
@@ -17,11 +18,12 @@ import views.html.projects.{pages => views}
 /**
   * Controller for handling Page related actions.
   */
-class Pages @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {
+class Pages @Inject()(override val messagesApi: MessagesApi,
+                      implicit val ws: WSClient,
+                      implicit val service: ModelService) extends BaseController {
 
-  private def PageEditAction(author: String, slug: String) = {
-    AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditPages)
-  }
+  private def PageEditAction(author: String, slug: String)
+  = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditPages)
 
   /**
     * Displays the specified page.
@@ -32,7 +34,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi, implicit val ws: WS
     * @return View of page
     */
   def show(author: String, slug: String, page: String) = {
-    ProjectAction(author, slug) { implicit request =>
+    ProjectAction(author, slug)(service) { implicit request =>
       val project = request.project
       project.pages.find(equalsIgnoreCase(_.name, page)) match {
         case None => NotFound

@@ -4,11 +4,11 @@ import javax.inject.Inject
 
 import controllers.Requests.AuthRequest
 import controllers.routes.{Application => self}
-import db.ProjectTable
-import db.dao.ModelFilter
-import db.driver.OrePostgresDriver.api._
-import db.model.Models
-import db.query.ModelQueries.{await, unwrapFilter}
+import db.ModelService
+import db.impl.OrePostgresDriver.api._
+import db.impl.ProjectTable
+import db.impl.query.ProjectQueries
+import db.query.ModelFilter
 import models.project.Project._
 import models.project.{Flag, Project, Version}
 import models.user.User
@@ -26,7 +26,9 @@ import views.{html => views}
 /**
   * Main entry point for application.
   */
-class Application @Inject()(override val messagesApi: MessagesApi, implicit val ws: WSClient) extends BaseController {
+class Application @Inject()(override val messagesApi: MessagesApi,
+                            implicit val ws: WSClient,
+                            implicit val models: ModelService) extends BaseController {
 
   private def FlagAction = Authenticated andThen PermissionAction[AuthRequest](ReviewFlags)
 
@@ -41,16 +43,17 @@ class Application @Inject()(override val messagesApi: MessagesApi, implicit val 
     val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
     
     // Determine filter
+    val queries = models.provide[ProjectQueries]
     val canHideProjects = User.current.isDefined && (User.current.get can HideProjects in GlobalScope)
     var filter: ProjectTable => Rep[Boolean] = query.map { q =>
       // Search filter + visible
-      var f  = Models.Projects.searchFilter(q)
+      var f  = queries.searchFilter(q)
       if (!canHideProjects) f = f && (_.isVisible)
       f
     }.orNull[ModelFilter[ProjectTable, Project]]
     if (filter == null && !canHideProjects) filter = _.isVisible
 
-    val projects = await(Models.Projects.collect(filter, categoryArray, InitialLoad, -1, s)).get
+    val projects = models.await(queries.collect(filter, categoryArray, InitialLoad, -1, s)).get
     if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet)) categoryArray = null
     Ok(views.home(projects, Option(categoryArray), s))
   }

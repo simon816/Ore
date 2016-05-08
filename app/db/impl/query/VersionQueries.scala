@@ -1,10 +1,9 @@
-package db.query.impl
+package db.impl.query
 
-import db.dao.ModelFilter
-import db.driver.OrePostgresDriver.api._
-import db.query.ModelQueries
-import db.query.ModelQueries.run
-import db.{VersionDownloadsTable, VersionTable}
+import db.ModelService
+import db.impl.OrePostgresDriver.api._
+import db.impl.{VersionDownloadsTable, VersionTable}
+import db.query.{ModelFilter, ModelQueries, StatQueries}
 import models.project.Version
 import models.statistic.VersionDownload
 
@@ -13,9 +12,10 @@ import scala.concurrent.Future
 /**
   * Version related queries.
   */
-class VersionQueries extends ModelQueries[VersionTable, Version](classOf[Version], TableQuery[VersionTable]) {
+class VersionQueries(implicit val service: ModelService) extends ModelQueries[VersionTable, Version](
+  classOf[Version], TableQuery[VersionTable]) {
 
-  val Downloads = ModelQueries.registrar.register(new StatQueries[VersionDownloadsTable, VersionDownload, Version](
+  val Downloads = service.registrar.register(new StatQueries[VersionDownloadsTable, VersionDownload](
     classOf[VersionDownload], TableQuery[VersionDownloadsTable]
   ))
 
@@ -27,7 +27,7 @@ class VersionQueries extends ModelQueries[VersionTable, Version](classOf[Version
     * @param hash       Version hash
     * @return           True if found
     */
-  def hashExists(projectId: Int, hash: String): Future[Boolean] = run(((for {
+  def hashExists(projectId: Int, hash: String): Future[Boolean] = service.run(((for {
       model <- this.baseQuery
       if model.projectId === projectId
       if model.hash === hash

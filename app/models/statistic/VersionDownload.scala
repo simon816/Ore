@@ -3,8 +3,11 @@ package models.statistic
 import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
-import db.model.Model
-import db.model.annotation.{Bind, BindingsGenerator}
+import controllers.Requests.ProjectRequest
+import db.{Model, ModelService}
+import db.impl.VersionDownloadsTable
+import db.meta.{Bind, BindingsGenerator}
+import db.query.StatQueries
 import models.project.Version
 import models.user.User
 import ore.Statistics
@@ -28,13 +31,14 @@ case class VersionDownload(override val id: Option[Int] = None,
                            override val address: InetString,
                            override val cookie: String,
                            @(Bind @field) private var userId: Option[Int] = None)
-                           extends StatEntry[Version](id, createdAt, modelId, address, cookie, userId) {
+                           extends StatEntry[Version, StatQueries[VersionDownloadsTable, VersionDownload]](
+                             id, createdAt, modelId, address, cookie, userId
+                           ) {
 
-  BindingsGenerator.generateFor(this)
+  override def subject(implicit service: ModelService): Version = Version.withId(this.modelId).get
 
-  override def subject: Version = Version.withId(this.modelId).get
-
-  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Model = this.copy(id = id, createdAt = theTime)
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): VersionDownload
+  = this.copy(id = id, createdAt = theTime)
 
 }
 
@@ -48,9 +52,9 @@ object VersionDownload {
     * @param request  Request to bind
     * @return         New VersionDownload
     */
-  def bindFromRequest(version: Version)(implicit request: RequestHeader): VersionDownload = {
+  def bindFromRequest(version: Version)(implicit request: ProjectRequest[_]): VersionDownload = {
     val cookie = Statistics.getStatCookie
-    val userId = User.current(request.session).flatMap(_.id)
+    val userId = User.current(request.session, request.service).flatMap(_.id)
     VersionDownload(
       modelId = version.id.get,
       address = InetString(request.remoteAddress),

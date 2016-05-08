@@ -2,12 +2,12 @@ package models.project
 
 import java.sql.Timestamp
 
-import db.FlagTable
-import db.dao.ModelSet
-import db.driver.OrePostgresDriver.api._
-import db.model.Model
-import db.model.ModelKeys._
-import db.model.annotation.{Bind, BindingsGenerator}
+import db.impl.{FlagTable, ModelKeys}
+import db.impl.OrePostgresDriver.api._
+import ModelKeys._
+import db.{Model, ModelService}
+import db.meta.{Bind, BindingsGenerator}
+import db.query.{ModelQueries, ModelSet}
 import ore.UserOwner
 import ore.permission.scope.ProjectScope
 import ore.project.FlagReasons.FlagReason
@@ -30,11 +30,7 @@ case class Flag(override val  id: Option[Int],
                 override val  userId: Int,
                               reason: FlagReason,
                 @(Bind @field) private var _isResolved: Boolean = false)
-                extends Model(id, createdAt) with UserOwner with ProjectScope { self =>
-
-  override type M <: Flag { type M = self.M }
-
-  BindingsGenerator.generateFor(this)
+                extends Model[ModelQueries[FlagTable, Flag]](id, createdAt) with UserOwner with ProjectScope { self =>
 
   def this(projectId: Int, userId: Int, reason: FlagReason) = {
     this(id=None, createdAt=None, projectId=projectId, userId=userId, reason=reason)
@@ -53,7 +49,7 @@ case class Flag(override val  id: Option[Int],
     *
     * @param resolved True if resolved
     */
-  def setResolved(resolved: Boolean) = Defined {
+  def setResolved(resolved: Boolean)(implicit service: ModelService) = Defined {
     this._isResolved = resolved
     update(IsResolved)
   }
@@ -69,6 +65,6 @@ object Flag extends ModelSet[FlagTable, Flag](classOf[Flag]) {
     *
     * @return All unresolved flags
     */
-  def unresolved: Seq[Flag] = this.filter(!_.isResolved)
+  def unresolved(implicit service: ModelService): Seq[Flag] = this.filter(!_.isResolved)
 
 }
