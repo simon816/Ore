@@ -7,7 +7,7 @@ import controllers.Requests.ProjectRequest
 import db.{Model, ModelService}
 import db.impl.VersionDownloadsTable
 import db.meta.{Bind, BindingsGenerator}
-import db.query.StatQueries
+import db.action.StatActions
 import models.project.Version
 import models.user.User
 import ore.Statistics
@@ -31,7 +31,7 @@ case class VersionDownload(override val id: Option[Int] = None,
                            override val address: InetString,
                            override val cookie: String,
                            @(Bind @field) private var userId: Option[Int] = None)
-                           extends StatEntry[Version, StatQueries[VersionDownloadsTable, VersionDownload]](
+                           extends StatEntry[Version, StatActions[VersionDownloadsTable, VersionDownload]](
                              id, createdAt, modelId, address, cookie, userId
                            ) {
 

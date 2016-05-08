@@ -6,7 +6,7 @@ import db.impl.{ModelKeys, ProjectRoleTable}
 import ModelKeys._
 import db.{Model, ModelService}
 import db.meta.{Bind, BindingsGenerator}
-import db.query.{ModelQueries, ModelSet}
+import db.action.{ModelActions, ModelSet}
 import ore.permission.role.Role
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.ProjectScope
@@ -29,7 +29,7 @@ case class ProjectRole(override val id: Option[Int] = None,
                        override val userId: Int,
                        override val projectId: Int,
                        @(Bind @field) private var  _roleType: RoleType)
-                       extends Model[ModelQueries[ProjectRoleTable, ProjectRole]](id, createdAt)
+                       extends Model[ModelActions[ProjectRoleTable, ProjectRole]](id, createdAt)
                          with Role
                          with ProjectScope
                          with Ordered[ProjectRole] { self =>

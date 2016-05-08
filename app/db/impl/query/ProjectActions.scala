@@ -2,9 +2,9 @@ package db.impl.query
 
 import db._
 import db.impl.OrePostgresDriver.api._
-import db.impl.query.user.UserQueries
+import db.impl.query.user.UserActions
 import db.impl.{FlagTable, ProjectStarsTable, ProjectTable, ProjectViewsTable}
-import db.query.{ModelFilter, ModelQueries, StatQueries}
+import db.action.{ModelFilter, ModelActions, StatActions}
 import models.project._
 import models.statistic.ProjectView
 import models.user.User
@@ -19,14 +19,14 @@ import scala.util.{Failure, Success}
 /**
   * Project related queries
   */
-class ProjectQueries(implicit val service: ModelService) extends ModelQueries[ProjectTable, Project](
+class ProjectActions(implicit val service: ModelService) extends ModelActions[ProjectTable, Project](
   classOf[Project], TableQuery[ProjectTable]) {
 
-  val Flags = service.registrar.register(new ModelQueries[FlagTable, Flag](
+  val Flags = service.registrar.register(new ModelActions[FlagTable, Flag](
     classOf[Flag], TableQuery[FlagTable]
   ))
 
-  val Views = service.registrar.register(new StatQueries[ProjectViewsTable, ProjectView](
+  val Views = service.registrar.register(new StatActions[ProjectViewsTable, ProjectView](
     classOf[ProjectView], TableQuery[ProjectViewsTable]
   ))
 
@@ -39,7 +39,7 @@ class ProjectQueries(implicit val service: ModelService) extends ModelQueries[Pr
     * @return List of Members
     */
   def getMembers(project: Project): Future[Seq[ProjectMember]] = {
-    val distinctUserIds = (for (role <- service.provide[UserQueries].ProjectRoles.baseQuery.filter {
+    val distinctUserIds = (for (role <- service.provide[UserActions].ProjectRoles.baseQuery.filter {
       _.projectId === project.id.get
     }) yield role.userId).distinct.result
 

@@ -6,7 +6,7 @@ import com.github.tminglei.slickpg.InetString
 import com.google.common.base.Preconditions._
 import db.impl.ModelKeys
 import ModelKeys._
-import db.query.StatQueries
+import db.action.StatActions
 import db.{Model, ModelService, ModelTable}
 import models.user.User
 
@@ -20,7 +20,7 @@ import models.user.User
   * @param cookie     Browser cookie
   * @param userId     User ID
   */
-abstract class StatEntry[S <: Model[_], Q <: StatQueries[_ <: ModelTable[S], S]]
+abstract class StatEntry[S <: Model[_], Q <: StatActions[_ <: ModelTable[S], S]]
 (override val id: Option[Int] = None,
  override val createdAt: Option[Timestamp] = None,
  val modelId: Int,

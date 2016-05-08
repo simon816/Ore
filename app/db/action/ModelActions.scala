@@ -1,4 +1,4 @@
-package db.query
+package db.action
 
 import db.impl.OrePostgresDriver.api._
 import db.{Model, ModelService, ModelTable}
@@ -11,7 +11,7 @@ import scala.util.{Failure, Success}
 /**
   * Base class for handling Model queries.
   */
-class ModelQueries[Table <: ModelTable[Row], Row <: Model[_]](val modelClass: Class[Row],
+class ModelActions[Table <: ModelTable[Row], Row <: Model[_]](val modelClass: Class[Row],
                                                               val baseQuery: TableQuery[Table])
                                                              (implicit service: ModelService) {
 

@@ -7,7 +7,7 @@ import db.impl.{ChannelTable, ModelKeys, VersionTable}
 import ModelKeys._
 import db.{Model, ModelService}
 import db.meta.{Bind, BindingsGenerator, HasMany}
-import db.query.{ModelQueries, ModelSet}
+import db.action.{ModelActions, ModelSet}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
 import ore.project.util.ProjectFiles
@@ -36,7 +36,7 @@ case class Channel(override val id: Option[Int] = None,
                    override val projectId: Int,
                    @(Bind @field) private var _name: String,
                    @(Bind @field) private var _color: Color)
-                   extends Model[ModelQueries[ChannelTable, Channel]](id, createdAt)
+                   extends Model[ModelActions[ChannelTable, Channel]](id, createdAt)
                      with Ordered[Channel]
                      with ProjectScope { self =>
 

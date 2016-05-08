@@ -1,4 +1,4 @@
-package db.query
+package db.action
 
 import db.{ModelService, StatTable}
 import db.impl.OrePostgresDriver.api._
@@ -7,10 +7,10 @@ import models.statistic.StatEntry
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 
-class StatQueries[T <: StatTable[M], M <: StatEntry[_, _]](statEntryClass: Class[M],
+class StatActions[T <: StatTable[M], M <: StatEntry[_, _]](statEntryClass: Class[M],
                                                            baseQuery: TableQuery[T])
                                                           (implicit service: ModelService)
-  extends ModelQueries(statEntryClass, baseQuery) {
+  extends ModelActions(statEntryClass, baseQuery) {
 
   /**
     * Checks if the specified StatEntry exists and records the entry in the

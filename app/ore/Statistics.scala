@@ -36,7 +36,7 @@ object Statistics {
     implicit val service = request.service
     val project = request.project
     val statEntry = ProjectView.bindFromRequest
-    project.queries.Views.record(statEntry).andThen {
+    project.actions.Views.record(statEntry).andThen {
       case recorded => if (recorded.get) project.addView()
     }
     f(request).withCookies(Cookie(COOKIE_UID, statEntry.cookie))
@@ -53,7 +53,7 @@ object Statistics {
   def versionDownloaded(version: Version)(f: ProjectRequest[_] => Result)(implicit request: ProjectRequest[_]): Result = {
     implicit val service = request.service
     val statEntry = VersionDownload.bindFromRequest(version)
-    version.queries.Downloads.record(statEntry).andThen {
+    version.actions.Downloads.record(statEntry).andThen {
       case recorded => if (recorded.get) {
         version.addDownload()
         request.project.addDownload()

@@ -9,9 +9,9 @@ import db._
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
-import db.impl.query.ProjectQueries
+import db.impl.query.ProjectActions
 import db.meta.{Bind, BindingsGenerator, HasMany}
-import db.query.ModelSet
+import db.action.ModelSet
 import forums.SpongeForums
 import models.statistic.ProjectView
 import models.user.{ProjectRole, User}
@@ -73,7 +73,7 @@ case class Project(override val id: Option[Int] = None,
                    @(Bind @field) private var _topicId: Option[Int] = None,
                    @(Bind @field) private var _postId: Option[Int] = None,
                    @(Bind @field) private var _isVisible: Boolean = true)
-                   extends Model[ProjectQueries](id, createdAt) with ProjectScope { self =>
+                   extends Model[ProjectActions](id, createdAt) with ProjectScope { self =>
 
   import models.project.Project._
 
@@ -95,7 +95,7 @@ case class Project(override val id: Option[Int] = None,
     * @return All Members of project
     */
   def members(implicit service: ModelService): Set[ProjectMember]
-  = service.await(this.queries.getMembers(this)).get.toSet
+  = service.await(this.actions.getMembers(this)).get.toSet
 
   /**
     * Removes the [[ProjectMember]] that belongs to the specified [[User]] from this
@@ -217,7 +217,7 @@ case class Project(override val id: Option[Int] = None,
     * @return       True if starred by User
     */
   def isStarredBy(user: User)(implicit service: ModelService): Boolean = Defined {
-    service.await(this.queries.isStarredBy(this.id.get, user.id.get)).get
+    service.await(this.actions.isStarredBy(this.id.get, user.id.get)).get
   }
 
   /**
@@ -251,7 +251,7 @@ case class Project(override val id: Option[Int] = None,
   def starFor(user: User)(implicit service: ModelService) = Defined {
     if (!isStarredBy(user)) {
       this._stars += 1
-      service.await(this.queries.starFor(this.id.get, user.id.get)).get
+      service.await(this.actions.starFor(this.id.get, user.id.get)).get
       update(Stars)
     }
   }
@@ -265,7 +265,7 @@ case class Project(override val id: Option[Int] = None,
   def unstarFor(user: User)(implicit service: ModelService) = Defined {
     if (isStarredBy(user)) {
       this._stars -= 1
-      service.await(this.queries.unstarFor(this.id.get, user.id.get)).get
+      service.await(this.actions.unstarFor(this.id.get, user.id.get)).get
       update(Stars)
     }
   }
@@ -424,7 +424,7 @@ case class Project(override val id: Option[Int] = None,
     */
   def getOrCreatePage(name: String)(implicit service: ModelService): Page = Defined {
     val page = new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true)
-    service.await(page.queries.getOrInsert(page)).get
+    service.await(page.actions.getOrInsert(page)).get
   }
 
   /**
@@ -441,7 +441,7 @@ case class Project(override val id: Option[Int] = None,
     */
   def homePage(implicit service: ModelService): Page = Defined {
     val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false)
-    service.await(page.queries.getOrInsert(page)).get
+    service.await(page.actions.getOrInsert(page)).get
   }
 
   /**
@@ -538,7 +538,7 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @return       Project if found, None otherwise
     */
   def withSlug(owner: String, slug: String)(implicit service: ModelService): Option[Project]
-  = this.find(service.provide[ProjectQueries].ownerFilter(owner) && equalsIgnoreCase(_.slug, slug))
+  = this.find(service.provide[ProjectActions].ownerFilter(owner) && equalsIgnoreCase(_.slug, slug))
 
   /**
     * Returns the Project with the specified owner name and Project name, if
@@ -549,7 +549,7 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @return       Project if found, None otherwise
     */
   def withName(owner: String, name: String)(implicit service: ModelService): Option[Project]
-  = this.find(service.provide[ProjectQueries].ownerFilter(owner) && equalsIgnoreCase(_.name, name))
+  = this.find(service.provide[ProjectActions].ownerFilter(owner) && equalsIgnoreCase(_.name, name))
 
   /**
     * Returns the Project with the specified plugin ID, if any.

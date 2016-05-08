@@ -5,9 +5,9 @@ import javax.inject.Singleton
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.OreTypeSetters._
-import db.impl.query.user.UserQueries
-import db.impl.query.{PageQueries, ProjectQueries, VersionQueries}
-import db.query.ModelQueries
+import db.impl.query.user.UserActions
+import db.impl.query.{PageActions, ProjectActions, VersionActions}
+import db.action.ModelActions
 import models.project.Channel
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
@@ -26,10 +26,10 @@ class OreModelService extends ModelService {
   registerSetter(classOf[Category], CategoryTypeSetter)
   registerSetter(classOf[FlagReason], FlagReasonTypeSetter)
 
-  register(new ModelQueries[ChannelTable, Channel](classOf[Channel], TableQuery[ChannelTable]))
-  register(new PageQueries)
-  register(new ProjectQueries)
-  register(new UserQueries)
-  register(new VersionQueries)
+  register(new ModelActions[ChannelTable, Channel](classOf[Channel], TableQuery[ChannelTable]))
+  register(new PageActions)
+  register(new ProjectActions)
+  register(new UserActions)
+  register(new VersionActions)
 
 }

@@ -2,7 +2,7 @@ package db.impl.query.user
 
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import db.query.ModelQueries
+import db.action.ModelActions
 import db.impl.{ProjectRoleTable, UserTable}
 import models.user.{ProjectRole, User}
 
@@ -11,10 +11,10 @@ import scala.concurrent.Future
 /**
   * User related queries.
   */
-class UserQueries(implicit val service: ModelService) extends ModelQueries[UserTable, User](
+class UserActions(implicit val service: ModelService) extends ModelActions[UserTable, User](
   classOf[User], TableQuery[UserTable]) {
 
-  val ProjectRoles = service.registrar.register(new ModelQueries[ProjectRoleTable, ProjectRole](
+  val ProjectRoles = service.registrar.register(new ModelActions[ProjectRoleTable, ProjectRole](
     classOf[ProjectRole], TableQuery[ProjectRoleTable]
   ))
 

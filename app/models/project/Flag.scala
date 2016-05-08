@@ -7,7 +7,7 @@ import db.impl.OrePostgresDriver.api._
 import ModelKeys._
 import db.{Model, ModelService}
 import db.meta.{Bind, BindingsGenerator}
-import db.query.{ModelQueries, ModelSet}
+import db.action.{ModelActions, ModelSet}
 import ore.UserOwner
 import ore.permission.scope.ProjectScope
 import ore.project.FlagReasons.FlagReason
@@ -30,7 +30,7 @@ case class Flag(override val  id: Option[Int],
                 override val  userId: Int,
                               reason: FlagReason,
                 @(Bind @field) private var _isResolved: Boolean = false)
-                extends Model[ModelQueries[FlagTable, Flag]](id, createdAt) with UserOwner with ProjectScope { self =>
+                extends Model[ModelActions[FlagTable, Flag]](id, createdAt) with UserOwner with ProjectScope { self =>
 
   def this(projectId: Int, userId: Int, reason: FlagReason) = {
     this(id=None, createdAt=None, projectId=projectId, userId=userId, reason=reason)

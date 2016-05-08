@@ -6,9 +6,9 @@ import com.google.common.base.Preconditions._
 import db.impl.{ModelKeys, PageTable}
 import ModelKeys._
 import db.{Model, ModelService}
-import db.impl.query.PageQueries
+import db.impl.query.PageActions
 import db.meta.{Bind, BindingsGenerator}
-import db.query.ModelSet
+import db.action.ModelSet
 import forums.SpongeForums
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
@@ -37,7 +37,7 @@ case class Page(override val  id: Option[Int] = None,
                               slug: String,
                               isDeletable: Boolean = true,
                 @(Bind @field) private var _contents: String)
-                extends Model[PageQueries](id, createdAt) with ProjectScope { self =>
+                extends Model[PageActions](id, createdAt) with ProjectScope { self =>
 
   import models.project.Page._
 

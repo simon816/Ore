@@ -1,4 +1,4 @@
-package db.query
+package db.action
 
 import db.{Model, ModelTable}
 import db.impl.OrePostgresDriver.api._

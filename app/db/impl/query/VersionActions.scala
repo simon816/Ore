@@ -3,7 +3,7 @@ package db.impl.query
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.{VersionDownloadsTable, VersionTable}
-import db.query.{ModelFilter, ModelQueries, StatQueries}
+import db.action.{ModelFilter, ModelActions, StatActions}
 import models.project.Version
 import models.statistic.VersionDownload
 
@@ -12,10 +12,10 @@ import scala.concurrent.Future
 /**
   * Version related queries.
   */
-class VersionQueries(implicit val service: ModelService) extends ModelQueries[VersionTable, Version](
+class VersionActions(implicit val service: ModelService) extends ModelActions[VersionTable, Version](
   classOf[Version], TableQuery[VersionTable]) {
 
-  val Downloads = service.registrar.register(new StatQueries[VersionDownloadsTable, VersionDownload](
+  val Downloads = service.registrar.register(new StatActions[VersionDownloadsTable, VersionDownload](
     classOf[VersionDownload], TableQuery[VersionDownloadsTable]
   ))
 

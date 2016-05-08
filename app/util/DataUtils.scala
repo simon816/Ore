@@ -4,7 +4,7 @@ import java.nio.file.Files._
 
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import db.impl.query.user.UserQueries
+import db.impl.query.user.UserActions
 import forums.SpongeForums
 import models.project.{Channel, Project, Version}
 import models.user.User
@@ -32,7 +32,7 @@ object DataUtils {
     */
   def reset()(implicit service: ModelService) = {
     for (project <- Project.values) project.delete
-    service.await(service.run(service.provide[UserQueries].baseQuery.delete)).get
+    service.await(service.run(service.provide[UserActions].baseQuery.delete)).get
     FileUtils.deleteDirectory(UploadsDir.toFile)
   }
 

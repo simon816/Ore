@@ -7,7 +7,7 @@ import controllers.Requests.ProjectRequest
 import db.{Model, ModelService}
 import db.impl.ProjectViewsTable
 import db.meta.{Bind, BindingsGenerator}
-import db.query.StatQueries
+import db.action.StatActions
 import models.project.Project
 import models.user.User
 import ore.{ProjectOwner, Statistics}
@@ -30,7 +30,7 @@ case class ProjectView(override val id: Option[Int] = None,
                        override val address: InetString,
                        override val cookie: String,
                        @(Bind @field) private var userId: Option[Int] = None)
-                       extends StatEntry[Project, StatQueries[ProjectViewsTable, ProjectView]](
+                       extends StatEntry[Project, StatActions[ProjectViewsTable, ProjectView]](
                          id, createdAt, modelId, address, cookie, userId
                        ) with ProjectOwner {
 

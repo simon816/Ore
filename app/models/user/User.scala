@@ -7,10 +7,10 @@ import db.{Model, ModelService}
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
-import db.impl.query.ProjectQueries
-import db.impl.query.user.UserQueries
+import db.impl.query.ProjectActions
+import db.impl.query.user.UserActions
 import db.meta._
-import db.query.ModelSet
+import db.action.ModelSet
 import forums.SpongeForums
 import models.project.{Flag, Project}
 import ore.UserOwner
@@ -44,7 +44,7 @@ case class User(override val id: Option[Int] = None,
                 @(Bind @field) private var _globalRoles: List[RoleType] = List(),
                 @(Bind @field) private var _joinDate: Option[Timestamp] = None,
                 @(Bind @field) private var _avatarUrl: Option[String] = None)
-                extends Model[UserQueries](id, createdAt) with UserOwner with ScopeSubject { self =>
+                extends Model[UserActions](id, createdAt) with UserOwner with ScopeSubject { self =>
 
   import models.user.User._
 
@@ -245,7 +245,7 @@ case class User(override val id: Option[Int] = None,
     */
   def starred(page: Int = -1)(implicit service: ModelService): Seq[Project] = Defined {
     val limit = if (page < 1) -1 else StarsPerPage
-    service.await(service.provide[ProjectQueries].starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
+    service.await(service.provide[ProjectActions].starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
   }
 
   /**
@@ -306,7 +306,7 @@ object User extends ModelSet[UserTable, User](classOf[User]) {
     * @param user User to find
     * @return     Found or new User
     */
-  def getOrCreate(user: User)(implicit service: ModelService): User = service.await(user.queries.getOrInsert(user)).get
+  def getOrCreate(user: User)(implicit service: ModelService): User = service.await(user.actions.getOrInsert(user)).get
 
   /**
     * Returns the currently authenticated User.

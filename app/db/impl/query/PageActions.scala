@@ -3,7 +3,7 @@ package db.impl.query
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.PageTable
-import db.query.ModelQueries
+import db.action.ModelActions
 import models.project.Page
 
 import scala.concurrent.Future
@@ -11,7 +11,7 @@ import scala.concurrent.Future
 /**
   * Page related queries.
   */
-class PageQueries(implicit val service: ModelService) extends ModelQueries[PageTable, Page](
+class PageActions(implicit val service: ModelService) extends ModelActions[PageTable, Page](
   classOf[Page], TableQuery[PageTable]) {
 
   override def like(page: Page): Future[Option[Page]]

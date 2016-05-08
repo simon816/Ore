@@ -7,10 +7,10 @@ import com.google.common.base.Preconditions
 import com.google.common.base.Preconditions._
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
-import db.impl.query.VersionQueries
+import db.impl.query.VersionActions
 import db.impl.{VersionDownloadsTable, VersionTable}
 import db.meta.{Bind, HasMany}
-import db.query.ModelSet
+import db.action.ModelSet
 import db.{Model, ModelService}
 import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
@@ -51,7 +51,7 @@ case class Version(override val id: Option[Int] = None,
                    @(Bind @field) private var _description: Option[String] = None,
                    @(Bind @field) private var _downloads: Int = 0,
                    @(Bind @field) private var _isReviewed: Boolean = false)
-                   extends Model[VersionQueries](id, createdAt) with ProjectScope { self =>
+                   extends Model[VersionActions](id, createdAt) with ProjectScope { self =>
 
   import models.project.Version._
 
@@ -172,7 +172,7 @@ case class Version(override val id: Option[Int] = None,
     * @return True if exists
     */
   def exists(implicit service: ModelService): Boolean = {
-    this.projectId > -1 && (service.await(this.queries.hashExists(this.projectId, this.hash)).get
+    this.projectId > -1 && (service.await(this.actions.hashExists(this.projectId, this.hash)).get
       || this.project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase))
   }
 

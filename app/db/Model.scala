@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.impl.OrePostgresDriver.api._
 import db.meta.{BindingsGenerator, FieldBinding, ManyBinding}
-import db.query.{ModelFilter, ModelQueries, ModelSet}
+import db.action.{ModelFilter, ModelActions, ModelSet}
 import util.Conf._
 import util.StringUtils
 
@@ -13,16 +13,16 @@ import scala.concurrent.Future
 /**
   * Represents a Model that may or may not exist in the database.
   */
-abstract class Model[Q <: ModelQueries[_, _]](val id: Option[Int], val createdAt: Option[Timestamp]) { self =>
+abstract class Model[A <: ModelActions[_, _]](val id: Option[Int], val createdAt: Option[Timestamp]) { self =>
 
-  type M <: Model[Q] { type M = self.M }
+  type M <: Model[A] { type M = self.M }
   type T <: ModelTable[M]
 
   private var fieldBindings: Map[String, FieldBinding[M, _]] = Map.empty
   private var manyBindings: Map[Class[_ <: Model[_]], ManyBinding] = Map.empty
   private var unbound = true
 
-  def queries(implicit service: ModelService): Q = service.provide[Q]
+  def actions(implicit service: ModelService): A = service.provide[A]
 
   def ensureBound()(implicit service: ModelService) = if (unbound) {
     BindingsGenerator.generateFor(this)
@@ -35,22 +35,22 @@ abstract class Model[Q <: ModelQueries[_, _]](val id: Option[Int], val createdAt
     * @param key  Field name
     * @param f    Update function
     */
-  def bind[A](key: String, value: M => A, f: A => Future[_]) = {
+  def bind[R](key: String, value: M => R, f: R => Future[_]) = {
     debug("Binding key " + key + " to model " + this)
-    this.fieldBindings += key -> FieldBinding[M, A](value, f)
+    this.fieldBindings += key -> FieldBinding[M, R](value, f)
   }
 
   /**
     * Updates the specified key in the table.
     *
     * @param key  Binding key
-    * @tparam A   Value type
+    * @tparam R   Value type
     */
-  def update[A](key: String)(implicit service: ModelService) = {
+  def update[R](key: String)(implicit service: ModelService) = {
     this.ensureBound()
     val binding = this.fieldBindings
       .getOrElse(key, throw new RuntimeException("No field binding found for key " + key + " in model " + this))
-      .asInstanceOf[FieldBinding[M, A]]
+      .asInstanceOf[FieldBinding[M, R]]
     val value = binding.valueFunc(this.asInstanceOf[M])
     debug("Updating key \"" + key + "\" in model " + getClass + " to " + value)
     service.await(binding.updateFunc(value)).get
@@ -60,11 +60,11 @@ abstract class Model[Q <: ModelQueries[_, _]](val id: Option[Int], val createdAt
     * Returns the value of the specified key.
     *
     * @param key  Model key
-    * @tparam A   Value type
+    * @tparam R   Value type
     * @return     Value of key
     */
-  def get[A](key: String): Option[A]
-  = this.fieldBindings.get(key).map(_.asInstanceOf[FieldBinding[M, A]].valueFunc(this.asInstanceOf[M]))
+  def get[R](key: String): Option[R]
+  = this.fieldBindings.get(key).map(_.asInstanceOf[FieldBinding[M, R]].valueFunc(this.asInstanceOf[M]))
 
   /**
     * Marks the specified model class as a child of this model.
@@ -116,7 +116,7 @@ abstract class Model[Q <: ModelQueries[_, _]](val id: Option[Int], val createdAt
     */
   def copyWith(id: Option[Int], theTime: Option[Timestamp]): Model[_]
 
-  protected def Defined[A](f: => A): A = {
+  protected def Defined[R](f: => R): R = {
     if (isDefined) f else throw new IllegalStateException("model must exist")
   }
 

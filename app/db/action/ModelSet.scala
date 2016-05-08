@@ -1,7 +1,7 @@
-package db.query
+package db.action
 
 import db.impl.OrePostgresDriver.api._
-import db.query.ModelFilter.{IdFilter, unwrapFilter}
+import db.action.ModelFilter.{IdFilter, unwrapFilter}
 import db.{Model, ModelService, ModelTable}
 import slick.lifted.ColumnOrdered
 
@@ -11,7 +11,7 @@ import slick.lifted.ColumnOrdered
 class ModelSet[T <: ModelTable[M], M <: Model[_]](modelClass: Class[M],
                                                   baseFilter: ModelFilter[T, M] = ModelFilter[T, M]()) {
 
-  def baseQuery(implicit service: ModelService): ModelQueries[T, M] = service.registrar.get[T, M](modelClass)
+  def baseQuery(implicit service: ModelService): ModelActions[T, M] = service.registrar.get[T, M](modelClass)
 
   /**
     * Returns the model with the specified ID.

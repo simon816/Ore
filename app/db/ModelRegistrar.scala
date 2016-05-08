@@ -2,7 +2,7 @@ package db
 
 import com.google.common.collect.{BiMap, HashBiMap}
 import db.meta.TypeSetters.TypeSetter
-import db.query.ModelQueries
+import db.action.ModelActions
 
 import scala.collection.JavaConverters._
 
@@ -12,7 +12,7 @@ import scala.collection.JavaConverters._
   */
 class ModelRegistrar {
 
-  private val modelQueries: BiMap[Class[_ <: Model[_]], ModelQueries[_, _]] = HashBiMap.create()
+  private val modelActions: BiMap[Class[_ <: Model[_]], ModelActions[_, _]] = HashBiMap.create()
   private val typeSetters: BiMap[Class[_], TypeSetter[_]] = HashBiMap.create()
 
   /**
@@ -22,8 +22,8 @@ class ModelRegistrar {
     * @tparam Q Type Queries type
     * @return Registered queries
     */
-  def register[Q <: ModelQueries[_, _ <: Model[Q]]](modelQueries: Q): Q = {
-    this.modelQueries.put(modelQueries.modelClass, modelQueries)
+  def register[Q <: ModelActions[_, _ <: Model[Q]]](modelQueries: Q): Q = {
+    this.modelActions.put(modelQueries.modelClass, modelQueries)
     modelQueries
   }
 
@@ -32,8 +32,8 @@ class ModelRegistrar {
   def getSetter[A](clazz: Class[A]): Option[TypeSetter[A]]
   = typeSetters.asScala.get(clazz).map(_.asInstanceOf[TypeSetter[A]])
 
-  def reverseLookup[Q <: ModelQueries[_, _]]: Q
-  = this.modelQueries.asScala.find(_._2.isInstanceOf[Q]).get._2.asInstanceOf[Q]
+  def reverseLookup[Q <: ModelActions[_, _]]: Q
+  = this.modelActions.asScala.find(_._2.isInstanceOf[Q]).get._2.asInstanceOf[Q]
 
   /**
     * Returns a registered ModelQueries for the specified Model class.
@@ -42,10 +42,10 @@ class ModelRegistrar {
     * @tparam M         Model type
     * @return           ModelQueries of Model
     */
-  def get[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M]): ModelQueries[T, M] = {
-    this.modelQueries.asScala.find(_._1.isAssignableFrom(modelClass))
+  def get[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M]): ModelActions[T, M] = {
+    this.modelActions.asScala.find(_._1.isAssignableFrom(modelClass))
       .getOrElse(throw new RuntimeException("queries not found for model " + modelClass))
-      ._2.asInstanceOf[ModelQueries[T, M]]
+      ._2.asInstanceOf[ModelActions[T, M]]
   }
 
 }

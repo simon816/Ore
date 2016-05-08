@@ -8,8 +8,8 @@ import com.google.inject.ImplementedBy
 import db.impl.OreModelService
 import db.impl.OrePostgresDriver.api._
 import db.meta.TypeSetters._
-import db.query.ModelFilter.IdFilter
-import db.query.ModelQueries
+import db.action.ModelFilter.IdFilter
+import db.action.ModelActions
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
 import slick.dbio.{DBIOAction, NoStream}
@@ -61,7 +61,7 @@ trait ModelService {
     * @tparam Q ModelQueries
     * @return ModelQueries of type
     */
-  def provide[Q <: ModelQueries[_, _]]: Q = this.registrar.reverseLookup[Q]
+  def provide[Q <: ModelActions[_, _]]: Q = this.registrar.reverseLookup[Q]
 
   /**
     * Runs the specified action on the DB.
