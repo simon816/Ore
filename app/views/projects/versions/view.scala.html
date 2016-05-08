@@ -3,8 +3,9 @@
 @import models.user.User
 @import ore.permission.{EditVersions, ReviewProjects}
 @import ore.permission.scope.GlobalScope
+@import db.ModelService
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
-        session: Session, request: RequestHeader, flash: Flash)
+        session: Session, request: RequestHeader, flash: Flash, service: ModelService)
 
 @hasUser = @{ User.current.isDefined }
 @user = @{ User.current.get }

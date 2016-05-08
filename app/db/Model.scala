@@ -2,9 +2,9 @@ package db
 
 import java.sql.Timestamp
 
+import db.action.{ModelActions, ModelFilter, ModelSet}
 import db.impl.OrePostgresDriver.api._
-import db.meta.{BindingsGenerator, FieldBinding, ManyBinding}
-import db.action.{ModelFilter, ModelActions, ModelSet}
+import db.meta.{Actor, FieldBinding, ManyBinding}
 import util.Conf._
 import util.StringUtils
 
@@ -18,15 +18,14 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int], val createdAt
   type M <: Model[A] { type M = self.M }
   type T <: ModelTable[M]
 
+  var isProcessed = false
   private var fieldBindings: Map[String, FieldBinding[M, _]] = Map.empty
   private var manyBindings: Map[Class[_ <: Model[_]], ManyBinding] = Map.empty
-  private var unbound = true
 
-  def actions(implicit service: ModelService): A = service.provide[A]
-
-  def ensureBound()(implicit service: ModelService) = if (unbound) {
-    BindingsGenerator.generateFor(this)
-    unbound = false
+  def actions(implicit service: ModelService): A = {
+    println("class " + this.getClass)
+    println("annotation " + getClass.getAnnotation(classOf[Actor]))
+    service.provide(this.getClass.getAnnotation(classOf[Actor]).value.asInstanceOf[Class[A]])
   }
 
   /**
@@ -47,7 +46,6 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int], val createdAt
     * @tparam R   Value type
     */
   def update[R](key: String)(implicit service: ModelService) = {
-    this.ensureBound()
     val binding = this.fieldBindings
       .getOrElse(key, throw new RuntimeException("No field binding found for key " + key + " in model " + this))
       .asInstanceOf[FieldBinding[M, R]]
@@ -86,7 +84,6 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int], val createdAt
     */
   def getMany[ManyTable <: ModelTable[Many], Many <: Model[_]](modelClass: Class[Many])
                                                            (implicit service: ModelService) = Defined {
-    this.ensureBound()
     val binding = this.manyBindings
       .find(_._1.isAssignableFrom(modelClass))
       .getOrElse(throw new RuntimeException("No child binding found for model " + modelClass + " in model " + this))._2

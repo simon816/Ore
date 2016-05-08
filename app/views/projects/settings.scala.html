@@ -4,7 +4,9 @@
 @import ore.permission.HideProjects
 @import ore.permission.scope.GlobalScope
 @import views.html.helper.form
-@(project: Project)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
+@import db.ModelService
+@(project: Project)(implicit messages: Messages, session: Session, flash: Flash,
+        request: RequestHeader, service: ModelService)
 
 @projects.view(project, "#settings") {
 

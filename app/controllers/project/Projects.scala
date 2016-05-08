@@ -17,6 +17,7 @@ import ore.project.util.{InvalidPluginFileException, ProjectFactory}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
+import util.Conf
 import util.StringUtils._
 import views.html.{projects => views}
 
@@ -131,6 +132,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
   def show(author: String, slug: String) = {
     ProjectAction(author, slug)(service) { implicit request =>
       val project = request.project
+      Conf.debug("isProcessed: " + project.name + " = " + project.isProcessed + " " + project.hashCode())
       Statistics.projectViewed(implicit request => Ok(views.pages.view(project, project.homePage)))
     }
   }

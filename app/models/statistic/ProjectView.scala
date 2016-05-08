@@ -30,7 +30,7 @@ case class ProjectView(override val id: Option[Int] = None,
                        override val address: InetString,
                        override val cookie: String,
                        @(Bind @field) private var userId: Option[Int] = None)
-                       extends StatEntry[Project, StatActions[ProjectViewsTable, ProjectView]](
+                       extends StatEntry[Project](
                          id, createdAt, modelId, address, cookie, userId
                        ) with ProjectOwner {
 

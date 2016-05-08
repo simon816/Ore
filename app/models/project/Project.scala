@@ -9,8 +9,8 @@ import db._
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
-import db.impl.query.ProjectActions
-import db.meta.{Bind, BindingsGenerator, HasMany}
+import db.impl.action.ProjectActions
+import db.meta.{Actor, Bind, BindingsGenerator, HasMany}
 import db.action.ModelSet
 import forums.SpongeForums
 import models.statistic.ProjectView
@@ -50,6 +50,7 @@ import scala.annotation.meta.field
   * @param _source                External link to source code
   * @param _description           Short description of Project
   */
+@Actor(classOf[ProjectActions])
 @HasMany(Array(
   classOf[Channel], classOf[Version], classOf[Page],
   classOf[Flag], classOf[ProjectRole], classOf[ProjectView]
@@ -538,7 +539,7 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @return       Project if found, None otherwise
     */
   def withSlug(owner: String, slug: String)(implicit service: ModelService): Option[Project]
-  = this.find(service.provide[ProjectActions].ownerFilter(owner) && equalsIgnoreCase(_.slug, slug))
+  = this.find(service.provide(classOf[ProjectActions]).ownerFilter(owner) && equalsIgnoreCase(_.slug, slug))
 
   /**
     * Returns the Project with the specified owner name and Project name, if
@@ -549,7 +550,7 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @return       Project if found, None otherwise
     */
   def withName(owner: String, name: String)(implicit service: ModelService): Option[Project]
-  = this.find(service.provide[ProjectActions].ownerFilter(owner) && equalsIgnoreCase(_.name, name))
+  = this.find(service.provide(classOf[ProjectActions]).ownerFilter(owner) && equalsIgnoreCase(_.name, name))
 
   /**
     * Returns the Project with the specified plugin ID, if any.

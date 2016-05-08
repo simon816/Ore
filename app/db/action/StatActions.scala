@@ -7,10 +7,9 @@ import models.statistic.StatEntry
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 
-class StatActions[T <: StatTable[M], M <: StatEntry[_, _]](statEntryClass: Class[M],
-                                                           baseQuery: TableQuery[T])
-                                                          (implicit service: ModelService)
-  extends ModelActions(statEntryClass, baseQuery) {
+class StatActions[T <: StatTable[M], M <: StatEntry[_]](statEntryClass: Class[M], baseQuery: TableQuery[T])
+                                                       (implicit service: ModelService)
+  extends ModelActions[T, M](statEntryClass, baseQuery) {
 
   /**
     * Checks if the specified StatEntry exists and records the entry in the

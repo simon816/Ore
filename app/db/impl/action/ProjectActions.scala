@@ -1,10 +1,11 @@
-package db.impl.query
+package db.impl.action
 
 import db._
 import db.impl.OrePostgresDriver.api._
-import db.impl.query.user.UserActions
+import db.impl.action.user.UserActions
 import db.impl.{FlagTable, ProjectStarsTable, ProjectTable, ProjectViewsTable}
 import db.action.{ModelFilter, ModelActions, StatActions}
+import db.action.ModelAction.wrapSeq
 import models.project._
 import models.statistic.ProjectView
 import models.user.User
@@ -39,11 +40,11 @@ class ProjectActions(implicit val service: ModelService) extends ModelActions[Pr
     * @return List of Members
     */
   def getMembers(project: Project): Future[Seq[ProjectMember]] = {
-    val distinctUserIds = (for (role <- service.provide[UserActions].ProjectRoles.baseQuery.filter {
+    val distinctUserIds = (for (role <- service.provide(classOf[UserActions]).ProjectRoles.baseQuery.filter {
       _.projectId === project.id.get
     }) yield role.userId).distinct.result
 
-    service.run(distinctUserIds)
+    service.DB.db.run(distinctUserIds)
       .map(_.map(User.withId(_).get))
       .map(for (user <- _) yield new ProjectMember(project, user.username))
   }
@@ -108,7 +109,7 @@ class ProjectActions(implicit val service: ModelService) extends ModelActions[Pr
     * @param userId    User to look for
     * @return True if Project is starred by user
     */
-  def isStarredBy(projectId: Int, userId: Int): Future[Boolean] = service.run((this.stars.filter { sp =>
+  def isStarredBy(projectId: Int, userId: Int): Future[Boolean] = service.DB.db.run((this.stars.filter { sp =>
     sp.userId === userId && sp.projectId === projectId
   }.length > 0).result)
 
@@ -118,7 +119,7 @@ class ProjectActions(implicit val service: ModelService) extends ModelActions[Pr
     * @param projectId Project to star
     * @param userId    User to star for
     */
-  def starFor(projectId: Int, userId: Int): Future[Any] = service.run(this.stars +=(userId, projectId))
+  def starFor(projectId: Int, userId: Int): Future[Any] = service.DB.db.run(this.stars +=(userId, projectId))
 
   /**
     * Sets the specified Project as unstarred for the specified user.
@@ -126,7 +127,7 @@ class ProjectActions(implicit val service: ModelService) extends ModelActions[Pr
     * @param projectId Project to unstar
     * @param userId    User to unstar for
     */
-  def unstarFor(projectId: Int, userId: Int) = service.run(this.stars.filter { sp =>
+  def unstarFor(projectId: Int, userId: Int) = service.DB.db.run(this.stars.filter { sp =>
     sp.userId === userId && sp.projectId === projectId
   }.delete)
 
@@ -141,14 +142,14 @@ class ProjectActions(implicit val service: ModelService) extends ModelActions[Pr
   def starredBy(userId: Int, limit: Int = -1, offset: Int = -1): Future[Seq[Project]] = {
     val promise = Promise[Seq[Project]]
     val starQuery = this.stars.filter(_.userId === userId)
-    service.run(starQuery.result).andThen {
+    service.DB.db.run(starQuery.result).andThen {
       case Failure(thrown) => promise.failure(thrown)
       case Success(userStars) =>
         val projectIds = userStars.map(_._2)
         var projectsQuery = this.baseQuery.filter(_.id inSetBind projectIds)
         if (offset > -1) projectsQuery = projectsQuery.drop(offset)
         if (limit > -1) projectsQuery = projectsQuery.take(limit)
-        promise.completeWith(service.run(projectsQuery.result))
+        promise.completeWith(service.process(projectsQuery.result))
     }
     promise.future
   }

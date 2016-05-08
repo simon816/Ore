@@ -7,9 +7,9 @@ import com.google.common.base.Preconditions
 import com.google.common.base.Preconditions._
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
-import db.impl.query.VersionActions
+import db.impl.action.VersionActions
 import db.impl.{VersionDownloadsTable, VersionTable}
-import db.meta.{Bind, HasMany}
+import db.meta.{Actor, Bind, BindingsGenerator, HasMany}
 import db.action.ModelSet
 import db.{Model, ModelService}
 import models.statistic.VersionDownload
@@ -38,6 +38,7 @@ import scala.collection.JavaConverters._
   * @param projectId        ID of project this version belongs to
   * @param channelId        ID of channel this version belongs to
   */
+@Actor(classOf[VersionActions])
 @HasMany(Array(classOf[VersionDownload]))
 case class Version(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,

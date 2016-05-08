@@ -1,4 +1,4 @@
-package db.impl.query
+package db.impl.action
 
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
@@ -27,7 +27,7 @@ class VersionActions(implicit val service: ModelService) extends ModelActions[Ve
     * @param hash       Version hash
     * @return           True if found
     */
-  def hashExists(projectId: Int, hash: String): Future[Boolean] = service.run(((for {
+  def hashExists(projectId: Int, hash: String): Future[Boolean] = service.DB.db.run(((for {
       model <- this.baseQuery
       if model.projectId === projectId
       if model.hash === hash

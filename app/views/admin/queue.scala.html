@@ -1,6 +1,7 @@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.{Project, Version}
-@(versions: Seq[(Project, Version)])(implicit messages: Messages, session: Session, request: RequestHeader)
+@import db.ModelService
+@(versions: Seq[(Project, Version)])(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService)
 
 @core.layout("Project queue") {
 

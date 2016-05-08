@@ -4,7 +4,9 @@ this.
 *@
 @import play.twirl.api.Html
 @import util.Conf
-@(title: String)(content: Html)(implicit messages: Messages, session: Session, request: RequestHeader)
+@import db.ModelService
+@(title: String)(content: Html)(implicit messages: Messages, session: Session,
+        request: RequestHeader, service: ModelService)
 
 <!DOCTYPE html>
 <html>

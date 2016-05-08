@@ -6,7 +6,9 @@ Page used for uploading and creating new projects.
 @import ore.project.util.PendingProject
 @import play.twirl.api.Html
 @import views.html.helper.form
-@(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
+@import db.ModelService
+@(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash,
+        request: RequestHeader, service: ModelService)
 
 @projects.util.panelCreate(messages("project.create"), if (pending.isEmpty) 1 else 2) {
 

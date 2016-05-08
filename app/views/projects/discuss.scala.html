@@ -6,7 +6,9 @@ Discussion page within Project overview.
 @import models.project.Project
 @import models.user.User
 @import views.html.helper.form
-@(model: Project)(implicit messages: Messages, session: Session, request: RequestHeader, flash: Flash)
+@import db.ModelService
+@(model: Project)(implicit messages: Messages, session: Session, request: RequestHeader,
+        flash: Flash, service: ModelService)
 
 @projects.view(model, "#discussion") {
 

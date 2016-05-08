@@ -6,8 +6,8 @@ import com.google.common.base.Preconditions._
 import db.impl.{ModelKeys, PageTable}
 import ModelKeys._
 import db.{Model, ModelService}
-import db.impl.query.PageActions
-import db.meta.{Bind, BindingsGenerator}
+import db.impl.action.PageActions
+import db.meta.{Actor, Bind, BindingsGenerator}
 import db.action.ModelSet
 import forums.SpongeForums
 import ore.permission.scope.ProjectScope
@@ -30,6 +30,7 @@ import scala.annotation.meta.field
   * @param _contents     Markdown contents
   * @param isDeletable  True if can be deleted by the user
   */
+@Actor(classOf[PageActions])
 case class Page(override val  id: Option[Int] = None,
                 override val  createdAt: Option[Timestamp] = None,
                 override val  projectId: Int,

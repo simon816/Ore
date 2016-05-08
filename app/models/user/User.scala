@@ -7,8 +7,8 @@ import db.{Model, ModelService}
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
-import db.impl.query.ProjectActions
-import db.impl.query.user.UserActions
+import db.impl.action.ProjectActions
+import db.impl.action.user.UserActions
 import db.meta._
 import db.action.ModelSet
 import forums.SpongeForums
@@ -34,6 +34,7 @@ import scala.annotation.meta.field
   * @param _email       Email
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
+@Actor(classOf[UserActions])
 @HasMany(Array(classOf[Project], classOf[ProjectRole], classOf[Flag]))
 case class User(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
@@ -245,7 +246,7 @@ case class User(override val id: Option[Int] = None,
     */
   def starred(page: Int = -1)(implicit service: ModelService): Seq[Project] = Defined {
     val limit = if (page < 1) -1 else StarsPerPage
-    service.await(service.provide[ProjectActions].starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
+    service.await(service.provide(classOf[ProjectActions]).starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
   }
 
   /**

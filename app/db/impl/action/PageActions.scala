@@ -1,4 +1,4 @@
-package db.impl.query
+package db.impl.action
 
 import db.ModelService
 import db.impl.OrePostgresDriver.api._

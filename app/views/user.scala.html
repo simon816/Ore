@@ -5,7 +5,8 @@ User page for developers.
 @import models.user.User
 @import util.StringUtils
 @import views.html.helper.form
-@(user: User)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader)
+@import db.ModelService
+@(user: User)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader, service: ModelService)
 
 @isThisUser = @{
     User.current.isDefined && User.current.get.equals(user)

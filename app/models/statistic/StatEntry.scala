@@ -4,10 +4,11 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import com.google.common.base.Preconditions._
-import db.impl.ModelKeys
-import ModelKeys._
 import db.action.StatActions
-import db.{Model, ModelService, ModelTable}
+import db.impl.ModelKeys
+import db.impl.ModelKeys._
+import db.meta.Actor
+import db.{Model, ModelService, StatTable}
 import models.user.User
 
 /**
@@ -20,13 +21,14 @@ import models.user.User
   * @param cookie     Browser cookie
   * @param userId     User ID
   */
-abstract class StatEntry[S <: Model[_], Q <: StatActions[_ <: ModelTable[S], S]]
+@Actor(classOf[StatActions[_, _]])
+abstract class StatEntry[Subject <: Model[_]]
 (override val id: Option[Int] = None,
  override val createdAt: Option[Timestamp] = None,
  val modelId: Int,
  val address: InetString,
  val cookie: String,
- private var userId: Option[Int] = None) extends Model[Q](id, createdAt) {
+ private var userId: Option[Int] = None) extends Model[StatActions[_, _]](id, createdAt) {
 
   checkNotNull(address, "client address cannot be null", "")
   checkNotNull(cookie, "browser cookie cannot be null", "")
@@ -36,7 +38,7 @@ abstract class StatEntry[S <: Model[_], Q <: StatActions[_ <: ModelTable[S], S]]
     *
     * @return Subject of entry
     */
-  def subject(implicit service: ModelService): S
+  def subject(implicit service: ModelService): Subject
 
   /**
     * Returns the User associated with this entry, if any.

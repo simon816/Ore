@@ -7,7 +7,7 @@ import controllers.routes.{Application => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.ProjectTable
-import db.impl.query.ProjectActions
+import db.impl.action.ProjectActions
 import db.action.ModelFilter
 import models.project.Project._
 import models.project.{Flag, Project, Version}
@@ -43,7 +43,7 @@ class Application @Inject()(override val messagesApi: MessagesApi,
     val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
     
     // Determine filter
-    val queries = models.provide[ProjectActions]
+    val queries = models.provide(classOf[ProjectActions])
     val canHideProjects = User.current.isDefined && (User.current.get can HideProjects in GlobalScope)
     var filter: ProjectTable => Rep[Boolean] = query.map { q =>
       // Search filter + visible

@@ -6,8 +6,9 @@ import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
 import db.{Model, ModelService}
 import db.impl.VersionDownloadsTable
-import db.meta.{Bind, BindingsGenerator}
+import db.meta.{Actor, Bind, BindingsGenerator}
 import db.action.StatActions
+import db.impl.action.VersionActions
 import models.project.Version
 import models.user.User
 import ore.Statistics
@@ -25,13 +26,14 @@ import scala.annotation.meta.field
   * @param cookie     Browser cookie
   * @param userId     User ID
   */
+@Actor(classOf[VersionActions])
 case class VersionDownload(override val id: Option[Int] = None,
                            override val createdAt: Option[Timestamp] = None,
                            override val modelId: Int,
                            override val address: InetString,
                            override val cookie: String,
                            @(Bind @field) private var userId: Option[Int] = None)
-                           extends StatEntry[Version, StatActions[VersionDownloadsTable, VersionDownload]](
+                           extends StatEntry[Version](
                              id, createdAt, modelId, address, cookie, userId
                            ) {
 

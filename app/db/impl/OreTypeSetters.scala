@@ -16,9 +16,9 @@ object OreTypeSetters {
 
   object ColorTypeSetter extends TypeSetter[Color] {
     override def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: (T) => Rep[Color], v: Color)
-                                                         (implicit service: ModelService): Future[_] = service.run {
+                                                         (implicit service: ModelService): Future[_] = service.DB.db.run {
       (for {
-        m <- service.modelQuery[T, M](model.getClass)
+        m <- service.newModelAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -26,9 +26,9 @@ object OreTypeSetters {
 
   object RoleTypeTypeSetter extends TypeSetter[RoleType] {
     override def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: (T) => Rep[RoleType], v: RoleType)
-                                                         (implicit service: ModelService): Future[_] = service.run {
+                                                         (implicit service: ModelService): Future[_] = service.DB.db.run {
       (for {
-        m <- service.modelQuery[T, M](model.getClass)
+        m <- service.newModelAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -36,9 +36,9 @@ object OreTypeSetters {
 
   object RoleTypeListTypeSetter extends TypeSetter[List[RoleType]] {
     override def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: (T) => Rep[List[RoleType]], v: List[RoleType])
-                                                         (implicit service: ModelService): Future[_] = service.run {
+                                                         (implicit service: ModelService): Future[_] = service.DB.db.run {
       (for {
-        m <- service.modelQuery[T, M](model.getClass)
+        m <- service.newModelAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -46,9 +46,9 @@ object OreTypeSetters {
 
   object CategoryTypeSetter extends TypeSetter[Category] {
     override def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: (T) => Rep[Category], v: Category)
-                                                         (implicit service: ModelService): Future[_] = service.run {
+                                                         (implicit service: ModelService): Future[_] = service.DB.db.run {
       (for {
-        m <- service.modelQuery[T, M](model.getClass)
+        m <- service.newModelAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -56,9 +56,9 @@ object OreTypeSetters {
 
   object FlagReasonTypeSetter extends TypeSetter[FlagReason] {
     override def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: (T) => Rep[FlagReason], v: FlagReason)
-                                                         (implicit service: ModelService): Future[_] = service.run {
+                                                         (implicit service: ModelService): Future[_] = service.DB.db.run {
       (for {
-        m <- service.modelQuery[T, M](model.getClass)
+        m <- service.newModelAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }

@@ -1,5 +1,7 @@
 @import play.twirl.api.Html
-@(title: String, step: Int)(content: Html)(implicit messages: Messages, session: Session, request: RequestHeader)
+@import db.ModelService
+@(title: String, step: Int)(content: Html)(implicit messages: Messages, session: Session,
+        request: RequestHeader, service: ModelService)
 
 @core.layout(title) {
 

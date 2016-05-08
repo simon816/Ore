@@ -1,4 +1,5 @@
-@(message: String)(implicit messages: Messages, session: Session, request: RequestHeader)
+@import db.ModelService
+@(message: String)(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService)
 
 @core.layout("Error") {
 

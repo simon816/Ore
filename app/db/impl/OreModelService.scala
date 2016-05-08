@@ -1,21 +1,33 @@
 package db.impl
 
-import javax.inject.Singleton
+import java.util.concurrent.TimeUnit
+import javax.inject.{Inject, Singleton}
 
-import db.ModelService
+import db.{ModelRegistrar, ModelService}
 import db.impl.OrePostgresDriver.api._
 import db.impl.OreTypeSetters._
-import db.impl.query.user.UserActions
-import db.impl.query.{PageActions, ProjectActions, VersionActions}
+import db.impl.action.user.UserActions
+import db.impl.action.{PageActions, ProjectActions, VersionActions}
 import db.action.ModelActions
+import db.meta.BindingsGenerator
 import models.project.Channel
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
+import play.api.db.slick.DatabaseConfigProvider
+import slick.driver.JdbcProfile
+import util.Conf._
+
+import scala.concurrent.duration.Duration
 
 @Singleton
-class OreModelService extends ModelService {
+class OreModelService @Inject()(override val registrar: ModelRegistrar,
+                                override val bindingsGenerator: BindingsGenerator,
+                                db: DatabaseConfigProvider) extends ModelService {
+
+  override lazy val DB = db.get[JdbcProfile]
+  override lazy val DefaultTimeout: Duration = Duration(AppConf.getInt("db.default-timeout").get, TimeUnit.SECONDS)
 
   implicit val self = this
   import registrar.{register, registerSetter}

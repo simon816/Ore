@@ -2,32 +2,34 @@ package db
 
 import java.sql.Timestamp
 import java.util.Date
-import java.util.concurrent.TimeUnit
 
 import com.google.inject.ImplementedBy
+import db.action.ModelAction._
+import db.action.ModelFilter.IdFilter
+import db.action.{AbstractModelAction, ModelActions}
 import db.impl.OreModelService
 import db.impl.OrePostgresDriver.api._
+import db.meta.BindingsGenerator
 import db.meta.TypeSetters._
-import db.action.ModelFilter.IdFilter
-import db.action.ModelActions
-import play.api.Play
-import play.api.db.slick.DatabaseConfigProvider
-import slick.dbio.{DBIOAction, NoStream}
+import slick.backend.DatabaseConfig
 import slick.driver.JdbcProfile
 import slick.lifted.ColumnOrdered
-import util.Conf._
+import util.Conf
+import util.Conf.debug
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future, Promise}
 import scala.util.{Failure, Success, Try}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @ImplementedBy(classOf[OreModelService])
 trait ModelService {
 
-  val registrar = new ModelRegistrar
+  val bindingsGenerator: BindingsGenerator
+  val registrar: ModelRegistrar
   import registrar.registerSetter
+
+  protected[db] val DB: DatabaseConfig[JdbcProfile]
 
   registerSetter(classOf[Int], IntTypeSetter)
   registerSetter(classOf[String], StringTypeSetter)
@@ -35,14 +37,20 @@ trait ModelService {
   registerSetter(classOf[List[Int]], IntListTypeSetter)
   registerSetter(classOf[Timestamp], TimestampTypeSetter)
 
-  protected[db] val Config = DatabaseConfigProvider.get[JdbcProfile](Play.current)
-  protected val DB = Config.db
-  protected[db] def theTime: Timestamp = new Timestamp(new Date().getTime)
+  def theTime: Timestamp = new Timestamp(new Date().getTime)
 
   /**
     * The default timeout when awaiting a query result.
     */
-  val DefaultTimeout: Duration = Duration(AppConf.getInt("db.default-timeout").get, TimeUnit.SECONDS)
+  val DefaultTimeout: Duration
+
+  /**
+    * Provides the specified ModelQueries granted that it is registered.
+    *
+    * @tparam Q ModelQueries
+    * @return ModelQueries of type
+    */
+  def provide[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q = this.registrar.reverseLookup(actionsClass)
 
   /**
     * Returns the base query for the specified Model class.
@@ -52,24 +60,18 @@ trait ModelService {
     * @tparam M         Model type
     * @return           Base query for Model
     */
-  def modelQuery[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M]): Query[T, M, Seq]
+  def newModelAction[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M]): Query[T, M, Seq]
   = this.registrar.get(modelClass).baseQuery.asInstanceOf[Query[T, M, Seq]]
-
-  /**
-    * Provides the specified ModelQueries granted that it is registered.
-    *
-    * @tparam Q ModelQueries
-    * @return ModelQueries of type
-    */
-  def provide[Q <: ModelActions[_, _]]: Q = this.registrar.reverseLookup[Q]
 
   /**
     * Runs the specified action on the DB.
     *
-    * @param a  Action to run
-    * @return   Result
+    * @param action   Action to run
+    * @return         Result
     */
-  def run[R](a: DBIOAction[R, NoStream, Nothing]): Future[R] = DB.run(a)
+  def process[R](action: AbstractModelAction[R]): Future[R] = DB.db.run(action).andThen {
+    case r => action.processResult(this, r.get)
+  }
 
   /**
     * Awaits the result of the specified future and returns the result.
@@ -89,8 +91,8 @@ trait ModelService {
     */
   def insert[T <: ModelTable[M], M <: Model[_]](model: M): Future[M] = {
     val toInsert = model.copyWith(None, Some(theTime)).asInstanceOf[M]
-    val models = modelQuery[T, M](model.getClass)
-    run {
+    val models = newModelAction[T, M](model.getClass)
+    process {
       models returning models.map(_.id) into {
         case (m, id) =>
           model.copyWith(Some(id), m.createdAt).asInstanceOf[M]
@@ -106,9 +108,10 @@ trait ModelService {
     */
   def find[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M],
                                            predicate: T => Rep[Boolean]): Future[Option[M]] = {
+    debug("Finding model of type " + modelClass)
     val modelPromise = Promise[Option[M]]
-    val query = modelQuery[T, M](modelClass).filter(predicate).take(1)
-    run(query.result).andThen {
+    val query = newModelAction[T, M](modelClass).filter(predicate).take(1)
+    process(query.result).andThen {
       case Failure(thrown) => modelPromise.failure(thrown)
       case Success(result) => modelPromise.success(result.headOption)
     }
@@ -121,9 +124,9 @@ trait ModelService {
     * @return Size of model table
     */
   def count[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M], filter: T => Rep[Boolean]): Future[Int] = {
-    var query = modelQuery[T, M](modelClass)
+    var query = newModelAction[T, M](modelClass)
     if (filter != null) query = query.filter(filter)
-    run(query.length.result)
+    DB.db.run(query.length.result)
   }
 
   /**
@@ -139,7 +142,7 @@ trait ModelService {
     * @param model Model to delete
     */
   def delete[T <: ModelTable[M], M <: Model[_]](model: M, filter: T => Rep[Boolean] = null): Future[Int]
-  = run(modelQuery[T, M](model.getClass).filter(IdFilter[T, M](model.id.get) && filter).delete)
+  = DB.db.run(newModelAction[T, M](model.getClass).filter(IdFilter[T, M](model.id.get) && filter).delete)
 
   /**
     * Deletes the specified Model.
@@ -157,7 +160,7 @@ trait ModelService {
     * @tparam M         Model
     */
   def deleteWhere[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M], filter: T => Rep[Boolean]): Future[Int]
-  = run(modelQuery[T, M](modelClass).filter(filter).delete)
+  = DB.db.run(newModelAction[T, M](modelClass).filter(filter).delete)
 
   /**
     * Returns the model with the specified ID, if any.
@@ -188,12 +191,12 @@ trait ModelService {
   def collect[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M], filter: T => Rep[Boolean],
                                               sort: T => ColumnOrdered[_],
                                               limit: Int, offset: Int): Future[Seq[M]] = {
-    var query = modelQuery[T, M](modelClass)
+    var query = newModelAction[T, M](modelClass)
     if (filter != null) query = query.filter(filter)
     if (sort != null) query = query.sortBy(sort)
     if (offset > -1) query = query.drop(offset)
     if (limit > -1) query = query.take(limit)
-    run(query.result)
+    process(query.result)
   }
 
   /**

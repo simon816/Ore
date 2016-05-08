@@ -1,4 +1,4 @@
-package db.impl.query.user
+package db.impl.action.user
 
 import db.ModelService
 import db.impl.OrePostgresDriver.api._

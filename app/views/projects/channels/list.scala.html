@@ -1,7 +1,8 @@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.{Channel, Project}
+@import db.ModelService
 @(project: Project, channels: Seq[Channel])(implicit messages: Messages,
-        session: Session, flash: Flash, request: RequestHeader)
+        session: Session, flash: Flash, request: RequestHeader, service: ModelService)
 
 @core.layout(messages("channel.list.page-title", project.ownerName, project.slug)) {
 

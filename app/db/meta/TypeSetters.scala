@@ -5,7 +5,6 @@ import java.sql.Timestamp
 
 import db.{Model, ModelService, ModelTable}
 import db.impl.OrePostgresDriver.api._
-import db.meta.BindingsGenerator.getRep
 
 import scala.concurrent.Future
 
@@ -43,7 +42,8 @@ object TypeSetters {
       * @tparam T     Table
       * @tparam M     Model
       */
-    def bindTo[T <: ModelTable[M], M <: Model[_]](model: M, key: String, field: Field)(implicit service: ModelService) = {
+    def bindTo[T <: ModelTable[M], M <: Model[_]](model: M, key: String, field: Field)
+                                                 (implicit service: ModelService) = {
       field.setAccessible(true)
       val v: model.M => A = m => field.get(m) match {
         case opt: Option[A] => opt.getOrElse(null.asInstanceOf[A])
@@ -58,9 +58,9 @@ object TypeSetters {
 
   case object IntTypeSetter extends TypeSetter[Int] {
     def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: T => Rep[Int], v: Int)
-                                                (implicit service: ModelService) = service.run {
+                                                (implicit service: ModelService) = service.DB.db.run {
       (for {
-        m <- service.modelQuery[T, M](model.getClass)
+        m <- service.newModelAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -68,9 +68,9 @@ object TypeSetters {
 
   case object StringTypeSetter extends TypeSetter[String] {
     def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: T => Rep[String], v: String)
-                                                (implicit service: ModelService) = service.run {
+                                                (implicit service: ModelService) = service.DB.db.run {
       (for {
-        m <- service.modelQuery[T, M](model.getClass)
+        m <- service.newModelAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -78,9 +78,9 @@ object TypeSetters {
 
   case object BooleanTypeSetter extends TypeSetter[Boolean] {
     def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: T => Rep[Boolean], v: Boolean)
-                                                (implicit service: ModelService) = service.run {
+                                                (implicit service: ModelService) = service.DB.db.run {
       (for {
-        m <- service.modelQuery[T, M](model.getClass)
+        m <- service.newModelAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -88,9 +88,9 @@ object TypeSetters {
 
   case object IntListTypeSetter extends TypeSetter[List[Int]] {
     def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: T => Rep[List[Int]], v: List[Int])
-                                                (implicit service: ModelService) = service.run {
+                                                (implicit service: ModelService) = service.DB.db.run {
       (for {
-        m <- service.modelQuery[T, M](model.getClass)
+        m <- service.newModelAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -98,12 +98,15 @@ object TypeSetters {
 
   case object TimestampTypeSetter extends TypeSetter[Timestamp] {
     def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: T => Rep[Timestamp], v: Timestamp)
-                                                (implicit service: ModelService) = service.run {
+                                                (implicit service: ModelService) = service.DB.db.run {
       (for {
-        m <- service.modelQuery[T, M](model.getClass)
+        m <- service.newModelAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
   }
+
+  def getRep[A](name: String, table: ModelTable[_])
+  = table.getClass.getMethod(name).invoke(table).asInstanceOf[Rep[A]]
 
 }

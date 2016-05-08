@@ -2,8 +2,8 @@ package ore.api
 
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import db.impl.query.user.UserActions
-import db.impl.query.{ProjectActions, VersionActions}
+import db.impl.action.user.UserActions
+import db.impl.action.{ProjectActions, VersionActions}
 import models.project.{Project, Version}
 import models.user.User
 import ore.project.Categories.Category
@@ -33,7 +33,7 @@ object OreAPI {
       */
     def getProjectList(categories: Option[String], sort: Option[Int], q: Option[String],
                        limit: Option[Int], offset: Option[Int])(implicit service: ModelService): JsValue = {
-      val queries = service.provide[ProjectActions]
+      val queries = service.provide(classOf[ProjectActions])
       val categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
       val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
       val filter = q.map(queries.searchFilter).orNull
@@ -69,7 +69,7 @@ object OreAPI {
           project.channels.find(equalsIgnoreCase(_.name, name)).get.id.get
         })
         // Only allow versions in the specified channels
-        val filter = channelIds.map(service.provide[VersionActions].channelFilter).orNull
+        val filter = channelIds.map(service.provide(classOf[VersionActions]).channelFilter).orNull
         val lim = Math.max(limit.getOrElse(Version.InitialLoad), Version.InitialLoad)
         Json.toJson(project.versions.sorted(_.createdAt.desc, filter, lim, offset.getOrElse(-1)))
       }
@@ -96,7 +96,7 @@ object OreAPI {
       * @return       List of users
       */
     def getUserList(limit: Option[Int], offset: Option[Int])(implicit service: ModelService): JsValue
-    = Json.toJson(service.await(service.provide[UserActions].collect(limit.getOrElse(-1), offset.getOrElse(-1))).get)
+    = Json.toJson(service.await(service.provide(classOf[UserActions]).collect(limit.getOrElse(-1), offset.getOrElse(-1))).get)
 
     /**
       * Returns a Json value of the User with the specified username.
