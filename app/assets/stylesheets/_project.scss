@@ -58,6 +58,11 @@
   margin-bottom: 15px;
 }
 
+.project-controls .stars-static {
+  color: gray;
+  padding-right: 5px;
+}
+
 .project-header-container {
   @include margin-vert(60px, 15px);
   border-bottom: 1px solid $lighter;
