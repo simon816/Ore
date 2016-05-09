@@ -4,14 +4,15 @@ import javax.inject.Inject
 
 import db.ModelService
 import forums.DiscourseApi
-import ore.api.OreAPI.v1
+import ore.api.OreRestfulApi
 import play.api.libs.json._
 import play.api.mvc._
 
 /**
   * Ore API (v1)
   */
-class ApiController @Inject()(implicit val models: ModelService,
+class ApiController @Inject()(val api: OreRestfulApi,
+                              implicit val models: ModelService,
                               implicit val forums: DiscourseApi) extends Controller {
 
   def ApiResult(json: Option[JsValue]): Result = json.map(Ok(_)).getOrElse(NotFound)
@@ -25,7 +26,7 @@ class ApiController @Inject()(implicit val models: ModelService,
   def listProjects(version: String, categories: Option[String], sort: Option[Int], q: Option[String],
                    limit: Option[Int], offset: Option[Int]) = Action {
     version match {
-      case "v1" => Ok(v1.getProjectList(categories, sort, q, limit, offset))
+      case "v1" => Ok(api.getProjectList(categories, sort, q, limit, offset))
       case zoinks => NotFound
     }
   }
@@ -39,7 +40,7 @@ class ApiController @Inject()(implicit val models: ModelService,
     */
   def showProject(version: String, pluginId: String) = Action {
     version match {
-      case "v1" => ApiResult(v1.getProject(pluginId))
+      case "v1" => ApiResult(api.getProject(pluginId))
       case yikes => NotFound
     }
   }
@@ -47,14 +48,14 @@ class ApiController @Inject()(implicit val models: ModelService,
   def listVersions(version: String, pluginId: String, channels: Option[String],
                    limit: Option[Int], offset: Option[Int]) = Action {
     version match {
-      case "v1" => ApiResult(v1.getVersionList(pluginId, channels, limit, offset))
+      case "v1" => ApiResult(api.getVersionList(pluginId, channels, limit, offset))
       case gorp => NotFound
     }
   }
 
   def showVersion(version: String, pluginId: String, name: String) = Action {
     version match {
-      case "v1" => ApiResult(v1.getVersion(pluginId, name))
+      case "v1" => ApiResult(api.getVersion(pluginId, name))
       case fffffs => NotFound
     }
   }
@@ -69,7 +70,7 @@ class ApiController @Inject()(implicit val models: ModelService,
     */
   def listUsers(version: String, limit: Option[Int], offset: Option[Int]) = Action {
     version match {
-      case "v1" => Ok(v1.getUserList(limit, offset))
+      case "v1" => Ok(api.getUserList(limit, offset))
       case oops => NotFound
     }
   }
@@ -83,7 +84,7 @@ class ApiController @Inject()(implicit val models: ModelService,
     */
   def showUser(version: String, username: String) = Action {
     version match {
-      case "v1" => ApiResult(v1.getUser(username))
+      case "v1" => ApiResult(api.getUser(username))
       case sad => NotFound
     }
   }
