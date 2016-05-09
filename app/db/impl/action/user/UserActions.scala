@@ -11,12 +11,12 @@ import scala.concurrent.Future
 /**
   * User related queries.
   */
-class UserActions(implicit val service: ModelService) extends ModelActions[UserTable, User](
-  classOf[User], TableQuery[UserTable]) {
+class UserActions(implicit val service: ModelService)
+  extends ModelActions[UserTable, User](classOf[User], TableQuery[UserTable]) {
 
-  val ProjectRoles = service.registrar.register(new ModelActions[ProjectRoleTable, ProjectRole](
-    classOf[ProjectRole], TableQuery[ProjectRoleTable]
-  ))
+  val ProjectRoles = service.registrar.register(
+    new ModelActions[ProjectRoleTable, ProjectRole](classOf[ProjectRole], TableQuery[ProjectRoleTable])
+  )
 
   override def like(user: User): Future[Option[User]] = this.find(_.username.toLowerCase === user.username.toLowerCase)
 

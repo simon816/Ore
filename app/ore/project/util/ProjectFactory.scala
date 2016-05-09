@@ -106,3 +106,5 @@ trait ProjectFactory {
   }
 
 }
+
+class OreProjectFactory extends ProjectFactory

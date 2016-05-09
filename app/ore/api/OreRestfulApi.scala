@@ -107,3 +107,5 @@ trait OreRestfulApi {
   = User.withName(username).map(Json.toJson(_))
 
 }
+
+class OreRestful extends OreRestfulApi

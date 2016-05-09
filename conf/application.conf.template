@@ -27,7 +27,7 @@ play.evolutions.db.default.autoApply    =   true
 # Ore configuration
 ore.date-format =  "MM-dd-yyyy"
 ore.debug       =  true
-ore.debug-level =  -1
+ore.debug-level =  0
 # Used in /admin/seed route. Run "gradle build" in OreTestPlugin before using that route
 ore.test-plugin = "OreTestPlugin/build/libs/ore-test-plugin-dev-SNAPSHOT.jar"
 

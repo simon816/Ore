@@ -56,3 +56,6 @@ class OreModelService @Inject()(override val registrar: ModelRegistrar,
   register(new VersionActions)
 
 }
+
+class OreModelProcessor extends ModelProcessor
+class OreModelRegistrar extends ModelRegistrar

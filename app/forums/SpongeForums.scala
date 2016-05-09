@@ -13,8 +13,9 @@ class SpongeForums @Inject()(implicit val ws: WSClient, implicit val service: Mo
 
   lazy val URL = DiscourseConf.getString("baseUrl").get
 
-  override lazy val Auth = new DiscourseSso(
-    DiscourseConf.getString("sso.url").get, DiscourseConf.getString("sso.secret").get, this)
+  override lazy val Auth = new DiscourseSSO(
+    DiscourseConf.getString("sso.url").get, DiscourseConf.getString("sso.secret").get, this
+  )
 
   override lazy val Users = new DiscourseUsers(URL, this)
 

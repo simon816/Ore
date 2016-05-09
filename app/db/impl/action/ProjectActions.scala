@@ -21,16 +21,14 @@ import scala.util.{Failure, Success}
 /**
   * Project related queries
   */
-class ProjectActions(implicit val service: ModelService) extends ModelActions[ProjectTable, Project](
-  classOf[Project], TableQuery[ProjectTable]) {
+class ProjectActions(implicit val service: ModelService)
+  extends ModelActions[ProjectTable, Project](classOf[Project], TableQuery[ProjectTable]) {
 
-  val Flags = service.registrar.register(new ModelActions[FlagTable, Flag](
-    classOf[Flag], TableQuery[FlagTable]
-  ))
+  val Flags = service.registrar.register(new ModelActions[FlagTable, Flag](classOf[Flag], TableQuery[FlagTable]))
 
-  val Views = service.registrar.register(new StatActions[ProjectViewsTable, ProjectView](
-    classOf[ProjectView], TableQuery[ProjectViewsTable]
-  ))
+  val Views = service.registrar.register(
+    new StatActions[ProjectViewsTable, ProjectView](classOf[ProjectView], TableQuery[ProjectViewsTable])
+  )
 
   private val stars = TableQuery[ProjectStarsTable]
 

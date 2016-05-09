@@ -68,3 +68,5 @@ object StatTracker {
   = request.cookies.get(COOKIE_UID).map(_.value).getOrElse(UUID.randomUUID.toString)
 
 }
+
+class OreStatTracker extends StatTracker

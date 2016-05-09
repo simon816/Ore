@@ -12,12 +12,14 @@ import scala.concurrent.Future
 /**
   * Version related queries.
   */
-class VersionActions(implicit val service: ModelService) extends ModelActions[VersionTable, Version](
-  classOf[Version], TableQuery[VersionTable]) {
+class VersionActions(implicit val service: ModelService)
+  extends ModelActions[VersionTable, Version](classOf[Version], TableQuery[VersionTable]) {
 
-  val Downloads = service.registrar.register(new StatActions[VersionDownloadsTable, VersionDownload](
-    classOf[VersionDownload], TableQuery[VersionDownloadsTable]
-  ))
+  val Downloads = service.registrar.register(
+    new StatActions[VersionDownloadsTable, VersionDownload](
+      classOf[VersionDownload], TableQuery[VersionDownloadsTable]
+    )
+  )
 
   /**
     * Returns true if the specified hash is found in the specified

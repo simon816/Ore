@@ -17,15 +17,13 @@ import org.apache.commons.codec.binary.Hex
   * @param url      SSO url
   * @param secret   SSO secret key
   */
-class DiscourseSso(private val url: String, private val secret: String, implicit val api: DiscourseApi) {
+class DiscourseSSO(private val url: String, private val secret: String, implicit val api: DiscourseApi) {
 
   private val charEncoding = "UTF-8"
   private val random = new SecureRandom
   private val algo = "HmacSHA256"
 
-  private def nonce: String = {
-    new BigInteger(130, this.random).toString(32)
-  }
+  private def nonce: String = new BigInteger(130, this.random).toString(32)
 
   private def hmac_sha256(data: Array[Byte]): String = {
     val hmac = Mac.getInstance(this.algo)
@@ -42,9 +40,9 @@ class DiscourseSso(private val url: String, private val secret: String, implicit
     */
   def toForums(returnUrl: String): String = {
     val payload = "require_validation=true&return_sso_url=" + returnUrl + "&nonce=" + nonce
-    val encoded = new String(Base64.getEncoder.encode(payload.getBytes("UTF-8")))
-    val urlEncoded = URLEncoder.encode(encoded, "UTF-8")
-    val hmac = hmac_sha256(encoded.getBytes("UTF-8"))
+    val encoded = new String(Base64.getEncoder.encode(payload.getBytes(this.charEncoding)))
+    val urlEncoded = URLEncoder.encode(encoded, this.charEncoding)
+    val hmac = hmac_sha256(encoded.getBytes(this.charEncoding))
     this.url + "?sso=" + urlEncoded + "&sig=" + hmac
   }
 
@@ -59,12 +57,10 @@ class DiscourseSso(private val url: String, private val secret: String, implicit
   def authenticate(sso: String, sig: String)(implicit service: ModelService): User = {
     // check sig
     val hmac = hmac_sha256(sso.getBytes(this.charEncoding))
-    if (!hmac.equals(sig)) {
-      throw new Exception("Invalid signature.")
-    }
+    if (!hmac.equals(sig)) throw new Exception("Invalid signature.")
 
     // decode payload
-    val decoded = URLDecoder.decode(new String(Base64.getMimeDecoder.decode(sso)), "UTF-8")
+    val decoded = URLDecoder.decode(new String(Base64.getMimeDecoder.decode(sso)), this.charEncoding)
 
     // extract info
     val params = decoded.split('&')
