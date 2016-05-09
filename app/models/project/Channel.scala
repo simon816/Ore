@@ -3,11 +3,11 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.impl.{ChannelTable, ModelKeys, VersionTable}
-import ModelKeys._
-import db.{Model, ModelService}
-import db.meta.{Bind, ModelProcessor, HasMany}
+import db.ModelService
 import db.action.{ModelActions, ModelSet}
+import db.impl.ModelKeys._
+import db.impl.{ChannelTable, ModelKeys, OreModel, VersionTable}
+import db.meta.{Bind, HasMany}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
 import ore.project.util.ProjectFiles
@@ -36,7 +36,7 @@ case class Channel(override val id: Option[Int] = None,
                    override val projectId: Int,
                    @(Bind @field) private var _name: String,
                    @(Bind @field) private var _color: Color)
-                   extends Model[ModelActions[ChannelTable, Channel]](id, createdAt)
+                   extends OreModel[ModelActions[ChannelTable, Channel]](id, createdAt)
                      with Ordered[Channel]
                      with ProjectScope { self =>
 

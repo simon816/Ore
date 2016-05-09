@@ -45,7 +45,9 @@ case class User(override val id: Option[Int] = None,
                 @(Bind @field) private var _globalRoles: List[RoleType] = List(),
                 @(Bind @field) private var _joinDate: Option[Timestamp] = None,
                 @(Bind @field) private var _avatarUrl: Option[String] = None)
-                extends Model[UserActions](id, createdAt) with UserOwner with ScopeSubject { self =>
+                extends OreModel[UserActions](id, createdAt)
+                  with UserOwner
+                  with ScopeSubject { self =>
 
   import models.user.User._
 

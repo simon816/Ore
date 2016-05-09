@@ -5,13 +5,13 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions
 import com.google.common.base.Preconditions._
+import db.ModelService
+import db.action.ModelSet
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl.action.VersionActions
-import db.impl.{VersionDownloadsTable, VersionTable}
-import db.meta.{Actor, Bind, ModelProcessor, HasMany}
-import db.action.ModelSet
-import db.{Model, ModelService}
+import db.impl.{OreModel, VersionDownloadsTable, VersionTable}
+import db.meta.{Actor, Bind, HasMany}
 import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
@@ -43,16 +43,17 @@ import scala.collection.JavaConverters._
 case class Version(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                    override val projectId: Int,
-                                versionString: String,
-                                dependenciesIds: List[String] = List(),
-                                assets: Option[String] = None,
-                                channelId: Int,
-                                fileSize: Long,
-                                hash: String,
+                   versionString: String,
+                   dependenciesIds: List[String] = List(),
+                   assets: Option[String] = None,
+                   channelId: Int,
+                   fileSize: Long,
+                   hash: String,
                    @(Bind @field) private var _description: Option[String] = None,
                    @(Bind @field) private var _downloads: Int = 0,
                    @(Bind @field) private var _isReviewed: Boolean = false)
-                   extends Model[VersionActions](id, createdAt) with ProjectScope { self =>
+                   extends OreModel[VersionActions](id, createdAt)
+                     with ProjectScope { self =>
 
   import models.project.Version._
 

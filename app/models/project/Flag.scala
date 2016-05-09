@@ -2,7 +2,7 @@ package models.project
 
 import java.sql.Timestamp
 
-import db.impl.{FlagTable, ModelKeys}
+import db.impl.{FlagTable, ModelKeys, OreModel}
 import db.impl.OrePostgresDriver.api._
 import ModelKeys._
 import db.{Model, ModelService}
@@ -24,13 +24,15 @@ import scala.annotation.meta.field
   * @param reason       Reason for flag
   * @param _isResolved  True if has been reviewed and resolved by staff member
   */
-case class Flag(override val  id: Option[Int],
-                override val  createdAt: Option[Timestamp],
-                override val  projectId: Int,
-                override val  userId: Int,
-                              reason: FlagReason,
+case class Flag(override val id: Option[Int],
+                override val createdAt: Option[Timestamp],
+                override val projectId: Int,
+                override val userId: Int,
+                reason: FlagReason,
                 @(Bind @field) private var _isResolved: Boolean = false)
-                extends Model[ModelActions[FlagTable, Flag]](id, createdAt) with UserOwner with ProjectScope { self =>
+                extends OreModel[ModelActions[FlagTable, Flag]](id, createdAt)
+                  with UserOwner
+                  with ProjectScope { self =>
 
   def this(projectId: Int, userId: Int, reason: FlagReason) = {
     this(id=None, createdAt=None, projectId=projectId, userId=userId, reason=reason)

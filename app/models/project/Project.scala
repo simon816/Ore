@@ -6,12 +6,12 @@ import java.text.MessageFormat
 
 import com.google.common.base.Preconditions._
 import db._
+import db.action.ModelSet
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.action.ProjectActions
-import db.meta.{Actor, Bind, ModelProcessor, HasMany}
-import db.action.ModelSet
+import db.meta.{Actor, Bind, HasMany}
 import forums.SpongeForums
 import models.statistic.ProjectView
 import models.user.{ProjectRole, User}
@@ -74,7 +74,8 @@ case class Project(override val id: Option[Int] = None,
                    @(Bind @field) private var _topicId: Option[Int] = None,
                    @(Bind @field) private var _postId: Option[Int] = None,
                    @(Bind @field) private var _isVisible: Boolean = true)
-                   extends Model[ProjectActions](id, createdAt) with ProjectScope { self =>
+                   extends OreModel[ProjectActions](id, createdAt)
+                     with ProjectScope { self =>
 
   import models.project.Project._
 

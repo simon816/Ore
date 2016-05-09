@@ -33,9 +33,7 @@ case class VersionDownload(override val id: Option[Int] = None,
                            override val address: InetString,
                            override val cookie: String,
                            @(Bind @field) private var userId: Option[Int] = None)
-                           extends StatEntry[Version](
-                             id, createdAt, modelId, address, cookie, userId
-                           ) {
+                           extends StatEntry[Version](id, createdAt, modelId, address, cookie, userId) {
 
   override def subject(implicit service: ModelService): Version = Version.withId(this.modelId).get
 

@@ -3,8 +3,8 @@ package db
 import java.sql.Timestamp
 
 import db.action.{ModelActions, ModelFilter, ModelSet}
-import db.impl.OrePostgresDriver.api._
 import db.meta.{Actor, FieldBinding, ManyBinding}
+import slick.driver.JdbcDriver
 import util.Conf._
 import util.StringUtils
 
@@ -13,7 +13,11 @@ import scala.concurrent.Future
 /**
   * Represents a Model that may or may not exist in the database.
   */
-abstract class Model[A <: ModelActions[_, _]](val id: Option[Int], val createdAt: Option[Timestamp]) { self =>
+abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
+                                              val createdAt: Option[Timestamp],
+                                              val driver: JdbcDriver) { self =>
+
+  import driver.api._
 
   type M <: Model[A] { type M = self.M }
   type T <: ModelTable[M]

@@ -3,16 +3,13 @@ package db
 import java.sql.Timestamp
 import java.util.Date
 
-import com.google.inject.ImplementedBy
 import db.action.ModelAction._
+import db.action.ModelActions
 import db.action.ModelFilter.IdFilter
-import db.action.{AbstractModelAction, ModelActions}
-import db.impl.OreModelService
-import db.impl.OrePostgresDriver.api._
-import db.meta.ModelProcessor
 import db.meta.BootstrapTypeSetters._
+import db.meta.ModelProcessor
 import slick.backend.DatabaseConfig
-import slick.driver.JdbcProfile
+import slick.driver.{JdbcDriver, JdbcProfile}
 import slick.lifted.ColumnOrdered
 import util.Conf.debug
 
@@ -24,7 +21,6 @@ import scala.util.{Failure, Success, Try}
 /**
   * Represents a service that creates, deletes, and manipulates Models.
   */
-@ImplementedBy(classOf[OreModelService])
 trait ModelService {
 
   /** Used for processing models and determining field bindings */
@@ -33,6 +29,10 @@ trait ModelService {
   /** All registered models and TypeSetters */
   val registrar: ModelRegistrar
   import registrar.registerSetter
+
+  /** The base JDBC driver */
+  val driver: JdbcDriver
+  import driver.api._
 
   /**
     * The database config for raw actions. Note: running raw queries will not

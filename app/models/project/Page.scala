@@ -3,12 +3,12 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.impl.{ModelKeys, PageTable}
-import ModelKeys._
-import db.{Model, ModelService}
-import db.impl.action.PageActions
-import db.meta.{Actor, Bind, ModelProcessor}
+import db.ModelService
 import db.action.ModelSet
+import db.impl.ModelKeys._
+import db.impl.action.PageActions
+import db.impl.{OreModel, PageTable}
+import db.meta.{Actor, Bind}
 import forums.SpongeForums
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
@@ -31,14 +31,15 @@ import scala.annotation.meta.field
   * @param isDeletable  True if can be deleted by the user
   */
 @Actor(classOf[PageActions])
-case class Page(override val  id: Option[Int] = None,
-                override val  createdAt: Option[Timestamp] = None,
-                override val  projectId: Int,
-                              name: String,
-                              slug: String,
-                              isDeletable: Boolean = true,
+case class Page(override val id: Option[Int] = None,
+                override val createdAt: Option[Timestamp] = None,
+                override val projectId: Int,
+                name: String,
+                slug: String,
+                isDeletable: Boolean = true,
                 @(Bind @field) private var _contents: String)
-                extends Model[PageActions](id, createdAt) with ProjectScope { self =>
+                extends OreModel[PageActions](id, createdAt)
+                  with ProjectScope { self =>
 
   import models.project.Page._
 

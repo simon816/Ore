@@ -30,9 +30,8 @@ case class ProjectView(override val id: Option[Int] = None,
                        override val address: InetString,
                        override val cookie: String,
                        @(Bind @field) private var userId: Option[Int] = None)
-                       extends StatEntry[Project](
-                         id, createdAt, modelId, address, cookie, userId
-                       ) with ProjectOwner {
+                       extends StatEntry[Project](id, createdAt, modelId, address, cookie, userId)
+                         with ProjectOwner {
 
   override def subject(implicit service: ModelService): Project = Project.withId(this.modelId).get
 
