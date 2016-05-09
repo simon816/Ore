@@ -16,6 +16,7 @@ import models.user.User
 import ore.permission._
 import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
+import ore.project.util.ProjectFactory
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -28,6 +29,7 @@ import views.{html => views}
   * Main entry point for application.
   */
 class Application @Inject()(override val messagesApi: MessagesApi,
+                            implicit val projectFactory: ProjectFactory,
                             implicit val forums: DiscourseApi,
                             implicit val ws: WSClient,
                             implicit val models: ModelService) extends BaseController {

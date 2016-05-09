@@ -8,8 +8,8 @@ import db.ModelService
 import form.Forms
 import forums.DiscourseApi
 import models.project.Page
-import ore.Statistics
 import ore.permission.EditPages
+import ore.statistic.StatTracker
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc.Action
@@ -20,6 +20,7 @@ import views.html.projects.{pages => views}
   * Controller for handling Page related actions.
   */
 class Pages @Inject()(override val messagesApi: MessagesApi,
+                      val stats: StatTracker,
                       implicit val forums: DiscourseApi,
                       implicit val ws: WSClient,
                       implicit val service: ModelService) extends BaseController {
@@ -40,7 +41,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi,
       val project = request.project
       project.pages.find(equalsIgnoreCase(_.name, page)) match {
         case None => NotFound
-        case Some(p) => Statistics.projectViewed(implicit request => Ok(views.view(project, p)))
+        case Some(p) => stats.projectViewed(implicit request => Ok(views.view(project, p)))
       }
     }
   }

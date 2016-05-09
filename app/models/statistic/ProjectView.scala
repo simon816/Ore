@@ -8,7 +8,8 @@ import db.ModelService
 import db.meta.Bind
 import models.project.Project
 import models.user.User
-import ore.{ProjectOwner, Statistics}
+import ore.ProjectOwner
+import ore.statistic.StatTracker
 
 import scala.annotation.meta.field
 
@@ -51,7 +52,7 @@ object ProjectView {
     */
   def bindFromRequest()(implicit request: ProjectRequest[_]): ProjectView = {
     val userId = User.current(request.session, request.service, request.forums).flatMap(_.id)
-    val cookie = Statistics.getStatCookie
+    val cookie = StatTracker.getStatCookie
     ProjectView(
       modelId = request.project.id.get,
       address = InetString(request.remoteAddress),

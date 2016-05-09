@@ -24,12 +24,12 @@ case class PendingVersion(owner: String,
                           var channelColor: Color = Channel.DefaultColor,
                           version: Version,
                           plugin: PluginFile)
-                         (implicit service: ModelService, forums: DiscourseApi)
+                         (implicit service: ModelService, forums: DiscourseApi, factory: ProjectFactory)
                           extends PendingAction[Version] with Cacheable {
 
   override def complete: Try[Version] = Try {
     free()
-    return ProjectFactory.createVersion(this)
+    return factory.createVersion(this)
   }
 
   override def cancel() = {

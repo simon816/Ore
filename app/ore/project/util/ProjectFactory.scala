@@ -18,7 +18,7 @@ import scala.util.Try
 /**
   * Handles creation of Project's and their components.
   */
-object ProjectFactory {
+trait ProjectFactory {
 
   /**
     * Initializes a new PluginFile with the specified owner and temporary file.

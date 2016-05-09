@@ -1,10 +1,11 @@
-package ore
+package ore.statistic
 
 import java.util.UUID
 
 import controllers.Requests.ProjectRequest
 import models.project.Version
 import models.statistic.{ProjectView, VersionDownload}
+import ore.statistic.StatTracker.COOKIE_UID
 import play.api.mvc.{Cookie, RequestHeader, Result}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -12,18 +13,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Helper class for handling tracking of statistics.
   */
-object Statistics {
-
-  val COOKIE_UID = "uid"
-
-  /**
-    * Gets or creates a unique ID for tracking statistics based on the browser.
-    *
-    * @param request  Request with cookie
-    * @return         New or existing cookie
-    */
-  def getStatCookie(implicit request: RequestHeader)
-  = request.cookies.get(COOKIE_UID).map(_.value).getOrElse(UUID.randomUUID.toString)
+trait StatTracker {
 
   /**
     * Signifies that a project has been viewed with the specified request and
@@ -61,5 +51,20 @@ object Statistics {
     }
     f(request).withCookies(Cookie(COOKIE_UID, statEntry.cookie))
   }
+
+}
+
+object StatTracker {
+
+  val COOKIE_UID = "uid"
+
+  /**
+    * Gets or creates a unique ID for tracking statistics based on the browser.
+    *
+    * @param request  Request with cookie
+    * @return         New or existing cookie
+    */
+  def getStatCookie(implicit request: RequestHeader)
+  = request.cookies.get(COOKIE_UID).map(_.value).getOrElse(UUID.randomUUID.toString)
 
 }

@@ -603,7 +603,8 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @param firstVersion   Uploaded plugin
     */
   def setPending(project: Project, firstVersion: PluginFile)(implicit service: ModelService,
-                                                             forums: DiscourseApi): PendingProject =  {
+                                                             forums: DiscourseApi,
+                                                             factory: ProjectFactory): PendingProject =  {
     val pendingProject = PendingProject(project, firstVersion)
     pendingProject.cache()
     pendingProject

@@ -18,7 +18,7 @@ import scala.util.Try
 case class PendingProject(project: Project,
                           file: PluginFile,
                           var roles: Set[ProjectRole] = Set())
-                         (implicit service: ModelService, forums: DiscourseApi)
+                         (implicit service: ModelService, forums: DiscourseApi, factory: ProjectFactory)
                           extends PendingAction[Project] with Cacheable {
 
   /**
@@ -32,8 +32,8 @@ case class PendingProject(project: Project,
 
   override def complete: Try[Project] = Try {
     free()
-    val newProject = ProjectFactory.createProject(this).get
-    val newVersion = ProjectFactory.createVersion(this.pendingVersion).get
+    val newProject = factory.createProject(this).get
+    val newVersion = factory.createVersion(this.pendingVersion).get
     newProject.recommendedVersion = newVersion
     newProject
   }

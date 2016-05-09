@@ -10,9 +10,9 @@ import form.Forms
 import forums.DiscourseApi
 import models.project._
 import models.user.User
-import ore.Statistics
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
+import ore.statistic.StatTracker
 import ore.project.util.{InvalidPluginFileException, ProjectFactory}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -30,6 +30,8 @@ import scala.util.{Failure, Success}
   * TODO: Localize
   */
 class Projects @Inject()(override val messagesApi: MessagesApi,
+                         val stats: StatTracker,
+                         implicit val projectFactory: ProjectFactory,
                          implicit val forums: DiscourseApi,
                          implicit val ws: WSClient,
                          implicit val service: ModelService) extends BaseController {
@@ -57,7 +59,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
       case Some(tmpFile) =>
         // Initialize plugin file
         val user = request.user
-        ProjectFactory.initUpload(tmpFile.ref, tmpFile.filename, user) match {
+        projectFactory.initUpload(tmpFile.ref, tmpFile.filename, user) match {
           case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
             // PEBKAC
             Redirect(self.showCreator()).flashing("error" -> "Invalid plugin file.")
@@ -140,7 +142,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     ProjectAction(author, slug)(service, forums) { implicit request =>
       val project = request.project
       Conf.debug("isProcessed: " + project.name + " = " + project.isProcessed + " " + project.hashCode())
-      Statistics.projectViewed(implicit request => Ok(views.pages.view(project, project.homePage)))
+      stats.projectViewed(implicit request => Ok(views.pages.view(project, project.homePage)))
     }
   }
 
@@ -232,7 +234,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     */
   def showDiscussion(author: String, slug: String) = {
     ProjectAction(author, slug)(service, forums) { implicit request =>
-      Statistics.projectViewed(implicit request => Ok(views.discuss(request.project)))
+      stats.projectViewed(implicit request => Ok(views.discuss(request.project)))
     }
   }
 

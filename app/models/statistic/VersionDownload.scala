@@ -9,7 +9,7 @@ import db.impl.action.VersionActions
 import db.meta.{Actor, Bind}
 import models.project.Version
 import models.user.User
-import ore.Statistics
+import ore.statistic.StatTracker
 
 import scala.annotation.meta.field
 
@@ -50,7 +50,7 @@ object VersionDownload {
     * @return         New VersionDownload
     */
   def bindFromRequest(version: Version)(implicit request: ProjectRequest[_]): VersionDownload = {
-    val cookie = Statistics.getStatCookie
+    val cookie = StatTracker.getStatCookie
     val userId = User.current(request.session, request.service, request.forums).flatMap(_.id)
     VersionDownload(
       modelId = version.id.get,

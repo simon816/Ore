@@ -16,7 +16,7 @@ import forums.DiscourseApi
 import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
-import ore.project.util.{PendingVersion, PluginFile, ProjectFiles}
+import ore.project.util.{PendingVersion, PluginFile, ProjectFactory, ProjectFiles}
 import org.apache.commons.io.FileUtils
 import play.api.Play.current
 import play.api.cache.Cache
@@ -229,7 +229,7 @@ object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
     * @param plugin   Uploaded plugin
     */
   def setPending(owner: String, slug: String, channel: String, version: Version, plugin: PluginFile)
-                (implicit service: ModelService, forums: DiscourseApi): PendingVersion = {
+                (implicit service: ModelService, forums: DiscourseApi, factory: ProjectFactory): PendingVersion = {
     val pending = PendingVersion(owner, slug, channel, Channel.DefaultColor, version, plugin)
     pending.cache()
     pending

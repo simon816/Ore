@@ -9,8 +9,8 @@ import db.impl.OrePostgresDriver.api._
 import form.Forms
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
-import ore.Statistics
 import ore.permission.{EditVersions, ReviewProjects}
+import ore.statistic.StatTracker
 import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFactory, ProjectFiles}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -24,6 +24,8 @@ import scala.util.{Failure, Success}
   * Controller for handling Version related actions.
   */
 class Versions @Inject()(override val messagesApi: MessagesApi,
+                         val stats: StatTracker,
+                         implicit val projectFactory: ProjectFactory,
                          implicit val forums: DiscourseApi,
                          implicit val ws: WSClient,
                          implicit val service: ModelService) extends BaseController {
@@ -43,7 +45,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     ProjectAction(author, slug)(service, forums) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
-        Statistics.projectViewed { implicit request =>
+        stats.projectViewed { implicit request =>
           Ok(views.view(project, version.channel, version))
         }
       }
@@ -128,7 +130,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
         visibleNames = None
       }
 
-      Statistics.projectViewed { implicit request =>
+      stats.projectViewed { implicit request =>
         Ok(views.list(project, allChannels, versions, visibleNames))
       }
     }
@@ -161,7 +163,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
         case None => Redirect(self.showCreator(author, slug)).flashing("error" -> "Missing file")
         case Some(tmpFile) =>
           // Initialize plugin file
-          ProjectFactory.initUpload(tmpFile.ref, tmpFile.filename, request.user) match {
+          projectFactory.initUpload(tmpFile.ref, tmpFile.filename, request.user) match {
             case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
               // PEBKAC
               Redirect(self.showCreator(author, slug))
@@ -319,7 +321,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     ProjectAction(author, slug)(service, forums) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
-        Statistics.versionDownloaded(version) { implicit request =>
+        stats.versionDownloaded(version) { implicit request =>
           Ok.sendFile(ProjectFiles.uploadPath(author, project.name, versionString).toFile)
         }
       }
@@ -337,7 +339,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     ProjectAction(author, slug)(service, forums) { implicit request =>
       val project = request.project
       val rv = project.recommendedVersion
-      Statistics.versionDownloaded(rv) { implicit request =>
+      stats.versionDownloaded(rv) { implicit request =>
         Ok.sendFile(ProjectFiles.uploadPath(author, project.name, rv.versionString).toFile)
       }
     }
