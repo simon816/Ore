@@ -220,8 +220,10 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     */
   def setStarred(author: String, slug: String, starred: Boolean) = {
     AuthedProjectAction(author, slug)(service, forums) { implicit request =>
-      request.project.setStarredBy(request.user, starred)
-      Ok
+      if (request.project.ownerId != request.user.userId) {
+        request.project.setStarredBy(request.user, starred)
+        Ok
+      } else BadRequest
     }
   }
 

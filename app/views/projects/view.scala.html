@@ -14,6 +14,7 @@ Base template for Project overview.
 
 @hasUser = @{ User.current.isDefined }
 @user = @{ User.current.get }
+@isOwner(user: User) = @{ user.id.get == project.ownerId }
 
 @core.layout(project.ownerName + " / " + project.name) {
 
@@ -98,18 +99,22 @@ Base template for Project overview.
 
                             @if(hasUser) {
                                 @defining(project.isStarredBy(user.username)) { alreadyStarred =>
-                                    <button class="btn btn-default btn-star">
-                                        <i id="icon-star" @if(alreadyStarred) {
-                                            class="fa fa-star"
-                                        } else {
-                                            class="fa fa-star-o" }></i>
-                                        <span class="starred"> @project.stars</span>
-                                    </button>
-                                    <script>
-                                        var projectOwner = "@project.ownerName";
-                                        var projectSlug = "@project.slug";
-                                        var alreadyStarred = @alreadyStarred;
-                                    </script>
+                                  @if(!isOwner(user)) {
+                                      <button class="btn btn-default btn-star">
+                                          <i id="icon-star" @if(alreadyStarred) {
+                                              class="fa fa-star"
+                                          } else {
+                                              class="fa fa-star-o" }></i>
+                                          <span class="starred"> @project.stars</span>
+                                      </button>
+                                      <script>
+                                              var projectOwner = "@project.ownerName";
+                                              var projectSlug = "@project.slug";
+                                              var alreadyStarred = @alreadyStarred;
+                                      </script>
+                                  } else {
+                                      <span class="minor stars-static"><i class="fa fa-star"></i> @project.stars</span>
+                                  }
                                 }
                             }
 
