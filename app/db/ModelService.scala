@@ -18,6 +18,8 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future, Promise}
 import scala.util.{Failure, Success, Try}
 
+import scala.reflect.runtime.universe._
+
 /**
   * Represents a service that creates, deletes, and manipulates Models.
   */
@@ -99,7 +101,7 @@ trait ModelService {
     * @param action   Action to run
     * @return         Processed result
     */
-  def process[R](action: AbstractModelAction[R]): Future[R] = DB.db.run(action).andThen {
+  def process[R: TypeTag](action: AbstractModelAction[R]): Future[R] = DB.db.run(action).andThen {
     case r => action.processResult(this, r.get)
   }
 
@@ -109,7 +111,7 @@ trait ModelService {
     * @param model  Model to create
     * @return       Newly created model
     */
-  def insert[T <: ModelTable[M], M <: Model[_]](model: M): Future[M] = {
+  def insert[T <: ModelTable[M], M <: Model[_]: TypeTag](model: M): Future[M] = {
     val toInsert = model.copyWith(None, Some(theTime)).asInstanceOf[M]
     val models = newModelAction[T, M](model.getClass)
     process {
@@ -126,8 +128,8 @@ trait ModelService {
     * @param predicate  Predicate
     * @return           Optional result
     */
-  def find[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M],
-                                           predicate: T => Rep[Boolean]): Future[Option[M]] = {
+  def find[T <: ModelTable[M], M <: Model[_]: TypeTag](modelClass: Class[_ <: M],
+                                                       predicate: T => Rep[Boolean]): Future[Option[M]] = {
     debug("Finding model of type " + modelClass)
     val modelPromise = Promise[Option[M]]
     val query = newModelAction[T, M](modelClass).filter(predicate).take(1)
@@ -188,7 +190,7 @@ trait ModelService {
     * @param id   Model with ID
     * @return     Model if present, None otherwise
     */
-  def get[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M], id: Int,
+  def get[T <: ModelTable[M], M <: Model[_]: TypeTag](modelClass: Class[_ <: M], id: Int,
                                           filter: T => Rep[Boolean] = null): Future[Option[M]]
   = find[T, M](modelClass, IdFilter[T, M](id) && filter)
 
@@ -198,7 +200,7 @@ trait ModelService {
     * @param id   Model with ID
     * @return     Model if present, None otherwise
     */
-  def get[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M], id: Int): Future[Option[M]]
+  def get[T <: ModelTable[M], M <: Model[_]: TypeTag](modelClass: Class[_ <: M], id: Int): Future[Option[M]]
   = this.get(modelClass, id, null)
 
   /**
@@ -208,9 +210,9 @@ trait ModelService {
     * @param offset Offset to drop
     * @return       Collection of models
     */
-  def collect[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M], filter: T => Rep[Boolean],
-                                              sort: T => ColumnOrdered[_],
-                                              limit: Int, offset: Int): Future[Seq[M]] = {
+  def collect[T <: ModelTable[M], M <: Model[_]: TypeTag](modelClass: Class[_ <: M], filter: T => Rep[Boolean],
+                                                          sort: T => ColumnOrdered[_],
+                                                          limit: Int, offset: Int): Future[Seq[M]] = {
     var query = newModelAction[T, M](modelClass)
     if (filter != null) query = query.filter(filter)
     if (sort != null) query = query.sortBy(sort)
@@ -229,8 +231,8 @@ trait ModelService {
     * @tparam M     Model
     * @return       Filtered models
     */
-  def filter[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M], filter: T => Rep[Boolean],
-                                             limit: Int = -1, offset: Int = -1): Future[Seq[M]]
+  def filter[T <: ModelTable[M], M <: Model[_]: TypeTag](modelClass: Class[_ <: M], filter: T => Rep[Boolean],
+                                                         limit: Int = -1, offset: Int = -1): Future[Seq[M]]
   = collect(modelClass, filter, null, limit, offset)
 
   /**
@@ -244,8 +246,8 @@ trait ModelService {
     * @tparam M         Model
     * @return           Sorted models
     */
-  def sorted[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M], sort: T => ColumnOrdered[_],
-                                                limit: Int = -1, offset: Int = -1): Future[Seq[M]]
+  def sorted[T <: ModelTable[M], M <: Model[_]: TypeTag](modelClass: Class[_ <: M], sort: T => ColumnOrdered[_],
+                                                         limit: Int = -1, offset: Int = -1): Future[Seq[M]]
   = collect(modelClass, null, sort, limit, offset)
 
 }

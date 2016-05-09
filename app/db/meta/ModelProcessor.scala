@@ -18,7 +18,7 @@ class ModelProcessor {
     * @tparam T     Model table
     * @tparam M     Model type
     */
-  def process[T <: ModelTable[M], M <: Model[_]: WeakTypeTag](service: ModelService, model: M) = {
+  def process[T <: ModelTable[M], M <: Model[_]: TypeTag](service: ModelService, model: M) = {
     debug("\n********** Generating bindings for model " + model + " **********")
     bindFields(service, model)
     bindRelations(model)
@@ -35,7 +35,7 @@ class ModelProcessor {
     * @tparam T       Model table type
     * @tparam M       Model type
     */
-  def bindFields[T <: ModelTable[M], M <: Model[_]: WeakTypeTag](service: ModelService, model: M) = {
+  def bindFields[T <: ModelTable[M], M <: Model[_]: TypeTag](service: ModelService, model: M) = {
     debug("Generating field for model " + model)
 
     val modelClass = model.getClass
@@ -66,7 +66,7 @@ class ModelProcessor {
         // TODO: TypeTag not available and WeakTypeTag only seems to return
         // abstract members
         debug("--- OPTION FOUND: " + fieldName + " ---")
-        weakTypeTag[M].tpe.members.foreach(println)
+        typeTag[M].tpe.members.foreach(println)
         fieldType = runtimeMirror(getClass.getClassLoader)
           .runtimeClass(weakTypeTag[M].tpe.members
             .filterNot(_.isMethod)

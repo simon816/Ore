@@ -7,12 +7,13 @@ import slick.lifted.ColumnOrdered
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
+import scala.reflect.runtime.universe._
 
 /**
   * Base class for handling Model queries. ModelActions define how Models can
   * interact with the database.
   */
-class ModelActions[Table <: ModelTable[Row], Row <: Model[_]](val modelClass: Class[Row],
+class ModelActions[Table <: ModelTable[Row], Row <: Model[_]: TypeTag](val modelClass: Class[Row],
                                                               val baseQuery: TableQuery[Table])
                                                              (implicit service: ModelService) {
 
