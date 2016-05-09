@@ -3,6 +3,7 @@ package ore.project
 import com.google.common.base.MoreObjects
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
+import forums.DiscourseApi
 import models.project.Project
 import models.user.{ProjectRole, User}
 import ore.permission.scope.{Scope, ScopeSubject}
@@ -14,7 +15,8 @@ import ore.permission.scope.{Scope, ScopeSubject}
   * @param name     Member name
   */
 class ProjectMember(val project: Project,
-                    val name: String)(implicit service: ModelService)
+                    val name: String)
+                   (implicit service: ModelService, forums: DiscourseApi)
                     extends ScopeSubject with Ordered[ProjectMember] {
 
   /**

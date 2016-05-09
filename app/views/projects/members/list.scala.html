@@ -5,7 +5,9 @@
 @import ore.permission.role.RoleTypes
 @import views.html.helper.form
 @import db.ModelService
-@(model: Project, editable: Boolean = false)(implicit messages: Messages, session: Session, service: ModelService)
+@import forums.DiscourseApi
+@(model: Project, editable: Boolean = false)(implicit messages: Messages, session: Session,
+        service: ModelService, forums: DiscourseApi)
 
 @canEdit = @{
     editable && User.current.isDefined && (User.current.get can EditSettings in model)

@@ -2,10 +2,10 @@ package controllers
 
 import javax.inject.Inject
 
-import controllers.routes.{Application => app, Users => self}
+import controllers.routes.{Users => self}
 import db.ModelService
 import form.Forms
-import forums.SpongeForums._
+import forums.DiscourseApi
 import models.user.{FakeUser, User}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -14,6 +14,7 @@ import util.Conf._
 import views.{html => views}
 
 class Users @Inject()(override val messagesApi: MessagesApi,
+                      implicit val forums: DiscourseApi,
                       implicit val ws: WSClient,
                       implicit val service: ModelService) extends BaseController {
 
@@ -30,10 +31,10 @@ class Users @Inject()(override val messagesApi: MessagesApi,
       User.getOrCreate(FakeUser)
       redirectBack(returnPath.getOrElse(request.path), FakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
-      Redirect(Auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
+      Redirect(forums.Auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
     } else {
       // Decode SSO payload and get Ore user
-      val user = Auth.authenticate(sso.get, sig.get)
+      val user = forums.Auth.authenticate(sso.get, sig.get)
       redirectBack(request2flash.get("url").get, user.username)
     }
   }
@@ -71,14 +72,16 @@ class Users @Inject()(override val messagesApi: MessagesApi,
     * @param username   User to update
     * @return           View of user page
     */
-  def saveTagline(username: String) = Authenticated(service) { implicit request =>
-    val user = request.user
-    val tagline = Forms.UserTagline.bindFromRequest.get.trim
-    if (tagline.length > User.MaxTaglineLength) {
-      Redirect(self.show(user.username)).flashing("error" -> "Tagline is too long.")
-    } else {
-      user.tagline = tagline
-      Redirect(self.show(user.username))
+  def saveTagline(username: String) = {
+    Authenticated(service, forums) { implicit request =>
+      val user = request.user
+      val tagline = Forms.UserTagline.bindFromRequest.get.trim
+      if (tagline.length > User.MaxTaglineLength) {
+        Redirect(self.show(user.username)).flashing("error" -> "Tagline is too long.")
+      } else {
+        user.tagline = tagline
+        Redirect(self.show(user.username))
+      }
     }
   }
 

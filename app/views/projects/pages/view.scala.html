@@ -6,8 +6,9 @@ Documentation page within Project overview.
 @import models.user.User
 @import ore.permission.EditPages
 @import db.ModelService
+@import forums.DiscourseApi
 @(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages,
-        session: Session, request: RequestHeader, flash: Flash, service: ModelService)
+        session: Session, request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi)
 
 @canEditPages = @{
     User.current.isDefined && (User.current.get can EditPages in model)

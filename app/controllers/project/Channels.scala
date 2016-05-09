@@ -6,6 +6,7 @@ import controllers.BaseController
 import controllers.project.routes.{Channels => self}
 import db.ModelService
 import form.Forms
+import forums.DiscourseApi
 import ore.permission.EditChannels
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -15,6 +16,7 @@ import views.html.projects.{channels => views}
   * Controller for handling Channel related actions.
   */
 class Channels @Inject()(override val messagesApi: MessagesApi,
+                         implicit val forums: DiscourseApi,
                          implicit val ws: WSClient,
                          implicit val service: ModelService) extends BaseController {
 

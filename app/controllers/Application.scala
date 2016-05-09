@@ -9,6 +9,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.ProjectTable
 import db.impl.action.ProjectActions
 import db.action.ModelFilter
+import forums.DiscourseApi
 import models.project.Project._
 import models.project.{Flag, Project, Version}
 import models.user.User
@@ -27,6 +28,7 @@ import views.{html => views}
   * Main entry point for application.
   */
 class Application @Inject()(override val messagesApi: MessagesApi,
+                            implicit val forums: DiscourseApi,
                             implicit val ws: WSClient,
                             implicit val models: ModelService) extends BaseController {
 

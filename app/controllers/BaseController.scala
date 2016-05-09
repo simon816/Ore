@@ -1,7 +1,6 @@
 package controllers
 
 import db.ModelService
-import forums.SpongeForums
 import models.project.{Project, Version}
 import play.api.i18n.I18nSupport
 import play.api.libs.ws.WSClient
@@ -17,7 +16,6 @@ abstract class BaseController(implicit ws: WSClient, service: ModelService) exte
                                                                               with I18nSupport
                                                                               with Actions {
 
-  SpongeForums.enable()
   if (isDebug) DataUtils.enable()
 
   protected[controllers] def withProject(author: String, slug: String)(f: Project => Result)

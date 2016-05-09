@@ -1,6 +1,7 @@
 package controllers
 
 import db.ModelService
+import forums.DiscourseApi
 import models.project.Project
 import models.user.User
 import ore.permission.scope.ScopeSubject
@@ -17,14 +18,17 @@ object Requests {
     * @param project Project to hold
     * @param request Request to wrap
     */
-  class ProjectRequest[A](val project: Project, val service: ModelService, request: Request[A])
-    extends WrappedRequest[A](request)
+  class ProjectRequest[A](val project: Project,
+                          val service: ModelService,
+                          val forums: DiscourseApi,
+                          request: Request[A]) extends WrappedRequest[A](request)
 
   /** Represents a Request with a [[User]] and [[ScopeSubject]] */
   trait ScopedRequest[A] extends WrappedRequest[A] {
     def user: User
     def subject: ScopeSubject = this.user
     def service: ModelService
+    def forums: DiscourseApi
   }
 
   /**
@@ -35,6 +39,7 @@ object Requests {
     */
   case class AuthRequest[A](override val user: User,
                             override val service: ModelService,
+                            override val forums: DiscourseApi,
                             request: Request[A])
     extends WrappedRequest[A](request)
       with ScopedRequest[A]
@@ -47,8 +52,10 @@ object Requests {
     */
   case class AuthedProjectRequest[A](override val project: Project,
                                      override val service: ModelService,
+                                     override val forums: DiscourseApi,
                                      request: AuthRequest[A])
-                                     extends ProjectRequest[A](project, service, request) with ScopedRequest[A] {
+                                     extends ProjectRequest[A](project, service, forums, request)
+                                       with ScopedRequest[A] {
     override def user: User = request.user
     override val subject: ScopeSubject = this.project
   }

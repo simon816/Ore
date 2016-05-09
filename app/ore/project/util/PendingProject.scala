@@ -1,6 +1,7 @@
 package ore.project.util
 
 import db.ModelService
+import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.ProjectRole
 import util.{Cacheable, PendingAction}
@@ -16,7 +17,8 @@ import scala.util.Try
   */
 case class PendingProject(project: Project,
                           file: PluginFile,
-                          var roles: Set[ProjectRole] = Set())(implicit service: ModelService)
+                          var roles: Set[ProjectRole] = Set())
+                         (implicit service: ModelService, forums: DiscourseApi)
                           extends PendingAction[Project] with Cacheable {
 
   /**
@@ -39,7 +41,7 @@ case class PendingProject(project: Project,
   override def cancel() = {
     free()
     this.file.delete()
-    if (project.isDefined) project.delete
+    if (project.isDefined) project.delete()
   }
 
   override def key: String = this.project.ownerName + '/' + this.project.slug

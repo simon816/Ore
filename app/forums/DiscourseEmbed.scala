@@ -1,7 +1,6 @@
 package forums
 
 import db.ModelService
-import forums.SpongeForums.validate
 import models.project.Project
 import models.user.User
 import play.api.libs.json.JsArray
@@ -19,7 +18,13 @@ import scala.concurrent.Future
   * @param categoryId Discourse category ID
   * @param ws         HTTP client
   */
-class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, ws: WSClient, implicit val service: ModelService) {
+class DiscourseEmbed(url: String,
+                     apiKey: String,
+                     categoryId: Int,
+                     api: DiscourseApi)
+                    (implicit ws: WSClient, service: ModelService) {
+
+  import api.validate
 
   /**
     * Creates a new topic for the specified [[Project]].
@@ -127,7 +132,7 @@ object DiscourseEmbed {
   /**
     * Represents a disabled state of [[DiscourseEmbed]].
     */
-  object Disabled extends DiscourseEmbed(null, null, -1, null, null) {
+  object Disabled extends DiscourseEmbed(null, null, -1, null)(null, null) {
     override def createTopic(project: Project) = Future(None)
     override def updateTopic(project: Project) = Future(null)
     override def renameTopic(project: Project) = Future(null)

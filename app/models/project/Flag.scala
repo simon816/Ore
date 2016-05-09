@@ -2,12 +2,12 @@ package models.project
 
 import java.sql.Timestamp
 
-import db.impl.{FlagTable, ModelKeys, OreModel}
-import db.impl.OrePostgresDriver.api._
-import ModelKeys._
-import db.{Model, ModelService}
-import db.meta.{Bind, ModelProcessor}
+import db.ModelService
 import db.action.{ModelActions, ModelSet}
+import db.impl.ModelKeys._
+import db.impl.OrePostgresDriver.api._
+import db.impl.{FlagTable, OreModel}
+import db.meta.Bind
 import ore.UserOwner
 import ore.permission.scope.ProjectScope
 import ore.project.FlagReasons.FlagReason

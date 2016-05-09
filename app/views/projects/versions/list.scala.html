@@ -6,9 +6,10 @@ Versions page within Project overview.
 @import models.user.User
 @import ore.permission.{EditChannels, EditVersions}
 @import db.ModelService
+@import forums.DiscourseApi
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
   visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session,
-        request: RequestHeader, flash: Flash, service: ModelService)
+        request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi)
 
 @projects.view(model, "#versions") {
 

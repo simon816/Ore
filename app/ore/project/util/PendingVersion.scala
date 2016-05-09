@@ -1,6 +1,7 @@
 package ore.project.util
 
 import db.ModelService
+import forums.DiscourseApi
 import models.project.{Channel, Version}
 import ore.Colors.Color
 import util.{Cacheable, PendingAction}
@@ -22,7 +23,8 @@ case class PendingVersion(owner: String,
                           var channelName: String = Channel.DefaultName,
                           var channelColor: Color = Channel.DefaultColor,
                           version: Version,
-                          plugin: PluginFile)(implicit service: ModelService)
+                          plugin: PluginFile)
+                         (implicit service: ModelService, forums: DiscourseApi)
                           extends PendingAction[Version] with Cacheable {
 
   override def complete: Try[Version] = Try {

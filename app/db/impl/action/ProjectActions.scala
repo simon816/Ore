@@ -4,8 +4,9 @@ import db._
 import db.impl.OrePostgresDriver.api._
 import db.impl.action.user.UserActions
 import db.impl.{FlagTable, ProjectStarsTable, ProjectTable, ProjectViewsTable}
-import db.action.{ModelFilter, ModelActions, StatActions}
+import db.action.{ModelActions, ModelFilter, StatActions}
 import db.action.ModelAction.wrapSeq
+import forums.DiscourseApi
 import models.project._
 import models.statistic.ProjectView
 import models.user.User
@@ -39,7 +40,7 @@ class ProjectActions(implicit val service: ModelService) extends ModelActions[Pr
     * @param project Project to get Members for
     * @return List of Members
     */
-  def getMembers(project: Project): Future[Seq[ProjectMember]] = {
+  def getMembers(project: Project)(implicit forums: DiscourseApi): Future[Seq[ProjectMember]] = {
     val distinctUserIds = (for (role <- service.provide(classOf[UserActions]).ProjectRoles.baseQuery.filter {
       _.projectId === project.id.get
     }) yield role.userId).distinct.result

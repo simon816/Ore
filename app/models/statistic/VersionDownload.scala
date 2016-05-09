@@ -4,15 +4,12 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
-import db.{Model, ModelService}
-import db.impl.VersionDownloadsTable
-import db.meta.{Actor, Bind, ModelProcessor}
-import db.action.StatActions
+import db.ModelService
 import db.impl.action.VersionActions
+import db.meta.{Actor, Bind}
 import models.project.Version
 import models.user.User
 import ore.Statistics
-import play.api.mvc.RequestHeader
 
 import scala.annotation.meta.field
 
@@ -54,7 +51,7 @@ object VersionDownload {
     */
   def bindFromRequest(version: Version)(implicit request: ProjectRequest[_]): VersionDownload = {
     val cookie = Statistics.getStatCookie
-    val userId = User.current(request.session, request.service).flatMap(_.id)
+    val userId = User.current(request.session, request.service, request.forums).flatMap(_.id)
     VersionDownload(
       modelId = version.id.get,
       address = InetString(request.remoteAddress),

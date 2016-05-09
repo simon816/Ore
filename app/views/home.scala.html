@@ -8,8 +8,9 @@ sorted according to different criteria.
 @import ore.project.Categories._
 @import ore.project.ProjectSortingStrategies.{values, _}
 @import db.ModelService
+@import forums.DiscourseApi
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], sort: ProjectSortingStrategy)(implicit messages: Messages,
-        session: Session, flash: Flash, request: RequestHeader, service: ModelService)
+        session: Session, flash: Flash, request: RequestHeader, service: ModelService, forums: DiscourseApi)
 
 @core.layout(messages("general.title")) {
 

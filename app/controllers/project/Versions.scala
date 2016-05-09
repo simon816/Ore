@@ -7,6 +7,7 @@ import controllers.project.routes.{Versions => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import form.Forms
+import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import ore.Statistics
 import ore.permission.{EditVersions, ReviewProjects}
@@ -23,6 +24,7 @@ import scala.util.{Failure, Success}
   * Controller for handling Version related actions.
   */
 class Versions @Inject()(override val messagesApi: MessagesApi,
+                         implicit val forums: DiscourseApi,
                          implicit val ws: WSClient,
                          implicit val service: ModelService) extends BaseController {
 
@@ -38,7 +40,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return Version view
     */
   def show(author: String, slug: String, versionString: String) = {
-    ProjectAction(author, slug)(service) { implicit request =>
+    ProjectAction(author, slug)(service, forums) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
         Statistics.projectViewed { implicit request =>
@@ -111,7 +113,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return View of project
     */
   def showList(author: String, slug: String, channels: Option[String]) = {
-    ProjectAction(author, slug)(service) { implicit request =>
+    ProjectAction(author, slug)(service, forums) { implicit request =>
       val project = request.project
       val allChannels = project.channels.toSeq
 
@@ -203,7 +205,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return Version create view
     */
   def showCreatorWithMeta(author: String, slug: String, versionString: String) = {
-    Authenticated(service) { implicit request =>
+    Authenticated(service, forums) { implicit request =>
       // Get pending version
       Version.getPending(author, slug, versionString) match {
         case None => Redirect(self.showCreator(author, slug))
@@ -240,7 +242,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return New version view
     */
   def create(author: String, slug: String, versionString: String) = {
-    Authenticated(service) { implicit request =>
+    Authenticated(service, forums) { implicit request =>
       // First get the pending Version
       Version.getPending(author, slug, versionString) match {
         case None => Redirect(self.showCreator(author, slug)) // Not found
@@ -314,7 +316,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return Sent file
     */
   def download(author: String, slug: String, versionString: String) = {
-    ProjectAction(author, slug)(service) { implicit request =>
+    ProjectAction(author, slug)(service, forums) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
         Statistics.versionDownloaded(version) { implicit request =>
@@ -332,7 +334,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return Sent file
     */
   def downloadRecommended(author: String, slug: String) = {
-    ProjectAction(author, slug)(service) { implicit request =>
+    ProjectAction(author, slug)(service, forums) { implicit request =>
       val project = request.project
       val rv = project.recommendedVersion
       Statistics.versionDownloaded(rv) { implicit request =>

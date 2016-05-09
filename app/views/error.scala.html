@@ -1,5 +1,7 @@
 @import db.ModelService
-@(message: String)(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService)
+@import forums.DiscourseApi
+@(message: String)(implicit messages: Messages, session: Session, request: RequestHeader,
+        service: ModelService, forums: DiscourseApi)
 
 @core.layout("Error") {
 

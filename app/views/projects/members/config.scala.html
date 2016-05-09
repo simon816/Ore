@@ -6,8 +6,9 @@
 
 @import scala.collection.JavaConversions._
 @import db.ModelService
+@import forums.DiscourseApi
 @(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash,
-        request: RequestHeader, service: ModelService)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi)
 
 @projects.util.panelCreate(messages("project.create"), 3) {
     @defining(User.current.get) { user =>

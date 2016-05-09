@@ -3,7 +3,6 @@ package forums
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
-import forums.SpongeForums.validate
 import models.user.User
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
@@ -18,7 +17,9 @@ import scala.concurrent.Future
   *
   * @param url Discourse URL
   */
-class DiscourseUsers(url: String, ws: WSClient) {
+class DiscourseUsers(url: String, api: DiscourseApi)(implicit ws: WSClient) {
+
+  import api.validate
 
   val DateFormat = new SimpleDateFormat("yyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
@@ -82,7 +83,7 @@ object DiscourseUsers {
   /**
     * Represents a DiscourseAPI object in a disabled state.
     */
-  object Disabled extends DiscourseUsers("", null) {
+  object Disabled extends DiscourseUsers("", null)(null) {
     override def fetch(username: String) = Future(None)
     override def fetchAvatarUrl(username: String, size: Int) = Future(None)
   }

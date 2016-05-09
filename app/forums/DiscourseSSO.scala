@@ -17,7 +17,7 @@ import org.apache.commons.codec.binary.Hex
   * @param url      SSO url
   * @param secret   SSO secret key
   */
-class DiscourseSSO(private val url: String, private val secret: String) {
+class DiscourseSso(private val url: String, private val secret: String, implicit val api: DiscourseApi) {
 
   private val charEncoding = "UTF-8"
   private val random = new SecureRandom
@@ -87,7 +87,7 @@ class DiscourseSSO(private val url: String, private val secret: String) {
     if (externalId == -1) throw new IllegalStateException("id not found")
 
     // Send another request to get more info to fill the user with
-    User.withName(username).get.fill(service.await(SpongeForums.Users.fetch(username)).get.get.copy(
+    User.withName(username).get.fill(service.await(api.Users.fetch(username)).get.get.copy(
       id = Some(externalId),
       _name = Some(name),
       _username = username,

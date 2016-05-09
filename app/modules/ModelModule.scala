@@ -1,9 +1,11 @@
+package modules
+
 import com.google.inject.AbstractModule
-import db.{ModelRegistrar, ModelService}
 import db.impl.{OreModelProcessor, OreModelRegistrar, OreModelService}
 import db.meta.ModelProcessor
+import db.{ModelRegistrar, ModelService}
 
-class Module extends AbstractModule {
+class ModelModule extends AbstractModule {
 
   def configure() = {
     bind(classOf[ModelService]).to(classOf[OreModelService])

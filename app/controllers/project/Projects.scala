@@ -7,7 +7,7 @@ import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
 import db.ModelService
 import form.Forms
-import forums.SpongeForums
+import forums.DiscourseApi
 import models.project._
 import models.user.User
 import ore.Statistics
@@ -30,6 +30,7 @@ import scala.util.{Failure, Success}
   * TODO: Localize
   */
 class Projects @Inject()(override val messagesApi: MessagesApi,
+                         implicit val forums: DiscourseApi,
                          implicit val ws: WSClient,
                          implicit val service: ModelService) extends BaseController {
 
@@ -41,7 +42,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     *
     * @return Create project view
     */
-  def showCreator = Authenticated(service) { implicit request =>
+  def showCreator = Authenticated(service, forums) { implicit request =>
     Ok(views.create(None))
   }
 
@@ -50,7 +51,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     *
     * @return Result
     */
-  def upload = Authenticated(service) { implicit request =>
+  def upload = Authenticated(service, forums) { implicit request =>
     request.body.asMultipartFormData.get.file("pluginFile") match {
       case None => Redirect(self.showCreator()).flashing("error" -> "No file submitted.")
       case Some(tmpFile) =>
@@ -80,10 +81,12 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     * @param slug   Project slug
     * @return Create project view
     */
-  def showCreatorWithMeta(author: String, slug: String) = Authenticated(service) { implicit request =>
-    Project.getPending(author, slug) match {
-      case None => Redirect(self.showCreator())
-      case Some(pending) => Ok(views.create(Some(pending)))
+  def showCreatorWithMeta(author: String, slug: String) = {
+    Authenticated(service, forums) { implicit request =>
+      Project.getPending(author, slug) match {
+        case None => Redirect(self.showCreator())
+        case Some(pending) => Ok(views.create(Some(pending)))
+      }
     }
   }
 
@@ -94,12 +97,14 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     * @param slug     Project slug
     * @return         View of members config
     */
-  def showMembersConfig(author: String, slug: String) = Authenticated(service) { implicit request =>
-    Project.getPending(author, slug) match {
-      case None => Redirect(self.showCreator())
-      case Some(pendingProject) =>
-        Forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.project)
-        Ok(views.members.config(pendingProject))
+  def showMembersConfig(author: String, slug: String) = {
+    Authenticated(service, forums) { implicit request =>
+      Project.getPending(author, slug) match {
+        case None => Redirect(self.showCreator())
+        case Some(pendingProject) =>
+          Forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.project)
+          Ok(views.members.config(pendingProject))
+      }
     }
   }
 
@@ -111,14 +116,16 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     * @param slug   Project slug
     * @return Redirection to project page if successful
     */
-  def showFirstVersionCreator(author: String, slug: String) = Authenticated(service) { implicit request =>
-    Project.getPending(author, slug) match {
-      case None => Redirect(self.showCreator())
-      case Some(pendingProject) =>
-        pendingProject.roles = Forms.MemberRoles.bindFromRequest.get.build()
-        val pendingVersion = pendingProject.pendingVersion
-        Redirect(routes.Versions.showCreatorWithMeta(
-          author, slug, pendingVersion.version.versionString))
+  def showFirstVersionCreator(author: String, slug: String) = {
+    Authenticated(service, forums) { implicit request =>
+      Project.getPending(author, slug) match {
+        case None => Redirect(self.showCreator())
+        case Some(pendingProject) =>
+          pendingProject.roles = Forms.MemberRoles.bindFromRequest.get.build()
+          val pendingVersion = pendingProject.pendingVersion
+          Redirect(routes.Versions.showCreatorWithMeta(
+            author, slug, pendingVersion.version.versionString))
+      }
     }
   }
 
@@ -130,7 +137,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     * @return View of project
     */
   def show(author: String, slug: String) = {
-    ProjectAction(author, slug)(service) { implicit request =>
+    ProjectAction(author, slug)(service, forums) { implicit request =>
       val project = request.project
       Conf.debug("isProcessed: " + project.name + " = " + project.isProcessed + " " + project.hashCode())
       Statistics.projectViewed(implicit request => Ok(views.pages.view(project, project.homePage)))
@@ -145,7 +152,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     * @return       View of project
     */
   def flag(author: String, slug: String) = {
-    AuthedProjectAction(author, slug)(service) { implicit request =>
+    AuthedProjectAction(author, slug)(service, forums){ implicit request =>
       val user = request.user
       val project = request.project
       if (user.hasUnresolvedFlagFor(project)) {
@@ -210,7 +217,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     * @return Result code
     */
   def setStarred(author: String, slug: String, starred: Boolean) = {
-    AuthedProjectAction(author, slug)(service) { implicit request =>
+    AuthedProjectAction(author, slug)(service, forums) { implicit request =>
       request.project.setStarredBy(request.user, starred)
       Ok
     }
@@ -224,7 +231,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     * @return View of project
     */
   def showDiscussion(author: String, slug: String) = {
-    ProjectAction(author, slug)(service) { implicit request =>
+    ProjectAction(author, slug)(service, forums) { implicit request =>
       Statistics.projectViewed(implicit request => Ok(views.discuss(request.project)))
     }
   }
@@ -237,11 +244,11 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     * @return       View of discussion with new post
     */
   def postDiscussionReply(author: String, slug: String) = {
-    AuthedProjectAction(author, slug)(service) { implicit request =>
+    AuthedProjectAction(author, slug)(service, forums) { implicit request =>
       Forms.ProjectReply.bindFromRequest.fold(
         hasErrors => Redirect(self.showDiscussion(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         content => {
-          val error = service.await(SpongeForums.Embed.postReply(request.project, request.user, content)).get
+          val error = service.await(forums.Embed.postReply(request.project, request.user, content)).get
           var result = Redirect(self.showDiscussion(author, slug))
           if (error.isDefined) result = result.flashing("error" -> error.get)
           result
@@ -271,7 +278,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     * @return Issue tracker
     */
   def showIssues(author: String, slug: String) = {
-    ProjectAction(author, slug)(service) { implicit request =>
+    ProjectAction(author, slug)(service, forums) { implicit request =>
       request.project.issues match {
         case None => NotFound
         case Some(link) => Redirect(link)
@@ -287,7 +294,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     * @return Source code
     */
   def showSource(author: String, slug: String) = {
-    ProjectAction(author, slug)(service) { implicit request =>
+    ProjectAction(author, slug)(service, forums) { implicit request =>
       request.project.source match {
         case None => NotFound
         case Some(link) => Redirect(link)
@@ -338,7 +345,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
   def delete(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
-      project.delete
+      project.delete()
       Redirect(app.showHome(None, None, None))
         .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
     }

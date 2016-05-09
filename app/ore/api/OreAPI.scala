@@ -4,6 +4,7 @@ import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.action.user.UserActions
 import db.impl.action.{ProjectActions, VersionActions}
+import forums.DiscourseApi
 import models.project.{Project, Version}
 import models.user.User
 import ore.project.Categories.Category
@@ -32,7 +33,8 @@ object OreAPI {
       * @return           JSON list of projects
       */
     def getProjectList(categories: Option[String], sort: Option[Int], q: Option[String],
-                       limit: Option[Int], offset: Option[Int])(implicit service: ModelService): JsValue = {
+                       limit: Option[Int], offset: Option[Int])
+                      (implicit service: ModelService, forums: DiscourseApi): JsValue = {
       val queries = service.provide(classOf[ProjectActions])
       val categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
       val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
@@ -49,7 +51,7 @@ object OreAPI {
       * @param pluginId Project plugin ID
       * @return Json value of project if found, None otherwise
       */
-    def getProject(pluginId: String)(implicit service: ModelService): Option[JsValue]
+    def getProject(pluginId: String)(implicit service: ModelService, forums: DiscourseApi): Option[JsValue]
     = Project.withPluginId(pluginId).map(Json.toJson(_))
 
     /**
@@ -104,7 +106,7 @@ object OreAPI {
       * @param username Username of User
       * @return         JSON user if found, None otherwise
       */
-    def getUser(username: String)(implicit service: ModelService): Option[JsValue]
+    def getUser(username: String)(implicit service: ModelService, forums: DiscourseApi): Option[JsValue]
     = User.withName(username).map(Json.toJson(_))
 
   }

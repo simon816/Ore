@@ -9,7 +9,7 @@ import db.impl.ModelKeys._
 import db.impl.action.PageActions
 import db.impl.{OreModel, PageTable}
 import db.meta.{Actor, Bind}
-import forums.SpongeForums
+import forums.DiscourseApi
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
@@ -67,13 +67,13 @@ case class Page(override val id: Option[Int] = None,
     *
     * @param _contents Markdown contents
     */
-  def contents_=(_contents: String)(implicit service: ModelService) = {
+  def contents_=(_contents: String)(implicit service: ModelService, forums: DiscourseApi) = {
     checkArgument(_contents.length <= MaxLength, "contents too long", "")
     checkArgument(_contents.length >= MinLength, "contents not long enough", "")
     this._contents = _contents
     if (isDefined) {
       val project = this.project
-      if (this.name.equals(HomeName) && project.topicId.isDefined) SpongeForums.Embed.updateTopic(project)
+      if (this.name.equals(HomeName) && project.topicId.isDefined) forums.Embed.updateTopic(project)
       update(Contents)
     }
   }

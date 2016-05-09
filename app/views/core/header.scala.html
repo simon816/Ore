@@ -8,7 +8,8 @@ The main header displayed on each layout.
 @import ore.permission.scope.GlobalScope
 @import util.Conf
 @import db.ModelService
-@()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService)
+@import forums.DiscourseApi
+@()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService, forums: DiscourseApi)
 
 @canViewFlags(user: User) = @{ user can ReviewFlags in GlobalScope }
 @canReviewProjects(user: User) = @{ user can ReviewProjects in GlobalScope }

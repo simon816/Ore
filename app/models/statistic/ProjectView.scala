@@ -4,10 +4,8 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
-import db.{Model, ModelService}
-import db.impl.ProjectViewsTable
-import db.meta.{Bind, ModelProcessor}
-import db.action.StatActions
+import db.ModelService
+import db.meta.Bind
 import models.project.Project
 import models.user.User
 import ore.{ProjectOwner, Statistics}
@@ -52,7 +50,7 @@ object ProjectView {
     * @return         New ProjectView
     */
   def bindFromRequest()(implicit request: ProjectRequest[_]): ProjectView = {
-    val userId = User.current(request.session, request.service).flatMap(_.id)
+    val userId = User.current(request.session, request.service, request.forums).flatMap(_.id)
     val cookie = Statistics.getStatCookie
     ProjectView(
       modelId = request.project.id.get,

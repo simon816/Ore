@@ -1,7 +1,8 @@
 @import play.twirl.api.Html
 @import db.ModelService
+@import forums.DiscourseApi
 @(title: String, step: Int)(content: Html)(implicit messages: Messages, session: Session,
-        request: RequestHeader, service: ModelService)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi)
 
 @core.layout(title) {
 

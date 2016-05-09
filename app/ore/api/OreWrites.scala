@@ -1,6 +1,7 @@
 package ore.api
 
 import db.ModelService
+import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.User
 import play.api.libs.json._
@@ -14,7 +15,7 @@ object OreWrites {
     def writes(channel: Channel) = Json.obj("name" -> channel.name, "color" -> channel.color.hex)
   }
 
-  implicit def projectWrites(implicit service: ModelService) = new Writes[Project] {
+  implicit def projectWrites(implicit service: ModelService, forums: DiscourseApi) = new Writes[Project] {
     def writes(project: Project) = {
       val members: List[JsObject] = (for (member <- project.members) yield {
         Json.obj(

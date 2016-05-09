@@ -4,7 +4,7 @@ import java.nio.file.Files
 
 import com.google.common.base.Preconditions._
 import db.ModelService
-import forums.SpongeForums
+import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.{ProjectRole, User}
 import ore.permission.role.RoleTypes
@@ -45,7 +45,8 @@ object ProjectFactory {
     * @return         New Project
     * @throws         IllegalArgumentException if the project already exists
     */
-  def createProject(pending: PendingProject)(implicit service: ModelService): Try[Project] = Try {
+  def createProject(pending: PendingProject)(implicit service: ModelService,
+                                             forums: DiscourseApi): Try[Project] = Try {
     checkArgument(!pending.project.exists, "project already exists", "")
     checkArgument(pending.project.isNamespaceAvailable, "slug not available", "")
     checkArgument(Project.isValidName(pending.project.name), "invalid name", "")
@@ -58,7 +59,7 @@ object ProjectFactory {
       User.withId(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
     }
 
-    SpongeForums.Embed.createTopic(newProject)
+    forums.Embed.createTopic(newProject)
     newProject
   }
 

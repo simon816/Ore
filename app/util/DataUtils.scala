@@ -5,8 +5,7 @@ import java.nio.file.Files._
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.UserTable
-import db.impl.action.user.UserActions
-import forums.SpongeForums
+import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.User
 import ore.project.Categories
@@ -31,8 +30,8 @@ object DataUtils {
   /**
     * Resets the application to factory defaults.
     */
-  def reset()(implicit service: ModelService) = {
-    for (project <- Project.values) project.delete
+  def reset()(implicit service: ModelService, forums: DiscourseApi) = {
+    for (project <- Project.values) project.delete()
     service.await(service.deleteWhere[UserTable, User](classOf[User], _ => true))
     FileUtils.deleteDirectory(UploadsDir.toFile)
   }
@@ -42,9 +41,9 @@ object DataUtils {
     *
     * @param users Amount of users to create
     */
-  def seed(users: Int, versions: Int, channels: Int)(implicit service: ModelService) = {
+  def seed(users: Int, versions: Int, channels: Int)(implicit service: ModelService, forums: DiscourseApi) = {
     // Note: Dangerous as hell, handle with care
-    SpongeForums.disable() // Disable topic creation
+    // TODO: Disable topic creation
     this.reset()
     var pluginFile = copyPlugin
     for (i <- 0 until users) {
@@ -90,7 +89,7 @@ object DataUtils {
         }
       }
     }
-    SpongeForums.enable() // Re-enable forum hooks
+    // TODO: Re-enable forum hooks
   }
 
   def migrate() = Unit

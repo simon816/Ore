@@ -5,8 +5,9 @@ this.
 @import play.twirl.api.Html
 @import util.Conf
 @import db.ModelService
+@import forums.DiscourseApi
 @(title: String)(content: Html)(implicit messages: Messages, session: Session,
-        request: RequestHeader, service: ModelService)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi)
 
 <!DOCTYPE html>
 <html>

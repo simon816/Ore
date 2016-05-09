@@ -3,15 +3,15 @@ package models.user
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.{Model, ModelService}
+import db.ModelService
+import db.action.ModelSet
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.action.ProjectActions
 import db.impl.action.user.UserActions
 import db.meta._
-import db.action.ModelSet
-import forums.SpongeForums
+import forums.DiscourseApi
 import models.project.{Flag, Project}
 import ore.UserOwner
 import ore.permission._
@@ -296,9 +296,9 @@ object User extends ModelSet[UserTable, User](classOf[User]) {
     * @param username Username of user
     * @return User if found, None otherwise
     */
-  def withName(username: String)(implicit service: ModelService): Option[User] = {
+  def withName(username: String)(implicit service: ModelService, forums: DiscourseApi): Option[User] = {
     this.find(equalsIgnoreCase(_.username, username)).orElse {
-      service.await(SpongeForums.Users.fetch(username)).get.map(getOrCreate)
+      service.await(forums.Users.fetch(username)).get.map(getOrCreate)
     }
   }
 
@@ -317,7 +317,7 @@ object User extends ModelSet[UserTable, User](classOf[User]) {
     * @param session  Current session
     * @return         Authenticated user, if any, None otherwise
     */
-  def current(implicit session: Session, service: ModelService): Option[User]
+  def current(implicit session: Session, service: ModelService, forums: DiscourseApi): Option[User]
   = session.get("username").map(withName).getOrElse(None)
 
 }

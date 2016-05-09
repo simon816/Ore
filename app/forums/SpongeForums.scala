@@ -1,51 +1,25 @@
 package forums
 
+import javax.inject.Inject
+
 import db.ModelService
-import play.api.libs.json.JsObject
-import play.api.libs.ws.{WSClient, WSResponse}
-import util.Conf._
+import play.api.libs.ws.WSClient
+import util.Conf.DiscourseConf
 
 /**
   * Handles interactions between Ore and the Sponge forums.
   */
-object SpongeForums {
+class SpongeForums @Inject()(implicit val ws: WSClient, implicit val service: ModelService) extends DiscourseApi {
 
-  lazy val Auth = new DiscourseSSO(DiscourseConf.getString("sso.url").get,
-                                   DiscourseConf.getString("sso.secret").get)
+  lazy val URL = DiscourseConf.getString("baseUrl").get
 
-  var Users: DiscourseUsers = null
-  var Embed: DiscourseEmbed = null
+  override lazy val Auth = new DiscourseSso(
+    DiscourseConf.getString("sso.url").get, DiscourseConf.getString("sso.secret").get, this)
 
-  /**
-    * Initializes this object.
-    *
-    * @param ws HTTP request client
-    */
-  def enable()(implicit ws: WSClient, service: ModelService) = {
-    if (DiscourseConf.getBoolean("api.enabled").get) {
-      val baseUrl = DiscourseConf.getString("baseUrl").get
-      val apiKey = DiscourseConf.getString("api.key").get
-      val categoryId = DiscourseConf.getInt("embed.categoryId").get
-      this.Users = new DiscourseUsers(baseUrl, ws)
-      this.Embed = new DiscourseEmbed(baseUrl, apiKey, categoryId, ws, service)
-    } else disable()
-  }
+  override lazy val Users = new DiscourseUsers(URL, this)
 
-  /** Disables SpongeForums access */
-  def disable() = {
-    this.Users = DiscourseUsers.Disabled
-    this.Embed = DiscourseEmbed.Disabled
-  }
-
-  protected[forums] def validate[A](response: WSResponse)(f: JsObject => A): Option[A] = try {
-    val json = response.json.as[JsObject]
-    if (!json.keys.contains("errors")) {
-      Some(f(json))
-    } else {
-      None
-    }
-  } catch {
-    case e: Exception => None
-  }
+  override lazy val Embed = new DiscourseEmbed(
+    URL, DiscourseConf.getString("api.key").get, DiscourseConf.getInt("embed.categoryId").get, this
+  )
 
 }

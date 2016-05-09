@@ -12,6 +12,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.action.VersionActions
 import db.impl.{OreModel, VersionDownloadsTable, VersionTable}
 import db.meta.{Actor, Bind, HasMany}
+import forums.DiscourseApi
 import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
@@ -157,7 +158,8 @@ case class Version(override val id: Option[Int] = None,
     update(Downloads)
   }
 
-  def downloadEntries(implicit service: ModelService) = this.getMany[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
+  def downloadEntries(implicit service: ModelService)
+  = this.getMany[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
 
   /**
     * Returns a human readable file size for this Version.
@@ -226,8 +228,8 @@ object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
     * @param version  Name of version
     * @param plugin   Uploaded plugin
     */
-  def setPending(owner: String, slug: String, channel: String,
-                 version: Version, plugin: PluginFile)(implicit service: ModelService): PendingVersion = {
+  def setPending(owner: String, slug: String, channel: String, version: Version, plugin: PluginFile)
+                (implicit service: ModelService, forums: DiscourseApi): PendingVersion = {
     val pending = PendingVersion(owner, slug, channel, Channel.DefaultColor, version, plugin)
     pending.cache()
     pending

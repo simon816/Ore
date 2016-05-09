@@ -1,7 +1,9 @@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.Flag
 @import db.ModelService
-@(flags: Seq[Flag])(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService)
+@import forums.DiscourseApi
+@(flags: Seq[Flag])(implicit messages: Messages, session: Session, request: RequestHeader,
+        service: ModelService, forums: DiscourseApi)
 
 @core.layout("Flags") {
 

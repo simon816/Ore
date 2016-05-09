@@ -8,8 +8,9 @@ Base template for Project overview.
 @import ore.project.FlagReasons
 @import views.html.helper.form
 @import db.ModelService
+@import forums.DiscourseApi
 @(project: Project, active: String, noButtons: Boolean = false)(content: Html)(implicit messages: Messages,
-        session: Session, request: RequestHeader, flash: Flash, service: ModelService)
+        session: Session, request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi)
 
 @hasUser = @{ User.current.isDefined }
 @user = @{ User.current.get }

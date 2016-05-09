@@ -12,7 +12,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.action.ProjectActions
 import db.meta.{Actor, Bind, HasMany}
-import forums.SpongeForums
+import forums.DiscourseApi
 import models.statistic.ProjectView
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
@@ -89,14 +89,15 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Owner Member of project
     */
-  def owner(implicit service: ModelService): ProjectMember = new ProjectMember(this, this.ownerName)
+  def owner(implicit service: ModelService, forums: DiscourseApi): ProjectMember
+  = new ProjectMember(this, this.ownerName)
 
   /**
     * Returns all [[ProjectMember]]s of this project.
     *
     * @return All Members of project
     */
-  def members(implicit service: ModelService): Set[ProjectMember]
+  def members(implicit service: ModelService, forums: DiscourseApi): Set[ProjectMember]
   = service.await(this.actions.getMembers(this)).get.toSet
 
   /**
@@ -120,7 +121,7 @@ case class Project(override val id: Option[Int] = None,
     * @param _name   New name
     * @return       Future result
     */
-  def name_=(_name: String)(implicit service: ModelService) = Defined {
+  def name_=(_name: String)(implicit service: ModelService, forums: DiscourseApi) = Defined {
     val newName = compact(_name)
     val newSlug = slugify(newName)
     checkArgument(isValidName(newName), "invalid name", "")
@@ -129,8 +130,8 @@ case class Project(override val id: Option[Int] = None,
     this._name = newName
     this._slug = slugify(newName)
     if (this.topicId.isDefined) {
-      SpongeForums.Embed.renameTopic(this)
-      SpongeForums.Embed.updateTopic(this)
+      forums.Embed.renameTopic(this)
+      forums.Embed.updateTopic(this)
     }
     update(Name)
     update(Slug)
@@ -155,10 +156,10 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _description Description to set
     */
-  def description_=(_description: String)(implicit service: ModelService) = {
+  def description_=(_description: String)(implicit service: ModelService, forums: DiscourseApi) = {
     checkArgument(_description == null || _description.length <= MaxDescriptionLength, "description too long", "")
     this._description = Option(_description)
-    if (this.topicId.isDefined) SpongeForums.Embed.renameTopic(this)
+    if (this.topicId.isDefined) forums.Embed.renameTopic(this)
     if (isDefined) update(Description)
   }
 
@@ -229,7 +230,7 @@ case class Project(override val id: Option[Int] = None,
     * @param username   To get User of
     * @return           True if starred by User
     */
-  def isStarredBy(username: String)(implicit service: ModelService): Boolean = Defined {
+  def isStarredBy(username: String)(implicit service: ModelService, forums: DiscourseApi): Boolean = Defined {
     val user = User.withName(username)
     isStarredBy(user.get)
   }
@@ -482,10 +483,10 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Result
     */
-  def delete(implicit service: ModelService) = Defined {
+  def delete()(implicit service: ModelService, forums: DiscourseApi) = Defined {
     remove(this)
     FileUtils.deleteDirectory(ProjectFiles.projectDir(this.ownerName, this._name).toFile)
-    if (this.topicId.isDefined) SpongeForums.Embed.deleteTopic(this)
+    if (this.topicId.isDefined) forums.Embed.deleteTopic(this)
   }
 
   override def projectId = Defined(this.id.get)
@@ -601,7 +602,8 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @param project        Project that is pending
     * @param firstVersion   Uploaded plugin
     */
-  def setPending(project: Project, firstVersion: PluginFile)(implicit service: ModelService): PendingProject =  {
+  def setPending(project: Project, firstVersion: PluginFile)(implicit service: ModelService,
+                                                             forums: DiscourseApi): PendingProject =  {
     val pendingProject = PendingProject(project, firstVersion)
     pendingProject.cache()
     pendingProject
