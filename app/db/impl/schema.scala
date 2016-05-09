@@ -2,8 +2,8 @@ package db.impl
 
 import java.sql.Timestamp
 
-import db.{ModelTable, StatTable}
 import db.impl.OrePostgresDriver.api._
+import db.{ModelTable, StatTable}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.{ProjectRole, User}

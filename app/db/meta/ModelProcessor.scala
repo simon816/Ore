@@ -63,10 +63,7 @@ class ModelProcessor {
 
       // If a field is an option, bind the field to the inner Option type
       if (fieldType.equals(classOf[Option[_]])) {
-        // TODO: TypeTag not available and WeakTypeTag only seems to return
-        // abstract members
         debug("--- OPTION FOUND: " + fieldName + " ---")
-        typeTag[M].tpe.members.foreach(println)
         fieldType = runtimeMirror(getClass.getClassLoader)
           .runtimeClass(weakTypeTag[M].tpe.members
             .filterNot(_.isMethod)

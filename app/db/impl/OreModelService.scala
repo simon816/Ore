@@ -3,13 +3,13 @@ package db.impl
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 
-import db.{ModelRegistrar, ModelService}
+import db.action.ModelActions
 import db.impl.OrePostgresDriver.api._
 import db.impl.OreTypeSetters._
 import db.impl.action.user.UserActions
 import db.impl.action.{PageActions, ProjectActions, VersionActions}
-import db.action.ModelActions
 import db.meta.ModelProcessor
+import db.{ModelRegistrar, ModelService}
 import models.project.Channel
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType

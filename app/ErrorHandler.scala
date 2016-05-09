@@ -1,8 +1,8 @@
 import javax.inject._
 
-import play.api._
 import _root_.db.ModelService
 import forums.DiscourseApi
+import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Results._

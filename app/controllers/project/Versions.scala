@@ -10,8 +10,8 @@ import form.Forms
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import ore.permission.{EditVersions, ReviewProjects}
-import ore.statistic.StatTracker
 import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFactory, ProjectFiles}
+import ore.statistic.StatTracker
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import util.Conf._

@@ -1,7 +1,7 @@
 package db.meta
 
-import db.{Model, ModelTable}
 import db.impl.OrePostgresDriver.api._
+import db.{Model, ModelTable}
 
 /**
   * Represents a one-to-many relationship.

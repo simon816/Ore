@@ -2,11 +2,11 @@
 Versions page within Project overview.
 *@
 @import controllers.project.{routes => projectRoutes}
+@import db.ModelService
+@import forums.DiscourseApi
 @import models.project.{Channel, Project, Version}
 @import models.user.User
 @import ore.permission.{EditChannels, EditVersions}
-@import db.ModelService
-@import forums.DiscourseApi
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
   visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session,
         request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi)

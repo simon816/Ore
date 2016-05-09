@@ -16,9 +16,8 @@ import util.Conf.debug
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future, Promise}
-import scala.util.{Failure, Success, Try}
-
 import scala.reflect.runtime.universe._
+import scala.util.{Failure, Success, Try}
 
 /**
   * Represents a service that creates, deletes, and manipulates Models.

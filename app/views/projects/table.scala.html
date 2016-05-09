@@ -2,11 +2,11 @@
 Collection of all projects.
 *@
 @import controllers.project.routes.{Projects => projectRoutes}
+@import db.ModelService
+@import forums.DiscourseApi
 @import models.project.Project
 @import models.user.User
 @import ore.project.Categories._
-@import db.ModelService
-@import forums.DiscourseApi
 @(models: Seq[Project], visibleCategories: Option[Array[Category]] = None)(implicit messages: Messages,
         session: Session, flash: Flash, service: ModelService, forums: DiscourseApi)
 

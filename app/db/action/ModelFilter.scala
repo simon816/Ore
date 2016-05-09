@@ -1,7 +1,7 @@
 package db.action
 
-import db.{Model, ModelTable}
 import db.impl.OrePostgresDriver.api._
+import db.{Model, ModelTable}
 
 /**
   * A wrapper class for a T => Rep[Boolean] on a ModelTable. This allows for easier

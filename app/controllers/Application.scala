@@ -5,10 +5,10 @@ import javax.inject.Inject
 import controllers.Requests.AuthRequest
 import controllers.routes.{Application => self}
 import db.ModelService
+import db.action.ModelFilter
 import db.impl.OrePostgresDriver.api._
 import db.impl.ProjectTable
 import db.impl.action.ProjectActions
-import db.action.ModelFilter
 import forums.DiscourseApi
 import models.project.Project._
 import models.project.{Flag, Project, Version}

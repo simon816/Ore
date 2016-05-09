@@ -6,8 +6,8 @@ import slick.lifted.ColumnOrdered
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
-import scala.util.{Failure, Success}
 import scala.reflect.runtime.universe._
+import scala.util.{Failure, Success}
 
 /**
   * Base class for handling Model queries. ModelActions define how Models can

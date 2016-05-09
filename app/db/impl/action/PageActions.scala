@@ -1,9 +1,9 @@
 package db.impl.action
 
 import db.ModelService
+import db.action.ModelActions
 import db.impl.OrePostgresDriver.api._
 import db.impl.PageTable
-import db.action.ModelActions
 import models.project.Page
 
 import scala.concurrent.Future

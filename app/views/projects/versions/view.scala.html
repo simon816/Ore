@@ -1,10 +1,10 @@
 @import controllers.project.{routes => projectRoutes}
-@import models.project.{Channel, Project, Version}
-@import models.user.User
-@import ore.permission.{EditVersions, ReviewProjects}
-@import ore.permission.scope.GlobalScope
 @import db.ModelService
 @import forums.DiscourseApi
+@import models.project.{Channel, Project, Version}
+@import models.user.User
+@import ore.permission.scope.GlobalScope
+@import ore.permission.{EditVersions, ReviewProjects}
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi)
 

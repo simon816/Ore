@@ -12,8 +12,8 @@ import models.project._
 import models.user.User
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
-import ore.statistic.StatTracker
 import ore.project.util.{InvalidPluginFileException, ProjectFactory}
+import ore.statistic.StatTracker
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._

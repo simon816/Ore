@@ -1,7 +1,7 @@
 package db.action
 
-import db.impl.OrePostgresDriver.api._
 import db.action.ModelFilter.{IdFilter, unwrapFilter}
+import db.impl.OrePostgresDriver.api._
 import db.{Model, ModelService, ModelTable}
 import slick.lifted.ColumnOrdered
 

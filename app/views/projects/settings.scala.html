@@ -1,11 +1,11 @@
 @import controllers.project.routes.{Projects => projectRoutes}
+@import db.ModelService
+@import forums.DiscourseApi
 @import models.project.Project
 @import models.user.User
 @import ore.permission.HideProjects
 @import ore.permission.scope.GlobalScope
 @import views.html.helper.form
-@import db.ModelService
-@import forums.DiscourseApi
 @(project: Project)(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi)
 

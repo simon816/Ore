@@ -6,12 +6,10 @@ import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.UserTable
 import forums.DiscourseApi
-import models.project.{Channel, Project, Version}
+import models.project.Project
 import models.user.User
-import ore.project.Categories
-import ore.project.util.{PendingProject, PendingVersion, ProjectFactory}
+import ore.project.util.ProjectFactory
 import org.apache.commons.io.FileUtils
-import play.api.libs.Files.TemporaryFile
 import play.api.libs.ws.WSClient
 import util.Conf._
 import util.Sys._

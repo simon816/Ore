@@ -3,11 +3,10 @@ Discussion page within Project overview.
 *@
 @import _root_.util.Conf._
 @import controllers.project.{routes => projectRoutes}
-@import models.project.Project
-@import models.user.User
-@import views.html.helper.form
 @import db.ModelService
 @import forums.DiscourseApi
+@import models.project.Project
+@import models.user.User
 @(model: Project)(implicit messages: Messages, session: Session, request: RequestHeader,
         flash: Flash, service: ModelService, forums: DiscourseApi)
 

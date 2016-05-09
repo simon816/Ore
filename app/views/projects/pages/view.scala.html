@@ -2,11 +2,11 @@
 Documentation page within Project overview.
 *@
 @import controllers.project.routes
+@import db.ModelService
+@import forums.DiscourseApi
 @import models.project.{Page, Project}
 @import models.user.User
 @import ore.permission.EditPages
-@import db.ModelService
-@import forums.DiscourseApi
 @(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi)
 
