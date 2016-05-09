@@ -7,7 +7,7 @@ import db.impl.{ModelKeys, PageTable}
 import ModelKeys._
 import db.{Model, ModelService}
 import db.impl.action.PageActions
-import db.meta.{Actor, Bind, BindingsGenerator}
+import db.meta.{Actor, Bind, ModelProcessor}
 import db.action.ModelSet
 import forums.SpongeForums
 import ore.permission.scope.ProjectScope

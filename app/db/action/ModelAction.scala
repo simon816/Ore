@@ -4,44 +4,61 @@ import db.{Model, ModelService}
 import slick.dbio.{DBIOAction, NoStream}
 import util.Conf.debug
 
-abstract class AbstractModelAction[R](val action: DBIOAction[R, NoStream, Nothing]) {
-  def processResult(service: ModelService, result: R): R
-}
-
-case class ModelAction[M <: Model[_]](override val action: DBIOAction[M, NoStream, Nothing])
-  extends AbstractModelAction(action) {
-  def processResult(service: ModelService, result: M): M = ModelAction.process(service, result)
-}
-
-case class ModelSeqAction[M <: Model[_]](override val action: DBIOAction[Seq[M], NoStream, Nothing])
-  extends AbstractModelAction(action) {
-  def processResult(service: ModelService, result: Seq[M]) = for (model <- result) yield {
-    ModelAction.process(service, model)
-  }
-}
-
 object ModelAction {
 
-  def process[M <: Model[_]](service: ModelService, model: M): M = {
+  implicit def unwrap[M](action: AbstractModelAction[M]): DBIOAction[M, NoStream, Nothing] = action.action
+  implicit def wrapSingle[M <: Model[_]](action: DBIOAction[M, NoStream, Nothing]): ModelAction[M]
+  = ModelAction(action)
+  implicit def unwrapSingle[M <: Model[_]](action: ModelAction[M]): DBIOAction[M, NoStream, Nothing]
+  = action.action
+  implicit def wrapSeq[M <: Model[_]](action: DBIOAction[Seq[M], NoStream, Nothing]): ModelSeqAction[M]
+  = ModelSeqAction(action)
+  implicit def unwrapSeq[M <: Model[_]](action: ModelSeqAction[M]): DBIOAction[Seq[M], NoStream, Nothing]
+  = action.action
+
+  private def process[M <: Model[_]](service: ModelService, model: M): M = {
     if (!model.isProcessed) {
       debug("Processing model: " + model + " " + model.hashCode())
-      service.bindingsGenerator.generateFor(service, model)
-      model.isProcessed = true
+      service.processor.process(service, model)
+      model.setProcessed(true)
       debug("isProcessed = " + model.isProcessed)
     }
     model
   }
 
-  implicit def unwrap[M](action: AbstractModelAction[M]): DBIOAction[M, NoStream, Nothing] = action.action
+  /**
+    * Represents a DBIOAction that returns one or multiple Models. ModelActions
+    * are implicitly wrapped and unwrapped.
+    *
+    * @param action DBIOAction to wrap
+    * @tparam R     Return type
+    */
+  abstract class AbstractModelAction[R](val action: DBIOAction[R, NoStream, Nothing]) {
+    def processResult(service: ModelService, result: R): R
+  }
 
-  implicit def wrapSingle[M <: Model[_]](action: DBIOAction[M, NoStream, Nothing]): ModelAction[M]
-  = ModelAction(action)
-  implicit def unwrapSingle[M <: Model[_]](action: ModelAction[M]): DBIOAction[M, NoStream, Nothing]
-  = action.action
+  /**
+    * Represents a ModelAction that returns a single model.
+    *
+    * @param action DBIOAction to wrap
+    * @tparam M     Model type
+    */
+  case class ModelAction[M <: Model[_]](override val action: DBIOAction[M, NoStream, Nothing])
+    extends AbstractModelAction(action) {
+    def processResult(service: ModelService, result: M): M = process(service, result)
+  }
 
-  implicit def wrapSeq[M <: Model[_]](action: DBIOAction[Seq[M], NoStream, Nothing]): ModelSeqAction[M]
-  = ModelSeqAction(action)
-  implicit def unwrapSeq[M <: Model[_]](action: ModelSeqAction[M]): DBIOAction[Seq[M], NoStream, Nothing]
-  = action.action
+  /**
+    * Represents a ModelAction that returns multiple models.
+    *
+    * @param action DBIOAction to wrap
+    * @tparam M     Model type
+    */
+  case class ModelSeqAction[M <: Model[_]](override val action: DBIOAction[Seq[M], NoStream, Nothing])
+    extends AbstractModelAction(action) {
+    def processResult(service: ModelService, result: Seq[M]) = for (model <- result) yield {
+      process(service, model)
+    }
+  }
 
 }

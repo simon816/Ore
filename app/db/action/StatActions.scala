@@ -7,6 +7,15 @@ import models.statistic.StatEntry
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 
+/**
+  * Records and determines uniqueness of StatEntries in a StatTable.
+  *
+  * @param statEntryClass Class of StatEntry
+  * @param baseQuery      Base query
+  * @param service        ModelService
+  * @tparam T             Table type
+  * @tparam M             Model type
+  */
 class StatActions[T <: StatTable[M], M <: StatEntry[_]](statEntryClass: Class[M], baseQuery: TableQuery[T])
                                                        (implicit service: ModelService)
   extends ModelActions[T, M](statEntryClass, baseQuery) {

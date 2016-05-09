@@ -18,7 +18,7 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int], val createdAt
   type M <: Model[A] { type M = self.M }
   type T <: ModelTable[M]
 
-  var isProcessed = false
+  private var _isProcessed = false
   private var fieldBindings: Map[String, FieldBinding[M, _]] = Map.empty
   private var manyBindings: Map[Class[_ <: Model[_]], ManyBinding] = Map.empty
 
@@ -112,6 +112,16 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int], val createdAt
     * @return         Copy of model
     */
   def copyWith(id: Option[Int], theTime: Option[Timestamp]): Model[_]
+
+  /**
+    * Returns true if this model has been processed internally by some
+    * ModelService and has had it's bindings processed.
+    *
+    * @return True if processed
+    */
+  def isProcessed: Boolean = this._isProcessed
+
+  protected[db] def setProcessed(processed: Boolean) = this._isProcessed = processed
 
   protected def Defined[R](f: => R): R = {
     if (isDefined) f else throw new IllegalStateException("model must exist")

@@ -9,12 +9,11 @@ import db.action.ModelFilter.IdFilter
 import db.action.{AbstractModelAction, ModelActions}
 import db.impl.OreModelService
 import db.impl.OrePostgresDriver.api._
-import db.meta.BindingsGenerator
-import db.meta.TypeSetters._
+import db.meta.ModelProcessor
+import db.meta.BootstrapTypeSetters._
 import slick.backend.DatabaseConfig
 import slick.driver.JdbcProfile
 import slick.lifted.ColumnOrdered
-import util.Conf
 import util.Conf.debug
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -22,21 +21,41 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future, Promise}
 import scala.util.{Failure, Success, Try}
 
+/**
+  * Represents a service that creates, deletes, and manipulates Models.
+  */
 @ImplementedBy(classOf[OreModelService])
 trait ModelService {
 
-  val bindingsGenerator: BindingsGenerator
+  /** Used for processing models and determining field bindings */
+  val processor: ModelProcessor
+
+  /** All registered models and TypeSetters */
   val registrar: ModelRegistrar
   import registrar.registerSetter
 
+  /**
+    * The database config for raw actions. Note: running raw queries will not
+    * process any returned models and should be used only for model "meta-data"
+    * (e.g. Project stars).
+    */
   protected[db] val DB: DatabaseConfig[JdbcProfile]
 
+  // Bootstrap TypeSetters
   registerSetter(classOf[Int], IntTypeSetter)
   registerSetter(classOf[String], StringTypeSetter)
   registerSetter(classOf[Boolean], BooleanTypeSetter)
-  registerSetter(classOf[List[Int]], IntListTypeSetter)
   registerSetter(classOf[Timestamp], TimestampTypeSetter)
+  registerSetter(classOf[List[Int]], IntListTypeSetter)
+  registerSetter(classOf[List[String]], StringListTypeSetter)
+  registerSetter(classOf[List[Boolean]], BooleanListTypeSetter)
+  registerSetter(classOf[List[Timestamp]], TimestampListTypeSetter)
 
+  /**
+    * Returns a current Timestamp.
+    *
+    * @return Timestamp of now
+    */
   def theTime: Timestamp = new Timestamp(new Date().getTime)
 
   /**
@@ -45,10 +64,20 @@ trait ModelService {
   val DefaultTimeout: Duration
 
   /**
-    * Provides the specified ModelQueries granted that it is registered.
+    * Awaits the result of the specified future and returns the result.
     *
-    * @tparam Q ModelQueries
-    * @return ModelQueries of type
+    * @param f        Future to await
+    * @param timeout  Timeout duration
+    * @tparam M       Return type
+    * @return         Try of return type
+    */
+  def await[M](f: Future[M], timeout: Duration = DefaultTimeout): Try[M] = Await.ready(f, timeout).value.get
+
+  /**
+    * Provides the specified ModelActions granted that it is registered.
+    *
+    * @tparam Q ModelActions
+    * @return ModelActions of type
     */
   def provide[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q = this.registrar.reverseLookup(actionsClass)
 
@@ -64,24 +93,15 @@ trait ModelService {
   = this.registrar.get(modelClass).baseQuery.asInstanceOf[Query[T, M, Seq]]
 
   /**
-    * Runs the specified action on the DB.
+    * Runs the specified ModelAction on the DB and processes the resulting
+    * model(s).
     *
     * @param action   Action to run
-    * @return         Result
+    * @return         Processed result
     */
   def process[R](action: AbstractModelAction[R]): Future[R] = DB.db.run(action).andThen {
     case r => action.processResult(this, r.get)
   }
-
-  /**
-    * Awaits the result of the specified future and returns the result.
-    *
-    * @param f        Future to await
-    * @param timeout  Timeout duration
-    * @tparam M       Return type
-    * @return         Try of return type
-    */
-  def await[M](f: Future[M], timeout: Duration = DefaultTimeout): Try[M] = Await.ready(f, timeout).value.get
 
   /**
     * Creates the specified model in it's table.

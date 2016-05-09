@@ -2,7 +2,7 @@ package db.impl
 
 import db.{Model, ModelService, ModelTable}
 import db.impl.OrePostgresDriver.api._
-import db.meta.TypeSetters.TypeSetter
+import db.meta.TypeSetter
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category

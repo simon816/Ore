@@ -6,7 +6,7 @@ import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
 import db.{Model, ModelService}
 import db.impl.VersionDownloadsTable
-import db.meta.{Actor, Bind, BindingsGenerator}
+import db.meta.{Actor, Bind, ModelProcessor}
 import db.action.StatActions
 import db.impl.action.VersionActions
 import models.project.Version

@@ -10,7 +10,7 @@ import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.action.ProjectActions
-import db.meta.{Actor, Bind, BindingsGenerator, HasMany}
+import db.meta.{Actor, Bind, ModelProcessor, HasMany}
 import db.action.ModelSet
 import forums.SpongeForums
 import models.statistic.ProjectView

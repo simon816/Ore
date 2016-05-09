@@ -1,13 +1,13 @@
 import com.google.inject.AbstractModule
 import db.ModelRegistrar
-import db.impl.OreModelRegistrar
-import db.meta.{BindingsGenerator, OreBindingsGenerator}
+import db.impl.{OreModelProcessor, OreModelRegistrar}
+import db.meta.ModelProcessor
 
 class Module extends AbstractModule {
 
   def configure() = {
     bind(classOf[ModelRegistrar]).to(classOf[OreModelRegistrar])
-    bind(classOf[BindingsGenerator]).to(classOf[OreBindingsGenerator])
+    bind(classOf[ModelProcessor]).to(classOf[OreModelProcessor])
   }
 
 }

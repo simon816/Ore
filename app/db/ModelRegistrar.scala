@@ -1,15 +1,13 @@
 package db
 
-import javax.inject.Singleton
-
 import com.google.common.collect.{BiMap, HashBiMap}
-import db.meta.TypeSetters.TypeSetter
 import db.action.ModelActions
+import db.meta.TypeSetter
 
 import scala.collection.JavaConverters._
 
 /**
-  * A registrar for ModelQueries. This contains all the necessary information
+  * A registrar for ModelActions. This contains all the necessary information
   * to interact with any Model in the database.
   */
 trait ModelRegistrar {
@@ -18,35 +16,59 @@ trait ModelRegistrar {
   private val typeSetters: BiMap[Class[_], TypeSetter[_]] = HashBiMap.create()
 
   /**
-    * Registers a new ModelQueries.
+    * Registers a new ModelActions.
     *
-    * @param modelQueries ModelQueries to register
-    * @tparam Q Type Queries type
-    * @return Registered queries
+    * @param actions ModelActions to register
+    * @tparam Q Type Actions type
+    * @return Registered actions
     */
-  def register[Q <: ModelActions[_, _ <: Model[_]]](modelQueries: Q): Q = {
-    this.modelActions.put(modelQueries.modelClass, modelQueries)
-    modelQueries
+  def register[Q <: ModelActions[_, _ <: Model[_]]](actions: Q): Q = {
+    this.modelActions.put(actions.modelClass, actions)
+    actions
   }
 
+  /**
+    * Registers a new TypeSetter that can be bound to model fields.
+    *
+    * @param clazz  Type class
+    * @param setter Type setter
+    * @tparam A     Type
+    */
   def registerSetter[A](clazz: Class[A], setter: TypeSetter[A]) = typeSetters.put(clazz, setter)
 
+  /**
+    * Returns a registered TypeSetter by the type class.
+    *
+    * @param clazz  Type class
+    * @tparam A     Type
+    * @return       Registered setter, if any, None otherwise
+    */
   def getSetter[A](clazz: Class[A]): Option[TypeSetter[A]]
   = typeSetters.asScala.get(clazz).map(_.asInstanceOf[TypeSetter[A]])
 
+  /**
+    * Finds a ModelActions instance by the ModelActions class.
+    *
+    * @param actionsClass ModelActions class
+    * @tparam Q           Actions type
+    * @return             ModelActions
+    */
+  //noinspection ComparingUnrelatedTypes
   def reverseLookup[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q
-  = this.modelActions.asScala.find(_._2.getClass.equals(actionsClass)).get._2.asInstanceOf[Q]
+  = this.modelActions.asScala.find(_._2.getClass.equals(actionsClass))
+    .getOrElse(throw new RuntimeException("actions not found of type " + actionsClass))
+    ._2.asInstanceOf[Q]
 
   /**
-    * Returns a registered ModelQueries for the specified Model class.
+    * Returns a registered ModelActions for the specified Model class.
     *
     * @param modelClass Model class
     * @tparam M         Model type
-    * @return           ModelQueries of Model
+    * @return           ModelActions of Model
     */
   def get[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M]): ModelActions[T, M] = {
     this.modelActions.asScala.find(_._1.isAssignableFrom(modelClass))
-      .getOrElse(throw new RuntimeException("queries not found for model " + modelClass))
+      .getOrElse(throw new RuntimeException("actions not found for model " + modelClass))
       ._2.asInstanceOf[ModelActions[T, M]]
   }
 

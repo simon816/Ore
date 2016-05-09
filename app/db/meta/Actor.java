@@ -7,10 +7,18 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Represents a Model with ModelActions
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Actor {
 
+    /**
+     * ModelActions class.
+     *
+     * @return ModelActions class
+     */
     Class<? extends ModelActions<?, ?>> value();
 
 }

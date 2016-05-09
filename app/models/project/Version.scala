@@ -9,7 +9,7 @@ import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl.action.VersionActions
 import db.impl.{VersionDownloadsTable, VersionTable}
-import db.meta.{Actor, Bind, BindingsGenerator, HasMany}
+import db.meta.{Actor, Bind, ModelProcessor, HasMany}
 import db.action.ModelSet
 import db.{Model, ModelService}
 import models.statistic.VersionDownload

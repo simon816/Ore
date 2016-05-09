@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import db.impl.{ModelKeys, ProjectRoleTable}
 import ModelKeys._
 import db.{Model, ModelService}
-import db.meta.{Bind, BindingsGenerator}
+import db.meta.{Bind, ModelProcessor}
 import db.action.{ModelActions, ModelSet}
 import ore.permission.role.Role
 import ore.permission.role.RoleTypes.RoleType

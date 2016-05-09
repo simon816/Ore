@@ -9,15 +9,17 @@ import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 
 /**
-  * Base class for handling Model queries.
+  * Base class for handling Model queries. ModelActions define how Models can
+  * interact with the database.
   */
 class ModelActions[Table <: ModelTable[Row], Row <: Model[_]](val modelClass: Class[Row],
                                                               val baseQuery: TableQuery[Table])
                                                              (implicit service: ModelService) {
 
+  /** Model filter alias */
   type Filter = Table => Rep[Boolean]
 
-  // Generic (delegate to companion object)
+  // Generic (delegate to service)
 
   def insert(model: Row) = service.insert(model)
   def find(predicate: Table => Rep[Boolean]) = service.find(modelClass, predicate)

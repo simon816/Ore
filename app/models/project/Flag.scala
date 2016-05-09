@@ -6,7 +6,7 @@ import db.impl.{FlagTable, ModelKeys}
 import db.impl.OrePostgresDriver.api._
 import ModelKeys._
 import db.{Model, ModelService}
-import db.meta.{Bind, BindingsGenerator}
+import db.meta.{Bind, ModelProcessor}
 import db.action.{ModelActions, ModelSet}
 import ore.UserOwner
 import ore.permission.scope.ProjectScope
