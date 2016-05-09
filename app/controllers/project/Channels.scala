@@ -5,20 +5,25 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Channels => self}
 import db.ModelService
-import form.Forms
+import form.OreForms
 import forums.DiscourseApi
 import ore.permission.EditChannels
+import ore.project.util.ProjectFileManager
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
+import util.OreConfig
 import views.html.projects.{channels => views}
 
 /**
   * Controller for handling Channel related actions.
   */
 class Channels @Inject()(override val messagesApi: MessagesApi,
-                         implicit val forums: DiscourseApi,
+                         val forms: OreForms,
+                         implicit val config: OreConfig,
+                         implicit val fileManager: ProjectFileManager,
                          implicit val ws: WSClient,
-                         implicit val service: ModelService) extends BaseController {
+                         implicit override val forums: DiscourseApi,
+                         implicit override val service: ModelService) extends BaseController {
 
   private def ChannelEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditChannels)
@@ -46,7 +51,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi,
     */
   def create(author: String, slug: String) = {
     ChannelEditAction(author, slug) { implicit request =>
-      Forms.ChannelEdit.bindFromRequest.fold(
+      forms.ChannelEdit.bindFromRequest.fold(
         hasErrors => Redirect(self.showList(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         channelData => channelData.addTo(request.project).fold(
           error => Redirect(self.showList(author, slug)).flashing("error" -> error),
@@ -67,7 +72,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi,
   def save(author: String, slug: String, channelName: String) = {
     ChannelEditAction(author, slug) { implicit request =>
       implicit val project = request.project
-      Forms.ChannelEdit.bindFromRequest.fold(
+      forms.ChannelEdit.bindFromRequest.fold(
         hasErrors => Redirect(self.showList(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         channelData => channelData.saveTo(channelName).map { error =>
           Redirect(self.showList(author, slug)).flashing("error" -> error)

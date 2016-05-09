@@ -10,11 +10,11 @@ import db.impl.{ChannelTable, ModelKeys, OreModel, VersionTable}
 import db.meta.{Bind, HasMany}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
-import ore.project.util.ProjectFiles
+import ore.project.util.ProjectFileManager
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
-import util.Conf._
+import util.OreConfig
 
 import scala.annotation.meta.field
 
@@ -58,10 +58,11 @@ case class Channel(override val id: Option[Int] = None,
     * @param _name     New channel name
     * @return         Future result
     */
-  def name_=(_name: String)(implicit context: Project, service: ModelService) = Defined {
+  def name_=(_name: String)(implicit context: Project, service: ModelService,
+                            fileManager: ProjectFileManager, config: OreConfig) = Defined {
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
     checkArgument(isValidName(name), "invalid name", "")
-    ProjectFiles.renameChannel(context.ownerName, context.name, this._name, name)
+    fileManager.renameChannel(context.ownerName, context.name, this._name, name)
     this._name = name
     update(Name)
   }
@@ -97,14 +98,14 @@ case class Channel(override val id: Option[Int] = None,
     * @param context  Project context
     * @return         Result
     */
-  def delete()(implicit context: Project = null, service: ModelService) = Defined {
+  def delete()(implicit context: Project = null, service: ModelService, fileManager: ProjectFileManager) = Defined {
     val proj = if (context != null) context else this.project
     checkArgument(proj.id.get == this.projectId, "invalid proj id", "")
     val channels = proj.channels.values
     checkArgument(channels.size > 1, "only one channel", "")
     checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
     remove(this)
-    FileUtils.deleteDirectory(ProjectFiles.projectDir(proj.ownerName, proj.name).resolve(this._name).toFile)
+    FileUtils.deleteDirectory(fileManager.projectDir(proj.ownerName, proj.name).resolve(this._name).toFile)
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Channel = this.copy(id = id, createdAt = theTime)
@@ -128,24 +129,14 @@ object Channel extends ModelSet[ChannelTable, Channel](classOf[Channel]) {
                                DarkGreen, Chartreuse, Amber, Orange, Red)
 
   /**
-    * The maximum name size of a Channel.
-    */
-  val MaxNameLength = ChannelsConf.getInt("max-name-len").get
-
-  /**
-    * Regular expression for permitted Channel characters.
-    */
-  val NameRegex = ChannelsConf.getString("name-regex").get
-
-  /**
     * The default color used for Channels.
     */
-  val DefaultColor: Color = Colors(ChannelsConf.getInt("color-default").get)
+  def DefaultColor(implicit config: OreConfig): Color = Colors(config.channels.getInt("color-default").get)
 
   /**
     * The default name used for Channels.
     */
-  val DefaultName: String = ChannelsConf.getString("name-default").get
+  def DefaultName(implicit config: OreConfig): String = config.channels.getString("name-default").get
 
   /**
     * Returns true if the specified string is a valid channel name.
@@ -153,7 +144,10 @@ object Channel extends ModelSet[ChannelTable, Channel](classOf[Channel]) {
     * @param name   Name to check
     * @return       True if valid channel name
     */
-  def isValidName(name: String): Boolean = name.length >= 1 && name.length <= MaxNameLength && name.matches(NameRegex)
+  def isValidName(name: String)(implicit config: OreConfig): Boolean = {
+    val c = config.channels
+    name.length >= 1 && name.length <= c.getInt("max-name-len").get && name.matches(c.getString("name-regex").get)
+  }
 
   /**
     * Attempts to determine a Channel name from the specified version string.
@@ -164,7 +158,7 @@ object Channel extends ModelSet[ChannelTable, Channel](classOf[Channel]) {
     * @param version  Version string to parse
     * @return         Suggested channel name
     */
-  def getSuggestedNameForVersion(version: String): String
+  def getSuggestedNameForVersion(version: String)(implicit config: OreConfig): String
   = firstString(new ComparableVersion(version).getItems).getOrElse(DefaultName)
 
   private def firstString(items: ListItem): Option[String] = {

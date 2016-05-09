@@ -1,8 +1,9 @@
+@import _root_.util.OreConfig
 @import db.ModelService
 @import forums.DiscourseApi
 @import play.twirl.api.Html
 @(title: String, step: Int)(content: Html)(implicit messages: Messages, session: Session,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig)
 
 @core.layout(title) {
 

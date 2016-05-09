@@ -1,24 +1,34 @@
 package form
 
+import javax.inject.Inject
+
+import db.ModelService
 import models.project.Channel
 import models.project.Page._
+import ore.project.util.ProjectFileManager
 import play.api.data.Form
 import play.api.data.Forms._
+import util.OreConfig
 
 /**
   * Collection of forms used in this application.
   */
 //noinspection ConvertibleToMethodValue
-object Forms {
+class OreForms @Inject()(implicit val config: OreConfig,
+                         val service: ModelService,
+                         val fileManager: ProjectFileManager) {
 
   /**
     * Submits a new Channel for a Project.
     */
   lazy val ChannelEdit = Form(mapping(
-    "channel-input" -> text
-      .verifying("Invalid channel name.", Channel.isValidName(_)),
-    "channel-color-input" -> text
-      .verifying("Invalid channel color.", c => Channel.Colors.exists(_.hex.equalsIgnoreCase(c)))
+    "channel-input" -> text.verifying(
+      "Invalid channel name.", Channel.isValidName(_)
+    ),
+
+    "channel-color-input" -> text.verifying(
+      "Invalid channel color.", c => Channel.Colors.exists(_.hex.equalsIgnoreCase(c))
+    )
   )(ChannelData.apply)(ChannelData.unapply))
 
   /**
@@ -38,7 +48,11 @@ object Forms {
   /**
     * Submits changes on a documentation page.
     */
-  lazy val PageEdit = Form(single("content" -> text(minLength = MinLength, maxLength = MaxLength)))
+  lazy val PageEdit = Form(single(
+    "content" -> text(
+      minLength = MinLength,
+      maxLength = MaxLength
+    )))
 
   /**
     * Submits a flag on a project for further review.
@@ -78,10 +92,14 @@ object Forms {
     * Submits a new Version.
     */
   lazy val VersionCreate = Form(mapping(
-    "channel-input" -> text
-      .verifying("Invalid channel name.", Channel.isValidName(_)),
-    "channel-color-input" -> text
-      .verifying("Invalid channel color.", c => Channel.Colors.exists(_.hex.equalsIgnoreCase(c))),
+    "channel-input" -> text.verifying(
+      "Invalid channel name.", Channel.isValidName(_)
+    ),
+
+    "channel-color-input" -> text.verifying(
+      "Invalid channel color.", c => Channel.Colors.exists(_.hex.equalsIgnoreCase(c))
+    ),
+
     "recommended" -> boolean
   )(VersionData.apply)(VersionData.unapply))
 

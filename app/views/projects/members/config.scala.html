@@ -1,3 +1,4 @@
+@import _root_.util.OreConfig
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
@@ -8,7 +9,7 @@
 
 @import scala.collection.JavaConversions._
 @(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig)
 
 @projects.util.panelCreate(messages("project.create"), 3) {
     @defining(User.current.get) { user =>

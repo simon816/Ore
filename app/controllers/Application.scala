@@ -10,19 +10,17 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.ProjectTable
 import db.impl.action.ProjectActions
 import forums.DiscourseApi
-import models.project.Project._
 import models.project.{Flag, Project, Version}
 import models.user.User
 import ore.permission._
 import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
-import ore.project.util.ProjectFactory
+import ore.project.util.{ProjectFactory, ProjectFileManager}
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import util.Conf._
-import util.DataUtils
+import util.{DataUtils, OreConfig}
 import views.{html => views}
 
 /**
@@ -30,9 +28,11 @@ import views.{html => views}
   */
 class Application @Inject()(override val messagesApi: MessagesApi,
                             implicit val projectFactory: ProjectFactory,
-                            implicit val forums: DiscourseApi,
                             implicit val ws: WSClient,
-                            implicit val models: ModelService) extends BaseController {
+                            implicit val config: OreConfig,
+                            implicit val fileManager: ProjectFileManager,
+                            implicit override val forums: DiscourseApi,
+                            implicit override val service: ModelService) extends BaseController {
 
   private def FlagAction = Authenticated andThen PermissionAction[AuthRequest](ReviewFlags)
 
@@ -47,17 +47,18 @@ class Application @Inject()(override val messagesApi: MessagesApi,
     val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
     
     // Determine filter
-    val queries = models.provide(classOf[ProjectActions])
+    val actions = service.provide(classOf[ProjectActions])
     val canHideProjects = User.current.isDefined && (User.current.get can HideProjects in GlobalScope)
     var filter: ProjectTable => Rep[Boolean] = query.map { q =>
       // Search filter + visible
-      var f  = queries.searchFilter(q)
+      var f  = actions.searchFilter(q)
       if (!canHideProjects) f = f && (_.isVisible)
       f
     }.orNull[ModelFilter[ProjectTable, Project]]
     if (filter == null && !canHideProjects) filter = _.isVisible
 
-    val projects = models.await(queries.collect(filter, categoryArray, InitialLoad, -1, s)).get
+    val future = actions.collect(filter, categoryArray, config.projects.getInt("init-load").get, -1, s)
+    val projects = service.await(future).get
     if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet)) categoryArray = null
     Ok(views.home(projects, Option(categoryArray), s))
   }
@@ -112,7 +113,7 @@ class Application @Inject()(override val messagesApi: MessagesApi,
     * Helper route to reset Ore.
     */
   def reset = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
-    checkDebug()
+    config.checkDebug()
     DataUtils.reset()
     Redirect(self.showHome(None, None, None)).withNewSession
   }
@@ -124,7 +125,7 @@ class Application @Inject()(override val messagesApi: MessagesApi,
     */
   def seed(users: Option[Int], versions: Option[Int], channels: Option[Int]) = {
     (Authenticated andThen PermissionAction[AuthRequest](SeedOre)) { implicit request =>
-      checkDebug()
+      config.checkDebug()
       DataUtils.seed(users.getOrElse(200), versions.getOrElse(0), channels.getOrElse(1))
       Redirect(self.showHome(None, None, None)).withNewSession
     }

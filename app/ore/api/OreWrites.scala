@@ -1,5 +1,6 @@
 package ore.api
 
+import _root_.util.OreConfig
 import db.ModelService
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
@@ -15,7 +16,8 @@ object OreWrites {
     def writes(channel: Channel) = Json.obj("name" -> channel.name, "color" -> channel.color.hex)
   }
 
-  implicit def projectWrites(implicit service: ModelService, forums: DiscourseApi) = new Writes[Project] {
+  implicit def projectWrites(implicit service: ModelService, forums: DiscourseApi, config: OreConfig)
+  = new Writes[Project] {
     def writes(project: Project) = {
       val members: List[JsObject] = (for (member <- project.members) yield {
         Json.obj(
@@ -43,7 +45,7 @@ object OreWrites {
     }
   }
 
-  implicit def versionWrites(implicit service: ModelService) = new Writes[Version] {
+  implicit def versionWrites(implicit service: ModelService, config: OreConfig) = new Writes[Version] {
     def writes(version: Version) = {
       val project = version.project
       val dependencies: List[JsObject] = version.dependencies.map { dependency =>
@@ -61,7 +63,7 @@ object OreWrites {
     }
   }
 
-  implicit def userWrites(implicit service: ModelService) = new Writes[User] {
+  implicit def userWrites(implicit service: ModelService, config: OreConfig) = new Writes[User] {
     def writes(user: User) = {
       Json.obj(
         "id" -> user.id,

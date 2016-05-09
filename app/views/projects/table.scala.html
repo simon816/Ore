@@ -1,6 +1,7 @@
 @*
 Collection of all projects.
 *@
+@import _root_.util.OreConfig
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
@@ -8,7 +9,7 @@ Collection of all projects.
 @import models.user.User
 @import ore.project.Categories._
 @(models: Seq[Project], visibleCategories: Option[Array[Category]] = None)(implicit messages: Messages,
-        session: Session, flash: Flash, service: ModelService, forums: DiscourseApi)
+        session: Session, flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig)
 
 <div class="panel panel-default project-panel">
     <table class="table project-table">
@@ -45,7 +46,7 @@ Collection of all projects.
         }
         </tbody>
     </table>
-    @if(models.size >= Project.InitialLoad) {
+    @if(models.size >= config.projects.getInt("init-load").get) {
         <button class="btn btn-default btn-more"><strong>@messages("table.more")</strong></button>
     } else {
         <div class="panel-footer"></div>

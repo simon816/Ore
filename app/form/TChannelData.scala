@@ -3,11 +3,17 @@ package form
 import db.ModelService
 import models.project.{Channel, Project}
 import ore.Colors.Color
+import ore.project.util.ProjectFileManager
+import util.OreConfig
 
 /**
   * Represents submitted [[Channel]] data.
   */
 trait TChannelData {
+
+  implicit val service: ModelService
+  implicit val config: OreConfig
+  implicit val fileManager: ProjectFileManager
 
   /** The [[Channel]] [[Color]] **/
   val color: Color = Channel.Colors.find(_.hex.equalsIgnoreCase(channelColorHex)).get
@@ -25,9 +31,9 @@ trait TChannelData {
     * @param project  Project to add Channel to
     * @return         Either the new channel or an error message
     */
-  def addTo(project: Project)(implicit service: ModelService): Either[String, Channel] = {
+  def addTo(project: Project): Either[String, Channel] = {
     val channels = project.channels.values
-    if (channels.size >= Project.MaxChannels) {
+    if (channels.size >= config.projects.getInt("max-channels").get) {
       Left("A project may only have up to five channels.")
     } else {
       channels.find(_.name.equalsIgnoreCase(this.channelName)) match {
@@ -48,7 +54,7 @@ trait TChannelData {
     * @param project  Project of channel
     * @return         Error, if any
     */
-  def saveTo(oldName: String)(implicit project: Project, service: ModelService): Option[String] = {
+  def saveTo(oldName: String)(implicit project: Project): Option[String] = {
     val channels = project.channels.values
     val channel = channels.find(_.name.equalsIgnoreCase(oldName)).get
     val colorChan = channels.find(_.color.equals(this.color))

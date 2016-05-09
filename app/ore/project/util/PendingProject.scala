@@ -4,7 +4,8 @@ import db.ModelService
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.ProjectRole
-import util.{Cacheable, PendingAction}
+import play.api.cache.CacheApi
+import util.{Cacheable, OreConfig, PendingAction}
 
 import scala.util.Try
 
@@ -18,8 +19,14 @@ import scala.util.Try
 case class PendingProject(project: Project,
                           file: PluginFile,
                           var roles: Set[ProjectRole] = Set())
-                         (implicit service: ModelService, forums: DiscourseApi, factory: ProjectFactory)
+                         (implicit service: ModelService,
+                          forums: DiscourseApi,
+                          factory: ProjectFactory,
+                          config: OreConfig,
+                          override val cacheApi: CacheApi)
                           extends PendingAction[Project] with Cacheable {
+
+  implicit val fileManager = factory.fileManager
 
   /**
     * The first [[PendingVersion]] for this PendingProject.

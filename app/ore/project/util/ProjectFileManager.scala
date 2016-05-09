@@ -1,15 +1,16 @@
 package ore.project.util
 
 import java.nio.file.{Files, Path}
+import javax.inject.Inject
 
-import util.Sys._
+import util.OreEnv
 
 import scala.util.Try
 
 /**
   * Handles file management of Projects.
   */
-object ProjectFiles {
+class ProjectFileManager @Inject()(val env: OreEnv) {
 
   /**
     * Returns the Path to where the specified Version should be.
@@ -41,7 +42,7 @@ object ProjectFiles {
     * @return       Plugin directory
     */
   def userDir(owner: String): Path = {
-    PluginsDir.resolve(owner)
+    env.plugins.resolve(owner)
   }
 
   /**

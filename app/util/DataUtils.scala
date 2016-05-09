@@ -1,18 +1,13 @@
 package util
 
-import java.nio.file.Files._
-
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.UserTable
 import forums.DiscourseApi
 import models.project.Project
 import models.user.User
-import ore.project.util.ProjectFactory
+import ore.project.util.{ProjectFactory, ProjectFileManager}
 import org.apache.commons.io.FileUtils
-import play.api.libs.ws.WSClient
-import util.Conf._
-import util.Sys._
 
 /**
   * Utility class for performing some bulk actions on the application data.
@@ -20,18 +15,13 @@ import util.Sys._
   */
 object DataUtils {
 
-  implicit private var ws: WSClient = null
-  private val pluginPath = RootDir.resolve(OreConf.getString("test-plugin").get)
-
-  def enable()(implicit ws: WSClient) = this.ws = ws
-
   /**
     * Resets the application to factory defaults.
     */
-  def reset()(implicit service: ModelService, forums: DiscourseApi) = {
+  def reset()(implicit service: ModelService, forums: DiscourseApi, fileManager: ProjectFileManager) = {
     for (project <- Project.values) project.delete()
     service.await(service.deleteWhere[UserTable, User](classOf[User], _ => true))
-    FileUtils.deleteDirectory(UploadsDir.toFile)
+    FileUtils.deleteDirectory(fileManager.env.uploads.toFile)
   }
 
   /**
@@ -93,12 +83,12 @@ object DataUtils {
 
   def migrate() = Unit
 
-  private def copyPlugin = {
-    val path = this.pluginPath.getParent.resolve("plugin.jar")
-    if (notExists(path)) {
-      copy(this.pluginPath, this.pluginPath.getParent.resolve("plugin.jar")).toFile
-    }
-    path.toFile
-  }
+//  private def copyPlugin = {
+//    val path = this.pluginPath.getParent.resolve("plugin.jar")
+//    if (notExists(path)) {
+//      copy(this.pluginPath, this.pluginPath.getParent.resolve("plugin.jar")).toFile
+//    }
+//    path.toFile
+//  }
 
 }

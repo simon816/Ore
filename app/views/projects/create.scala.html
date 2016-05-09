@@ -1,15 +1,15 @@
 @*
 Page used for uploading and creating new projects.
 *@
+@import _root_.util.OreConfig
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
-@import models.project.Project
 @import ore.project.util.PendingProject
 @import play.twirl.api.Html
 @import views.html.helper.form
 @(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig)
 
 @projects.util.panelCreate(messages("project.create"), if (pending.isEmpty) 1 else 2) {
 
@@ -55,7 +55,7 @@ Page used for uploading and creating new projects.
                                     <label for="description">Description</label>
                                     @defining(pending.get.pendingVersion.version.description) { description =>
                                         <input form="continue" class="form-control" type="text" id="description"
-                                        name="description" maxlength="@Project.MaxDescriptionLength"
+                                        name="description" maxlength="@config.projects.getInt("max-desc-len").get"
                                             @description.map { value =>
                                             value="@value"
                                             }.getOrElse {

@@ -19,7 +19,7 @@ import ore.permission.role.RoleTypes.RoleType
 import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
 import play.api.mvc.Session
-import util.Conf._
+import util.OreConfig
 import util.StringUtils._
 
 import scala.annotation.meta.field
@@ -49,16 +49,12 @@ case class User(override val id: Option[Int] = None,
                   with UserOwner
                   with ScopeSubject { self =>
 
-  import models.user.User._
-
   /**
     * The User's [[PermissionPredicate]]. All permission checks go through
     * here.
     */
   val can: PermissionPredicate = PermissionPredicate(this)
   val cannot: PermissionPredicate = PermissionPredicate(this, not = true)
-
-  private val forumsUrl = DiscourseConf.getString("baseUrl").get
 
   /**
     * Returns this User's full name.
@@ -137,11 +133,12 @@ case class User(override val id: Option[Int] = None,
     * @param size Size of avatar
     * @return     Avatar URL
     */
-  def avatarUrl(size: Int = 100): String = {
-    this._avatarUrl.map(s => this.forumsUrl + s.replace("{size}", size.toString)).getOrElse("")
+  def avatarUrl(size: Int = 100)(implicit config: OreConfig): String = {
+    this._avatarUrl.map(s => config.forums.getString("baseUrl").get + s.replace("{size}", size.toString)).getOrElse("")
   }
 
-  def avatarTemplate: Option[String] = this._avatarUrl.map(this.forumsUrl + _)
+  def avatarTemplate(implicit config: OreConfig): Option[String]
+  = this._avatarUrl.map(config.forums.getString("baseUrl").get + _)
 
   /**
     * Sets this User's avatar url.
@@ -165,8 +162,8 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _tagline Tagline to display
     */
-  def tagline_=(_tagline: String)(implicit service: ModelService) = {
-    checkArgument(_tagline.length <= MaxTaglineLength, "tagline too long", "")
+  def tagline_=(_tagline: String)(implicit service: ModelService, config: OreConfig) = {
+    checkArgument(_tagline.length <= config.users.getInt("max-tagline-len").get, "tagline too long", "")
     this._tagline = Option(nullIfEmpty(_tagline))
     if (isDefined) update(Tagline)
   }
@@ -246,9 +243,11 @@ case class User(override val id: Option[Int] = None,
     * @param page Page of user stars
     * @return     Projects user has starred
     */
-  def starred(page: Int = -1)(implicit service: ModelService): Seq[Project] = Defined {
-    val limit = if (page < 1) -1 else StarsPerPage
-    service.await(service.provide(classOf[ProjectActions]).starredBy(this.id.get, limit, (page - 1) * StarsPerPage)).get
+  def starred(page: Int = -1)(implicit service: ModelService, config: OreConfig): Seq[Project] = Defined {
+    val starsPerPage = config.users.getInt("stars-per-page").get
+    val limit = if (page < 1) -1 else starsPerPage
+    val actions = service.provide(classOf[ProjectActions])
+    service.await(actions.starredBy(this.id.get, limit, (page - 1) * starsPerPage)).get
   }
 
   /**
@@ -258,7 +257,7 @@ case class User(override val id: Option[Int] = None,
     * @param user User to fill with
     * @return     This user
     */
-  def fill(user: User)(implicit service: ModelService): User = {
+  def fill(user: User)(implicit service: ModelService, config: OreConfig): User = {
     if (user == null) return this
     user.name.foreach(this.name_=)
     user.email.foreach(this.email_=)
@@ -279,16 +278,6 @@ case class User(override val id: Option[Int] = None,
 }
 
 object User extends ModelSet[UserTable, User](classOf[User]) {
-
-  /**
-    * The amount of stars displayed in the stars panel per page.
-    */
-  val StarsPerPage: Int = UsersConf.getInt("stars-per-page").get
-
-  /**
-    * The maximum length for User taglines.
-    */
-  val MaxTaglineLength: Int = UsersConf.getInt("max-tagline-len").get
 
   /**
     * Returns the user with the specified username.

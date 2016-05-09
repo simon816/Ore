@@ -16,12 +16,11 @@ import forums.DiscourseApi
 import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
-import ore.project.util.{PendingVersion, PluginFile, ProjectFactory, ProjectFiles}
+import ore.project.util.{PendingVersion, PluginFile, ProjectFactory, ProjectFileManager}
 import org.apache.commons.io.FileUtils
-import play.api.Play.current
-import play.api.cache.Cache
+import play.api.cache.CacheApi
 import play.twirl.api.Html
-import util.Conf._
+import util.OreConfig
 
 import scala.annotation.meta.field
 import scala.collection.JavaConverters._
@@ -108,7 +107,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @param _description Version description
     */
-  def description_=(_description: String)(implicit service: ModelService) = {
+  def description_=(_description: String)(implicit service: ModelService, config: OreConfig) = {
     Preconditions.checkArgument(_description.length <= Page.MaxLength, "content too long", "")
     this._description = Some(_description)
     if (isDefined) update(Description)
@@ -180,7 +179,7 @@ case class Version(override val id: Option[Int] = None,
       || this.project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase))
   }
 
-  def delete()(implicit project: Project = null, service: ModelService) = Defined {
+  def delete()(implicit project: Project = null, service: ModelService, fileManager: ProjectFileManager) = Defined {
     val proj = if (project != null) project else this.project
     checkArgument(proj.versions.size > 1, "only one version", "")
     checkArgument(proj.id.get == this.projectId, "invalid context id", "")
@@ -191,11 +190,11 @@ case class Version(override val id: Option[Int] = None,
     // Set recommended version to latest version if the deleted version was the rv
     if (this.equals(rv)) proj.recommendedVersion = proj.versions.sorted(_.createdAt.desc, limit = 1).head
 
-    Files.delete(ProjectFiles.uploadPath(proj.ownerName, proj.name, this.versionString))
+    Files.delete(fileManager.uploadPath(proj.ownerName, proj.name, this.versionString))
 
     // Delete channel if now empty
     val channel: Channel = this.channel
-    if (channel.versions.isEmpty) channel.delete()(proj, service)
+    if (channel.versions.isEmpty) channel.delete()(proj, service, fileManager)
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Version = this.copy(id = id, createdAt = theTime)
@@ -209,8 +208,6 @@ case class Version(override val id: Option[Int] = None,
 }
 
 object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
-
-  val InitialLoad: Int = ProjectsConf.getInt("init-version-load").get
 
   /**
     * Returns all Versions that have not been reviewed by the moderation staff.
@@ -229,7 +226,8 @@ object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
     * @param plugin   Uploaded plugin
     */
   def setPending(owner: String, slug: String, channel: String, version: Version, plugin: PluginFile)
-                (implicit service: ModelService, forums: DiscourseApi, factory: ProjectFactory): PendingVersion = {
+                (implicit service: ModelService, forums: DiscourseApi,
+                 factory: ProjectFactory, cacheApi: CacheApi, config: OreConfig): PendingVersion = {
     val pending = PendingVersion(owner, slug, channel, Channel.DefaultColor, version, plugin)
     pending.cache()
     pending
@@ -244,8 +242,8 @@ object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
     * @param version  Name of version
     * @return         PendingVersion, if present, None otherwise
     */
-  def getPending(owner: String, slug: String, version: String): Option[PendingVersion] = {
-    Cache.getAs[PendingVersion](owner + '/' + slug + '/' + version)
+  def getPending(owner: String, slug: String, version: String)(implicit cacheApi: CacheApi): Option[PendingVersion] = {
+    cacheApi.get[PendingVersion](owner + '/' + slug + '/' + version)
   }
 
   /**

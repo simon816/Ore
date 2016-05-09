@@ -1,3 +1,4 @@
+@import _root_.util.OreConfig
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
@@ -7,7 +8,7 @@
 @import ore.permission.role.RoleTypes
 @import views.html.helper.form
 @(model: Project, editable: Boolean = false)(implicit messages: Messages, session: Session,
-        service: ModelService, forums: DiscourseApi)
+        service: ModelService, forums: DiscourseApi, config: OreConfig)
 
 @canEdit = @{
     editable && User.current.isDefined && (User.current.get can EditSettings in model)

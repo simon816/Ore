@@ -1,20 +1,20 @@
 @*
 Discussion page within Project overview.
 *@
-@import _root_.util.Conf._
+@import _root_.util.OreConfig
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
 @import models.project.Project
 @import models.user.User
 @(model: Project)(implicit messages: Messages, session: Session, request: RequestHeader,
-        flash: Flash, service: ModelService, forums: DiscourseApi)
+        flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig)
 
 @projects.view(model, "#discussion") {
 
     <script>
         DiscourseEmbed = {
-            discourseUrl: '@DiscourseConf.getString("baseUrl").get/',
+            discourseUrl: '@config.forums.getString("baseUrl").get/',
             topicId: @model.topicId.get
         };
     </script>

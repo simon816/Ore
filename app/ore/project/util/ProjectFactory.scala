@@ -1,6 +1,7 @@
 package ore.project.util
 
 import java.nio.file.Files
+import javax.inject.Inject
 
 import com.google.common.base.Preconditions._
 import db.ModelService
@@ -9,9 +10,8 @@ import models.project.{Channel, Project, Version}
 import models.user.{ProjectRole, User}
 import ore.permission.role.RoleTypes
 import play.api.libs.Files.TemporaryFile
-import util.Conf._
+import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
-import util.Sys._
 
 import scala.util.Try
 
@@ -19,6 +19,10 @@ import scala.util.Try
   * Handles creation of Project's and their components.
   */
 trait ProjectFactory {
+
+  val fileManager: ProjectFileManager
+  implicit val config: OreConfig
+  val env = fileManager.env
 
   /**
     * Initializes a new PluginFile with the specified owner and temporary file.
@@ -28,12 +32,12 @@ trait ProjectFactory {
     * @return       New plugin file
     */
   def initUpload(tmp: TemporaryFile, name: String, owner: User): Try[PluginFile] = Try {
-    val tmpPath = TempDir.resolve(owner.username).resolve(name)
+    val tmpPath = env.tmp.resolve(owner.username).resolve(name)
     val plugin = new PluginFile(tmpPath, owner)
     if (Files.notExists(tmpPath.getParent)) Files.createDirectories(tmpPath.getParent)
     val oldPath = tmp.file.toPath
     tmp.moveTo(plugin.path.toFile, replace = true)
-    if (ProjectsConf.getBoolean("tmp-file-save").get) Files.copy(plugin.path, oldPath)
+    if (config.projects.getBoolean("tmp-file-save").get) Files.copy(plugin.path, oldPath)
     plugin.loadMeta
     plugin
   }
@@ -81,7 +85,7 @@ trait ProjectFactory {
 
     // Create version
     val pendingVersion = pending.version
-    if (pendingVersion.exists && ProjectsConf.getBoolean("file-validate").get) {
+    if (pendingVersion.exists && config.projects.getBoolean("file-validate").get) {
       throw new IllegalArgumentException("Version already exists.")
     }
 
@@ -99,7 +103,7 @@ trait ProjectFactory {
     val meta = plugin.meta.get
     var oldPath = plugin.path
     if (!plugin.isZipped) oldPath = plugin.zip
-    val newPath = ProjectFiles.uploadPath(plugin.user.username, meta.getName, meta.getVersion)
+    val newPath = fileManager.uploadPath(plugin.user.username, meta.getName, meta.getVersion)
     if (!Files.exists(newPath.getParent)) Files.createDirectories(newPath.getParent)
     Files.move(oldPath, newPath)
     Files.delete(oldPath)
@@ -107,4 +111,5 @@ trait ProjectFactory {
 
 }
 
-class OreProjectFactory extends ProjectFactory
+class OreProjectFactory @Inject()(override val fileManager: ProjectFileManager,
+                                  override val config: OreConfig) extends ProjectFactory

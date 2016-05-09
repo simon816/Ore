@@ -1,6 +1,7 @@
 @*
 Versions page within Project overview.
 *@
+@import _root_.util.OreConfig
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
@@ -9,7 +10,7 @@ Versions page within Project overview.
 @import ore.permission.{EditChannels, EditVersions}
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
   visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session,
-        request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi)
+        request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig)
 
 @projects.view(model, "#versions") {
 
@@ -90,7 +91,11 @@ Versions page within Project overview.
                                 </span>
                                 <div class="pull-right">
                                     <a class="prev" href="#" style="display: none;"><i class="fa fa-arrow-left"></i></a>
-                                    <a class="next" href="#" @if(versions.size < Version.InitialLoad) { style="display: none;" }>
+                                    <a class="next" href="#"
+                                        @if(versions.size < config.projects.getInt("init-version-load").get) {
+                                            style="display: none;"
+                                        }
+                                    >
                                         <i class="fa fa-arrow-right"></i>
                                     </a>
                                 </div>

@@ -4,19 +4,22 @@ import javax.inject.Inject
 
 import controllers.routes.{Users => self}
 import db.ModelService
-import form.Forms
+import form.OreForms
 import forums.DiscourseApi
 import models.user.{FakeUser, User}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Security, _}
-import util.Conf._
+import util.OreConfig
 import views.{html => views}
 
 class Users @Inject()(override val messagesApi: MessagesApi,
-                      implicit val forums: DiscourseApi,
+                      val fakeUser: FakeUser,
+                      val forms: OreForms,
+                      implicit val config: OreConfig,
                       implicit val ws: WSClient,
-                      implicit val service: ModelService) extends BaseController {
+                      implicit override val forums: DiscourseApi,
+                      implicit override val service: ModelService) extends BaseController {
 
   /**
     * Redirect to forums for SSO authentication and then back here again.
@@ -26,10 +29,10 @@ class Users @Inject()(override val messagesApi: MessagesApi,
     * @return     Logged in home
     */
   def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
-    val baseUrl = AppConf.getString("baseUrl").get
-    if (FakeUser.IsEnabled) {
-      User.getOrCreate(FakeUser)
-      redirectBack(returnPath.getOrElse(request.path), FakeUser.username)
+    val baseUrl = config.app.getString("baseUrl").get
+    if (fakeUser.isEnabled) {
+      User.getOrCreate(fakeUser)
+      redirectBack(returnPath.getOrElse(request.path), fakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(forums.Auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
     } else {
@@ -40,7 +43,7 @@ class Users @Inject()(override val messagesApi: MessagesApi,
   }
 
   private def redirectBack(url: String, username: String) = {
-    Redirect(AppConf.getString("baseUrl").get + url).withSession(Security.username -> username)
+    Redirect(config.app.getString("baseUrl").get + url).withSession(Security.username -> username)
   }
 
   /**
@@ -49,7 +52,7 @@ class Users @Inject()(override val messagesApi: MessagesApi,
     * @return Home page
     */
   def logOut(returnPath: Option[String]) = Action { implicit request =>
-    Redirect(AppConf.getString("baseUrl").get + returnPath.getOrElse(request.path))
+    Redirect(config.app.getString("baseUrl").get + returnPath.getOrElse(request.path))
       .withNewSession.flashing("noRedirect" -> "true")
   }
 
@@ -73,10 +76,10 @@ class Users @Inject()(override val messagesApi: MessagesApi,
     * @return           View of user page
     */
   def saveTagline(username: String) = {
-    Authenticated(service, forums) { implicit request =>
+    Authenticated { implicit request =>
       val user = request.user
-      val tagline = Forms.UserTagline.bindFromRequest.get.trim
-      if (tagline.length > User.MaxTaglineLength) {
+      val tagline = forms.UserTagline.bindFromRequest.get.trim
+      if (tagline.length > config.users.getInt("max-tagline-len").get) {
         Redirect(self.show(user.username)).flashing("error" -> "Tagline is too long.")
       } else {
         user.tagline = tagline

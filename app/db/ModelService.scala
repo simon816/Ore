@@ -11,7 +11,6 @@ import db.meta.ModelProcessor
 import slick.backend.DatabaseConfig
 import slick.driver.{JdbcDriver, JdbcProfile}
 import slick.lifted.ColumnOrdered
-import util.Conf.debug
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -129,7 +128,6 @@ trait ModelService {
     */
   def find[T <: ModelTable[M], M <: Model[_]: TypeTag](modelClass: Class[_ <: M],
                                                        predicate: T => Rep[Boolean]): Future[Option[M]] = {
-    debug("Finding model of type " + modelClass)
     val modelPromise = Promise[Option[M]]
     val query = newModelAction[T, M](modelClass).filter(predicate).take(1)
     process(query.result).andThen {

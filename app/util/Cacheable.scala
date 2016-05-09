@@ -1,12 +1,13 @@
 package util
 
-import play.api.Play.current
-import play.api.cache.Cache
+import play.api.cache.CacheApi
 
 /**
   * Represents something that can be added to the Cache.
   */
 trait Cacheable {
+
+  val cacheApi: CacheApi
 
   /**
     * Returns the key to this in the Cache.
@@ -18,15 +19,11 @@ trait Cacheable {
   /**
     * Caches this.
     */
-  def cache() = {
-    Cache.set(this.key, this)
-  }
+  def cache() = cacheApi.set(this.key, this)
 
   /**
     * Removes this from the Cache.
     */
-  def free() = {
-    Cache.remove(this.key)
-  }
+  def free() = cacheApi.remove(this.key)
 
 }

@@ -6,15 +6,16 @@ import controllers.BaseController
 import controllers.project.routes.{Versions => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import form.Forms
+import form.OreForms
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import ore.permission.{EditVersions, ReviewProjects}
-import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFactory, ProjectFiles}
+import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFactory, ProjectFileManager}
 import ore.statistic.StatTracker
+import play.api.cache.CacheApi
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
-import util.Conf._
+import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
 import views.html.projects.{versions => views}
 
@@ -25,10 +26,14 @@ import scala.util.{Failure, Success}
   */
 class Versions @Inject()(override val messagesApi: MessagesApi,
                          val stats: StatTracker,
+                         val forms: OreForms,
+                         implicit val fileManager: ProjectFileManager,
+                         implicit val config: OreConfig,
+                         implicit val cacheApi: CacheApi,
                          implicit val projectFactory: ProjectFactory,
-                         implicit val forums: DiscourseApi,
                          implicit val ws: WSClient,
-                         implicit val service: ModelService) extends BaseController {
+                         implicit override val forums: DiscourseApi,
+                         implicit override val service: ModelService) extends BaseController {
 
   private def VersionEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditVersions)
@@ -42,7 +47,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return Version view
     */
   def show(author: String, slug: String, versionString: String) = {
-    ProjectAction(author, slug)(service, forums) { implicit request =>
+    ProjectAction(author, slug) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
         stats.projectViewed { implicit request =>
@@ -64,7 +69,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     VersionEditAction(author, slug) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
-        version.description = Forms.VersionDescription.bindFromRequest.get.trim
+        version.description = forms.VersionDescription.bindFromRequest.get.trim
         Redirect(self.show(author, slug, versionString))
       }
     }
@@ -115,7 +120,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return View of project
     */
   def showList(author: String, slug: String, channels: Option[String]) = {
-    ProjectAction(author, slug)(service, forums) { implicit request =>
+    ProjectAction(author, slug) { implicit request =>
       val project = request.project
       val allChannels = project.channels.toSeq
 
@@ -125,7 +130,8 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
       })
       val visibleIds: Array[Int] = visible.map(_.map(_.id.get)).getOrElse(allChannels.map(_.id.get).toArray)
 
-      val versions = project.versions.sorted(_.createdAt.desc, _.channelId inSetBind visibleIds, Version.InitialLoad)
+      val load = config.projects.getInt("init-version-load").get
+      val versions = project.versions.sorted(_.createdAt.desc, _.channelId inSetBind visibleIds, load)
       if (visibleNames.isDefined && visibleNames.get.toSet.equals(allChannels.map(_.name.toLowerCase).toSet)) {
         visibleNames = None
       }
@@ -180,7 +186,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
               } else {
                 // Create version from meta file
                 val version = Version.fromMeta(project, plugin)
-                if (version.exists && ProjectsConf.getBoolean("file-validate").get) {
+                if (version.exists && config.projects.getBoolean("file-validate").get) {
                   Redirect(self.showCreator(author, slug))
                     .flashing("error" -> "Found a duplicate file in project. Plugin files may only be uploaded once.")
                 } else {
@@ -207,7 +213,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return Version create view
     */
   def showCreatorWithMeta(author: String, slug: String, versionString: String) = {
-    Authenticated(service, forums) { implicit request =>
+    Authenticated { implicit request =>
       // Get pending version
       Version.getPending(author, slug, versionString) match {
         case None => Redirect(self.showCreator(author, slug))
@@ -244,13 +250,13 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return New version view
     */
   def create(author: String, slug: String, versionString: String) = {
-    Authenticated(service, forums) { implicit request =>
+    Authenticated { implicit request =>
       // First get the pending Version
       Version.getPending(author, slug, versionString) match {
         case None => Redirect(self.showCreator(author, slug)) // Not found
         case Some(pendingVersion) =>
           // Get submitted channel
-          Forms.VersionCreate.bindFromRequest.fold(
+          forms.VersionCreate.bindFromRequest.fold(
             hasErrors => Redirect(self.showCreatorWithMeta(author, slug, versionString))
               .flashing("error" -> hasErrors.errors.head.message),
 
@@ -318,11 +324,11 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return Sent file
     */
   def download(author: String, slug: String, versionString: String) = {
-    ProjectAction(author, slug)(service, forums) { implicit request =>
+    ProjectAction(author, slug) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
         stats.versionDownloaded(version) { implicit request =>
-          Ok.sendFile(ProjectFiles.uploadPath(author, project.name, versionString).toFile)
+          Ok.sendFile(fileManager.uploadPath(author, project.name, versionString).toFile)
         }
       }
     }
@@ -336,11 +342,11 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return Sent file
     */
   def downloadRecommended(author: String, slug: String) = {
-    ProjectAction(author, slug)(service, forums) { implicit request =>
+    ProjectAction(author, slug) { implicit request =>
       val project = request.project
       val rv = project.recommendedVersion
       stats.versionDownloaded(rv) { implicit request =>
-        Ok.sendFile(ProjectFiles.uploadPath(author, project.name, rv.versionString).toFile)
+        Ok.sendFile(fileManager.uploadPath(author, project.name, rv.versionString).toFile)
       }
     }
   }

@@ -2,12 +2,12 @@
 Base layout template for website. Most templates within the project will extend
 this.
 *@
+@import _root_.util.OreConfig
 @import db.ModelService
 @import forums.DiscourseApi
 @import play.twirl.api.Html
-@import util.Conf
 @(title: String)(content: Html)(implicit messages: Messages, session: Session,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig)
 
 <!DOCTYPE html>
 <html>
@@ -18,7 +18,7 @@ this.
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="icon" type="image/png" href="@Conf.SpongeConf.getString("icon")">
+        <link rel="icon" type="image/png" href="@config.sponge.getString("icon")">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("highlight/styles/default.css")" />
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/fontawesome/font-awesome.css")">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("bootstrap/css/bootstrap.min.css")" />

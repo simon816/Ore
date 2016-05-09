@@ -1,5 +1,9 @@
 package form
 
+import db.ModelService
+import ore.project.util.ProjectFileManager
+import util.OreConfig
+
 /**
   * Concrete counterpart to [[TChannelData]].
   *
@@ -8,4 +12,7 @@ package form
   */
 case class ChannelData(override val channelName: String,
                        override protected val channelColorHex: String)
+                      (implicit override val service: ModelService,
+                       override val config: OreConfig,
+                       override val fileManager: ProjectFileManager)
                        extends TChannelData

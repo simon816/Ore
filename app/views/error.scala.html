@@ -1,7 +1,8 @@
+@import _root_.util.OreConfig
 @import db.ModelService
 @import forums.DiscourseApi
 @(message: String)(implicit messages: Messages, session: Session, request: RequestHeader,
-        service: ModelService, forums: DiscourseApi)
+        service: ModelService, forums: DiscourseApi, config: OreConfig)
 
 @core.layout("Error") {
 

@@ -14,7 +14,7 @@ import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
 import play.twirl.api.Html
-import util.Conf._
+import util.OreConfig
 import util.StringUtils._
 
 import scala.annotation.meta.field
@@ -46,9 +46,9 @@ case class Page(override val id: Option[Int] = None,
   checkNotNull(this.name, "name cannot be null", "")
   checkNotNull(this._contents, "contents cannot be null", "")
 
-  checkArgument(this.name.length <= MaxNameLength, "name too long", "")
-  checkArgument(_contents.length <= MaxLength, "contents too long", "")
-  checkArgument(_contents.length >= MinLength, "contents not long enough", "")
+//  checkArgument(this.name.length <= MaxNameLength, "name too long", "")
+//  checkArgument(_contents.length <= MaxLength, "contents too long", "")
+//  checkArgument(_contents.length >= MinLength, "contents not long enough", "")
 
   def this(projectId: Int, name: String, content: String, isDeletable: Boolean) = {
     this(projectId=projectId, name=compact(name),
@@ -67,7 +67,7 @@ case class Page(override val id: Option[Int] = None,
     *
     * @param _contents Markdown contents
     */
-  def contents_=(_contents: String)(implicit service: ModelService, forums: DiscourseApi) = {
+  def contents_=(_contents: String)(implicit service: ModelService, forums: DiscourseApi, config: OreConfig) = {
     checkArgument(_contents.length <= MaxLength, "contents too long", "")
     checkArgument(_contents.length >= MinLength, "contents not long enough", "")
     this._contents = _contents
@@ -85,7 +85,7 @@ case class Page(override val id: Option[Int] = None,
     */
   def html: Html = Html(MarkdownProcessor.markdownToHtml(contents))
 
-  def isHome: Boolean = this.name.equals(HomeName)
+  def isHome(implicit config: OreConfig): Boolean = this.name.equals(HomeName)
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Page = this.copy(id = id, createdAt = theTime)
 
@@ -94,34 +94,29 @@ case class Page(override val id: Option[Int] = None,
 object Page extends ModelSet[PageTable, Page](classOf[Page]) {
 
   /**
-    * The name of each Project's homepage.
-    */
-  val HomeName: String = PagesConf.getString("home.name").get
-
-  /**
-    * The template body for the Home page.
-    */
-  val HomeMessage: String = PagesConf.getString("home.message").get
-
-  /**
     * The Markdown processor.
     */
   val MarkdownProcessor: PegDownProcessor = new PegDownProcessor(ALL & ~ANCHORLINKS)
 
   /**
+    * The name of each Project's homepage.
+    */
+  def HomeName(implicit config: OreConfig): String = config.pages.getString("home.name").get
+
+  /**
+    * The template body for the Home page.
+    */
+  def HomeMessage(implicit config: OreConfig): String = config.pages.getString("home.message").get
+
+  /**
     * The minimum amount of characters a page may have.
     */
-  val MinLength: Int = PagesConf.getInt("min-len").get
+  def MinLength(implicit config: OreConfig): Int = config.pages.getInt("min-len").get
 
   /**
     * The maximum amount of characters a page may have.
     */
-  val MaxLength: Int = PagesConf.getInt("max-len").get
-
-  /**
-    * The maximum amount of characters a page name may have.
-    */
-  val MaxNameLength: Int = PagesConf.getInt("name.max-len").get
+  def MaxLength(implicit config: OreConfig): Int = config.pages.getInt("max-len").get
 
   /**
     * Returns a template for new Pages.

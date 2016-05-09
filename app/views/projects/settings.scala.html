@@ -1,3 +1,4 @@
+@import _root_.util.OreConfig
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
@@ -7,7 +8,7 @@
 @import ore.permission.scope.GlobalScope
 @import views.html.helper.form
 @(project: Project)(implicit messages: Messages, session: Session, flash: Flash,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig)
 
 @projects.view(project, "#settings") {
 
@@ -34,7 +35,7 @@
 
                         <label for="description">Project description</label>
                         <input form="save" class="form-control" type="text" id="description"
-                               name="description" maxlength="@Project.MaxDescriptionLength"
+                               name="description" maxlength="@config.projects.getInt("max-desc-len").get"
                           @project.description.map { description =>
                             value="@description"
                           }.getOrElse {
@@ -46,7 +47,7 @@
                             <label for="name">Project name</label>
                             <div class="form-inline form-rename">
                                 <input form="rename" id="name" name="name" class="form-control" type="text" value="@project.name"
-                                       maxlength="@Project.MaxNameLength">
+                                       maxlength="@config.projects.getInt("max-name-len").get">
                                 <button id="btn-rename" data-toggle="modal" data-target="#modal-rename" class="btn btn-warning" disabled>
                                     @messages("project.rename")
                                 </button>

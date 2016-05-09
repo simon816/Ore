@@ -1,6 +1,6 @@
 package models.project
 
-import java.nio.file.{Files, Path}
+import java.nio.file.Files
 import java.sql.Timestamp
 import java.text.MessageFormat
 
@@ -23,11 +23,9 @@ import ore.project.util._
 import ore.project.{Categories, ProjectMember}
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
-import play.api.Play.current
-import play.api.cache.Cache
-import util.Conf._
+import play.api.cache.CacheApi
 import util.StringUtils.{compact, equalsIgnoreCase, slugify}
-import util.Sys._
+import util.{OreConfig, OreEnv}
 
 import scala.annotation.meta.field
 
@@ -121,12 +119,13 @@ case class Project(override val id: Option[Int] = None,
     * @param _name   New name
     * @return       Future result
     */
-  def name_=(_name: String)(implicit service: ModelService, forums: DiscourseApi) = Defined {
+  def name_=(_name: String)(implicit service: ModelService, forums: DiscourseApi,
+                            fileManager: ProjectFileManager, config: OreConfig) = Defined {
     val newName = compact(_name)
     val newSlug = slugify(newName)
     checkArgument(isValidName(newName), "invalid name", "")
     checkArgument(Project.isNamespaceAvailable(this.ownerName, newSlug), "slug not available", "")
-    ProjectFiles.renameProject(this.ownerName, this.name, newName)
+    fileManager.renameProject(this.ownerName, this.name, newName)
     this._name = newName
     this._slug = slugify(newName)
     if (this.topicId.isDefined) {
@@ -156,8 +155,9 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _description Description to set
     */
-  def description_=(_description: String)(implicit service: ModelService, forums: DiscourseApi) = {
-    checkArgument(_description == null || _description.length <= MaxDescriptionLength, "description too long", "")
+  def description_=(_description: String)(implicit service: ModelService, forums: DiscourseApi, config: OreConfig) = {
+    checkArgument(_description == null
+      || _description.length <= config.projects.getInt("max-desc-len").get, "description too long", "")
     this._description = Option(_description)
     if (this.topicId.isDefined) forums.Embed.renameTopic(this)
     if (isDefined) update(Description)
@@ -373,9 +373,9 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Name of channel
     * @return       New channel
     */
-  def addChannel(name: String, color: Color)(implicit service: ModelService): Channel = Defined {
+  def addChannel(name: String, color: Color)(implicit service: ModelService, config: OreConfig): Channel = Defined {
     checkArgument(Channel.isValidName(name), "invalid name", "")
-    checkState(this.channels.size < Project.MaxChannels, "channel limit reached", "")
+    checkState(this.channels.size < config.projects.getInt("max-channels").get, "channel limit reached", "")
     this.channels.add(new Channel(name, color, this.id.get))
   }
 
@@ -425,7 +425,7 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Page name
     * @return       Page with name or new name if it doesn't exist
     */
-  def getOrCreatePage(name: String)(implicit service: ModelService): Page = Defined {
+  def getOrCreatePage(name: String)(implicit service: ModelService, config: OreConfig): Page = Defined {
     val page = new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true)
     service.await(page.actions.getOrInsert(page)).get
   }
@@ -442,7 +442,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Project home page
     */
-  def homePage(implicit service: ModelService): Page = Defined {
+  def homePage(implicit service: ModelService, config: OreConfig): Page = Defined {
     val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false)
     service.await(page.actions.getOrInsert(page)).get
   }
@@ -483,9 +483,9 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Result
     */
-  def delete()(implicit service: ModelService, forums: DiscourseApi) = Defined {
+  def delete()(implicit service: ModelService, forums: DiscourseApi, fileManager: ProjectFileManager) = Defined {
     remove(this)
-    FileUtils.deleteDirectory(ProjectFiles.projectDir(this.ownerName, this._name).toFile)
+    FileUtils.deleteDirectory(fileManager.projectDir(this.ownerName, this._name).toFile)
     if (this.topicId.isDefined) forums.Embed.deleteTopic(this)
   }
 
@@ -502,36 +502,6 @@ case class Project(override val id: Option[Int] = None,
 }
 
 object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
-
-  /**
-    * The maximum length for a Project name.
-    */
-  val MaxNameLength: Int = ProjectsConf.getInt("max-name-len").get
-
-  /**
-    * The maximum length for a Project description.
-    */
-  val MaxDescriptionLength: Int = ProjectsConf.getInt("max-desc-len").get
-
-  /**
-    * The maximum amount of Pages a Project can have.
-    */
-  val MaxPages: Int = ProjectsConf.getInt("max-pages").get
-
-  /**
-    * The maximum amount of Channels permitted in a single Project.
-    */
-  val MaxChannels = ProjectsConf.getInt("max-channels").get
-
-  /**
-    * The maximum amount of Projects that are loaded initially.
-    */
-  val InitialLoad: Int = ProjectsConf.getInt("init-load").get
-
-  /**
-    * The path to the template file to build a forum topic from.
-    */
-  val ForumTopicTemplatePath: Path = ConfDir.resolve("discourse/project_topic.md")
 
   /**
     * Returns the Project with the specified owner name and URL slug, if any.
@@ -570,9 +540,9 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @param project  Project of topic
     * @return         Topic content string
     */
-  def topicContentFor(project: Project)(implicit service: ModelService): String = {
-    val template = new String(Files.readAllBytes(ForumTopicTemplatePath))
-    val url = AppConf.getString("baseUrl").get + '/' + project.ownerName + '/' + project.slug
+  def topicContentFor(project: Project)(implicit service: ModelService, config: OreConfig, env: OreEnv): String = {
+    val template = new String(Files.readAllBytes(env.conf.resolve("discourse/project_topic.md")))
+    val url = config.app.getString("baseUrl").get + '/' + project.ownerName + '/' + project.slug
     MessageFormat.format(template, project.name, url, project.homePage.contents)
   }
 
@@ -591,9 +561,9 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @param name   Name to check
     * @return       True if valid name
     */
-  def isValidName(name: String): Boolean = {
+  def isValidName(name: String)(implicit config: OreConfig): Boolean = {
     val sanitized = compact(name)
-    sanitized.length >= 1 && sanitized.length <= MaxNameLength
+    sanitized.length >= 1 && sanitized.length <= config.projects.getInt("max-name-len").get
   }
 
   /**
@@ -602,9 +572,9 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @param project        Project that is pending
     * @param firstVersion   Uploaded plugin
     */
-  def setPending(project: Project, firstVersion: PluginFile)(implicit service: ModelService,
-                                                             forums: DiscourseApi,
-                                                             factory: ProjectFactory): PendingProject =  {
+  def setPending(project: Project, firstVersion: PluginFile)
+                (implicit service: ModelService, forums: DiscourseApi,
+                 factory: ProjectFactory, cacheApi: CacheApi, config: OreConfig): PendingProject =  {
     val pendingProject = PendingProject(project, firstVersion)
     pendingProject.cache()
     pendingProject
@@ -617,8 +587,8 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
     * @param slug   Project slug
     * @return       PendingProject if present, None otherwise
     */
-  def getPending(owner: String, slug: String): Option[PendingProject] = {
-    Cache.getAs[PendingProject](owner + '/' + slug)
+  def getPending(owner: String, slug: String)(implicit cacheApi: CacheApi): Option[PendingProject] = {
+    cacheApi.get[PendingProject](owner + '/' + slug)
   }
 
   /**

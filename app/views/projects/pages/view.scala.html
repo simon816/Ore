@@ -1,6 +1,7 @@
 @*
 Documentation page within Project overview.
 *@
+@import _root_.util.OreConfig
 @import controllers.project.routes
 @import db.ModelService
 @import forums.DiscourseApi
@@ -8,7 +9,8 @@ Documentation page within Project overview.
 @import models.user.User
 @import ore.permission.EditPages
 @(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages,
-        session: Session, request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi)
+        session: Session, request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi,
+        config: OreConfig)
 
 @canEditPages = @{
     User.current.isDefined && (User.current.get can EditPages in model)
@@ -41,7 +43,7 @@ Documentation page within Project overview.
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h3 class="panel-title">@messages("page.plural")</h3>
-                            @if(canEditPages && model.pages.size < Project.MaxPages) {
+                            @if(canEditPages && model.pages.size < config.projects.getInt("max-pages").get) {
                                 <a data-toggle="modal" data-target="#new-page">
                                     <i title="New" class="new-page pull-right fa fa-plus"></i>
                                 </a>

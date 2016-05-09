@@ -1,9 +1,10 @@
+@import _root_.util.OreConfig
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
 @import models.project.{Project, Version}
 @(versions: Seq[(Project, Version)])(implicit messages: Messages, session: Session, request: RequestHeader,
-        service: ModelService, forums: DiscourseApi)
+        service: ModelService, forums: DiscourseApi, config: OreConfig)
 
 @core.layout("Project queue") {
 

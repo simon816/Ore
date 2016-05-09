@@ -1,6 +1,7 @@
 import javax.inject._
 
 import _root_.db.ModelService
+import _root_.util.OreConfig
 import forums.DiscourseApi
 import play.api._
 import play.api.http.DefaultHttpErrorHandler
@@ -15,6 +16,7 @@ class ErrorHandler @Inject()(env: Environment,
                              config: Configuration,
                              sourceMapper: OptionalSourceMapper,
                              router: Provider[Router],
+                             implicit val conf: OreConfig,
                              implicit val models: ModelService,
                              implicit val forums: DiscourseApi,
                              override val messagesApi: MessagesApi)

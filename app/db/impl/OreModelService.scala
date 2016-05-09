@@ -17,7 +17,7 @@ import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
-import util.Conf._
+import util.OreConfig
 
 import scala.concurrent.duration.Duration
 
@@ -32,11 +32,12 @@ import scala.concurrent.duration.Duration
 @Singleton
 class OreModelService @Inject()(override val registrar: ModelRegistrar,
                                 override val processor: ModelProcessor,
+                                config: OreConfig,
                                 db: DatabaseConfigProvider) extends ModelService {
 
   override lazy val driver = OrePostgresDriver
   override lazy val DB = db.get[JdbcProfile]
-  override lazy val DefaultTimeout: Duration = Duration(AppConf.getInt("db.default-timeout").get, TimeUnit.SECONDS)
+  override lazy val DefaultTimeout: Duration = Duration(config.app.getInt("db.default-timeout").get, TimeUnit.SECONDS)
 
   implicit val self = this
   import registrar.{register, registerSetter}
@@ -57,5 +58,5 @@ class OreModelService @Inject()(override val registrar: ModelRegistrar,
 
 }
 
-class OreModelProcessor extends ModelProcessor
+class OreModelProcessor @Inject()(override val config: OreConfig) extends ModelProcessor
 class OreModelRegistrar extends ModelRegistrar

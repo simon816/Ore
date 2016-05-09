@@ -2,7 +2,6 @@ package db.action
 
 import db.{Model, ModelService}
 import slick.dbio.{DBIOAction, NoStream}
-import util.Conf.debug
 
 import scala.reflect.runtime.universe._
 
@@ -20,10 +19,8 @@ object ModelAction {
 
   private def process[M <: Model[_]: TypeTag](service: ModelService, model: M): M = {
     if (!model.isProcessed) {
-      debug("Processing model: " + model + " " + model.hashCode())
       service.processor.process(service, model)
       model.setProcessed(true)
-      debug("isProcessed = " + model.isProcessed)
     }
     model
   }

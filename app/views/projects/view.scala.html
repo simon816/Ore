@@ -1,6 +1,7 @@
 @*
 Base template for Project overview.
 *@
+@import _root_.util.OreConfig
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
@@ -10,7 +11,8 @@ Base template for Project overview.
 @import ore.project.FlagReasons
 @import views.html.helper.form
 @(project: Project, active: String, noButtons: Boolean = false)(content: Html)(implicit messages: Messages,
-        session: Session, request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi)
+        session: Session, request: RequestHeader, flash: Flash, service: ModelService,
+        forums: DiscourseApi, config: OreConfig)
 
 @hasUser = @{ User.current.isDefined }
 @user = @{ User.current.get }

@@ -1,7 +1,7 @@
 package db.meta
 
 import db.{Model, ModelService, ModelTable}
-import util.Conf.debug
+import util.OreConfig
 
 import scala.reflect.runtime.universe._
 
@@ -9,7 +9,10 @@ import scala.reflect.runtime.universe._
   * Processes an annotated Model and bind's the appropriate fields and
   * children.
   */
-class ModelProcessor {
+trait ModelProcessor {
+
+  val config: OreConfig
+  import config.debug
 
   /**
     * Generates bindings for the specified model.
@@ -65,7 +68,7 @@ class ModelProcessor {
       if (fieldType.equals(classOf[Option[_]])) {
         debug("--- OPTION FOUND: " + fieldName + " ---")
         fieldType = runtimeMirror(getClass.getClassLoader)
-          .runtimeClass(weakTypeTag[M].tpe.members
+          .runtimeClass(typeTag[M].tpe.members
             .filterNot(_.isMethod)
             .filter(m => m.name.decodedName.toString.trim.equals(fieldName))
             .map(_.typeSignature.typeArgs.head).head.typeSymbol.asClass)

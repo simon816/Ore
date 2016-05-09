@@ -5,8 +5,7 @@ import java.sql.Timestamp
 import db.action.{ModelActions, ModelFilter, ModelSet}
 import db.meta.{Actor, FieldBinding, ManyBinding}
 import slick.driver.JdbcDriver
-import util.Conf._
-import util.StringUtils
+import util.{OreConfig, StringUtils}
 
 import scala.concurrent.Future
 
@@ -39,7 +38,7 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
     * @param f    Update function
     */
   def bind[R](key: String, value: M => R, f: R => Future[_]) = {
-    debug("Binding key " + key + " to model " + this)
+//    debug("Binding key " + key + " to model " + this)
     this.fieldBindings += key -> FieldBinding[M, R](value, f)
   }
 
@@ -54,7 +53,7 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
       .getOrElse(key, throw new RuntimeException("No field binding found for key " + key + " in model " + this))
       .asInstanceOf[FieldBinding[M, R]]
     val value = binding.valueFunc(this.asInstanceOf[M])
-    debug("Updating key \"" + key + "\" in model " + getClass + " to " + value)
+//    debug("Updating key \"" + key + "\" in model " + getClass + " to " + value)
     service.await(binding.updateFunc(value)).get
   }
 
@@ -75,7 +74,7 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
     * @param ref          Reference column to this model in child table
     */
   def bindMany(childClass: Class[_ <: Model[_]], ref: ModelTable[_] => Rep[Int]) = {
-    debug("Binding child " + childClass + " to model " + this)
+//    debug("Binding child " + childClass + " to model " + this)
     this.manyBindings += childClass -> ManyBinding(childClass, ref)
   }
 
@@ -99,7 +98,7 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
     *
     * @return Creation date string
     */
-  def prettyDate: String = StringUtils.prettyDate(this.createdAt.get)
+  def prettyDate(implicit config: OreConfig): String = StringUtils.prettyDate(this.createdAt.get)
 
   /**
     * Returns true if this Project is defined in the database.

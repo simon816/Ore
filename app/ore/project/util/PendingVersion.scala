@@ -4,7 +4,8 @@ import db.ModelService
 import forums.DiscourseApi
 import models.project.{Channel, Version}
 import ore.Colors.Color
-import util.{Cacheable, PendingAction}
+import play.api.cache.CacheApi
+import util.{Cacheable, OreConfig, PendingAction}
 
 import scala.util.Try
 
@@ -20,12 +21,21 @@ import scala.util.Try
   */
 case class PendingVersion(owner: String,
                           projectSlug: String,
-                          var channelName: String = Channel.DefaultName,
-                          var channelColor: Color = Channel.DefaultColor,
+                          var channelName: String,
+                          var channelColor: Color,
                           version: Version,
                           plugin: PluginFile)
-                         (implicit service: ModelService, forums: DiscourseApi, factory: ProjectFactory)
+                         (implicit service: ModelService,
+                          forums: DiscourseApi,
+                          factory: ProjectFactory,
+                          config: OreConfig,
+                          override val cacheApi: CacheApi)
                           extends PendingAction[Version] with Cacheable {
+
+  this.channelColor = Channel.DefaultColor
+  this.channelName = Channel.DefaultName
+
+  implicit val fileManager = factory.fileManager
 
   override def complete: Try[Version] = Try {
     free()

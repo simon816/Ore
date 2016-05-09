@@ -2,6 +2,7 @@
 The main entry point of Ore. This page displays a list of Projects that can be
 sorted according to different criteria.
 *@
+@import _root_.util.OreConfig
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
@@ -10,7 +11,8 @@ sorted according to different criteria.
 @import ore.project.Categories._
 @import ore.project.ProjectSortingStrategies.{values, _}
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], sort: ProjectSortingStrategy)(implicit messages: Messages,
-        session: Session, flash: Flash, request: RequestHeader, service: ModelService, forums: DiscourseApi)
+        session: Session, flash: Flash, request: RequestHeader, service: ModelService,
+        forums: DiscourseApi, config: OreConfig)
 
 @core.layout(messages("general.title")) {
 

@@ -10,6 +10,7 @@ import javax.crypto.spec.SecretKeySpec
 import db.ModelService
 import models.user.User
 import org.apache.commons.codec.binary.Hex
+import util.OreConfig
 
 /**
   * Handles single-sign-on authentication to a Discourse forum.
@@ -17,7 +18,8 @@ import org.apache.commons.codec.binary.Hex
   * @param url      SSO url
   * @param secret   SSO secret key
   */
-class DiscourseSSO(private val url: String, private val secret: String, implicit val api: DiscourseApi) {
+class DiscourseSSO(private val url: String, private val secret: String, implicit val api: DiscourseApi)
+                  (implicit config: OreConfig) {
 
   private val charEncoding = "UTF-8"
   private val random = new SecureRandom

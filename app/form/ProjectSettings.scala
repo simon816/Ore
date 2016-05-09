@@ -5,6 +5,7 @@ import forums.DiscourseApi
 import models.project.Project
 import ore.permission.role.RoleTypes
 import ore.project.Categories
+import util.OreConfig
 import util.StringUtils._
 
 /**
@@ -26,7 +27,7 @@ case class ProjectSettings(categoryName: String,
     *
     * @param project Project to save to
     */
-  def saveTo(project: Project)(implicit service: ModelService, forums: DiscourseApi) = {
+  def saveTo(project: Project)(implicit service: ModelService, forums: DiscourseApi, config: OreConfig) = {
     project.category = Categories.withName(categoryName)
     project.issues = nullIfEmpty(issues)
     project.source = nullIfEmpty(source)

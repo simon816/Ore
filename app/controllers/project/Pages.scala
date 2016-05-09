@@ -5,7 +5,7 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Pages => self}
 import db.ModelService
-import form.Forms
+import form.OreForms
 import forums.DiscourseApi
 import models.project.Page
 import ore.permission.EditPages
@@ -13,6 +13,7 @@ import ore.statistic.StatTracker
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc.Action
+import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
 import views.html.projects.{pages => views}
 
@@ -20,10 +21,12 @@ import views.html.projects.{pages => views}
   * Controller for handling Page related actions.
   */
 class Pages @Inject()(override val messagesApi: MessagesApi,
+                      val forms: OreForms,
                       val stats: StatTracker,
-                      implicit val forums: DiscourseApi,
+                      implicit val config: OreConfig,
                       implicit val ws: WSClient,
-                      implicit val service: ModelService) extends BaseController {
+                      implicit override val forums: DiscourseApi,
+                      implicit override val service: ModelService) extends BaseController {
 
   private def PageEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditPages)
@@ -37,7 +40,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi,
     * @return View of page
     */
   def show(author: String, slug: String, page: String) = {
-    ProjectAction(author, slug)(service, forums) { implicit request =>
+    ProjectAction(author, slug) { implicit request =>
       val project = request.project
       project.pages.find(equalsIgnoreCase(_.name, page)) match {
         case None => NotFound
@@ -81,7 +84,7 @@ class Pages @Inject()(override val messagesApi: MessagesApi,
     */
   def save(author: String, slug: String, page: String) = {
     PageEditAction(author, slug) { implicit request =>
-      Forms.PageEdit.bindFromRequest.fold(
+      forms.PageEdit.bindFromRequest.fold(
         hasErrors => Redirect(self.show(author, slug, page)).flashing("error" -> hasErrors.errors.head.message),
         pageData => {
           request.project.getOrCreatePage(page).contents = pageData

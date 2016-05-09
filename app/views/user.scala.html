@@ -1,14 +1,10 @@
 @*
 User page for developers.
 *@
-@import controllers.project.{routes => projectRoutes}
-@import db.ModelService
-@import forums.DiscourseApi
-@import models.user.User
-@import util.StringUtils
+@import models.user.{DiscourseApi, ModelService, StringUtils, User, routes => projectRoutes}
 @import views.html.helper.form
 @(user: User)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader,
-        service: ModelService, forums: DiscourseApi)
+        service: ModelService, forums: DiscourseApi, config: OreConfig)
 
 @isThisUser = @{
     User.current.isDefined && User.current.get.equals(user)
@@ -63,7 +59,7 @@ User page for developers.
                                         <div class="modal-body">
                                             <label for="tagline">Tagline</label>
                                             <input class="form-control" type="text" value="@user.tagline.getOrElse("")" id="tagline"
-                                                   name="tagline" maxlength="@User.MaxTaglineLength" />
+                                                   name="tagline" maxlength="@config.users.getInt("max-tagline-len").get" />
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-default" data-dismiss="modal">

@@ -1,3 +1,4 @@
+@import _root_.util.OreConfig
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
@@ -6,7 +7,8 @@
 @import ore.permission.scope.GlobalScope
 @import ore.permission.{EditVersions, ReviewProjects}
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
-        session: Session, request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi)
+        session: Session, request: RequestHeader, flash: Flash, service: ModelService,
+        forums: DiscourseApi, config: OreConfig)
 
 @hasUser = @{ User.current.isDefined }
 @user = @{ User.current.get }
