@@ -65,7 +65,7 @@ trait ProjectFactory {
     val user = pending.file.user
     user.projectRoles.add(new ProjectRole(user.id.get, RoleTypes.ProjectOwner, newProject.id.get))
     for (role <- pending.roles) {
-      users.withId(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
+      users.get(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
     }
 
     forums.Embed.createTopic(newProject)

@@ -6,15 +6,17 @@ import javax.inject.Inject
 
 import _root_.util.StringUtils._
 import _root_.util.{OreConfig, OreEnv}
-import db.action.ModelSet
+import db.{ModelAccessible, ModelService}
+import db.action.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl.ProjectTable
 import models.project.Project
 import ore.project.util.{PendingProject, PluginFile}
 import play.api.cache.CacheApi
 
-abstract class ProjectBase extends ModelSet[ProjectTable, Project](classOf[Project]) {
+trait ProjectBase extends ModelAccessible[ProjectTable, Project] {
 
+  val service: ModelService
   val config: OreConfig
   val env: OreEnv
   val cacheApi: CacheApi
@@ -89,5 +91,7 @@ abstract class ProjectBase extends ModelSet[ProjectTable, Project](classOf[Proje
 
 class OreProjectBase @Inject()(override val config: OreConfig,
                                override val env: OreEnv,
-                               override val cacheApi: CacheApi) extends ProjectBase
+                               override val cacheApi: CacheApi,
+                               override val service: ModelService,
+                               override val modelClass: Class[Project] = classOf[Project]) extends ProjectBase
 

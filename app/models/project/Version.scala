@@ -79,7 +79,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Channel
     */
-  def channel: Channel = this.service.getModelSet[ChannelTable, Channel](classOf[Channel]).withId(this.channelId).get
+  def channel: Channel = this.service.access[ChannelTable, Channel](classOf[Channel]).get(this.channelId).get
 
   /**
     * Returns the channel this version belongs to from the specified collection
@@ -206,7 +206,7 @@ object Version {
     * @return All versions not reviewed
     */
   def notReviewed(implicit service: ModelService): Seq[Version]
-  = service.getModelSet[VersionTable, Version](classOf[Version]).filterNot(_.isReviewed)
+  = service.access[VersionTable, Version](classOf[Version]).filterNot(_.isReviewed)
 
   /**
     * Marks the specified Version as pending and caches it for later use.

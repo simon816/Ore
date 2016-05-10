@@ -3,7 +3,7 @@ package models.user
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.action.ModelSet
+import db.action.ModelAccess
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
@@ -41,9 +41,11 @@ case class User(override val id: Option[Int] = None,
                 @(Bind @field) private var _globalRoles: List[RoleType] = List(),
                 @(Bind @field) private var _joinDate: Option[Timestamp] = None,
                 @(Bind @field) private var _avatarUrl: Option[String] = None)
-                extends OreModel[UserActions](id, createdAt)
+                extends OreModel(id, createdAt)
                   with UserOwner
                   with ScopeSubject { self =>
+
+  override type A = UserActions
 
   /**
     * The User's [[PermissionPredicate]]. All permission checks go through
@@ -184,7 +186,7 @@ case class User(override val id: Option[Int] = None,
   def projects = this.getMany[ProjectTable, Project](classOf[Project])
 
   /**
-    * Returns a [[ModelSet]] of [[ProjectRole]]s.
+    * Returns a [[ModelAccess]] of [[ProjectRole]]s.
     *
     * @return ProjectRoles
     */

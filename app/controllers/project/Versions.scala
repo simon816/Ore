@@ -155,7 +155,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
   def showCreator(author: String, slug: String) = {
     VersionEditAction(author, slug) { implicit request =>
       val project = request.project
-      Ok(views.create(project, None, Some(project.channels.values.toSeq), showFileControls = true))
+      Ok(views.create(project, None, Some(project.channels.all.toSeq), showFileControls = true))
     }
   }
 
@@ -196,7 +196,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
                 } else {
 
                   // Get first channel for default
-                  val channelName: String = project.channels.values.head.name
+                  val channelName: String = project.channels.all.head.name
 
                   // Cache for later use
                   Version.setPending(author, slug, channelName, version, plugin)

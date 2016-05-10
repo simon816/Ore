@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import java.text.MessageFormat
 
 import com.google.common.base.Preconditions._
-import db.action.ModelSet
+import db.action.ModelAccess
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
@@ -364,7 +364,7 @@ case class Project(override val id: Option[Int] = None,
   }
 
   /**
-    * Returns a [[ModelSet]] of all [[ProjectRole]]s in this Project.
+    * Returns a [[ModelAccess]] of all [[ProjectRole]]s in this Project.
     *
     * @return Set of all ProjectRoles
     */
@@ -401,7 +401,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Recommended version
     */
-  def recommendedVersion: Version = this.versions.withId(this.recommendedVersionId.get).get
+  def recommendedVersion: Version = this.versions.get(this.recommendedVersionId.get).get
 
   /**
     * Updates this project's recommended version.

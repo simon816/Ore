@@ -6,11 +6,11 @@ import db.{Model, ModelService, ModelTable}
 import slick.lifted.ColumnOrdered
 
 /**
-  * A basic Model data access object.
+  * Provides simple, synchronous, access to a ModelTable.
   */
-class ModelSet[T <: ModelTable[M], M <: Model](service: ModelService,
-                                               modelClass: Class[M],
-                                               baseFilter: ModelFilter[T, M] = ModelFilter[T, M]()) {
+class ModelAccess[T <: ModelTable[M], M <: Model](service: ModelService,
+                                                  modelClass: Class[M],
+                                                  baseFilter: ModelFilter[T, M] = ModelFilter[T, M]()) {
 
   val baseQuery: ModelActions[T, M] = service.registrar.get[T, M](modelClass)
 
@@ -20,14 +20,14 @@ class ModelSet[T <: ModelTable[M], M <: Model](service: ModelService,
     * @param id   ID to lookup
     * @return     Model with ID or None if not found
     */
-  def withId(id: Int): Option[M] = service.await(baseQuery.get(id, this.baseFilter.fn)).get
+  def get(id: Int): Option[M] = service.await(baseQuery.get(id, this.baseFilter.fn)).get
 
   /**
     * Returns all the [[Model]]s in the set.
     *
     * @return All models in set
     */
-  def values: Set[M] = service.await(baseQuery.filter(this.baseFilter)).get.toSet
+  def all: Set[M] = service.await(baseQuery.filter(this.baseFilter)).get.toSet
 
   /**
     * Returns the size of this set.
@@ -136,6 +136,6 @@ class ModelSet[T <: ModelTable[M], M <: Model](service: ModelService,
     *
     * @return Seq of set
     */
-  def toSeq: Seq[M] = this.values.toSeq
+  def toSeq: Seq[M] = this.all.toSeq
 
 }

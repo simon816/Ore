@@ -4,7 +4,7 @@ import java.sql.Timestamp
 import java.util.Date
 
 import db.action.ModelAction._
-import db.action.{ModelActions, ModelFilter, ModelSet}
+import db.action.{ModelActions, ModelFilter, ModelAccess}
 import db.action.ModelFilter.IdFilter
 import db.meta.BootstrapTypeSetters._
 import db.meta.ModelProcessor
@@ -103,8 +103,17 @@ trait ModelService {
     case r => action.processResult(this, r)
   }
 
-  def getModelSet[T <: ModelTable[M], M <: Model](modelClass: Class[M], baseFilter: ModelFilter[T, M] = ModelFilter())
-  = new ModelSet[T, M](this, modelClass, baseFilter)
+  /**
+    * Returns a new ModelAccess to access a ModelTable synchronously.
+    *
+    * @param modelClass Model class
+    * @param baseFilter Base filter to apply
+    * @tparam T         Model table
+    * @tparam M         Model
+    * @return           New ModelAccess
+    */
+  def access[T <: ModelTable[M], M <: Model](modelClass: Class[M], baseFilter: ModelFilter[T, M] = ModelFilter())
+  = new ModelAccess[T, M](this, modelClass, baseFilter)
 
   /**
     * Creates the specified model in it's table.

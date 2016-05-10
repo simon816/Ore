@@ -3,7 +3,7 @@ package models.user
 import java.sql.Timestamp
 
 import db.ModelService
-import db.action.{ModelActions, ModelSet}
+import db.action.{ModelActions, ModelAccess}
 import db.impl.ModelKeys._
 import db.impl.{OreModel, ProjectRoleTable}
 import db.meta.Bind

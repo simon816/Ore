@@ -32,7 +32,7 @@ trait TChannelData {
     * @return         Either the new channel or an error message
     */
   def addTo(project: Project): Either[String, Channel] = {
-    val channels = project.channels.values
+    val channels = project.channels.all
     if (channels.size >= config.projects.getInt("max-channels").get) {
       Left("A project may only have up to five channels.")
     } else {
@@ -55,7 +55,7 @@ trait TChannelData {
     * @return         Error, if any
     */
   def saveTo(oldName: String)(implicit project: Project): Option[String] = {
-    val channels = project.channels.values
+    val channels = project.channels.all
     val channel = channels.find(_.name.equalsIgnoreCase(oldName)).get
     val colorChan = channels.find(_.color.equals(this.color))
     val colorTaken = colorChan.isDefined && !colorChan.get.equals(channel)

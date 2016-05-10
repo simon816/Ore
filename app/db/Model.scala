@@ -2,7 +2,7 @@ package db
 
 import java.sql.Timestamp
 
-import db.action.{ModelActions, ModelFilter, ModelSet}
+import db.action.{ModelActions, ModelFilter, ModelAccess}
 import db.meta.{Actor, FieldBinding, ManyBinding}
 import slick.driver.JdbcDriver
 import util.{OreConfig, StringUtils}
@@ -84,7 +84,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
   = this.manyBindings += childClass -> ManyBinding(childClass, ref)
 
   /**
-    * Returns a [[ModelSet]] of the children for the specified child class.
+    * Returns a [[ModelAccess]] of the children for the specified child class.
     *
     * @param modelClass  Model class
     * @tparam Many       Child
@@ -94,7 +94,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     val binding = this.manyBindings
       .find(_._1.isAssignableFrom(modelClass))
       .getOrElse(throw new RuntimeException("No child binding found for model " + modelClass + " in model " + this))._2
-    new ModelSet[ManyTable, Many](this.service, modelClass, ModelFilter(binding.ref(_) === this.id.get))
+    this.service.access[ManyTable, Many](modelClass, ModelFilter(binding.ref(_) === this.id.get))
   }
 
   /**

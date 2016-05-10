@@ -52,7 +52,7 @@ Documentation page within Project overview.
                             }
                         </div>
                         <ul class="list-group">
-                            @for(page <- model.pages.values) {
+                            @for(page <- model.pages.all) {
                                 <li class="list-group-item">
                                     <a href="@routes.Pages.show(model.ownerName, model.slug, page.name)">@page.name</a>
                                 </li>

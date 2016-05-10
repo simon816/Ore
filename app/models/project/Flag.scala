@@ -3,7 +3,7 @@ package models.project
 import java.sql.Timestamp
 
 import db.ModelService
-import db.action.{ModelActions, ModelSet}
+import db.action.{ModelActions, ModelAccess}
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl.{FlagTable, OreModel}
@@ -69,6 +69,6 @@ object Flag {
     * @return All unresolved flags
     */
   def unresolved(implicit service: ModelService): Seq[Flag]
-  = service.getModelSet[FlagTable, Flag](classOf[Flag]).filterNot(_.isResolved)
+  = service.access[FlagTable, Flag](classOf[Flag]).filterNot(_.isResolved)
 
 }

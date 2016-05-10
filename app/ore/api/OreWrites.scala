@@ -57,7 +57,7 @@ object OreWrites {
         "name" -> version.versionString,
         "dependencies" -> dependencies,
         "pluginId" -> project.pluginId,
-        "channel" -> Json.toJson(project.channels.withId(version.channelId).get),
+        "channel" -> Json.toJson(project.channels.get(version.channelId).get),
         "fileSize" -> version.fileSize
       )
     }

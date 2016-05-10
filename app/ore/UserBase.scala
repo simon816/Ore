@@ -2,8 +2,8 @@ package ore
 
 import javax.inject.Inject
 
-import db.ModelService
-import db.action.ModelSet
+import db.{ModelAccessible, ModelService}
+import db.action.ModelAccess
 import db.impl.UserTable
 import forums.DiscourseApi
 import models.user.User
@@ -13,7 +13,7 @@ import util.StringUtils._
 /**
   * Represents a central location for all Users.
   */
-abstract class UserBase extends ModelSet[UserTable, User](classOf[User]) {
+trait UserBase extends ModelAccessible[UserTable, User] {
 
   implicit val service: ModelService
   implicit val forums: DiscourseApi
@@ -51,4 +51,6 @@ abstract class UserBase extends ModelSet[UserTable, User](classOf[User]) {
 
 }
 
-class OreUserBase @Inject()(override val service: ModelService, override val forums: DiscourseApi) extends UserBase
+class OreUserBase @Inject()(override val service: ModelService,
+                            override val forums: DiscourseApi,
+                            override val modelClass: Class[User] = classOf[User]) extends UserBase

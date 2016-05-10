@@ -99,7 +99,7 @@ class Channels @Inject()(override val messagesApi: MessagesApi,
   def delete(author: String, slug: String, channelName: String) = {
     ChannelEditAction(author, slug) { implicit request =>
       implicit val project = request.project
-      val channels = project.channels.values
+      val channels = project.channels.all
       if (channels.size == 1) {
         Redirect(self.showList(author, slug))
           .flashing("error" -> "You cannot delete your only channel.")

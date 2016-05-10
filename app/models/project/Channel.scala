@@ -97,7 +97,7 @@ case class Channel(override val id: Option[Int] = None,
     val proj = if (context != null) context else this.project
     checkArgument(proj.id.get == this.projectId, "invalid proj id", "")
 
-    val channels = proj.channels.values
+    val channels = proj.channels.all
     checkArgument(channels.size > 1, "only one channel", "")
     checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
 

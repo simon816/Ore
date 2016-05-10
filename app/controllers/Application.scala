@@ -93,7 +93,7 @@ class Application @Inject()(override val messagesApi: MessagesApi,
     * @return         Ok
     */
   def setFlagResolved(flagId: Int, resolved: Boolean) = FlagAction { implicit request =>
-    service.getModelSet[FlagTable, Flag](classOf[Flag]).withId(flagId) match {
+    service.access[FlagTable, Flag](classOf[Flag]).get(flagId) match {
       case None => NotFound
       case Some(flag) =>
         flag.setResolved(resolved)
