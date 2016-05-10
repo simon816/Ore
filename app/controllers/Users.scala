@@ -6,11 +6,11 @@ import controllers.routes.{Users => self}
 import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
-import models.user.{FakeUser, User}
+import models.user.User
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Security, _}
-import util.OreConfig
+import util.{FakeUser, OreConfig}
 import views.{html => views}
 
 class Users @Inject()(override val messagesApi: MessagesApi,

@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
   * A registrar for ModelActions. This contains all the necessary information
   * to interact with any Model in the database.
   */
-class ModelRegistrar {
+trait ModelRegistrar {
 
   private val modelActions: BiMap[Class[_ <: Model[_]], ModelActions[_, _]] = HashBiMap.create()
   private val typeSetters: BiMap[Class[_], TypeSetter[_]] = HashBiMap.create()
@@ -73,3 +73,5 @@ class ModelRegistrar {
   }
 
 }
+
+class SimpleModelRegistrar extends ModelRegistrar

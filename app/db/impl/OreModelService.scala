@@ -8,8 +8,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.OreTypeSetters._
 import db.impl.action.user.UserActions
 import db.impl.action.{PageActions, ProjectActions, VersionActions}
-import db.meta.ModelProcessor
-import db.{ModelRegistrar, ModelService}
+import db.{ModelService, SimpleModelRegistrar}
 import models.project.Channel
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
@@ -30,8 +29,8 @@ import scala.concurrent.duration.Duration
 @Singleton
 class OreModelService @Inject()(config: OreConfig, db: DatabaseConfigProvider) extends ModelService {
 
-  override lazy val processor = new ModelProcessor(this, config)
-  override lazy val registrar = new ModelRegistrar
+  override lazy val processor = new OreModelProcessor(this, this.config)
+  override lazy val registrar = new SimpleModelRegistrar
   override lazy val driver = OrePostgresDriver
   override lazy val DB = db.get[JdbcProfile]
   override lazy val DefaultTimeout: Duration = Duration(config.app.getInt("db.default-timeout").get, TimeUnit.SECONDS)

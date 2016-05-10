@@ -3,7 +3,6 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.ModelService
 import db.action.{ModelActions, ModelSet}
 import db.impl.ModelKeys._
 import db.impl.{ChannelTable, ModelKeys, OreModel, VersionTable}
@@ -58,8 +57,7 @@ case class Channel(override val id: Option[Int] = None,
     * @param _name     New channel name
     * @return         Future result
     */
-  def name_=(_name: String)(implicit context: Project, service: ModelService,
-                            fileManager: ProjectFileManager, config: OreConfig) = Defined {
+  def name_=(_name: String)(implicit context: Project, fileManager: ProjectFileManager) = Defined {
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
     checkArgument(isValidName(name), "invalid name", "")
     fileManager.renameChannel(context.ownerName, context.name, this._name, name)
@@ -80,7 +78,7 @@ case class Channel(override val id: Option[Int] = None,
     * @param _color  Color of channel
     * @return       Future result
     */
-  def color_=(_color: Color)(implicit service: ModelService) = Defined {
+  def color_=(_color: Color) = Defined {
     this._color = _color
     update(ModelKeys.Color)
   }
@@ -90,7 +88,7 @@ case class Channel(override val id: Option[Int] = None,
     *
     * @return All versions
     */
-  def versions(implicit service: ModelService) = this.getMany[VersionTable, Version](classOf[Version])
+  def versions = this.getMany[VersionTable, Version](classOf[Version])
 
   /**
     * Irreversibly deletes this channel and all version associated with it.
@@ -98,7 +96,7 @@ case class Channel(override val id: Option[Int] = None,
     * @param context  Project context
     * @return         Result
     */
-  def delete()(implicit context: Project = null, service: ModelService, fileManager: ProjectFileManager) = Defined {
+  def delete()(implicit context: Project = null, fileManager: ProjectFileManager) = Defined {
     val proj = if (context != null) context else this.project
     checkArgument(proj.id.get == this.projectId, "invalid proj id", "")
     val channels = proj.channels.values
@@ -114,9 +112,7 @@ case class Channel(override val id: Option[Int] = None,
 
   override def hashCode: Int = this.id.get.hashCode
 
-  override def equals(o: Any): Boolean = {
-    o.isInstanceOf[Channel] && o.asInstanceOf[Channel].id.get == this.id.get
-  }
+  override def equals(o: Any): Boolean = o.isInstanceOf[Channel] && o.asInstanceOf[Channel].id.get == this.id.get
 
 }
 

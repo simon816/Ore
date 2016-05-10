@@ -107,7 +107,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @param _description Version description
     */
-  def description_=(_description: String)(implicit config: OreConfig) = {
+  def description_=(_description: String) = {
     Preconditions.checkArgument(_description.length <= Page.MaxLength, "content too long", "")
     this._description = Some(_description)
     if (isDefined) update(Description)
@@ -179,7 +179,7 @@ case class Version(override val id: Option[Int] = None,
       || this.project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase))
   }
 
-  def delete()(implicit project: Project = null, service: ModelService, fileManager: ProjectFileManager) = Defined {
+  def delete()(implicit project: Project = null, fileManager: ProjectFileManager) = Defined {
     val proj = if (project != null) project else this.project
     checkArgument(proj.versions.size > 1, "only one version", "")
     checkArgument(proj.id.get == this.projectId, "invalid context id", "")
@@ -194,16 +194,14 @@ case class Version(override val id: Option[Int] = None,
 
     // Delete channel if now empty
     val channel: Channel = this.channel
-    if (channel.versions.isEmpty) channel.delete()(proj, service, fileManager)
+    if (channel.versions.isEmpty) channel.delete()
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Version = this.copy(id = id, createdAt = theTime)
 
   override def hashCode: Int = this.id.hashCode
 
-  override def equals(o: Any): Boolean = {
-    o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get
-  }
+  override def equals(o: Any): Boolean = o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get
 
 }
 

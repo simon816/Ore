@@ -133,11 +133,11 @@ case class User(override val id: Option[Int] = None,
     * @param size Size of avatar
     * @return     Avatar URL
     */
-  def avatarUrl(size: Int = 100)(implicit config: OreConfig): String = {
+  def avatarUrl(size: Int = 100): String = {
     this._avatarUrl.map(s => config.forums.getString("baseUrl").get + s.replace("{size}", size.toString)).getOrElse("")
   }
 
-  def avatarTemplate(implicit config: OreConfig): Option[String]
+  def avatarTemplate: Option[String]
   = this._avatarUrl.map(config.forums.getString("baseUrl").get + _)
 
   /**
@@ -162,7 +162,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _tagline Tagline to display
     */
-  def tagline_=(_tagline: String)(implicit config: OreConfig) = {
+  def tagline_=(_tagline: String) = {
     checkArgument(_tagline.length <= config.users.getInt("max-tagline-len").get, "tagline too long", "")
     this._tagline = Option(nullIfEmpty(_tagline))
     if (isDefined) update(Tagline)

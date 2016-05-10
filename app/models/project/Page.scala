@@ -67,7 +67,7 @@ case class Page(override val id: Option[Int] = None,
     *
     * @param _contents Markdown contents
     */
-  def contents_=(_contents: String)(implicit forums: DiscourseApi, config: OreConfig) = {
+  def contents_=(_contents: String)(implicit forums: DiscourseApi) = {
     checkArgument(_contents.length <= MaxLength, "contents too long", "")
     checkArgument(_contents.length >= MinLength, "contents not long enough", "")
     this._contents = _contents

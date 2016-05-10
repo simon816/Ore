@@ -1,11 +1,11 @@
-package models.user
+package util
 
 import java.sql.Timestamp
 import java.util.Date
 import javax.inject.Inject
 
+import models.user.User
 import ore.permission.role.RoleTypes
-import util.OreConfig
 
 /**
   * Represents a "fake" User object for bypassing the standard authentication

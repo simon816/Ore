@@ -20,9 +20,9 @@ class ModelProcessor(service: ModelService, config: OreConfig) {
     * @tparam T     Model table
     * @tparam M     Model type
     */
-  def process[T <: ModelTable[M], M <: Model[_]: TypeTag](service: ModelService, model: M) = {
+  def process[T <: ModelTable[M], M <: Model[_]: TypeTag](model: M) = {
     debug("\n********** Generating bindings for model " + model + " **********")
-    bindFields(service, model)
+    bindFields(model)
     bindRelations(model)
     println("service = " + this.service)
     model.service = this.service
@@ -35,13 +35,11 @@ class ModelProcessor(service: ModelService, config: OreConfig) {
     * Binds the specified Model fields to the appropriate registered
     * TypeSetter.
     *
-    * @param service  ModelService with registrar that contains the TypeSetters
-    *                 to use
     * @param model    Model to process
     * @tparam T       Model table type
     * @tparam M       Model type
     */
-  def bindFields[T <: ModelTable[M], M <: Model[_]: TypeTag](service: ModelService, model: M) = {
+  def bindFields[T <: ModelTable[M], M <: Model[_]: TypeTag](model: M) = {
     debug("Generating field for model " + model)
 
     val modelClass = model.getClass

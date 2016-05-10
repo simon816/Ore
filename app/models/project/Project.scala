@@ -87,8 +87,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Owner Member of project
     */
-  def owner(implicit forums: DiscourseApi): ProjectMember
-  = new ProjectMember(this, this.ownerName)
+  def owner(implicit forums: DiscourseApi): ProjectMember = new ProjectMember(this, this.ownerName)
 
   /**
     * Returns all [[ProjectMember]]s of this project.
@@ -119,8 +118,7 @@ case class Project(override val id: Option[Int] = None,
     * @param _name   New name
     * @return       Future result
     */
-  def name_=(_name: String)(implicit forums: DiscourseApi,
-                            fileManager: ProjectFileManager, config: OreConfig) = Defined {
+  def name_=(_name: String)(implicit forums: DiscourseApi, fileManager: ProjectFileManager) = Defined {
     val newName = compact(_name)
     val newSlug = slugify(newName)
     checkArgument(isValidName(newName), "invalid name", "")
@@ -155,7 +153,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _description Description to set
     */
-  def description_=(_description: String)(implicit forums: DiscourseApi, config: OreConfig) = {
+  def description_=(_description: String)(implicit forums: DiscourseApi) = {
     checkArgument(_description == null
       || _description.length <= config.projects.getInt("max-desc-len").get, "description too long", "")
     this._description = Option(_description)
@@ -219,7 +217,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to check if starred for
     * @return       True if starred by User
     */
-  def isStarredBy(user: User): Boolean = Defined {
+  def isStarredBy(user: User)(implicit forums: DiscourseApi): Boolean = Defined {
     service.await(this.actions.isStarredBy(this.id.get, user.id.get)).get
   }
 
@@ -241,7 +239,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user User to set starred state of
     * @param starred True if should star
     */
-  def setStarredBy(user: User, starred: Boolean) = {
+  def setStarredBy(user: User, starred: Boolean)(implicit forums: DiscourseApi) = {
     if (starred) starFor(user) else unstarFor(user)
   }
 
@@ -251,7 +249,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to star for
     * @return       Future result
     */
-  def starFor(user: User) = Defined {
+  def starFor(user: User)(implicit forums: DiscourseApi) = Defined {
     if (!isStarredBy(user)) {
       this._stars += 1
       service.await(this.actions.starFor(this.id.get, user.id.get)).get
@@ -265,7 +263,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to unstar for
     * @return       Future result
     */
-  def unstarFor(user: User) = Defined {
+  def unstarFor(user: User)(implicit forums: DiscourseApi) = Defined {
     if (isStarredBy(user)) {
       this._stars -= 1
       service.await(this.actions.unstarFor(this.id.get, user.id.get)).get
@@ -373,7 +371,7 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Name of channel
     * @return       New channel
     */
-  def addChannel(name: String, color: Color)(implicit config: OreConfig): Channel = Defined {
+  def addChannel(name: String, color: Color): Channel = Defined {
     checkArgument(Channel.isValidName(name), "invalid name", "")
     checkState(this.channels.size < config.projects.getInt("max-channels").get, "channel limit reached", "")
     this.channels.add(new Channel(name, color, this.id.get))
@@ -425,7 +423,7 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Page name
     * @return       Page with name or new name if it doesn't exist
     */
-  def getOrCreatePage(name: String)(implicit config: OreConfig): Page = Defined {
+  def getOrCreatePage(name: String): Page = Defined {
     val page = new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true)
     service.await(page.actions.getOrInsert(page)).get
   }
@@ -442,7 +440,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Project home page
     */
-  def homePage(implicit config: OreConfig): Page = Defined {
+  def homePage: Page = Defined {
     val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false)
     service.await(page.actions.getOrInsert(page)).get
   }
@@ -495,9 +493,7 @@ case class Project(override val id: Option[Int] = None,
 
   override def hashCode: Int = this.id.get.hashCode
 
-  override def equals(o: Any): Boolean = {
-    o.isInstanceOf[Project] && o.asInstanceOf[Project].id.get == this.id.get
-  }
+  override def equals(o: Any): Boolean = o.isInstanceOf[Project] && o.asInstanceOf[Project].id.get == this.id.get
 
 }
 
