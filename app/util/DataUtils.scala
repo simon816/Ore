@@ -2,7 +2,7 @@ package util
 
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import db.impl.UserTable
+import db.impl.{ProjectTable, UserTable}
 import forums.DiscourseApi
 import models.project.Project
 import models.user.User
@@ -19,7 +19,7 @@ object DataUtils {
     * Resets the application to factory defaults.
     */
   def reset()(implicit service: ModelService, forums: DiscourseApi, fileManager: ProjectFileManager) = {
-    for (project <- Project.values) project.delete()
+    for (project <- service.access[ProjectTable, Project](classOf[Project]).all) project.delete()
     service.await(service.deleteWhere[UserTable, User](classOf[User], _ => true))
     FileUtils.deleteDirectory(fileManager.env.uploads.toFile)
   }

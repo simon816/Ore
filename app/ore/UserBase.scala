@@ -2,9 +2,8 @@ package ore
 
 import javax.inject.Inject
 
-import db.{ModelAccessible, ModelService}
-import db.action.ModelAccess
 import db.impl.UserTable
+import db.{ModelAccessible, ModelService}
 import forums.DiscourseApi
 import models.user.User
 import play.api.mvc.Session
@@ -15,8 +14,8 @@ import util.StringUtils._
   */
 trait UserBase extends ModelAccessible[UserTable, User] {
 
-  implicit val service: ModelService
-  implicit val forums: DiscourseApi
+  val service: ModelService
+  val forums: DiscourseApi
 
   /**
     * Returns the user with the specified username. If the specified username

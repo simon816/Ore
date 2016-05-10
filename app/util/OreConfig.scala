@@ -4,6 +4,11 @@ import javax.inject.Inject
 
 import play.api.Configuration
 
+/**
+  * A helper class for the Ore configuration.
+  *
+  * @param config Base configuration file
+  */
 class OreConfig @Inject()(config: Configuration) {
 
   lazy val root = config
@@ -17,11 +22,11 @@ class OreConfig @Inject()(config: Configuration) {
   lazy val forums = root.getConfig("discourse").get
   lazy val sponge = root.getConfig("sponge").get
 
-  lazy val level = ore.getInt("debug-level").get
+  lazy val debugLevel = ore.getInt("debug-level").get
   /** Returns true if the application is running in debug mode. */
   def isDebug: Boolean = ore.getBoolean("debug").get
   /** Sends a debug message if in debug mode */
-  def debug(msg: Any, level: Int = 1) = if (isDebug && (level == this.level || level == -1)) println(msg)
+  def debug(msg: Any, level: Int = 1) = if (isDebug && (level == this.debugLevel || level == -1)) println(msg)
   /** Asserts that the application is in debug mode. */
   def checkDebug()
   = if(!isDebug) throw new UnsupportedOperationException("this function is supported in debug mode only")

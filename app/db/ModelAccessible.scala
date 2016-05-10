@@ -16,9 +16,10 @@ trait ModelAccessible[T <: ModelTable[M], M <: Model] {
   /**
     * Provides access to the ModelTable.
     *
-    * @param self This
-    * @return     ModelAccess
+    * @return ModelAccess
     */
-  implicit def access(self: ModelAccessible): ModelAccess[T, M] = service.access[T, M](modelClass)
+  def access: ModelAccess[T, M] = this.service.access[T, M](this.modelClass)
+
+  implicit def access(self: ModelAccessible[T, M]): ModelAccess[T, M] = this.access
 
 }

@@ -21,7 +21,6 @@ trait StatTracker {
     * @param request Request to view the project
     */
   def projectViewed(f: ProjectRequest[_] => Result)(implicit request: ProjectRequest[_]): Result = {
-    implicit val service = request.service
     val project = request.project
     val statEntry = ProjectView.bindFromRequest
     project.actions.Views.record(statEntry).andThen {
@@ -39,7 +38,6 @@ trait StatTracker {
     * @param request Request to download the version
     */
   def versionDownloaded(version: Version)(f: ProjectRequest[_] => Result)(implicit request: ProjectRequest[_]): Result = {
-    implicit val service = request.service
     val statEntry = VersionDownload.bindFromRequest(version)
     version.actions.Downloads.record(statEntry).andThen {
       case recorded => if (recorded.get) {

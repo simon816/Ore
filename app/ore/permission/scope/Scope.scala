@@ -1,6 +1,5 @@
 package ore.permission.scope
 
-import db.ModelService
 import models.user.User
 import ore.permission.Permission
 
@@ -23,7 +22,7 @@ trait Scope extends ScopeSubject {
     * @param p    Permission to test
     * @return     True if user has permission in this scope
     */
-  def check(user: User, p: Permission)(implicit service: ModelService): Boolean = p.trust <= user.trustIn(this)
+  def check(user: User, p: Permission): Boolean = p.trust <= user.trustIn(this)
 
   /**
     * Tests the given permission for the given user.
@@ -32,7 +31,7 @@ trait Scope extends ScopeSubject {
     * @param p    Permission to test
     * @return     True if user has permission
     */
-  def test(user: User, p: Permission)(implicit service: ModelService): Boolean = {
+  def test(user: User, p: Permission): Boolean = {
     var result: Boolean = false
     var scope: Option[Scope] = Some(this)
     while (scope.isDefined || (scope.isDefined && !result)) {

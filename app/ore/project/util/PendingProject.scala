@@ -1,11 +1,9 @@
 package ore.project.util
 
-import db.ModelService
-import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.ProjectRole
 import play.api.cache.CacheApi
-import util.{Cacheable, OreConfig, PendingAction}
+import util.{Cacheable, PendingAction}
 
 import scala.util.Try
 
@@ -16,17 +14,13 @@ import scala.util.Try
   * @param project  Pending project
   * @param file     Uploaded plugin
   */
-case class PendingProject(project: Project,
+case class PendingProject(override val cacheApi: CacheApi,
+                          factory: ProjectFactory,
+                          project: Project,
                           file: PluginFile,
                           var roles: Set[ProjectRole] = Set())
-                         (implicit service: ModelService,
-                          forums: DiscourseApi,
-                          factory: ProjectFactory,
-                          config: OreConfig,
-                          override val cacheApi: CacheApi)
-                          extends PendingAction[Project] with Cacheable {
-
-  implicit val fileManager = factory.fileManager
+                          extends PendingAction[Project]
+                            with Cacheable {
 
   /**
     * The first [[PendingVersion]] for this PendingProject.

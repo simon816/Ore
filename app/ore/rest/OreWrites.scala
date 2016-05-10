@@ -1,4 +1,4 @@
-package ore.api
+package ore.rest
 
 import _root_.util.{OreConfig, StringUtils}
 import db.ModelService

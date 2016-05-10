@@ -11,7 +11,6 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.action.VersionActions
 import db.impl.{ChannelTable, OreModel, VersionDownloadsTable, VersionTable}
 import db.meta.{Actor, Bind, HasMany}
-import forums.DiscourseApi
 import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
@@ -218,9 +217,8 @@ object Version {
     * @param plugin   Uploaded plugin
     */
   def setPending(owner: String, slug: String, channel: String, version: Version, plugin: PluginFile)
-                (implicit service: ModelService, forums: DiscourseApi,
-                 factory: ProjectFactory, cacheApi: CacheApi, config: OreConfig): PendingVersion = {
-    val pending = PendingVersion(owner, slug, channel, Channel.DefaultColor, version, plugin)
+                (implicit factory: ProjectFactory, cacheApi: CacheApi, config: OreConfig): PendingVersion = {
+    val pending = PendingVersion(cacheApi, factory, config, owner, slug, channel, Channel.DefaultColor, version, plugin)
     pending.cache()
     pending
   }

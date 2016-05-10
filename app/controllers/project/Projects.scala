@@ -35,7 +35,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
                          implicit val fileManager: ProjectFileManager,
                          implicit val config: OreConfig,
                          implicit val cacheApi: CacheApi,
-                         implicit val projectFactory: ProjectFactory,
+                         implicit val factory: ProjectFactory,
                          implicit val ws: WSClient,
                          implicit override val users: UserBase,
                          implicit override val projects: ProjectBase,
@@ -65,7 +65,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
       case Some(tmpFile) =>
         // Initialize plugin file
         val user = request.user
-        projectFactory.initUpload(tmpFile.ref, tmpFile.filename, user) match {
+        factory.initUpload(tmpFile.ref, tmpFile.filename, user) match {
           case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
             // PEBKAC
             Redirect(self.showCreator()).flashing("error" -> "Invalid plugin file.")
@@ -76,7 +76,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
             // Cache pending project for later use
             val meta = plugin.meta.get
             val project = Project.fromMeta(user, meta)
-            projects.setPending(project, plugin)
+            factory.setPending(project, plugin)
             Redirect(self.showCreatorWithMeta(project.ownerName, project.slug))
         }
     }
@@ -91,7 +91,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     */
   def showCreatorWithMeta(author: String, slug: String) = {
     Authenticated { implicit request =>
-      projects.getPending(author, slug) match {
+      factory.getPending(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pending) => Ok(views.create(Some(pending)))
       }
@@ -107,7 +107,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     */
   def showMembersConfig(author: String, slug: String) = {
     Authenticated { implicit request =>
-      projects.getPending(author, slug) match {
+      factory.getPending(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pendingProject) =>
           forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.project)
@@ -126,7 +126,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     */
   def showFirstVersionCreator(author: String, slug: String) = {
     Authenticated { implicit request =>
-      projects.getPending(author, slug) match {
+      factory.getPending(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pendingProject) =>
           pendingProject.roles = forms.MemberRoles.bindFromRequest.get.build()

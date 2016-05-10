@@ -11,6 +11,7 @@ import models.user.{ProjectRole, User}
 import ore.UserBase
 import ore.permission.role.RoleTypes
 import ore.project.ProjectBase
+import play.api.cache.CacheApi
 import play.api.libs.Files.TemporaryFile
 import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
@@ -25,7 +26,8 @@ trait ProjectFactory {
   val projects: ProjectBase
   val users: UserBase
   val fileManager: ProjectFileManager
-  implicit val config: OreConfig
+  val config: OreConfig
+  val cacheApi: CacheApi
   val env = fileManager.env
 
   /**
@@ -47,25 +49,47 @@ trait ProjectFactory {
   }
 
   /**
+    * Marks the specified Project as pending for later use.
+    *
+    * @param project        Project that is pending
+    * @param firstVersion   Uploaded plugin
+    */
+  def setPending(project: Project, firstVersion: PluginFile): PendingProject =  {
+    val pendingProject = PendingProject(cacheApi, this, project, firstVersion)
+    pendingProject.cache()
+    pendingProject
+  }
+
+  /**
+    * Returns the PendingProject of the specified owner and name, if any.
+    *
+    * @param owner  Project owner
+    * @param slug   Project slug
+    * @return       PendingProject if present, None otherwise
+    */
+  def getPending(owner: String, slug: String): Option[PendingProject]
+  = cacheApi.get[PendingProject](owner + '/' + slug)
+
+  /**
     * Creates a new Project from the specified PendingProject
     *
     * @param pending  PendingProject
     * @return         New Project
     * @throws         IllegalArgumentException if the project already exists
     */
-  def createProject(pending: PendingProject)(implicit service: ModelService,
+  protected[util] def createProject(pending: PendingProject)(implicit service: ModelService,
                                              forums: DiscourseApi): Try[Project] = Try {
     val project = pending.project
     checkArgument(!projects.exists(project), "project already exists", "")
     checkArgument(projects.isNamespaceAvailable(project.ownerName, project.slug), "slug not available", "")
     checkArgument(Project.isValidName(pending.project.name), "invalid name", "")
-    val newProject = Project.add(pending.project)
+    val newProject = projects.access.add(pending.project)
 
     // Add Project roles
     val user = pending.file.user
     user.projectRoles.add(new ProjectRole(user.id.get, RoleTypes.ProjectOwner, newProject.id.get))
     for (role <- pending.roles) {
-      users.get(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
+      users.access.get(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
     }
 
     forums.embed.createTopic(newProject)
@@ -78,7 +102,7 @@ trait ProjectFactory {
     * @param pending  PendingVersion
     * @return         New version
     */
-  def createVersion(pending: PendingVersion)(implicit service: ModelService): Try[Version] = Try {
+  protected[util] def createVersion(pending: PendingVersion)(implicit service: ModelService): Try[Version] = Try {
     var channel: Channel = null
     val project = projects.withSlug(pending.owner, pending.projectSlug).get
 
@@ -116,5 +140,8 @@ trait ProjectFactory {
 
 }
 
-class OreProjectFactory @Inject()(override val fileManager: ProjectFileManager,
-                                  override val config: OreConfig) extends ProjectFactory
+class OreProjectFactory @Inject()(override val projects: ProjectBase,
+                                  override val users: UserBase,
+                                  override val fileManager: ProjectFileManager,
+                                  override val config: OreConfig,
+                                  override val cacheApi: CacheApi) extends ProjectFactory

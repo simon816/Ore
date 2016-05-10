@@ -4,7 +4,7 @@ import javax.inject.Inject
 
 import db.ModelService
 import forums.DiscourseApi
-import ore.api.OreRestfulApi
+import ore.rest.OreRestfulApi
 import play.api.libs.json._
 import play.api.mvc._
 

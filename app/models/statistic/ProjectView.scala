@@ -6,7 +6,7 @@ import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
 import db.meta.Bind
 import models.project.Project
-import ore.ProjectOwner
+import ore.{ProjectOwner, StatTracker}
 import ore.statistic.StatTracker
 
 import scala.annotation.meta.field

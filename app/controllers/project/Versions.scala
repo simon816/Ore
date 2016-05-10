@@ -31,7 +31,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
                          implicit val fileManager: ProjectFileManager,
                          implicit val config: OreConfig,
                          implicit val cacheApi: CacheApi,
-                         implicit val projectFactory: ProjectFactory,
+                         implicit val factory: ProjectFactory,
                          implicit val ws: WSClient,
                          implicit override val users: UserBase,
                          implicit override val projects: ProjectBase,
@@ -173,7 +173,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
         case None => Redirect(self.showCreator(author, slug)).flashing("error" -> "Missing file")
         case Some(tmpFile) =>
           // Initialize plugin file
-          projectFactory.initUpload(tmpFile.ref, tmpFile.filename, request.user) match {
+          factory.initUpload(tmpFile.ref, tmpFile.filename, request.user) match {
             case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
               // PEBKAC
               Redirect(self.showCreator(author, slug))
@@ -239,7 +239,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
   private def pendingOrReal(author: String, slug: String): Option[Any] = {
     // Returns either a PendingProject or existing Project
     projects.withSlug(author, slug) match {
-      case None => projects.getPending(author, slug)
+      case None => factory.getPending(author, slug)
       case Some(project) => Some(project)
     }
   }
@@ -271,7 +271,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
               pendingVersion.channelColor = versionData.color
 
               // Check for pending project
-              projects.getPending(author, slug) match {
+              factory.getPending(author, slug) match {
                 case None =>
                   // No pending project, create version for existing project
                   withProject(author, slug) { project =>

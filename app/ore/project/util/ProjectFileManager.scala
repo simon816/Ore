@@ -20,9 +20,8 @@ class ProjectFileManager @Inject()(val env: OreEnv) {
     * @param version  Project version
     * @return         Path to supposed file
     */
-  def uploadPath(owner: String, name: String, version: String): Path = {
-    projectDir(owner, name).resolve("%s-%s.zip".format(name, version))
-  }
+  def uploadPath(owner: String, name: String, version: String): Path
+  = projectDir(owner, name).resolve("%s-%s.zip".format(name, version))
 
   /**
     * Returns the specified project's plugin directory.
@@ -31,9 +30,7 @@ class ProjectFileManager @Inject()(val env: OreEnv) {
     * @param name   Project name
     * @return       Plugin directory
     */
-  def projectDir(owner: String, name: String): Path = {
-    userDir(owner).resolve(name)
-  }
+  def projectDir(owner: String, name: String): Path = userDir(owner).resolve(name)
 
   /**
     * Returns the specified user's plugin directory.
@@ -41,9 +38,7 @@ class ProjectFileManager @Inject()(val env: OreEnv) {
     * @param owner  Owner name
     * @return       Plugin directory
     */
-  def userDir(owner: String): Path = {
-    env.plugins.resolve(owner)
-  }
+  def userDir(owner: String): Path = env.plugins.resolve(owner)
 
   /**
     * Renames this specified project in the file system.

@@ -1,12 +1,10 @@
-package ore.api
+package ore.rest
 
 import javax.inject.Inject
 
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.action.{ProjectActions, UserActions, VersionActions}
-import forums.DiscourseApi
-import models.project.Project
 import ore.UserBase
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectBase, ProjectSortingStrategies}
@@ -19,11 +17,8 @@ import util.StringUtils.equalsIgnoreCase
   */
 trait OreRestfulApi {
 
-  import OreWrites._
-
-  implicit val service: ModelService
-  implicit val forums: DiscourseApi
-  implicit val config: OreConfig
+  val service: ModelService
+  val config: OreConfig
   val users: UserBase
   val projects: ProjectBase
 
@@ -118,7 +113,6 @@ trait OreRestfulApi {
 }
 
 class OreRestful @Inject()(override val service: ModelService,
-                           override val forums: DiscourseApi,
                            override val config: OreConfig,
                            override val users: UserBase,
                            override val projects: ProjectBase)
