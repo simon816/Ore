@@ -3,6 +3,8 @@
 @import db.ModelService
 @import forums.DiscourseApi
 @import models.project.{Project, Version}
+@import util.StringUtils
+@import util.StringUtils.prettifyDate
 @(versions: Seq[(Project, Version)])(implicit messages: Messages, session: Session, request: RequestHeader,
         service: ModelService, forums: DiscourseApi, config: OreConfig)
 
@@ -30,7 +32,7 @@
                                 @tuple._1.ownerName/<strong>@tuple._1.name</strong>
                             </a>
                             <span class="pull-right">
-                                <span class="faint">@tuple._2.prettyDate</span>
+                                <span class="faint">@prettifyDate(tuple._2.createdAt.get)</span>
                                 <span class="minor">@tuple._2.versionString</span>
                                 @defining(tuple._2.channel) { channel =>
                                     <span class="channel" style="background-color: @channel.color.hex;">@channel.name</span>

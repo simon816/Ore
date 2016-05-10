@@ -7,6 +7,8 @@
 @import ore.permission.scope.GlobalScope
 @import ore.permission.{EditVersions, ReviewProjects}
 @import ore.UserBase
+@import util.StringUtils
+@import util.StringUtils.prettifyDate
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService,
         forums: DiscourseApi, config: OreConfig, users: UserBase)
@@ -34,7 +36,7 @@
                     <a href="@routes.Users.show(project.ownerName)">
                         <strong>@project.ownerName</strong>
                     </a>
-                    released this version on @version.prettyDate
+                    released this version on @prettifyDate(version.createdAt.get)
                 </p>
 
                 <!-- Buttons -->

@@ -2,10 +2,9 @@ package db
 
 import java.sql.Timestamp
 
-import db.action.{ModelActions, ModelFilter, ModelAccess}
+import db.action.{ModelAccess, ModelActions, ModelFilter}
 import db.meta.{Actor, FieldBinding, ManyBinding}
 import slick.driver.JdbcDriver
-import util.{OreConfig, StringUtils}
 
 import scala.concurrent.Future
 
@@ -16,8 +15,11 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
 
   import driver.api._
 
+  /** Self referential type */
   type M <: Model { type M = self.M }
+  /** The model's table */
   type T <: ModelTable[M]
+  /** The model's actions */
   type A <: ModelActions[T, M]
 
   /** The ModelService that this Model was processed with */
@@ -36,9 +38,11 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     */
   def actions(implicit service: ModelService = null): A = {
     if (this.service == null) this.service = service
-    println("class " + this.getClass)
-    println("annotation " + getClass.getAnnotation(classOf[Actor]))
-    service.provide(this.getClass.getAnnotation(classOf[Actor]).value.asInstanceOf[Class[A]])
+    val clazz = this.getClass
+    if (!clazz.isAnnotationPresent(classOf[Actor])) throw new RuntimeException("missing @Actor annotation")
+    val actions = service.provide(clazz.getAnnotation(classOf[Actor]).value)
+    if (!actions.isInstanceOf[A]) throw new RuntimeException("model actions class does not match type")
+    actions.asInstanceOf[A]
   }
 
   /**
@@ -90,19 +94,12 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     * @tparam Many       Child
     * @return            Set of children
     */
-  def getMany[ManyTable <: ModelTable[Many], Many <: Model](modelClass: Class[Many]) = Defined {
+  def getRelated[ManyTable <: ModelTable[Many], Many <: Model](modelClass: Class[Many]) = Defined {
     val binding = this.manyBindings
       .find(_._1.isAssignableFrom(modelClass))
       .getOrElse(throw new RuntimeException("No child binding found for model " + modelClass + " in model " + this))._2
     this.service.access[ManyTable, Many](modelClass, ModelFilter(binding.ref(_) === this.id.get))
   }
-
-  /**
-    * Returns a presentable date string of this models's creation date.
-    *
-    * @return Creation date string
-    */
-  def prettyDate(implicit config: OreConfig): String = StringUtils.prettyDate(this.createdAt.get)
 
   /**
     * Returns true if this Project is defined in the database.

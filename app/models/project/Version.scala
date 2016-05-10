@@ -154,7 +154,7 @@ case class Version(override val id: Option[Int] = None,
     update(Downloads)
   }
 
-  def downloadEntries = this.getMany[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
+  def downloadEntries = this.getRelated[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
 
   /**
     * Returns a human readable file size for this Version.

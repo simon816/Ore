@@ -7,8 +7,7 @@ import db.action.ModelAccess
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
-import db.impl.action.ProjectActions
-import db.impl.action.user.UserActions
+import db.impl.action.{ProjectActions, UserActions}
 import db.meta._
 import models.project.{Flag, Project}
 import ore.UserOwner
@@ -183,14 +182,14 @@ case class User(override val id: Option[Int] = None,
     *
     * @return All projects owned by User
     */
-  def projects = this.getMany[ProjectTable, Project](classOf[Project])
+  def projects = this.getRelated[ProjectTable, Project](classOf[Project])
 
   /**
     * Returns a [[ModelAccess]] of [[ProjectRole]]s.
     *
     * @return ProjectRoles
     */
-  def projectRoles = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+  def projectRoles = this.getRelated[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns a Set of [[RoleType]]s that this User has globally.
@@ -227,7 +226,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Flags submitted by user
     */
-  def flags = this.getMany[FlagTable, Flag](classOf[Flag])
+  def flags = this.getRelated[FlagTable, Flag](classOf[Flag])
 
   /**
     * Returns true if the User has an unresolved [[Flag]] on the specified

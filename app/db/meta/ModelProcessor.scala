@@ -1,7 +1,6 @@
 package db.meta
 
 import db.{Model, ModelService, ModelTable}
-import util.OreConfig
 
 import scala.reflect.runtime.universe._
 
@@ -9,26 +8,20 @@ import scala.reflect.runtime.universe._
   * Processes an annotated Model and bind's the appropriate fields and
   * children.
   */
-class ModelProcessor(service: ModelService, config: OreConfig) {
-
-  import config.debug
+class ModelProcessor(service: ModelService) {
 
   /**
-    * Generates bindings for the specified model.
+    * Processes and generates annotation bindings for the specified model.
     *
     * @param model  Model to bind
     * @tparam T     Model table
     * @tparam M     Model type
     */
   def process[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
-    debug("\n********** Generating bindings for model " + model + " **********")
     bindFields(model)
     bindRelations(model)
-    println("service = " + this.service)
     model.service = this.service
     model.setProcessed(true)
-    println("processed")
-    debug("*****************************************************************\n")
   }
 
   /**
@@ -40,17 +33,10 @@ class ModelProcessor(service: ModelService, config: OreConfig) {
     * @tparam M       Model type
     */
   def bindFields[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
-    debug("Generating field for model " + model)
-
     val modelClass = model.getClass
-    debug("Model class: " + modelClass)
     //noinspection ComparingUnrelatedTypes
     val bindFields = modelClass.getDeclaredFields
       .filter(_.getAnnotations.exists(_.annotationType.equals(classOf[Bind])))
-
-    debug("----- Fields to bind -----")
-    bindFields.foreach(f => debug(f.toString))
-    debug("--------------------------")
 
     for (bindField <- bindFields) {
       val bindData = bindField.getAnnotation(classOf[Bind])
@@ -67,7 +53,6 @@ class ModelProcessor(service: ModelService, config: OreConfig) {
 
       // If a field is an option, bind the field to the inner Option type
       if (fieldType.equals(classOf[Option[_]])) {
-        debug("--- OPTION FOUND: " + fieldName + " ---")
         fieldType = runtimeMirror(getClass.getClassLoader)
           .runtimeClass(typeTag[M].tpe.members
             .filterNot(_.isMethod)
@@ -82,7 +67,6 @@ class ModelProcessor(service: ModelService, config: OreConfig) {
   }
 
   def bindRelations[T <: ModelTable[M], M <: Model](model: M) = {
-    debug("Generating relations for model " + model)
     val modelClass = model.getClass
     val key = modelClass.getSimpleName.toLowerCase + "Id"
     //noinspection ComparingUnrelatedTypes

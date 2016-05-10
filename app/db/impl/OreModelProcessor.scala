@@ -8,9 +8,15 @@ import util.OreConfig
 
 import scala.reflect.runtime.universe._
 
+/**
+  * A ModelProcessor that performs Ore specific model processing.
+  *
+  * @param service  ModelService
+  * @param config   Ore config
+  */
 class OreModelProcessor(service: ModelService,
                         config: OreConfig)
-                        extends ModelProcessor(service, config) {
+                        extends ModelProcessor(service) {
 
   override def process[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
     super.process(model)

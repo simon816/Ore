@@ -14,12 +14,18 @@ import scala.concurrent.Future
   * Handles forum topic management for Projects.
   *
   * @param url        Forum URL
-  * @param apiKey     Discourse API key
+  * @param key        Discourse API key
   * @param categoryId Discourse category ID
   * @param ws         HTTP client
   */
-class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, api: DiscourseApi)
-                    (implicit ws: WSClient, service: ModelService, config: OreConfig, env: OreEnv) {
+class DiscourseEmbeddingService(api: DiscourseApi,
+                                url: String,
+                                key: String,
+                                categoryId: Int,
+                                ws: WSClient,
+                                service: ModelService,
+                                config: OreConfig,
+                                env: OreEnv) {
 
   import api.validate
   import config.debug
@@ -90,7 +96,7 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, api: Discours
     * @param project Project to delete topic for
     */
   def deleteTopic(project: Project) = {
-    val k = "api_key" -> this.apiKey
+    val k = "api_key" -> this.key
     val u = "api_username" -> project.ownerName
     ws.url(url + "/t/" + project.topicId.get).withQueryString(k, u).delete().andThen {
       case r =>
@@ -120,17 +126,17 @@ class DiscourseEmbed(url: String, apiKey: String, categoryId: Int, api: Discours
   }
 
   private def keyedRequest(username: String) = {
-    Map("api_key" -> Seq(this.apiKey), "api_username" -> Seq(username))
+    Map("api_key" -> Seq(this.key), "api_username" -> Seq(username))
   }
 
 }
 
-object DiscourseEmbed {
+object DiscourseEmbeddingService {
 
   /**
-    * Represents a disabled state of [[DiscourseEmbed]].
+    * Represents a disabled state of [[DiscourseEmbeddingService]].
     */
-  object Disabled extends DiscourseEmbed(null, null, -1, null)(null, null, null, null) {
+  object Disabled extends DiscourseEmbeddingService(null, null, null, -1, null, null, null, null) {
     override def createTopic(project: Project) = Future(None)
     override def updateTopic(project: Project) = Future(null)
     override def renameTopic(project: Project) = Future(null)

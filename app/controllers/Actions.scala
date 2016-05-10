@@ -32,7 +32,7 @@ trait Actions {
 
   private def processProject(project: Project, user: Option[User]): Option[Project] = {
     if (project.isVisible || (user.isDefined && (user.get can HideProjects in GlobalScope))) {
-      if (project.topicId.isEmpty) forums.Embed.createTopic(project)
+      if (project.topicId.isEmpty) forums.embed.createTopic(project)
       Some(project)
     } else {
       None

@@ -34,7 +34,10 @@ trait ModelRegistrar {
     * @param setter Type setter
     * @tparam A     Type
     */
-  def registerSetter[A](clazz: Class[A], setter: TypeSetter[A]) = typeSetters.put(clazz, setter)
+  def registerSetter[A](clazz: Class[A], setter: TypeSetter[A]): TypeSetter[A] = {
+    typeSetters.put(clazz, setter)
+    setter
+  }
 
   /**
     * Returns a registered TypeSetter by the type class.
@@ -43,8 +46,11 @@ trait ModelRegistrar {
     * @tparam A     Type
     * @return       Registered setter, if any, None otherwise
     */
-  def getSetter[A](clazz: Class[A]): Option[TypeSetter[A]]
-  = typeSetters.asScala.get(clazz).map(_.asInstanceOf[TypeSetter[A]])
+  def getSetter[A](clazz: Class[A]): TypeSetter[A] = {
+    typeSetters.asScala.get(clazz)
+      .map(_.asInstanceOf[TypeSetter[A]])
+      .getOrElse(throw new RuntimeException("No type setter found for type: " + clazz.getSimpleName))
+  }
 
   /**
     * Finds a ModelActions instance by the ModelActions class.
@@ -54,7 +60,7 @@ trait ModelRegistrar {
     * @return             ModelActions
     */
   //noinspection ComparingUnrelatedTypes
-  def reverseLookup[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q
+  def getActions[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q
   = this.modelActions.asScala.find(_._2.getClass.equals(actionsClass))
     .getOrElse(throw new RuntimeException("actions not found of type " + actionsClass))
     ._2.asInstanceOf[Q]
@@ -66,12 +72,10 @@ trait ModelRegistrar {
     * @tparam M         Model type
     * @return           ModelActions of Model
     */
-  def get[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M]): ModelActions[T, M] = {
+  def getActionsByModel[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M]): ModelActions[T, M] = {
     this.modelActions.asScala.find(_._1.isAssignableFrom(modelClass))
       .getOrElse(throw new RuntimeException("actions not found for model " + modelClass))
       ._2.asInstanceOf[ModelActions[T, M]]
   }
 
 }
-
-class SimpleModelRegistrar extends ModelRegistrar

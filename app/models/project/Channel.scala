@@ -86,7 +86,7 @@ case class Channel(override val id: Option[Int] = None,
     *
     * @return All versions
     */
-  def versions = this.getMany[VersionTable, Version](classOf[Version])
+  def versions = this.getRelated[VersionTable, Version](classOf[Version])
 
   /**
     * Irreversibly deletes this channel and all version associated with it.

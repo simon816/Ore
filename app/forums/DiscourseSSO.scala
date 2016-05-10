@@ -11,24 +11,24 @@ import db.ModelService
 import models.user.User
 import ore.UserBase
 import org.apache.commons.codec.binary.Hex
-import util.OreConfig
 
 /**
   * Handles single-sign-on authentication to a Discourse forum.
-  *
-  * @param url      SSO url
-  * @param secret   SSO secret key
   */
-class DiscourseSSO(private val url: String, private val secret: String, users: UserBase, implicit val api: DiscourseApi)
-                  (implicit config: OreConfig) {
+trait DiscourseSSO {
 
-  private val charEncoding = "UTF-8"
-  private val random = new SecureRandom
-  private val algo = "HmacSHA256"
+  protected val api: DiscourseApi
+  protected val users: UserBase
+  protected val url: String
+  protected val secret: String
 
-  private def nonce: String = new BigInteger(130, this.random).toString(32)
+  protected val charEncoding = "UTF-8"
+  protected val random = new SecureRandom
+  protected val algo = "HmacSHA256"
 
-  private def hmac_sha256(data: Array[Byte]): String = {
+  protected def nonce: String = new BigInteger(130, this.random).toString(32)
+
+  protected def hmac_sha256(data: Array[Byte]): String = {
     val hmac = Mac.getInstance(this.algo)
     val keySpec = new SecretKeySpec(this.secret.getBytes(this.charEncoding), this.algo)
     hmac.init(keySpec)
@@ -86,7 +86,7 @@ class DiscourseSSO(private val url: String, private val secret: String, users: U
     if (externalId == -1) throw new IllegalStateException("id not found")
 
     // Send another request to get more info to fill the user with
-    users.withName(username).get.fill(service.await(api.Users.fetch(username)).get.get.copy(
+    users.withName(username).get.fill(service.await(api.fetchUser(username)).get.get.copy(
       id = Some(externalId),
       _name = Some(name),
       _username = username,
@@ -95,3 +95,5 @@ class DiscourseSSO(private val url: String, private val secret: String, users: U
   }
 
 }
+
+

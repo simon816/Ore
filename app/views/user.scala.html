@@ -9,6 +9,7 @@ User page for developers.
 @import _root_.util.OreConfig
 @import util.StringUtils
 @import ore.UserBase
+@import util.StringUtils.prettifyDate
 @(user: User)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader,
         service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
@@ -88,7 +89,7 @@ User page for developers.
                     <div class="user-info">
                         <i class="minor">@user.projects.size projects</i><br/>
                         <i class="minor">
-                            A member since @user.joinDate.map(StringUtils.prettyDate).getOrElse(user.prettyDate)
+                            A member since @user.joinDate.map(prettifyDate).getOrElse(prettifyDate(user.createdAt.get))
                         </i>
                     </div>
                 </div>

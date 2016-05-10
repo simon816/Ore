@@ -4,8 +4,7 @@ import javax.inject.Inject
 
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import db.impl.action.user.UserActions
-import db.impl.action.{ProjectActions, VersionActions}
+import db.impl.action.{ProjectActions, UserActions, VersionActions}
 import forums.DiscourseApi
 import models.project.Project
 import ore.UserBase

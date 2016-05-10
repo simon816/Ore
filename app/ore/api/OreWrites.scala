@@ -1,11 +1,12 @@
 package ore.api
 
-import _root_.util.OreConfig
+import _root_.util.{OreConfig, StringUtils}
 import db.ModelService
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.User
 import play.api.libs.json._
+import _root_.util.StringUtils.prettifyDate
 
 /**
   * Contains implicit JSON [[Writes]] for the Ore API.
@@ -29,7 +30,7 @@ object OreWrites {
       val rv = project.recommendedVersion
       Json.obj(
         "pluginId" -> project.pluginId,
-        "createdAt" -> project.prettyDate,
+        "createdAt" -> prettifyDate(project.createdAt.get),
         "name" -> project.name,
         "owner" -> project.ownerName,
         "description" -> project.description,
@@ -53,7 +54,7 @@ object OreWrites {
       }
       Json.obj(
         "id" -> version.id.get,
-        "createdAt" -> version.prettyDate,
+        "createdAt" -> prettifyDate(version.createdAt.get),
         "name" -> version.versionString,
         "dependencies" -> dependencies,
         "pluginId" -> project.pluginId,
@@ -67,7 +68,7 @@ object OreWrites {
     def writes(user: User) = {
       Json.obj(
         "id" -> user.id,
-        "createdAt" -> user.prettyDate,
+        "createdAt" -> prettifyDate(user.createdAt.get),
         "username" -> user.username,
         "roles" -> user.globalRoles.map(_.title),
         "starred" -> user.starred().map(p => p.pluginId),

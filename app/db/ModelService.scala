@@ -4,8 +4,8 @@ import java.sql.Timestamp
 import java.util.Date
 
 import db.action.ModelAction._
-import db.action.{ModelActions, ModelFilter, ModelAccess}
 import db.action.ModelFilter.IdFilter
+import db.action.{ModelAccess, ModelActions, ModelFilter}
 import db.meta.BootstrapTypeSetters._
 import db.meta.ModelProcessor
 import slick.backend.DatabaseConfig
@@ -24,15 +24,20 @@ import scala.util.{Failure, Success, Try}
 trait ModelService {
 
   /** Used for processing models and determining field bindings */
-  val processor: ModelProcessor
+  val processor: ModelProcessor = new ModelProcessor(this)
 
-  /** All registered models and TypeSetters */
-  val registrar: ModelRegistrar
+  /** All registered models and [[db.meta.TypeSetter]]s */
+  val registrar: ModelRegistrar = new ModelRegistrar {}
   import registrar.registerSetter
 
   /** The base JDBC driver */
   val driver: JdbcDriver
   import driver.api._
+
+  /**
+    * The default timeout when awaiting a query result.
+    */
+  val DefaultTimeout: Duration
 
   /**
     * The database config for raw actions. Note: running raw queries will not
@@ -59,11 +64,6 @@ trait ModelService {
   def theTime: Timestamp = new Timestamp(new Date().getTime)
 
   /**
-    * The default timeout when awaiting a query result.
-    */
-  val DefaultTimeout: Duration
-
-  /**
     * Awaits the result of the specified future and returns the result.
     *
     * @param f        Future to await
@@ -79,7 +79,7 @@ trait ModelService {
     * @tparam Q ModelActions
     * @return ModelActions of type
     */
-  def provide[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q = this.registrar.reverseLookup(actionsClass)
+  def provide[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q = this.registrar.getActions(actionsClass)
 
   /**
     * Returns the base query for the specified Model class.
@@ -90,7 +90,7 @@ trait ModelService {
     * @return           Base query for Model
     */
   def newModelAction[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M]): Query[T, M, Seq]
-  = this.registrar.get(modelClass).baseQuery.asInstanceOf[Query[T, M, Seq]]
+  = this.registrar.getActionsByModel(modelClass).baseQuery.asInstanceOf[Query[T, M, Seq]]
 
   /**
     * Runs the specified ModelAction on the DB and processes the resulting

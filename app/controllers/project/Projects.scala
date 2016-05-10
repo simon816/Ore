@@ -260,7 +260,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
       forms.ProjectReply.bindFromRequest.fold(
         hasErrors => Redirect(self.showDiscussion(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         content => {
-          val error = service.await(forums.Embed.postReply(request.project, request.user, content)).get
+          val error = service.await(forums.embed.postReply(request.project, request.user, content)).get
           var result = Redirect(self.showDiscussion(author, slug))
           if (error.isDefined) result = result.flashing("error" -> error.get)
           result

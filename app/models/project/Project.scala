@@ -128,8 +128,8 @@ case class Project(override val id: Option[Int] = None,
     this._name = newName
     this._slug = slugify(newName)
     if (this.topicId.isDefined) {
-      forums.Embed.renameTopic(this)
-      forums.Embed.updateTopic(this)
+      forums.embed.renameTopic(this)
+      forums.embed.updateTopic(this)
     }
     update(Name)
     update(Slug)
@@ -158,7 +158,7 @@ case class Project(override val id: Option[Int] = None,
     checkArgument(_description == null
       || _description.length <= config.projects.getInt("max-desc-len").get, "description too long", "")
     this._description = Option(_description)
-    if (this.topicId.isDefined) forums.Embed.renameTopic(this)
+    if (this.topicId.isDefined) forums.embed.renameTopic(this)
     if (isDefined) update(Description)
   }
 
@@ -184,7 +184,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Unique project views
     */
-  def viewEntries = this.getMany[ProjectViewsTable, ProjectView](classOf[ProjectView])
+  def viewEntries = this.getRelated[ProjectViewsTable, ProjectView](classOf[ProjectView])
 
   /**
     * Returns the amount of unique views this Project has.
@@ -368,14 +368,14 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Set of all ProjectRoles
     */
-  def roles = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+  def roles = this.getRelated[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns the Channels in this Project.
     *
     * @return Channels in project
     */
-  def channels = this.getMany[ChannelTable, Channel](classOf[Channel])
+  def channels = this.getRelated[ChannelTable, Channel](classOf[Channel])
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -394,7 +394,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Versions in project
     */
-  def versions = this.getMany[VersionTable, Version](classOf[Version])
+  def versions = this.getRelated[VersionTable, Version](classOf[Version])
 
   /**
     * Returns this Project's recommended version.
@@ -419,7 +419,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Pages in project
     */
-  def pages = this.getMany[PageTable, Page](classOf[Page])
+  def pages = this.getRelated[PageTable, Page](classOf[Page])
 
   /**
     * Returns true if a page with the specified name exists.
@@ -445,7 +445,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Flags on project
     */
-  def flags = this.getMany[FlagTable, Flag](classOf[Flag])
+  def flags = this.getRelated[FlagTable, Flag](classOf[Flag])
 
   /**
     * Returns this Project's home page.
@@ -493,7 +493,7 @@ case class Project(override val id: Option[Int] = None,
     */
   def delete()(implicit forums: DiscourseApi, fileManager: ProjectFileManager) = Defined {
     FileUtils.deleteDirectory(fileManager.projectDir(this.ownerName, this._name).toFile)
-    if (this.topicId.isDefined) forums.Embed.deleteTopic(this)
+    if (this.topicId.isDefined) forums.embed.deleteTopic(this)
     this.remove()
   }
 

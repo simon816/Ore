@@ -9,7 +9,7 @@ import slick.lifted.Tag
 abstract class ModelTable[M <: Model](tag: Tag, name: String) extends Table[M](tag, name) {
 
   /** The Model's primary key column */
-  def id        = column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
   /** The [[java.sql.Timestamp]] instant of when a Model was created. */
   def createdAt = column[Timestamp]("created_at")
 

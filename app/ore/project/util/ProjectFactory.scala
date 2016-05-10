@@ -68,7 +68,7 @@ trait ProjectFactory {
       users.get(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
     }
 
-    forums.Embed.createTopic(newProject)
+    forums.embed.createTopic(newProject)
     newProject
   }
 

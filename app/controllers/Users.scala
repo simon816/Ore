@@ -5,7 +5,7 @@ import javax.inject.Inject
 import controllers.routes.{Users => self}
 import db.ModelService
 import form.OreForms
-import forums.DiscourseApi
+import forums.{DiscourseApi, DiscourseSSO}
 import ore.UserBase
 import ore.project.ProjectBase
 import play.api.i18n.MessagesApi
@@ -17,6 +17,7 @@ import views.{html => views}
 class Users @Inject()(override val messagesApi: MessagesApi,
                       val fakeUser: FakeUser,
                       val forms: OreForms,
+                      val auth: DiscourseSSO,
                       implicit val config: OreConfig,
                       implicit val ws: WSClient,
                       implicit override val users: UserBase,
@@ -37,10 +38,10 @@ class Users @Inject()(override val messagesApi: MessagesApi,
       users.getOrCreate(fakeUser)
       redirectBack(returnPath.getOrElse(request.path), fakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
-      Redirect(forums.Auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
+      Redirect(auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
     } else {
       // Decode SSO payload and get Ore user
-      val user = forums.Auth.authenticate(sso.get, sig.get)
+      val user = auth.authenticate(sso.get, sig.get)
       redirectBack(request2flash.get("url").get, user.username)
     }
   }

@@ -1,4 +1,4 @@
-package db.impl.action.user
+package db.impl.action
 
 import db.ModelService
 import db.action.ModelActions

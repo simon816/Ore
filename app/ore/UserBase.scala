@@ -28,7 +28,7 @@ trait UserBase extends ModelAccessible[UserTable, User] {
     */
   def withName(username: String): Option[User] = {
     this.find(equalsIgnoreCase(_.username, username)).orElse {
-      service.await(forums.Users.fetch(username)).get.map(getOrCreate)
+      service.await(forums.fetchUser(username)).get.map(getOrCreate)
     }
   }
 

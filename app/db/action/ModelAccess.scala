@@ -12,7 +12,7 @@ class ModelAccess[T <: ModelTable[M], M <: Model](service: ModelService,
                                                   modelClass: Class[M],
                                                   baseFilter: ModelFilter[T, M] = ModelFilter[T, M]()) {
 
-  val baseQuery: ModelActions[T, M] = service.registrar.get[T, M](modelClass)
+  val baseQuery: ModelActions[T, M] = service.registrar.getActionsByModel[T, M](modelClass)
 
   /**
     * Returns the model with the specified ID.

@@ -4,7 +4,6 @@ import db._
 import db.action.ModelAction.wrapSeq
 import db.action.{ModelActions, ModelFilter, StatActions}
 import db.impl.OrePostgresDriver.api._
-import db.impl.action.user.UserActions
 import db.impl.{FlagTable, ProjectStarsTable, ProjectTable, ProjectViewsTable}
 import forums.DiscourseApi
 import models.project._

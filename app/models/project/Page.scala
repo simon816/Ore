@@ -70,7 +70,7 @@ case class Page(override val id: Option[Int] = None,
     this._contents = _contents
     if (isDefined) {
       val project = this.project
-      if (this.name.equals(HomeName) && project.topicId.isDefined) forums.Embed.updateTopic(project)
+      if (this.name.equals(HomeName) && project.topicId.isDefined) forums.embed.updateTopic(project)
       update(Contents)
     }
   }

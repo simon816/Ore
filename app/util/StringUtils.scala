@@ -16,7 +16,7 @@ object StringUtils {
     * @param date Date to format
     * @return     Standard formatted date
     */
-  def prettyDate(date: Date)(implicit config: OreConfig): String
+  def prettifyDate(date: Date)(implicit config: OreConfig): String
   = new SimpleDateFormat(config.ore.getString("date-format").get).format(date)
 
   /**
