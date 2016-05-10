@@ -12,7 +12,7 @@ import scala.collection.JavaConverters._
   */
 trait ModelRegistrar {
 
-  private val modelActions: BiMap[Class[_ <: Model[_]], ModelActions[_, _]] = HashBiMap.create()
+  private val modelActions: BiMap[Class[_ <: Model], ModelActions[_, _]] = HashBiMap.create()
   private val typeSetters: BiMap[Class[_], TypeSetter[_]] = HashBiMap.create()
 
   /**
@@ -22,7 +22,7 @@ trait ModelRegistrar {
     * @tparam Q Type Actions type
     * @return Registered actions
     */
-  def register[Q <: ModelActions[_, _ <: Model[_]]](actions: Q): Q = {
+  def register[Q <: ModelActions[_, _ <: Model]](actions: Q): Q = {
     this.modelActions.put(actions.modelClass, actions)
     actions
   }
@@ -66,7 +66,7 @@ trait ModelRegistrar {
     * @tparam M         Model type
     * @return           ModelActions of Model
     */
-  def get[T <: ModelTable[M], M <: Model[_]](modelClass: Class[_ <: M]): ModelActions[T, M] = {
+  def get[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M]): ModelActions[T, M] = {
     this.modelActions.asScala.find(_._1.isAssignableFrom(modelClass))
       .getOrElse(throw new RuntimeException("actions not found for model " + modelClass))
       ._2.asInstanceOf[ModelActions[T, M]]

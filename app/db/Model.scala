@@ -27,7 +27,14 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
   private var fieldBindings: Map[String, FieldBinding[M, _]] = Map.empty
   private var manyBindings: Map[Class[_ <: Model], ManyBinding] = Map.empty
 
-  def actions(implicit service: ModelService): A = {
+  /**
+    * Returns the ModelActions associated with this Model.
+    *
+    * @param service  Optional model service to provide to the model if it has
+    *                 not yet been processed
+    * @return         ModelActions
+    */
+  def actions(implicit service: ModelService = null): A = {
     if (this.service == null) this.service = service
     println("class " + this.getClass)
     println("annotation " + getClass.getAnnotation(classOf[Actor]))
@@ -40,10 +47,8 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     * @param key  Field name
     * @param f    Update function
     */
-  def bind[R](key: String, value: M => R, f: R => Future[_]) = {
-//    debug("Binding key " + key + " to model " + this)
-    this.fieldBindings += key -> FieldBinding[M, R](value, f)
-  }
+  def bind[R](key: String, value: M => R, f: R => Future[_])
+  = this.fieldBindings += key -> FieldBinding[M, R](value, f)
 
   /**
     * Updates the specified key in the table.
@@ -56,7 +61,6 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
       .getOrElse(key, throw new RuntimeException("No field binding found for key " + key + " in model " + this))
       .asInstanceOf[FieldBinding[M, R]]
     val value = binding.valueFunc(this.asInstanceOf[M])
-//    debug("Updating key \"" + key + "\" in model " + getClass + " to " + value)
     service.await(binding.updateFunc(value)).get
   }
 
@@ -76,10 +80,8 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     * @param childClass   Child model class
     * @param ref          Reference column to this model in child table
     */
-  def bindMany(childClass: Class[_ <: Model], ref: ModelTable[_] => Rep[Int]) = {
-//    debug("Binding child " + childClass + " to model " + this)
-    this.manyBindings += childClass -> ManyBinding(childClass, ref)
-  }
+  def bindMany(childClass: Class[_ <: Model], ref: ModelTable[_] => Rep[Int])
+  = this.manyBindings += childClass -> ManyBinding(childClass, ref)
 
   /**
     * Returns a [[ModelSet]] of the children for the specified child class.
@@ -92,7 +94,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     val binding = this.manyBindings
       .find(_._1.isAssignableFrom(modelClass))
       .getOrElse(throw new RuntimeException("No child binding found for model " + modelClass + " in model " + this))._2
-    new ModelSet[ManyTable, Many](modelClass, ModelFilter(binding.ref(_) === this.id.get))
+    new ModelSet[ManyTable, Many](this.service, modelClass, ModelFilter(binding.ref(_) === this.id.get))
   }
 
   /**
@@ -109,6 +111,9 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     */
   def isDefined: Boolean = this.id.isDefined
 
+  /**
+    * Removes this model from it's table through it's ModelActions.
+    */
   def remove() = this.actions.delete(this.asInstanceOf[M])
 
   /**

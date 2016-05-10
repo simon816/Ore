@@ -6,7 +6,7 @@ import db.impl.OrePostgresDriver.api._
 import slick.lifted.Tag
 
 /** Represents a Table in the database that contains Models. */
-abstract class ModelTable[M <: Model[_]](tag: Tag, name: String) extends Table[M](tag, name) {
+abstract class ModelTable[M <: Model](tag: Tag, name: String) extends Table[M](tag, name) {
 
   /** The Model's primary key column */
   def id        = column[Int]("id", O.PrimaryKey, O.AutoInc)

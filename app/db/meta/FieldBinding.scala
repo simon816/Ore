@@ -13,4 +13,4 @@ import scala.concurrent.Future
   * @tparam M         Model
   * @tparam A         Field type
   */
-case class FieldBinding[M <: Model[_], A](valueFunc: M => A, updateFunc: A => Future[_])
+case class FieldBinding[M <: Model, A](valueFunc: M => A, updateFunc: A => Future[_])

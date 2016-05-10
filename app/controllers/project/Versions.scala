@@ -9,11 +9,10 @@ import db.impl.OrePostgresDriver.api._
 import form.OreForms
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
-import ore.UserBase
+import ore.{StatTracker, UserBase}
 import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.ProjectBase
 import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFactory, ProjectFileManager}
-import ore.statistic.StatTracker
 import play.api.cache.CacheApi
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -168,6 +167,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return Version create page (with meta)
     */
   def upload(author: String, slug: String) = {
+    // TODO: Cleanup this godforsaken mess
     VersionEditAction(author, slug) { implicit request =>
       request.body.asMultipartFormData.get.file("pluginFile") match {
         case None => Redirect(self.showCreator(author, slug)).flashing("error" -> "Missing file")
@@ -254,6 +254,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
     * @return New version view
     */
   def create(author: String, slug: String, versionString: String) = {
+    // TODO: Cleanup
     Authenticated { implicit request =>
       // First get the pending Version
       Version.getPending(author, slug, versionString) match {

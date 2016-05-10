@@ -23,7 +23,7 @@ object BootstrapTypeSetters {
   = table.getClass.getMethod(name).invoke(table).asInstanceOf[Rep[A]]
 
   case object IntTypeSetter extends TypeSetter[Int] {
-    def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: T => Rep[Int], v: Int)
+    def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[Int], v: Int)
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
         m <- service.newModelAction[T, M](model.getClass)
@@ -33,7 +33,7 @@ object BootstrapTypeSetters {
   }
 
   case object StringTypeSetter extends TypeSetter[String] {
-    def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: T => Rep[String], v: String)
+    def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[String], v: String)
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
         m <- service.newModelAction[T, M](model.getClass)
@@ -43,7 +43,7 @@ object BootstrapTypeSetters {
   }
 
   case object BooleanTypeSetter extends TypeSetter[Boolean] {
-    def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: T => Rep[Boolean], v: Boolean)
+    def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[Boolean], v: Boolean)
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
         m <- service.newModelAction[T, M](model.getClass)
@@ -53,7 +53,7 @@ object BootstrapTypeSetters {
   }
 
   case object TimestampTypeSetter extends TypeSetter[Timestamp] {
-    def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: T => Rep[Timestamp], v: Timestamp)
+    def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[Timestamp], v: Timestamp)
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
         m <- service.newModelAction[T, M](model.getClass)
@@ -63,7 +63,7 @@ object BootstrapTypeSetters {
   }
 
   case object IntListTypeSetter extends TypeSetter[List[Int]] {
-    def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: T => Rep[List[Int]], v: List[Int])
+    def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[List[Int]], v: List[Int])
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
         m <- service.newModelAction[T, M](model.getClass)
@@ -73,7 +73,7 @@ object BootstrapTypeSetters {
   }
 
   case object StringListTypeSetter extends TypeSetter[List[String]] {
-    def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: T => Rep[List[String]], v: List[String])
+    def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[List[String]], v: List[String])
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
         m <- service.newModelAction[T, M](model.getClass)
@@ -83,7 +83,7 @@ object BootstrapTypeSetters {
   }
 
   case object BooleanListTypeSetter extends TypeSetter[List[Boolean]] {
-    def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: T => Rep[List[Boolean]], v: List[Boolean])
+    def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[List[Boolean]], v: List[Boolean])
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
         m <- service.newModelAction[T, M](model.getClass)
@@ -93,7 +93,7 @@ object BootstrapTypeSetters {
   }
 
   case object TimestampListTypeSetter extends TypeSetter[List[Timestamp]] {
-    def apply[T <: ModelTable[M], M <: Model[_]](model: M, rep: T => Rep[List[Timestamp]], v: List[Timestamp])
+    def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[List[Timestamp]], v: List[Timestamp])
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
         m <- service.newModelAction[T, M](model.getClass)

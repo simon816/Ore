@@ -1,14 +1,12 @@
-package ore.statistic
+package ore
 
 import java.util.UUID
 
 import controllers.Requests.ProjectRequest
 import models.project.Version
 import models.statistic.{ProjectView, VersionDownload}
-import ore.statistic.StatTracker.COOKIE_UID
+import ore.StatTracker.COOKIE_UID
 import play.api.mvc.{Cookie, RequestHeader, Result}
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Helper class for handling tracking of statistics.

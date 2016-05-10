@@ -9,11 +9,10 @@ import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
 import models.project._
-import ore.UserBase
+import ore.{StatTracker, UserBase}
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectFileManager}
 import ore.project.{FlagReasons, ProjectBase}
-import ore.statistic.StatTracker
 import play.api.cache.CacheApi
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -230,7 +229,9 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
       if (request.project.ownerId != request.user.userId) {
         request.project.setStarredBy(request.user, starred)
         Ok
-      } else BadRequest
+      } else {
+        BadRequest
+      }
     }
   }
 

@@ -12,10 +12,10 @@ class OreModelProcessor(service: ModelService,
                         config: OreConfig)
                         extends ModelProcessor(service, config) {
 
-  override def process[T <: ModelTable[M], M <: Model[_]: TypeTag](model: M) = {
+  override def process[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
     super.process(model)
     model match {
-      case oreModel: OreModel[_] => oreModel.config = this.config
+      case oreModel: OreModel => oreModel.config = this.config
       case _ =>
     }
   }

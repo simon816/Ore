@@ -2,11 +2,10 @@ import com.google.inject.AbstractModule
 import db.ModelService
 import db.impl.OreModelService
 import forums.{DiscourseApi, SpongeForums}
-import ore.{OreUserBase, UserBase}
+import ore.{OreStatTracker, OreUserBase, StatTracker, UserBase}
 import ore.api.{OreRestful, OreRestfulApi}
 import ore.project.{OreProjectBase, ProjectBase}
 import ore.project.util.{OreProjectFactory, ProjectFactory}
-import ore.statistic.{OreStatTracker, StatTracker}
 
 class Module extends AbstractModule {
 

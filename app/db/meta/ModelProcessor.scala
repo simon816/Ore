@@ -20,7 +20,7 @@ class ModelProcessor(service: ModelService, config: OreConfig) {
     * @tparam T     Model table
     * @tparam M     Model type
     */
-  def process[T <: ModelTable[M], M <: Model[_]: TypeTag](model: M) = {
+  def process[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
     debug("\n********** Generating bindings for model " + model + " **********")
     bindFields(model)
     bindRelations(model)
@@ -39,7 +39,7 @@ class ModelProcessor(service: ModelService, config: OreConfig) {
     * @tparam T       Model table type
     * @tparam M       Model type
     */
-  def bindFields[T <: ModelTable[M], M <: Model[_]: TypeTag](model: M) = {
+  def bindFields[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
     debug("Generating field for model " + model)
 
     val modelClass = model.getClass
@@ -81,7 +81,7 @@ class ModelProcessor(service: ModelService, config: OreConfig) {
     }
   }
 
-  def bindRelations[T <: ModelTable[M], M <: Model[_]](model: M) = {
+  def bindRelations[T <: ModelTable[M], M <: Model](model: M) = {
     debug("Generating relations for model " + model)
     val modelClass = model.getClass
     val key = modelClass.getSimpleName.toLowerCase + "Id"

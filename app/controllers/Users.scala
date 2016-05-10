@@ -66,10 +66,7 @@ class Users @Inject()(override val messagesApi: MessagesApi,
     * @return           View of user page
     */
   def show(username: String) = Action { implicit request =>
-    users.withName(username) match {
-      case None => NotFound
-      case Some(user) => Ok(views.user(user))
-    }
+    users.withName(username).map(u => Ok(views.user(u))).getOrElse(NotFound)
   }
 
   /**

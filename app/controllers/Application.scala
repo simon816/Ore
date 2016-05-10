@@ -7,11 +7,10 @@ import controllers.routes.{Application => self}
 import db.ModelService
 import db.action.ModelFilter
 import db.impl.OrePostgresDriver.api._
-import db.impl.{ProjectTable, VersionTable}
 import db.impl.action.ProjectActions
+import db.impl.{FlagTable, ProjectTable}
 import forums.DiscourseApi
 import models.project.{Flag, Project, Version}
-import models.user.User
 import ore.UserBase
 import ore.permission._
 import ore.permission.scope.GlobalScope
@@ -73,10 +72,7 @@ class Application @Inject()(override val messagesApi: MessagesApi,
     */
   def showQueue() = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) { implicit request =>
-      val notReviewed = this.service.getModelSet[VersionTable, Version](classOf[Version])
-        .filterNot(_.isReviewed)
-        .map(v => (v.project, v))
-      Ok(views.admin.queue(notReviewed))
+      Ok(views.admin.queue(Version.notReviewed.map(v => (v.project, v))))
     }
   }
 
@@ -97,7 +93,7 @@ class Application @Inject()(override val messagesApi: MessagesApi,
     * @return         Ok
     */
   def setFlagResolved(flagId: Int, resolved: Boolean) = FlagAction { implicit request =>
-    Flag.withId(flagId) match {
+    service.getModelSet[FlagTable, Flag](classOf[Flag]).withId(flagId) match {
       case None => NotFound
       case Some(flag) =>
         flag.setResolved(resolved)
