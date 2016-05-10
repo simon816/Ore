@@ -51,7 +51,7 @@ case class Flag(override val id: Option[Int],
     *
     * @param resolved True if resolved
     */
-  def setResolved(resolved: Boolean)(implicit service: ModelService) = Defined {
+  def setResolved(resolved: Boolean) = Defined {
     this._isResolved = resolved
     update(IsResolved)
   }

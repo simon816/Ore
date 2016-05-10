@@ -87,7 +87,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Owner Member of project
     */
-  def owner(implicit service: ModelService, forums: DiscourseApi): ProjectMember
+  def owner(implicit forums: DiscourseApi): ProjectMember
   = new ProjectMember(this, this.ownerName)
 
   /**
@@ -95,7 +95,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return All Members of project
     */
-  def members(implicit service: ModelService, forums: DiscourseApi): Set[ProjectMember]
+  def members(implicit forums: DiscourseApi): Set[ProjectMember]
   = service.await(this.actions.getMembers(this)).get.toSet
 
   /**
@@ -104,7 +104,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param user User to remove
     */
-  def removeMember(user: User)(implicit service: ModelService) = this.roles.removeAll(_.userId === user.id.get)
+  def removeMember(user: User) = this.roles.removeAll(_.userId === user.id.get)
 
   /**
     * Returns the name of this Project.
@@ -119,7 +119,7 @@ case class Project(override val id: Option[Int] = None,
     * @param _name   New name
     * @return       Future result
     */
-  def name_=(_name: String)(implicit service: ModelService, forums: DiscourseApi,
+  def name_=(_name: String)(implicit forums: DiscourseApi,
                             fileManager: ProjectFileManager, config: OreConfig) = Defined {
     val newName = compact(_name)
     val newSlug = slugify(newName)
@@ -155,7 +155,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _description Description to set
     */
-  def description_=(_description: String)(implicit service: ModelService, forums: DiscourseApi, config: OreConfig) = {
+  def description_=(_description: String)(implicit forums: DiscourseApi, config: OreConfig) = {
     checkArgument(_description == null
       || _description.length <= config.projects.getInt("max-desc-len").get, "description too long", "")
     this._description = Option(_description)
@@ -175,16 +175,16 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _category Category to set
     */
-  def category_=(_category: Category)(implicit service: ModelService) = {
+  def category_=(_category: Category) = {
     this._category = _category
     if (isDefined) update(ModelKeys.Category)
   }
 
-  def viewEntries(implicit service: ModelService) = this.getMany[ProjectViewsTable, ProjectView](classOf[ProjectView])
+  def viewEntries = this.getMany[ProjectViewsTable, ProjectView](classOf[ProjectView])
 
   def views: Int = this._views
 
-  def addView()(implicit service: ModelService) = {
+  def addView() = {
     this._views += 1
     update(Views)
   }
@@ -201,7 +201,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Future result
     */
-  def addDownload()(implicit service: ModelService) = {
+  def addDownload() = {
     this._downloads += 1
     if (isDefined) update(Downloads)
   }
@@ -219,7 +219,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to check if starred for
     * @return       True if starred by User
     */
-  def isStarredBy(user: User)(implicit service: ModelService): Boolean = Defined {
+  def isStarredBy(user: User): Boolean = Defined {
     service.await(this.actions.isStarredBy(this.id.get, user.id.get)).get
   }
 
@@ -230,7 +230,7 @@ case class Project(override val id: Option[Int] = None,
     * @param username   To get User of
     * @return           True if starred by User
     */
-  def isStarredBy(username: String)(implicit service: ModelService, forums: DiscourseApi): Boolean = Defined {
+  def isStarredBy(username: String)(implicit forums: DiscourseApi): Boolean = Defined {
     val user = User.withName(username)
     isStarredBy(user.get)
   }
@@ -241,7 +241,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user User to set starred state of
     * @param starred True if should star
     */
-  def setStarredBy(user: User, starred: Boolean)(implicit service: ModelService) = {
+  def setStarredBy(user: User, starred: Boolean) = {
     if (starred) starFor(user) else unstarFor(user)
   }
 
@@ -251,7 +251,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to star for
     * @return       Future result
     */
-  def starFor(user: User)(implicit service: ModelService) = Defined {
+  def starFor(user: User) = Defined {
     if (!isStarredBy(user)) {
       this._stars += 1
       service.await(this.actions.starFor(this.id.get, user.id.get)).get
@@ -265,7 +265,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to unstar for
     * @return       Future result
     */
-  def unstarFor(user: User)(implicit service: ModelService) = Defined {
+  def unstarFor(user: User) = Defined {
     if (isStarredBy(user)) {
       this._stars -= 1
       service.await(this.actions.unstarFor(this.id.get, user.id.get)).get
@@ -279,7 +279,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   Flagger
     * @param reason Reason for flagging
     */
-  def flagFor(user: User, reason: FlagReason)(implicit service: ModelService) = Defined {
+  def flagFor(user: User, reason: FlagReason) = Defined {
     val userId = user.id.get
     checkArgument(userId != this.ownerId, "cannot flag own project", "")
     this.flags.add(new Flag(this.id.get, user.id.get, reason))
@@ -297,7 +297,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _issues Issue tracker link
     */
-  def issues_=(_issues: String)(implicit service: ModelService) = {
+  def issues_=(_issues: String) = {
     this._issues = Option(_issues)
     if (isDefined) update(Issues)
   }
@@ -314,7 +314,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _source Source code link
     */
-  def source_=(_source: String)(implicit service: ModelService) = {
+  def source_=(_source: String) = {
     this._source = Option(_source)
     if (isDefined) update(Source)
   }
@@ -331,7 +331,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _topicId ID to set
     */
-  def topicId_=(_topicId: Int)(implicit service: ModelService) = Defined {
+  def topicId_=(_topicId: Int) = Defined {
     this._topicId = Some(_topicId)
     update(TopicId)
   }
@@ -348,7 +348,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _postId Forum post ID
     */
-  def postId_=(_postId: Int)(implicit service: ModelService) = Defined {
+  def postId_=(_postId: Int) = Defined {
     this._postId = Some(_postId)
     update(PostId)
   }
@@ -358,14 +358,14 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Set of all ProjectRoles
     */
-  def roles(implicit service: ModelService) = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+  def roles = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns the Channels in this Project.
     *
     * @return Channels in project
     */
-  def channels(implicit service: ModelService) = this.getMany[ChannelTable, Channel](classOf[Channel])
+  def channels = this.getMany[ChannelTable, Channel](classOf[Channel])
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -373,7 +373,7 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Name of channel
     * @return       New channel
     */
-  def addChannel(name: String, color: Color)(implicit service: ModelService, config: OreConfig): Channel = Defined {
+  def addChannel(name: String, color: Color)(implicit config: OreConfig): Channel = Defined {
     checkArgument(Channel.isValidName(name), "invalid name", "")
     checkState(this.channels.size < config.projects.getInt("max-channels").get, "channel limit reached", "")
     this.channels.add(new Channel(name, color, this.id.get))
@@ -384,14 +384,14 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Versions in project
     */
-  def versions(implicit service: ModelService) = this.getMany[VersionTable, Version](classOf[Version])
+  def versions = this.getMany[VersionTable, Version](classOf[Version])
 
   /**
     * Returns this Project's recommended version.
     *
     * @return Recommended version
     */
-  def recommendedVersion(implicit service: ModelService): Version = this.versions.withId(this.recommendedVersionId.get).get
+  def recommendedVersion: Version = this.versions.withId(this.recommendedVersionId.get).get
 
   /**
     * Updates this project's recommended version.
@@ -399,7 +399,7 @@ case class Project(override val id: Option[Int] = None,
     * @param _version  Version to set
     * @return         Result
     */
-  def recommendedVersion_=(_version: Version)(implicit service: ModelService) = {
+  def recommendedVersion_=(_version: Version) = {
     this.recommendedVersionId = _version.id
     if (isDefined) update(RecommendedVersionId)
   }
@@ -409,7 +409,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Pages in project
     */
-  def pages(implicit service: ModelService) = this.getMany[PageTable, Page](classOf[Page])
+  def pages = this.getMany[PageTable, Page](classOf[Page])
 
   /**
     * Returns true if a page with the specified name exists.
@@ -417,7 +417,7 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Page name
     * @return       True if exists
     */
-  def pageExists(name: String)(implicit service: ModelService): Boolean = this.pages.exists(_.name === name)
+  def pageExists(name: String): Boolean = this.pages.exists(_.name === name)
 
   /**
     * Returns the specified Page or creates it if it doesn't exist.
@@ -425,7 +425,7 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Page name
     * @return       Page with name or new name if it doesn't exist
     */
-  def getOrCreatePage(name: String)(implicit service: ModelService, config: OreConfig): Page = Defined {
+  def getOrCreatePage(name: String)(implicit config: OreConfig): Page = Defined {
     val page = new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true)
     service.await(page.actions.getOrInsert(page)).get
   }
@@ -435,14 +435,14 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Flags on project
     */
-  def flags(implicit service: ModelService) = this.getMany[FlagTable, Flag](classOf[Flag])
+  def flags = this.getMany[FlagTable, Flag](classOf[Flag])
 
   /**
     * Returns this Project's home page.
     *
     * @return Project home page
     */
-  def homePage(implicit service: ModelService, config: OreConfig): Page = Defined {
+  def homePage(implicit config: OreConfig): Page = Defined {
     val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false)
     service.await(page.actions.getOrInsert(page)).get
   }
@@ -459,7 +459,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param visible True if visible
     */
-  def setVisible(visible: Boolean)(implicit service: ModelService) = {
+  def setVisible(visible: Boolean) = {
     this._isVisible = visible
     if (isDefined) update(IsVisible)
   }
@@ -469,21 +469,21 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return True if project exists, false otherwise
     */
-  def exists(implicit service: ModelService): Boolean = withName(this.ownerName, this.name).isDefined
+  def exists: Boolean = withName(this.ownerName, this.name).isDefined
 
   /**
     * Returns true if the Project's desired slug is available.
     *
     * @return True if slug is available
     */
-  def isNamespaceAvailable(implicit service: ModelService): Boolean = Project.isNamespaceAvailable(this.ownerName, this._slug)
+  def isNamespaceAvailable: Boolean = Project.isNamespaceAvailable(this.ownerName, this._slug)
 
   /**
     * Immediately deletes this projects and any associated files.
     *
     * @return Result
     */
-  def delete()(implicit service: ModelService, forums: DiscourseApi, fileManager: ProjectFileManager) = Defined {
+  def delete()(implicit forums: DiscourseApi, fileManager: ProjectFileManager) = Defined {
     remove(this)
     FileUtils.deleteDirectory(fileManager.projectDir(this.ownerName, this._name).toFile)
     if (this.topicId.isDefined) forums.Embed.deleteTopic(this)

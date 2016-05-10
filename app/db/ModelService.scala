@@ -99,8 +99,8 @@ trait ModelService {
     * @param action   Action to run
     * @return         Processed result
     */
-  def process[R: TypeTag](action: AbstractModelAction[R]): Future[R] = DB.db.run(action).andThen {
-    case r => action.processResult(this, r.get)
+  def process[R: TypeTag](action: AbstractModelAction[R]): Future[R] = DB.db.run(action).map {
+    case r => action.processResult(this, r)
   }
 
   /**

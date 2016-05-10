@@ -9,9 +9,8 @@ import scala.reflect.runtime.universe._
   * Processes an annotated Model and bind's the appropriate fields and
   * children.
   */
-trait ModelProcessor {
+class ModelProcessor(service: ModelService, config: OreConfig) {
 
-  val config: OreConfig
   import config.debug
 
   /**
@@ -25,6 +24,10 @@ trait ModelProcessor {
     debug("\n********** Generating bindings for model " + model + " **********")
     bindFields(service, model)
     bindRelations(model)
+    println("service = " + this.service)
+    model.service = this.service
+    model.setProcessed(true)
+    println("processed")
     debug("*****************************************************************\n")
   }
 

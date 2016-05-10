@@ -1,8 +1,13 @@
 @*
 User page for developers.
 *@
-@import models.user.{DiscourseApi, ModelService, StringUtils, User, routes => projectRoutes}
+@import controllers.project.{routes => projectRoutes}
 @import views.html.helper.form
+@import models.user.User
+@import db.ModelService
+@import forums.DiscourseApi
+@import _root_.util.OreConfig
+@import util.StringUtils
 @(user: User)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader,
         service: ModelService, forums: DiscourseApi, config: OreConfig)
 

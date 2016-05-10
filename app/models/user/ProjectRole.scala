@@ -43,7 +43,7 @@ case class ProjectRole(override val id: Option[Int] = None,
     *
     * @param _roleType Role type to set
     */
-  def roleType_=(_roleType: RoleType)(implicit service: ModelService) = {
+  def roleType_=(_roleType: RoleType) = {
     this._roleType = _roleType
     if (isDefined) update(RoleType)
   }

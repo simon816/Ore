@@ -38,21 +38,21 @@ abstract class StatEntry[Subject <: Model[_]](override val id: Option[Int] = Non
     *
     * @return Subject of entry
     */
-  def subject(implicit service: ModelService): Subject
+  def subject: Subject
 
   /**
     * Returns the User associated with this entry, if any.
     *
     * @return User of entry
     */
-  def user(implicit service: ModelService): Option[User] = this.userId.flatMap(User.withId)
+  def user: Option[User] = this.userId.flatMap(User.withId)
 
   /**
     * Sets the User associated with this entry, if any.
     *
     * @param user User of entry
     */
-  def user_=(user: User)(implicit service: ModelService) = {
+  def user_=(user: User) = {
     this.userId = user.id
     update(UserId)
   }

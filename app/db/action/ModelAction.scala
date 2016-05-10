@@ -18,10 +18,7 @@ object ModelAction {
   = action.action
 
   private def process[M <: Model[_]: TypeTag](service: ModelService, model: M): M = {
-    if (!model.isProcessed) {
-      service.processor.process(service, model)
-      model.setProcessed(true)
-    }
+    if (!model.isProcessed) service.processor.process(service, model)
     model
   }
 

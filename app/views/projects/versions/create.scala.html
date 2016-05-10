@@ -1,5 +1,12 @@
-@import ore.project.util.{Channel, DiscourseApi, ModelService, PendingVersion, Project, StringUtils, routes => projectRoutes}
+@import controllers.project.{routes => projectRoutes}
 @import views.html.helper.form
+@import ore.project.util.PendingVersion
+@import models.project.Channel
+@import models.project.Project
+@import _root_.util.OreConfig
+@import db.ModelService
+@import forums.DiscourseApi
+@import util.StringUtils
 @(project: Project, pending: Option[PendingVersion],
   channels: Option[Seq[Channel]], showFileControls: Boolean)(implicit messages: Messages,
         session: Session, flash: Flash, request: RequestHeader, service: ModelService, forums: DiscourseApi,

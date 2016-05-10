@@ -25,16 +25,13 @@ import scala.concurrent.duration.Duration
   * The Ore ModelService implementation. Contains registration of Ore-specific
   * types and Models.
   *
-  * @param registrar  ModelRegistrar
-  * @param processor  ModelProcessor
-  * @param db         DatabaseConfig
+  * @param db DatabaseConfig
   */
 @Singleton
-class OreModelService @Inject()(override val registrar: ModelRegistrar,
-                                override val processor: ModelProcessor,
-                                config: OreConfig,
-                                db: DatabaseConfigProvider) extends ModelService {
+class OreModelService @Inject()(config: OreConfig, db: DatabaseConfigProvider) extends ModelService {
 
+  override lazy val processor = new ModelProcessor(this, config)
+  override lazy val registrar = new ModelRegistrar
   override lazy val driver = OrePostgresDriver
   override lazy val DB = db.get[JdbcProfile]
   override lazy val DefaultTimeout: Duration = Duration(config.app.getInt("db.default-timeout").get, TimeUnit.SECONDS)
@@ -57,6 +54,3 @@ class OreModelService @Inject()(override val registrar: ModelRegistrar,
   register(new VersionActions)
 
 }
-
-class OreModelProcessor @Inject()(override val config: OreConfig) extends ModelProcessor
-class OreModelRegistrar extends ModelRegistrar

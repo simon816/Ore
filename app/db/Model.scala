@@ -21,11 +21,14 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
   type M <: Model[A] { type M = self.M }
   type T <: ModelTable[M]
 
+  implicit var service: ModelService = null
+
   private var _isProcessed = false
   private var fieldBindings: Map[String, FieldBinding[M, _]] = Map.empty
   private var manyBindings: Map[Class[_ <: Model[_]], ManyBinding] = Map.empty
 
   def actions(implicit service: ModelService): A = {
+    if (this.service == null) this.service = service
     println("class " + this.getClass)
     println("annotation " + getClass.getAnnotation(classOf[Actor]))
     service.provide(this.getClass.getAnnotation(classOf[Actor]).value.asInstanceOf[Class[A]])
@@ -48,7 +51,7 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
     * @param key  Binding key
     * @tparam R   Value type
     */
-  def update[R](key: String)(implicit service: ModelService) = {
+  def update[R](key: String) = {
     val binding = this.fieldBindings
       .getOrElse(key, throw new RuntimeException("No field binding found for key " + key + " in model " + this))
       .asInstanceOf[FieldBinding[M, R]]
@@ -85,8 +88,7 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
     * @tparam Many       Child
     * @return            Set of children
     */
-  def getMany[ManyTable <: ModelTable[Many], Many <: Model[_]](modelClass: Class[Many])
-                                                           (implicit service: ModelService) = Defined {
+  def getMany[ManyTable <: ModelTable[Many], Many <: Model[_]](modelClass: Class[Many]) = Defined {
     val binding = this.manyBindings
       .find(_._1.isAssignableFrom(modelClass))
       .getOrElse(throw new RuntimeException("No child binding found for model " + modelClass + " in model " + this))._2

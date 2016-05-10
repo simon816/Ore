@@ -32,7 +32,7 @@ case class VersionDownload(override val id: Option[Int] = None,
                            @(Bind @field) private var userId: Option[Int] = None)
                            extends StatEntry[Version](id, createdAt, modelId, address, cookie, userId) {
 
-  override def subject(implicit service: ModelService): Version = Version.withId(this.modelId).get
+  override def subject: Version = Version.withId(this.modelId).get
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): VersionDownload
   = this.copy(id = id, createdAt = theTime)

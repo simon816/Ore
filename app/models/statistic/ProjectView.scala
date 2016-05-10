@@ -32,7 +32,7 @@ case class ProjectView(override val id: Option[Int] = None,
                        extends StatEntry[Project](id, createdAt, modelId, address, cookie, userId)
                          with ProjectOwner {
 
-  override def subject(implicit service: ModelService): Project = Project.withId(this.modelId).get
+  override def subject: Project = Project.withId(this.modelId).get
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): ProjectView
   = this.copy(id = id, createdAt = theTime)

@@ -68,7 +68,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _fullName Full name of user
     */
-  def name_=(_fullName: String)(implicit service: ModelService) = {
+  def name_=(_fullName: String) = {
     this._name = Option(_fullName)
     if (isDefined) update(Name)
   }
@@ -85,7 +85,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _username Username of User
     */
-  def username_=(_username: String)(implicit service: ModelService) = {
+  def username_=(_username: String) = {
     checkNotNull(_username, "username cannot be null", "")
     this._username = _username
     if (isDefined) update(Username)
@@ -103,7 +103,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _email User email
     */
-  def email_=(_email: String)(implicit service: ModelService) = {
+  def email_=(_email: String) = {
     this._email = Option(_email)
     if (isDefined) update(Email)
   }
@@ -122,7 +122,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _joinDate Sponge join date
     */
-  def joinDate_=(_joinDate: Timestamp)(implicit service: ModelService) = {
+  def joinDate_=(_joinDate: Timestamp) = {
     this._joinDate = Option(_joinDate)
     if (isDefined) update(JoinDate)
   }
@@ -145,7 +145,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _avatarUrl Avatar url
     */
-  def avatarUrl_=(_avatarUrl: String)(implicit service: ModelService) = {
+  def avatarUrl_=(_avatarUrl: String) = {
     this._avatarUrl = Option(_avatarUrl)
     if (isDefined) update(AvatarUrl)
   }
@@ -162,7 +162,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _tagline Tagline to display
     */
-  def tagline_=(_tagline: String)(implicit service: ModelService, config: OreConfig) = {
+  def tagline_=(_tagline: String)(implicit config: OreConfig) = {
     checkArgument(_tagline.length <= config.users.getInt("max-tagline-len").get, "tagline too long", "")
     this._tagline = Option(nullIfEmpty(_tagline))
     if (isDefined) update(Tagline)
@@ -174,21 +174,21 @@ case class User(override val id: Option[Int] = None,
     * @param name   Name of project
     * @return       Owned project, if any, None otherwise
     */
-  def getProject(name: String)(implicit service: ModelService): Option[Project] = Project.withName(this.username, name)
+  def getProject(name: String): Option[Project] = Project.withName(this.username, name)
 
   /**
     * Returns all Projects owned by this User.
     *
     * @return All projects owned by User
     */
-  def projects(implicit service: ModelService) = this.getMany[ProjectTable, Project](classOf[Project])
+  def projects = this.getMany[ProjectTable, Project](classOf[Project])
 
   /**
     * Returns a [[ModelSet]] of [[ProjectRole]]s.
     *
     * @return ProjectRoles
     */
-  def projectRoles(implicit service: ModelService) = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+  def projectRoles = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns a Set of [[RoleType]]s that this User has globally.
@@ -202,7 +202,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @param _globalRoles Roles to set
     */
-  def globalRoles_=(_globalRoles: Set[RoleType])(implicit service: ModelService) = {
+  def globalRoles_=(_globalRoles: Set[RoleType]) = {
     this._globalRoles = _globalRoles.toList
     if (isDefined) update(GlobalRoles)
   }
@@ -212,7 +212,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Highest level of trust
     */
-  def trustIn(scope: Scope = GlobalScope)(implicit service: ModelService): Trust = Defined {
+  def trustIn(scope: Scope = GlobalScope): Trust = Defined {
     scope match {
       case GlobalScope => this.globalRoles.map(_.trust).toList.sorted.reverse.headOption.getOrElse(Default)
       case pScope: ProjectScope =>
@@ -225,7 +225,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Flags submitted by user
     */
-  def flags(implicit service: ModelService) = this.getMany[FlagTable, Flag](classOf[Flag])
+  def flags = this.getMany[FlagTable, Flag](classOf[Flag])
 
   /**
     * Returns true if the User has an unresolved [[Flag]] on the specified
@@ -234,7 +234,7 @@ case class User(override val id: Option[Int] = None,
     * @param project  Project to check
     * @return         True if has pending flag on Project
     */
-  def hasUnresolvedFlagFor(project: Project)(implicit service: ModelService): Boolean
+  def hasUnresolvedFlagFor(project: Project): Boolean
   = this.flags.exists(f => f.projectId === project.id.get && !f.isResolved)
 
   /**
@@ -243,7 +243,7 @@ case class User(override val id: Option[Int] = None,
     * @param page Page of user stars
     * @return     Projects user has starred
     */
-  def starred(page: Int = -1)(implicit service: ModelService, config: OreConfig): Seq[Project] = Defined {
+  def starred(page: Int = -1)(implicit config: OreConfig): Seq[Project] = Defined {
     val starsPerPage = config.users.getInt("stars-per-page").get
     val limit = if (page < 1) -1 else starsPerPage
     val actions = service.provide(classOf[ProjectActions])
@@ -257,7 +257,7 @@ case class User(override val id: Option[Int] = None,
     * @param user User to fill with
     * @return     This user
     */
-  def fill(user: User)(implicit service: ModelService, config: OreConfig): User = {
+  def fill(user: User)(implicit config: OreConfig): User = {
     if (user == null) return this
     user.name.foreach(this.name_=)
     user.email.foreach(this.email_=)

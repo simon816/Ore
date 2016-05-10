@@ -80,7 +80,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Channel
     */
-  def channel(implicit service: ModelService): Channel = Channel.withId(this.channelId).get
+  def channel: Channel = Channel.withId(this.channelId).get
 
   /**
     * Returns the channel this version belongs to from the specified collection
@@ -107,7 +107,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @param _description Version description
     */
-  def description_=(_description: String)(implicit service: ModelService, config: OreConfig) = {
+  def description_=(_description: String)(implicit config: OreConfig) = {
     Preconditions.checkArgument(_description.length <= Page.MaxLength, "content too long", "")
     this._description = Some(_description)
     if (isDefined) update(Description)
@@ -133,7 +133,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @param reviewed True if reviewed
     */
-  def setReviewed(reviewed: Boolean)(implicit service: ModelService) = {
+  def setReviewed(reviewed: Boolean) = {
     this._isReviewed = reviewed
     if (isDefined) update(IsReviewed)
   }
@@ -152,12 +152,12 @@ case class Version(override val id: Option[Int] = None,
 
   def downloads: Int = this._downloads
 
-  def addDownload()(implicit service: ModelService) = {
+  def addDownload() = {
     this._downloads += 1
     update(Downloads)
   }
 
-  def downloadEntries(implicit service: ModelService)
+  def downloadEntries
   = this.getMany[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
 
   /**
@@ -174,7 +174,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return True if exists
     */
-  def exists(implicit service: ModelService): Boolean = {
+  def exists: Boolean = {
     this.projectId > -1 && (service.await(this.actions.hashExists(this.projectId, this.hash)).get
       || this.project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase))
   }
