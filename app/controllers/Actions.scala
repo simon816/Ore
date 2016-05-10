@@ -5,8 +5,10 @@ import db.ModelService
 import forums.DiscourseApi
 import models.project.Project
 import models.user.User
+import ore.UserBase
 import ore.permission.scope.GlobalScope
 import ore.permission.{HideProjects, Permission}
+import ore.project.ProjectBase
 import play.api.mvc.Results._
 import play.api.mvc._
 
@@ -19,9 +21,11 @@ trait Actions {
 
   implicit val service: ModelService
   implicit val forums: DiscourseApi
+  implicit val users: UserBase
+  implicit val projects: ProjectBase
 
   def onUnauthorized(request: RequestHeader) = {
-    if (request.flash.get("noRedirect").isEmpty && User.current(request.session, service, forums).isEmpty)
+    if (request.flash.get("noRedirect").isEmpty && users.current(request.session).isEmpty)
       Redirect(routes.Users.logIn(None, None, Some(request.path)))
     else Redirect(routes.Application.showHome(None, None, None))
   }
@@ -38,9 +42,9 @@ trait Actions {
   private def projectAction(author: String, slug: String)
   = new ActionRefiner[Request, ProjectRequest] {
     def refine[A](request: Request[A]) = Future.successful {
-      Project.withSlug(author, slug)
-        .flatMap(processProject(_, User.current(request.session, service, forums)))
-        .map(new ProjectRequest[A](_, service, forums, request))
+      projects.withSlug(author, slug)
+        .flatMap(processProject(_, users.current(request.session)))
+        .map(new ProjectRequest[A](_, service, forums, users, request))
         .toRight(NotFound)
     }
   }
@@ -51,8 +55,8 @@ trait Actions {
 
   def authAction = new ActionRefiner[Request, AuthRequest] {
     def refine[A](request: Request[A]): Future[Either[Result, AuthRequest[A]]] = Future.successful {
-      User.current(request.session, service, forums)
-        .map(new AuthRequest(_, service, forums, request))
+      users.current(request.session)
+        .map(new AuthRequest(_, service, forums, users, request))
         .toRight(onUnauthorized(request))
     }
   }
@@ -64,9 +68,9 @@ trait Actions {
   private def authedProjectAction(author: String, slug: String)
   = new ActionRefiner[AuthRequest, AuthedProjectRequest] {
       def refine[A](request: AuthRequest[A]) = Future.successful {
-        Project.withSlug(author, slug)
+        projects.withSlug(author, slug)
           .flatMap(processProject(_, Some(request.user)))
-          .map(new AuthedProjectRequest[A](_, service, forums, request))
+          .map(new AuthedProjectRequest[A](_, service, forums, users, request))
           .toRight(NotFound)
       }
   }

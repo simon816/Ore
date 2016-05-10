@@ -6,12 +6,13 @@
 @import models.user.User
 @import ore.permission.scope.GlobalScope
 @import ore.permission.{EditVersions, ReviewProjects}
+@import ore.UserBase
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService,
-        forums: DiscourseApi, config: OreConfig)
+        forums: DiscourseApi, config: OreConfig, users: UserBase)
 
-@hasUser = @{ User.current.isDefined }
-@user = @{ User.current.get }
+@hasUser = @{ users.current.isDefined }
+@user = @{ users.current.get }
 @canEdit = @{ hasUser && (user can EditVersions in project) }
 @canApprove = @{ hasUser && (user can ReviewProjects in GlobalScope) }
 @isRecommended = @{ project.recommendedVersion.equals(version) }

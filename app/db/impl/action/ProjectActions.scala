@@ -62,15 +62,6 @@ class ProjectActions(implicit val service: ModelService)
   }
 
   /**
-    * Filters projects by owner name.
-    *
-    * @param ownerName Owner name
-    * @return Project filter
-    */
-  def ownerFilter(ownerName: String): ModelFilter[ProjectTable, Project]
-  = ModelFilter(p => p.ownerName.toLowerCase === ownerName.toLowerCase)
-
-  /**
     * Filters projects based on the given criteria.
     *
     * @param filter Filter to match Projects on

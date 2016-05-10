@@ -9,6 +9,7 @@ import javax.crypto.spec.SecretKeySpec
 
 import db.ModelService
 import models.user.User
+import ore.UserBase
 import org.apache.commons.codec.binary.Hex
 import util.OreConfig
 
@@ -18,7 +19,7 @@ import util.OreConfig
   * @param url      SSO url
   * @param secret   SSO secret key
   */
-class DiscourseSSO(private val url: String, private val secret: String, implicit val api: DiscourseApi)
+class DiscourseSSO(private val url: String, private val secret: String, users: UserBase, implicit val api: DiscourseApi)
                   (implicit config: OreConfig) {
 
   private val charEncoding = "UTF-8"
@@ -85,7 +86,7 @@ class DiscourseSSO(private val url: String, private val secret: String, implicit
     if (externalId == -1) throw new IllegalStateException("id not found")
 
     // Send another request to get more info to fill the user with
-    User.withName(username).get.fill(service.await(api.Users.fetch(username)).get.get.copy(
+    users.withName(username).get.fill(service.await(api.Users.fetch(username)).get.get.copy(
       id = Some(externalId),
       _name = Some(name),
       _username = username,

@@ -7,7 +7,9 @@ import controllers.project.routes.{Channels => self}
 import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
+import ore.UserBase
 import ore.permission.EditChannels
+import ore.project.ProjectBase
 import ore.project.util.ProjectFileManager
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -22,6 +24,8 @@ class Channels @Inject()(override val messagesApi: MessagesApi,
                          implicit val config: OreConfig,
                          implicit val fileManager: ProjectFileManager,
                          implicit val ws: WSClient,
+                         implicit override val users: UserBase,
+                         implicit override val projects: ProjectBase,
                          implicit override val forums: DiscourseApi,
                          implicit override val service: ModelService) extends BaseController {
 

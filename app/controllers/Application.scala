@@ -12,11 +12,12 @@ import db.impl.action.ProjectActions
 import forums.DiscourseApi
 import models.project.{Flag, Project, Version}
 import models.user.User
+import ore.UserBase
 import ore.permission._
 import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
 import ore.project.util.{ProjectFactory, ProjectFileManager}
-import ore.project.{Categories, ProjectSortingStrategies}
+import ore.project.{Categories, ProjectBase, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc._
@@ -31,6 +32,8 @@ class Application @Inject()(override val messagesApi: MessagesApi,
                             implicit val ws: WSClient,
                             implicit val config: OreConfig,
                             implicit val fileManager: ProjectFileManager,
+                            implicit override val users: UserBase,
+                            implicit override val projects: ProjectBase,
                             implicit override val forums: DiscourseApi,
                             implicit override val service: ModelService) extends BaseController {
 
@@ -48,7 +51,7 @@ class Application @Inject()(override val messagesApi: MessagesApi,
     
     // Determine filter
     val actions = service.provide(classOf[ProjectActions])
-    val canHideProjects = User.current.isDefined && (User.current.get can HideProjects in GlobalScope)
+    val canHideProjects = users.current.isDefined && (users.current.get can HideProjects in GlobalScope)
     var filter: ProjectTable => Rep[Boolean] = query.map { q =>
       // Search filter + visible
       var f  = actions.searchFilter(q)

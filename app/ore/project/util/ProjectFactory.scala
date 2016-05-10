@@ -8,7 +8,9 @@ import db.ModelService
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.{ProjectRole, User}
+import ore.UserBase
 import ore.permission.role.RoleTypes
+import ore.project.ProjectBase
 import play.api.libs.Files.TemporaryFile
 import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
@@ -20,6 +22,8 @@ import scala.util.Try
   */
 trait ProjectFactory {
 
+  val projects: ProjectBase
+  val users: UserBase
   val fileManager: ProjectFileManager
   implicit val config: OreConfig
   val env = fileManager.env
@@ -51,8 +55,9 @@ trait ProjectFactory {
     */
   def createProject(pending: PendingProject)(implicit service: ModelService,
                                              forums: DiscourseApi): Try[Project] = Try {
-    checkArgument(!pending.project.exists, "project already exists", "")
-    checkArgument(pending.project.isNamespaceAvailable, "slug not available", "")
+    val project = pending.project
+    checkArgument(!projects.exists(project), "project already exists", "")
+    checkArgument(projects.isNamespaceAvailable(project.ownerName, project.slug), "slug not available", "")
     checkArgument(Project.isValidName(pending.project.name), "invalid name", "")
     val newProject = Project.add(pending.project)
 
@@ -60,7 +65,7 @@ trait ProjectFactory {
     val user = pending.file.user
     user.projectRoles.add(new ProjectRole(user.id.get, RoleTypes.ProjectOwner, newProject.id.get))
     for (role <- pending.roles) {
-      User.withId(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
+      users.withId(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
     }
 
     forums.Embed.createTopic(newProject)
@@ -75,7 +80,7 @@ trait ProjectFactory {
     */
   def createVersion(pending: PendingVersion)(implicit service: ModelService): Try[Version] = Try {
     var channel: Channel = null
-    val project = Project.withSlug(pending.owner, pending.projectSlug).get
+    val project = projects.withSlug(pending.owner, pending.projectSlug).get
 
     // Create channel if not exists
     project.channels.find(equalsIgnoreCase(_.name, pending.channelName)) match {

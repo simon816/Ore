@@ -7,8 +7,9 @@
 @import ore.permission.HideProjects
 @import ore.permission.scope.GlobalScope
 @import views.html.helper.form
+@import ore.UserBase
 @(project: Project)(implicit messages: Messages, session: Session, flash: Flash,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 @projects.view(project, "#settings") {
 
@@ -23,7 +24,7 @@
                     <div class="panel-heading">
                         <h3 class="panel-title pull-left">@messages("project.settings")</h3>
 
-                        @if(User.current.get can HideProjects in GlobalScope) {
+                        @if(users.current.get can HideProjects in GlobalScope) {
                             @projects.util.btnHide(project, "pull-right")
                         }
 

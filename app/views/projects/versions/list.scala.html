@@ -8,9 +8,11 @@ Versions page within Project overview.
 @import models.project.{Channel, Project, Version}
 @import models.user.User
 @import ore.permission.{EditChannels, EditVersions}
+@import ore.UserBase
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
   visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session,
-        request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig)
+        request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig,
+        users: UserBase)
 
 @projects.view(model, "#versions") {
 
@@ -105,7 +107,7 @@ Versions page within Project overview.
 
                     </div>
                     <div class="col-md-3">
-                        @if(User.current.isDefined && (User.current.get can EditVersions in model)) {
+                        @if(users.current.isDefined && (users.current.get can EditVersions in model)) {
                             <a href="@projectRoutes.Versions.showCreator(model.ownerName, model.slug)"
                             class="btn btn-block btn-primary btn-panel btn-version">
                                 <i class="fa fa-plus"></i> Create version
@@ -136,7 +138,7 @@ Versions page within Project overview.
                                   </li>
                                 }
 
-                                @if(User.current.isDefined && (User.current.get can EditChannels in model)) {
+                                @if(users.current.isDefined && (users.current.get can EditChannels in model)) {
                                     <li class="list-group-item text-right">
                                         <a href="@projectRoutes.Channels.showList(model.ownerName, model.slug)">
                                             <i class="fa fa-cog"></i> Edit

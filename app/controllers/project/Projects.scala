@@ -9,10 +9,10 @@ import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
 import models.project._
-import models.user.User
+import ore.UserBase
 import ore.permission.{EditSettings, HideProjects}
-import ore.project.FlagReasons
 import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectFileManager}
+import ore.project.{FlagReasons, ProjectBase}
 import ore.statistic.StatTracker
 import play.api.cache.CacheApi
 import play.api.i18n.MessagesApi
@@ -38,6 +38,8 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
                          implicit val cacheApi: CacheApi,
                          implicit val projectFactory: ProjectFactory,
                          implicit val ws: WSClient,
+                         implicit override val users: UserBase,
+                         implicit override val projects: ProjectBase,
                          implicit override val forums: DiscourseApi,
                          implicit override val service: ModelService) extends BaseController {
 
@@ -75,7 +77,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
             // Cache pending project for later use
             val meta = plugin.meta.get
             val project = Project.fromMeta(user, meta)
-            Project.setPending(project, plugin)
+            projects.setPending(project, plugin)
             Redirect(self.showCreatorWithMeta(project.ownerName, project.slug))
         }
     }
@@ -90,7 +92,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     */
   def showCreatorWithMeta(author: String, slug: String) = {
     Authenticated { implicit request =>
-      Project.getPending(author, slug) match {
+      projects.getPending(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pending) => Ok(views.create(Some(pending)))
       }
@@ -106,7 +108,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     */
   def showMembersConfig(author: String, slug: String) = {
     Authenticated { implicit request =>
-      Project.getPending(author, slug) match {
+      projects.getPending(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pendingProject) =>
           forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.project)
@@ -125,7 +127,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     */
   def showFirstVersionCreator(author: String, slug: String) = {
     Authenticated { implicit request =>
-      Project.getPending(author, slug) match {
+      projects.getPending(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pendingProject) =>
           pendingProject.roles = forms.MemberRoles.bindFromRequest.get.build()
@@ -195,7 +197,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     * @return Redirect to project page.
     */
   def showProjectWithId(pluginId: String) = Action { implicit request =>
-    Project.withPluginId(pluginId) match {
+    projects.withPluginId(pluginId) match {
       case None => NotFound
       case Some(project) => Redirect(self.show(project.ownerName, project.slug))
     }
@@ -319,7 +321,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
     */
   def removeMember(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
-      request.project.removeMember(User.withName(forms.MemberRemove.bindFromRequest.get.trim).get)
+      request.project.removeMember(users.withName(forms.MemberRemove.bindFromRequest.get.trim).get)
       Redirect(self.showSettings(author, slug))
     }
   }
@@ -334,7 +336,7 @@ class Projects @Inject()(override val messagesApi: MessagesApi,
   def rename(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
       val newName = compact(forms.ProjectRename.bindFromRequest.get)
-      if (!Project.isNamespaceAvailable(author, slugify(newName))) {
+      if (!projects.isNamespaceAvailable(author, slugify(newName))) {
         Redirect(self.showSettings(author, slug)).flashing("error" -> "That name is not available.")
       } else {
         val project = request.project

@@ -7,11 +7,12 @@
 @import ore.permission.EditSettings
 @import ore.permission.role.RoleTypes
 @import views.html.helper.form
+@import ore.UserBase
 @(model: Project, editable: Boolean = false)(implicit messages: Messages, session: Session,
-        service: ModelService, forums: DiscourseApi, config: OreConfig)
+        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 @canEdit = @{
-    editable && User.current.isDefined && (User.current.get can EditSettings in model)
+    editable && users.current.isDefined && (users.current.get can EditSettings in model)
 }
 
 @if(model.members.nonEmpty) {

@@ -51,7 +51,7 @@ object VersionDownload {
     */
   def bindFromRequest(version: Version)(implicit request: ProjectRequest[_]): VersionDownload = {
     val cookie = StatTracker.getStatCookie
-    val userId = User.current(request.session, request.service, request.forums).flatMap(_.id)
+    val userId = request.users.current(request.session).flatMap(_.id)
     VersionDownload(
       modelId = version.id.get,
       address = InetString(request.remoteAddress),

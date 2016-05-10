@@ -6,7 +6,8 @@ import controllers.routes.{Users => self}
 import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
-import models.user.User
+import ore.UserBase
+import ore.project.ProjectBase
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Security, _}
@@ -18,6 +19,8 @@ class Users @Inject()(override val messagesApi: MessagesApi,
                       val forms: OreForms,
                       implicit val config: OreConfig,
                       implicit val ws: WSClient,
+                      implicit override val users: UserBase,
+                      implicit override val projects: ProjectBase,
                       implicit override val forums: DiscourseApi,
                       implicit override val service: ModelService) extends BaseController {
 
@@ -31,7 +34,7 @@ class Users @Inject()(override val messagesApi: MessagesApi,
   def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
     val baseUrl = config.app.getString("baseUrl").get
     if (fakeUser.isEnabled) {
-      User.getOrCreate(fakeUser)
+      users.getOrCreate(fakeUser)
       redirectBack(returnPath.getOrElse(request.path), fakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
       Redirect(forums.Auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
@@ -63,7 +66,7 @@ class Users @Inject()(override val messagesApi: MessagesApi,
     * @return           View of user page
     */
   def show(username: String) = Action { implicit request =>
-    User.withName(username) match {
+    users.withName(username) match {
       case None => NotFound
       case Some(user) => Ok(views.user(user))
     }

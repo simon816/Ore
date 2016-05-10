@@ -7,8 +7,9 @@ Discussion page within Project overview.
 @import forums.DiscourseApi
 @import models.project.Project
 @import models.user.User
+@import ore.UserBase
 @(model: Project)(implicit messages: Messages, session: Session, request: RequestHeader,
-        flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig)
+        flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 @projects.view(model, "#discussion") {
 
@@ -24,7 +25,7 @@ Discussion page within Project overview.
     <div class="container">
         <div id='discourse-comments'></div>
         <div class="row">
-            @if(User.current.isDefined) {
+            @if(users.current.isDefined) {
                 <div class="col-md-8">
                     <div class="reply-box">
 

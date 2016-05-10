@@ -5,7 +5,6 @@ import java.sql.Timestamp
 import java.text.MessageFormat
 
 import com.google.common.base.Preconditions._
-import db._
 import db.action.ModelSet
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
@@ -16,15 +15,15 @@ import forums.DiscourseApi
 import models.statistic.ProjectView
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
+import ore.UserBase
 import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import ore.project.util._
-import ore.project.{Categories, ProjectMember}
+import ore.project.{Categories, ProjectBase, ProjectMember}
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
-import play.api.cache.CacheApi
-import util.StringUtils.{compact, equalsIgnoreCase, slugify}
+import util.StringUtils.{compact, slugify}
 import util.{OreConfig, OreEnv}
 
 import scala.annotation.meta.field
@@ -87,15 +86,14 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Owner Member of project
     */
-  def owner(implicit forums: DiscourseApi): ProjectMember = new ProjectMember(this, this.ownerName)
+  def owner: ProjectMember = new ProjectMember(this, this.ownerName)
 
   /**
     * Returns all [[ProjectMember]]s of this project.
     *
     * @return All Members of project
     */
-  def members(implicit forums: DiscourseApi): Set[ProjectMember]
-  = service.await(this.actions.getMembers(this)).get.toSet
+  def members: Set[ProjectMember] = service.await(this.actions.getMembers(this)).get.toSet
 
   /**
     * Removes the [[ProjectMember]] that belongs to the specified [[User]] from this
@@ -118,11 +116,12 @@ case class Project(override val id: Option[Int] = None,
     * @param _name   New name
     * @return       Future result
     */
-  def name_=(_name: String)(implicit forums: DiscourseApi, fileManager: ProjectFileManager) = Defined {
+  def name_=(_name: String)(implicit forums: DiscourseApi, fileManager: ProjectFileManager,
+                            projects: ProjectBase) = Defined {
     val newName = compact(_name)
     val newSlug = slugify(newName)
     checkArgument(isValidName(newName), "invalid name", "")
-    checkArgument(Project.isNamespaceAvailable(this.ownerName, newSlug), "slug not available", "")
+    checkArgument(projects.isNamespaceAvailable(this.ownerName, newSlug), "slug not available", "")
     fileManager.renameProject(this.ownerName, this.name, newName)
     this._name = newName
     this._slug = slugify(newName)
@@ -178,10 +177,23 @@ case class Project(override val id: Option[Int] = None,
     if (isDefined) update(ModelKeys.Category)
   }
 
+  /**
+    * Returns the record of unique Project views.
+    *
+    * @return Unique project views
+    */
   def viewEntries = this.getMany[ProjectViewsTable, ProjectView](classOf[ProjectView])
 
+  /**
+    * Returns the amount of unique views this Project has.
+    *
+    * @return Amount of unique views
+    */
   def views: Int = this._views
 
+  /**
+    * Adds one view to this Project's view count.
+    */
   def addView() = {
     this._views += 1
     update(Views)
@@ -217,7 +229,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to check if starred for
     * @return       True if starred by User
     */
-  def isStarredBy(user: User)(implicit forums: DiscourseApi): Boolean = Defined {
+  def isStarredBy(user: User): Boolean = Defined {
     service.await(this.actions.isStarredBy(this.id.get, user.id.get)).get
   }
 
@@ -228,8 +240,8 @@ case class Project(override val id: Option[Int] = None,
     * @param username   To get User of
     * @return           True if starred by User
     */
-  def isStarredBy(username: String)(implicit forums: DiscourseApi): Boolean = Defined {
-    val user = User.withName(username)
+  def isStarredBy(username: String)(implicit users: UserBase): Boolean = Defined {
+    val user = users.withName(username)
     isStarredBy(user.get)
   }
 
@@ -239,9 +251,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user User to set starred state of
     * @param starred True if should star
     */
-  def setStarredBy(user: User, starred: Boolean)(implicit forums: DiscourseApi) = {
-    if (starred) starFor(user) else unstarFor(user)
-  }
+  def setStarredBy(user: User, starred: Boolean) = if (starred) starFor(user) else unstarFor(user)
 
   /**
     * Sets this Project as starred for the specified User.
@@ -249,7 +259,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to star for
     * @return       Future result
     */
-  def starFor(user: User)(implicit forums: DiscourseApi) = Defined {
+  def starFor(user: User) = Defined {
     if (!isStarredBy(user)) {
       this._stars += 1
       service.await(this.actions.starFor(this.id.get, user.id.get)).get
@@ -263,7 +273,7 @@ case class Project(override val id: Option[Int] = None,
     * @param user   User to unstar for
     * @return       Future result
     */
-  def unstarFor(user: User)(implicit forums: DiscourseApi) = Defined {
+  def unstarFor(user: User) = Defined {
     if (isStarredBy(user)) {
       this._stars -= 1
       service.await(this.actions.unstarFor(this.id.get, user.id.get)).get
@@ -463,18 +473,16 @@ case class Project(override val id: Option[Int] = None,
   }
 
   /**
-    * Returns true if this Project already exists.
+    * Returns the string to fill the specified Project's forum topic content
+    * with.
     *
-    * @return True if project exists, false otherwise
+    * @return Topic content string
     */
-  def exists: Boolean = withName(this.ownerName, this.name).isDefined
-
-  /**
-    * Returns true if the Project's desired slug is available.
-    *
-    * @return True if slug is available
-    */
-  def isNamespaceAvailable: Boolean = Project.isNamespaceAvailable(this.ownerName, this._slug)
+  def topicContent(implicit env: OreEnv): String = {
+    val template = new String(Files.readAllBytes(env.conf.resolve("discourse/project_topic.md")))
+    val url = config.app.getString("baseUrl").get + '/' + project.ownerName + '/' + project.slug
+    MessageFormat.format(template, project.name, url, project.homePage.contents)
+  }
 
   /**
     * Immediately deletes this projects and any associated files.
@@ -500,58 +508,6 @@ case class Project(override val id: Option[Int] = None,
 object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
 
   /**
-    * Returns the Project with the specified owner name and URL slug, if any.
-    *
-    * @param owner  Owner name
-    * @param slug   URL slug
-    * @return       Project if found, None otherwise
-    */
-  def withSlug(owner: String, slug: String)(implicit service: ModelService): Option[Project]
-  = this.find(service.provide(classOf[ProjectActions]).ownerFilter(owner) && equalsIgnoreCase(_.slug, slug))
-
-  /**
-    * Returns the Project with the specified owner name and Project name, if
-    * any.
-    *
-    * @param owner  Owner name
-    * @param name   Project name
-    * @return       Project if found, None otherwise
-    */
-  def withName(owner: String, name: String)(implicit service: ModelService): Option[Project]
-  = this.find(service.provide(classOf[ProjectActions]).ownerFilter(owner) && equalsIgnoreCase(_.name, name))
-
-  /**
-    * Returns the Project with the specified plugin ID, if any.
-    *
-    * @param pluginId Plugin ID
-    * @return         Project if found, None otherwise
-    */
-  def withPluginId(pluginId: String)(implicit service: ModelService): Option[Project]
-  = this.find(equalsIgnoreCase(_.pluginId, pluginId))
-
-  /**
-    * Returns the string to fill the specified Project's forum topic content
-    * with.
-    *
-    * @param project  Project of topic
-    * @return         Topic content string
-    */
-  def topicContentFor(project: Project)(implicit service: ModelService, config: OreConfig, env: OreEnv): String = {
-    val template = new String(Files.readAllBytes(env.conf.resolve("discourse/project_topic.md")))
-    val url = config.app.getString("baseUrl").get + '/' + project.ownerName + '/' + project.slug
-    MessageFormat.format(template, project.name, url, project.homePage.contents)
-  }
-
-  /**
-    * Returns true if the Project's desired slug is available.
-    *
-    * @return True if slug is available
-    */
-  def isNamespaceAvailable(owner: String, slug: String)(implicit service: ModelService): Boolean = {
-    withSlug(owner, slug).isEmpty
-  }
-
-  /**
     * Returns true if the specified name is a valid Project name.
     *
     * @param name   Name to check
@@ -560,31 +516,6 @@ object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
   def isValidName(name: String)(implicit config: OreConfig): Boolean = {
     val sanitized = compact(name)
     sanitized.length >= 1 && sanitized.length <= config.projects.getInt("max-name-len").get
-  }
-
-  /**
-    * Marks the specified Project as pending for later use.
-    *
-    * @param project        Project that is pending
-    * @param firstVersion   Uploaded plugin
-    */
-  def setPending(project: Project, firstVersion: PluginFile)
-                (implicit service: ModelService, forums: DiscourseApi,
-                 factory: ProjectFactory, cacheApi: CacheApi, config: OreConfig): PendingProject =  {
-    val pendingProject = PendingProject(project, firstVersion)
-    pendingProject.cache()
-    pendingProject
-  }
-
-  /**
-    * Returns the PendingProject of the specified owner and name, if any.
-    *
-    * @param owner  Project owner
-    * @param slug   Project slug
-    * @return       PendingProject if present, None otherwise
-    */
-  def getPending(owner: String, slug: String)(implicit cacheApi: CacheApi): Option[PendingProject] = {
-    cacheApi.get[PendingProject](owner + '/' + slug)
   }
 
   /**

@@ -21,6 +21,7 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
   type M <: Model[A] { type M = self.M }
   type T <: ModelTable[M]
 
+  /** The ModelService that this Model was processed with */
   implicit var service: ModelService = null
 
   private var _isProcessed = false

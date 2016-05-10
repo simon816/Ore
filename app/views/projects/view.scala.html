@@ -10,12 +10,13 @@ Base template for Project overview.
 @import ore.permission.EditSettings
 @import ore.project.FlagReasons
 @import views.html.helper.form
+@import ore.UserBase
 @(project: Project, active: String, noButtons: Boolean = false)(content: Html)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService,
-        forums: DiscourseApi, config: OreConfig)
+        forums: DiscourseApi, config: OreConfig, users: UserBase)
 
-@hasUser = @{ User.current.isDefined }
-@user = @{ User.current.get }
+@hasUser = @{ users.current.isDefined }
+@user = @{ users.current.get }
 @isOwner(user: User) = @{ user.id.get == project.ownerId }
 
 @core.layout(project.ownerName + " / " + project.name) {

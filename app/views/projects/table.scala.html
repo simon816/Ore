@@ -36,7 +36,7 @@ Collection of all projects.
                 <td>
                     <a href="@routes.Users.show(project.ownerName)">
                         <img class="user-avatar" height="32" width="32" title="@project.ownerName"
-                             alt="@project.ownerName" src="@User.withName(project.ownerName).get.avatarUrl(100)" />
+                             alt="@project.ownerName" src="@project.owner.user.avatarUrl(100)" />
                     </a>
                 </td>
                 <td class="minor stat">@project.views</td>

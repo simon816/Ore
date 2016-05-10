@@ -8,7 +8,9 @@ import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
 import models.project.Page
+import ore.UserBase
 import ore.permission.EditPages
+import ore.project.ProjectBase
 import ore.statistic.StatTracker
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
@@ -26,6 +28,8 @@ class Pages @Inject()(override val messagesApi: MessagesApi,
                       implicit val config: OreConfig,
                       implicit val ws: WSClient,
                       implicit override val forums: DiscourseApi,
+                      implicit override val users: UserBase,
+                      implicit override val projects: ProjectBase,
                       implicit override val service: ModelService) extends BaseController {
 
   private def PageEditAction(author: String, slug: String)

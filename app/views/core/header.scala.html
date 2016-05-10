@@ -9,8 +9,9 @@ The main header displayed on each layout.
 @import models.user.User
 @import ore.permission.scope.GlobalScope
 @import ore.permission.{ReviewFlags, ReviewProjects}
+@import ore.UserBase
 @()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService,
-        forums: DiscourseApi, config: OreConfig)
+        forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 @canViewFlags(user: User) = @{ user can ReviewFlags in GlobalScope }
 @canReviewProjects(user: User) = @{ user can ReviewProjects in GlobalScope }
@@ -60,7 +61,7 @@ The main header displayed on each layout.
                     <div class="icon-project-search"><i class="fa fa-search"></i></div>
                 </li>
 
-                @User.current.map { user =>
+                @users.current.map { user =>
                     @* Show user controls *@
                     <li class="dropdown user-controls">
                         <a href="#" class="drop-down-toggle user-toggle" data-toggle="dropdown">

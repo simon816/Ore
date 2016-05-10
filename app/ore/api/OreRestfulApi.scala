@@ -8,9 +8,9 @@ import db.impl.action.user.UserActions
 import db.impl.action.{ProjectActions, VersionActions}
 import forums.DiscourseApi
 import models.project.Project
-import models.user.User
+import ore.UserBase
 import ore.project.Categories.Category
-import ore.project.{Categories, ProjectSortingStrategies}
+import ore.project.{Categories, ProjectBase, ProjectSortingStrategies}
 import play.api.libs.json.{JsValue, Json}
 import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
@@ -25,6 +25,8 @@ trait OreRestfulApi {
   implicit val service: ModelService
   implicit val forums: DiscourseApi
   implicit val config: OreConfig
+  val users: UserBase
+  val projects: ProjectBase
 
   /**
     * Returns a Json value of the Projects meeting the specified criteria.
@@ -56,7 +58,7 @@ trait OreRestfulApi {
     * @return Json value of project if found, None otherwise
     */
   def getProject(pluginId: String): Option[JsValue]
-  = Project.withPluginId(pluginId).map(Json.toJson(_))
+  = projects.withPluginId(pluginId).map(Json.toJson(_))
 
   /**
     * Returns a Json value of the Versions meeting the specified criteria.
@@ -69,7 +71,7 @@ trait OreRestfulApi {
     */
   def getVersionList(pluginId: String, channels: Option[String],
                      limit: Option[Int], offset: Option[Int]): Option[JsValue] = {
-    Project.withPluginId(pluginId).map { project =>
+    projects.withPluginId(pluginId).map { project =>
       // Map channel names to IDs
       val channelIds: Option[Seq[Int]] = channels.map(_.toLowerCase.split(',').map { name =>
         project.channels.find(equalsIgnoreCase(_.name, name)).get.id.get
@@ -90,7 +92,7 @@ trait OreRestfulApi {
     * @return         JSON version if found, None otherwise
     */
   def getVersion(pluginId: String, name: String): Option[JsValue] = {
-    Project.withPluginId(pluginId)
+    projects.withPluginId(pluginId)
       .flatMap(_.versions.find(equalsIgnoreCase(_.versionString, name)))
       .map(Json.toJson(_))
   }
@@ -112,11 +114,13 @@ trait OreRestfulApi {
     * @return         JSON user if found, None otherwise
     */
   def getUser(username: String): Option[JsValue]
-  = User.withName(username).map(Json.toJson(_))
+  = users.withName(username).map(Json.toJson(_))
 
 }
 
 class OreRestful @Inject()(override val service: ModelService,
                            override val forums: DiscourseApi,
-                           override val config: OreConfig)
+                           override val config: OreConfig,
+                           override val users: UserBase,
+                           override val projects: ProjectBase)
                            extends OreRestfulApi

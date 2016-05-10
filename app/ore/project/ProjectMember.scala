@@ -6,6 +6,7 @@ import db.impl.OrePostgresDriver.api._
 import forums.DiscourseApi
 import models.project.Project
 import models.user.{ProjectRole, User}
+import ore.UserBase
 import ore.permission.scope.{Scope, ScopeSubject}
 
 /**
@@ -16,7 +17,7 @@ import ore.permission.scope.{Scope, ScopeSubject}
   */
 class ProjectMember(val project: Project,
                     val name: String)
-                   (implicit service: ModelService, forums: DiscourseApi)
+                   (implicit service: ModelService)
                     extends ScopeSubject with Ordered[ProjectMember] {
 
   /**
@@ -24,7 +25,7 @@ class ProjectMember(val project: Project,
     *
     * @return User member belongs to
     */
-  def user: User = User.withName(this.name).get
+  def user(implicit users: UserBase): User = users.withName(this.name).get
 
   /**
     * Returns the Member's [[ProjectRole]]s in the [[Project]].

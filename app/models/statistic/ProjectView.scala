@@ -51,7 +51,7 @@ object ProjectView {
     * @return         New ProjectView
     */
   def bindFromRequest()(implicit request: ProjectRequest[_]): ProjectView = {
-    val userId = User.current(request.session, request.service, request.forums).flatMap(_.id)
+    val userId = request.users.current(request.session).flatMap(_.id)
     val cookie = StatTracker.getStatCookie
     ProjectView(
       modelId = request.project.id.get,

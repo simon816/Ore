@@ -3,7 +3,6 @@ package models.user
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.ModelService
 import db.action.ModelSet
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
@@ -11,15 +10,12 @@ import db.impl._
 import db.impl.action.ProjectActions
 import db.impl.action.user.UserActions
 import db.meta._
-import forums.DiscourseApi
 import models.project.{Flag, Project}
 import ore.UserOwner
 import ore.permission._
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
-import play.api.mvc.Session
-import util.OreConfig
 import util.StringUtils._
 
 import scala.annotation.meta.field
@@ -133,12 +129,16 @@ case class User(override val id: Option[Int] = None,
     * @param size Size of avatar
     * @return     Avatar URL
     */
-  def avatarUrl(size: Int = 100): String = {
-    this._avatarUrl.map(s => config.forums.getString("baseUrl").get + s.replace("{size}", size.toString)).getOrElse("")
-  }
+  def avatarUrl(size: Int = 100): String = this._avatarUrl.map { s =>
+    config.forums.getString("baseUrl").get + s.replace("{size}", size.toString)
+  }.getOrElse("")
 
-  def avatarTemplate: Option[String]
-  = this._avatarUrl.map(config.forums.getString("baseUrl").get + _)
+  /**
+    * Returns the template for this User's avatar URL.
+    *
+    * @return Avatar URL template
+    */
+  def avatarTemplate: Option[String] = this._avatarUrl.map(config.forums.getString("baseUrl").get + _)
 
   /**
     * Sets this User's avatar url.
@@ -174,7 +174,7 @@ case class User(override val id: Option[Int] = None,
     * @param name   Name of project
     * @return       Owned project, if any, None otherwise
     */
-  def getProject(name: String): Option[Project] = Project.withName(this.username, name)
+  def getProject(name: String): Option[Project] = this.projects.find(_.userId === this.id.get)
 
   /**
     * Returns all Projects owned by this User.
@@ -243,7 +243,7 @@ case class User(override val id: Option[Int] = None,
     * @param page Page of user stars
     * @return     Projects user has starred
     */
-  def starred(page: Int = -1)(implicit config: OreConfig): Seq[Project] = Defined {
+  def starred(page: Int = -1): Seq[Project] = Defined {
     val starsPerPage = config.users.getInt("stars-per-page").get
     val limit = if (page < 1) -1 else starsPerPage
     val actions = service.provide(classOf[ProjectActions])
@@ -257,7 +257,7 @@ case class User(override val id: Option[Int] = None,
     * @param user User to fill with
     * @return     This user
     */
-  def fill(user: User)(implicit config: OreConfig): User = {
+  def fill(user: User): User = {
     if (user == null) return this
     user.name.foreach(this.name_=)
     user.email.foreach(this.email_=)
@@ -274,39 +274,5 @@ case class User(override val id: Option[Int] = None,
   override def userId = this.id.get
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): User = this.copy(createdAt = theTime)
-
-}
-
-object User extends ModelSet[UserTable, User](classOf[User]) {
-
-  /**
-    * Returns the user with the specified username.
-    *
-    * @param username Username of user
-    * @return User if found, None otherwise
-    */
-  def withName(username: String)(implicit service: ModelService, forums: DiscourseApi): Option[User] = {
-    this.find(equalsIgnoreCase(_.username, username)).orElse {
-      service.await(forums.Users.fetch(username)).get.map(getOrCreate)
-    }
-  }
-
-  /**
-    * Attempts to find the specified User in the database or creates a new User
-    * if one does not exist.
-    *
-    * @param user User to find
-    * @return     Found or new User
-    */
-  def getOrCreate(user: User)(implicit service: ModelService): User = service.await(user.actions.getOrInsert(user)).get
-
-  /**
-    * Returns the currently authenticated User.
-    *
-    * @param session  Current session
-    * @return         Authenticated user, if any, None otherwise
-    */
-  def current(implicit session: Session, service: ModelService, forums: DiscourseApi): Option[User]
-  = session.get("username").map(withName).getOrElse(None)
 
 }

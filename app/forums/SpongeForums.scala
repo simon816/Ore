@@ -3,13 +3,15 @@ package forums
 import javax.inject.Inject
 
 import db.ModelService
+import ore.UserBase
 import play.api.libs.ws.WSClient
 import util.{OreConfig, OreEnv}
 
 /**
   * Handles interactions between Ore and the Sponge forums.
   */
-class SpongeForums @Inject()(implicit val config: OreConfig,
+class SpongeForums @Inject()(val users: UserBase,
+                             implicit val config: OreConfig,
                              implicit val env: OreEnv,
                              implicit val ws: WSClient,
                              implicit val service: ModelService) extends DiscourseApi {
@@ -18,7 +20,7 @@ class SpongeForums @Inject()(implicit val config: OreConfig,
   lazy val URL = conf.getString("baseUrl").get
 
   override lazy val Auth = new DiscourseSSO(
-    conf.getString("sso.url").get, conf.getString("sso.secret").get, this
+    conf.getString("sso.url").get, conf.getString("sso.secret").get, users, this
   )
 
   override lazy val Users = new DiscourseUsers(URL, this)

@@ -8,11 +8,12 @@ User page for developers.
 @import forums.DiscourseApi
 @import _root_.util.OreConfig
 @import util.StringUtils
+@import ore.UserBase
 @(user: User)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader,
-        service: ModelService, forums: DiscourseApi, config: OreConfig)
+        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 @isThisUser = @{
-    User.current.isDefined && User.current.get.equals(user)
+    users.current.isDefined && users.current.get.equals(user)
 }
 
 @core.layout(user.username) {

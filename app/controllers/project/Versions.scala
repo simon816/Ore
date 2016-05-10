@@ -9,7 +9,9 @@ import db.impl.OrePostgresDriver.api._
 import form.OreForms
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
+import ore.UserBase
 import ore.permission.{EditVersions, ReviewProjects}
+import ore.project.ProjectBase
 import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFactory, ProjectFileManager}
 import ore.statistic.StatTracker
 import play.api.cache.CacheApi
@@ -32,6 +34,8 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
                          implicit val cacheApi: CacheApi,
                          implicit val projectFactory: ProjectFactory,
                          implicit val ws: WSClient,
+                         implicit override val users: UserBase,
+                         implicit override val projects: ProjectBase,
                          implicit override val forums: DiscourseApi,
                          implicit override val service: ModelService) extends BaseController {
 
@@ -234,8 +238,8 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
 
   private def pendingOrReal(author: String, slug: String): Option[Any] = {
     // Returns either a PendingProject or existing Project
-    Project.withSlug(author, slug) match {
-      case None => Project.getPending(author, slug)
+    projects.withSlug(author, slug) match {
+      case None => projects.getPending(author, slug)
       case Some(project) => Some(project)
     }
   }
@@ -266,7 +270,7 @@ class Versions @Inject()(override val messagesApi: MessagesApi,
               pendingVersion.channelColor = versionData.color
 
               // Check for pending project
-              Project.getPending(author, slug) match {
+              projects.getPending(author, slug) match {
                 case None =>
                   // No pending project, create version for existing project
                   withProject(author, slug) { project =>
