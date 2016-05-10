@@ -3,11 +3,9 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.ModelService
-import db.action.ModelSet
 import db.impl.ModelKeys._
+import db.impl.OreModel
 import db.impl.action.PageActions
-import db.impl.{OreModel, PageTable}
 import db.meta.{Actor, Bind}
 import forums.DiscourseApi
 import ore.permission.scope.ProjectScope
@@ -27,7 +25,7 @@ import scala.annotation.meta.field
   * @param projectId    Project ID
   * @param name         Page name
   * @param slug         Page URL slug
-  * @param _contents     Markdown contents
+  * @param _contents    Markdown contents
   * @param isDeletable  True if can be deleted by the user
   */
 @Actor(classOf[PageActions])
@@ -38,17 +36,15 @@ case class Page(override val id: Option[Int] = None,
                 slug: String,
                 isDeletable: Boolean = true,
                 @(Bind @field) private var _contents: String)
-                extends OreModel[PageActions](id, createdAt)
+                extends OreModel(id, createdAt)
                   with ProjectScope { self =>
+
+  override type A = PageActions
 
   import models.project.Page._
 
   checkNotNull(this.name, "name cannot be null", "")
   checkNotNull(this._contents, "contents cannot be null", "")
-
-//  checkArgument(this.name.length <= MaxNameLength, "name too long", "")
-//  checkArgument(_contents.length <= MaxLength, "contents too long", "")
-//  checkArgument(_contents.length >= MinLength, "contents not long enough", "")
 
   def this(projectId: Int, name: String, content: String, isDeletable: Boolean) = {
     this(projectId=projectId, name=compact(name),
@@ -63,7 +59,8 @@ case class Page(override val id: Option[Int] = None,
   def contents: String = this._contents
 
   /**
-    * Sets the Markdown contents of this Page.
+    * Sets the Markdown contents of this Page and updates the associated forum
+    * topic if this is the home page.
     *
     * @param _contents Markdown contents
     */
@@ -85,13 +82,18 @@ case class Page(override val id: Option[Int] = None,
     */
   def html: Html = Html(MarkdownProcessor.markdownToHtml(contents))
 
-  def isHome(implicit config: OreConfig): Boolean = this.name.equals(HomeName)
+  /**
+    * Returns true if this is the home page.
+    *
+    * @return True if home page
+    */
+  def isHome: Boolean = this.name.equals(HomeName)
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Page = this.copy(id = id, createdAt = theTime)
 
 }
 
-object Page extends ModelSet[PageTable, Page](classOf[Page]) {
+object Page {
 
   /**
     * The Markdown processor.

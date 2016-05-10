@@ -4,10 +4,8 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
-import db.ModelService
 import db.meta.Bind
 import models.project.Project
-import models.user.User
 import ore.ProjectOwner
 import ore.statistic.StatTracker
 
@@ -31,8 +29,6 @@ case class ProjectView(override val id: Option[Int] = None,
                        @(Bind @field) private var userId: Option[Int] = None)
                        extends StatEntry[Project](id, createdAt, modelId, address, cookie, userId)
                          with ProjectOwner {
-
-  override def subject: Project = Project.withId(this.modelId).get
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): ProjectView
   = this.copy(id = id, createdAt = theTime)

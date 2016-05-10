@@ -3,10 +3,10 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.action.{ModelActions, ModelSet}
+import db.action.ModelActions
 import db.impl.ModelKeys._
 import db.impl.{ChannelTable, ModelKeys, OreModel, VersionTable}
-import db.meta.{Bind, HasMany}
+import db.meta.{Actor, Bind, HasMany}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
 import ore.project.util.ProjectFileManager
@@ -21,21 +21,20 @@ import scala.annotation.meta.field
   * Represents a release channel for Project Versions. Each project gets it's
   * own set of channels.
   *
-  * TODO: Max channels per-project
-  *
   * @param id           Unique identifier
   * @param createdAt    Instant of creation
   * @param _name        Name of channel
   * @param _color       Color used to represent this Channel
   * @param projectId    ID of project this channel belongs to
   */
+@Actor(classOf[ModelActions[ChannelTable, Channel]])
 @HasMany(Array(classOf[Version]))
 case class Channel(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                    override val projectId: Int,
                    @(Bind @field) private var _name: String,
                    @(Bind @field) private var _color: Color)
-                   extends OreModel[ModelActions[ChannelTable, Channel]](id, createdAt)
+                   extends OreModel(id, createdAt)
                      with Ordered[Channel]
                      with ProjectScope { self =>
 
@@ -51,11 +50,11 @@ case class Channel(override val id: Option[Int] = None,
   def name: String = this._name
 
   /**
-    * Sets the name of this channel for.
+    * Sets the name of this channel and performs any additional actions
+    * necessary.
     *
     * @param context  Project for context
-    * @param _name     New channel name
-    * @return         Future result
+    * @param _name    New channel name
     */
   def name_=(_name: String)(implicit context: Project, fileManager: ProjectFileManager) = Defined {
     checkArgument(context.id.get == this.projectId, "invalid context id", "")
@@ -66,7 +65,7 @@ case class Channel(override val id: Option[Int] = None,
   }
 
   /**
-    * Returns the ChannelColor that this Channel is represented by.
+    * Returns the [[Color]] that this Channel is represented by.
     *
     * @return Color channel is represented by
     */
@@ -75,8 +74,7 @@ case class Channel(override val id: Option[Int] = None,
   /**
     * Sets the color of this channel.
     *
-    * @param _color  Color of channel
-    * @return       Future result
+    * @param _color Color of channel
     */
   def color_=(_color: Color) = Defined {
     this._color = _color
@@ -94,29 +92,27 @@ case class Channel(override val id: Option[Int] = None,
     * Irreversibly deletes this channel and all version associated with it.
     *
     * @param context  Project context
-    * @return         Result
     */
   def delete()(implicit context: Project = null, fileManager: ProjectFileManager) = Defined {
     val proj = if (context != null) context else this.project
     checkArgument(proj.id.get == this.projectId, "invalid proj id", "")
+
     val channels = proj.channels.values
     checkArgument(channels.size > 1, "only one channel", "")
     checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
-    remove(this)
+
+    this.remove()
     FileUtils.deleteDirectory(fileManager.projectDir(proj.ownerName, proj.name).resolve(this._name).toFile)
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Channel = this.copy(id = id, createdAt = theTime)
-
   override def compare(that: Channel): Int = this._name compare that._name
-
   override def hashCode: Int = this.id.get.hashCode
-
   override def equals(o: Any): Boolean = o.isInstanceOf[Channel] && o.asInstanceOf[Channel].id.get == this.id.get
 
 }
 
-object Channel extends ModelSet[ChannelTable, Channel](classOf[Channel]) {
+object Channel {
 
   /**
     * The colors a Channel is allowed to have.

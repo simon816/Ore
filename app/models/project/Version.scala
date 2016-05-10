@@ -6,11 +6,10 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions
 import com.google.common.base.Preconditions._
 import db.ModelService
-import db.action.ModelSet
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl.action.VersionActions
-import db.impl.{OreModel, VersionDownloadsTable, VersionTable}
+import db.impl.{ChannelTable, OreModel, VersionDownloadsTable, VersionTable}
 import db.meta.{Actor, Bind, HasMany}
 import forums.DiscourseApi
 import models.statistic.VersionDownload
@@ -52,10 +51,10 @@ case class Version(override val id: Option[Int] = None,
                    @(Bind @field) private var _description: Option[String] = None,
                    @(Bind @field) private var _downloads: Int = 0,
                    @(Bind @field) private var _isReviewed: Boolean = false)
-                   extends OreModel[VersionActions](id, createdAt)
+                   extends OreModel(id, createdAt)
                      with ProjectScope { self =>
 
-  import models.project.Version._
+  override type A = VersionActions
 
   def this(versionString: String, dependencies: List[String], description: String,
            assets: String, projectId: Int, channelId: Int, fileSize: Long, hash: String) = {
@@ -80,7 +79,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Channel
     */
-  def channel: Channel = Channel.withId(this.channelId).get
+  def channel: Channel = this.service.getModelSet[ChannelTable, Channel](classOf[Channel]).withId(this.channelId).get
 
   /**
     * Returns the channel this version belongs to from the specified collection
@@ -98,9 +97,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Version description
     */
-  def description: Option[String] = {
-    this._description
-  }
+  def description: Option[String] = this._description
 
   /**
     * Sets this Version's description.
@@ -157,8 +154,7 @@ case class Version(override val id: Option[Int] = None,
     update(Downloads)
   }
 
-  def downloadEntries
-  = this.getMany[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
+  def downloadEntries = this.getMany[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
 
   /**
     * Returns a human readable file size for this Version.
@@ -184,35 +180,33 @@ case class Version(override val id: Option[Int] = None,
     checkArgument(proj.versions.size > 1, "only one version", "")
     checkArgument(proj.id.get == this.projectId, "invalid context id", "")
 
-    val rv = proj.recommendedVersion
-    remove(this)
-
     // Set recommended version to latest version if the deleted version was the rv
+    val rv = proj.recommendedVersion
     if (this.equals(rv)) proj.recommendedVersion = proj.versions.sorted(_.createdAt.desc, limit = 1).head
-
-    Files.delete(fileManager.uploadPath(proj.ownerName, proj.name, this.versionString))
 
     // Delete channel if now empty
     val channel: Channel = this.channel
     if (channel.versions.isEmpty) channel.delete()
+
+    Files.delete(fileManager.uploadPath(proj.ownerName, proj.name, this.versionString))
+    this.remove()
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Version = this.copy(id = id, createdAt = theTime)
-
   override def hashCode: Int = this.id.hashCode
-
   override def equals(o: Any): Boolean = o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get
 
 }
 
-object Version extends ModelSet[VersionTable, Version](classOf[Version]) {
+object Version {
 
   /**
     * Returns all Versions that have not been reviewed by the moderation staff.
     *
     * @return All versions not reviewed
     */
-  def notReviewed(implicit service: ModelService): Seq[Version] = this.sorted(_.createdAt.desc, !_.isReviewed)
+  def notReviewed(implicit service: ModelService): Seq[Version]
+  = service.getModelSet[VersionTable, Version](classOf[Version]).filterNot(_.isReviewed)
 
   /**
     * Marks the specified Version as pending and caches it for later use.

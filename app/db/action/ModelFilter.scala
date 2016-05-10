@@ -12,7 +12,7 @@ import db.{Model, ModelTable}
   * @tparam T   Table type
   * @tparam M   Model type
   */
-case class ModelFilter[T <: ModelTable[M], M <: Model[_]](fn: T => Rep[Boolean] = null) {
+case class ModelFilter[T <: ModelTable[M], M <: Model](fn: T => Rep[Boolean] = null) {
 
   /**
     * Applies && to the wrapped function and returns a new filter.
@@ -91,12 +91,12 @@ case class ModelFilter[T <: ModelTable[M], M <: Model[_]](fn: T => Rep[Boolean] 
 
 object ModelFilter {
 
-  implicit def unwrapFilter[T <: ModelTable[M], M <: Model[_]](filter: ModelFilter[T, M]): T => Rep[Boolean]
+  implicit def unwrapFilter[T <: ModelTable[M], M <: Model](filter: ModelFilter[T, M]): T => Rep[Boolean]
   = if (filter == null) null else filter.fn
-  implicit def wrapFilter[T <: ModelTable[M], M <: Model[_]](fn: T => Rep[Boolean]): ModelFilter[T, M]
+  implicit def wrapFilter[T <: ModelTable[M], M <: Model](fn: T => Rep[Boolean]): ModelFilter[T, M]
   = ModelFilter(fn)
 
   /** Filters models by ID */
-  def IdFilter[T <: ModelTable[M], M <: Model[_]](id: Int): ModelFilter[T, M] = ModelFilter(_.id === id)
+  def IdFilter[T <: ModelTable[M], M <: Model](id: Int): ModelFilter[T, M] = ModelFilter(_.id === id)
 
 }

@@ -12,21 +12,20 @@ import scala.concurrent.Future
 /**
   * Represents a Model that may or may not exist in the database.
   */
-abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
-                                              val createdAt: Option[Timestamp],
-                                              val driver: JdbcDriver) { self =>
+abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val driver: JdbcDriver) { self =>
 
   import driver.api._
 
-  type M <: Model[A] { type M = self.M }
+  type M <: Model { type M = self.M }
   type T <: ModelTable[M]
+  type A <: ModelActions[T, M]
 
   /** The ModelService that this Model was processed with */
   implicit var service: ModelService = null
 
   private var _isProcessed = false
   private var fieldBindings: Map[String, FieldBinding[M, _]] = Map.empty
-  private var manyBindings: Map[Class[_ <: Model[_]], ManyBinding] = Map.empty
+  private var manyBindings: Map[Class[_ <: Model], ManyBinding] = Map.empty
 
   def actions(implicit service: ModelService): A = {
     if (this.service == null) this.service = service
@@ -77,7 +76,7 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
     * @param childClass   Child model class
     * @param ref          Reference column to this model in child table
     */
-  def bindMany(childClass: Class[_ <: Model[_]], ref: ModelTable[_] => Rep[Int]) = {
+  def bindMany(childClass: Class[_ <: Model], ref: ModelTable[_] => Rep[Int]) = {
 //    debug("Binding child " + childClass + " to model " + this)
     this.manyBindings += childClass -> ManyBinding(childClass, ref)
   }
@@ -89,7 +88,7 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
     * @tparam Many       Child
     * @return            Set of children
     */
-  def getMany[ManyTable <: ModelTable[Many], Many <: Model[_]](modelClass: Class[Many]) = Defined {
+  def getMany[ManyTable <: ModelTable[Many], Many <: Model](modelClass: Class[Many]) = Defined {
     val binding = this.manyBindings
       .find(_._1.isAssignableFrom(modelClass))
       .getOrElse(throw new RuntimeException("No child binding found for model " + modelClass + " in model " + this))._2
@@ -110,6 +109,8 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
     */
   def isDefined: Boolean = this.id.isDefined
 
+  def remove() = this.actions.delete(this.asInstanceOf[M])
+
   /**
     * Returns a copy of this model with an updated ID and timestamp.
     *
@@ -117,7 +118,7 @@ abstract class Model[A <: ModelActions[_, _]](val id: Option[Int],
     * @param theTime  Timestamp
     * @return         Copy of model
     */
-  def copyWith(id: Option[Int], theTime: Option[Timestamp]): Model[_]
+  def copyWith(id: Option[Int], theTime: Option[Timestamp]): Model
 
   /**
     * Returns true if this model has been processed internally by some

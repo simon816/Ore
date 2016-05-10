@@ -56,5 +56,3 @@ case class ProjectRole(override val id: Option[Int] = None,
   = this.copy(id = id, createdAt = theTime)
 
 }
-
-object ProjectRole extends ModelSet[ProjectRoleTable, ProjectRole](classOf[ProjectRole])

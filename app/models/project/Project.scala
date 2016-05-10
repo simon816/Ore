@@ -71,8 +71,10 @@ case class Project(override val id: Option[Int] = None,
                    @(Bind @field) private var _topicId: Option[Int] = None,
                    @(Bind @field) private var _postId: Option[Int] = None,
                    @(Bind @field) private var _isVisible: Boolean = true)
-                   extends OreModel[ProjectActions](id, createdAt)
+                   extends OreModel(id, createdAt)
                      with ProjectScope { self =>
+
+  override type A = ProjectActions
 
   import models.project.Project._
 
@@ -490,9 +492,9 @@ case class Project(override val id: Option[Int] = None,
     * @return Result
     */
   def delete()(implicit forums: DiscourseApi, fileManager: ProjectFileManager) = Defined {
-    remove(this)
     FileUtils.deleteDirectory(fileManager.projectDir(this.ownerName, this._name).toFile)
     if (this.topicId.isDefined) forums.Embed.deleteTopic(this)
+    this.remove()
   }
 
   override def projectId = Defined(this.id.get)
@@ -505,7 +507,7 @@ case class Project(override val id: Option[Int] = None,
 
 }
 
-object Project extends ModelSet[ProjectTable, Project](classOf[Project]) {
+object Project {
 
   /**
     * Returns true if the specified name is a valid Project name.
