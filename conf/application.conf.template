@@ -76,7 +76,7 @@ discourse.baseUrl           =   "https://forums.spongepowered.org"
 discourse.api.enabled       =   true
 discourse.api.key           =   ${?DISCOURSE_API_KEY}
 discourse.embed.categoryId  =   32
-discourse.embed.disabled    =   true
+discourse.embed.disabled    =   false
 
 
 # Sponge stuff
