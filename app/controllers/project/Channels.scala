@@ -10,24 +10,21 @@ import forums.DiscourseApi
 import ore.UserBase
 import ore.permission.EditChannels
 import ore.project.ProjectBase
-import ore.project.util.ProjectFileManager
 import play.api.i18n.MessagesApi
-import play.api.libs.ws.WSClient
 import util.OreConfig
 import views.html.projects.{channels => views}
 
 /**
   * Controller for handling Channel related actions.
   */
-class Channels @Inject()(override val messagesApi: MessagesApi,
-                         val forms: OreForms,
-                         implicit val config: OreConfig,
-                         implicit val fileManager: ProjectFileManager,
-                         implicit val ws: WSClient,
-                         implicit override val users: UserBase,
-                         implicit override val projects: ProjectBase,
-                         implicit override val forums: DiscourseApi,
-                         implicit override val service: ModelService) extends BaseController {
+class Channels @Inject()(val forms: OreForms,
+                         override val messagesApi: MessagesApi,
+                         override val config: OreConfig,
+                         override val users: UserBase,
+                         override val projects: ProjectBase,
+                         override val forums: DiscourseApi,
+                         override val service: ModelService)
+                         extends BaseController {
 
   private def ChannelEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditChannels)

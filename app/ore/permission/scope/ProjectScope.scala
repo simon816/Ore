@@ -1,10 +1,10 @@
 package ore.permission.scope
 
-import ore.ProjectOwner
+import ore.ProjectOwned
 
 /**
   * Represents a scope of a certain Project.
   */
-trait ProjectScope extends Scope with ProjectOwner {
+trait ProjectScope extends Scope with ProjectOwned {
   override val parent: Option[Scope] = Some(GlobalScope)
 }

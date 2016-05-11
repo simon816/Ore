@@ -3,7 +3,7 @@ package ore
 import models.user.User
 
 /** Represents anything that has a [[User]]. */
-trait UserOwner {
+trait UserOwned {
   /** Returns the User ID */
   def userId: Int
   /** Returns the User */

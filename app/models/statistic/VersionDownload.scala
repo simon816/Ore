@@ -9,6 +9,7 @@ import db.impl.action.VersionActions
 import db.meta.{Actor, Bind}
 import models.project.Version
 import models.user.User
+import ore.StatTracker
 import ore.statistic.StatTracker
 
 import scala.annotation.meta.field

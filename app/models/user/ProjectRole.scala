@@ -2,10 +2,8 @@ package models.user
 
 import java.sql.Timestamp
 
-import db.ModelService
-import db.action.{ModelActions, ModelAccess}
 import db.impl.ModelKeys._
-import db.impl.{OreModel, ProjectRoleTable}
+import db.impl.OreModel
 import db.meta.Bind
 import ore.permission.role.Role
 import ore.permission.role.RoleTypes.RoleType
@@ -29,7 +27,7 @@ case class ProjectRole(override val id: Option[Int] = None,
                        override val userId: Int,
                        override val projectId: Int,
                        @(Bind @field) private var  _roleType: RoleType)
-                       extends OreModel[ModelActions[ProjectRoleTable, ProjectRole]](id, createdAt)
+                       extends OreModel(id, createdAt)
                          with Role
                          with ProjectScope
                          with Ordered[ProjectRole] { self =>

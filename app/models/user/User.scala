@@ -10,7 +10,7 @@ import db.impl._
 import db.impl.action.{ProjectActions, UserActions}
 import db.meta._
 import models.project.{Flag, Project}
-import ore.UserOwner
+import ore.UserOwned
 import ore.permission._
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.role._
@@ -41,7 +41,7 @@ case class User(override val id: Option[Int] = None,
                 @(Bind @field) private var _joinDate: Option[Timestamp] = None,
                 @(Bind @field) private var _avatarUrl: Option[String] = None)
                 extends OreModel(id, createdAt)
-                  with UserOwner
+                  with UserOwned
                   with ScopeSubject { self =>
 
   override type A = UserActions

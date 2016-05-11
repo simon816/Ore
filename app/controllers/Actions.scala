@@ -19,10 +19,10 @@ import scala.concurrent.Future
   */
 trait Actions {
 
-  implicit val service: ModelService
-  implicit val forums: DiscourseApi
-  implicit val users: UserBase
-  implicit val projects: ProjectBase
+  val service: ModelService
+  val forums: DiscourseApi
+  val users: UserBase
+  val projects: ProjectBase
 
   def onUnauthorized(request: RequestHeader) = {
     if (request.flash.get("noRedirect").isEmpty && users.current(request.session).isEmpty)
@@ -44,7 +44,7 @@ trait Actions {
     def refine[A](request: Request[A]) = Future.successful {
       projects.withSlug(author, slug)
         .flatMap(processProject(_, users.current(request.session)))
-        .map(new ProjectRequest[A](_, service, forums, users, request))
+        .map(new ProjectRequest[A](_, request))
         .toRight(NotFound)
     }
   }
@@ -56,7 +56,7 @@ trait Actions {
   def authAction = new ActionRefiner[Request, AuthRequest] {
     def refine[A](request: Request[A]): Future[Either[Result, AuthRequest[A]]] = Future.successful {
       users.current(request.session)
-        .map(new AuthRequest(_, service, forums, users, request))
+        .map(new AuthRequest(_, request))
         .toRight(onUnauthorized(request))
     }
   }
@@ -70,7 +70,7 @@ trait Actions {
       def refine[A](request: AuthRequest[A]) = Future.successful {
         projects.withSlug(author, slug)
           .flatMap(processProject(_, Some(request.user)))
-          .map(new AuthedProjectRequest[A](_, service, forums, users, request))
+          .map(new AuthedProjectRequest[A](_, request))
           .toRight(NotFound)
       }
   }

@@ -6,7 +6,8 @@ import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
 import db.meta.Bind
 import models.project.Project
-import ore.{ProjectOwner, StatTracker}
+import ore.permission.scope.ProjectScope
+import ore.{ProjectOwned, StatTracker}
 import ore.statistic.StatTracker
 
 import scala.annotation.meta.field
@@ -28,7 +29,7 @@ case class ProjectView(override val id: Option[Int] = None,
                        override val cookie: String,
                        @(Bind @field) private var userId: Option[Int] = None)
                        extends StatEntry[Project](id, createdAt, modelId, address, cookie, userId)
-                         with ProjectOwner {
+                         with ProjectScope {
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): ProjectView
   = this.copy(id = id, createdAt = theTime)

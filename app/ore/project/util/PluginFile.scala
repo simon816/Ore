@@ -6,7 +6,7 @@ import java.util.jar.{JarEntry, JarInputStream}
 import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
 import models.user.User
-import ore.UserOwner
+import ore.UserOwned
 import org.apache.commons.codec.digest.DigestUtils
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 
@@ -17,7 +17,7 @@ import scala.util.control.Breaks._
   *
   * @param _path Path to uploaded file
   */
-class PluginFile(private var _path: Path, val user: User) extends UserOwner {
+class PluginFile(private var _path: Path, val user: User) extends UserOwned {
 
   private val MetaFileName = "mcmod.info"
 

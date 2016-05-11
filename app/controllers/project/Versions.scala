@@ -9,13 +9,11 @@ import db.impl.OrePostgresDriver.api._
 import form.OreForms
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
-import ore.{StatTracker, UserBase}
 import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.ProjectBase
 import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFactory, ProjectFileManager}
-import play.api.cache.CacheApi
+import ore.{StatTracker, UserBase}
 import play.api.i18n.MessagesApi
-import play.api.libs.ws.WSClient
 import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
 import views.html.projects.{versions => views}
@@ -25,18 +23,17 @@ import scala.util.{Failure, Success}
 /**
   * Controller for handling Version related actions.
   */
-class Versions @Inject()(override val messagesApi: MessagesApi,
-                         val stats: StatTracker,
+class Versions @Inject()(val stats: StatTracker,
                          val forms: OreForms,
-                         implicit val fileManager: ProjectFileManager,
-                         implicit val config: OreConfig,
-                         implicit val cacheApi: CacheApi,
-                         implicit val factory: ProjectFactory,
-                         implicit val ws: WSClient,
-                         implicit override val users: UserBase,
-                         implicit override val projects: ProjectBase,
-                         implicit override val forums: DiscourseApi,
-                         implicit override val service: ModelService) extends BaseController {
+                         val fileManager: ProjectFileManager,
+                         val factory: ProjectFactory,
+                         override val messagesApi: MessagesApi,
+                         override val config: OreConfig,
+                         override val users: UserBase,
+                         override val projects: ProjectBase,
+                         override val forums: DiscourseApi,
+                         override val service: ModelService)
+                         extends BaseController {
 
   private def VersionEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditVersions)

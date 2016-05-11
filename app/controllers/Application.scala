@@ -15,10 +15,8 @@ import ore.UserBase
 import ore.permission._
 import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
-import ore.project.util.{ProjectFactory, ProjectFileManager}
 import ore.project.{Categories, ProjectBase, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
-import play.api.libs.ws.WSClient
 import play.api.mvc._
 import util.{DataUtils, OreConfig}
 import views.{html => views}
@@ -27,14 +25,11 @@ import views.{html => views}
   * Main entry point for application.
   */
 class Application @Inject()(override val messagesApi: MessagesApi,
-                            implicit val projectFactory: ProjectFactory,
-                            implicit val ws: WSClient,
-                            implicit val config: OreConfig,
-                            implicit val fileManager: ProjectFileManager,
-                            implicit override val users: UserBase,
-                            implicit override val projects: ProjectBase,
-                            implicit override val forums: DiscourseApi,
-                            implicit override val service: ModelService) extends BaseController {
+                            override val config: OreConfig,
+                            override val users: UserBase,
+                            override val projects: ProjectBase,
+                            override val forums: DiscourseApi,
+                            override val service: ModelService) extends BaseController {
 
   private def FlagAction = Authenticated andThen PermissionAction[AuthRequest](ReviewFlags)
 

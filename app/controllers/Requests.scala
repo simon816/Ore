@@ -1,10 +1,7 @@
 package controllers
 
-import db.ModelService
-import forums.DiscourseApi
 import models.project.Project
 import models.user.User
-import ore.UserBase
 import ore.permission.scope.ScopeSubject
 import play.api.mvc.{Request, WrappedRequest}
 
@@ -20,18 +17,13 @@ object Requests {
     * @param request Request to wrap
     */
   class ProjectRequest[A](val project: Project,
-                          val service: ModelService,
-                          val forums: DiscourseApi,
-                          val users: UserBase,
-                          request: Request[A]) extends WrappedRequest[A](request)
+                          request: Request[A])
+    extends WrappedRequest[A](request)
 
   /** Represents a Request with a [[User]] and [[ScopeSubject]] */
   trait ScopedRequest[A] extends WrappedRequest[A] {
     def user: User
     def subject: ScopeSubject = this.user
-    def service: ModelService
-    def forums: DiscourseApi
-    val users: UserBase
   }
 
   /**
@@ -41,9 +33,6 @@ object Requests {
     * @param request  Request to wrap
     */
   case class AuthRequest[A](override val user: User,
-                            override val service: ModelService,
-                            override val forums: DiscourseApi,
-                            override val users: UserBase,
                             request: Request[A])
     extends WrappedRequest[A](request)
       with ScopedRequest[A]
@@ -55,11 +44,8 @@ object Requests {
     * @param request An [[AuthRequest]]
     */
   case class AuthedProjectRequest[A](override val project: Project,
-                                     override val service: ModelService,
-                                     override val forums: DiscourseApi,
-                                     override val users: UserBase,
                                      request: AuthRequest[A])
-                                     extends ProjectRequest[A](project, service, forums, users, request)
+                                     extends ProjectRequest[A](project, request)
                                        with ScopedRequest[A] {
     override def user: User = request.user
     override val subject: ScopeSubject = this.project

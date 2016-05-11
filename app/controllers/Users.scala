@@ -9,21 +9,19 @@ import forums.{DiscourseApi, DiscourseSSO}
 import ore.UserBase
 import ore.project.ProjectBase
 import play.api.i18n.MessagesApi
-import play.api.libs.ws.WSClient
 import play.api.mvc.{Security, _}
 import util.{FakeUser, OreConfig}
 import views.{html => views}
 
-class Users @Inject()(override val messagesApi: MessagesApi,
-                      val fakeUser: FakeUser,
+class Users @Inject()(val fakeUser: FakeUser,
                       val forms: OreForms,
                       val auth: DiscourseSSO,
-                      implicit val config: OreConfig,
-                      implicit val ws: WSClient,
-                      implicit override val users: UserBase,
-                      implicit override val projects: ProjectBase,
-                      implicit override val forums: DiscourseApi,
-                      implicit override val service: ModelService) extends BaseController {
+                      override val messagesApi: MessagesApi,
+                      override val config: OreConfig,
+                      override val users: UserBase,
+                      override val projects: ProjectBase,
+                      override val forums: DiscourseApi,
+                      override val service: ModelService) extends BaseController {
 
   /**
     * Redirect to forums for SSO authentication and then back here again.

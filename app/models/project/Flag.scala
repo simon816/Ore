@@ -8,7 +8,7 @@ import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl.{FlagTable, OreModel}
 import db.meta.{Actor, Bind}
-import ore.UserOwner
+import ore.UserOwned
 import ore.permission.scope.ProjectScope
 import ore.project.FlagReasons.FlagReason
 
@@ -32,7 +32,7 @@ case class Flag(override val id: Option[Int],
                 reason: FlagReason,
                 @(Bind @field) private var _isResolved: Boolean = false)
                 extends OreModel(id, createdAt)
-                  with UserOwner
+                  with UserOwned
                   with ProjectScope { self =>
 
   def this(projectId: Int, userId: Int, reason: FlagReason) = {

@@ -8,12 +8,10 @@ import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
 import models.project.Page
-import ore.UserBase
+import ore.{StatTracker, UserBase}
 import ore.permission.EditPages
 import ore.project.ProjectBase
-import ore.statistic.StatTracker
 import play.api.i18n.MessagesApi
-import play.api.libs.ws.WSClient
 import play.api.mvc.Action
 import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
@@ -22,15 +20,15 @@ import views.html.projects.{pages => views}
 /**
   * Controller for handling Page related actions.
   */
-class Pages @Inject()(override val messagesApi: MessagesApi,
-                      val forms: OreForms,
+class Pages @Inject()(val forms: OreForms,
                       val stats: StatTracker,
-                      implicit val config: OreConfig,
-                      implicit val ws: WSClient,
-                      implicit override val forums: DiscourseApi,
-                      implicit override val users: UserBase,
-                      implicit override val projects: ProjectBase,
-                      implicit override val service: ModelService) extends BaseController {
+                      override val messagesApi: MessagesApi,
+                      override val config: OreConfig,
+                      override val forums: DiscourseApi,
+                      override val users: UserBase,
+                      override val projects: ProjectBase,
+                      override val service: ModelService)
+                      extends BaseController {
 
   private def PageEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditPages)

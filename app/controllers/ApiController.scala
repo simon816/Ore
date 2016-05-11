@@ -2,8 +2,6 @@ package controllers
 
 import javax.inject.Inject
 
-import db.ModelService
-import forums.DiscourseApi
 import ore.rest.OreRestfulApi
 import play.api.libs.json._
 import play.api.mvc._
@@ -11,11 +9,9 @@ import play.api.mvc._
 /**
   * Ore API (v1)
   */
-class ApiController @Inject()(val api: OreRestfulApi,
-                              implicit val models: ModelService,
-                              implicit val forums: DiscourseApi) extends Controller {
+class ApiController @Inject()(val api: OreRestfulApi) extends Controller {
 
-  def ApiResult(json: Option[JsValue]): Result = json.map(Ok(_)).getOrElse(NotFound)
+  private def ApiResult(json: Option[JsValue]): Result = json.map(Ok(_)).getOrElse(NotFound)
 
   /**
     * Returns a JSON view of all projects.
@@ -45,6 +41,16 @@ class ApiController @Inject()(val api: OreRestfulApi,
     }
   }
 
+  /**
+    * Returns a JSON view of Versions meeting the specified criteria.
+    *
+    * @param version  API version string
+    * @param pluginId Project plugin ID
+    * @param channels Channels to get versions from
+    * @param limit    Amount to take
+    * @param offset   Amount to drop
+    * @return         List of versions
+    */
   def listVersions(version: String, pluginId: String, channels: Option[String],
                    limit: Option[Int], offset: Option[Int]) = Action {
     version match {
@@ -53,6 +59,14 @@ class ApiController @Inject()(val api: OreRestfulApi,
     }
   }
 
+  /**
+    * Shows the specified Project Version.
+    *
+    * @param version  API version
+    * @param pluginId Project plugin ID
+    * @param name     Version name
+    * @return         JSON view of Version
+    */
   def showVersion(version: String, pluginId: String, name: String) = Action {
     version match {
       case "v1" => ApiResult(api.getVersion(pluginId, name))
