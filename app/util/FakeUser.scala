@@ -20,14 +20,14 @@ final class FakeUser @Inject()(config: OreConfig) {
     */
   lazy val isEnabled: Boolean = conf.getBoolean("fakeUser.enabled").get
 
-  lazy private val user = new User(
+  lazy private val user = if (isEnabled) new User(
     id           =   conf.getInt("fakeUser.id"),
     _name        =   conf.getString("fakeUser.name"),
     _username    =   conf.getString("fakeUser.username").get,
     _email       =   conf.getString("fakeUser.email"),
     _joinDate    =   Some(new Timestamp(new Date().getTime)),
     _globalRoles =   List(RoleTypes.Admin)
-  )
+  ) else null
 
 }
 

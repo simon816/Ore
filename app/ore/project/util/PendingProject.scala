@@ -2,7 +2,6 @@ package ore.project.util
 
 import models.project.{Channel, Project, Version}
 import models.user.ProjectRole
-import ore.ProjectFactory
 import play.api.cache.CacheApi
 import util.{Cacheable, OreConfig, PendingAction}
 

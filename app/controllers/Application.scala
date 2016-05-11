@@ -8,7 +8,7 @@ import db.ModelService
 import db.action.ModelFilter
 import db.impl.OrePostgresDriver.api._
 import db.impl.action.ProjectActions
-import db.impl.{FlagTable, ProjectTable, UserBase}
+import db.impl.{FlagTable, ProjectTable}
 import forums.DiscourseApi
 import models.project.{Flag, Project, Version}
 import ore.permission._
@@ -39,11 +39,11 @@ class Application @Inject()(implicit override val messagesApi: MessagesApi,
   def showHome(categories: Option[String], query: Option[String], sort: Option[Int]) = Action { implicit request =>
     // Get categories and sort strategy
     var categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
-    val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
+    val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
     
     // Determine filter
-    val actions = service.actions(classOf[ProjectActions])
-    val canHideProjects = users.current.isDefined && (users.current.get can HideProjects in GlobalScope)
+    val actions = this.service.getActions(classOf[ProjectActions])
+    val canHideProjects = this.users.current.isDefined && (this.users.current.get can HideProjects in GlobalScope)
     var filter: ProjectTable => Rep[Boolean] = query.map { q =>
       // Search filter + visible
       var f  = actions.searchFilter(q)
@@ -52,10 +52,10 @@ class Application @Inject()(implicit override val messagesApi: MessagesApi,
     }.orNull[ModelFilter[ProjectTable, Project]]
     if (filter == null && !canHideProjects) filter = _.isVisible
 
-    val future = actions.collect(filter, categoryArray, config.projects.getInt("init-load").get, -1, s)
-    val projects = service.await(future).get
+    val future = actions.collect(filter, categoryArray, this.config.projects.getInt("init-load").get, -1, ordering)
+    val projects = this.service.await(future).get
     if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet)) categoryArray = null
-    Ok(views.home(projects, Option(categoryArray), s))
+    Ok(views.home(projects, Option(categoryArray), ordering))
   }
 
   /**
@@ -86,7 +86,7 @@ class Application @Inject()(implicit override val messagesApi: MessagesApi,
     * @return         Ok
     */
   def setFlagResolved(flagId: Int, resolved: Boolean) = FlagAction { implicit request =>
-    service.access[FlagTable, Flag](classOf[Flag]).get(flagId) match {
+    this.service.access[FlagTable, Flag](classOf[Flag]).get(flagId) match {
       case None => NotFound
       case Some(flag) =>
         flag.setResolved(resolved)
@@ -108,7 +108,7 @@ class Application @Inject()(implicit override val messagesApi: MessagesApi,
     * Helper route to reset Ore.
     */
   def reset = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
-    config.checkDebug()
+    this.config.checkDebug()
     DataUtils.reset()
     Redirect(self.showHome(None, None, None)).withNewSession
   }
@@ -120,7 +120,7 @@ class Application @Inject()(implicit override val messagesApi: MessagesApi,
     */
   def seed(users: Option[Int], versions: Option[Int], channels: Option[Int]) = {
     (Authenticated andThen PermissionAction[AuthRequest](SeedOre)) { implicit request =>
-      config.checkDebug()
+      this.config.checkDebug()
       DataUtils.seed(users.getOrElse(200), versions.getOrElse(0), channels.getOrElse(1))
       Redirect(self.showHome(None, None, None)).withNewSession
     }

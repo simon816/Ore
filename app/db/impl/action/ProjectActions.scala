@@ -40,12 +40,12 @@ class ProjectActions(override val service: ModelService)
     * @return List of Members
     */
   def getMembers(project: Project)(implicit forums: DiscourseApi): Future[Seq[ProjectMember]] = {
-    val distinctUserIds = (for (role <- service.actions(classOf[UserActions]).ProjectRoles.baseQuery.filter {
+    val distinctUserIds = (for (role <- service.getActions(classOf[UserActions]).ProjectRoles.baseQuery.filter {
       _.projectId === project.id.get
     }) yield role.userId).distinct.result
 
     service.DB.db.run(distinctUserIds)
-      .map(_.map(this.users.access.get(_).get))
+      .map(_.map(this.users.get(_).get))
       .map(for (user <- _) yield new ProjectMember(project, user.username))
   }
 
@@ -140,7 +140,7 @@ class ProjectActions(override val service: ModelService)
         var projectsQuery = this.baseQuery.filter(_.id inSetBind projectIds)
         if (offset > -1) projectsQuery = projectsQuery.drop(offset)
         if (limit > -1) projectsQuery = projectsQuery.take(limit)
-        promise.completeWith(service.process(projectsQuery.result))
+        promise.completeWith(service.doAction(projectsQuery.result))
     }
     promise.future
   }

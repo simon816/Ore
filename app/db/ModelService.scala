@@ -79,7 +79,7 @@ trait ModelService {
     * @tparam Q ModelActions
     * @return ModelActions of type
     */
-  def actions[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q = this.registrar.getActions(actionsClass)
+  def getActions[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q = this.registrar.getActions(actionsClass)
 
   /**
     * Returns the base query for the specified Model class.
@@ -99,7 +99,7 @@ trait ModelService {
     * @param action   Action to run
     * @return         Processed result
     */
-  def process[R: TypeTag](action: AbstractModelAction[R]): Future[R] = DB.db.run(action).map {
+  def doAction[R: TypeTag](action: AbstractModelAction[R]): Future[R] = DB.db.run(action).map {
     case r => action.processResult(this, r)
   }
 
@@ -133,7 +133,7 @@ trait ModelService {
   def insert[T <: ModelTable[M], M <: Model: TypeTag](model: M): Future[M] = {
     val toInsert = model.copyWith(None, Some(theTime)).asInstanceOf[M]
     val models = newAction[T, M](model.getClass)
-    process {
+    doAction {
       models returning models.map(_.id) into {
         case (m, id) =>
           model.copyWith(Some(id), m.createdAt).asInstanceOf[M]
@@ -151,7 +151,7 @@ trait ModelService {
                                                        predicate: T => Rep[Boolean]): Future[Option[M]] = {
     val modelPromise = Promise[Option[M]]
     val query = newAction[T, M](modelClass).filter(predicate).take(1)
-    process(query.result).andThen {
+    doAction(query.result).andThen {
       case Failure(thrown) => modelPromise.failure(thrown)
       case Success(result) => modelPromise.success(result.headOption)
     }
@@ -236,7 +236,7 @@ trait ModelService {
     if (sort != null) query = query.sortBy(sort)
     if (offset > -1) query = query.drop(offset)
     if (limit > -1) query = query.take(limit)
-    process(query.result)
+    doAction(query.result)
   }
 
   /**

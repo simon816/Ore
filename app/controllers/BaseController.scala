@@ -13,14 +13,14 @@ import util.StringUtils.equalsIgnoreCase
   * Represents a Secured base Controller for this application.
   */
 abstract class BaseController(implicit val config: OreConfig,
-                              override val service: ModelService,
+                              val service: ModelService,
                               override val forums: DiscourseApi)
                               extends Controller
                                 with Actions
                                 with I18nSupport {
 
-  implicit override val users: UserBase = service.getModelBase(classOf[UserBase])
-  implicit override val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
+  implicit override val users: UserBase = this.service.getModelBase(classOf[UserBase])
+  implicit override val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
 
   /**
     * Executes the given function with the specified result or returns a
@@ -33,7 +33,7 @@ abstract class BaseController(implicit val config: OreConfig,
     * @return         NotFound or function result
     */
   def withProject(author: String, slug: String)(fn: Project => Result)(implicit request: RequestHeader): Result
-  = projects.withSlug(author, slug).map(fn).getOrElse(NotFound)
+  = this.projects.withSlug(author, slug).map(fn).getOrElse(NotFound)
 
   /**
     * Executes the given function with the specified result or returns a

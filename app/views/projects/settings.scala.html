@@ -110,7 +110,7 @@
                         </div>
 
                         @form(action = projectRoutes.save(project.ownerName, project.slug), 'id -> "save", 'class -> "pull-right") {
-                            <button type="submit" name="save" class="btn btn-success">
+                            <button type="submit" name="save" class="btn btn-success btn-spinner" data-icon="fa-check">
                                 <i class="fa fa-check"></i> Save changes
                             </button>
                         }

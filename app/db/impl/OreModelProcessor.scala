@@ -21,8 +21,7 @@ class OreModelProcessor(service: ModelService,
                         extends ModelProcessor(service) {
 
   override def process[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
-    super.process(model)
-    model match {
+    super.process(model) match {
       case oreModel: OreModel =>
         oreModel.userBase = this.users
         oreModel.projectBase = this.projects
@@ -30,5 +29,6 @@ class OreModelProcessor(service: ModelService,
         oreModel.forums = this.forums
       case _ =>
     }
+    model
   }
 }

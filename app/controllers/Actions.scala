@@ -14,66 +14,42 @@ import play.api.mvc._
 import scala.concurrent.Future
 
 /**
-  * Represents a controller with user authentication / authorization.
+  * A set of actions used by Ore.
   */
 trait Actions {
 
-  val service: ModelService
   val forums: DiscourseApi
   val users: UserBase
   val projects: ProjectBase
 
+  /**
+    * Retrieves, processes, and adds a [[Project]] to a request.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return       Request with a project if found, NotFound otherwise.
+    */
+  def ProjectAction(author: String, slug: String) = Action andThen projectAction(author, slug)
+
+
+  /** Ensures a request is authenticated */
+  def Authenticated = Action andThen authAction
+
+  /** Called when a [[User]] tries to make a request they do not have permission for */
   def onUnauthorized(request: RequestHeader) = {
-    if (request.flash.get("noRedirect").isEmpty && users.current(request.session).isEmpty)
+    if (request.flash.get("noRedirect").isEmpty && this.users.current(request.session).isEmpty)
       Redirect(routes.Users.logIn(None, None, Some(request.path)))
     else Redirect(routes.Application.showHome(None, None, None))
   }
 
-  private def processProject(project: Project, user: Option[User]): Option[Project] = {
-    if (project.isVisible || (user.isDefined && (user.get can HideProjects in GlobalScope))) {
-      if (project.topicId.isEmpty) forums.embed.createTopic(project)
-      Some(project)
-    } else {
-      None
-    }
-  }
-
-  private def projectAction(author: String, slug: String)
-  = new ActionRefiner[Request, ProjectRequest] {
-    def refine[A](request: Request[A]) = Future.successful {
-      projects.withSlug(author, slug)
-        .flatMap(processProject(_, users.current(request.session)))
-        .map(new ProjectRequest[A](_, request))
-        .toRight(NotFound)
-    }
-  }
-
-  def ProjectAction(author: String, slug: String) = Action andThen projectAction(author, slug)
-
-  // Auth
-
-  def authAction = new ActionRefiner[Request, AuthRequest] {
-    def refine[A](request: Request[A]): Future[Either[Result, AuthRequest[A]]] = Future.successful {
-      users.current(request.session)
-        .map(new AuthRequest(_, request))
-        .toRight(onUnauthorized(request))
-    }
-  }
-
-  def Authenticated = Action andThen authAction
-
-  // Permissions
-
-  private def authedProjectAction(author: String, slug: String)
-  = new ActionRefiner[AuthRequest, AuthedProjectRequest] {
-      def refine[A](request: AuthRequest[A]) = Future.successful {
-        projects.withSlug(author, slug)
-          .flatMap(processProject(_, Some(request.user)))
-          .map(new AuthedProjectRequest[A](_, request))
-          .toRight(NotFound)
-      }
-  }
-
+  /**
+    * Ensures a request is authenticated and retrieves, processes, and adds a
+    * [[Project]] to a request.
+    *
+    * @param author Project owner
+    * @param slug Project slug
+    * @return Authenticated request with a project if found, NotFound otherwise.
+    */
   def AuthedProjectAction(author: String, slug: String) = Authenticated andThen authedProjectAction(author, slug)
 
   /**
@@ -102,5 +78,42 @@ trait Actions {
     * @return   An [[AuthedProjectRequest]]
     */
   def ProjectPermissionAction(p: Permission) = PermissionAction[AuthedProjectRequest](p)
+
+  private def projectAction(author: String, slug: String)
+  = new ActionRefiner[Request, ProjectRequest] {
+    def refine[A](request: Request[A]) = Future.successful {
+      projects.withSlug(author, slug)
+        .flatMap(processProject(_, users.current(request.session)))
+        .map(new ProjectRequest[A](_, request))
+        .toRight(NotFound)
+    }
+  }
+
+  private def processProject(project: Project, user: Option[User]): Option[Project] = {
+    if (project.isVisible || (user.isDefined && (user.get can HideProjects in GlobalScope))) {
+      if (project.topicId.isEmpty) this.forums.embed.createTopic(project)
+      Some(project)
+    } else {
+      None
+    }
+  }
+
+  private def authAction = new ActionRefiner[Request, AuthRequest] {
+    def refine[A](request: Request[A]): Future[Either[Result, AuthRequest[A]]] = Future.successful {
+      users.current(request.session)
+        .map(new AuthRequest(_, request))
+        .toRight(onUnauthorized(request))
+    }
+  }
+
+  private def authedProjectAction(author: String, slug: String)
+  = new ActionRefiner[AuthRequest, AuthedProjectRequest] {
+    def refine[A](request: AuthRequest[A]) = Future.successful {
+      projects.withSlug(author, slug)
+        .flatMap(processProject(_, Some(request.user)))
+        .map(new AuthedProjectRequest[A](_, request))
+        .toRight(NotFound)
+    }
+  }
 
 }

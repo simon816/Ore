@@ -5,11 +5,10 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Channels => self}
 import db.ModelService
-import db.impl.ProjectBase
 import form.OreForms
 import forums.DiscourseApi
-import ore.ProjectFactory
 import ore.permission.EditChannels
+import ore.project.util.ProjectFactory
 import play.api.i18n.MessagesApi
 import util.OreConfig
 import views.html.projects.{channels => views}
@@ -51,7 +50,7 @@ class Channels @Inject()(val forms: OreForms,
     */
   def create(author: String, slug: String) = {
     ChannelEditAction(author, slug) { implicit request =>
-      forms.ChannelEdit.bindFromRequest.fold(
+      this.forms.ChannelEdit.bindFromRequest.fold(
         hasErrors => Redirect(self.showList(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         channelData => channelData.addTo(request.project).fold(
           error => Redirect(self.showList(author, slug)).flashing("error" -> error),
@@ -72,7 +71,7 @@ class Channels @Inject()(val forms: OreForms,
   def save(author: String, slug: String, channelName: String) = {
     ChannelEditAction(author, slug) { implicit request =>
       implicit val project = request.project
-      forms.ChannelEdit.bindFromRequest.fold(
+      this.forms.ChannelEdit.bindFromRequest.fold(
         hasErrors => Redirect(self.showList(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         channelData => channelData.saveTo(channelName).map { error =>
           Redirect(self.showList(author, slug)).flashing("error" -> error)
@@ -107,7 +106,7 @@ class Channels @Inject()(val forms: OreForms,
               Redirect(self.showList(author, slug))
                 .flashing("error" -> "You cannot delete your only non-empty channel.")
             } else {
-              factory.deleteChannel(channel)
+              this.factory.deleteChannel(channel)
               Redirect(self.showList(author, slug))
             }
         }

@@ -8,5 +8,5 @@ trait ProjectOwned {
   /** Returns the Project ID */
   def projectId: Int
   /** Returns the Project */
-  def project(implicit projects: ProjectBase): Project = projects.access.get(this.projectId).get
+  def project(implicit projects: ProjectBase): Project = projects.get(this.projectId).get
 }

@@ -1,4 +1,4 @@
-package ore
+package ore.project.util
 
 import java.nio.file.Files
 import javax.inject.Inject
@@ -11,7 +11,6 @@ import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.{ProjectRole, User}
 import ore.permission.role.RoleTypes
-import ore.project.util.{PendingProject, PendingVersion, PluginFile, ProjectFileManager}
 import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.cache.CacheApi
@@ -26,14 +25,16 @@ import scala.util.Try
   */
 trait ProjectFactory {
 
-  implicit val projects: ProjectBase
+  implicit val service: ModelService
   implicit val config: OreConfig
-  implicit val users: UserBase
   implicit val forums: DiscourseApi
+
+  implicit val users: UserBase = this.service.getModelBase(classOf[UserBase])
+  implicit val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
 
   val fileManager: ProjectFileManager
   val cacheApi: CacheApi
-  val env = fileManager.env
+  val env = this.fileManager.env
 
   /**
     * Creates a new Project from the specified PluginMetadata.
@@ -42,16 +43,8 @@ trait ProjectFactory {
     * @param meta   PluginMetadata object
     * @return       New project
     */
-  def fromMeta(owner: User, meta: PluginMetadata): Project = {
-    val project = new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getUrl)
-    // Initialize with dependencies.
-    // (other models have their dependencies added during processing)
-    project.projectBase = this.projects
-    project.config = this.config
-    project.userBase = this.users
-    project.forums = this.forums
-    project
-  }
+  def fromMeta(owner: User, meta: PluginMetadata): Project
+  = service.processor.process(new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getUrl))
 
   /**
     * Initializes a new PluginFile with the specified owner and temporary file.
@@ -61,12 +54,12 @@ trait ProjectFactory {
     * @return       New plugin file
     */
   def cacheUpload(tmp: TemporaryFile, name: String, owner: User): Try[PluginFile] = Try {
-    val tmpPath = env.tmp.resolve(owner.username).resolve(name)
+    val tmpPath = this.env.tmp.resolve(owner.username).resolve(name)
     val plugin = new PluginFile(tmpPath, owner)
     if (Files.notExists(tmpPath.getParent)) Files.createDirectories(tmpPath.getParent)
     val oldPath = tmp.file.toPath
     tmp.moveTo(plugin.path.toFile, replace = true)
-    if (config.projects.getBoolean("tmp-file-save").get) Files.copy(plugin.path, oldPath)
+    if (this.config.projects.getBoolean("tmp-file-save").get) Files.copy(plugin.path, oldPath)
     plugin.loadMeta
     plugin
   }
@@ -104,7 +97,16 @@ trait ProjectFactory {
     */
   def setVersionPending(owner: String, slug: String, channel: String,
                         version: Version, plugin: PluginFile): PendingVersion = {
-    val pending = PendingVersion(this, config, owner, slug, channel, Channel.DefaultColor, version, plugin, cacheApi)
+    val pending = PendingVersion(
+      factory = this,
+      owner = owner,
+      projectSlug = slug,
+      channelName = channel,
+      channelColor = Channel.DefaultColor,
+      version = version,
+      plugin = plugin,
+      cacheApi = cacheApi
+    )
     pending.cache()
     pending
   }
@@ -130,16 +132,16 @@ trait ProjectFactory {
     */
   def createProject(pending: PendingProject): Try[Project] = Try {
     val project = pending.project
-    checkArgument(!projects.exists(project), "project already exists", "")
-    checkArgument(projects.isNamespaceAvailable(project.ownerName, project.slug), "slug not available", "")
+    checkArgument(!this.projects.exists(project), "project already exists", "")
+    checkArgument(this.projects.isNamespaceAvailable(project.ownerName, project.slug), "slug not available", "")
     checkArgument(Project.isValidName(pending.project.name), "invalid name", "")
-    val newProject = projects.access.add(pending.project)
+    val newProject = this.projects.add(pending.project)
 
     // Add Project roles
     val user = pending.file.user
     user.projectRoles.add(new ProjectRole(user.id.get, RoleTypes.ProjectOwner, newProject.id.get))
     for (role <- pending.roles) {
-      users.access.get(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
+      this.users.get(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
     }
 
     forums.embed.createTopic(newProject)
@@ -154,7 +156,7 @@ trait ProjectFactory {
     */
   def createVersion(pending: PendingVersion): Try[Version] = Try {
     var channel: Channel = null
-    val project = projects.withSlug(pending.owner, pending.projectSlug).get
+    val project = this.projects.withSlug(pending.owner, pending.projectSlug).get
 
     // Create channel if not exists
     project.channels.find(equalsIgnoreCase(_.name, pending.channelName)) match {
@@ -164,7 +166,7 @@ trait ProjectFactory {
 
     // Create version
     val pendingVersion = pending.version
-    if (pendingVersion.exists && config.projects.getBoolean("file-validate").get) {
+    if (pendingVersion.exists && this.config.projects.getBoolean("file-validate").get) {
       throw new IllegalArgumentException("Version already exists.")
     }
 
@@ -184,7 +186,7 @@ trait ProjectFactory {
     * @param project Project to delete
     */
   def deleteProject(project: Project) = {
-    FileUtils.deleteDirectory(fileManager.projectDir(project.ownerName, project.name).toFile)
+    FileUtils.deleteDirectory(this.fileManager.projectDir(project.ownerName, project.name).toFile)
     if (project.topicId.isDefined) forums.embed.deleteTopic(project)
     project.remove()
   }
@@ -202,7 +204,7 @@ trait ProjectFactory {
     checkArgument(channels.size > 1, "only one channel", "")
     checkArgument(channel.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
 
-    FileUtils.deleteDirectory(fileManager.projectDir(proj.ownerName, proj.name).resolve(channel.name).toFile)
+    FileUtils.deleteDirectory(this.fileManager.projectDir(proj.ownerName, proj.name).resolve(channel.name).toFile)
     channel.remove()
   }
 
@@ -224,7 +226,7 @@ trait ProjectFactory {
     val channel: Channel = version.channel
     if (channel.versions.isEmpty) this.deleteChannel(channel)
 
-    Files.delete(fileManager.uploadPath(proj.ownerName, proj.name, version.versionString))
+    Files.delete(this.fileManager.uploadPath(proj.ownerName, proj.name, version.versionString))
     version.remove()
   }
 
@@ -232,7 +234,7 @@ trait ProjectFactory {
     val meta = plugin.meta.get
     var oldPath = plugin.path
     if (!plugin.isZipped) oldPath = plugin.zip
-    val newPath = fileManager.uploadPath(plugin.user.username, meta.getName, meta.getVersion)
+    val newPath = this.fileManager.uploadPath(plugin.user.username, meta.getName, meta.getVersion)
     if (!Files.exists(newPath.getParent)) Files.createDirectories(newPath.getParent)
     Files.move(oldPath, newPath)
     Files.delete(oldPath)
@@ -240,12 +242,9 @@ trait ProjectFactory {
 
 }
 
-class OreProjectFactory @Inject()(service: ModelService,
+class OreProjectFactory @Inject()(override val service: ModelService,
                                   override val fileManager: ProjectFileManager,
                                   override val config: OreConfig,
                                   override val forums: DiscourseApi,
                                   override val cacheApi: CacheApi)
-                                  extends ProjectFactory {
-  override val users = service.getModelBase(classOf[UserBase])
-  override val projects = service.getModelBase(classOf[ProjectBase])
-}
+                                  extends ProjectFactory

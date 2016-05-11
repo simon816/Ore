@@ -4,7 +4,6 @@ import javax.inject.Inject
 
 import controllers.routes.{Users => self}
 import db.ModelService
-import db.impl.{ProjectBase, UserBase}
 import form.OreForms
 import forums.{DiscourseApi, DiscourseSSO}
 import play.api.i18n.MessagesApi
@@ -28,15 +27,15 @@ class Users @Inject()(val fakeUser: FakeUser,
     * @return     Logged in home
     */
   def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
-    val baseUrl = config.app.getString("baseUrl").get
-    if (fakeUser.isEnabled) {
-      users.getOrCreate(fakeUser)
-      redirectBack(returnPath.getOrElse(request.path), fakeUser.username)
+    val baseUrl = this.config.app.getString("baseUrl").get
+    if (this.fakeUser.isEnabled) {
+      users.getOrCreate(this.fakeUser)
+      redirectBack(returnPath.getOrElse(request.path), this.fakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
-      Redirect(auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
+      Redirect(this.auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
     } else {
       // Decode SSO payload and get Ore user
-      val user = auth.authenticate(sso.get, sig.get)
+      val user = this.auth.authenticate(sso.get, sig.get)
       redirectBack(request2flash.get("url").get, user.username)
     }
   }
@@ -74,8 +73,8 @@ class Users @Inject()(val fakeUser: FakeUser,
   def saveTagline(username: String) = {
     Authenticated { implicit request =>
       val user = request.user
-      val tagline = forms.UserTagline.bindFromRequest.get.trim
-      if (tagline.length > config.users.getInt("max-tagline-len").get) {
+      val tagline = this.forms.UserTagline.bindFromRequest.get.trim
+      if (tagline.length > this.config.users.getInt("max-tagline-len").get) {
         Redirect(self.show(user.username)).flashing("error" -> "Tagline is too long.")
       } else {
         user.tagline = tagline

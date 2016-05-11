@@ -20,6 +20,8 @@ trait ModelBase[T <: ModelTable[M], M <: Model] {
     */
   def access: ModelAccess[T, M] = this.service.access[T, M](this.modelClass)
 
-  implicit def access(self: ModelBase[T, M]): ModelAccess[T, M] = this.access
+}
 
+object ModelBase {
+  implicit def unwrap[T <: ModelTable[M], M <: Model](base: ModelBase[T, M]): ModelAccess[T, M] = base.access
 }

@@ -22,7 +22,7 @@ class ApiController @Inject()(val api: OreRestfulApi) extends Controller {
   def listProjects(version: String, categories: Option[String], sort: Option[Int], q: Option[String],
                    limit: Option[Int], offset: Option[Int]) = Action {
     version match {
-      case "v1" => Ok(api.getProjectList(categories, sort, q, limit, offset))
+      case "v1" => Ok(this.api.getProjectList(categories, sort, q, limit, offset))
       case zoinks => NotFound
     }
   }
@@ -36,7 +36,7 @@ class ApiController @Inject()(val api: OreRestfulApi) extends Controller {
     */
   def showProject(version: String, pluginId: String) = Action {
     version match {
-      case "v1" => ApiResult(api.getProject(pluginId))
+      case "v1" => ApiResult(this.api.getProject(pluginId))
       case yikes => NotFound
     }
   }
@@ -54,7 +54,7 @@ class ApiController @Inject()(val api: OreRestfulApi) extends Controller {
   def listVersions(version: String, pluginId: String, channels: Option[String],
                    limit: Option[Int], offset: Option[Int]) = Action {
     version match {
-      case "v1" => ApiResult(api.getVersionList(pluginId, channels, limit, offset))
+      case "v1" => ApiResult(this.api.getVersionList(pluginId, channels, limit, offset))
       case gorp => NotFound
     }
   }
@@ -69,7 +69,7 @@ class ApiController @Inject()(val api: OreRestfulApi) extends Controller {
     */
   def showVersion(version: String, pluginId: String, name: String) = Action {
     version match {
-      case "v1" => ApiResult(api.getVersion(pluginId, name))
+      case "v1" => ApiResult(this.api.getVersion(pluginId, name))
       case fffffs => NotFound
     }
   }
@@ -84,7 +84,7 @@ class ApiController @Inject()(val api: OreRestfulApi) extends Controller {
     */
   def listUsers(version: String, limit: Option[Int], offset: Option[Int]) = Action {
     version match {
-      case "v1" => Ok(api.getUserList(limit, offset))
+      case "v1" => Ok(this.api.getUserList(limit, offset))
       case oops => NotFound
     }
   }
@@ -98,7 +98,7 @@ class ApiController @Inject()(val api: OreRestfulApi) extends Controller {
     */
   def showUser(version: String, username: String) = Action {
     version match {
-      case "v1" => ApiResult(api.getUser(username))
+      case "v1" => ApiResult(this.api.getUser(username))
       case sad => NotFound
     }
   }

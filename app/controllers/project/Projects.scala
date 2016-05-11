@@ -10,8 +10,8 @@ import form.OreForms
 import forums.DiscourseApi
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
-import ore.project.util.{InvalidPluginFileException, ProjectFileManager}
-import ore.{ProjectFactory, StatTracker}
+import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectFileManager}
+import ore.StatTracker
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.OreConfig
@@ -56,7 +56,7 @@ class Projects @Inject()(val stats: StatTracker,
       case Some(tmpFile) =>
         // Initialize plugin file
         val user = request.user
-        factory.cacheUpload(tmpFile.ref, tmpFile.filename, user) match {
+        this.factory.cacheUpload(tmpFile.ref, tmpFile.filename, user) match {
           case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
             // PEBKAC
             Redirect(self.showCreator()).flashing("error" -> "Invalid plugin file.")
@@ -66,8 +66,8 @@ class Projects @Inject()(val stats: StatTracker,
           case Success(plugin) =>
             // Cache pending project for later use
             val meta = plugin.meta.get
-            val project = factory.fromMeta(user, meta)
-            factory.setProjectPending(project, plugin)
+            val project = this.factory.fromMeta(user, meta)
+            this.factory.setProjectPending(project, plugin)
             Redirect(self.showCreatorWithMeta(project.ownerName, project.slug))
         }
     }
@@ -82,7 +82,7 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def showCreatorWithMeta(author: String, slug: String) = {
     Authenticated { implicit request =>
-      factory.getPendingProject(author, slug) match {
+      this.factory.getPendingProject(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pending) => Ok(views.create(Some(pending)))
       }
@@ -98,10 +98,10 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def showMembersConfig(author: String, slug: String) = {
     Authenticated { implicit request =>
-      factory.getPendingProject(author, slug) match {
+      this.factory.getPendingProject(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pendingProject) =>
-          forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.project)
+          this.forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.project)
           Ok(views.members.config(pendingProject))
       }
     }
@@ -117,10 +117,10 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def showFirstVersionCreator(author: String, slug: String) = {
     Authenticated { implicit request =>
-      factory.getPendingProject(author, slug) match {
+      this.factory.getPendingProject(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pendingProject) =>
-          pendingProject.roles = forms.MemberRoles.bindFromRequest.get.build()
+          pendingProject.roles = this.forms.MemberRoles.bindFromRequest.get.build()
           val pendingVersion = pendingProject.pendingVersion
           Redirect(routes.Versions.showCreatorWithMeta(
             author, slug, pendingVersion.version.versionString))
@@ -138,8 +138,8 @@ class Projects @Inject()(val stats: StatTracker,
   def show(author: String, slug: String) = {
     ProjectAction(author, slug) { implicit request =>
       val project = request.project
-      config.debug("isProcessed: " + project.name + " = " + project.isProcessed + " " + project.hashCode())
-      stats.projectViewed(implicit request => Ok(views.pages.view(project, project.homePage)))
+      this.config.debug("isProcessed: " + project.name + " = " + project.isProcessed + " " + project.hashCode())
+      this.stats.projectViewed(implicit request => Ok(views.pages.view(project, project.homePage)))
     }
   }
 
@@ -158,7 +158,7 @@ class Projects @Inject()(val stats: StatTracker,
         // One flag per project, per user at a time
         BadRequest
       } else {
-        val reason = FlagReasons(forms.ProjectFlag.bindFromRequest.get)
+        val reason = FlagReasons(this.forms.ProjectFlag.bindFromRequest.get)
         project.flagFor(user, reason)
         Redirect(self.show(author, slug)).flashing("reported" -> "true")
       }
@@ -202,7 +202,7 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def save(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
-      forms.ProjectSave.bindFromRequest.get.saveTo(request.project)
+      this.forms.ProjectSave.bindFromRequest.get.saveTo(request.project)
       Redirect(self.show(author, slug))
     }
   }
@@ -235,7 +235,7 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def showDiscussion(author: String, slug: String) = {
     ProjectAction(author, slug) { implicit request =>
-      stats.projectViewed(implicit request => Ok(views.discuss(request.project)))
+      this.stats.projectViewed(implicit request => Ok(views.discuss(request.project)))
     }
   }
 
@@ -248,10 +248,10 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def postDiscussionReply(author: String, slug: String) = {
     AuthedProjectAction(author, slug) { implicit request =>
-      forms.ProjectReply.bindFromRequest.fold(
+      this.forms.ProjectReply.bindFromRequest.fold(
         hasErrors => Redirect(self.showDiscussion(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         content => {
-          val error = service.await(forums.embed.postReply(request.project, request.user, content)).get
+          val error = service.await(this.forums.embed.postReply(request.project, request.user, content)).get
           var result = Redirect(self.showDiscussion(author, slug))
           if (error.isDefined) result = result.flashing("error" -> error.get)
           result
@@ -313,7 +313,7 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def removeMember(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
-      request.project.removeMember(users.withName(forms.MemberRemove.bindFromRequest.get.trim).get)
+      request.project.removeMember(users.withName(this.forms.MemberRemove.bindFromRequest.get.trim).get)
       Redirect(self.showSettings(author, slug))
     }
   }
@@ -327,7 +327,7 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def rename(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
-      val newName = compact(forms.ProjectRename.bindFromRequest.get)
+      val newName = compact(this.forms.ProjectRename.bindFromRequest.get)
       if (!projects.isNamespaceAvailable(author, slugify(newName))) {
         Redirect(self.showSettings(author, slug)).flashing("error" -> "That name is not available.")
       } else {
@@ -348,7 +348,7 @@ class Projects @Inject()(val stats: StatTracker,
   def delete(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
-      factory.deleteProject(project)
+      this.factory.deleteProject(project)
       Redirect(app.showHome(None, None, None))
         .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
     }

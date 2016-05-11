@@ -17,12 +17,13 @@ class ModelProcessor(service: ModelService) {
     * @tparam T     Model table
     * @tparam M     Model type
     */
-  def process[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
+  def process[T <: ModelTable[M], M <: Model: TypeTag](model: M): M = {
     bindFields(model)
     bindRelations(model)
     model.service = this.service
     model.setProcessed(true)
     println("processed " + model)
+    model
   }
 
   /**
@@ -33,7 +34,7 @@ class ModelProcessor(service: ModelService) {
     * @tparam T       Model table type
     * @tparam M       Model type
     */
-  def bindFields[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
+  def bindFields[T <: ModelTable[M], M <: Model: TypeTag](model: M): M = {
     val modelClass = model.getClass
     //noinspection ComparingUnrelatedTypes
     val bindFields = modelClass.getDeclaredFields
@@ -63,9 +64,10 @@ class ModelProcessor(service: ModelService) {
 
       service.registrar.getSetter(fieldType).bindTo(model, key, bindField)(service)
     }
+    model
   }
 
-  def bindRelations[T <: ModelTable[M], M <: Model](model: M) = {
+  def bindRelations[T <: ModelTable[M], M <: Model](model: M): M = {
     val modelClass = model.getClass
     val key = modelClass.getSimpleName.toLowerCase + "Id"
     //noinspection ComparingUnrelatedTypes
@@ -73,6 +75,7 @@ class ModelProcessor(service: ModelService) {
       val relations = modelClass.getDeclaredAnnotation(classOf[HasMany])
       for (relation <- relations.value) model.bindMany(relation, t => BootstrapTypeSetters.getRep[Int](key, t))
     }
+    model
   }
 
 }

@@ -5,7 +5,6 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Pages => self}
 import db.ModelService
-import db.impl.ProjectBase
 import form.OreForms
 import forums.DiscourseApi
 import models.project.Page
@@ -44,7 +43,7 @@ class Pages @Inject()(val forms: OreForms,
       val project = request.project
       project.pages.find(equalsIgnoreCase(_.name, page)) match {
         case None => NotFound
-        case Some(p) => stats.projectViewed(implicit request => Ok(views.view(project, p)))
+        case Some(p) => this.stats.projectViewed(implicit request => Ok(views.view(project, p)))
       }
     }
   }
@@ -84,7 +83,7 @@ class Pages @Inject()(val forms: OreForms,
     */
   def save(author: String, slug: String, page: String) = {
     PageEditAction(author, slug) { implicit request =>
-      forms.PageEdit.bindFromRequest.fold(
+      this.forms.PageEdit.bindFromRequest.fold(
         hasErrors => Redirect(self.show(author, slug, page)).flashing("error" -> hasErrors.errors.head.message),
         pageData => {
           request.project.getOrCreatePage(page).contents = pageData

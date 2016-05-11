@@ -29,6 +29,11 @@ function clearUnread(e) {
 $(function() {
     $('.alert-fade').fadeIn('slow');
     $('[data-toggle="tooltip"]').tooltip();
+    
+    $('.btn-spinner').click(function() {
+        var iconClass = $(this).data('icon');
+        $(this).find('.' + iconClass).removeClass(iconClass).addClass('fa-spinner fa-spin');
+    });
 
     var spongie = $('.col-spongie').find('div');
     spongie.click(function() { window.location = 'https://spongepowered.org' });

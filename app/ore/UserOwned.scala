@@ -8,5 +8,5 @@ trait UserOwned {
   /** Returns the User ID */
   def userId: Int
   /** Returns the User */
-  def user(implicit users: UserBase): User = users.access.get(this.userId).get
+  def user(implicit users: UserBase): User = users.get(this.userId).get
 }

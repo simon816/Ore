@@ -6,13 +6,12 @@ import controllers.BaseController
 import controllers.project.routes.{Versions => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import db.impl.ProjectBase
 import form.OreForms
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import ore.permission.{EditVersions, ReviewProjects}
-import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFileManager}
-import ore.{ProjectFactory, StatTracker}
+import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFactory, ProjectFileManager}
+import ore.StatTracker
 import play.api.i18n.MessagesApi
 import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
@@ -48,7 +47,7 @@ class Versions @Inject()(val stats: StatTracker,
     ProjectAction(author, slug) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
-        stats.projectViewed { implicit request =>
+        this.stats.projectViewed { implicit request =>
           Ok(views.view(project, version.channel, version))
         }
       }
@@ -67,7 +66,7 @@ class Versions @Inject()(val stats: StatTracker,
     VersionEditAction(author, slug) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
-        version.description = forms.VersionDescription.bindFromRequest.get.trim
+        version.description = this.forms.VersionDescription.bindFromRequest.get.trim
         Redirect(self.show(author, slug, versionString))
       }
     }
@@ -128,13 +127,13 @@ class Versions @Inject()(val stats: StatTracker,
       })
       val visibleIds: Array[Int] = visible.map(_.map(_.id.get)).getOrElse(allChannels.map(_.id.get).toArray)
 
-      val load = config.projects.getInt("init-version-load").get
+      val load = this.config.projects.getInt("init-version-load").get
       val versions = project.versions.sorted(_.createdAt.desc, _.channelId inSetBind visibleIds, load)
       if (visibleNames.isDefined && visibleNames.get.toSet.equals(allChannels.map(_.name.toLowerCase).toSet)) {
         visibleNames = None
       }
 
-      stats.projectViewed { implicit request =>
+      this.stats.projectViewed { implicit request =>
         Ok(views.list(project, allChannels, versions, visibleNames))
       }
     }
@@ -168,7 +167,7 @@ class Versions @Inject()(val stats: StatTracker,
         case None => Redirect(self.showCreator(author, slug)).flashing("error" -> "Missing file")
         case Some(tmpFile) =>
           // Initialize plugin file
-          factory.cacheUpload(tmpFile.ref, tmpFile.filename, request.user) match {
+          this.factory.cacheUpload(tmpFile.ref, tmpFile.filename, request.user) match {
             case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
               // PEBKAC
               Redirect(self.showCreator(author, slug))
@@ -185,7 +184,7 @@ class Versions @Inject()(val stats: StatTracker,
               } else {
                 // Create version from meta file
                 val version = Version.fromMeta(project, plugin)
-                if (version.exists && config.projects.getBoolean("file-validate").get) {
+                if (version.exists && this.config.projects.getBoolean("file-validate").get) {
                   Redirect(self.showCreator(author, slug))
                     .flashing("error" -> "Found a duplicate file in project. Plugin files may only be uploaded once.")
                 } else {
@@ -194,7 +193,7 @@ class Versions @Inject()(val stats: StatTracker,
                   val channelName: String = project.channels.all.head.name
 
                   // Cache for later use
-                  factory.setVersionPending(author, slug, channelName, version, plugin)
+                  this.factory.setVersionPending(author, slug, channelName, version, plugin)
                   Redirect(self.showCreatorWithMeta(author, slug, version.versionString))
                 }
               }
@@ -214,7 +213,7 @@ class Versions @Inject()(val stats: StatTracker,
   def showCreatorWithMeta(author: String, slug: String, versionString: String) = {
     Authenticated { implicit request =>
       // Get pending version
-      factory.getPendingVersion(author, slug, versionString) match {
+      this.factory.getPendingVersion(author, slug, versionString) match {
         case None => Redirect(self.showCreator(author, slug))
         case Some(pendingVersion) =>
           // Get project
@@ -234,7 +233,7 @@ class Versions @Inject()(val stats: StatTracker,
   private def pendingOrReal(author: String, slug: String): Option[Any] = {
     // Returns either a PendingProject or existing Project
     projects.withSlug(author, slug) match {
-      case None => factory.getPendingProject(author, slug)
+      case None => this.factory.getPendingProject(author, slug)
       case Some(project) => Some(project)
     }
   }
@@ -252,11 +251,11 @@ class Versions @Inject()(val stats: StatTracker,
     // TODO: Cleanup
     Authenticated { implicit request =>
       // First get the pending Version
-      factory.getPendingVersion(author, slug, versionString) match {
+      this.factory.getPendingVersion(author, slug, versionString) match {
         case None => Redirect(self.showCreator(author, slug)) // Not found
         case Some(pendingVersion) =>
           // Get submitted channel
-          forms.VersionCreate.bindFromRequest.fold(
+          this.forms.VersionCreate.bindFromRequest.fold(
             hasErrors => Redirect(self.showCreatorWithMeta(author, slug, versionString))
               .flashing("error" -> hasErrors.errors.head.message),
 
@@ -266,7 +265,7 @@ class Versions @Inject()(val stats: StatTracker,
               pendingVersion.channelColor = versionData.color
 
               // Check for pending project
-              factory.getPendingProject(author, slug) match {
+              this.factory.getPendingProject(author, slug) match {
                 case None =>
                   // No pending project, create version for existing project
                   withProject(author, slug) { project =>
@@ -309,7 +308,7 @@ class Versions @Inject()(val stats: StatTracker,
     VersionEditAction(author, slug) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
-        factory.deleteVersion(version)
+        this.factory.deleteVersion(version)
         Redirect(self.showList(author, slug, None))
       }
     }
@@ -327,8 +326,8 @@ class Versions @Inject()(val stats: StatTracker,
     ProjectAction(author, slug) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
-        stats.versionDownloaded(version) { implicit request =>
-          Ok.sendFile(fileManager.uploadPath(author, project.name, versionString).toFile)
+        this.stats.versionDownloaded(version) { implicit request =>
+          Ok.sendFile(this.fileManager.uploadPath(author, project.name, versionString).toFile)
         }
       }
     }
@@ -345,8 +344,8 @@ class Versions @Inject()(val stats: StatTracker,
     ProjectAction(author, slug) { implicit request =>
       val project = request.project
       val rv = project.recommendedVersion
-      stats.versionDownloaded(rv) { implicit request =>
-        Ok.sendFile(fileManager.uploadPath(author, project.name, rv.versionString).toFile)
+      this.stats.versionDownloaded(rv) { implicit request =>
+        Ok.sendFile(this.fileManager.uploadPath(author, project.name, rv.versionString).toFile)
       }
     }
   }
