@@ -17,9 +17,10 @@ import scala.reflect.runtime.universe._
   * @tparam T             Table type
   * @tparam M             Model type
   */
-class StatActions[T <: StatTable[M], M <: StatEntry[_]: TypeTag](statEntryClass: Class[M], baseQuery: TableQuery[T])
-                                                       (implicit service: ModelService)
-  extends ModelActions[T, M](statEntryClass, baseQuery) {
+class StatActions[T <: StatTable[M], M <: StatEntry[_]: TypeTag](override val service: ModelService,
+                                                                 override val baseQuery: TableQuery[T],
+                                                                 statEntryClass: Class[M])
+  extends ModelActions[T, M](service, statEntryClass, baseQuery) {
 
   /**
     * Checks if the specified StatEntry exists and records the entry in the

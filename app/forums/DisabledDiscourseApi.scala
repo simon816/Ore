@@ -1,7 +1,9 @@
 package forums
+
 import play.api.libs.ws.WSClient
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Represents the DiscourseApi in a disabled state.

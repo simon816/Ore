@@ -4,10 +4,10 @@ import javax.inject.Inject
 
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
+import db.impl.{ProjectBase, UserBase}
 import db.impl.action.{ProjectActions, UserActions, VersionActions}
-import ore.UserBase
 import ore.project.Categories.Category
-import ore.project.{Categories, ProjectBase, ProjectSortingStrategies}
+import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.libs.json.{JsValue, Json}
 import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
@@ -17,10 +17,14 @@ import util.StringUtils.equalsIgnoreCase
   */
 trait OreRestfulApi {
 
+  val writes: OreWrites
+  import writes._
+
   val service: ModelService
   val config: OreConfig
-  val users: UserBase
-  val projects: ProjectBase
+  val users: UserBase = service.getModelBase(classOf[UserBase])
+
+  implicit val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
 
   /**
     * Returns a Json value of the Projects meeting the specified criteria.
@@ -34,7 +38,7 @@ trait OreRestfulApi {
     */
   def getProjectList(categories: Option[String], sort: Option[Int], q: Option[String],
                      limit: Option[Int], offset: Option[Int]): JsValue = {
-    val queries = service.provide(classOf[ProjectActions])
+    val queries = service.actions(classOf[ProjectActions])
     val categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
     val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
     val filter = q.map(queries.searchFilter).orNull
@@ -71,7 +75,7 @@ trait OreRestfulApi {
         project.channels.find(equalsIgnoreCase(_.name, name)).get.id.get
       })
       // Only allow versions in the specified channels
-      val filter = channelIds.map(service.provide(classOf[VersionActions]).channelFilter).orNull
+      val filter = channelIds.map(service.actions(classOf[VersionActions]).channelFilter).orNull
       val maxLoad = config.projects.getInt("init-version-load").get
       val lim = Math.max(limit.getOrElse(maxLoad), maxLoad)
       Json.toJson(project.versions.sorted(_.createdAt.desc, filter, lim, offset.getOrElse(-1)))
@@ -99,7 +103,7 @@ trait OreRestfulApi {
     * @return       List of users
     */
   def getUserList(limit: Option[Int], offset: Option[Int]): JsValue
-  = Json.toJson(service.await(service.provide(classOf[UserActions]).collect(limit.getOrElse(-1), offset.getOrElse(-1))).get)
+  = Json.toJson(service.await(service.actions(classOf[UserActions]).collect(limit.getOrElse(-1), offset.getOrElse(-1))).get)
 
   /**
     * Returns a Json value of the User with the specified username.
@@ -112,8 +116,7 @@ trait OreRestfulApi {
 
 }
 
-class OreRestful @Inject()(override val service: ModelService,
-                           override val config: OreConfig,
-                           override val users: UserBase,
-                           override val projects: ProjectBase)
+class OreRestful @Inject()(override val writes: OreWrites,
+                           override val service: ModelService,
+                           override val config: OreConfig)
                            extends OreRestfulApi

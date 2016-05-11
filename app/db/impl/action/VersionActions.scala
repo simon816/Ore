@@ -12,12 +12,12 @@ import scala.concurrent.Future
 /**
   * Version related queries.
   */
-class VersionActions(implicit val service: ModelService)
-  extends ModelActions[VersionTable, Version](classOf[Version], TableQuery[VersionTable]) {
+class VersionActions(override val service: ModelService)
+  extends ModelActions[VersionTable, Version](service, classOf[Version], TableQuery[VersionTable]) {
 
   val Downloads = service.registrar.register(
     new StatActions[VersionDownloadsTable, VersionDownload](
-      classOf[VersionDownload], TableQuery[VersionDownloadsTable]
+      this.service, TableQuery[VersionDownloadsTable], classOf[VersionDownload]
     )
   )
 

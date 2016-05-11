@@ -6,13 +6,13 @@ import controllers.BaseController
 import controllers.project.routes.{Versions => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
+import db.impl.ProjectBase
 import form.OreForms
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import ore.permission.{EditVersions, ReviewProjects}
-import ore.project.ProjectBase
-import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFactory, ProjectFileManager}
-import ore.{StatTracker, UserBase}
+import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFileManager}
+import ore.{ProjectFactory, StatTracker}
 import play.api.i18n.MessagesApi
 import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
@@ -27,12 +27,10 @@ class Versions @Inject()(val stats: StatTracker,
                          val forms: OreForms,
                          val fileManager: ProjectFileManager,
                          val factory: ProjectFactory,
-                         override val messagesApi: MessagesApi,
-                         override val config: OreConfig,
-                         override val users: UserBase,
-                         override val projects: ProjectBase,
-                         override val forums: DiscourseApi,
-                         override val service: ModelService)
+                         implicit override val messagesApi: MessagesApi,
+                         implicit override val config: OreConfig,
+                         implicit override val forums: DiscourseApi,
+                         implicit override val service: ModelService)
                          extends BaseController {
 
   private def VersionEditAction(author: String, slug: String)
@@ -170,7 +168,7 @@ class Versions @Inject()(val stats: StatTracker,
         case None => Redirect(self.showCreator(author, slug)).flashing("error" -> "Missing file")
         case Some(tmpFile) =>
           // Initialize plugin file
-          factory.initUpload(tmpFile.ref, tmpFile.filename, request.user) match {
+          factory.cacheUpload(tmpFile.ref, tmpFile.filename, request.user) match {
             case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
               // PEBKAC
               Redirect(self.showCreator(author, slug))
@@ -196,7 +194,7 @@ class Versions @Inject()(val stats: StatTracker,
                   val channelName: String = project.channels.all.head.name
 
                   // Cache for later use
-                  Version.setPending(author, slug, channelName, version, plugin)
+                  factory.setVersionPending(author, slug, channelName, version, plugin)
                   Redirect(self.showCreatorWithMeta(author, slug, version.versionString))
                 }
               }
@@ -216,7 +214,7 @@ class Versions @Inject()(val stats: StatTracker,
   def showCreatorWithMeta(author: String, slug: String, versionString: String) = {
     Authenticated { implicit request =>
       // Get pending version
-      Version.getPending(author, slug, versionString) match {
+      factory.getPendingVersion(author, slug, versionString) match {
         case None => Redirect(self.showCreator(author, slug))
         case Some(pendingVersion) =>
           // Get project
@@ -236,7 +234,7 @@ class Versions @Inject()(val stats: StatTracker,
   private def pendingOrReal(author: String, slug: String): Option[Any] = {
     // Returns either a PendingProject or existing Project
     projects.withSlug(author, slug) match {
-      case None => factory.getPending(author, slug)
+      case None => factory.getPendingProject(author, slug)
       case Some(project) => Some(project)
     }
   }
@@ -254,7 +252,7 @@ class Versions @Inject()(val stats: StatTracker,
     // TODO: Cleanup
     Authenticated { implicit request =>
       // First get the pending Version
-      Version.getPending(author, slug, versionString) match {
+      factory.getPendingVersion(author, slug, versionString) match {
         case None => Redirect(self.showCreator(author, slug)) // Not found
         case Some(pendingVersion) =>
           // Get submitted channel
@@ -268,7 +266,7 @@ class Versions @Inject()(val stats: StatTracker,
               pendingVersion.channelColor = versionData.color
 
               // Check for pending project
-              factory.getPending(author, slug) match {
+              factory.getPendingProject(author, slug) match {
                 case None =>
                   // No pending project, create version for existing project
                   withProject(author, slug) { project =>
@@ -311,7 +309,7 @@ class Versions @Inject()(val stats: StatTracker,
     VersionEditAction(author, slug) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
-        version.delete()
+        factory.deleteVersion(version)
         Redirect(self.showList(author, slug, None))
       }
     }

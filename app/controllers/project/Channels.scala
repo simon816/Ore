@@ -5,11 +5,11 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Channels => self}
 import db.ModelService
+import db.impl.ProjectBase
 import form.OreForms
 import forums.DiscourseApi
-import ore.UserBase
+import ore.ProjectFactory
 import ore.permission.EditChannels
-import ore.project.ProjectBase
 import play.api.i18n.MessagesApi
 import util.OreConfig
 import views.html.projects.{channels => views}
@@ -18,12 +18,11 @@ import views.html.projects.{channels => views}
   * Controller for handling Channel related actions.
   */
 class Channels @Inject()(val forms: OreForms,
-                         override val messagesApi: MessagesApi,
-                         override val config: OreConfig,
-                         override val users: UserBase,
-                         override val projects: ProjectBase,
-                         override val forums: DiscourseApi,
-                         override val service: ModelService)
+                         val factory: ProjectFactory,
+                         implicit override val messagesApi: MessagesApi,
+                         implicit override val config: OreConfig,
+                         implicit override val forums: DiscourseApi,
+                         implicit override val service: ModelService)
                          extends BaseController {
 
   private def ChannelEditAction(author: String, slug: String)
@@ -108,7 +107,7 @@ class Channels @Inject()(val forms: OreForms,
               Redirect(self.showList(author, slug))
                 .flashing("error" -> "You cannot delete your only non-empty channel.")
             } else {
-              channel.delete()
+              factory.deleteChannel(channel)
               Redirect(self.showList(author, slug))
             }
         }

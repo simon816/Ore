@@ -13,9 +13,9 @@ import scala.util.{Failure, Success}
   * Base class for handling Model queries. ModelActions define how Models can
   * interact with the database.
   */
-class ModelActions[Table <: ModelTable[Row], Row <: Model: TypeTag](val modelClass: Class[Row],
-                                                              val baseQuery: TableQuery[Table])
-                                                             (implicit service: ModelService) {
+class ModelActions[Table <: ModelTable[Row], Row <: Model: TypeTag](val service: ModelService,
+                                                                    val modelClass: Class[Row],
+                                                                    val baseQuery: TableQuery[Table]) {
 
   /** Model filter alias */
   type Filter = Table => Rep[Boolean]

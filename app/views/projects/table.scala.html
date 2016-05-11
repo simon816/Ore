@@ -8,8 +8,10 @@ Collection of all projects.
 @import models.project.Project
 @import models.user.User
 @import ore.project.Categories._
+@import db.impl.UserBase
 @(models: Seq[Project], visibleCategories: Option[Array[Category]] = None)(implicit messages: Messages,
-        session: Session, flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig)
+        session: Session, flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig,
+        users: UserBase)
 
 <div class="panel panel-default project-panel">
     <table class="table project-table">

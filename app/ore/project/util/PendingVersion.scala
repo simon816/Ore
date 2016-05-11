@@ -2,6 +2,7 @@ package ore.project.util
 
 import models.project.{Channel, Version}
 import ore.Colors.Color
+import ore.ProjectFactory
 import play.api.cache.CacheApi
 import util.{Cacheable, OreConfig, PendingAction}
 
@@ -17,15 +18,15 @@ import scala.util.Try
   * @param version        Version that is pending
   * @param plugin         Uploaded plugin
   */
-case class PendingVersion(override val cacheApi: CacheApi,
-                          factory: ProjectFactory,
+case class PendingVersion(factory: ProjectFactory,
                           implicit val config: OreConfig,
                           owner: String,
                           projectSlug: String,
                           var channelName: String,
                           var channelColor: Color,
                           version: Version,
-                          plugin: PluginFile)
+                          plugin: PluginFile,
+                          override val cacheApi: CacheApi)
                           extends PendingAction[Version]
                             with Cacheable {
 
@@ -40,11 +41,9 @@ case class PendingVersion(override val cacheApi: CacheApi,
   override def cancel() = {
     free()
     this.plugin.delete()
-    if (this.version.isDefined) this.version.delete()
+    if (this.version.isDefined) this.factory.deleteVersion(this.version)
   }
 
-  override def key: String = {
-    this.owner + '/' + this.projectSlug + '/' + this.version.versionString
-  }
+  override def key: String = this.owner + '/' + this.projectSlug + '/' + this.version.versionString
 
 }

@@ -8,14 +8,13 @@ import db.ModelService
 import db.action.ModelFilter
 import db.impl.OrePostgresDriver.api._
 import db.impl.action.ProjectActions
-import db.impl.{FlagTable, ProjectTable}
+import db.impl.{FlagTable, ProjectTable, UserBase}
 import forums.DiscourseApi
 import models.project.{Flag, Project, Version}
-import ore.UserBase
 import ore.permission._
 import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
-import ore.project.{Categories, ProjectBase, ProjectSortingStrategies}
+import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.{DataUtils, OreConfig}
@@ -24,12 +23,11 @@ import views.{html => views}
 /**
   * Main entry point for application.
   */
-class Application @Inject()(override val messagesApi: MessagesApi,
-                            override val config: OreConfig,
-                            override val users: UserBase,
-                            override val projects: ProjectBase,
-                            override val forums: DiscourseApi,
-                            override val service: ModelService) extends BaseController {
+class Application @Inject()(implicit override val messagesApi: MessagesApi,
+                            implicit override val config: OreConfig,
+                            implicit override val forums: DiscourseApi,
+                            implicit override val service: ModelService)
+                            extends BaseController {
 
   private def FlagAction = Authenticated andThen PermissionAction[AuthRequest](ReviewFlags)
 
@@ -44,7 +42,7 @@ class Application @Inject()(override val messagesApi: MessagesApi,
     val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
     
     // Determine filter
-    val actions = service.provide(classOf[ProjectActions])
+    val actions = service.actions(classOf[ProjectActions])
     val canHideProjects = users.current.isDefined && (users.current.get can HideProjects in GlobalScope)
     var filter: ProjectTable => Rep[Boolean] = query.map { q =>
       // Search filter + visible

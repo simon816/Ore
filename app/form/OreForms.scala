@@ -2,7 +2,6 @@ package form
 
 import javax.inject.Inject
 
-import db.ModelService
 import models.project.Channel
 import models.project.Page._
 import ore.project.util.ProjectFileManager
@@ -14,9 +13,7 @@ import util.OreConfig
   * Collection of forms used in this application.
   */
 //noinspection ConvertibleToMethodValue
-class OreForms @Inject()(implicit val config: OreConfig,
-                         val service: ModelService,
-                         val fileManager: ProjectFileManager) {
+class OreForms @Inject()(implicit config: OreConfig, fileManager: ProjectFileManager) {
 
   /**
     * Submits a new Channel for a Project.
@@ -92,15 +89,15 @@ class OreForms @Inject()(implicit val config: OreConfig,
     * Submits a new Version.
     */
   lazy val VersionCreate = Form(mapping(
+    "recommended" -> boolean,
+
     "channel-input" -> text.verifying(
       "Invalid channel name.", Channel.isValidName(_)
     ),
 
     "channel-color-input" -> text.verifying(
       "Invalid channel color.", c => Channel.Colors.exists(_.hex.equalsIgnoreCase(c))
-    ),
-
-    "recommended" -> boolean
+    )
   )(VersionData.apply)(VersionData.unapply))
 
 

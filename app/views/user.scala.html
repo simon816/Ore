@@ -7,8 +7,8 @@ User page for developers.
 @import db.ModelService
 @import forums.DiscourseApi
 @import _root_.util.OreConfig
+@import db.impl.UserBase
 @import util.StringUtils
-@import ore.UserBase
 @import util.StringUtils.prettifyDate
 @(user: User)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader,
         service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)

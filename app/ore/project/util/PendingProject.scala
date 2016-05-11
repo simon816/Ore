@@ -2,8 +2,9 @@ package ore.project.util
 
 import models.project.{Channel, Project, Version}
 import models.user.ProjectRole
+import ore.ProjectFactory
 import play.api.cache.CacheApi
-import util.{Cacheable, PendingAction}
+import util.{Cacheable, OreConfig, PendingAction}
 
 import scala.util.Try
 
@@ -14,11 +15,12 @@ import scala.util.Try
   * @param project  Pending project
   * @param file     Uploaded plugin
   */
-case class PendingProject(override val cacheApi: CacheApi,
-                          factory: ProjectFactory,
+case class PendingProject(factory: ProjectFactory,
                           project: Project,
                           file: PluginFile,
-                          var roles: Set[ProjectRole] = Set())
+                          implicit val config: OreConfig,
+                          var roles: Set[ProjectRole] = Set(),
+                          override val cacheApi: CacheApi)
                           extends PendingAction[Project]
                             with Cacheable {
 
@@ -27,7 +29,7 @@ case class PendingProject(override val cacheApi: CacheApi,
     */
   val pendingVersion: PendingVersion = {
     val version = Version.fromMeta(this.project, this.file)
-    Version.setPending(project.ownerName, project.slug,
+    factory.setVersionPending(project.ownerName, project.slug,
       Channel.getSuggestedNameForVersion(version.versionString), version, this.file)
   }
 
@@ -42,7 +44,7 @@ case class PendingProject(override val cacheApi: CacheApi,
   override def cancel() = {
     free()
     this.file.delete()
-    if (project.isDefined) project.delete()
+    if (this.project.isDefined) this.factory.deleteProject(this.project)
   }
 
   override def key: String = this.project.ownerName + '/' + this.project.slug

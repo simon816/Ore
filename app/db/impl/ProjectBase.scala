@@ -1,21 +1,13 @@
-package ore.project
-
-import javax.inject.Inject
+package db.impl
 
 import _root_.util.StringUtils._
-import _root_.util.{OreConfig, OreEnv}
 import db.impl.OrePostgresDriver.api._
-import db.impl.ProjectTable
-import db.{ModelAccessible, ModelService}
+import db.{ModelBase, ModelService}
 import models.project.Project
-import play.api.cache.CacheApi
 
-trait ProjectBase extends ModelAccessible[ProjectTable, Project] {
+class ProjectBase(override val service: ModelService) extends ModelBase[ProjectTable, Project] {
 
-  val service: ModelService
-  val config: OreConfig
-  val env: OreEnv
-  val cacheApi: CacheApi
+  override val modelClass = classOf[Project]
 
   /**
     * Returns the Project with the specified owner name and name.
@@ -26,14 +18,6 @@ trait ProjectBase extends ModelAccessible[ProjectTable, Project] {
     */
   def withName(owner: String, name: String): Option[Project]
   = this.find(p => p.ownerName.toLowerCase === owner.toLowerCase && p.name.toLowerCase === name.toLowerCase)
-
-  /**
-    * Returns true if the specified project exists.
-    *
-    * @param project  Project to check
-    * @return         True if exists
-    */
-  def exists(project: Project): Boolean = this.withName(project.ownerName, project.name).isDefined
 
   /**
     * Returns the Project with the specified owner name and URL slug, if any.
@@ -61,10 +45,12 @@ trait ProjectBase extends ModelAccessible[ProjectTable, Project] {
     */
   def isNamespaceAvailable(owner: String, slug: String): Boolean = withSlug(owner, slug).isEmpty
 
-}
+  /**
+    * Returns true if the specified project exists.
+    *
+    * @param project  Project to check
+    * @return         True if exists
+    */
+  def exists(project: Project): Boolean = this.withName(project.ownerName, project.name).isDefined
 
-class OreProjectBase @Inject()(override val config: OreConfig,
-                               override val env: OreEnv,
-                               override val cacheApi: CacheApi,
-                               override val service: ModelService,
-                               override val modelClass: Class[Project] = classOf[Project]) extends ProjectBase
+}

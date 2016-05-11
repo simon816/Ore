@@ -1,13 +1,13 @@
 @import _root_.util.OreConfig
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
+@import db.impl.UserBase
 @import forums.DiscourseApi
 @import models.project.Project
 @import models.user.User
 @import ore.permission.HideProjects
 @import ore.permission.scope.GlobalScope
 @import views.html.helper.form
-@import ore.UserBase
 @(project: Project)(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 

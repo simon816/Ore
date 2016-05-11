@@ -10,7 +10,6 @@ import db.impl.ModelKeys._
 import db.impl.OreModel
 import db.meta.Actor
 import models.user.User
-import ore.UserBase
 
 /**
   * Represents a statistic entry in a StatTable.
@@ -39,7 +38,7 @@ abstract class StatEntry[Subject <: Model](override val id: Option[Int] = None,
     *
     * @return User of entry
     */
-  def user(implicit users: UserBase): Option[User] = this.userId.flatMap(users.access.get)
+  def user: Option[User] = this.userId.flatMap(this.userBase.access.get)
 
   /**
     * Sets the User associated with this entry, if any.

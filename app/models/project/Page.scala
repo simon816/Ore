@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.impl.ModelKeys._
-import db.impl.OreModel
+import db.impl.{OreModel, PageTable}
 import db.impl.action.PageActions
 import db.meta.{Actor, Bind}
 import forums.DiscourseApi
@@ -39,6 +39,8 @@ case class Page(override val id: Option[Int] = None,
                 extends OreModel(id, createdAt)
                   with ProjectScope { self =>
 
+  override type M = Page
+  override type T = PageTable
   override type A = PageActions
 
   import models.project.Page._
@@ -64,13 +66,13 @@ case class Page(override val id: Option[Int] = None,
     *
     * @param _contents Markdown contents
     */
-  def contents_=(_contents: String)(implicit forums: DiscourseApi) = {
+  def contents_=(_contents: String) = {
     checkArgument(_contents.length <= MaxLength, "contents too long", "")
     checkArgument(_contents.length >= MinLength, "contents not long enough", "")
     this._contents = _contents
     if (isDefined) {
       val project = this.project
-      if (this.name.equals(HomeName) && project.topicId.isDefined) forums.embed.updateTopic(project)
+      if (this.name.equals(HomeName) && project.topicId.isDefined) this.forums.embed.updateTopic(project)
       update(Contents)
     }
   }

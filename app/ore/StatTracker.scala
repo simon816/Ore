@@ -1,17 +1,25 @@
 package ore
 
 import java.util.UUID
+import javax.inject.Inject
 
 import controllers.Requests.ProjectRequest
+import db.ModelService
+import db.impl.{ProjectBase, UserBase}
 import models.project.Version
 import models.statistic.{ProjectView, VersionDownload}
 import ore.StatTracker.COOKIE_UID
 import play.api.mvc.{Cookie, RequestHeader, Result}
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 /**
   * Helper class for handling tracking of statistics.
   */
 trait StatTracker {
+
+  implicit val users: UserBase
+  implicit val projects: ProjectBase
 
   /**
     * Signifies that a project has been viewed with the specified request and
@@ -65,4 +73,7 @@ object StatTracker {
 
 }
 
-class OreStatTracker extends StatTracker
+class OreStatTracker @Inject()(service: ModelService) extends StatTracker {
+  override val users = service.getModelBase(classOf[UserBase])
+  override val projects = service.getModelBase(classOf[ProjectBase])
+}

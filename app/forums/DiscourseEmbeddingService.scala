@@ -1,6 +1,5 @@
 package forums
 
-import db.ModelService
 import models.project.Project
 import models.user.User
 import play.api.libs.json.JsArray
@@ -23,9 +22,8 @@ class DiscourseEmbeddingService(api: DiscourseApi,
                                 key: String,
                                 categoryId: Int,
                                 ws: WSClient,
-                                service: ModelService,
                                 config: OreConfig,
-                                env: OreEnv) {
+                                implicit val env: OreEnv) {
 
   import api.validate
   import config.debug
@@ -136,7 +134,7 @@ object DiscourseEmbeddingService {
   /**
     * Represents a disabled state of [[DiscourseEmbeddingService]].
     */
-  object Disabled extends DiscourseEmbeddingService(null, null, null, -1, null, null, null, null) {
+  object Disabled extends DiscourseEmbeddingService(null, null, null, -1, null, null, null) {
     override def createTopic(project: Project) = Future(None)
     override def updateTopic(project: Project) = Future(null)
     override def renameTopic(project: Project) = Future(null)

@@ -8,7 +8,7 @@ import db.action.ModelAccess
   * @tparam T ModelTable
   * @tparam M Model
   */
-trait ModelAccessible[T <: ModelTable[M], M <: Model] {
+trait ModelBase[T <: ModelTable[M], M <: Model] {
 
   val modelClass: Class[M]
   val service: ModelService
@@ -20,6 +20,6 @@ trait ModelAccessible[T <: ModelTable[M], M <: Model] {
     */
   def access: ModelAccess[T, M] = this.service.access[T, M](this.modelClass)
 
-  implicit def access(self: ModelAccessible[T, M]): ModelAccess[T, M] = this.access
+  implicit def access(self: ModelBase[T, M]): ModelAccess[T, M] = this.access
 
 }

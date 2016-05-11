@@ -3,7 +3,6 @@ package db.impl
 import db.meta.ModelProcessor
 import db.{Model, ModelService, ModelTable}
 import forums.DiscourseApi
-import ore.project.util.ProjectFileManager
 import util.OreConfig
 
 import scala.reflect.runtime.universe._
@@ -15,13 +14,20 @@ import scala.reflect.runtime.universe._
   * @param config   Ore config
   */
 class OreModelProcessor(service: ModelService,
-                        config: OreConfig)
+                        users: UserBase,
+                        projects: ProjectBase,
+                        config: OreConfig,
+                        forums: DiscourseApi)
                         extends ModelProcessor(service) {
 
   override def process[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
     super.process(model)
     model match {
-      case oreModel: OreModel => oreModel.config = this.config
+      case oreModel: OreModel =>
+        oreModel.userBase = this.users
+        oreModel.projectBase = this.projects
+        oreModel.config = this.config
+        oreModel.forums = this.forums
       case _ =>
     }
   }

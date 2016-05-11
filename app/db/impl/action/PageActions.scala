@@ -11,8 +11,8 @@ import scala.concurrent.Future
 /**
   * Page related queries.
   */
-class PageActions(implicit val service: ModelService)
-  extends ModelActions[PageTable, Page](classOf[Page], TableQuery[PageTable]) {
+class PageActions(override val service: ModelService)
+  extends ModelActions[PageTable, Page](service, classOf[Page], TableQuery[PageTable]) {
 
   override def like(page: Page): Future[Option[Page]]
   = find(p => p.projectId === page.projectId && p.name.toLowerCase === page.name.toLowerCase)

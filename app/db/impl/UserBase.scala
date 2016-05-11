@@ -1,9 +1,6 @@
-package ore
+package db.impl
 
-import javax.inject.Inject
-
-import db.impl.UserTable
-import db.{ModelAccessible, ModelService}
+import db.{ModelBase, ModelService}
 import forums.DiscourseApi
 import models.user.User
 import play.api.mvc.Session
@@ -12,10 +9,9 @@ import util.StringUtils._
 /**
   * Represents a central location for all Users.
   */
-trait UserBase extends ModelAccessible[UserTable, User] {
+class UserBase(override val service: ModelService, forums: DiscourseApi) extends ModelBase[UserTable, User] {
 
-  val service: ModelService
-  val forums: DiscourseApi
+  override val modelClass = classOf[User]
 
   /**
     * Returns the user with the specified username. If the specified username
@@ -49,7 +45,3 @@ trait UserBase extends ModelAccessible[UserTable, User] {
   def current(implicit session: Session): Option[User] = session.get("username").map(withName).getOrElse(None)
 
 }
-
-class OreUserBase @Inject()(override val service: ModelService,
-                            override val forums: DiscourseApi,
-                            override val modelClass: Class[User] = classOf[User]) extends UserBase

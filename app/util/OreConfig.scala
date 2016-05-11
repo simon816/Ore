@@ -9,7 +9,7 @@ import play.api.Configuration
   *
   * @param config Base configuration file
   */
-class OreConfig @Inject()(config: Configuration) {
+final class OreConfig @Inject()(config: Configuration) {
 
   lazy val root = config
   lazy val app = config.getConfig("application").get

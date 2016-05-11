@@ -15,14 +15,11 @@ import forums.DiscourseApi
 import models.statistic.ProjectView
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
-import ore.UserBase
 import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import ore.project.util._
-import ore.project.{Categories, ProjectBase, ProjectMember}
-import org.apache.commons.io.FileUtils
-import org.spongepowered.plugin.meta.PluginMetadata
+import ore.project.{Categories, ProjectMember}
 import util.StringUtils.{compact, slugify}
 import util.{OreConfig, OreEnv}
 
@@ -52,12 +49,14 @@ import scala.annotation.meta.field
   classOf[Channel], classOf[Version], classOf[Page],
   classOf[Flag], classOf[ProjectRole], classOf[ProjectView]
 ))
-case class Project(override val id: Option[Int] = None,
+case class Project(// Immutable
+                   override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                                 pluginId: String,
                                 ownerName: String,
                                 ownerId: Int,
                                 homepage: Option[String] = None,
+                   // Mutable
                    @(Bind @field) private var _name: String,
                    @(Bind @field) private var _slug: String,
                    @(Bind @field) private var recommendedVersionId: Option[Int] = None,
@@ -74,6 +73,8 @@ case class Project(override val id: Option[Int] = None,
                    extends OreModel(id, createdAt)
                      with ProjectScope { self =>
 
+  override type M = Project
+  override type T = ProjectTable
   override type A = ProjectActions
 
   import models.project.Project._
@@ -118,18 +119,17 @@ case class Project(override val id: Option[Int] = None,
     * @param _name   New name
     * @return       Future result
     */
-  def name_=(_name: String)(implicit forums: DiscourseApi, fileManager: ProjectFileManager,
-                            projects: ProjectBase) = Defined {
+  def name_=(_name: String)(implicit fileManager: ProjectFileManager) = Defined {
     val newName = compact(_name)
     val newSlug = slugify(newName)
     checkArgument(isValidName(newName), "invalid name", "")
-    checkArgument(projects.isNamespaceAvailable(this.ownerName, newSlug), "slug not available", "")
+    checkArgument(this.projectBase.isNamespaceAvailable(this.ownerName, newSlug), "slug not available", "")
     fileManager.renameProject(this.ownerName, this.name, newName)
     this._name = newName
     this._slug = slugify(newName)
     if (this.topicId.isDefined) {
-      forums.embed.renameTopic(this)
-      forums.embed.updateTopic(this)
+      this.forums.embed.renameTopic(this)
+      this.forums.embed.updateTopic(this)
     }
     update(Name)
     update(Slug)
@@ -154,11 +154,11 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _description Description to set
     */
-  def description_=(_description: String)(implicit forums: DiscourseApi) = {
+  def description_=(_description: String) = {
     checkArgument(_description == null
-      || _description.length <= config.projects.getInt("max-desc-len").get, "description too long", "")
+      || _description.length <= this.config.projects.getInt("max-desc-len").get, "description too long", "")
     this._description = Option(_description)
-    if (this.topicId.isDefined) forums.embed.renameTopic(this)
+    if (this.topicId.isDefined) this.forums.embed.renameTopic(this)
     if (isDefined) update(Description)
   }
 
@@ -242,8 +242,8 @@ case class Project(override val id: Option[Int] = None,
     * @param username   To get User of
     * @return           True if starred by User
     */
-  def isStarredBy(username: String)(implicit users: UserBase): Boolean = Defined {
-    val user = users.withName(username)
+  def isStarredBy(username: String): Boolean = Defined {
+    val user = this.userBase.withName(username)
     isStarredBy(user.get)
   }
 
@@ -486,17 +486,6 @@ case class Project(override val id: Option[Int] = None,
     MessageFormat.format(template, project.name, url, project.homePage.contents)
   }
 
-  /**
-    * Immediately deletes this projects and any associated files.
-    *
-    * @return Result
-    */
-  def delete()(implicit forums: DiscourseApi, fileManager: ProjectFileManager) = Defined {
-    FileUtils.deleteDirectory(fileManager.projectDir(this.ownerName, this._name).toFile)
-    if (this.topicId.isDefined) forums.embed.deleteTopic(this)
-    this.remove()
-  }
-
   override def projectId = Defined(this.id.get)
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Project = this.copy(id = id, createdAt = theTime)
@@ -518,17 +507,6 @@ object Project {
   def isValidName(name: String)(implicit config: OreConfig): Boolean = {
     val sanitized = compact(name)
     sanitized.length >= 1 && sanitized.length <= config.projects.getInt("max-name-len").get
-  }
-
-  /**
-    * Creates a new Project from the specified PluginMetadata.
-    *
-    * @param owner  Owner of project
-    * @param meta   PluginMetadata object
-    * @return       New project
-    */
-  def fromMeta(owner: User, meta: PluginMetadata): Project = {
-    new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getUrl)
   }
 
 }

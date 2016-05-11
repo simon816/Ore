@@ -7,7 +7,8 @@ import db.action.ModelActions
 import db.impl.OrePostgresDriver.api._
 import db.impl.OreTypeSetters._
 import db.impl.action.{PageActions, ProjectActions, UserActions, VersionActions}
-import db.ModelService
+import db.{ModelRegistrar, ModelService}
+import forums.DiscourseApi
 import models.project.Channel
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
@@ -26,14 +27,21 @@ import scala.concurrent.duration.Duration
   * @param db DatabaseConfig
   */
 @Singleton
-class OreModelService @Inject()(config: OreConfig, db: DatabaseConfigProvider) extends ModelService {
+class OreModelService @Inject()(config: OreConfig,
+                                forums: DiscourseApi,
+                                db: DatabaseConfigProvider)
+                                extends ModelService {
 
-  override lazy val processor = new OreModelProcessor(this, this.config)
+  override lazy val registrar = new ModelRegistrar {}
+  override lazy val processor = new OreModelProcessor(this, this.users, this.projects, this.config, this.forums)
   override lazy val driver = OrePostgresDriver
   override lazy val DB = db.get[JdbcProfile]
   override lazy val DefaultTimeout: Duration = Duration(config.app.getInt("db.default-timeout").get, TimeUnit.SECONDS)
 
-  import registrar.{register, registerSetter}
+  import registrar.{register, registerSetter, registerModelBase}
+
+  val users = registerModelBase[UserBase](classOf[UserBase], new UserBase(this, forums))
+  val projects = registerModelBase[ProjectBase](classOf[ProjectBase], new ProjectBase(this))
 
   // Custom types
   registerSetter(classOf[Color], ColorTypeSetter)
@@ -43,10 +51,10 @@ class OreModelService @Inject()(config: OreConfig, db: DatabaseConfigProvider) e
   registerSetter(classOf[FlagReason], FlagReasonTypeSetter)
 
   // Ore models
-  register(new ModelActions[ChannelTable, Channel](classOf[Channel], TableQuery[ChannelTable]))
-  register(new PageActions)
-  register(new ProjectActions)
-  register(new UserActions)
-  register(new VersionActions)
+  register(new ModelActions[ChannelTable, Channel](this, classOf[Channel], TableQuery[ChannelTable]))
+  register(new PageActions(this))
+  register(new ProjectActions(this))
+  register(new UserActions(this))
+  register(new VersionActions(this))
 
 }

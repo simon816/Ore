@@ -26,7 +26,7 @@ object BootstrapTypeSetters {
     def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[Int], v: Int)
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
-        m <- service.newModelAction[T, M](model.getClass)
+        m <- service.newAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -36,7 +36,7 @@ object BootstrapTypeSetters {
     def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[String], v: String)
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
-        m <- service.newModelAction[T, M](model.getClass)
+        m <- service.newAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -46,7 +46,7 @@ object BootstrapTypeSetters {
     def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[Boolean], v: Boolean)
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
-        m <- service.newModelAction[T, M](model.getClass)
+        m <- service.newAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -56,7 +56,7 @@ object BootstrapTypeSetters {
     def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[Timestamp], v: Timestamp)
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
-        m <- service.newModelAction[T, M](model.getClass)
+        m <- service.newAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -66,7 +66,7 @@ object BootstrapTypeSetters {
     def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[List[Int]], v: List[Int])
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
-        m <- service.newModelAction[T, M](model.getClass)
+        m <- service.newAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -76,7 +76,7 @@ object BootstrapTypeSetters {
     def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[List[String]], v: List[String])
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
-        m <- service.newModelAction[T, M](model.getClass)
+        m <- service.newAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -86,7 +86,7 @@ object BootstrapTypeSetters {
     def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[List[Boolean]], v: List[Boolean])
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
-        m <- service.newModelAction[T, M](model.getClass)
+        m <- service.newAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -96,7 +96,7 @@ object BootstrapTypeSetters {
     def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[List[Timestamp]], v: List[Timestamp])
                                                 (implicit service: ModelService) = service.DB.db.run {
       (for {
-        m <- service.newModelAction[T, M](model.getClass)
+        m <- service.newAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }

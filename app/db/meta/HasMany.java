@@ -19,6 +19,6 @@ public @interface HasMany {
      *
      * @return Model class
      */
-    Class<? extends Model<?>>[] value();
+    Class<? extends Model>[] value();
 
 }

@@ -1,6 +1,5 @@
 package form
 
-import db.ModelService
 import models.project.{Channel, Project}
 import ore.Colors.Color
 import ore.project.util.ProjectFileManager
@@ -11,8 +10,7 @@ import util.OreConfig
   */
 trait TChannelData {
 
-  implicit val service: ModelService
-  implicit val config: OreConfig
+  val config: OreConfig
   implicit val fileManager: ProjectFileManager
 
   /** The [[Channel]] [[Color]] **/

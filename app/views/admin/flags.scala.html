@@ -3,8 +3,10 @@
 @import db.ModelService
 @import forums.DiscourseApi
 @import models.project.Flag
+@import db.impl.UserBase
+@import db.impl.ProjectBase
 @(flags: Seq[Flag])(implicit messages: Messages, session: Session, request: RequestHeader,
-        service: ModelService, forums: DiscourseApi, config: OreConfig)
+        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, projectBase: ProjectBase)
 
 @core.layout("Flags") {
 

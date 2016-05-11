@@ -4,13 +4,11 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
-import db.ModelService
+import db.impl.UserBase
 import db.impl.action.VersionActions
 import db.meta.{Actor, Bind}
 import models.project.Version
-import models.user.User
 import ore.StatTracker
-import ore.statistic.StatTracker
 
 import scala.annotation.meta.field
 
@@ -33,8 +31,7 @@ case class VersionDownload(override val id: Option[Int] = None,
                            @(Bind @field) private var userId: Option[Int] = None)
                            extends StatEntry[Version](id, createdAt, modelId, address, cookie, userId) {
 
-  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): VersionDownload
-  = this.copy(id = id, createdAt = theTime)
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
 
 }
 
@@ -48,15 +45,17 @@ object VersionDownload {
     * @param request  Request to bind
     * @return         New VersionDownload
     */
-  def bindFromRequest(version: Version)(implicit request: ProjectRequest[_]): VersionDownload = {
+  def bindFromRequest(version: Version)(implicit request: ProjectRequest[_], users: UserBase): VersionDownload = {
     val cookie = StatTracker.getStatCookie
-    val userId = request.users.current(request.session).flatMap(_.id)
-    VersionDownload(
+    val userId = users.current(request.session).flatMap(_.id)
+    val dl = VersionDownload(
       modelId = version.id.get,
       address = InetString(request.remoteAddress),
       cookie = cookie,
       userId = userId
     )
+    dl.userBase = users
+    dl
   }
 
 }

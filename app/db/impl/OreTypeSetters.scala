@@ -18,7 +18,7 @@ object OreTypeSetters {
     override def apply[T <: ModelTable[M], M <: Model](model: M, rep: (T) => Rep[Color], v: Color)
                                                          (implicit service: ModelService): Future[_] = service.DB.db.run {
       (for {
-        m <- service.newModelAction[T, M](model.getClass)
+        m <- service.newAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -28,7 +28,7 @@ object OreTypeSetters {
     override def apply[T <: ModelTable[M], M <: Model](model: M, rep: (T) => Rep[RoleType], v: RoleType)
                                                          (implicit service: ModelService): Future[_] = service.DB.db.run {
       (for {
-        m <- service.newModelAction[T, M](model.getClass)
+        m <- service.newAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -38,7 +38,7 @@ object OreTypeSetters {
     override def apply[T <: ModelTable[M], M <: Model](model: M, rep: (T) => Rep[List[RoleType]], v: List[RoleType])
                                                          (implicit service: ModelService): Future[_] = service.DB.db.run {
       (for {
-        m <- service.newModelAction[T, M](model.getClass)
+        m <- service.newAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -48,7 +48,7 @@ object OreTypeSetters {
     override def apply[T <: ModelTable[M], M <: Model](model: M, rep: (T) => Rep[Category], v: Category)
                                                          (implicit service: ModelService): Future[_] = service.DB.db.run {
       (for {
-        m <- service.newModelAction[T, M](model.getClass)
+        m <- service.newAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }
@@ -58,7 +58,7 @@ object OreTypeSetters {
     override def apply[T <: ModelTable[M], M <: Model](model: M, rep: (T) => Rep[FlagReason], v: FlagReason)
                                                          (implicit service: ModelService): Future[_] = service.DB.db.run {
       (for {
-        m <- service.newModelAction[T, M](model.getClass)
+        m <- service.newAction[T, M](model.getClass)
         if m.id === model.id.get
       } yield rep(m)).update(v)
     }

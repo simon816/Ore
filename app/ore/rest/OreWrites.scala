@@ -1,5 +1,7 @@
 package ore.rest
 
+import javax.inject.Inject
+
 import _root_.util.{OreConfig, StringUtils}
 import db.ModelService
 import forums.DiscourseApi
@@ -7,18 +9,20 @@ import models.project.{Channel, Project, Version}
 import models.user.User
 import play.api.libs.json._
 import _root_.util.StringUtils.prettifyDate
+import db.impl.ProjectBase
 
 /**
   * Contains implicit JSON [[Writes]] for the Ore API.
   */
-object OreWrites {
+final class OreWrites @Inject()(implicit config: OreConfig, service: ModelService) {
 
-  implicit def channelWrites(implicit service: ModelService) = new Writes[Channel] {
+  implicit val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
+
+  implicit val channelWrites = new Writes[Channel] {
     def writes(channel: Channel) = Json.obj("name" -> channel.name, "color" -> channel.color.hex)
   }
 
-  implicit def projectWrites(implicit service: ModelService, forums: DiscourseApi, config: OreConfig)
-  = new Writes[Project] {
+  implicit val projectWrites = new Writes[Project] {
     def writes(project: Project) = {
       val members: List[JsObject] = (for (member <- project.members) yield {
         Json.obj(
@@ -46,7 +50,7 @@ object OreWrites {
     }
   }
 
-  implicit def versionWrites(implicit service: ModelService, config: OreConfig) = new Writes[Version] {
+  implicit val versionWrites = new Writes[Version] {
     def writes(version: Version) = {
       val project = version.project
       val dependencies: List[JsObject] = version.dependencies.map { dependency =>
@@ -64,7 +68,7 @@ object OreWrites {
     }
   }
 
-  implicit def userWrites(implicit service: ModelService, config: OreConfig) = new Writes[User] {
+  implicit val userWrites = new Writes[User] {
     def writes(user: User) = {
       Json.obj(
         "id" -> user.id,

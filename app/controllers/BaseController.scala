@@ -1,10 +1,9 @@
 package controllers
 
 import db.ModelService
+import db.impl.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.{Project, Version}
-import ore.UserBase
-import ore.project.ProjectBase
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import util.OreConfig
@@ -15,12 +14,13 @@ import util.StringUtils.equalsIgnoreCase
   */
 abstract class BaseController(implicit val config: OreConfig,
                               override val service: ModelService,
-                              override val users: UserBase,
-                              override val projects: ProjectBase,
                               override val forums: DiscourseApi)
                               extends Controller
-                                with I18nSupport
-                                with Actions {
+                                with Actions
+                                with I18nSupport {
+
+  implicit override val users: UserBase = service.getModelBase(classOf[UserBase])
+  implicit override val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
 
   /**
     * Executes the given function with the specified result or returns a

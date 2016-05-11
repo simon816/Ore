@@ -44,6 +44,8 @@ case class User(override val id: Option[Int] = None,
                   with UserOwned
                   with ScopeSubject { self =>
 
+  override type M = User
+  override type T = UserTable
   override type A = UserActions
 
   /**
@@ -247,7 +249,7 @@ case class User(override val id: Option[Int] = None,
   def starred(page: Int = -1): Seq[Project] = Defined {
     val starsPerPage = config.users.getInt("stars-per-page").get
     val limit = if (page < 1) -1 else starsPerPage
-    val actions = service.provide(classOf[ProjectActions])
+    val actions = service.actions(classOf[ProjectActions])
     service.await(actions.starredBy(this.id.get, limit, (page - 1) * starsPerPage)).get
   }
 

@@ -10,9 +10,10 @@ sorted according to different criteria.
 @import ore.project.Categories
 @import ore.project.Categories._
 @import ore.project.ProjectSortingStrategies.{values, _}
+@import db.impl.UserBase
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], sort: ProjectSortingStrategy)(implicit messages: Messages,
         session: Session, flash: Flash, request: RequestHeader, service: ModelService,
-        forums: DiscourseApi, config: OreConfig)
+        forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 @core.layout(messages("general.title")) {
 

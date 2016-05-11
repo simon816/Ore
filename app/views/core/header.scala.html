@@ -4,12 +4,12 @@ The main header displayed on each layout.
 @import _root_.util.OreConfig
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
+@import db.impl.UserBase
 @import forums.DiscourseApi
 @import models.project.{Flag, Version}
 @import models.user.User
 @import ore.permission.scope.GlobalScope
 @import ore.permission.{ReviewFlags, ReviewProjects}
-@import ore.UserBase
 @()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService,
         forums: DiscourseApi, config: OreConfig, users: UserBase)
 

@@ -4,11 +4,11 @@ Documentation page within Project overview.
 @import _root_.util.OreConfig
 @import controllers.project.routes
 @import db.ModelService
+@import db.impl.UserBase
 @import forums.DiscourseApi
 @import models.project.{Page, Project}
 @import models.user.User
 @import ore.permission.EditPages
-@import ore.UserBase
 @(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi,
         config: OreConfig, users: UserBase)

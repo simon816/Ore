@@ -4,11 +4,10 @@ import db._
 import db.action.ModelAction.wrapSeq
 import db.action.{ModelActions, ModelFilter, StatActions}
 import db.impl.OrePostgresDriver.api._
-import db.impl.{FlagTable, ProjectStarsTable, ProjectTable, ProjectViewsTable}
+import db.impl._
 import forums.DiscourseApi
 import models.project._
 import models.statistic.ProjectView
-import models.user.User
 import ore.project.Categories.Category
 import ore.project.ProjectMember
 import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
@@ -20,16 +19,19 @@ import scala.util.{Failure, Success}
 /**
   * Project related queries
   */
-class ProjectActions(implicit val service: ModelService)
-  extends ModelActions[ProjectTable, Project](classOf[Project], TableQuery[ProjectTable]) {
+class ProjectActions(override val service: ModelService)
+  extends ModelActions[ProjectTable, Project](service, classOf[Project], TableQuery[ProjectTable]) {
 
-  val Flags = service.registrar.register(new ModelActions[FlagTable, Flag](classOf[Flag], TableQuery[FlagTable]))
+  val Flags = service.registrar.register(
+    new ModelActions[FlagTable, Flag](this.service, classOf[Flag], TableQuery[FlagTable])
+  )
 
   val Views = service.registrar.register(
-    new StatActions[ProjectViewsTable, ProjectView](classOf[ProjectView], TableQuery[ProjectViewsTable])
+    new StatActions[ProjectViewsTable, ProjectView](this.service, TableQuery[ProjectViewsTable], classOf[ProjectView])
   )
 
   private val stars = TableQuery[ProjectStarsTable]
+  implicit private val users: UserBase = this.service.getModelBase(classOf[UserBase])
 
   /**
     * Returns the [[ProjectMember]]s in the specified Project, sorted by role.
@@ -38,12 +40,12 @@ class ProjectActions(implicit val service: ModelService)
     * @return List of Members
     */
   def getMembers(project: Project)(implicit forums: DiscourseApi): Future[Seq[ProjectMember]] = {
-    val distinctUserIds = (for (role <- service.provide(classOf[UserActions]).ProjectRoles.baseQuery.filter {
+    val distinctUserIds = (for (role <- service.actions(classOf[UserActions]).ProjectRoles.baseQuery.filter {
       _.projectId === project.id.get
     }) yield role.userId).distinct.result
 
     service.DB.db.run(distinctUserIds)
-      .map(_.map(User.withId(_).get))
+      .map(_.map(this.users.access.get(_).get))
       .map(for (user <- _) yield new ProjectMember(project, user.username))
   }
 

@@ -8,11 +8,10 @@ import controllers.routes.{Application => app}
 import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
-import models.project._
 import ore.permission.{EditSettings, HideProjects}
-import ore.project.util.{InvalidPluginFileException, ProjectFactory}
-import ore.project.{FlagReasons, ProjectBase}
-import ore.{StatTracker, UserBase}
+import ore.project.FlagReasons
+import ore.project.util.{InvalidPluginFileException, ProjectFileManager}
+import ore.{ProjectFactory, StatTracker}
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.OreConfig
@@ -27,12 +26,11 @@ import scala.util.{Failure, Success}
 class Projects @Inject()(val stats: StatTracker,
                          val forms: OreForms,
                          val factory: ProjectFactory,
-                         override val messagesApi: MessagesApi,
-                         override val config: OreConfig,
-                         override val users: UserBase,
-                         override val projects: ProjectBase,
-                         override val forums: DiscourseApi,
-                         override val service: ModelService)
+                         implicit val fileManager: ProjectFileManager,
+                         implicit override val messagesApi: MessagesApi,
+                         implicit override val config: OreConfig,
+                         implicit override val forums: DiscourseApi,
+                         implicit override val service: ModelService)
                          extends BaseController {
 
   private def SettingsEditAction(author: String, slug: String)
@@ -58,7 +56,7 @@ class Projects @Inject()(val stats: StatTracker,
       case Some(tmpFile) =>
         // Initialize plugin file
         val user = request.user
-        factory.initUpload(tmpFile.ref, tmpFile.filename, user) match {
+        factory.cacheUpload(tmpFile.ref, tmpFile.filename, user) match {
           case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
             // PEBKAC
             Redirect(self.showCreator()).flashing("error" -> "Invalid plugin file.")
@@ -68,8 +66,8 @@ class Projects @Inject()(val stats: StatTracker,
           case Success(plugin) =>
             // Cache pending project for later use
             val meta = plugin.meta.get
-            val project = Project.fromMeta(user, meta)
-            factory.setPending(project, plugin)
+            val project = factory.fromMeta(user, meta)
+            factory.setProjectPending(project, plugin)
             Redirect(self.showCreatorWithMeta(project.ownerName, project.slug))
         }
     }
@@ -84,7 +82,7 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def showCreatorWithMeta(author: String, slug: String) = {
     Authenticated { implicit request =>
-      factory.getPending(author, slug) match {
+      factory.getPendingProject(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pending) => Ok(views.create(Some(pending)))
       }
@@ -100,7 +98,7 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def showMembersConfig(author: String, slug: String) = {
     Authenticated { implicit request =>
-      factory.getPending(author, slug) match {
+      factory.getPendingProject(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pendingProject) =>
           forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.project)
@@ -119,7 +117,7 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def showFirstVersionCreator(author: String, slug: String) = {
     Authenticated { implicit request =>
-      factory.getPending(author, slug) match {
+      factory.getPendingProject(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pendingProject) =>
           pendingProject.roles = forms.MemberRoles.bindFromRequest.get.build()
@@ -350,7 +348,7 @@ class Projects @Inject()(val stats: StatTracker,
   def delete(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
-      project.delete()
+      factory.deleteProject(project)
       Redirect(app.showHome(None, None, None))
         .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
     }

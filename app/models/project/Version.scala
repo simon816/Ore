@@ -1,10 +1,8 @@
 package models.project
 
-import java.nio.file.Files
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions
-import com.google.common.base.Preconditions._
 import db.ModelService
 import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
@@ -14,11 +12,9 @@ import db.meta.{Actor, Bind, HasMany}
 import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
-import ore.project.util.{PendingVersion, PluginFile, ProjectFactory, ProjectFileManager}
+import ore.project.util.PluginFile
 import org.apache.commons.io.FileUtils
-import play.api.cache.CacheApi
 import play.twirl.api.Html
-import util.OreConfig
 
 import scala.annotation.meta.field
 import scala.collection.JavaConverters._
@@ -53,6 +49,8 @@ case class Version(override val id: Option[Int] = None,
                    extends OreModel(id, createdAt)
                      with ProjectScope { self =>
 
+  override type M = Version
+  override type T = VersionTable
   override type A = VersionActions
 
   def this(versionString: String, dependencies: List[String], description: String,
@@ -174,23 +172,6 @@ case class Version(override val id: Option[Int] = None,
       || this.project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase))
   }
 
-  def delete()(implicit project: Project = null, fileManager: ProjectFileManager) = Defined {
-    val proj = if (project != null) project else this.project
-    checkArgument(proj.versions.size > 1, "only one version", "")
-    checkArgument(proj.id.get == this.projectId, "invalid context id", "")
-
-    // Set recommended version to latest version if the deleted version was the rv
-    val rv = proj.recommendedVersion
-    if (this.equals(rv)) proj.recommendedVersion = proj.versions.sorted(_.createdAt.desc, limit = 1).head
-
-    // Delete channel if now empty
-    val channel: Channel = this.channel
-    if (channel.versions.isEmpty) channel.delete()
-
-    Files.delete(fileManager.uploadPath(proj.ownerName, proj.name, this.versionString))
-    this.remove()
-  }
-
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Version = this.copy(id = id, createdAt = theTime)
   override def hashCode: Int = this.id.hashCode
   override def equals(o: Any): Boolean = o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get
@@ -206,35 +187,6 @@ object Version {
     */
   def notReviewed(implicit service: ModelService): Seq[Version]
   = service.access[VersionTable, Version](classOf[Version]).filterNot(_.isReviewed)
-
-  /**
-    * Marks the specified Version as pending and caches it for later use.
-    *
-    * @param owner    Name of owner
-    * @param slug     Project slug
-    * @param channel  Name of channel
-    * @param version  Name of version
-    * @param plugin   Uploaded plugin
-    */
-  def setPending(owner: String, slug: String, channel: String, version: Version, plugin: PluginFile)
-                (implicit factory: ProjectFactory, cacheApi: CacheApi, config: OreConfig): PendingVersion = {
-    val pending = PendingVersion(cacheApi, factory, config, owner, slug, channel, Channel.DefaultColor, version, plugin)
-    pending.cache()
-    pending
-  }
-
-  /**
-    * Returns the pending version for the specified owner, name, channel, and
-    * version string.
-    *
-    * @param owner    Name of owner
-    * @param slug     Project slug
-    * @param version  Name of version
-    * @return         PendingVersion, if present, None otherwise
-    */
-  def getPending(owner: String, slug: String, version: String)(implicit cacheApi: CacheApi): Option[PendingVersion] = {
-    cacheApi.get[PendingVersion](owner + '/' + slug + '/' + version)
-  }
 
   /**
     * Creates a new Version from the specified PluginMetadata.

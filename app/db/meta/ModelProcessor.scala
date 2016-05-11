@@ -22,6 +22,7 @@ class ModelProcessor(service: ModelService) {
     bindRelations(model)
     model.service = this.service
     model.setProcessed(true)
+    println("processed " + model)
   }
 
   /**
@@ -60,9 +61,7 @@ class ModelProcessor(service: ModelService) {
             .map(_.typeSignature.typeArgs.head).head.typeSymbol.asClass)
       }
 
-      service.registrar.getSetter(fieldType)
-        .getOrElse(throw new RuntimeException("No type setter found for type: " + fieldType))
-        .bindTo(model, key, bindField)(service)
+      service.registrar.getSetter(fieldType).bindTo(model, key, bindField)(service)
     }
   }
 

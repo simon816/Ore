@@ -1,7 +1,7 @@
 package ore
 
+import db.impl.ProjectBase
 import models.project.Project
-import ore.project.ProjectBase
 
 /** Represents anything that has a [[models.project.Project]]. */
 trait ProjectOwned {

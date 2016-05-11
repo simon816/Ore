@@ -11,7 +11,7 @@ import ore.permission.role.RoleTypes
   * Represents a "fake" User object for bypassing the standard authentication
   * method in a development environment.
   */
-class FakeUser @Inject()(config: OreConfig) {
+final class FakeUser @Inject()(config: OreConfig) {
 
   private lazy val conf = config.app
 
@@ -31,6 +31,4 @@ class FakeUser @Inject()(config: OreConfig) {
 
 }
 
-object FakeUser {
-  implicit def unwrap(fake: FakeUser): User = fake.user
-}
+object FakeUser { implicit def unwrap(fake: FakeUser): User = fake.user }

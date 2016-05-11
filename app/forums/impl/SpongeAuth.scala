@@ -2,8 +2,9 @@ package forums.impl
 
 import javax.inject.Inject
 
+import db.ModelService
+import db.impl.UserBase
 import forums.{DiscourseApi, DiscourseSSO}
-import ore.UserBase
 import util.OreConfig
 
 /**
@@ -11,11 +12,12 @@ import util.OreConfig
   *
   * @param config Ore config
   * @param api    DiscourseApi
-  * @param users  UserBase
   */
 class SpongeAuth @Inject()(config: OreConfig,
-                           val api: DiscourseApi,
-                           override val users: UserBase) extends DiscourseSSO {
-  override val url = config.forums.getString("sso.url")
-  override val secret = config.forums.getString("sso.secret")
+                           service: ModelService,
+                           override val api: DiscourseApi)
+                           extends DiscourseSSO {
+  override protected val users = service.getModelBase(classOf[UserBase])
+  override val url = config.forums.getString("sso.url").get
+  override val secret = config.forums.getString("sso.secret").get
 }

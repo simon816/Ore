@@ -6,8 +6,9 @@ this.
 @import db.ModelService
 @import forums.DiscourseApi
 @import play.twirl.api.Html
+@import db.impl.UserBase
 @(title: String)(content: Html)(implicit messages: Messages, session: Session,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 <!DOCTYPE html>
 <html>

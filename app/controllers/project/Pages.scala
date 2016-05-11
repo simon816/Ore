@@ -5,12 +5,12 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Pages => self}
 import db.ModelService
+import db.impl.ProjectBase
 import form.OreForms
 import forums.DiscourseApi
 import models.project.Page
-import ore.{StatTracker, UserBase}
+import ore.StatTracker
 import ore.permission.EditPages
-import ore.project.ProjectBase
 import play.api.i18n.MessagesApi
 import play.api.mvc.Action
 import util.OreConfig
@@ -22,12 +22,10 @@ import views.html.projects.{pages => views}
   */
 class Pages @Inject()(val forms: OreForms,
                       val stats: StatTracker,
-                      override val messagesApi: MessagesApi,
-                      override val config: OreConfig,
-                      override val forums: DiscourseApi,
-                      override val users: UserBase,
-                      override val projects: ProjectBase,
-                      override val service: ModelService)
+                      implicit override val messagesApi: MessagesApi,
+                      implicit override val config: OreConfig,
+                      implicit override val forums: DiscourseApi,
+                      implicit override val service: ModelService)
                       extends BaseController {
 
   private def PageEditAction(author: String, slug: String)

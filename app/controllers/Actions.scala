@@ -2,13 +2,12 @@ package controllers
 
 import controllers.Requests.{AuthRequest, AuthedProjectRequest, ProjectRequest, ScopedRequest}
 import db.ModelService
+import db.impl.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.Project
 import models.user.User
-import ore.UserBase
 import ore.permission.scope.GlobalScope
 import ore.permission.{HideProjects, Permission}
-import ore.project.ProjectBase
 import play.api.mvc.Results._
 import play.api.mvc._
 

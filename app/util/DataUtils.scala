@@ -1,14 +1,5 @@
 package util
 
-import db.ModelService
-import db.impl.OrePostgresDriver.api._
-import db.impl.{ProjectTable, UserTable}
-import forums.DiscourseApi
-import models.project.Project
-import models.user.User
-import ore.project.util.{ProjectFactory, ProjectFileManager}
-import org.apache.commons.io.FileUtils
-
 /**
   * Utility class for performing some bulk actions on the application data.
   * Typically for testing.
@@ -18,21 +9,23 @@ object DataUtils {
   /**
     * Resets the application to factory defaults.
     */
-  def reset()(implicit service: ModelService, forums: DiscourseApi, fileManager: ProjectFileManager) = {
-    for (project <- service.access[ProjectTable, Project](classOf[Project]).all) project.delete()
-    service.await(service.deleteWhere[UserTable, User](classOf[User], _ => true))
-    FileUtils.deleteDirectory(fileManager.env.uploads.toFile)
-  }
+  def reset() = Unit
+  //  def reset()(implicit service: ModelService, forums: DiscourseApi, fileManager: ProjectFileManager) = {
+//    for (project <- service.access[ProjectTable, Project](classOf[Project]).all) project.delete()
+//    service.await(service.deleteWhere[UserTable, User](classOf[User], _ => true))
+//    FileUtils.deleteDirectory(fileManager.env.uploads.toFile)
+//  }
 
   /**
     * Fills the application with some dummy data.
     *
     * @param users Amount of users to create
     */
-  def seed(users: Int, versions: Int, channels: Int)
-          (implicit service: ModelService, forums: DiscourseApi, projectFactory: ProjectFactory) = {
-    // Note: Dangerous as hell, handle with care
-    // TODO: Disable topic creation
+  def seed(users: Int, versions: Int, channels: Int) = Unit
+//  def seed(users: Int, versions: Int, channels: Int)
+//          (implicit service: ModelService, forums: DiscourseApi, projectFactory: ProjectFactory) = {
+//    // Note: Dangerous as hell, handle with care
+//    // TODO: Disable topic creation
 //    this.reset()
 //    var pluginFile = copyPlugin
 //    for (i <- 0 until users) {
@@ -78,8 +71,8 @@ object DataUtils {
 //        }
 //      }
 //    }
-    // TODO: Re-enable forum hooks
-  }
+//    // TODO: Re-enable forum hooks
+//  }
 
   def migrate() = Unit
 

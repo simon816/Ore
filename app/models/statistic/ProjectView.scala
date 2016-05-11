@@ -4,11 +4,11 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
+import db.impl.UserBase
 import db.meta.Bind
 import models.project.Project
 import ore.permission.scope.ProjectScope
-import ore.{ProjectOwned, StatTracker}
-import ore.statistic.StatTracker
+import ore.StatTracker
 
 import scala.annotation.meta.field
 
@@ -47,15 +47,17 @@ object ProjectView {
     * @param request  Request to bind
     * @return         New ProjectView
     */
-  def bindFromRequest()(implicit request: ProjectRequest[_]): ProjectView = {
-    val userId = request.users.current(request.session).flatMap(_.id)
+  def bindFromRequest()(implicit request: ProjectRequest[_], users: UserBase): ProjectView = {
+    val userId = users.current(request.session).flatMap(_.id)
     val cookie = StatTracker.getStatCookie
-    ProjectView(
+    val view = ProjectView(
       modelId = request.project.id.get,
       address = InetString(request.remoteAddress),
       cookie = cookie,
       userId = userId
     )
+    view.userBase = users
+    view
   }
 
 }

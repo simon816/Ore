@@ -40,7 +40,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     if (this.service == null) this.service = service
     val clazz = this.getClass
     if (!clazz.isAnnotationPresent(classOf[Actor])) throw new RuntimeException("missing @Actor annotation")
-    val actions = service.provide(clazz.getAnnotation(classOf[Actor]).value)
+    val actions = this.service.actions(clazz.getAnnotation(classOf[Actor]).value)
     if (!actions.isInstanceOf[A]) throw new RuntimeException("model actions class does not match type")
     actions.asInstanceOf[A]
   }

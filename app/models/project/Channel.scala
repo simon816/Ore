@@ -10,7 +10,6 @@ import db.meta.{Actor, Bind, HasMany}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
 import ore.project.util.ProjectFileManager
-import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
 import util.OreConfig
@@ -87,23 +86,6 @@ case class Channel(override val id: Option[Int] = None,
     * @return All versions
     */
   def versions = this.getRelated[VersionTable, Version](classOf[Version])
-
-  /**
-    * Irreversibly deletes this channel and all version associated with it.
-    *
-    * @param context  Project context
-    */
-  def delete()(implicit context: Project = null, fileManager: ProjectFileManager) = Defined {
-    val proj = if (context != null) context else this.project
-    checkArgument(proj.id.get == this.projectId, "invalid proj id", "")
-
-    val channels = proj.channels.all
-    checkArgument(channels.size > 1, "only one channel", "")
-    checkArgument(this.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
-
-    this.remove()
-    FileUtils.deleteDirectory(fileManager.projectDir(proj.ownerName, proj.name).resolve(this._name).toFile)
-  }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Channel = this.copy(id = id, createdAt = theTime)
   override def compare(that: Channel): Int = this._name compare that._name
