@@ -26,7 +26,6 @@
   }
 
   .user-badge > img {
-    @include circle();
     float: left;
     margin-right: 20px;
   }
