@@ -99,7 +99,9 @@ object Page {
   /**
     * The Markdown processor.
     */
-  val MarkdownProcessor: PegDownProcessor = new PegDownProcessor(ALL & ~ANCHORLINKS, 10000)
+  val MarkdownProcessor: PegDownProcessor = new PegDownProcessor(
+    ALL + TASKLISTITEMS + SUPPRESS_ALL_HTML - ANCHORLINKS, 10000
+  )
 
   /**
     * The name of each Project's homepage.
