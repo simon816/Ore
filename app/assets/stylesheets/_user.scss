@@ -3,6 +3,11 @@
 
 // user page
 
+
+.user-avatar {
+  @include rounded-corners();
+}
+
 .user-header {
   @include size(100%, 150px);
   padding: 20px;

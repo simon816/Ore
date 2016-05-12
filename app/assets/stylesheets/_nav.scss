@@ -92,10 +92,6 @@
   color: #F6CF17;
 }
 
-.user-avatar {
-  @include circle();
-}
-
 .user-controls {
   @include padding-vert(5px, 16px);
 }
