@@ -53,8 +53,11 @@ form {
 
 .project-list {
   .list-group-item:not(.project-list-footer) { padding: 15px; }
-  strong { font-size: 24px; }
-  .stat { margin-left: 10px; }
+  .stat {
+    margin-left: 10px;
+    a { color: gray; }
+    a:hover { color: darken(gray, 10%); }
+  }
 
   .project-list-header {
     max-width: 78%;
@@ -72,6 +75,7 @@ form {
 
   .project-title {
     .project-description { white-space: nowrap; }
+    strong { font-size: 24px; }
     strong, i {
       display: table-cell;
       vertical-align: middle; }

@@ -41,7 +41,10 @@ Collection of all projects.
                 <span class="stat" title="Download"><i class="fa fa-download"></i> @project.downloads</span>
                 <span class="stat" title="Stars"><i class="fa fa-star"></i> @project.stars</span>
                 <span class="stat" title="Recommended version">
-                    <i class="fa fa-diamond"></i> @project.recommendedVersion.name
+                    <i class="fa fa-diamond"></i>
+                    <a href="@controllers.project.routes.Versions.show(project.ownerName, project.slug, project.recommendedVersion.name)">
+                        <strong>@project.recommendedVersion.name</strong>
+                    </a>
                 </span>
             </div>
             <div class="clearfix"></div>
