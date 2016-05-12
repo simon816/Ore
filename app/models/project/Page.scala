@@ -4,10 +4,9 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.impl.ModelKeys._
-import db.impl.{OreModel, PageTable}
 import db.impl.action.PageActions
+import db.impl.{OreModel, PageTable}
 import db.meta.{Actor, Bind}
-import forums.DiscourseApi
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
@@ -100,7 +99,7 @@ object Page {
   /**
     * The Markdown processor.
     */
-  val MarkdownProcessor: PegDownProcessor = new PegDownProcessor(ALL & ~ANCHORLINKS)
+  val MarkdownProcessor: PegDownProcessor = new PegDownProcessor(ALL & ~ANCHORLINKS, 10000)
 
   /**
     * The name of each Project's homepage.

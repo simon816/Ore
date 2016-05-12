@@ -14,6 +14,7 @@ Collection of all projects.
         ordering: ProjectSortingStrategy, page: Int)(implicit messages: Messages, session: Session, flash: Flash,
         service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
+@pageSize = @{ config.projects.getInt("init-load").get }
 @categoryString = @{ visibleCategories.map(_.map(_.id.toString).mkString(",")) }
 @orderingOption = @{
     ordering match {
@@ -36,30 +37,32 @@ Collection of all projects.
                 </div>
             </div>
             <div class="pull-right minor">
-                <i title="@project.category.title" class="fa @project.category.icon"></i>
-                <span class="stat" title="Views"><i class="fa fa-eye"></i> @project.views</span>
-                <span class="stat" title="Download"><i class="fa fa-download"></i> @project.downloads</span>
-                <span class="stat" title="Stars"><i class="fa fa-star"></i> @project.stars</span>
                 <span class="stat" title="Recommended version">
                     <i class="fa fa-diamond"></i>
                     <a href="@controllers.project.routes.Versions.show(project.ownerName, project.slug, project.recommendedVersion.name)">
                         <strong>@project.recommendedVersion.name</strong>
                     </a>
                 </span>
+                <span class="stat fa @project.category.icon" title="@project.category.title"></span>
+                <span class="stat" title="Views"><i class="fa fa-eye"></i> @project.views</span>
+                <span class="stat" title="Download"><i class="fa fa-download"></i> @project.downloads</span>
+                <span class="stat" title="Stars"><i class="fa fa-star"></i> @project.stars</span>
             </div>
             <div class="clearfix"></div>
         </li>
     }
 
-    @if(models.size >= config.projects.getInt("init-load").get || page > 1) {
+    @if(models.size >= pageSize || page > 1) {
         <li class="list-group-item project-list-footer">
             <div class="pull-right">
                 @if(page > 1) {
                     <a href="@routes.Application.showHome(categoryString, query, orderingOption, Some(page - 1))"
                        class="btn btn-default"><i class="fa fa-arrow-left"></i></a>
                 }
-                <a href="@routes.Application.showHome(categoryString, query, orderingOption, Some(page + 1))"
-                   class="btn btn-default"><i class="fa fa-arrow-right"></i></a>
+                @if(models.size >= pageSize) {
+                    <a href="@routes.Application.showHome(categoryString, query, orderingOption, Some(page + 1))"
+                       class="btn btn-default"><i class="fa fa-arrow-right"></i></a>
+                }
             </div>
             <div class="clearfix"></div>
         </li>
