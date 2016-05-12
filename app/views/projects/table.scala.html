@@ -25,7 +25,7 @@ Collection of all projects.
 
 <ul class="list-group project-list">
     @models.map { project =>
-        <li class="list-group-item">
+        <li class="list-group-item @if(!project.isVisible) { project-hidden }">
             <div class="project-list-header pull-left">
                 <a class="pull-left" href="@routes.Users.show(project.ownerName)">
                     <img class="user-avatar" height="50" width="50" title="@project.ownerName"

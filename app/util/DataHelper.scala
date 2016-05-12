@@ -9,6 +9,7 @@ import db.impl.{ProjectBase, UserBase}
 import forums.{DisabledDiscourseApi, DiscourseApi}
 import models.project.{Channel, Version}
 import models.user.User
+import ore.permission.role.RoleTypes
 import ore.project.Categories
 import ore.project.util.{PendingProject, PendingVersion, ProjectFactory}
 import org.apache.commons.io.FileUtils
@@ -28,7 +29,7 @@ class DataHelper @Inject()(implicit config: OreConfig,
   import config.debug
 
   private val pluginPath = Paths.get(config.ore.getString("test-plugin").get)
-  private val projects: ProjectBase = service.access(classOf[ProjectBase])
+  implicit private val projects: ProjectBase = service.access(classOf[ProjectBase])
   private val users: UserBase = service.access(classOf[UserBase])
 
   /**
@@ -113,7 +114,15 @@ class DataHelper @Inject()(implicit config: OreConfig,
     }
   }
 
-  def migrate() = Unit
+  def migrate() = {
+    for (user <- this.users.all) {
+      for (role <- user.projectRoles.all) {
+        if (role.roleType.equals(RoleTypes.ProjectOwner) && role.project.ownerId != user.id.get) {
+          role.roleType = RoleTypes.ProjectDev
+        }
+      }
+    }
+  }
 
   private def copyPlugin = {
     val path = this.pluginPath.getParent.resolve("plugin.jar")
