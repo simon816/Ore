@@ -34,7 +34,7 @@ class UserBase(override val service: ModelService, forums: DiscourseApi) extends
     * @param user User to find
     * @return     Found or new User
     */
-  def getOrCreate(user: User): User = service.await(user.actions.getOrInsert(user)).get
+  def getOrCreate(user: User): User = service.await(user.actions(service).getOrInsert(user)).get
 
   /**
     * Returns the currently authenticated User.
