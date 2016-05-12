@@ -52,7 +52,13 @@ form {
 /* project content */
 
 .project-list {
-  .list-group-item:not(.project-list-footer) { padding: 15px; }
+  .list-group-item:not(.project-list-footer) {
+    padding: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .stat {
     margin-left: 10px;
     a { color: gray; }
@@ -74,11 +80,11 @@ form {
   }
 
   .project-title {
-    .project-description { white-space: nowrap; }
     strong { font-size: 24px; }
     strong, i {
       display: table-cell;
-      vertical-align: middle; }
+      vertical-align: middle;
+    }
   }
 
 }

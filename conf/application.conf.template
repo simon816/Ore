@@ -47,7 +47,7 @@ ore.projects.max-pages          =   10
 ore.projects.max-channels       =   5
 ore.projects.init-load          =   25
 ore.projects.init-version-load  =   10
-ore.projects.max-desc-len       =   250
+ore.projects.max-desc-len       =   120
 ore.projects.file-validate      =   true
 ore.projects.tmp-file-save      =   false
 
