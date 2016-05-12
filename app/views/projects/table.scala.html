@@ -30,10 +30,10 @@ Collection of all projects.
                     <img class="user-avatar" height="50" width="50" title="@project.ownerName"
                     alt="@project.ownerName" src="@project.owner.user.avatarUrl(200)" />
                 </a>
-                <div class="project-title pull-right">
+                <div class="project-title">
                     <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
                     <i title="@project.category.title" class="fa @project.category.icon"></i>
-                    <div class="minor">@project.description</div>
+                    <div class="project-description minor">@project.description</div>
                 </div>
             </div>
             <div class="pull-right minor">

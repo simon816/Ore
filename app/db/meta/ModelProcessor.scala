@@ -22,7 +22,6 @@ class ModelProcessor(service: ModelService) {
     bindRelations(model)
     model.service = this.service
     model.setProcessed(true)
-    println("processed " + model)
     model
   }
 

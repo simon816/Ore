@@ -56,9 +56,13 @@ form {
   strong { font-size: 24px; }
   .stat { margin-left: 10px; }
 
-  .project-list-header a {
-    margin-top: 3px;
-    margin-right: 5px;
+  .project-list-header {
+    max-width: 78%;
+    min-width: 50%;
+    a {
+      margin-top: 3px;
+      margin-right: 5px;
+    }
   }
 
   .list-group-item.project-list-footer {
@@ -67,6 +71,7 @@ form {
   }
 
   .project-title {
+    .project-description { white-space: nowrap; }
     strong, i {
       display: table-cell;
       vertical-align: middle; }
