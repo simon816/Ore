@@ -17,13 +17,14 @@ import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
 import play.api.mvc._
-import util.{DataUtils, OreConfig}
+import util.{DataHelper, OreConfig}
 import views.{html => views}
 
 /**
   * Main entry point for application.
   */
-class Application @Inject()(implicit override val messagesApi: MessagesApi,
+class Application @Inject()(data: DataHelper,
+                            implicit override val messagesApi: MessagesApi,
                             implicit override val config: OreConfig,
                             implicit override val forums: DiscourseApi,
                             implicit override val service: ModelService)
@@ -36,26 +37,34 @@ class Application @Inject()(implicit override val messagesApi: MessagesApi,
     *
     * @return Home page
     */
-  def showHome(categories: Option[String], query: Option[String], sort: Option[Int]) = Action { implicit request =>
-    // Get categories and sort strategy
-    var categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
-    val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
-    
-    // Determine filter
-    val actions = this.service.getActions(classOf[ProjectActions])
-    val canHideProjects = this.users.current.isDefined && (this.users.current.get can HideProjects in GlobalScope)
-    var filter: ProjectTable => Rep[Boolean] = query.map { q =>
-      // Search filter + visible
-      var f  = actions.searchFilter(q)
-      if (!canHideProjects) f = f && (_.isVisible)
-      f
-    }.orNull[ModelFilter[ProjectTable, Project]]
-    if (filter == null && !canHideProjects) filter = _.isVisible
+  def showHome(categories: Option[String], query: Option[String], sort: Option[Int], page: Option[Int]) = {
+    Action { implicit request =>
+      // Get categories and sorting strategy
+      var categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
+      val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
 
-    val future = actions.collect(filter, categoryArray, this.config.projects.getInt("init-load").get, -1, ordering)
-    val projects = this.service.await(future).get
-    if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet)) categoryArray = null
-    Ok(views.home(projects, Option(categoryArray), ordering))
+      // Determine filter
+      val actions = this.service.getActions(classOf[ProjectActions])
+      val canHideProjects = this.users.current.isDefined && (this.users.current.get can HideProjects in GlobalScope)
+      var filter: ProjectTable => Rep[Boolean] = query.map { q =>
+        // Search filter + visible
+        var f  = actions.searchFilter(q)
+        if (!canHideProjects) f = f && (_.isVisible)
+        f
+      }.orNull[ModelFilter[ProjectTable, Project]]
+      if (filter == null && !canHideProjects) filter = _.isVisible
+
+      // Get projects
+      val projectsPerPage = this.config.projects.getInt("init-load").get
+      val p = page.getOrElse(1)
+      val offset = (p - 1) * projectsPerPage
+      val future = actions.collect(filter, categoryArray, projectsPerPage, offset, ordering)
+      val projects = this.service.await(future).get
+
+      if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet)) categoryArray = null
+
+      Ok(views.home(projects, Option(categoryArray), query, p, ordering))
+    }
   }
 
   /**
@@ -109,8 +118,8 @@ class Application @Inject()(implicit override val messagesApi: MessagesApi,
     */
   def reset = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
     this.config.checkDebug()
-    DataUtils.reset()
-    Redirect(self.showHome(None, None, None)).withNewSession
+    this.data.reset()
+    Redirect(self.showHome(None, None, None, None)).withNewSession
   }
 
   /**
@@ -121,14 +130,14 @@ class Application @Inject()(implicit override val messagesApi: MessagesApi,
   def seed(users: Option[Int], versions: Option[Int], channels: Option[Int]) = {
     (Authenticated andThen PermissionAction[AuthRequest](SeedOre)) { implicit request =>
       this.config.checkDebug()
-      DataUtils.seed(users.getOrElse(200), versions.getOrElse(0), channels.getOrElse(1))
-      Redirect(self.showHome(None, None, None)).withNewSession
+      this.data.seed(users.getOrElse(200), versions.getOrElse(0), channels.getOrElse(1))
+      Redirect(self.showHome(None, None, None, None)).withNewSession
     }
   }
 
   def migrate() = (Authenticated andThen PermissionAction[AuthRequest](MigrateOre)) { implicit request =>
-    DataUtils.migrate()
-    Redirect(self.showHome(None, None, None))
+    this.data.migrate()
+    Redirect(self.showHome(None, None, None, None))
   }
 
 }

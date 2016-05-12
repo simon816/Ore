@@ -54,9 +54,6 @@ ore.projects.tmp-file-save      =   false
 ore.users.stars-per-page    =   5
 ore.users.max-tagline-len   =   100
 
-ore.git.url     =   "https://github.com/SpongePowered/Ore"
-ore.git.ref     =   ".git/refs/heads/master"
-ore.git.ref-len =   7
 
 # Slick configuration
 slick.dbs.default.driver        =   "slick.driver.PostgresDriver$"

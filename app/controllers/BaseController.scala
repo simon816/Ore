@@ -19,8 +19,8 @@ abstract class BaseController(implicit val config: OreConfig,
                                 with Actions
                                 with I18nSupport {
 
-  implicit override val users: UserBase = this.service.getModelBase(classOf[UserBase])
-  implicit override val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
+  implicit override val users: UserBase = this.service.access(classOf[UserBase])
+  implicit override val projects: ProjectBase = this.service.access(classOf[ProjectBase])
 
   /**
     * Executes the given function with the specified result or returns a

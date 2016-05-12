@@ -122,7 +122,7 @@ trait ModelService {
     * @tparam B     ModelBase type
     * @return       ModelBase
     */
-  def getModelBase[B <: ModelBase[_, _]](clazz: Class[B]): B = this.registrar.getModelBase(clazz)
+  def access[B <: ModelBase[_, _]](clazz: Class[B]): B = this.registrar.getModelBase(clazz)
 
   /**
     * Creates the specified model in it's table.

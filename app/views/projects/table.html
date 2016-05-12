@@ -1,0 +1,41 @@
+<div class="panel panel-default project-panel">
+    <table class="table project-table">
+        <thead class="panel-heading">
+        <tr class="panel-title">
+            <th></th>
+            <th class="name">@messages("project.name")</th>
+            <th title="Author" class="author"><i class="fa fa-user header-user"></i></th>
+            <th title="Views" class="minor stat"><i class="fa fa-eye"></i></th>
+            <th title="Downloads" class="minor stat"><i class="fa fa-download"></i></th>
+            <th title="Stars" class="minor stat"><i class="fa fa-star"></i></th>
+        </tr>
+        </thead>
+        <tbody class="panel-body">
+        @models.map { project =>
+        <tr @if(!project.isVisible) { class="project-hidden" }>
+            @defining(project.category) { category =>
+            <td><i title="@category.title" class="fa @category.icon"></i></td>
+            }
+            <td class="name">
+                <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
+                <i title="@project.description.getOrElse("")" class="minor">@project.description.getOrElse("")</i>
+            </td>
+            <td>
+                <a href="@routes.Users.show(project.ownerName)">
+                    <img class="user-avatar" height="32" width="32" title="@project.ownerName"
+                         alt="@project.ownerName" src="@project.owner.user.avatarUrl(100)" />
+                </a>
+            </td>
+            <td class="minor stat">@project.views</td>
+            <td class="minor stat">@project.downloads</td>
+            <td class="minor stat">@project.stars</td>
+        </tr>
+        }
+        </tbody>
+    </table>
+    @if(models.size >= config.projects.getInt("init-load").get) {
+    <button class="btn btn-default btn-more"><strong>@messages("table.more")</strong></button>
+    } else {
+    <div class="panel-footer"></div>
+    }
+</div>

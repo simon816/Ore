@@ -25,8 +25,8 @@ class ErrorHandler @Inject()(env: Environment,
                              extends DefaultHttpErrorHandler(env, conf, sourceMapper, router)
                                with I18nSupport {
 
-  implicit val users: UserBase = service.getModelBase(classOf[UserBase])
-  implicit val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
+  implicit val users: UserBase = service.access(classOf[UserBase])
+  implicit val projects: ProjectBase = service.access(classOf[ProjectBase])
 
   override def onProdServerError(request: RequestHeader, exception: UsefulException) = {
     implicit val req = request

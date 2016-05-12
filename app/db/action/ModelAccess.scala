@@ -86,7 +86,8 @@ class ModelAccess[T <: ModelTable[M], M <: Model](service: ModelService,
     *
     * @param filter Filter to use
     */
-  def removeAll(filter: T => Rep[Boolean]) = service.await(baseQuery deleteWhere (this.baseFilter && filter))
+  def removeAll(filter: T => Rep[Boolean] = _ => true)
+  = service.await(baseQuery deleteWhere (this.baseFilter && filter))
 
   /**
     * Returns the first model matching the specified filter.

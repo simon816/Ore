@@ -11,9 +11,9 @@ sorted according to different criteria.
 @import ore.project.Categories._
 @import ore.project.ProjectSortingStrategies.{values, _}
 @import db.impl.UserBase
-@(models: Seq[Project], visibleCategories: Option[Array[Category]], sort: ProjectSortingStrategy)(implicit messages: Messages,
-        session: Session, flash: Flash, request: RequestHeader, service: ModelService,
-        forums: DiscourseApi, config: OreConfig, users: UserBase)
+@(models: Seq[Project], visibleCategories: Option[Array[Category]], query: Option[String], page: Int,
+        sort: ProjectSortingStrategy)(implicit messages: Messages, session: Session, flash: Flash,
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 @core.layout(messages("general.title")) {
 
@@ -79,7 +79,13 @@ sorted according to different criteria.
         <div class="row project-content">
             <!-- Project table -->
             <div class="col-md-9">
-                @projects.table(models, visibleCategories)
+                @projects.table(
+                    models = models,
+                    visibleCategories = visibleCategories,
+                    query = query,
+                    ordering = sort,
+                    page = page
+                )
             </div>
             <div class="col-md-3">
                 <select class="form-control select-sort">
@@ -93,7 +99,7 @@ sorted according to different criteria.
                     <div class="panel-heading">
                         <h3 class="panel-title">@messages("project.category.plural")</h3>
                         @if(visibleCategories.isDefined) {
-                            <a href="@routes.Application.showHome(None, None, None)">
+                            <a href="@routes.Application.showHome(None, None, None, None)">
                                 <i class="pull-right category-reset fa fa-times"></i>
                             </a>
                         }

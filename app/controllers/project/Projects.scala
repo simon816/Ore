@@ -349,7 +349,7 @@ class Projects @Inject()(val stats: StatTracker,
     SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
       this.factory.deleteProject(project)
-      Redirect(app.showHome(None, None, None))
+      Redirect(app.showHome(None, None, None, None))
         .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
     }
   }

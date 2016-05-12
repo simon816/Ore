@@ -16,7 +16,7 @@ import db.impl.ProjectBase
   */
 final class OreWrites @Inject()(implicit config: OreConfig, service: ModelService) {
 
-  implicit val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
+  implicit val projects: ProjectBase = service.access(classOf[ProjectBase])
 
   implicit val channelWrites = new Writes[Channel] {
     def writes(channel: Channel) = Json.obj("name" -> channel.name, "color" -> channel.color.hex)

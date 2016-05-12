@@ -3,6 +3,7 @@ package controllers
 import models.project.Project
 import models.user.User
 import ore.permission.scope.ScopeSubject
+import ore.project.util.PluginFile
 import play.api.mvc.{Request, WrappedRequest}
 
 /**
@@ -38,7 +39,7 @@ object Requests {
       with ScopedRequest[A]
 
   /**
-    * A request that hold a Project and a [[AuthRequest]].
+    * A request that holds a Project and a [[AuthRequest]].
     *
     * @param project Project to hold
     * @param request An [[AuthRequest]]

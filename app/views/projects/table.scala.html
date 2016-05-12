@@ -4,53 +4,61 @@ Collection of all projects.
 @import _root_.util.OreConfig
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
+@import db.impl.UserBase
 @import forums.DiscourseApi
 @import models.project.Project
-@import models.user.User
 @import ore.project.Categories._
-@import db.impl.UserBase
-@(models: Seq[Project], visibleCategories: Option[Array[Category]] = None)(implicit messages: Messages,
-        session: Session, flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig,
-        users: UserBase)
+@import ore.project.ProjectSortingStrategies
+@import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
+@(models: Seq[Project], visibleCategories: Option[Array[Category]] = None, query: Option[String] = None,
+        ordering: ProjectSortingStrategy, page: Int)(implicit messages: Messages, session: Session, flash: Flash,
+        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
-<div class="panel panel-default project-panel">
-    <table class="table project-table">
-        <thead class="panel-heading">
-            <tr class="panel-title">
-                <th></th>
-                <th class="name">@messages("project.name")</th>
-                <th title="Author" class="author"><i class="fa fa-user header-user"></i></th>
-                <th title="Views" class="minor stat"><i class="fa fa-eye"></i></th>
-                <th title="Downloads" class="minor stat"><i class="fa fa-download"></i></th>
-                <th title="Stars" class="minor stat"><i class="fa fa-star"></i></th>
-            </tr>
-        </thead>
-        <tbody class="panel-body">
-        @models.map { project =>
-            <tr @if(!project.isVisible) { class="project-hidden" }>
-                @defining(project.category) { category =>
-                    <td><i title="@category.title" class="fa @category.icon"></i></td>
-                }
-                <td class="name">
-                    <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
-                    <i title="@project.description.getOrElse("")" class="minor">@project.description.getOrElse("")</i>
-                </td>
-                <td>
-                    <a href="@routes.Users.show(project.ownerName)">
-                        <img class="user-avatar" height="32" width="32" title="@project.ownerName"
-                             alt="@project.ownerName" src="@project.owner.user.avatarUrl(100)" />
-                    </a>
-                </td>
-                <td class="minor stat">@project.views</td>
-                <td class="minor stat">@project.downloads</td>
-                <td class="minor stat">@project.stars</td>
-            </tr>
-        }
-        </tbody>
-    </table>
-    @if(models.size >= config.projects.getInt("init-load").get) {
-        <button class="btn btn-default btn-more"><strong>@messages("table.more")</strong></button>
-    } else {
-        <div class="panel-footer"></div>
+@categoryString = @{ visibleCategories.map(_.map(_.id.toString).mkString(",")) }
+@orderingOption = @{
+    ordering match {
+        case ProjectSortingStrategies.Default => None
+        case _ => Some(ordering.id)
     }
-</div>
+}
+
+<ul class="list-group project-list">
+    @models.map { project =>
+        <li class="list-group-item">
+            <div class="project-list-header pull-left">
+                <a class="pull-left" href="@routes.Users.show(project.ownerName)">
+                    <img class="user-avatar" height="50" width="50" title="@project.ownerName"
+                    alt="@project.ownerName" src="@project.owner.user.avatarUrl(200)" />
+                </a>
+                <div class="project-title pull-right">
+                    <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
+                    <i title="@project.category.title" class="fa @project.category.icon"></i>
+                    <div class="minor">@project.description</div>
+                </div>
+            </div>
+            <div class="pull-right minor">
+                <span class="stat" title="Views"><i class="fa fa-eye"></i> @project.views</span>
+                <span class="stat" title="Download"><i class="fa fa-download"></i> @project.downloads</span>
+                <span class="stat" title="Stars"><i class="fa fa-star"></i> @project.stars</span>
+                <span class="stat" title="Recommended version">
+                    <i class="fa fa-diamond"></i> @project.recommendedVersion.name
+                </span>
+            </div>
+            <div class="clearfix"></div>
+        </li>
+    }
+
+    @if(models.size >= config.projects.getInt("init-load").get) {
+        <li class="list-group-item project-list-footer">
+            <div class="pull-right">
+                @if(page > 1) {
+                    <a href="@routes.Application.showHome(categoryString, query, orderingOption, Some(page - 1))"
+                       class="btn btn-default"><i class="fa fa-arrow-left"></i></a>
+                }
+                <a href="@routes.Application.showHome(categoryString, query, orderingOption, Some(page + 1))"
+                   class="btn btn-default"><i class="fa fa-arrow-right"></i></a>
+            </div>
+            <div class="clearfix"></div>
+        </li>
+    }
+</ul>

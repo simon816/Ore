@@ -10,6 +10,7 @@ User page for developers.
 @import db.impl.UserBase
 @import util.StringUtils
 @import util.StringUtils.prettifyDate
+@import ore.project.ProjectSortingStrategies
 @(user: User)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader,
         service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
@@ -97,7 +98,11 @@ User page for developers.
         </div>
         <div class="row">
             <div class="col-md-8">
-                @projects.table(user.projects.toSeq)
+                @projects.table(
+                    models = user.projects.toSeq,
+                    page = 1, // TODO
+                    ordering = ProjectSortingStrategies.Default
+                )
             </div>
             <div class="col-md-4">
                 <div class="panel-stars panel panel-default">

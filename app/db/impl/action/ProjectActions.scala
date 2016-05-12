@@ -31,7 +31,7 @@ class ProjectActions(override val service: ModelService)
   )
 
   private val stars = TableQuery[ProjectStarsTable]
-  implicit private val users: UserBase = this.service.getModelBase(classOf[UserBase])
+  implicit private val users: UserBase = this.service.access(classOf[UserBase])
 
   /**
     * Returns the [[ProjectMember]]s in the specified Project, sorted by role.

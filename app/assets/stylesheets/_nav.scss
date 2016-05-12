@@ -94,7 +94,6 @@
 
 .user-avatar {
   @include circle();
-  @include size(32px, 32px);
 }
 
 .user-controls {

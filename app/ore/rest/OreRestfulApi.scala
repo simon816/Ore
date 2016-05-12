@@ -22,9 +22,9 @@ trait OreRestfulApi {
 
   val service: ModelService
   val config: OreConfig
-  val users: UserBase = service.getModelBase(classOf[UserBase])
+  val users: UserBase = service.access(classOf[UserBase])
 
-  implicit val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
+  implicit val projects: ProjectBase = service.access(classOf[ProjectBase])
 
   /**
     * Returns a Json value of the Projects meeting the specified criteria.
