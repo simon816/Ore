@@ -100,7 +100,7 @@ object Page {
     * The Markdown processor.
     */
   val MarkdownProcessor: PegDownProcessor = new PegDownProcessor(
-    ALL + TASKLISTITEMS + SUPPRESS_ALL_HTML - ANCHORLINKS, 10000
+    ALL - ANCHORLINKS + SUPPRESS_ALL_HTML + TASKLISTITEMS + EXTANCHORLINKS, 10000
   )
 
   /**
