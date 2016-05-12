@@ -1,20 +1,16 @@
 package controllers
 
 import controllers.Requests._
-import controllers.project.routes._
-import db.ModelService
 import db.impl.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.Project
 import models.user.User
 import ore.permission.scope.GlobalScope
 import ore.permission.{HideProjects, Permission}
-import ore.project.util.{InvalidPluginFileException, ProjectFactory}
 import play.api.mvc.Results._
 import play.api.mvc._
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 /**
   * A set of actions used by Ore.

@@ -4,7 +4,6 @@ import java.nio.file.Files
 import javax.inject.Inject
 
 import com.google.common.base.Preconditions._
-import controllers.Requests.AuthRequest
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.{ProjectBase, UserBase}
@@ -16,7 +15,6 @@ import org.apache.commons.io.FileUtils
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.cache.CacheApi
 import play.api.libs.Files.TemporaryFile
-import play.api.mvc.Result
 import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
 
