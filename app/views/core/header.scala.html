@@ -20,120 +20,118 @@ The main header displayed on each layout.
 
 <nav id="top" class="navbar-main navbar navbar-fixed-top navbar-inverse">
     <div class="container">
-        <div class="collapse navbar-collapse">
-            <!-- Left navbar -->
-            <ul class="nav navbar-nav navbar-left">
-                <li class="dropdown dropdown-sponge">
-                    <a href="@routes.Application.showHome(None, None, None, None)" class="drop-down-toggle disabled" data-toggle="dropdown">
-                        <img class="logo" src="@config.sponge.getString("logo").get" />
-                        <span class="fa fa-chevron-down"></span>
-                    </a>
+        <!-- Left navbar -->
+        <ul class="nav navbar-nav navbar-left">
+            <li class="dropdown dropdown-sponge">
+                <a href="@routes.Application.showHome(None, None, None, None)" class="drop-down-toggle disabled" data-toggle="dropdown">
+                    <img class="logo" src="@config.sponge.getString("logo").get" />
+                    <span class="fa fa-chevron-down"></span>
+                </a>
 
-                    <ul class="dropdown-menu main-dropdown" aria-label="@messages("aria.dropdown.main")">
-                        <li><a href="https://www.spongepowered.org"><i class="fa fa-home"></i>@messages("general.home")</a></li>
-                        <li><a href="https://forums.spongepowered.org"><i class="fa fa-comment"></i>@messages("general.forums")</a></li>
-                        <li><a href="https://github.com/SpongePowered"><i class="fa fa-code"></i>@messages("general.code")</a></li>
-                        <li><a href="https://docs.spongepowered.org"><i class="fa fa-book"></i>@messages("general.docs")</a></li>
-                        <li><a href="https://jd.spongepowered.org"><i class="fa fa-graduation-cap"></i>@messages("general.javadocs")</a></li>
-                        <li class="active"><a href="https://ore-staging.spongepowered.org">
-                            <i class="fa fa-wrench"></i>@messages("general.plugins")</a>
+                <ul class="dropdown-menu main-dropdown" aria-label="@messages("aria.dropdown.main")">
+                    <li><a href="https://www.spongepowered.org"><i class="fa fa-home"></i>@messages("general.home")</a></li>
+                    <li><a href="https://forums.spongepowered.org"><i class="fa fa-comment"></i>@messages("general.forums")</a></li>
+                    <li><a href="https://github.com/SpongePowered"><i class="fa fa-code"></i>@messages("general.code")</a></li>
+                    <li><a href="https://docs.spongepowered.org"><i class="fa fa-book"></i>@messages("general.docs")</a></li>
+                    <li><a href="https://jd.spongepowered.org"><i class="fa fa-graduation-cap"></i>@messages("general.javadocs")</a></li>
+                    <li class="active"><a href="https://ore-staging.spongepowered.org">
+                        <i class="fa fa-wrench"></i>@messages("general.plugins")</a>
+                    </li>
+                    <li><a href="https://forums.spongepowered.org/t/sponge-downloads/11448">
+                        <i class="fa fa-download"></i>@messages("general.getsponge")</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+        <!-- Right navbar -->
+        <ul class="nav navbar-nav navbar-collapse collapse navbar-right">
+
+            <li class="project-search">
+                <div class="input-group" style="display: none;">
+                    <input type="text" class="form-control" placeholder="Search projects&hellip;" />
+                    <div class="input-group-btn">
+                        <button class="btn btn-default"><i class="fa fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </li>
+
+            <li class="nav-search">
+                <div class="icon-project-search"><i class="fa fa-search"></i></div>
+            </li>
+
+            @users.current.map { user =>
+                @* Show user controls *@
+                <li class="dropdown user-controls">
+                    <a href="#" class="drop-down-toggle user-toggle" data-toggle="dropdown">
+                        @if((canViewFlags(user) && hasFlags) || (canReviewProjects(user) && queueNonEmpty)) {
+                            <span class="unread"></span>
+                        }
+                        <img height="32" width="32" class="user-avatar" src="@user.avatarUrl(100)" />
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="user-dropdown dropdown-menu" aria-label="@messages("aria.dropdown.menu", 1)">
+                        <li>
+                            <a href="@routes.Users.show(user.username)">
+                                <span class="pull-left">@user.username</span>
+                                <i class="pull-right fa fa-user"></i>
+                            </a>
                         </li>
-                        <li><a href="https://forums.spongepowered.org/t/sponge-downloads/11448">
-                            <i class="fa fa-download"></i>@messages("general.getsponge")</a>
+                        <li>
+                            <a href="@projectRoutes.Projects.showCreator()">
+                                <span class="pull-left">New</span>
+                                <i class="pull-right fa fa-plus"></i>
+                            </a>
+                        </li>
+
+                        @if(canViewFlags(user)) {
+                            <li>
+                                <a href="@routes.Application.showFlags()">
+                                    <span class="flags pull-left">
+                                        Flags
+                                        @if(hasFlags) {
+                                            <span class="unread"></span>
+                                        }
+                                    </span>
+                                    <i class="pull-right fa fa-flag"></i>
+                                </a>
+                            </li>
+                        }
+
+                        @if(canReviewProjects(user)) {
+                            <li>
+                                <a href="@routes.Application.showQueue()">
+                                    <span class="pull-left">
+                                        Queue
+                                        @if(queueNonEmpty) {
+                                            <span class="unread"></span>
+                                        }
+                                    </span>
+                                    <i class="pull-right fa fa-thumbs-up"></i>
+                                </a>
+                            </li>
+                        }
+
+                        <li role="separator" class="divider"></li>
+                        <li>
+                            <a href="@routes.Users.logOut(Some(request.path))">
+                                <span class="pull-left">@messages("general.signout")</span>
+                                <i class="pull-right fa fa-sign-out"></i>
+                            </a>
                         </li>
                     </ul>
                 </li>
-            </ul>
-
-            <!-- Right navbar -->
-            <ul class="nav navbar-nav navbar-right">
-
-                <li class="project-search">
-                    <div class="input-group" style="display: none;">
-                        <input type="text" class="form-control" placeholder="Search projects&hellip;" />
-                        <div class="input-group-btn">
-                            <button class="btn btn-default"><i class="fa fa-arrow-right"></i></button>
-                        </div>
+            }.getOrElse {
+                <li>
+                    <div class="btn-group-login">
+                        <a href="@routes.Users.logIn(None, None, Some(request.path))"
+                           class="btn btn-primary navbar-btn">@messages("general.signup")</a>
+                        <a href="@routes.Users.logIn(None, None, Some(request.path))"
+                        class="btn btn-primary navbar-btn">@messages("general.login")</a>
                     </div>
                 </li>
+            }
 
-                <li class="nav-search">
-                    <div class="icon-project-search"><i class="fa fa-search"></i></div>
-                </li>
-
-                @users.current.map { user =>
-                    @* Show user controls *@
-                    <li class="dropdown user-controls">
-                        <a href="#" class="drop-down-toggle user-toggle" data-toggle="dropdown">
-                            @if((canViewFlags(user) && hasFlags) || (canReviewProjects(user) && queueNonEmpty)) {
-                                <span class="unread"></span>
-                            }
-                            <img height="32" width="32" class="user-avatar" src="@user.avatarUrl(100)" />
-                            <span class="caret"></span>
-                        </a>
-                        <ul class="user-dropdown dropdown-menu" aria-label="@messages("aria.dropdown.menu", 1)">
-                            <li>
-                                <a href="@routes.Users.show(user.username)">
-                                    <span class="pull-left">@user.username</span>
-                                    <i class="pull-right fa fa-user"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="@projectRoutes.Projects.showCreator()">
-                                    <span class="pull-left">New</span>
-                                    <i class="pull-right fa fa-plus"></i>
-                                </a>
-                            </li>
-
-                            @if(canViewFlags(user)) {
-                                <li>
-                                    <a href="@routes.Application.showFlags()">
-                                        <span class="flags pull-left">
-                                            Flags
-                                            @if(hasFlags) {
-                                                <span class="unread"></span>
-                                            }
-                                        </span>
-                                        <i class="pull-right fa fa-flag"></i>
-                                    </a>
-                                </li>
-                            }
-
-                            @if(canReviewProjects(user)) {
-                                <li>
-                                    <a href="@routes.Application.showQueue()">
-                                        <span class="pull-left">
-                                            Queue
-                                            @if(queueNonEmpty) {
-                                                <span class="unread"></span>
-                                            }
-                                        </span>
-                                        <i class="pull-right fa fa-thumbs-up"></i>
-                                    </a>
-                                </li>
-                            }
-
-                            <li role="separator" class="divider"></li>
-                            <li>
-                                <a href="@routes.Users.logOut(Some(request.path))">
-                                    <span class="pull-left">@messages("general.signout")</span>
-                                    <i class="pull-right fa fa-sign-out"></i>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                }.getOrElse {
-                    <li>
-                        <div class="btn-group-login">
-                            <a href="@routes.Users.logIn(None, None, Some(request.path))"
-                               class="btn btn-primary navbar-btn">@messages("general.signup")</a>
-                            <a href="@routes.Users.logIn(None, None, Some(request.path))"
-                            class="btn btn-primary navbar-btn">@messages("general.login")</a>
-                        </div>
-                    </li>
-                }
-
-            </ul>
-        </div>
+        </ul>
     </div>
 </nav>

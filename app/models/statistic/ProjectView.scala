@@ -7,8 +7,8 @@ import controllers.Requests.ProjectRequest
 import db.impl.UserBase
 import db.meta.Bind
 import models.project.Project
+import ore.StatTracker._
 import ore.permission.scope.ProjectScope
-import ore.StatTracker
 
 import scala.annotation.meta.field
 
@@ -49,11 +49,10 @@ object ProjectView {
     */
   def bindFromRequest()(implicit request: ProjectRequest[_], users: UserBase): ProjectView = {
     val userId = users.current(request.session).flatMap(_.id)
-    val cookie = StatTracker.getStatCookie
     val view = ProjectView(
       modelId = request.project.id.get,
-      address = InetString(request.remoteAddress),
-      cookie = cookie,
+      address = InetString(remoteAddress),
+      cookie = getStatCookie,
       userId = userId
     )
     view.userBase = users

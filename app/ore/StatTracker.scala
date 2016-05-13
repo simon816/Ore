@@ -71,6 +71,19 @@ object StatTracker {
   def getStatCookie(implicit request: RequestHeader)
   = request.cookies.get(COOKIE_UID).map(_.value).getOrElse(UUID.randomUUID.toString)
 
+  def remoteAddress(implicit request: RequestHeader) = {
+    request.headers.get("X-Forwarded-For") match {
+      case None => request.remoteAddress
+      case Some(header) => header.substring(header.indexOf(':') + 1).trim.split(';').find {
+        _.startsWith("for=")
+      } map { orig =>
+        orig.trim.substring(orig.indexOf('=') + 1)
+      } getOrElse {
+        request.remoteAddress
+      }
+    }
+  }
+
 }
 
 class OreStatTracker @Inject()(service: ModelService) extends StatTracker {
