@@ -72,12 +72,8 @@ object StatTracker {
   = request.cookies.get(COOKIE_UID).map(_.value).getOrElse(UUID.randomUUID.toString)
 
   def remoteAddress(implicit request: RequestHeader) = {
-    println(request.headers)
-    println("--------------")
     request.headers.get("X-Forwarded-For") match {
-      case None =>
-        println("DEBUG: HEADER NOT FOUND")
-        request.remoteAddress
+      case None => request.remoteAddress
       case Some(header) => header.split(',').headOption.map(_.trim).getOrElse(request.remoteAddress)
     }
   }
