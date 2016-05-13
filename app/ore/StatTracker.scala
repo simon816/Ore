@@ -73,12 +73,16 @@ object StatTracker {
 
   def remoteAddress(implicit request: RequestHeader) = {
     request.headers.get("X-Forwarded-For") match {
-      case None => request.remoteAddress
+      case None =>
+        println("DEBUG: HEADER NOT FOUND")
+        request.remoteAddress
       case Some(header) => header.substring(header.indexOf(':') + 1).trim.split(';').find {
         _.startsWith("for=")
       } map { orig =>
+        println("DEBUG: HEADER = " + orig)
         orig.trim.substring(orig.indexOf('=') + 1)
       } getOrElse {
+        println("DEBUG: INVALID HEADER FOUND")
         request.remoteAddress
       }
     }
