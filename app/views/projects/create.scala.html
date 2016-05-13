@@ -4,11 +4,11 @@ Page used for uploading and creating new projects.
 @import _root_.util.OreConfig
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
+@import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import ore.project.util.PendingProject
 @import play.twirl.api.Html
 @import views.html.helper.form
-@import db.impl.UserBase
 @(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 

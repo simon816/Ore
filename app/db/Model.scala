@@ -132,8 +132,6 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
 
   protected[db] def setProcessed(processed: Boolean) = this._isProcessed = processed
 
-  protected def Defined[R](f: => R): R = {
-    if (isDefined) f else throw new IllegalStateException("model must exist")
-  }
+  protected def Defined[R](f: => R): R = if (isDefined) f else throw new IllegalStateException("model must exist")
 
 }

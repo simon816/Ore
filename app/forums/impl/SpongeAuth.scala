@@ -3,7 +3,7 @@ package forums.impl
 import javax.inject.Inject
 
 import db.ModelService
-import db.impl.UserBase
+import db.impl.service.UserBase
 import forums.{DiscourseApi, DiscourseSSO}
 import util.OreConfig
 

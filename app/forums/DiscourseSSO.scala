@@ -8,7 +8,7 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 import db.ModelService
-import db.impl.UserBase
+import db.impl.service.UserBase
 import models.user.User
 import org.apache.commons.codec.binary.Hex
 

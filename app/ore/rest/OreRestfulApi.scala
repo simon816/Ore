@@ -4,8 +4,9 @@ import javax.inject.Inject
 
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import db.impl.{ProjectBase, UserBase}
+import db.impl.service.UserBase
 import db.impl.action.{ProjectActions, UserActions, VersionActions}
+import db.impl.service.{ProjectBase, UserBase}
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.libs.json.{JsValue, Json}

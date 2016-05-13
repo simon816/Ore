@@ -1,6 +1,6 @@
 package ore
 
-import db.impl.ProjectBase
+import db.impl.service.ProjectBase
 import models.project.Project
 
 /** Represents anything that has a [[models.project.Project]]. */

@@ -5,10 +5,12 @@ import java.nio.file.Paths
 import javax.inject.Inject
 
 import db.ModelService
-import db.impl.{ProjectBase, UserBase}
+import db.impl.service.UserBase
+import db.impl.service.{ProjectBase, UserBase}
 import forums.{DisabledDiscourseApi, DiscourseApi}
 import models.project.{Channel, Version}
-import models.user.User
+import models.user.{ProjectRole, User}
+import ore.permission.role.RoleTypes
 import ore.project.Categories
 import ore.project.util.{PendingProject, PendingVersion, ProjectFactory}
 import org.apache.commons.io.FileUtils
@@ -56,7 +58,7 @@ class DataHelper @Inject()(implicit config: OreConfig,
       // Initialize plugin
       val user = this.users.getOrCreate(new User(id = Some(i), _username = "User-" + i))
       while (!pluginFile.exists()) pluginFile = copyPlugin // /me throws up
-      var plugin = this.factory.cacheUpload(TemporaryFile(pluginFile), pluginFile.getName, user).get
+      var plugin = this.factory.processPluginFile(TemporaryFile(pluginFile), pluginFile.getName, user).get
       val pluginId = "pluginId." + i
 
       // Modify meta
@@ -90,7 +92,7 @@ class DataHelper @Inject()(implicit config: OreConfig,
         for ((channel, j) <- channelSeq.zipWithIndex) {
           // Initialize plugin
           while (!pluginFile.exists()) pluginFile = copyPlugin
-          plugin = this.factory.cacheUpload(TemporaryFile(pluginFile), pluginFile.getName, user).get
+          plugin = this.factory.processPluginFile(TemporaryFile(pluginFile), pluginFile.getName, user).get
 
           // Modify meta
           meta = plugin.meta.get
@@ -113,7 +115,12 @@ class DataHelper @Inject()(implicit config: OreConfig,
     }
   }
 
-  def migrate() = Unit
+  def migrate() = {
+    for (project <- this.projects.all) {
+      val owner = project.owner.user
+      owner.projectRoles.add(new ProjectRole(owner.id.get, RoleTypes.ProjectOwner, project.id.get))
+    }
+  }
 
   private def copyPlugin = {
     val path = this.pluginPath.getParent.resolve("plugin.jar")

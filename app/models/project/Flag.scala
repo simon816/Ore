@@ -57,7 +57,7 @@ case class Flag(override val id: Option[Int],
     update(IsResolved)
   }
 
-  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Flag = this.copy(id = id, createdAt = theTime)
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
 
 }
 

@@ -1,5 +1,6 @@
-package db.impl
+package db.impl.service
 
+import db.impl.OreModel
 import db.meta.ModelProcessor
 import db.{Model, ModelService, ModelTable}
 import forums.DiscourseApi

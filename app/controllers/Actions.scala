@@ -1,7 +1,8 @@
 package controllers
 
 import controllers.Requests._
-import db.impl.{ProjectBase, UserBase}
+import db.impl.service.UserBase
+import db.impl.service.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.Project
 import models.user.User

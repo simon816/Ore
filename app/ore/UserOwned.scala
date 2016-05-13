@@ -1,6 +1,6 @@
 package ore
 
-import db.impl.UserBase
+import db.impl.service.UserBase
 import models.user.User
 
 /** Represents anything that has a [[User]]. */

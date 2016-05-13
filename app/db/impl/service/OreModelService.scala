@@ -1,4 +1,4 @@
-package db.impl
+package db.impl.service
 
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
@@ -7,6 +7,7 @@ import db.action.ModelActions
 import db.impl.OrePostgresDriver.api._
 import db.impl.OreTypeSetters._
 import db.impl.action.{PageActions, ProjectActions, UserActions, VersionActions}
+import db.impl.{ChannelTable, OrePostgresDriver}
 import db.{ModelRegistrar, ModelService}
 import forums.DiscourseApi
 import models.project.Channel
@@ -38,7 +39,7 @@ class OreModelService @Inject()(config: OreConfig,
   override lazy val DB = db.get[JdbcProfile]
   override lazy val DefaultTimeout: Duration = Duration(config.app.getInt("db.default-timeout").get, TimeUnit.SECONDS)
 
-  import registrar.{register, registerSetter, registerModelBase}
+  import registrar.{register, registerModelBase, registerSetter}
 
   val users = registerModelBase[UserBase](classOf[UserBase], new UserBase(this, forums))
   val projects = registerModelBase[ProjectBase](classOf[ProjectBase], new ProjectBase(this))

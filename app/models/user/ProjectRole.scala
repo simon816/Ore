@@ -46,11 +46,8 @@ case class ProjectRole(override val id: Option[Int] = None,
     if (isDefined) update(RoleType)
   }
 
-  override def roleType: RoleType = this._roleType
-
+  override def roleType = this._roleType
   override def compare(that: ProjectRole) = this.roleType.trust compare that.roleType.trust
-
-  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): ProjectRole
-  = this.copy(id = id, createdAt = theTime)
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
 
 }

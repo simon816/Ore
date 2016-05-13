@@ -9,7 +9,7 @@ import models.project.{Channel, Project, Version}
 import models.user.User
 import play.api.libs.json._
 import _root_.util.StringUtils.prettifyDate
-import db.impl.ProjectBase
+import db.impl.service.ProjectBase
 
 /**
   * Contains implicit JSON [[Writes]] for the Ore API.

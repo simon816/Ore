@@ -1,11 +1,11 @@
 @import _root_.util.OreConfig
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
+@import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import models.project.{Project, Version}
 @import util.StringUtils
 @import util.StringUtils.prettifyDate
-@import db.impl.UserBase
 @(versions: Seq[(Project, Version)])(implicit messages: Messages, session: Session, request: RequestHeader,
         service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 

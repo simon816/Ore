@@ -5,6 +5,7 @@ import db.action.ModelAction.wrapSeq
 import db.action.{ModelActions, ModelFilter, StatActions}
 import db.impl.OrePostgresDriver.api._
 import db.impl._
+import db.impl.service.UserBase
 import forums.DiscourseApi
 import models.project._
 import models.statistic.ProjectView

@@ -1,5 +1,6 @@
-package db.impl
+package db.impl.service
 
+import db.impl.UserTable
 import db.{ModelBase, ModelService}
 import forums.DiscourseApi
 import models.user.User

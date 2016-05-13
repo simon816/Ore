@@ -4,7 +4,7 @@ import _root_.db.ModelService
 import _root_.util.OreConfig
 import _root_.forums.DiscourseApi
 import play.api._
-import _root_.db.impl.{UserBase, ProjectBase}
+import _root_.db.impl.service.{UserBase, ProjectBase}
 import play.api.http.DefaultHttpErrorHandler
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Results._

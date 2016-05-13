@@ -2,7 +2,7 @@ package ore.project
 
 import com.google.common.base.MoreObjects
 import db.impl.OrePostgresDriver.api._
-import db.impl.UserBase
+import db.impl.service.UserBase
 import models.project.Project
 import models.user.{ProjectRole, User}
 import ore.permission.scope.{Scope, ScopeSubject}
@@ -22,7 +22,7 @@ class ProjectMember(val project: Project, val name: String)(implicit users: User
     *
     * @return User member belongs to
     */
-  def user(implicit users: UserBase): User = users.withName(this.name).get
+  def user: User = users.withName(this.name).get
 
   /**
     * Returns the Member's [[ProjectRole]]s in the [[Project]].

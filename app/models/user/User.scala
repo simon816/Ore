@@ -272,10 +272,8 @@ case class User(override val id: Option[Int] = None,
     this
   }
 
-  override val scope: Scope = GlobalScope
-
+  override val scope = GlobalScope
   override def userId = this.id.get
-
-  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): User = this.copy(createdAt = theTime)
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(createdAt = theTime)
 
 }

@@ -3,6 +3,7 @@ package db.impl
 import java.sql.Timestamp
 
 import db.Model
+import db.impl.service.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import util.OreConfig
 

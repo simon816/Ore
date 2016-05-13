@@ -1,6 +1,6 @@
 import com.google.inject.AbstractModule
 import db.ModelService
-import db.impl.OreModelService
+import db.impl.service.OreModelService
 import forums._
 import forums.impl.{SpongeAuth, SpongeForums}
 import ore._

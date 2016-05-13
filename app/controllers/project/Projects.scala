@@ -56,7 +56,7 @@ class Projects @Inject()(val stats: StatTracker,
       case Some(tmpFile) =>
         // Initialize plugin file
         val user = request.user
-        this.factory.cacheUpload(tmpFile.ref, tmpFile.filename, user) match {
+        this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user) match {
           case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
             // PEBKAC
             Redirect(self.showCreator()).flashing("error" -> "Invalid plugin file.")

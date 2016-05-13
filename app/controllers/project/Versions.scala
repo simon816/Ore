@@ -167,7 +167,7 @@ class Versions @Inject()(val stats: StatTracker,
         case None => Redirect(self.showCreator(author, slug)).flashing("error" -> "Missing file")
         case Some(tmpFile) =>
           // Initialize plugin file
-          this.factory.cacheUpload(tmpFile.ref, tmpFile.filename, request.user) match {
+          this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, request.user) match {
             case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
               // PEBKAC
               Redirect(self.showCreator(author, slug))

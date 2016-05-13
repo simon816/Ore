@@ -6,7 +6,8 @@ import javax.inject.Inject
 import com.google.common.base.Preconditions._
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import db.impl.{ProjectBase, UserBase}
+import db.impl.service.UserBase
+import db.impl.service.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.{ProjectRole, User}
@@ -53,7 +54,7 @@ trait ProjectFactory {
     * @param owner  Project owner
     * @return       New plugin file
     */
-  def cacheUpload(tmp: TemporaryFile, name: String, owner: User): Try[PluginFile] = Try {
+  def processPluginFile(tmp: TemporaryFile, name: String, owner: User): Try[PluginFile] = Try {
     val tmpPath = this.env.tmp.resolve(owner.username).resolve(name)
     val plugin = new PluginFile(tmpPath, owner)
     if (Files.notExists(tmpPath.getParent)) Files.createDirectories(tmpPath.getParent)
@@ -198,7 +199,7 @@ trait ProjectFactory {
     */
   def deleteChannel(channel: Channel)(implicit context: Project = null) = {
     val proj = if (context != null) context else channel.project
-    checkArgument(proj.id.get == channel.projectId, "invalid proj id", "")
+    checkArgument(proj.id.get == channel.projectId, "invalid project id", "")
 
     val channels = proj.channels.all
     checkArgument(channels.size > 1, "only one channel", "")

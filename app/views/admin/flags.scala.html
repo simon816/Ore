@@ -3,8 +3,9 @@
 @import db.ModelService
 @import forums.DiscourseApi
 @import models.project.Flag
-@import db.impl.UserBase
-@import db.impl.ProjectBase
+@import db.impl.service.UserBase
+@import db.impl.service.ProjectBase
+@import db.impl.service.UserBase
 @(flags: Seq[Flag])(implicit messages: Messages, session: Session, request: RequestHeader,
         service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, projectBase: ProjectBase)
 

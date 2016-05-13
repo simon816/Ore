@@ -90,7 +90,7 @@ case class Page(override val id: Option[Int] = None,
     */
   def isHome: Boolean = this.name.equals(HomeName)
 
-  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Page = this.copy(id = id, createdAt = theTime)
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
 
 }
 

@@ -1,7 +1,8 @@
 package controllers
 
 import db.ModelService
-import db.impl.{ProjectBase, UserBase}
+import db.impl.service.UserBase
+import db.impl.service.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.{Project, Version}
 import play.api.i18n.I18nSupport

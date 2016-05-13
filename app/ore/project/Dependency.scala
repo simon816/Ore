@@ -1,6 +1,6 @@
 package ore.project
 
-import db.impl.ProjectBase
+import db.impl.service.ProjectBase
 import models.project.Project
 
 /**

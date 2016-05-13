@@ -87,10 +87,10 @@ case class Channel(override val id: Option[Int] = None,
     */
   def versions = this.getRelated[VersionTable, Version](classOf[Version])
 
-  override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Channel = this.copy(id = id, createdAt = theTime)
-  override def compare(that: Channel): Int = this._name compare that._name
-  override def hashCode: Int = this.id.get.hashCode
-  override def equals(o: Any): Boolean = o.isInstanceOf[Channel] && o.asInstanceOf[Channel].id.get == this.id.get
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
+  override def compare(that: Channel) = this._name compare that._name
+  override def hashCode() = this.id.get.hashCode
+  override def equals(o: Any) = o.isInstanceOf[Channel] && o.asInstanceOf[Channel].id.get == this.id.get
 
 }
 
