@@ -12,12 +12,10 @@ import db.meta.{Actions, Bind, HasMany}
 import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
-import ore.project.util.PluginFile
 import org.apache.commons.io.FileUtils
 import play.twirl.api.Html
 
 import scala.annotation.meta.field
-import scala.collection.JavaConverters._
 
 /**
   * Represents a single version of a Project.
@@ -168,7 +166,7 @@ case class Version(override val id: Option[Int] = None,
     * @return True if exists
     */
   def exists: Boolean = {
-    this.projectId > -1 && (service.await(this.actions.hashExists(this.projectId, this.hash)).get
+    this.projectId > -1 && (this.service.await(this.actions.hashExists(this.projectId, this.hash)).get
       || this.project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase))
   }
 
@@ -187,23 +185,5 @@ object Version {
     */
   def notReviewed(implicit service: ModelService): Seq[Version]
   = service.access[VersionTable, Version](classOf[Version]).filterNot(_.isReviewed)
-
-  /**
-    * Creates a new Version from the specified PluginMetadata.
-    *
-    * @param project  Project this version belongs to
-    * @param plugin   PluginFile
-    * @return         New Version
-    */
-  def fromMeta(project: Project, plugin: PluginFile): Version = {
-    // TODO: asset parsing
-    val meta = plugin.meta.get
-    val depends = for (depend <- meta.getRequiredDependencies.asScala) yield depend.getId + ":" + depend.getVersion
-    val path = plugin.path
-    new Version(
-      meta.getVersion, depends.toList, meta.getDescription, "",
-      project.id.getOrElse(-1), path.toFile.length, plugin.md5
-    )
-  }
 
 }

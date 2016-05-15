@@ -64,7 +64,7 @@ class DataHelper @Inject()(implicit config: OreConfig,
       meta.setId(pluginId)
 
       // Create project
-      var project = this.factory.fromMeta(user, meta).copy(_category = Categories.Misc)
+      var project = this.factory.projectFromMeta(user, meta).copy(_category = Categories.Misc)
       project.config = this.config
       project.description = "Test description"
       project.forums = new DisabledDiscourseApi
@@ -98,7 +98,7 @@ class DataHelper @Inject()(implicit config: OreConfig,
           meta.setVersion(i.toString)
 
           // Create version
-          val version = Version.fromMeta(project, plugin).copy(channelId=channel.id.get)
+          val version = this.factory.versionFromFile(project, plugin).copy(channelId=channel.id.get)
           PendingVersion(
             factory = this.factory,
             owner = user.username,

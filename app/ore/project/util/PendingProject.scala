@@ -27,7 +27,7 @@ case class PendingProject(factory: ProjectFactory,
     * The first [[PendingVersion]] for this PendingProject.
     */
   val pendingVersion: PendingVersion = {
-    val version = Version.fromMeta(this.project, this.file)
+    val version = this.factory.versionFromFile(this.project, this.file)
     factory.setVersionPending(project.ownerName, project.slug,
       Channel.getSuggestedNameForVersion(version.versionString), version, this.file)
   }

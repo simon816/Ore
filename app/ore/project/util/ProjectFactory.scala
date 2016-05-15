@@ -19,6 +19,7 @@ import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
 
 import scala.util.Try
+import scala.collection.JavaConverters._
 
 /**
   * Handles creation of Project's and their components.
@@ -43,8 +44,25 @@ trait ProjectFactory {
     * @param meta   PluginMetadata object
     * @return       New project
     */
-  def fromMeta(owner: User, meta: PluginMetadata): Project
-  = service.processor.process(new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getUrl))
+  def projectFromMeta(owner: User, meta: PluginMetadata): Project
+  = this.service.processor.process(new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getUrl))
+
+  /**
+    * Creates a new [[Project]] [[Version]] from the specified [[PluginMetadata]].
+    *
+    * @param project Project of version
+    * @param plugin  Plugin file
+    * @return
+    */
+  def versionFromFile(project: Project, plugin: PluginFile): Version = {
+    val meta = plugin.meta.get
+    val depends = for (depend <- meta.getRequiredDependencies.asScala) yield depend.getId + ":" + depend.getVersion
+    val path = plugin.path
+    this.service.processor.process(new Version(
+      meta.getVersion, depends.toList, meta.getDescription, "",
+      project.id.getOrElse(-1), path.toFile.length, plugin.md5
+    ))
+  }
 
   /**
     * Initializes a new PluginFile with the specified owner and temporary file.

@@ -66,7 +66,7 @@ class Projects @Inject()(val stats: StatTracker,
           case Success(plugin) =>
             // Cache pending project for later use
             val meta = plugin.meta.get
-            val project = this.factory.fromMeta(user, meta)
+            val project = this.factory.projectFromMeta(user, meta)
             this.factory.setProjectPending(project, plugin)
             Redirect(self.showCreatorWithMeta(project.ownerName, project.slug))
         }

@@ -183,7 +183,7 @@ class Versions @Inject()(val stats: StatTracker,
                   .flashing("error" -> "The uploaded plugin ID must match your project's plugin ID.")
               } else {
                 // Create version from meta file
-                val version = Version.fromMeta(project, plugin)
+                val version = this.factory.versionFromFile(project, plugin)
                 if (version.exists && this.config.projects.getBoolean("file-validate").get) {
                   Redirect(self.showCreator(author, slug))
                     .flashing("error" -> "Found a duplicate file in project. Plugin files may only be uploaded once.")
