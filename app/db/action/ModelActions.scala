@@ -19,20 +19,7 @@ class ModelActions[Table <: ModelTable[Row], Row <: Model: TypeTag](val service:
 
   /** Model filter alias */
   type Filter = Table => Rep[Boolean]
-
-  // Generic (delegate to service)
-
-  def insert(model: Row) = service.insert(model)
-  def find(predicate: Table => Rep[Boolean]) = service.find(modelClass, predicate)
-  def count(filter: Table => Rep[Boolean] = null) = service.count(modelClass, filter)
-  def delete(model: Row) = service.delete(model)
-  def deleteWhere(filter: Table => Rep[Boolean]) = service.deleteWhere(modelClass, filter)
-  def get(id: Int, filter: Table => Rep[Boolean]) = service.get(modelClass, id, filter)
-  def collect(limit: Int = -1, offset: Int = -1, filter: Table => Rep[Boolean] = null,
-              sort: Table => ColumnOrdered[_] = null)
-  = service.collect(modelClass, filter, sort, limit, offset)
-  def filter(filter: Table => Rep[Boolean], limit: Int = -1, offset: Int = -1)
-  = service.filter(modelClass, filter, limit, offset)
+  type Ordering = Table => ColumnOrdered[_]
 
   // Model specific
 
@@ -61,5 +48,18 @@ class ModelActions[Table <: ModelTable[Row], Row <: Model: TypeTag](val service:
     * @return       Model if found
     */
   def like(model: Row): Future[Option[Row]] = Future(None)
+
+  // Generic (delegate to service)
+
+  def insert(model: Row) = service.insert(model)
+  def find(filter: Filter) = service.find(modelClass, filter)
+  def count(filter: Filter = null) = service.count(modelClass, filter)
+  def delete(model: Row) = service.delete(model)
+  def deleteWhere(filter: Filter) = service.deleteWhere(modelClass, filter)
+  def get(id: Int, filter: Table => Rep[Boolean]) = service.get(modelClass, id, filter)
+  def collect(filter: Filter = null, sort: Ordering = null, limit: Int = -1, offset: Int = -1)
+  = service.collect(modelClass, filter, sort, limit, offset)
+  def filter(filter: Filter, limit: Int = -1, offset: Int = -1) = service.filter(modelClass, filter, limit, offset)
+  def sorted(sort: Ordering, limit: Int = -1, offset: Int = -1) = service.sorted(modelClass, sort, limit, offset)
 
 }

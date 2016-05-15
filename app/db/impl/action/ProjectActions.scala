@@ -9,6 +9,7 @@ import db.impl.service.UserBase
 import forums.DiscourseApi
 import models.project._
 import models.statistic.ProjectView
+import models.user.User
 import ore.project.Categories.Category
 import ore.project.ProjectMember
 import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
@@ -33,6 +34,19 @@ class ProjectActions(override val service: ModelService)
 
   private val stars = TableQuery[ProjectStarsTable]
   implicit private val users: UserBase = this.service.access(classOf[UserBase])
+
+  /**
+    * Returns all [[User]]s with at least one [[Project]].
+    *
+    * @return Project authors
+    */
+  def distinctAuthors: Future[Seq[User]] = {
+    service.DB.db.run {
+      (for (project <- this.baseQuery) yield project.userId).distinct.result
+    } map { userIds =>
+      userIds.map(this.users.get(_).get)
+    }
+  }
 
   /**
     * Returns the [[ProjectMember]]s in the specified Project, sorted by role.
@@ -73,7 +87,7 @@ class ProjectActions(override val service: ModelService)
     */
   def collect(filter: Filter, sort: ProjectSortingStrategy,
               limit: Int, offset: Int): Future[Seq[Project]]
-  = collect(limit, offset, filter, Option(sort).map(_.fn).orNull)
+  = collect(filter, Option(sort).map(_.fn).orNull, limit, offset)
 
   /**
     * Filters projects based on the given criteria.

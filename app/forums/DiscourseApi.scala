@@ -9,8 +9,8 @@ import ore.permission.role.RoleTypes.RoleType
 import play.api.libs.json.JsObject
 import play.api.libs.ws.{WSClient, WSResponse}
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 /**
   * A DiscourseApi that depends on the OreModelService.

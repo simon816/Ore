@@ -4,12 +4,11 @@
 @import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import models.project.Project
-@import models.user.User
 @import ore.permission.EditSettings
 @import ore.permission.role.RoleTypes
 @import views.html.helper.form
-@(model: Project, editable: Boolean = false)(implicit messages: Messages, session: Session,
-        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
+@(model: Project, editable: Boolean = false)(implicit messages: Messages, session: Session, service: ModelService,
+        forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 @canEdit = @{
     editable && users.current.isDefined && (users.current.get can EditSettings in model)
@@ -89,4 +88,5 @@
 
         </ul>
     </div>
+
 }

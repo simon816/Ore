@@ -8,7 +8,7 @@ import db.Model
 import db.action.StatActions
 import db.impl.ModelKeys._
 import db.impl.OreModel
-import db.meta.Actor
+import db.meta.Actions
 import models.user.User
 
 /**
@@ -21,7 +21,7 @@ import models.user.User
   * @param cookie     Browser cookie
   * @param userId     User ID
   */
-@Actor(classOf[StatActions[_, _]])
+@Actions(classOf[StatActions[_, _]])
 abstract class StatEntry[Subject <: Model](override val id: Option[Int] = None,
                                            override val createdAt: Option[Timestamp] = None,
                                            val modelId: Int,

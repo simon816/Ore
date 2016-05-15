@@ -9,9 +9,9 @@ import db.impl.OrePostgresDriver.api._
 import form.OreForms
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
+import ore.StatTracker
 import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFactory, ProjectFileManager}
-import ore.StatTracker
 import play.api.i18n.MessagesApi
 import util.OreConfig
 import util.StringUtils.equalsIgnoreCase

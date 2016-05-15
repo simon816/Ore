@@ -8,7 +8,7 @@ import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl.action.VersionActions
 import db.impl.{ChannelTable, OreModel, VersionDownloadsTable, VersionTable}
-import db.meta.{Actor, Bind, HasMany}
+import db.meta.{Actions, Bind, HasMany}
 import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
@@ -32,7 +32,7 @@ import scala.collection.JavaConverters._
   * @param projectId        ID of project this version belongs to
   * @param channelId        ID of channel this version belongs to
   */
-@Actor(classOf[VersionActions])
+@Actions(classOf[VersionActions])
 @HasMany(Array(classOf[VersionDownload]))
 case class Version(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,

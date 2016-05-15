@@ -3,7 +3,7 @@ package db
 import java.sql.Timestamp
 
 import db.action.{ModelAccess, ModelActions, ModelFilter}
-import db.meta.{Actor, FieldBinding, ManyBinding}
+import db.meta.{Actions, FieldBinding, ManyBinding}
 import slick.driver.JdbcDriver
 
 import scala.concurrent.Future
@@ -39,8 +39,8 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
   def actions(implicit service: ModelService = null): A = {
     if (this.service == null) this.service = service
     val clazz = this.getClass
-    if (!clazz.isAnnotationPresent(classOf[Actor])) throw new RuntimeException("missing @Actor annotation")
-    val actions = this.service.getActions(clazz.getAnnotation(classOf[Actor]).value)
+    if (!clazz.isAnnotationPresent(classOf[Actions])) throw new RuntimeException("missing @Actions annotation")
+    val actions = this.service.getActions(clazz.getAnnotation(classOf[Actions]).value)
     if (!actions.isInstanceOf[A]) throw new RuntimeException("model actions class does not match type")
     actions.asInstanceOf[A]
   }

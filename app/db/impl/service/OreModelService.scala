@@ -41,7 +41,7 @@ class OreModelService @Inject()(config: OreConfig,
 
   import registrar.{register, registerModelBase, registerSetter}
 
-  val users = registerModelBase[UserBase](classOf[UserBase], new UserBase(this, forums))
+  val users = registerModelBase[UserBase](classOf[UserBase], new UserBase(this, forums, config))
   val projects = registerModelBase[ProjectBase](classOf[ProjectBase], new ProjectBase(this))
 
   // Custom types

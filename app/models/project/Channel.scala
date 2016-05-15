@@ -6,7 +6,7 @@ import com.google.common.base.Preconditions._
 import db.action.ModelActions
 import db.impl.ModelKeys._
 import db.impl.{ChannelTable, ModelKeys, OreModel, VersionTable}
-import db.meta.{Actor, Bind, HasMany}
+import db.meta.{Actions, Bind, HasMany}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
 import ore.project.util.ProjectFileManager
@@ -26,7 +26,7 @@ import scala.annotation.meta.field
   * @param _color       Color used to represent this Channel
   * @param projectId    ID of project this channel belongs to
   */
-@Actor(classOf[ModelActions[ChannelTable, Channel]])
+@Actions(classOf[ModelActions[ChannelTable, Channel]])
 @HasMany(Array(classOf[Version]))
 case class Channel(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,

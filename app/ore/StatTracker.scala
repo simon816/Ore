@@ -5,7 +5,6 @@ import javax.inject.Inject
 
 import controllers.Requests.ProjectRequest
 import db.ModelService
-import db.impl.service.UserBase
 import db.impl.service.{ProjectBase, UserBase}
 import models.project.Version
 import models.statistic.{ProjectView, VersionDownload}
@@ -72,6 +71,13 @@ object StatTracker {
   def getStatCookie(implicit request: RequestHeader)
   = request.cookies.get(COOKIE_UID).map(_.value).getOrElse(UUID.randomUUID.toString)
 
+  /**
+    * Returns either the original client address from a X-Forwarded-For header
+    * or the remoteAddress from the request if the header is not found.
+    *
+    * @param request  Request to get address of
+    * @return         Remote address
+    */
   def remoteAddress(implicit request: RequestHeader) = {
     request.headers.get("X-Forwarded-For") match {
       case None => request.remoteAddress

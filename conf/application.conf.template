@@ -12,7 +12,6 @@ application.fakeUser.name       =   "Spongie"
 application.fakeUser.username   =   "Spongie"
 application.fakeUser.email      =   "spongie@spongepowered.org"
 application.db.default-timeout  =   10
-play.http.session.maxAge        =   2419200 # 4 weeks
 
 
 # Play configuration
@@ -21,12 +20,13 @@ play.crypto.secret                      =   ${?APPLICATION_SECRET}
 play.i18n.langs                         =   [ "en", "en-US" ]
 play.evolutions.autocommit              =   false
 play.evolutions.db.default.autoApply    =   true
+play.http.session.maxAge                =   2419200 # 4 weeks
 
 
 # Ore configuration
-ore.date-format =  "MM-dd-yyyy"
+ore.date-format =  "MMM dd, yyyy"
 ore.debug       =  true
-ore.debug-level =  0
+ore.debug-level =  3
 # Used in /admin/seed route. Run "gradle build" in OreTestPlugin before using that route
 ore.test-plugin = "OreTestPlugin/build/libs/ore-test-plugin-dev-SNAPSHOT.jar"
 
@@ -52,6 +52,7 @@ ore.projects.tmp-file-save      =   false
 
 ore.users.stars-per-page    =   5
 ore.users.max-tagline-len   =   100
+ore.users.author-page-size  =   25
 
 
 # Slick configuration

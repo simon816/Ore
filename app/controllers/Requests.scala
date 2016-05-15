@@ -3,7 +3,6 @@ package controllers
 import models.project.Project
 import models.user.User
 import ore.permission.scope.ScopeSubject
-import ore.project.util.PluginFile
 import play.api.mvc.{Request, WrappedRequest}
 
 /**

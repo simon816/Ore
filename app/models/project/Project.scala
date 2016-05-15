@@ -10,8 +10,7 @@ import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.action.ProjectActions
-import db.meta.{Actor, Bind, HasMany}
-import forums.DiscourseApi
+import db.meta.{Actions, Bind, HasMany}
 import models.statistic.ProjectView
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
@@ -44,7 +43,7 @@ import scala.annotation.meta.field
   * @param _source                External link to source code
   * @param _description           Short description of Project
   */
-@Actor(classOf[ProjectActions])
+@Actions(classOf[ProjectActions])
 @HasMany(Array(
   classOf[Channel], classOf[Version], classOf[Page],
   classOf[Flag], classOf[ProjectRole], classOf[ProjectView]

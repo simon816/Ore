@@ -4,6 +4,8 @@ import javax.inject.Inject
 
 import controllers.routes.{Users => self}
 import db.ModelService
+import db.impl.service.UserBase
+import db.impl.service.UserBase.ORDER_PROJECTS
 import form.OreForms
 import forums.{DiscourseApi, DiscourseSSO}
 import play.api.i18n.MessagesApi
@@ -81,6 +83,16 @@ class Users @Inject()(val fakeUser: FakeUser,
         Redirect(self.show(user.username))
       }
     }
+  }
+
+  /**
+    * Shows a list of [[models.user.User]]s that have created a
+    * [[models.project.Project]].
+    */
+  def showAuthors(sort: Option[String], page: Option[Int]) = Action { implicit request =>
+    val ordering = sort.getOrElse(ORDER_PROJECTS)
+    val p = page.getOrElse(1)
+    Ok(views.authors(this.users.authors(ordering, p), ordering, p))
   }
 
 }

@@ -52,7 +52,7 @@ class StatActions[T <: StatTable[M], M <: StatEntry[_]: TypeTag](override val se
     val baseFilter: ModelFilter[T, M] = ModelFilter[T, M](_.modelId === entry.modelId)
     val filter: Filter = e => e.address === entry.address || e.cookie === entry.cookie
     val userFilter = entry.user.map[Filter](u => e => filter(e) || e.userId === u.id.get).getOrElse(filter)
-    this.find(baseFilter &&^ userFilter)
+    this.find(baseFilter && userFilter)
   }
 
 }

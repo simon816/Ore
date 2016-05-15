@@ -98,7 +98,7 @@ User page for developers.
         </div>
         <div class="row">
             <div class="col-md-8">
-                @projects.table(
+                @projects.list(
                     models = user.projects.toSeq,
                     page = 1, // TODO
                     ordering = ProjectSortingStrategies.Default

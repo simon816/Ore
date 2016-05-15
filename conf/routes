@@ -50,6 +50,7 @@ POST    /new/:author/:slug/members                                  @controllers
 POST    /pages/preview                                              @controllers.project.Pages.showPreview
 
 # ---------- Users ----------
+GET     /authors                                                    @controllers.Users.showAuthors(sort: Option[String], page: Option[Int])
 GET     /:user                                                      @controllers.Users.show(user)
 POST    /:user/settings/tagline                                     @controllers.Users.saveTagline(user)
 # -------- End Users --------

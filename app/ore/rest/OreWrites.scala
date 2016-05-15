@@ -2,14 +2,13 @@ package ore.rest
 
 import javax.inject.Inject
 
-import _root_.util.{OreConfig, StringUtils}
+import _root_.util.OreConfig
+import _root_.util.StringUtils.prettifyDate
 import db.ModelService
-import forums.DiscourseApi
+import db.impl.service.ProjectBase
 import models.project.{Channel, Project, Version}
 import models.user.User
 import play.api.libs.json._
-import _root_.util.StringUtils.prettifyDate
-import db.impl.service.ProjectBase
 
 /**
   * Contains implicit JSON [[Writes]] for the Ore API.

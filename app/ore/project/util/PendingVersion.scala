@@ -1,9 +1,9 @@
 package ore.project.util
 
-import models.project.{Channel, Version}
+import models.project.Version
 import ore.Colors.Color
 import play.api.cache.CacheApi
-import util.{Cacheable, OreConfig, PendingAction}
+import util.{Cacheable, PendingAction}
 
 import scala.util.Try
 

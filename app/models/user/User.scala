@@ -29,7 +29,7 @@ import scala.annotation.meta.field
   * @param _email       Email
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
-@Actor(classOf[UserActions])
+@Actions(classOf[UserActions])
 @HasMany(Array(classOf[Project], classOf[ProjectRole], classOf[Flag]))
 case class User(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,

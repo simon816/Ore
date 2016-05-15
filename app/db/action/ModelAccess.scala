@@ -108,7 +108,7 @@ class ModelAccess[T <: ModelTable[M], M <: Model](service: ModelService,
     */
   def sorted(ordering: T => ColumnOrdered[_], filter: T => Rep[Boolean] = null,
              limit: Int = -1, offset: Int = -1): Seq[M]
-  = service.await(baseQuery.collect(limit, offset, this.baseFilter && filter, ordering)).get
+  = service.await(baseQuery.collect(this.baseFilter && filter, ordering, limit, offset)).get
 
   /**
     * Filters this set by the given function.

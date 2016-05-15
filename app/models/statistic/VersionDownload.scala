@@ -6,7 +6,7 @@ import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
 import db.impl.action.VersionActions
 import db.impl.service.UserBase
-import db.meta.{Actor, Bind}
+import db.meta.{Actions, Bind}
 import models.project.Version
 import ore.StatTracker._
 
@@ -22,7 +22,7 @@ import scala.annotation.meta.field
   * @param cookie     Browser cookie
   * @param userId     User ID
   */
-@Actor(classOf[VersionActions])
+@Actions(classOf[VersionActions])
 case class VersionDownload(override val id: Option[Int] = None,
                            override val createdAt: Option[Timestamp] = None,
                            override val modelId: Int,

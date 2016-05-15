@@ -4,7 +4,6 @@ import javax.inject.Inject
 
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import db.impl.service.UserBase
 import db.impl.action.{ProjectActions, UserActions, VersionActions}
 import db.impl.service.{ProjectBase, UserBase}
 import ore.project.Categories.Category
@@ -104,7 +103,7 @@ trait OreRestfulApi {
     * @return       List of users
     */
   def getUserList(limit: Option[Int], offset: Option[Int]): JsValue
-  = Json.toJson(service.await(service.getActions(classOf[UserActions]).collect(limit.getOrElse(-1), offset.getOrElse(-1))).get)
+  = Json.toJson(service.await(service.getActions(classOf[UserActions]).collect(limit = limit.getOrElse(-1), offset = offset.getOrElse(-1))).get)
 
   /**
     * Returns a Json value of the User with the specified username.

@@ -1,8 +1,8 @@
 @import 'pallette';
 @import 'utils';
+@import 'fontawesome/font-awesome';
 
 // user page
-
 
 .user-avatar {
   @include rounded-corners();
@@ -57,5 +57,33 @@
   tr:hover {
     background-color: $mainBackground;
     cursor: pointer;
+  }
+}
+
+// authors page
+
+.table-authors {
+  tbody > tr > td { vertical-align: middle; }
+  tbody > tr:last-child > td:last-child {
+    padding: 0;
+    .btn {
+      float: right;
+      border: none;
+    }
+  }
+
+  thead {
+    background-color: $dark;
+    color: #f6cf17;
+    font-weight: bold;
+    td:first-child { width: 40px; }
+    td:hover:not(:first-child) { background-color: #222; }
+    .author-sort { background-color: #292929; }
+    .o-chevron-up { @extend .fa-chevron-up; }
+    .o-chevron-down { @extend .fa-chevron-down; }
+    .o {
+      @extend .fa;
+      float: right;
+    }
   }
 }

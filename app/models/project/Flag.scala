@@ -3,11 +3,10 @@ package models.project
 import java.sql.Timestamp
 
 import db.ModelService
-import db.action.{ModelActions, ModelAccess}
+import db.action.ModelActions
 import db.impl.ModelKeys._
-import db.impl.OrePostgresDriver.api._
 import db.impl.{FlagTable, OreModel}
-import db.meta.{Actor, Bind}
+import db.meta.{Actions, Bind}
 import ore.UserOwned
 import ore.permission.scope.ProjectScope
 import ore.project.FlagReasons.FlagReason
@@ -24,7 +23,7 @@ import scala.annotation.meta.field
   * @param reason       Reason for flag
   * @param _isResolved  True if has been reviewed and resolved by staff member
   */
-@Actor(classOf[ModelActions[FlagTable, Flag]])
+@Actions(classOf[ModelActions[FlagTable, Flag]])
 case class Flag(override val id: Option[Int],
                 override val createdAt: Option[Timestamp],
                 override val projectId: Int,

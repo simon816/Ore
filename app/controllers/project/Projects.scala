@@ -8,10 +8,10 @@ import controllers.routes.{Application => app}
 import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
+import ore.StatTracker
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
 import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectFileManager}
-import ore.StatTracker
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.OreConfig

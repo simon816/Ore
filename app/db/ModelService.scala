@@ -144,13 +144,13 @@ trait ModelService {
   /**
     * Returns the first model that matches the given predicate.
     *
-    * @param predicate  Predicate
-    * @return           Optional result
+    * @param filter  Filter
+    * @return        Optional result
     */
   def find[T <: ModelTable[M], M <: Model: TypeTag](modelClass: Class[_ <: M],
-                                                       predicate: T => Rep[Boolean]): Future[Option[M]] = {
+                                                    filter: T => Rep[Boolean]): Future[Option[M]] = {
     val modelPromise = Promise[Option[M]]
-    val query = newAction[T, M](modelClass).filter(predicate).take(1)
+    val query = newAction[T, M](modelClass).filter(filter).take(1)
     doAction(query.result).andThen {
       case Failure(thrown) => modelPromise.failure(thrown)
       case Success(result) => modelPromise.success(result.headOption)
@@ -163,33 +163,20 @@ trait ModelService {
     *
     * @return Size of model table
     */
-  def count[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M], filter: T => Rep[Boolean]): Future[Int] = {
+  def count[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M],
+                                            filter: T => Rep[Boolean] = null): Future[Int] = {
     var query = newAction[T, M](modelClass)
     if (filter != null) query = query.filter(filter)
     DB.db.run(query.length.result)
   }
 
   /**
-    * Returns the size of the model table.
-    *
-    * @return Size of model table
-    */
-  def count[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M]): Future[Int] = this.count(modelClass, null)
-
-  /**
     * Deletes the specified Model.
     *
     * @param model Model to delete
     */
-  def delete[T <: ModelTable[M], M <: Model](model: M, filter: T => Rep[Boolean] = null): Future[Int]
-  = DB.db.run(newAction[T, M](model.getClass).filter(IdFilter[T, M](model.id.get) && filter).delete)
-
-  /**
-    * Deletes the specified Model.
-    *
-    * @param model Model to delete
-    */
-  def delete[T <: ModelTable[M], M <: Model](model: M): Future[Int] = this.delete(model, null)
+  def delete[T <: ModelTable[M], M <: Model](model: M): Future[Int]
+  = DB.db.run(newAction[T, M](model.getClass).filter(IdFilter[T, M](model.id.get)).delete)
 
   /**
     * Deletes all the models meeting the specified filter.
@@ -209,17 +196,8 @@ trait ModelService {
     * @return     Model if present, None otherwise
     */
   def get[T <: ModelTable[M], M <: Model: TypeTag](modelClass: Class[_ <: M], id: Int,
-                                          filter: T => Rep[Boolean] = null): Future[Option[M]]
+                                                   filter: T => Rep[Boolean] = null): Future[Option[M]]
   = find[T, M](modelClass, IdFilter[T, M](id) && filter)
-
-  /**
-    * Returns the model with the specified ID, if any.
-    *
-    * @param id   Model with ID
-    * @return     Model if present, None otherwise
-    */
-  def get[T <: ModelTable[M], M <: Model: TypeTag](modelClass: Class[_ <: M], id: Int): Future[Option[M]]
-  = this.get(modelClass, id, null)
 
   /**
     * Returns a collection of models with the specified limit and offset.
@@ -229,8 +207,8 @@ trait ModelService {
     * @return       Collection of models
     */
   def collect[T <: ModelTable[M], M <: Model: TypeTag](modelClass: Class[_ <: M], filter: T => Rep[Boolean],
-                                                          sort: T => ColumnOrdered[_],
-                                                          limit: Int, offset: Int): Future[Seq[M]] = {
+                                                       sort: T => ColumnOrdered[_], limit: Int,
+                                                       offset: Int): Future[Seq[M]] = {
     var query = newAction[T, M](modelClass)
     if (filter != null) query = query.filter(filter)
     if (sort != null) query = query.sortBy(sort)
@@ -250,7 +228,7 @@ trait ModelService {
     * @return       Filtered models
     */
   def filter[T <: ModelTable[M], M <: Model: TypeTag](modelClass: Class[_ <: M], filter: T => Rep[Boolean],
-                                                         limit: Int = -1, offset: Int = -1): Future[Seq[M]]
+                                                      limit: Int = -1, offset: Int = -1): Future[Seq[M]]
   = collect(modelClass, filter, null, limit, offset)
 
   /**
