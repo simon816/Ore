@@ -10,7 +10,7 @@ import db.impl.service.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import org.apache.commons.io.FileUtils
-import util.OreConfig
+import util.{OreConfig, OreEnv}
 import util.StringUtils._
 
 /**
@@ -19,7 +19,8 @@ import util.StringUtils._
 trait ProjectManager {
 
   val service: ModelService
-  val fileManager: ProjectFileManager
+  val env: OreEnv
+  val fileManager: ProjectFileManager = new ProjectFileManager(this.env)
 
   implicit val users: UserBase = this.service.access(classOf[UserBase])
   implicit val projects: ProjectBase = this.service.access(classOf[ProjectBase])
@@ -36,7 +37,7 @@ trait ProjectManager {
   def renameProject(project: Project, name: String) = {
     val newName = compact(name)
     val newSlug = slugify(newName)
-    checkArgument(Project.isValidName(name), "invalid name", "")
+    checkArgument(this.config.isValidProjectName(name), "invalid name", "")
     checkArgument(this.projects.isNamespaceAvailable(project.ownerName, newSlug), "slug not available", "")
 
     fileManager.renameProject(project.ownerName, project.name, newName)
@@ -102,7 +103,7 @@ trait ProjectManager {
 }
 
 case class OreProjectManager @Inject()(override val service: ModelService,
-                                       override val fileManager: ProjectFileManager,
+                                       override val env: OreEnv,
                                        override val config: OreConfig,
                                        override val forums: DiscourseApi)
                                        extends ProjectManager

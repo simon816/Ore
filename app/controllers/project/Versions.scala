@@ -24,7 +24,6 @@ import scala.util.{Failure, Success}
   */
 class Versions @Inject()(val stats: StatTracker,
                          val forms: OreForms,
-                         val fileManager: ProjectFileManager,
                          val manager: ProjectManager,
                          val factory: ProjectFactory,
                          implicit override val messagesApi: MessagesApi,
@@ -32,6 +31,8 @@ class Versions @Inject()(val stats: StatTracker,
                          implicit override val forums: DiscourseApi,
                          implicit override val service: ModelService)
                          extends BaseController {
+
+  private val fileManager = this.manager.fileManager
 
   private def VersionEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditVersions)

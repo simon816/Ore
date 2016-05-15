@@ -11,7 +11,7 @@ import forums.DiscourseApi
 import ore.StatTracker
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
-import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectFileManager, ProjectManager}
+import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectManager}
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.OreConfig
@@ -27,7 +27,6 @@ class Projects @Inject()(val stats: StatTracker,
                          val forms: OreForms,
                          val manager: ProjectManager,
                          val factory: ProjectFactory,
-                         implicit val fileManager: ProjectFileManager,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val config: OreConfig,
                          implicit override val forums: DiscourseApi,

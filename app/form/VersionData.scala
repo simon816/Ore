@@ -1,6 +1,5 @@
 package form
 
-import ore.project.util.ProjectFileManager
 import util.OreConfig
 
 /**
@@ -13,6 +12,5 @@ import util.OreConfig
 case class VersionData(recommended: Boolean,
                        override val channelName: String,
                        override protected val channelColorHex: String)
-                      (implicit override val config: OreConfig,
-                       override val fileManager: ProjectFileManager)
+                      (implicit override val config: OreConfig)
                        extends TChannelData

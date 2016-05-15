@@ -1,6 +1,6 @@
 package ore.project.util
 
-import models.project.{Channel, Project, Version}
+import models.project.Project
 import models.user.ProjectRole
 import play.api.cache.CacheApi
 import util.{Cacheable, OreConfig, PendingAction}
@@ -30,7 +30,7 @@ case class PendingProject(manager: ProjectManager,
   val pendingVersion: PendingVersion = {
     val version = this.factory.versionFromFile(this.project, this.file)
     factory.setVersionPending(project.ownerName, project.slug,
-      Channel.getSuggestedNameForVersion(version.versionString), version, this.file)
+      this.config.getSuggestedNameForVersion(version.versionString), version, this.file)
   }
 
   override def complete: Try[Project] = Try {

@@ -120,7 +120,7 @@ trait ProjectFactory {
       owner = owner,
       projectSlug = slug,
       channelName = channel,
-      channelColor = Channel.DefaultColor,
+      channelColor = this.config.defaultChannelColor,
       version = version,
       plugin = plugin,
       cacheApi = cacheApi
@@ -152,7 +152,7 @@ trait ProjectFactory {
     val project = pending.project
     checkArgument(!this.projects.exists(project), "project already exists", "")
     checkArgument(this.projects.isNamespaceAvailable(project.ownerName, project.slug), "slug not available", "")
-    checkArgument(Project.isValidName(pending.project.name), "invalid name", "")
+    checkArgument(this.config.isValidProjectName(pending.project.name), "invalid name", "")
     val newProject = this.projects.add(pending.project)
 
     // Add Project roles

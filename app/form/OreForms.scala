@@ -4,7 +4,6 @@ import javax.inject.Inject
 
 import models.project.Channel
 import models.project.Page._
-import ore.project.util.ProjectFileManager
 import play.api.data.Form
 import play.api.data.Forms._
 import util.OreConfig
@@ -13,14 +12,14 @@ import util.OreConfig
   * Collection of forms used in this application.
   */
 //noinspection ConvertibleToMethodValue
-class OreForms @Inject()(implicit config: OreConfig, fileManager: ProjectFileManager) {
+class OreForms @Inject()(implicit config: OreConfig) {
 
   /**
     * Submits a new Channel for a Project.
     */
   lazy val ChannelEdit = Form(mapping(
     "channel-input" -> text.verifying(
-      "Invalid channel name.", Channel.isValidName(_)
+      "Invalid channel name.", config.isValidChannelName(_)
     ),
 
     "channel-color-input" -> text.verifying(
@@ -92,7 +91,7 @@ class OreForms @Inject()(implicit config: OreConfig, fileManager: ProjectFileMan
     "recommended" -> boolean,
 
     "channel-input" -> text.verifying(
-      "Invalid channel name.", Channel.isValidName(_)
+      "Invalid channel name.", config.isValidChannelName(_)
     ),
 
     "channel-color-input" -> text.verifying(

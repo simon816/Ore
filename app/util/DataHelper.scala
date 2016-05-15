@@ -107,7 +107,7 @@ class DataHelper @Inject()(implicit config: OreConfig,
             owner = user.username,
             projectSlug = project.slug,
             channelName = channel.name,
-            channelColor = Channel.DefaultColor,
+            channelColor = this.config.defaultChannelColor,
             version = version,
             plugin = plugin,
             cacheApi = this.cacheApi).complete.get

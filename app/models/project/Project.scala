@@ -17,10 +17,9 @@ import ore.Colors.Color
 import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
-import ore.project.util._
 import ore.project.{Categories, ProjectMember}
+import util.OreEnv
 import util.StringUtils.{compact, slugify}
-import util.{OreConfig, OreEnv}
 
 import scala.annotation.meta.field
 
@@ -75,8 +74,6 @@ case class Project(// Immutable
   override type M = Project
   override type T = ProjectTable
   override type A = ProjectActions
-
-  import models.project.Project._
 
   def this(pluginId: String, name: String, owner: String, ownerId: Int, homepage: String) = {
     this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
@@ -229,7 +226,7 @@ case class Project(// Immutable
     * @return       True if starred by User
     */
   def isStarredBy(user: User): Boolean = Defined {
-    service.await(this.actions.isStarredBy(this.id.get, user.id.get)).get
+    this.service.await(this.actions.isStarredBy(this.id.get, user.id.get)).get
   }
 
   /**
@@ -261,7 +258,7 @@ case class Project(// Immutable
   def starFor(user: User) = Defined {
     if (!isStarredBy(user)) {
       this._stars += 1
-      service.await(this.actions.starFor(this.id.get, user.id.get)).get
+      this.service.await(this.actions.starFor(this.id.get, user.id.get)).get
       update(Stars)
     }
   }
@@ -275,7 +272,7 @@ case class Project(// Immutable
   def unstarFor(user: User) = Defined {
     if (isStarredBy(user)) {
       this._stars -= 1
-      service.await(this.actions.unstarFor(this.id.get, user.id.get)).get
+      this.service.await(this.actions.unstarFor(this.id.get, user.id.get)).get
       update(Stars)
     }
   }
@@ -381,8 +378,8 @@ case class Project(// Immutable
     * @return       New channel
     */
   def addChannel(name: String, color: Color): Channel = Defined {
-    checkArgument(Channel.isValidName(name), "invalid name", "")
-    checkState(this.channels.size < config.projects.getInt("max-channels").get, "channel limit reached", "")
+    checkArgument(this.config.isValidChannelName(name), "invalid name", "")
+    checkState(this.channels.size < this.config.projects.getInt("max-channels").get, "channel limit reached", "")
     this.channels.add(new Channel(name, color, this.id.get))
   }
 
@@ -434,7 +431,7 @@ case class Project(// Immutable
     */
   def getOrCreatePage(name: String): Page = Defined {
     val page = new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true)
-    service.await(page.actions.getOrInsert(page)).get
+    this.service.await(page.actions.getOrInsert(page)).get
   }
 
   /**
@@ -451,7 +448,7 @@ case class Project(// Immutable
     */
   def homePage: Page = Defined {
     val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false)
-    service.await(page.actions.getOrInsert(page)).get
+    this.service.await(page.actions.getOrInsert(page)).get
   }
 
   /**
@@ -479,7 +476,7 @@ case class Project(// Immutable
     */
   def topicContent(implicit env: OreEnv): String = {
     val template = new String(Files.readAllBytes(env.conf.resolve("discourse/project_topic.md")))
-    val url = config.app.getString("baseUrl").get + '/' + project.ownerName + '/' + project.slug
+    val url = this.config.app.getString("baseUrl").get + '/' + project.ownerName + '/' + project.slug
     MessageFormat.format(template, project.name, url, project.homePage.contents)
   }
 
@@ -487,20 +484,5 @@ case class Project(// Immutable
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
   override def hashCode() = this.id.get.hashCode
   override def equals(o: Any) = o.isInstanceOf[Project] && o.asInstanceOf[Project].id.get == this.id.get
-
-}
-
-object Project {
-
-  /**
-    * Returns true if the specified name is a valid Project name.
-    *
-    * @param name   Name to check
-    * @return       True if valid name
-    */
-  def isValidName(name: String)(implicit config: OreConfig): Boolean = {
-    val sanitized = compact(name)
-    sanitized.length >= 1 && sanitized.length <= config.projects.getInt("max-name-len").get
-  }
 
 }

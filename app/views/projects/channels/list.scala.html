@@ -16,7 +16,7 @@
         PROJECT_SLUG = '@project.slug';
         $(function() {
             initChannelManager(
-                    "#channel-new", "", "@Channel.DefaultColor.hex", "New channel",
+                    "#channel-new", "", "@config.defaultChannelColor.hex", "New channel",
                     "@projectRoutes.Channels.create(project.ownerName, project.slug)",
                     "post", "Create channel"
             );

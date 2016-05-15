@@ -1,7 +1,6 @@
 package ore.project.util
 
 import java.nio.file.{Files, Path}
-import javax.inject.Inject
 
 import util.OreEnv
 
@@ -10,7 +9,7 @@ import scala.util.Try
 /**
   * Handles file management of Projects.
   */
-class ProjectFileManager @Inject()(val env: OreEnv) {
+class ProjectFileManager(val env: OreEnv) {
 
   /**
     * Returns the Path to where the specified Version should be.
@@ -61,21 +60,6 @@ class ProjectFileManager @Inject()(val env: OreEnv) {
         }
       }
     }
-  }
-
-  /**
-    * Renames the specified channel in the file system.
-    *
-    * @param owner        Project owner
-    * @param projectName  Project name
-    * @param oldName      Old channel name
-    * @param newName      New channel name
-    * @return             New path
-    */
-  def renameChannel(owner: String, projectName: String, oldName: String, newName: String): Try[Unit] = Try {
-    val newPath = projectDir(owner, projectName).resolve(newName)
-    val oldPath = projectDir(owner, projectName).resolve(oldName)
-    Files.move(oldPath, newPath)
   }
 
 }

@@ -2,7 +2,6 @@ package form
 
 import models.project.{Channel, Project}
 import ore.Colors.Color
-import ore.project.util.ProjectFileManager
 import util.OreConfig
 
 /**
@@ -11,7 +10,6 @@ import util.OreConfig
 trait TChannelData {
 
   val config: OreConfig
-  implicit val fileManager: ProjectFileManager
 
   /** The [[Channel]] [[Color]] **/
   val color: Color = Channel.Colors.find(_.hex.equalsIgnoreCase(channelColorHex)).get
