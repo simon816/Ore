@@ -11,7 +11,7 @@ import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import ore.StatTracker
 import ore.permission.{EditVersions, ReviewProjects}
-import ore.project.util.{InvalidPluginFileException, PendingProject, ProjectFactory, ProjectFileManager}
+import ore.project.util._
 import play.api.i18n.MessagesApi
 import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
@@ -25,6 +25,7 @@ import scala.util.{Failure, Success}
 class Versions @Inject()(val stats: StatTracker,
                          val forms: OreForms,
                          val fileManager: ProjectFileManager,
+                         val manager: ProjectManager,
                          val factory: ProjectFactory,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val config: OreConfig,
@@ -308,7 +309,7 @@ class Versions @Inject()(val stats: StatTracker,
     VersionEditAction(author, slug) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
-        this.factory.deleteVersion(version)
+        this.manager.deleteVersion(version)
         Redirect(self.showList(author, slug, None))
       }
     }

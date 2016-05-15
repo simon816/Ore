@@ -17,7 +17,8 @@ import scala.util.Try
   * @param version        Version that is pending
   * @param plugin         Uploaded plugin
   */
-case class PendingVersion(factory: ProjectFactory,
+case class PendingVersion(manager: ProjectManager,
+                          factory: ProjectFactory,
                           owner: String,
                           projectSlug: String,
                           var channelName: String,
@@ -36,7 +37,7 @@ case class PendingVersion(factory: ProjectFactory,
   override def cancel() = {
     free()
     this.plugin.delete()
-    if (this.version.isDefined) this.factory.deleteVersion(this.version)
+    if (this.version.isDefined) this.manager.deleteVersion(this.version)
   }
 
   override def key: String = this.owner + '/' + this.projectSlug + '/' + this.version.versionString

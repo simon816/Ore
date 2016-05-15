@@ -10,7 +10,7 @@ import forums.{DisabledDiscourseApi, DiscourseApi}
 import models.project.{Channel, Version}
 import models.user.User
 import ore.project.Categories
-import ore.project.util.{PendingProject, PendingVersion, ProjectFactory}
+import ore.project.util.{PendingProject, PendingVersion, ProjectFactory, ProjectManager}
 import org.apache.commons.io.FileUtils
 import play.api.cache.CacheApi
 import play.api.libs.Files.TemporaryFile
@@ -21,6 +21,7 @@ import play.api.libs.Files.TemporaryFile
   */
 class DataHelper @Inject()(implicit config: OreConfig,
                            service: ModelService,
+                           manager: ProjectManager,
                            factory: ProjectFactory,
                            forums: DiscourseApi,
                            cacheApi: CacheApi) {
@@ -35,7 +36,7 @@ class DataHelper @Inject()(implicit config: OreConfig,
     * Resets the application to factory defaults.
     */
   def reset() = {
-    for (project <- this.projects.all) this.factory.deleteProject(project)
+    for (project <- this.projects.all) this.manager.deleteProject(project)
     this.users.removeAll()
     FileUtils.deleteDirectory(factory.env.uploads.toFile)
   }
@@ -69,6 +70,7 @@ class DataHelper @Inject()(implicit config: OreConfig,
       project.description = "Test description"
       project.forums = new DisabledDiscourseApi
       project = PendingProject(
+        manager = this.manager,
         factory = this.factory,
         project = project,
         file = plugin,
@@ -100,6 +102,7 @@ class DataHelper @Inject()(implicit config: OreConfig,
           // Create version
           val version = this.factory.versionFromFile(project, plugin).copy(channelId=channel.id.get)
           PendingVersion(
+            manager = this.manager,
             factory = this.factory,
             owner = user.username,
             projectSlug = project.slug,

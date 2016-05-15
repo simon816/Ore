@@ -8,7 +8,7 @@ import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
 import ore.permission.EditChannels
-import ore.project.util.ProjectFactory
+import ore.project.util.{ProjectFactory, ProjectManager}
 import play.api.i18n.MessagesApi
 import util.OreConfig
 import views.html.projects.{channels => views}
@@ -17,6 +17,7 @@ import views.html.projects.{channels => views}
   * Controller for handling Channel related actions.
   */
 class Channels @Inject()(val forms: OreForms,
+                         val manager: ProjectManager,
                          val factory: ProjectFactory,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val config: OreConfig,
@@ -106,7 +107,7 @@ class Channels @Inject()(val forms: OreForms,
               Redirect(self.showList(author, slug))
                 .flashing("error" -> "You cannot delete your only non-empty channel.")
             } else {
-              this.factory.deleteChannel(channel)
+              this.manager.deleteChannel(channel)
               Redirect(self.showList(author, slug))
             }
         }

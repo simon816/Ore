@@ -4,7 +4,7 @@ import db.impl.service.OreModelService
 import forums._
 import forums.impl.{SpongeAuth, SpongeForums}
 import ore._
-import ore.project.util.{OreProjectFactory, ProjectFactory}
+import ore.project.util.{OreProjectFactory, OreProjectManager, ProjectFactory, ProjectManager}
 import ore.rest.{OreRestful, OreRestfulApi}
 import play.api.{Configuration, Environment}
 import util.OreConfig
@@ -17,6 +17,7 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
   def configure() = {
     bind(classOf[ModelService]).to(classOf[OreModelService])
     bind(classOf[ProjectFactory]).to(classOf[OreProjectFactory])
+    bind(classOf[ProjectManager]).to(classOf[OreProjectManager])
 
     bind(classOf[OreRestfulApi]).to(classOf[OreRestful])
     bind(classOf[StatTracker]).to(classOf[OreStatTracker])

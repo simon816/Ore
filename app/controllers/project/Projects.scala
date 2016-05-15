@@ -11,7 +11,7 @@ import forums.DiscourseApi
 import ore.StatTracker
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
-import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectFileManager}
+import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectFileManager, ProjectManager}
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.OreConfig
@@ -25,6 +25,7 @@ import scala.util.{Failure, Success}
   */
 class Projects @Inject()(val stats: StatTracker,
                          val forms: OreForms,
+                         val manager: ProjectManager,
                          val factory: ProjectFactory,
                          implicit val fileManager: ProjectFileManager,
                          implicit override val messagesApi: MessagesApi,
@@ -332,7 +333,7 @@ class Projects @Inject()(val stats: StatTracker,
         Redirect(self.showSettings(author, slug)).flashing("error" -> "That name is not available.")
       } else {
         val project = request.project
-        project.name = newName
+        this.manager.renameProject(project, newName)
         Redirect(self.show(author, project.slug))
       }
     }
@@ -348,7 +349,7 @@ class Projects @Inject()(val stats: StatTracker,
   def delete(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
-      this.factory.deleteProject(project)
+      this.manager.deleteProject(project)
       Redirect(app.showHome(None, None, None, None))
         .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
     }

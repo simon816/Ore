@@ -95,7 +95,7 @@ case class Project(// Immutable
     *
     * @return All Members of project
     */
-  def members: Set[ProjectMember] = service.await(this.actions.getMembers(this)).get.toSet
+  def members: Set[ProjectMember] = this.service.await(this.actions.getMembers(this)).get.toSet
 
   /**
     * Removes the [[ProjectMember]] that belongs to the specified [[User]] from this
@@ -113,25 +113,13 @@ case class Project(// Immutable
   def name: String = this._name
 
   /**
-    * Sets the name of this project and performs all the necessary renames.
+    * Sets the name of this project.
     *
-    * @param _name   New name
-    * @return       Future result
+    * @param _name New name
     */
-  def name_=(_name: String)(implicit fileManager: ProjectFileManager) = Defined {
-    val newName = compact(_name)
-    val newSlug = slugify(newName)
-    checkArgument(isValidName(newName), "invalid name", "")
-    checkArgument(this.projectBase.isNamespaceAvailable(this.ownerName, newSlug), "slug not available", "")
-    fileManager.renameProject(this.ownerName, this.name, newName)
-    this._name = newName
-    this._slug = slugify(newName)
-    if (this.topicId.isDefined) {
-      this.forums.embed.renameTopic(this)
-      this.forums.embed.updateTopic(this)
-    }
+  def name_=(_name: String) = Defined {
+    this._name = _name
     update(Name)
-    update(Slug)
   }
 
   /**
@@ -140,6 +128,16 @@ case class Project(// Immutable
     * @return URL slug
     */
   def slug: String = this._slug
+
+  /**
+    * Sets the URL slug of this project.
+    *
+    * @param _slug New slug
+    */
+  def slug_=(_slug: String) = Defined {
+    this._slug = _slug
+    update(Slug)
+  }
 
   /**
     * Returns this Project's description.

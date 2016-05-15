@@ -24,16 +24,18 @@ import scala.util.{Failure, Success}
 class ProjectActions(override val service: ModelService)
   extends ModelActions[ProjectTable, Project](service, classOf[Project], TableQuery[ProjectTable]) {
 
-  val Flags = service.registrar.register(
+  /** The [[ModelActions]] for [[Flag]]s. */
+  val FlagActions = service.registrar.register(
     new ModelActions[FlagTable, Flag](this.service, classOf[Flag], TableQuery[FlagTable])
   )
 
-  val Views = service.registrar.register(
+  /** The [[ModelActions]] for [[ProjectView]]. */
+  val ViewActions = service.registrar.register(
     new StatActions[ProjectViewsTable, ProjectView](this.service, TableQuery[ProjectViewsTable], classOf[ProjectView])
   )
 
-  private val stars = TableQuery[ProjectStarsTable]
   implicit private val users: UserBase = this.service.access(classOf[UserBase])
+  private val stars = TableQuery[ProjectStarsTable]
 
   /**
     * Returns all [[User]]s with at least one [[Project]].
@@ -54,8 +56,8 @@ class ProjectActions(override val service: ModelService)
     * @param project Project to get Members for
     * @return List of Members
     */
-  def getMembers(project: Project)(implicit forums: DiscourseApi): Future[Seq[ProjectMember]] = {
-    val distinctUserIds = (for (role <- service.getActions(classOf[UserActions]).ProjectRoles.baseQuery.filter {
+  def getMembers(project: Project): Future[Seq[ProjectMember]] = {
+    val distinctUserIds = (for (role <- this.service.getActions(classOf[UserActions]).ProjectRoleActions.baseQuery.filter {
       _.projectId === project.id.get
     }) yield role.userId).distinct.result
 

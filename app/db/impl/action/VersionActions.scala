@@ -15,7 +15,8 @@ import scala.concurrent.Future
 class VersionActions(override val service: ModelService)
   extends ModelActions[VersionTable, Version](service, classOf[Version], TableQuery[VersionTable]) {
 
-  val Downloads = service.registrar.register(
+  /** The [[StatActions]] for [[VersionDownload]]s. */
+  val DownloadActions = service.registrar.register(
     new StatActions[VersionDownloadsTable, VersionDownload](
       this.service, TableQuery[VersionDownloadsTable], classOf[VersionDownload]
     )

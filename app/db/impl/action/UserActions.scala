@@ -14,7 +14,8 @@ import scala.concurrent.Future
 class UserActions(override val service: ModelService)
   extends ModelActions[UserTable, User](service, classOf[User], TableQuery[UserTable]) {
 
-  val ProjectRoles = service.registrar.register(
+  /** The [[ModelActions]] for [[ProjectRole]]s. */
+  val ProjectRoleActions = service.registrar.register(
     new ModelActions[ProjectRoleTable, ProjectRole](this.service, classOf[ProjectRole], TableQuery[ProjectRoleTable])
   )
 

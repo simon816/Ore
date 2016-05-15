@@ -14,7 +14,8 @@ import scala.util.Try
   * @param project  Pending project
   * @param file     Uploaded plugin
   */
-case class PendingProject(factory: ProjectFactory,
+case class PendingProject(manager: ProjectManager,
+                          factory: ProjectFactory,
                           project: Project,
                           file: PluginFile,
                           implicit val config: OreConfig,
@@ -43,7 +44,7 @@ case class PendingProject(factory: ProjectFactory,
   override def cancel() = {
     free()
     this.file.delete()
-    if (this.project.isDefined) this.factory.deleteProject(this.project)
+    if (this.project.isDefined) this.manager.deleteProject(this.project)
   }
 
   override def key: String = this.project.ownerName + '/' + this.project.slug
