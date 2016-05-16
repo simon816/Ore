@@ -8,7 +8,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.OreTypeSetters._
 import db.impl.action.{PageActions, ProjectActions, UserActions, VersionActions}
 import db.impl.{ChannelTable, OrePostgresDriver}
-import db.{ModelRegistrar, ModelService}
+import db.{ModelRegistry, ModelService}
 import forums.DiscourseApi
 import models.project.Channel
 import ore.Colors.Color
@@ -33,7 +33,7 @@ class OreModelService @Inject()(config: OreConfig,
                                 db: DatabaseConfigProvider)
                                 extends ModelService {
 
-  override lazy val registrar = new ModelRegistrar {}
+  override lazy val registrar = new ModelRegistry {}
   override lazy val processor = new OreModelProcessor(this, this.users, this.projects, this.config, this.forums)
   override lazy val driver = OrePostgresDriver
   override lazy val DB = db.get[JdbcProfile]

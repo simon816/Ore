@@ -27,7 +27,7 @@ trait ModelService {
   val processor: ModelProcessor
 
   /** All registered models and [[db.meta.TypeSetter]]s */
-  val registrar: ModelRegistrar
+  val registrar: ModelRegistry
   import registrar.registerSetter
 
   /** The base JDBC driver */
