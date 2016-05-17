@@ -29,6 +29,7 @@ function clearUnread(e) {
 $(function() {
     $('.alert-fade').fadeIn('slow');
     $('[data-toggle="tooltip"]').tooltip();
+    $('.authors-icon').click(function() { window.location = '/authors'; });
     
     $('.btn-spinner').click(function() {
         var iconClass = $(this).data('icon');
@@ -41,7 +42,7 @@ $(function() {
         .mouseenter(function() { $('#spongie').find('path').css('fill', '#F7CF0D'); })
         .mouseleave(function() { $('#spongie').find('path').css('fill', 'gray'); });
 
-    $('.icon-project-search').click(function() {
+    $('.search-icon').click(function() {
         var searchBar = $('.project-search');
         var input = searchBar.find('.input-group');
         if (input.is(':visible')) {

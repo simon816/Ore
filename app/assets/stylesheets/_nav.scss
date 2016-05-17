@@ -63,33 +63,29 @@
   }
 }
 
-.nav-search {
-  @include padding-vert(1px, 1px);
-  padding-right: 5px;
-}
-
 .project-search {
   @include size(0, 40px);
   padding: 3px;
   overflow: hidden;
 }
 
-.icon-project-search {
+.nav-icon {
   @include size(40px, 40px);
   @include transition2(background-color, 0.5s);
   cursor: pointer;
   padding: 7px;
+  margin-right: 5px;
 }
 
-.icon-project-search:hover {
+.nav-icon:hover {
   background-color: white;
 }
 
-.icon-project-search:hover > i {
+.nav-icon:hover > i {
   color: black;
 }
 
-.icon-project-search > i {
+.nav-icon > i {
   @include transition2(color, 0.5s);
   cursor: pointer;
   font-size: 25px;
