@@ -5,14 +5,24 @@
 @import db.impl.service.ProjectBase
 @import util.StringUtils.prettifyDate
 @import models.user.User
-@(authors: Seq[User], ordering: String, page: Int)(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService,
-        forums: DiscourseApi, config: OreConfig, users: UserBase, projectBase: ProjectBase)
+@import db.impl.service.UserBase._
+@(authors: Seq[User], ordering: String, page: Int)(implicit messages: Messages, session: Session,
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
+        projectBase: ProjectBase)
 
 @pageSize = @{ config.users.getInt("author-page-size").get }
+@direction = @{ if (ordering.startsWith("-")) "o-chevron-down" else "o-chevron-up" }
+
+@isActiveSort(td: String) = @{
+    var sort = ordering
+    if (sort.startsWith("-")) sort = sort.substring(1)
+    sort.equalsIgnoreCase(td)
+}
 
 @core.layout("Authors - Ore") {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/authors.js")"></script>
+    <script>CURRENT_PAGE = @page;</script>
 
     <div class="container" style="margin-top: 90px">
         <div class="panel panel-default">
@@ -20,9 +30,18 @@
                 <thead>
                     <tr>
                         <td></td>
-                        <td>Username</td>
-                        <td>Joined</td>
-                        <td class="author-sort">Projects <i class="o o-chevron-up"></i></td>
+                        <td @if(isActiveSort(ORDER_USERNAME)) { class="author-sort" } >
+                            Username
+                            @if(isActiveSort(ORDER_USERNAME)) { <i class="o @direction"></i> }
+                        </td>
+                        <td @if(isActiveSort(ORDER_JOINED)) { class="author-sort" } >
+                            Joined
+                            @if(isActiveSort(ORDER_JOINED)) { <i class="o @direction"></i> }
+                        </td>
+                        <td @if(isActiveSort(ORDER_PROJECTS)) { class="author-sort" } >
+                            Projects
+                            @if(isActiveSort(ORDER_PROJECTS)) { <i class="o @direction"></i> }
+                        </td>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,7 +60,7 @@
                     }
 
                     @if(page > 1 || authors.size >= pageSize) {
-                        <tr>
+                        <tr class="authors-footer">
                             <td></td>
                             <td></td>
                             <td></td>

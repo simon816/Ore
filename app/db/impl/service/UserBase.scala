@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.impl.UserTable
 import db.impl.action.ProjectActions
-import db.impl.service.UserBase.{ORDER_JOIN_DATE, ORDER_PROJECTS, ORDER_USERNAME}
+import db.impl.service.UserBase.{ORDER_JOINED, ORDER_PROJECTS, ORDER_USERNAME}
 import db.{ModelBase, ModelService}
 import forums.DiscourseApi
 import models.user.User
@@ -55,10 +55,11 @@ class UserBase(override val service: ModelService,
     }.get
 
     // sort
-    ordering match {
+    sort match {
       case ORDER_PROJECTS => users = users.sortBy(u => (u.projects.size, u.username))
-      case ORDER_JOIN_DATE => users = users.sortBy(u => (u.joinDate.getOrElse(u.createdAt.get), u.username))
+      case ORDER_JOINED => users = users.sortBy(u => (u.joinDate.getOrElse(u.createdAt.get), u.username))
       case ORDER_USERNAME => users = users.sortBy(_.username)
+      case _ => users.sortBy(u => (u.projects.size, u.username))
     }
 
     // get page slice
@@ -85,7 +86,7 @@ class UserBase(override val service: ModelService,
     */
   def current(implicit session: Session): Option[User] = session.get("username").map(withName).getOrElse(None)
 
-  implicit def ordered: Ordering[Timestamp] = new Ordering[Timestamp] {
+  implicit val timestampOrdering: Ordering[Timestamp] = new Ordering[Timestamp] {
     def compare(x: Timestamp, y: Timestamp) = x compareTo y
   }
 
@@ -95,6 +96,6 @@ object UserBase {
 
   val ORDER_PROJECTS = "projects"
   val ORDER_USERNAME = "username"
-  val ORDER_JOIN_DATE = "join_date"
+  val ORDER_JOINED = "joined"
 
 }

@@ -64,7 +64,7 @@
 
 .table-authors {
   tbody > tr > td { vertical-align: middle; }
-  tbody > tr:last-child > td:last-child {
+  tbody > tr.authors-footer > td:last-child {
     padding: 0;
     .btn {
       float: right;

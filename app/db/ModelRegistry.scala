@@ -7,8 +7,8 @@ import db.meta.TypeSetter
 import scala.collection.JavaConverters._
 
 /**
-  * A registrar for ModelActions. This contains all the necessary information
-  * to interact with any Model in the database.
+  * A registry for ModelActions. This contains all the necessary information to
+  * interact with any Model in the database.
   */
 trait ModelRegistry {
 
