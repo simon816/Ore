@@ -40,7 +40,7 @@ trait ProjectManager {
     checkArgument(this.config.isValidProjectName(name), "invalid name", "")
     checkArgument(this.projects.isNamespaceAvailable(project.ownerName, newSlug), "slug not available", "")
 
-    fileManager.renameProject(project.ownerName, project.name, newName)
+    this.fileManager.renameProject(project.ownerName, project.name, newName)
     project.name = newName
     project.slug = newSlug
 

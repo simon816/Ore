@@ -53,6 +53,7 @@ ore.projects.tmp-file-save      =   false
 ore.users.stars-per-page    =   5
 ore.users.max-tagline-len   =   100
 ore.users.author-page-size  =   25
+ore.users.project-page-size =   5
 
 
 # Slick configuration

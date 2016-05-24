@@ -2,7 +2,7 @@ package db.impl.action
 
 import db._
 import db.action.ModelAction.wrapSeq
-import db.action.{ModelActions, ModelFilter, StatActions}
+import db.action.{ModelActions, ModelFilter}
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.service.UserBase
@@ -25,12 +25,12 @@ class ProjectActions(override val service: ModelService)
   extends ModelActions[ProjectTable, Project](service, classOf[Project], TableQuery[ProjectTable]) {
 
   /** The [[ModelActions]] for [[Flag]]s. */
-  val FlagActions = service.registrar.register(
+  val FlagActions = service.registry.register(
     new ModelActions[FlagTable, Flag](this.service, classOf[Flag], TableQuery[FlagTable])
   )
 
   /** The [[ModelActions]] for [[ProjectView]]. */
-  val ViewActions = service.registrar.register(
+  val ViewActions = service.registry.register(
     new StatActions[ProjectViewsTable, ProjectView](this.service, TableQuery[ProjectViewsTable], classOf[ProjectView])
   )
 

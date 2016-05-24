@@ -33,13 +33,13 @@ class OreModelService @Inject()(config: OreConfig,
                                 db: DatabaseConfigProvider)
                                 extends ModelService {
 
-  override lazy val registrar = new ModelRegistry {}
+  override lazy val registry = new ModelRegistry {}
   override lazy val processor = new OreModelProcessor(this, this.users, this.projects, this.config, this.forums)
   override lazy val driver = OrePostgresDriver
   override lazy val DB = db.get[JdbcProfile]
   override lazy val DefaultTimeout: Duration = Duration(config.app.getInt("db.default-timeout").get, TimeUnit.SECONDS)
 
-  import registrar.{register, registerModelBase, registerSetter}
+  import registry.{register, registerModelBase, registerSetter}
 
   val users = registerModelBase[UserBase](classOf[UserBase], new UserBase(this, forums, config))
   val projects = registerModelBase[ProjectBase](classOf[ProjectBase], new ProjectBase(this))

@@ -16,7 +16,7 @@ class ModelAccess[T <: ModelTable[M], M <: Model](service: ModelService,
   type Filter = T => Rep[Boolean]
   type Ordering = T => ColumnOrdered[_]
 
-  private val actions: ModelActions[T, M] = this.service.registrar.getActionsByModel[T, M](this.modelClass)
+  private val actions: ModelActions[T, M] = this.service.registry.getActionsByModel[T, M](this.modelClass)
 
   /**
     * Returns the model with the specified ID.
@@ -111,7 +111,7 @@ class ModelAccess[T <: ModelTable[M], M <: Model](service: ModelService,
     * @return         Sorted models
     */
   def sorted(ordering: Ordering, filter: Filter = null, limit: Int = -1, offset: Int = -1): Seq[M]
-  = this.service.await(this.actions.collect(this.baseFilter && filter, ordering, limit, offset)).get
+  = this.service.await(this.actions.sorted(ordering, this.baseFilter && filter, limit, offset)).get
 
   /**
     * Filters this set by the given function.

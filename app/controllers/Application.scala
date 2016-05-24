@@ -55,10 +55,10 @@ class Application @Inject()(data: DataHelper,
       if (filter == null && !canHideProjects) filter = _.isVisible
 
       // Get projects
-      val projectsPerPage = this.config.projects.getInt("init-load").get
+      val pageSize = this.config.projects.getInt("init-load").get
       val p = page.getOrElse(1)
-      val offset = (p - 1) * projectsPerPage
-      val future = actions.collect(filter, categoryArray, projectsPerPage, offset, ordering)
+      val offset = (p - 1) * pageSize
+      val future = actions.collect(filter, categoryArray, pageSize, offset, ordering)
       val projects = this.service.await(future).get
 
       if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet)) categoryArray = null
@@ -127,10 +127,10 @@ class Application @Inject()(data: DataHelper,
     *
     * @return Redirect home
     */
-  def seed(users: Option[Int], versions: Option[Int], channels: Option[Int]) = {
+  def seed(users: Int, projects: Int, versions: Int, channels: Int) = {
     (Authenticated andThen PermissionAction[AuthRequest](SeedOre)) { implicit request =>
       this.config.checkDebug()
-      this.data.seed(users.getOrElse(200), versions.getOrElse(0), channels.getOrElse(1))
+      this.data.seed(users, projects, versions, channels)
       Redirect(self.showHome(None, None, None, None)).withNewSession
     }
   }

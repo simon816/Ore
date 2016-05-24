@@ -61,7 +61,7 @@ class ModelProcessor(service: ModelService) {
             .map(_.typeSignature.typeArgs.head).head.typeSymbol.asClass)
       }
 
-      service.registrar.getSetter(fieldType).bindTo(model, key, bindField)(service)
+      service.registry.getSetter(fieldType).bindTo(model, key, bindField)(service)
     }
     model
   }

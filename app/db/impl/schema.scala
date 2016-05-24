@@ -3,7 +3,7 @@ package db.impl
 import java.sql.Timestamp
 
 import db.impl.OrePostgresDriver.api._
-import db.{ModelTable, StatTable}
+import db.ModelTable
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.{ProjectRole, User}

@@ -27,8 +27,8 @@ trait ModelService {
   val processor: ModelProcessor
 
   /** All registered models and [[db.meta.TypeSetter]]s */
-  val registrar: ModelRegistry
-  import registrar.registerSetter
+  val registry: ModelRegistry
+  import registry.registerSetter
 
   /** The base JDBC driver */
   val driver: JdbcDriver
@@ -79,7 +79,7 @@ trait ModelService {
     * @tparam Q ModelActions
     * @return ModelActions of type
     */
-  def getActions[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q = this.registrar.getActions(actionsClass)
+  def getActions[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q = this.registry.getActions(actionsClass)
 
   /**
     * Returns the base query for the specified Model class.
@@ -90,7 +90,7 @@ trait ModelService {
     * @return           Base query for Model
     */
   def newAction[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M]): Query[T, M, Seq]
-  = this.registrar.getActionsByModel(modelClass).baseQuery.asInstanceOf[Query[T, M, Seq]]
+  = this.registry.getActionsByModel(modelClass).baseQuery.asInstanceOf[Query[T, M, Seq]]
 
   /**
     * Runs the specified ModelAction on the DB and processes the resulting
@@ -122,7 +122,7 @@ trait ModelService {
     * @tparam B     ModelBase type
     * @return       ModelBase
     */
-  def access[B <: ModelBase[_, _]](clazz: Class[B]): B = this.registrar.getModelBase(clazz)
+  def access[B <: ModelBase[_, _]](clazz: Class[B]): B = this.registry.getModelBase(clazz)
 
   /**
     * Creates the specified model in it's table.
@@ -243,7 +243,8 @@ trait ModelService {
     * @return           Sorted models
     */
   def sorted[T <: ModelTable[M], M <: Model: TypeTag](modelClass: Class[_ <: M], sort: T => ColumnOrdered[_],
-                                                      limit: Int = -1, offset: Int = -1): Future[Seq[M]]
-  = collect(modelClass, null, sort, limit, offset)
+                                                      filter: T => Rep[Boolean] = null, limit: Int = -1,
+                                                      offset: Int = -1): Future[Seq[M]]
+  = collect(modelClass, filter, sort, limit, offset)
 
 }

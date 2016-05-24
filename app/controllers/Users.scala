@@ -2,9 +2,9 @@ package controllers
 
 import javax.inject.Inject
 
+import db.impl.OrePostgresDriver.api._
 import controllers.routes.{Users => self}
 import db.ModelService
-import db.impl.service.UserBase
 import db.impl.service.UserBase.ORDER_PROJECTS
 import form.OreForms
 import forums.{DiscourseApi, DiscourseSSO}
@@ -31,19 +31,16 @@ class Users @Inject()(val fakeUser: FakeUser,
   def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
     val baseUrl = this.config.app.getString("baseUrl").get
     if (this.fakeUser.isEnabled) {
-      users.getOrCreate(this.fakeUser)
-      redirectBack(returnPath.getOrElse(request.path), this.fakeUser.username)
+      this.users.getOrCreate(this.fakeUser)
+      this.redirectBack(returnPath.getOrElse(request.path), this.fakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
+      // Send to forums for authentication
       Redirect(this.auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
     } else {
-      // Decode SSO payload and get Ore user
+      // Decode SSO payload received from forums and get Ore user
       val user = this.auth.authenticate(sso.get, sig.get)
-      redirectBack(request2flash.get("url").get, user.username)
+      this.redirectBack(request.flash.get("url").get, user.username)
     }
-  }
-
-  private def redirectBack(url: String, username: String) = {
-    Redirect(config.app.getString("baseUrl").get + url).withSession(Security.username -> username)
   }
 
   /**
@@ -52,18 +49,28 @@ class Users @Inject()(val fakeUser: FakeUser,
     * @return Home page
     */
   def logOut(returnPath: Option[String]) = Action { implicit request =>
-    Redirect(config.app.getString("baseUrl").get + returnPath.getOrElse(request.path))
+    Redirect(this.config.app.getString("baseUrl").get + returnPath.getOrElse(request.path))
       .withNewSession.flashing("noRedirect" -> "true")
   }
 
   /**
-    * Shows the User page for the user with the specified username.
+    * Shows the User's [[models.project.Project]]s page for the user with the
+    * specified username.
     *
     * @param username   Username to lookup
-    * @return           View of user page
+    * @return           View of user projects page
     */
-  def show(username: String) = Action { implicit request =>
-    users.withName(username).map(u => Ok(views.user(u))).getOrElse(NotFound)
+  def showProjects(username: String, page: Option[Int]) = Action { implicit request =>
+    val pageSize = this.config.users.getInt("project-page-size").get
+    val p = page.getOrElse(1)
+    val offset = (p - 1) * pageSize
+    this.users.withName(username).map { u =>
+      (u, u.projects.sorted(ordering = _.stars.desc, limit = pageSize, offset = offset))
+    } map {
+      case (user, projectSeq) => Ok(views.users.projects(user, projectSeq, p))
+    } getOrElse {
+      NotFound
+    }
   }
 
   /**
@@ -77,10 +84,10 @@ class Users @Inject()(val fakeUser: FakeUser,
       val user = request.user
       val tagline = this.forms.UserTagline.bindFromRequest.get.trim
       if (tagline.length > this.config.users.getInt("max-tagline-len").get) {
-        Redirect(self.show(user.username)).flashing("error" -> "Tagline is too long.")
+        Redirect(self.showProjects(user.username, None)).flashing("error" -> "Tagline is too long.")
       } else {
         user.tagline = tagline
-        Redirect(self.show(user.username))
+        Redirect(self.showProjects(user.username, None))
       }
     }
   }
@@ -92,7 +99,11 @@ class Users @Inject()(val fakeUser: FakeUser,
   def showAuthors(sort: Option[String], page: Option[Int]) = Action { implicit request =>
     val ordering = sort.getOrElse(ORDER_PROJECTS)
     val p = page.getOrElse(1)
-    Ok(views.authors(this.users.authors(ordering, p), ordering, p))
+    Ok(views.authors(this.users.getAuthors(ordering, p), ordering, p))
+  }
+
+  private def redirectBack(url: String, username: String) = {
+    Redirect(this.config.app.getString("baseUrl").get + url).withSession(Security.username -> username)
   }
 
 }

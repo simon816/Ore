@@ -58,8 +58,13 @@ trait ProjectFactory {
     val depends = for (depend <- meta.getRequiredDependencies.asScala) yield depend.getId + ":" + depend.getVersion
     val path = plugin.path
     this.service.processor.process(new Version(
-      meta.getVersion, depends.toList, meta.getDescription, "",
-      project.id.getOrElse(-1), path.toFile.length, plugin.md5
+      versionString = meta.getVersion,
+      dependencies = depends.toList,
+      description = meta.getDescription,
+      assets = "",
+      projectId = project.id.getOrElse(-1),
+      fileSize = path.toFile.length,
+      hash = plugin.md5
     ))
   }
 
@@ -162,7 +167,7 @@ trait ProjectFactory {
       this.users.get(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
     }
 
-    forums.embed.createTopic(newProject)
+    this.forums.embed.createTopic(newProject)
     newProject
   }
 
@@ -188,12 +193,17 @@ trait ProjectFactory {
       throw new IllegalArgumentException("Version already exists.")
     }
 
-    var newVersion = new Version(
-      pendingVersion.versionString, pendingVersion.dependenciesIds, pendingVersion.description.orNull,
-      pendingVersion.assets.orNull, project.id.get, channel.id.get, pendingVersion.fileSize, pendingVersion.hash
-    )
+    val newVersion = channel.versions.add(new Version(
+      versionString = pendingVersion.versionString,
+      dependencies = pendingVersion.dependencyIds,
+      description = pendingVersion.description.orNull,
+      assets = pendingVersion.assets.orNull,
+      projectId = project.id.get,
+      channelId = channel.id.get,
+      fileSize = pendingVersion.fileSize,
+      hash = pendingVersion.hash
+    ))
 
-    newVersion = channel.versions.add(newVersion)
     uploadPlugin(channel, pending.plugin)
     newVersion
   }

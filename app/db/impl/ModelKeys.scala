@@ -30,5 +30,6 @@ object ModelKeys {
   val AvatarUrl             =   "avatarUrl"
   val RecommendedVersionId  =   "recommendedVersionId"
   val UserId                =   "userId"
+  val ChannelId             =   "channelId"
 
 }

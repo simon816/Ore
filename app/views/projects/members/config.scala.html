@@ -68,7 +68,7 @@
                                 <td>
                                     <input form="form-continue" type="hidden" value="@user.id.get" />
                                     <img class="user-avatar" width="32" height="32" src="@user.avatarUrl(100)" />
-                                    <a target="_blank" href="@routes.Users.show(user.username)">
+                                    <a target="_blank" href="@routes.Users.showProjects(user.username, None)">
                                         @user.username
                                     </a>
                                 </td>

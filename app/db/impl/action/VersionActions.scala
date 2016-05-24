@@ -1,7 +1,7 @@
 package db.impl.action
 
 import db.ModelService
-import db.action.{ModelActions, ModelFilter, StatActions}
+import db.action.{ModelActions, ModelFilter}
 import db.impl.OrePostgresDriver.api._
 import db.impl.{VersionDownloadsTable, VersionTable}
 import models.project.Version
@@ -16,7 +16,7 @@ class VersionActions(override val service: ModelService)
   extends ModelActions[VersionTable, Version](service, classOf[Version], TableQuery[VersionTable]) {
 
   /** The [[StatActions]] for [[VersionDownload]]s. */
-  val DownloadActions = service.registrar.register(
+  val DownloadActions = service.registry.register(
     new StatActions[VersionDownloadsTable, VersionDownload](
       this.service, TableQuery[VersionDownloadsTable], classOf[VersionDownload]
     )

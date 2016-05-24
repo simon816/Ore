@@ -23,7 +23,7 @@ import scala.annotation.meta.field
   * @param id               Unique identifier
   * @param createdAt        Instant of creation
   * @param versionString    Version string
-  * @param dependenciesIds  List of plugin dependencies with the plugin ID and
+  * @param dependencyIds    List of plugin dependencies with the plugin ID and
   *                         version separated by a ':'
   * @param _description     User description of version
   * @param assets           Path to assets directory within plugin
@@ -36,7 +36,7 @@ case class Version(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                    override val projectId: Int,
                    versionString: String,
-                   dependenciesIds: List[String] = List(),
+                   dependencyIds: List[String] = List(),
                    assets: Option[String] = None,
                    channelId: Int,
                    fileSize: Long,
@@ -136,7 +136,7 @@ case class Version(override val id: Option[Int] = None,
     * @return Plugin dependencies
     */
   def dependencies: List[Dependency] = {
-    for (depend <- this.dependenciesIds) yield {
+    for (depend <- this.dependencyIds) yield {
       val data = depend.split(":")
       Dependency(data(0), data(1))
     }

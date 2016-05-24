@@ -19,7 +19,7 @@
     sort.equalsIgnoreCase(td)
 }
 
-@core.layout("Authors - Ore") {
+@bootstrap.layout("Authors - Ore") {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/authors.js")"></script>
     <script>CURRENT_PAGE = @page;</script>
@@ -48,12 +48,12 @@
                     @authors.map { user =>
                       <tr>
                           <td>
-                              <a href="@routes.Users.show(user.username)">
+                              <a href="@routes.Users.showProjects(user.username, None)">
                                   <img alt="@user.username" title="@user.username"
                                        src="@user.avatarUrl()" width="32" height="32" class="user-avatar" />
                               </a>
                           </td>
-                          <td><a href="@routes.Users.show(user.username)">@user.username</a></td>
+                          <td><a href="@routes.Users.showProjects(user.username, None)">@user.username</a></td>
                           <td>@prettifyDate(user.joinDate.getOrElse(user.createdAt.get))</td>
                           <td>@user.projects.size</td>
                       </tr>

@@ -11,11 +11,20 @@ sorted according to different criteria.
 @import ore.project.Categories
 @import ore.project.Categories._
 @import ore.project.ProjectSortingStrategies.{values, _}
+@import ore.project.ProjectSortingStrategies
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], query: Option[String], page: Int,
         sort: ProjectSortingStrategy)(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
-@core.layout(messages("general.title")) {
+@categoryString = @{ visibleCategories.map(_.map(_.id.toString).mkString(",")) }
+@orderingOption = @{
+    sort match {
+        case ProjectSortingStrategies.Default => None
+        case _ => Some(sort.id)
+    }
+}
+
+@bootstrap.layout(messages("general.title")) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/home.js")"></script>
     <script>
@@ -64,10 +73,9 @@ sorted according to different criteria.
             <div class="col-md-9">
                 @projects.list(
                     models = models,
-                    visibleCategories = visibleCategories,
-                    query = query,
-                    ordering = sort,
-                    page = page
+                    page = page,
+                    pageSize = config.projects.getInt("init-load").get,
+                    call = page => routes.Application.showHome(categoryString, query, orderingOption, Some(page))
                 )
             </div>
             <div class="col-md-3">

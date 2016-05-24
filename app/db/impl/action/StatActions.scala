@@ -1,7 +1,9 @@
-package db.action
+package db.impl.action
 
+import db.action.{ModelActions, ModelFilter}
 import db.impl.OrePostgresDriver.api._
-import db.{ModelService, StatTable}
+import db.ModelService
+import db.impl.StatTable
 import models.statistic.StatEntry
 
 import scala.concurrent.ExecutionContext.Implicits.global

@@ -5,7 +5,7 @@
 @(message: String)(implicit messages: Messages, session: Session, request: RequestHeader,
         service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
-@core.layout("Error") {
+@bootstrap.layout("Error") {
 
     <div class="container-error container">
         <img src="@routes.Assets.at("images/ore-dark.png")" />

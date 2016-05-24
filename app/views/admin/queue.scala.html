@@ -9,7 +9,7 @@
 @(versions: Seq[(Project, Version)])(implicit messages: Messages, session: Session, request: RequestHeader,
         service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
-@core.layout("Project queue") {
+@bootstrap.layout("Project queue") {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/queue.js")"></script>
 
@@ -26,7 +26,7 @@
                 <ul class="list-group list-versions">
                     @versions.map { tuple =>
                         <li class="list-group-item" data-version="@tuple._1.ownerName/@tuple._1.slug/versions/@tuple._2.name">
-                            <a href="@routes.Users.show(tuple._1.ownerName)">
+                            <a href="@routes.Users.showProjects(tuple._1.ownerName, None)">
                                 <img class="user-avatar" width="32" height="32" src="@tuple._1.owner.user.avatarUrl()" />
                             </a>
                             <a href="@projectRoutes.Versions.show(tuple._1.ownerName, tuple._1.slug, tuple._2.name)">

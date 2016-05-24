@@ -19,7 +19,7 @@ Base template for Project overview.
 @user = @{ users.current.get }
 @isOwner(user: User) = @{ user.id.get == project.ownerId }
 
-@core.layout(project.ownerName + " / " + project.name) {
+@bootstrap.layout(project.ownerName + " / " + project.name) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/projectDetail.js")"></script>
 
@@ -29,7 +29,7 @@ Base template for Project overview.
                 <div class="col-md-12">
                     <div class="project-header pull-left">
                         <h1>
-                            <a href="@routes.Users.show(project.ownerName)">@project.ownerName</a>
+                            <a href="@routes.Users.showProjects(project.ownerName, None)">@project.ownerName</a>
                             / <strong><a href="@projectRoutes.Projects.show(project.ownerName, project.slug)">@project.name</a></strong>
                         </h1>
                         @defining(project.description.getOrElse("")) { description =>

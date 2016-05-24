@@ -5,9 +5,9 @@ import java.sql.Timestamp
 import com.github.tminglei.slickpg.InetString
 import com.google.common.base.Preconditions._
 import db.Model
-import db.action.StatActions
 import db.impl.ModelKeys._
 import db.impl.OreModel
+import db.impl.action.StatActions
 import db.meta.Actions
 import models.user.User
 

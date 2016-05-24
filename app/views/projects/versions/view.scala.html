@@ -33,7 +33,7 @@
 
                 <!-- User info -->
                 <p class="user date pull-left">
-                    <a href="@routes.Users.show(project.ownerName)">
+                    <a href="@routes.Users.showProjects(project.ownerName, None)">
                         <strong>@project.ownerName</strong>
                     </a>
                     released this version on @prettifyDate(version.createdAt.get)

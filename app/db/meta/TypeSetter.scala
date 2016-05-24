@@ -25,7 +25,7 @@ abstract class TypeSetter[A] {
     * @return       Futures
     */
   def apply[T <: ModelTable[M], M <: Model](model: M, rep: T => Rep[A], v: A)
-                                              (implicit service: ModelService): Future[_]
+                                           (implicit service: ModelService): Future[_]
 
   /**
     * Binds the specified field to the specified model within this TypeSetter.
@@ -37,7 +37,7 @@ abstract class TypeSetter[A] {
     * @tparam M     Model
     */
   def bindTo[T <: ModelTable[M], M <: Model](model: M, key: String, field: Field)
-                                               (implicit service: ModelService) = {
+                                            (implicit service: ModelService) = {
     field.setAccessible(true)
     val v: model.M => A = m => field.get(m) match {
       case opt: Option[A] => opt.getOrElse(null.asInstanceOf[A])

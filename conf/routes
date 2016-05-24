@@ -5,7 +5,7 @@
 GET     /*path/                                                     @controllers.Application.removeTrail(path)
 
 GET     /admin/reset                                                @controllers.Application.reset
-GET     /admin/seed                                                 @controllers.Application.seed(users: Option[Int], versions: Option[Int], channels: Option[Int])
+GET     /admin/seed                                                 @controllers.Application.seed(users: Int ?= 200, projects: Int ?= 1, versions: Int ?= 2, channels: Int ?= 2)
 GET     /admin/migrate                                              @controllers.Application.migrate
 GET     /admin/queue                                                @controllers.Application.showQueue
 GET     /admin/flags                                                @controllers.Application.showFlags
@@ -51,7 +51,7 @@ POST    /pages/preview                                              @controllers
 
 # ---------- Users ----------
 GET     /authors                                                    @controllers.Users.showAuthors(sort: Option[String], page: Option[Int])
-GET     /:user                                                      @controllers.Users.show(user)
+GET     /:user                                                      @controllers.Users.showProjects(user, page: Option[Int])
 POST    /:user/settings/tagline                                     @controllers.Users.saveTagline(user)
 # -------- End Users --------
 

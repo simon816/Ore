@@ -8,7 +8,7 @@
         session: Session, flash: Flash, request: RequestHeader, service: ModelService,
         forums: DiscourseApi, config: OreConfig, users: UserBase)
 
-@core.layout(messages("channel.list.page-title", project.ownerName, project.slug)) {
+@bootstrap.layout(messages("channel.list.page-title", project.ownerName, project.slug)) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/channelManage.js")"></script>
     <script>

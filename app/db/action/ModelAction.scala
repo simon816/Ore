@@ -7,21 +7,6 @@ import scala.reflect.runtime.universe._
 
 object ModelAction {
 
-  implicit def unwrap[M](action: AbstractModelAction[M]): DBIOAction[M, NoStream, Nothing] = action.action
-  implicit def wrapSingle[M <: Model: TypeTag](action: DBIOAction[M, NoStream, Nothing]): ModelAction[M]
-  = ModelAction(action)
-  implicit def unwrapSingle[M <: Model: TypeTag](action: ModelAction[M]): DBIOAction[M, NoStream, Nothing]
-  = action.action
-  implicit def wrapSeq[M <: Model: TypeTag](action: DBIOAction[Seq[M], NoStream, Nothing]): ModelSeqAction[M]
-  = ModelSeqAction(action)
-  implicit def unwrapSeq[M <: Model: TypeTag](action: ModelSeqAction[M]): DBIOAction[Seq[M], NoStream, Nothing]
-  = action.action
-
-  private def process[M <: Model: TypeTag](service: ModelService, model: M): M = {
-    if (!model.isProcessed) service.processor.process(model)
-    model
-  }
-
   /**
     * Represents a DBIOAction that returns one or multiple Models. ModelActions
     * are implicitly wrapped and unwrapped.
@@ -55,6 +40,21 @@ object ModelAction {
     def processResult(service: ModelService, result: Seq[M]) = for (model <- result) yield {
       process(service, model)
     }
+  }
+
+  implicit def unwrap[M](action: AbstractModelAction[M]): DBIOAction[M, NoStream, Nothing] = action.action
+  implicit def wrapSingle[M <: Model: TypeTag](action: DBIOAction[M, NoStream, Nothing]): ModelAction[M]
+  = ModelAction(action)
+  implicit def unwrapSingle[M <: Model: TypeTag](action: ModelAction[M]): DBIOAction[M, NoStream, Nothing]
+  = action.action
+  implicit def wrapSeq[M <: Model: TypeTag](action: DBIOAction[Seq[M], NoStream, Nothing]): ModelSeqAction[M]
+  = ModelSeqAction(action)
+  implicit def unwrapSeq[M <: Model: TypeTag](action: ModelSeqAction[M]): DBIOAction[Seq[M], NoStream, Nothing]
+  = action.action
+
+  private def process[M <: Model: TypeTag](service: ModelService, model: M): M = {
+    if (!model.isProcessed) service.processor.process(model)
+    model
   }
 
 }

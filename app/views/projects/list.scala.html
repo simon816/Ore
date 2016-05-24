@@ -7,27 +7,14 @@ Collection of all projects.
 @import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import models.project.Project
-@import ore.project.Categories._
-@import ore.project.ProjectSortingStrategies
-@import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
-@(models: Seq[Project], visibleCategories: Option[Array[Category]] = None, query: Option[String] = None,
-        ordering: ProjectSortingStrategy, page: Int)(implicit messages: Messages, session: Session, flash: Flash,
-        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
-
-@pageSize = @{ config.projects.getInt("init-load").get }
-@categoryString = @{ visibleCategories.map(_.map(_.id.toString).mkString(",")) }
-@orderingOption = @{
-    ordering match {
-        case ProjectSortingStrategies.Default => None
-        case _ => Some(ordering.id)
-    }
-}
+@(models: Seq[Project], page: Int, pageSize: Int, call: Int => Call)(implicit messages: Messages, session: Session,
+        flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 <ul class="list-group project-list">
     @models.map { project =>
         <li class="list-group-item @if(!project.isVisible) { project-hidden }">
             <div class="project-list-header pull-left">
-                <a class="pull-left" href="@routes.Users.show(project.ownerName)">
+                <a class="pull-left" href="@routes.Users.showProjects(project.ownerName, None)">
                     <img class="user-avatar" height="50" width="50" title="@project.ownerName"
                     alt="@project.ownerName" src="@project.owner.user.avatarUrl(200)" />
                 </a>
@@ -56,11 +43,11 @@ Collection of all projects.
         <li class="list-group-item project-list-footer">
             <div class="pull-right">
                 @if(page > 1) {
-                    <a href="@routes.Application.showHome(categoryString, query, orderingOption, Some(page - 1))"
+                    <a href="@call(page - 1)"
                        class="btn btn-default"><i class="fa fa-arrow-left"></i></a>
                 }
                 @if(models.size >= pageSize) {
-                    <a href="@routes.Application.showHome(categoryString, query, orderingOption, Some(page + 1))"
+                    <a href="@call(page + 1)"
                        class="btn btn-default"><i class="fa fa-arrow-right"></i></a>
                 }
             </div>

@@ -37,11 +37,11 @@ class UserBase(override val service: ModelService,
   }
 
   /**
-    * Returns all [[User]]s with at least one [[models.project.Project]].
+    * Returns a page of [[User]]s with at least one [[models.project.Project]].
     *
     * @return Users with at least one project
     */
-  def authors(ordering: String = ORDER_PROJECTS, page: Int = 1): Seq[User] = {
+  def getAuthors(ordering: String = ORDER_PROJECTS, page: Int = 1): Seq[User] = {
     // determine ordering
     var sort = ordering
     val reverse = if (sort.startsWith("-")) {
@@ -76,7 +76,7 @@ class UserBase(override val service: ModelService,
     * @param user User to find
     * @return     Found or new User
     */
-  def getOrCreate(user: User): User = this.service.await(user.actions(service).getOrInsert(user)).get
+  def getOrCreate(user: User): User = this.service.await(user.actions(this.service).getOrInsert(user)).get
 
   /**
     * Returns the currently authenticated User.
