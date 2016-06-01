@@ -12,9 +12,17 @@ sorted according to different criteria.
 @import ore.project.Categories._
 @import ore.project.ProjectSortingStrategies.{values, _}
 @import ore.project.ProjectSortingStrategies
+@import scala.util.Random
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], query: Option[String], page: Int,
         sort: ProjectSortingStrategy)(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
+
+@randomSponsor = @{
+    val logos = config.sponge.getStringList("sponsors.logos").get
+    val urls = config.sponge.getStringList("sponsors.urls").get
+    val index = new Random().nextInt(logos.size)
+    (logos.get(index), urls.get(index))
+}
 
 @categoryString = @{ visibleCategories.map(_.map(_.id.toString).mkString(",")) }
 @orderingOption = @{
@@ -42,29 +50,43 @@ sorted according to different criteria.
 
     <div class="container" style="margin-top: 60px ;">
         <!-- Header -->
-        <div class="row index-header">
-            <div class="col-md-12">
+        <div class="index-header">
+            <div class="row">
+                <div class="col-md-12">
+                    @if(flash.get("success").isDefined) {
+                        <div class="alert alert-fade alert-success alert-dismissable" role="alert" style="display: none;">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            @flash.get("success").get
+                        </div>
+                    }
 
-                <img height="60" src="@routes.Assets.at("images/ore-desc.png")" />
-
-                @if(flash.get("success").isDefined) {
-                    <div class="alert alert-fade alert-success alert-dismissable" role="alert" style="display: none;">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        @flash.get("success").get
-                    </div>
-                }
-
-                @if(flash.get("error").isDefined) {
-                    <div class="alert alert-fade alert-danger alert-dismissable" role="alert" style="display: none;">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        @flash.get("error").get
-                    </div>
-                }
+                    @if(flash.get("error").isDefined) {
+                        <div class="alert alert-fade alert-danger alert-dismissable" role="alert" style="display: none;">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            @flash.get("error").get
+                        </div>
+                    }
+                </div>
             </div>
+
+            <div class="row">
+                <div class="col-md-9"><img height="60" src="@routes.Assets.at("images/ore-desc.png")" /></div>
+                <div class="col-md-3">
+                    <div class="well well-sm well-sponsor">
+                        <i>Sponsored By</i>
+                        @defining(randomSponsor) { sponsor =>
+                            <a href="@sponsor._2">
+                                <img class="sponsor" src="@routes.Assets.at("images/sponsors/" + sponsor._1)" />
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- Main content -->

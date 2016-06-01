@@ -30,6 +30,27 @@ body {
   height: 40px;
 }
 
+.sponsor {
+  max-height: 40px;
+  max-width: 100%;
+}
+
+.well-sponsor {
+  margin-bottom: 0;
+  background-color: #ccc;
+  max-height: 60px;
+  position: relative;
+  padding-top: 18px;
+  padding-bottom: 18px;
+  i {
+    font-size: 10px;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    color: white;
+  }
+}
+
 form {
   @include margin-vert(10px, 10px);
 }
