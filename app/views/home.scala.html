@@ -76,11 +76,11 @@ sorted according to different criteria.
             <div class="row">
                 <div class="col-md-9"><img height="60" src="@routes.Assets.at("images/ore-desc.png")" /></div>
                 <div class="col-md-3">
-                    <div class="well well-sm well-sponsor">
-                        <i>Sponsored By</i>
+                    <div class="sponsor">
+                        <i>Sponsored By</i><br/>
                         @defining(randomSponsor) { sponsor =>
                             <a href="@sponsor._2">
-                                <img class="sponsor" src="@routes.Assets.at("images/sponsors/" + sponsor._1)" />
+                                <img class="sponsor-logo" src="@routes.Assets.at("images/sponsors/" + sponsor._1)" />
                             </a>
                         }
                     </div>
