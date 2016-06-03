@@ -1,6 +1,7 @@
 package ore.project.util
 
-import java.nio.file.{Files, Path}
+import java.nio.file.Files._
+import java.nio.file.Path
 
 import util.OreEnv
 
@@ -12,32 +13,21 @@ import scala.util.Try
 class ProjectFileManager(val env: OreEnv) {
 
   /**
-    * Returns the Path to where the specified Version should be.
-    *
-    * @param owner    Project owner
-    * @param name     Project name
-    * @param version  Project version
-    * @return         Path to supposed file
-    */
-  def uploadPath(owner: String, name: String, version: String): Path
-  = projectDir(owner, name).resolve("%s-%s.zip".format(name, version))
-
-  /**
     * Returns the specified project's plugin directory.
     *
     * @param owner  Owner name
     * @param name   Project name
     * @return       Plugin directory
     */
-  def projectDir(owner: String, name: String): Path = userDir(owner).resolve(name)
+  def getProjectDir(owner: String, name: String): Path = getUserDir(owner).resolve(name)
 
   /**
     * Returns the specified user's plugin directory.
     *
-    * @param owner  Owner name
-    * @return       Plugin directory
+    * @param user User name
+    * @return     Plugin directory
     */
-  def userDir(owner: String): Path = env.plugins.resolve(owner)
+  def getUserDir(user: String): Path = this.env.plugins.resolve(user)
 
   /**
     * Renames this specified project in the file system.
@@ -48,15 +38,13 @@ class ProjectFileManager(val env: OreEnv) {
     * @return         New path
     */
   def renameProject(owner: String, oldName: String, newName: String): Try[Unit] = Try {
-    val newProjectDir = projectDir(owner, newName)
-    Files.move(projectDir(owner, oldName), newProjectDir)
+    val newProjectDir = getProjectDir(owner, newName)
+    move(getProjectDir(owner, oldName), newProjectDir)
     // Rename plugin files
     for (channelDir <- newProjectDir.toFile.listFiles()) {
       if (channelDir.isDirectory) {
         for (pluginFile <- channelDir.listFiles()) {
-          val fileName = pluginFile.getName
-          val versionString = fileName.substring(fileName.indexOf('-') + 1, fileName.lastIndexOf('.'))
-          Files.move(pluginFile.toPath, uploadPath(owner, newName, versionString))
+          move(pluginFile.toPath, getProjectDir(owner, newName).resolve(pluginFile.getName))
         }
       }
     }

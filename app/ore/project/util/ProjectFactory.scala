@@ -1,6 +1,6 @@
 package ore.project.util
 
-import java.nio.file.Files
+import java.nio.file.Files._
 import javax.inject.Inject
 
 import com.google.common.base.Preconditions._
@@ -31,10 +31,41 @@ trait ProjectFactory {
   implicit val users: UserBase = this.service.access(classOf[UserBase])
   implicit val projects: ProjectBase = this.service.access(classOf[ProjectBase])
 
+  import service.processor.process
+
   val manager: ProjectManager
   val fileManager: ProjectFileManager = this.manager.fileManager
   val cacheApi: CacheApi
   val env = this.fileManager.env
+
+  /**
+    * Initializes a new PluginFile with the specified owner and temporary file.
+    *
+    * @param tmp    Temporary file
+    * @param owner  Project owner
+    * @return       New plugin file
+    */
+  def processPluginFile(tmp: TemporaryFile, name: String, owner: User): Try[PluginFile] = Try {
+    if (!name.endsWith(".zip") && !name.endsWith(".jar")) {
+      throw new InvalidPluginFileException("Plugin file must be either a JAR or ZIP file.")
+    }
+
+    val tmpPath = this.env.tmp.resolve(owner.username).resolve(name)
+    val plugin = new PluginFile(tmpPath, owner)
+
+    if (notExists(tmpPath.getParent)) createDirectories(tmpPath.getParent)
+    val oldPath = tmp.file.toPath
+    tmp.moveTo(plugin.path.toFile, replace = true)
+
+    if (this.config.projects.getBoolean("tmp-file-save").get) copy(plugin.path, oldPath)
+
+    val meta = plugin.loadMeta
+    val pathStr = plugin.path.toString
+    val ext = pathStr.substring(pathStr.lastIndexOf('.'))
+    plugin.move(plugin.path.getParent.resolve(meta.getName + '-' + meta.getVersion + ext))
+
+    plugin
+  }
 
   /**
     * Creates a new Project from the specified PluginMetadata.
@@ -43,8 +74,9 @@ trait ProjectFactory {
     * @param meta   PluginMetadata object
     * @return       New project
     */
-  def projectFromMeta(owner: User, meta: PluginMetadata): Project
-  = this.service.processor.process(new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getUrl))
+  def projectFromMeta(owner: User, meta: PluginMetadata): Project = process {
+    new Project(meta.getId, meta.getName, owner.username, owner.id.get, meta.getUrl)
+  }
 
   /**
     * Creates a new [[Project]] [[Version]] from the specified [[PluginMetadata]].
@@ -57,33 +89,17 @@ trait ProjectFactory {
     val meta = plugin.meta.get
     val depends = for (depend <- meta.getRequiredDependencies.asScala) yield depend.getId + ":" + depend.getVersion
     val path = plugin.path
-    this.service.processor.process(new Version(
-      versionString = meta.getVersion,
-      dependencies = depends.toList,
-      description = meta.getDescription,
-      assets = "",
-      projectId = project.id.getOrElse(-1),
-      fileSize = path.toFile.length,
-      hash = plugin.md5
-    ))
-  }
-
-  /**
-    * Initializes a new PluginFile with the specified owner and temporary file.
-    *
-    * @param tmp    Temporary file
-    * @param owner  Project owner
-    * @return       New plugin file
-    */
-  def processPluginFile(tmp: TemporaryFile, name: String, owner: User): Try[PluginFile] = Try {
-    val tmpPath = this.env.tmp.resolve(owner.username).resolve(name)
-    val plugin = new PluginFile(tmpPath, owner)
-    if (Files.notExists(tmpPath.getParent)) Files.createDirectories(tmpPath.getParent)
-    val oldPath = tmp.file.toPath
-    tmp.moveTo(plugin.path.toFile, replace = true)
-    if (this.config.projects.getBoolean("tmp-file-save").get) Files.copy(plugin.path, oldPath)
-    plugin.loadMeta
-    plugin
+    process {
+      new Version(
+        versionString = meta.getVersion,
+        dependencyIds = depends.toList,
+        _description = Option(meta.getDescription),
+        projectId = project.id.getOrElse(-1),
+        fileSize = path.toFile.length,
+        hash = plugin.md5,
+        fileName = path.getFileName.toString
+      )
+    }
   }
 
   /**
@@ -93,7 +109,9 @@ trait ProjectFactory {
     * @param firstVersion   Uploaded plugin
     */
   def setProjectPending(project: Project, firstVersion: PluginFile): PendingProject =  {
-    val pendingProject = PendingProject(this.manager, this, project, firstVersion, this.config, Set(), cacheApi)
+    val pendingProject = PendingProject(
+      this.manager, this, project, firstVersion, this.config, Set.empty, this.cacheApi
+    )
     pendingProject.cache()
     pendingProject
   }
@@ -106,7 +124,7 @@ trait ProjectFactory {
     * @return       PendingProject if present, None otherwise
     */
   def getPendingProject(owner: String, slug: String): Option[PendingProject]
-  = cacheApi.get[PendingProject](owner + '/' + slug)
+  = this.cacheApi.get[PendingProject](owner + '/' + slug)
 
   /**
     * Marks the specified Version as pending and caches it for later use.
@@ -144,7 +162,7 @@ trait ProjectFactory {
     * @return         PendingVersion, if present, None otherwise
     */
   def getPendingVersion(owner: String, slug: String, version: String): Option[PendingVersion]
-  = cacheApi.get[PendingVersion](owner + '/' + slug + '/' + version)
+  = this.cacheApi.get[PendingVersion](owner + '/' + slug + '/' + version)
 
   /**
     * Creates a new Project from the specified PendingProject
@@ -195,13 +213,14 @@ trait ProjectFactory {
 
     val newVersion = channel.versions.add(new Version(
       versionString = pendingVersion.versionString,
-      dependencies = pendingVersion.dependencyIds,
-      description = pendingVersion.description.orNull,
-      assets = pendingVersion.assets.orNull,
+      dependencyIds = pendingVersion.dependencyIds,
+      _description = pendingVersion.description,
+      assets = pendingVersion.assets,
       projectId = project.id.get,
       channelId = channel.id.get,
       fileSize = pendingVersion.fileSize,
-      hash = pendingVersion.hash
+      hash = pendingVersion.hash,
+      fileName = pendingVersion.fileName
     ))
 
     uploadPlugin(channel, pending.plugin)
@@ -211,11 +230,10 @@ trait ProjectFactory {
   private def uploadPlugin(channel: Channel, plugin: PluginFile): Try[Unit] = Try {
     val meta = plugin.meta.get
     var oldPath = plugin.path
-    if (!plugin.isZipped) oldPath = plugin.zip
-    val newPath = this.fileManager.uploadPath(plugin.user.username, meta.getName, meta.getVersion)
-    if (!Files.exists(newPath.getParent)) Files.createDirectories(newPath.getParent)
-    Files.move(oldPath, newPath)
-    Files.delete(oldPath)
+    val newPath = this.fileManager.getProjectDir(plugin.user.username, meta.getName).resolve(plugin.path.getFileName)
+    if (!exists(newPath.getParent)) createDirectories(newPath.getParent)
+    move(oldPath, newPath)
+    delete(oldPath)
   }
 
 }

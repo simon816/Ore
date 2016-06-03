@@ -92,9 +92,10 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions") {
   def fileSize        =   column[Long]("file_size")
   def hash            =   column[String]("hash")
   def isReviewed      =   column[Boolean]("is_reviewed")
+  def fileName        =   column[String]("file_name")
 
   override def * = (id.?, createdAt.?, projectId, versionString, dependencies, assets.?, channelId, fileSize, hash,
-                    description.?, downloads, isReviewed) <> ((Version.apply _).tupled, Version.unapply)
+                    description.?, downloads, isReviewed, fileName) <> ((Version.apply _).tupled, Version.unapply)
 }
 
 class VersionDownloadsTable(tag: Tag) extends StatTable[VersionDownload](tag, "version_downloads", "version_id") {

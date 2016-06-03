@@ -8,7 +8,7 @@ import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import form.OreForms
 import forums.DiscourseApi
-import models.project.{Channel, Project, Version}
+import models.project.{Channel, Project}
 import ore.StatTracker
 import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.util._
@@ -329,7 +329,7 @@ class Versions @Inject()(val stats: StatTracker,
       implicit val project = request.project
       withVersion(versionString) { version =>
         this.stats.versionDownloaded(version) { implicit request =>
-          Ok.sendFile(this.fileManager.uploadPath(author, project.name, versionString).toFile)
+          Ok.sendFile(this.fileManager.getProjectDir(author, project.name).resolve(version.fileName).toFile)
         }
       }
     }
@@ -347,7 +347,7 @@ class Versions @Inject()(val stats: StatTracker,
       val project = request.project
       val rv = project.recommendedVersion
       this.stats.versionDownloaded(rv) { implicit request =>
-        Ok.sendFile(this.fileManager.uploadPath(author, project.name, rv.versionString).toFile)
+        Ok.sendFile(this.fileManager.getProjectDir(author, project.name).resolve(rv.fileName).toFile)
       }
     }
   }

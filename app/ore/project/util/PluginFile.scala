@@ -1,9 +1,9 @@
 package ore.project.util
 
-import java.io.{FileInputStream, FileOutputStream, IOException}
-import java.nio.file.{Files, Path, Paths}
+import java.io.IOException
+import java.nio.file.{Files, Path}
 import java.util.jar.{JarEntry, JarInputStream}
-import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
+import java.util.zip.{ZipEntry, ZipFile}
 
 import models.user.User
 import ore.UserOwned
@@ -30,6 +30,11 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
     */
   def path: Path = this._path
 
+  def move(path: Path) = {
+    Files.move(this.path, path)
+    this._path = path
+  }
+
   /**
     * Deletes the File at this PluginFile's Path
     */
@@ -41,41 +46,6 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
     * @return PluginMetadata if present, None otherwise
     */
   def meta: Option[PluginMetadata] = this._meta
-
-  /**
-    * Returns true if this is a ZIP file.
-    *
-    * @return True if zip file
-    */
-  def isZipped: Boolean = {
-    this._path.toString.endsWith(".zip")
-  }
-
-  /**
-    * Wraps this file in a ZIP archive.
-    *
-    * @return New path
-    */
-  def zip: Path = {
-    val path = this._path.toString
-    val zipPath = path.substring(0, path.lastIndexOf('.')) + ".zip"
-    val out = new ZipOutputStream(new FileOutputStream(zipPath))
-    val entry = new ZipEntry(this._path.getFileName.toString)
-    out.putNextEntry(entry)
-
-    val in = new FileInputStream(this._path.toString)
-    var len: Int = 0
-    val buffer: Array[Byte] = new Array[Byte](4096)
-    while ({ len = in.read(buffer); len } > 0) {
-      out.write(buffer, 0, len)
-    }
-
-    in.close()
-    out.close()
-
-    this._path = Paths.get(zipPath)
-    this._path
-  }
 
   /**
     * Returns an MD5 hash of this PluginFile.

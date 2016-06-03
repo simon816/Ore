@@ -38,29 +38,19 @@ case class Version(override val id: Option[Int] = None,
                    versionString: String,
                    dependencyIds: List[String] = List(),
                    assets: Option[String] = None,
-                   channelId: Int,
+                   channelId: Int = -1,
                    fileSize: Long,
                    hash: String,
                    @(Bind @field) private var _description: Option[String] = None,
                    @(Bind @field) private var _downloads: Int = 0,
-                   @(Bind @field) private var _isReviewed: Boolean = false)
+                   @(Bind @field) private var _isReviewed: Boolean = false,
+                   fileName: String)
                    extends OreModel(id, createdAt)
                      with ProjectScope { self =>
 
   override type M = Version
   override type T = VersionTable
   override type A = VersionActions
-
-  def this(versionString: String, dependencies: List[String], description: String,
-           assets: String, projectId: Int, channelId: Int, fileSize: Long, hash: String) = {
-    this(None, None, projectId, versionString, dependencies,
-         Option(assets), channelId, fileSize, hash, Option(description))
-  }
-
-  def this(versionString: String, dependencies: List[String],
-           description: String, assets: String, projectId: Int, fileSize: Long, hash: String) = {
-    this(versionString, dependencies, description, assets, projectId, -1, fileSize, hash)
-  }
 
   /**
     * Returns the name of this Channel.

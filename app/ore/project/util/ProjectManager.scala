@@ -1,6 +1,6 @@
 package ore.project.util
 
-import java.nio.file.Files
+import java.nio.file.Files._
 import javax.inject.Inject
 
 import com.google.common.base.Preconditions._
@@ -56,7 +56,7 @@ trait ProjectManager {
     * @param project Project to delete
     */
   def deleteProject(project: Project) = {
-    FileUtils.deleteDirectory(this.fileManager.projectDir(project.ownerName, project.name).toFile)
+    FileUtils.deleteDirectory(this.fileManager.getProjectDir(project.ownerName, project.name).toFile)
     if (project.topicId.isDefined) forums.embed.deleteTopic(project)
     project.remove()
   }
@@ -74,7 +74,7 @@ trait ProjectManager {
     checkArgument(channels.size > 1, "only one channel", "")
     checkArgument(channel.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
 
-    FileUtils.deleteDirectory(this.fileManager.projectDir(proj.ownerName, proj.name).resolve(channel.name).toFile)
+    FileUtils.deleteDirectory(this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(channel.name).toFile)
     channel.remove()
   }
 
@@ -96,7 +96,7 @@ trait ProjectManager {
     val channel: Channel = version.channel
     if (channel.versions.isEmpty) this.deleteChannel(channel)
 
-    Files.delete(this.fileManager.uploadPath(proj.ownerName, proj.name, version.versionString))
+    delete(this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(version.fileName))
     version.remove()
   }
 
