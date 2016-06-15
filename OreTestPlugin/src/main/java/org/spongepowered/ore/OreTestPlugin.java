@@ -5,7 +5,7 @@ import org.spongepowered.api.plugin.Plugin;
 
 @Plugin(id = "ore-test",
         name = "Ore Test Plugin",
-        version = "1.0.1",
+        version = "1.0.0",
         dependencies = {
                 @Dependency(id = "ore-test", version = "1.0.0"),
                 @Dependency(id = "worldedit", version = "1.0.0"),

@@ -111,7 +111,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
   /**
     * Removes this model from it's table through it's ModelActions.
     */
-  def remove() = this.actions.delete(this.asInstanceOf[M])
+  def remove() = this.service.await(this.actions.delete(this.asInstanceOf[M]))
 
   /**
     * Returns a copy of this model with an updated ID and timestamp.

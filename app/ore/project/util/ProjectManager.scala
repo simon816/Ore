@@ -88,16 +88,19 @@ trait ProjectManager {
     checkArgument(proj.versions.size > 1, "only one version", "")
     checkArgument(proj.id.get == version.projectId, "invalid context id", "")
 
-    // Set recommended version to latest version if the deleted version was the rv
     val rv = proj.recommendedVersion
-    if (this.equals(rv)) proj.recommendedVersion = proj.versions.sorted(_.createdAt.desc, limit = 1).head
+    version.remove()
+
+    // Set recommended version to latest version if the deleted version was the rv
+    if (version.equals(rv)) {
+      proj.recommendedVersion = proj.versions.sorted(_.createdAt.desc, limit = 1).head
+    }
 
     // Delete channel if now empty
     val channel: Channel = version.channel
     if (channel.versions.isEmpty) this.deleteChannel(channel)
 
     delete(this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(version.fileName))
-    version.remove()
   }
 
 }

@@ -30,6 +30,11 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
     */
   def path: Path = this._path
 
+  /**
+    * Moves this PluginFile to the specified [[Path]].
+    *
+    * @param path Path to move file to
+    */
   def move(path: Path) = {
     Files.move(this.path, path)
     this._path = path
