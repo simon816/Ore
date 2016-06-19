@@ -139,7 +139,7 @@
                         @if(pending.isDefined) {
                             @* Ready to go! *@
                             @defining(pending.get.version) { version =>
-                                @form(action = projectRoutes.Versions.create(
+                                @form(action = projectRoutes.Versions.publish(
                                     project.ownerName, project.slug, version.versionString),
                                     'id -> "form-publish", 'class -> "pull-right") {
                                     @if(!showFileControls) {
