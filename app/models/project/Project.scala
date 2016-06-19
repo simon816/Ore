@@ -395,10 +395,7 @@ case class Project(// Immutable
     *
     * @return Recommended version
     */
-  def recommendedVersion: Version = {
-    println("RV ID: " + this.recommendedVersionId)
-    this.versions.get(this.recommendedVersionId.get).get
-  }
+  def recommendedVersion: Version = this.versions.get(this.recommendedVersionId.get).get
 
   /**
     * Updates this project's recommended version.

@@ -2,9 +2,9 @@ package controllers
 
 import javax.inject.Inject
 
-import db.impl.OrePostgresDriver.api._
 import controllers.routes.{Users => self}
 import db.ModelService
+import db.impl.OrePostgresDriver.api._
 import db.impl.service.UserBase.ORDER_PROJECTS
 import form.OreForms
 import forums.{DiscourseApi, DiscourseSSO}
@@ -13,6 +13,9 @@ import play.api.mvc.{Security, _}
 import util.{FakeUser, OreConfig}
 import views.{html => views}
 
+/**
+  * Controller for general user actions.
+  */
 class Users @Inject()(val fakeUser: FakeUser,
                       val forms: OreForms,
                       val auth: DiscourseSSO,

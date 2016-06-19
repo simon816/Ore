@@ -249,7 +249,7 @@ class Versions @Inject()(val stats: StatTracker,
     * @param versionString Version name
     * @return New version view
     */
-  def create(author: String, slug: String, versionString: String) = {
+  def publish(author: String, slug: String, versionString: String) = {
     // TODO: Cleanup
     Authenticated { implicit request =>
       // First get the pending Version
@@ -258,8 +258,11 @@ class Versions @Inject()(val stats: StatTracker,
         case Some(pendingVersion) =>
           // Get submitted channel
           this.forms.VersionCreate.bindFromRequest.fold(
-            hasErrors => Redirect(self.showCreatorWithMeta(author, slug, versionString))
-              .flashing("error" -> hasErrors.errors.head.message),
+            hasErrors => {
+              // Invalid channel
+              Redirect(self.showCreatorWithMeta(author, slug, versionString))
+                .flashing("error" -> hasErrors.errors.head.message)
+            },
 
             versionData => {
               // Channel is valid
@@ -278,8 +281,10 @@ class Versions @Inject()(val stats: StatTracker,
                     var channelResult: Either[String, Channel] = Right(existingChannel)
                     if (existingChannel == null) channelResult = versionData.addTo(project)
                     channelResult.fold(
-                      error => Redirect(self.showCreatorWithMeta(author, slug, versionString))
-                        .flashing("error" -> error),
+                      error => {
+                        Redirect(self.showCreatorWithMeta(author, slug, versionString))
+                          .flashing("error" -> error)
+                      },
                       channel => {
                         val newVersion = pendingVersion.complete.get
                         if (versionData.recommended) project.recommendedVersion = newVersion

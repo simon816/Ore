@@ -30,7 +30,6 @@ trait Actions {
     */
   def ProjectAction(author: String, slug: String) = Action andThen projectAction(author, slug)
 
-
   /** Ensures a request is authenticated */
   def Authenticated = Action andThen authAction
 
@@ -78,8 +77,7 @@ trait Actions {
     */
   def ProjectPermissionAction(p: Permission) = PermissionAction[AuthedProjectRequest](p)
 
-  private def projectAction(author: String, slug: String)
-  = new ActionRefiner[Request, ProjectRequest] {
+  private def projectAction(author: String, slug: String) = new ActionRefiner[Request, ProjectRequest] {
     def refine[A](request: Request[A]) = Future.successful {
       projects.withSlug(author, slug)
         .flatMap(processProject(_, users.current(request.session)))

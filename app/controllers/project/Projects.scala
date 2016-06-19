@@ -186,7 +186,7 @@ class Projects @Inject()(val stats: StatTracker,
     * @param pluginId Project pluginId
     * @return Redirect to project page.
     */
-  def showProjectWithId(pluginId: String) = Action { implicit request =>
+  def showProjectById(pluginId: String) = Action { implicit request =>
     projects.withPluginId(pluginId) match {
       case None => NotFound
       case Some(project) => Redirect(self.show(project.ownerName, project.slug))

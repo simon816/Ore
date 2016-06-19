@@ -135,6 +135,11 @@ class Application @Inject()(data: DataHelper,
     }
   }
 
+  /**
+    * Performs miscellaneous migration actions for use in deployment.
+    *
+    * @return Redirect home
+    */
   def migrate() = (Authenticated andThen PermissionAction[AuthRequest](MigrateOre)) { implicit request =>
     this.data.migrate()
     Redirect(self.showHome(None, None, None, None))
