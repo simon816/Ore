@@ -67,16 +67,15 @@ Versions page within Project overview.
                                         <tr>
                                             <td>
                                                 <i title="@channel.name" class="fa fa-circle channel-id" style="color: @channel.color.hex"></i>
-                                                @version.versionString
+                                                <a href="@projectRoutes.Versions.show(
+                                                    model.ownerName, model.slug, version.versionString)">
+                                                    <strong>@version.versionString</strong>
+                                                </a>
                                             </td>
                                             <td>
                                                 <div class="pull-right">
                                                     <span class="date">@prettifyDate(version.createdAt.get)</span>
                                                     <span class="date">@version.humanFileSize</span>
-                                                    <a href="@projectRoutes.Versions.show(
-                                                        model.ownerName, model.slug, version.versionString)">
-                                                        <i title="Details" class="fa fa-info-circle"></i>
-                                                    </a>
                                                     <a href="@projectRoutes.Versions.download(
                                                         model.ownerName, model.slug, version.versionString)">
                                                         <i title="Download" class="fa fa-download"></i>
