@@ -25,12 +25,12 @@ class ProjectActions(override val service: ModelService)
   extends ModelActions[ProjectTable, Project](service, classOf[Project], TableQuery[ProjectTable]) {
 
   /** The [[ModelActions]] for [[Flag]]s. */
-  val FlagActions = service.registry.register(
+  val FlagActions = service.registry.registerActions(
     new ModelActions[FlagTable, Flag](this.service, classOf[Flag], TableQuery[FlagTable])
   )
 
   /** The [[ModelActions]] for [[ProjectView]]. */
-  val ViewActions = service.registry.register(
+  val ViewActions = service.registry.registerActions(
     new StatActions[ProjectViewsTable, ProjectView](this.service, TableQuery[ProjectViewsTable], classOf[ProjectView])
   )
 

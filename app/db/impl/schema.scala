@@ -99,8 +99,8 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions") {
 }
 
 class VersionDownloadsTable(tag: Tag) extends StatTable[VersionDownload](tag, "version_downloads", "version_id") {
-  override def * = (id.?, createdAt.?, modelId, address, cookie,
-    userId.?) <> ((VersionDownload.apply _).tupled, VersionDownload.unapply)
+  override def * = (id.?, createdAt.?, modelId, address, cookie, userId.?) <> ((VersionDownload.apply _).tupled,
+                    VersionDownload.unapply)
 }
 
 class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {

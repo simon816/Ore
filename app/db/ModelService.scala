@@ -28,7 +28,7 @@ trait ModelService {
 
   /** All registered models and [[db.meta.TypeSetter]]s */
   val registry: ModelRegistry
-  import registry.registerSetter
+  import registry.registerTypeSetter
 
   /** The base JDBC driver */
   val driver: JdbcDriver
@@ -47,14 +47,14 @@ trait ModelService {
   protected[db] val DB: DatabaseConfig[JdbcProfile]
 
   // Bootstrap TypeSetters
-  registerSetter(classOf[Int], IntTypeSetter)
-  registerSetter(classOf[String], StringTypeSetter)
-  registerSetter(classOf[Boolean], BooleanTypeSetter)
-  registerSetter(classOf[Timestamp], TimestampTypeSetter)
-  registerSetter(classOf[List[Int]], IntListTypeSetter)
-  registerSetter(classOf[List[String]], StringListTypeSetter)
-  registerSetter(classOf[List[Boolean]], BooleanListTypeSetter)
-  registerSetter(classOf[List[Timestamp]], TimestampListTypeSetter)
+  registerTypeSetter(classOf[Int], IntTypeSetter)
+  registerTypeSetter(classOf[String], StringTypeSetter)
+  registerTypeSetter(classOf[Boolean], BooleanTypeSetter)
+  registerTypeSetter(classOf[Timestamp], TimestampTypeSetter)
+  registerTypeSetter(classOf[List[Int]], IntListTypeSetter)
+  registerTypeSetter(classOf[List[String]], StringListTypeSetter)
+  registerTypeSetter(classOf[List[Boolean]], BooleanListTypeSetter)
+  registerTypeSetter(classOf[List[Timestamp]], TimestampListTypeSetter)
 
   /**
     * Returns a current Timestamp.

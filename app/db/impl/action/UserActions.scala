@@ -15,7 +15,7 @@ class UserActions(override val service: ModelService)
   extends ModelActions[UserTable, User](service, classOf[User], TableQuery[UserTable]) {
 
   /** The [[ModelActions]] for [[ProjectRole]]s. */
-  val ProjectRoleActions = service.registry.register(
+  val ProjectRoleActions = service.registry.registerActions(
     new ModelActions[ProjectRoleTable, ProjectRole](this.service, classOf[ProjectRole], TableQuery[ProjectRoleTable])
   )
 

@@ -61,11 +61,19 @@ class ModelProcessor(service: ModelService) {
             .map(_.typeSignature.typeArgs.head).head.typeSymbol.asClass)
       }
 
-      service.registry.getSetter(fieldType).bindTo(model, key, bindField)(service)
+      service.registry.getTypeSetter(fieldType).bindTo(model, key, bindField)(service)
     }
     model
   }
 
+  /**
+    * Binds the [[HasMany]] relationships within a [[Model]].
+    *
+    * @param model  Model to bind
+    * @tparam T     Model table
+    * @tparam M     Model type
+    * @return       Model
+    */
   def bindRelations[T <: ModelTable[M], M <: Model](model: M): M = {
     val modelClass = model.getClass
     val key = modelClass.getSimpleName.toLowerCase + "Id"

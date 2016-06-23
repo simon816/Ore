@@ -39,23 +39,23 @@ class OreModelService @Inject()(config: OreConfig,
   override lazy val DB = db.get[JdbcProfile]
   override lazy val DefaultTimeout: Duration = Duration(config.app.getInt("db.default-timeout").get, TimeUnit.SECONDS)
 
-  import registry.{register, registerModelBase, registerSetter}
+  import registry.{registerActions, registerModelBase, registerTypeSetter}
 
   val users = registerModelBase[UserBase](classOf[UserBase], new UserBase(this, forums, config))
   val projects = registerModelBase[ProjectBase](classOf[ProjectBase], new ProjectBase(this))
 
   // Custom types
-  registerSetter(classOf[Color], ColorTypeSetter)
-  registerSetter(classOf[RoleType], RoleTypeTypeSetter)
-  registerSetter(classOf[List[RoleType]], RoleTypeListTypeSetter)
-  registerSetter(classOf[Category], CategoryTypeSetter)
-  registerSetter(classOf[FlagReason], FlagReasonTypeSetter)
+  registerTypeSetter(classOf[Color], ColorTypeSetter)
+  registerTypeSetter(classOf[RoleType], RoleTypeTypeSetter)
+  registerTypeSetter(classOf[List[RoleType]], RoleTypeListTypeSetter)
+  registerTypeSetter(classOf[Category], CategoryTypeSetter)
+  registerTypeSetter(classOf[FlagReason], FlagReasonTypeSetter)
 
   // Ore models
-  register(new ModelActions[ChannelTable, Channel](this, classOf[Channel], TableQuery[ChannelTable]))
-  register(new PageActions(this))
-  register(new ProjectActions(this))
-  register(new UserActions(this))
-  register(new VersionActions(this))
+  registerActions(new ModelActions[ChannelTable, Channel](this, classOf[Channel], TableQuery[ChannelTable]))
+  registerActions(new PageActions(this))
+  registerActions(new ProjectActions(this))
+  registerActions(new UserActions(this))
+  registerActions(new VersionActions(this))
 
 }

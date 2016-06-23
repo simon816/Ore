@@ -23,34 +23,9 @@ trait ModelRegistry {
     * @tparam Q Type Actions type
     * @return Registered actions
     */
-  def register[Q <: ModelActions[_, _ <: Model]](actions: Q): Q = {
+  def registerActions[Q <: ModelActions[_, _ <: Model]](actions: Q): Q = {
     this.modelActions.put(actions.modelClass, actions)
     actions
-  }
-
-  /**
-    * Registers a new TypeSetter that can be bound to model fields.
-    *
-    * @param clazz  Type class
-    * @param setter Type setter
-    * @tparam A     Type
-    */
-  def registerSetter[A](clazz: Class[A], setter: TypeSetter[A]): TypeSetter[A] = {
-    typeSetters.put(clazz, setter)
-    setter
-  }
-
-  /**
-    * Returns a registered TypeSetter by the type class.
-    *
-    * @param clazz  Type class
-    * @tparam A     Type
-    * @return       Registered setter, if any, None otherwise
-    */
-  def getSetter[A](clazz: Class[A]): TypeSetter[A] = {
-    typeSetters.asScala.get(clazz)
-      .map(_.asInstanceOf[TypeSetter[A]])
-      .getOrElse(throw new RuntimeException("No type setter found for type: " + clazz.getSimpleName))
   }
 
   /**
@@ -77,6 +52,31 @@ trait ModelRegistry {
     this.modelActions.asScala.find(_._1.isAssignableFrom(modelClass))
       .getOrElse(throw new RuntimeException("actions not found for model " + modelClass))
       ._2.asInstanceOf[ModelActions[T, M]]
+  }
+
+  /**
+    * Registers a new TypeSetter that can be bound to model fields.
+    *
+    * @param clazz  Type class
+    * @param setter Type setter
+    * @tparam A     Type
+    */
+  def registerTypeSetter[A](clazz: Class[A], setter: TypeSetter[A]): TypeSetter[A] = {
+    this.typeSetters.put(clazz, setter)
+    setter
+  }
+
+  /**
+    * Returns a registered TypeSetter by the type class.
+    *
+    * @param clazz  Type class
+    * @tparam A     Type
+    * @return       Registered setter, if any, None otherwise
+    */
+  def getTypeSetter[A](clazz: Class[A]): TypeSetter[A] = {
+    this.typeSetters.asScala.get(clazz)
+      .map(_.asInstanceOf[TypeSetter[A]])
+      .getOrElse(throw new RuntimeException("No type setter found for type: " + clazz.getSimpleName))
   }
 
   /**

@@ -64,8 +64,8 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     val binding = this.fieldBindings
       .getOrElse(key, throw new RuntimeException("No field binding found for key " + key + " in model " + this))
       .asInstanceOf[FieldBinding[M, R]]
-    val value = binding.valueFunc(this.asInstanceOf[M])
-    service.await(binding.updateFunc(value)).get
+    val value = binding.getValue(this.asInstanceOf[M])
+    service.await(binding.setValue(value)).get
   }
 
   /**
@@ -76,7 +76,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     * @return     Value of key
     */
   def get[R](key: String): Option[R]
-  = this.fieldBindings.get(key).map(_.asInstanceOf[FieldBinding[M, R]].valueFunc(this.asInstanceOf[M]))
+  = this.fieldBindings.get(key).map(_.asInstanceOf[FieldBinding[M, R]].getValue(this.asInstanceOf[M]))
 
   /**
     * Marks the specified model class as a child of this model.
@@ -111,7 +111,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
   /**
     * Removes this model from it's table through it's ModelActions.
     */
-  def remove() = this.service.await(this.actions.delete(this.asInstanceOf[M]))
+  def remove() = Defined(this.service.await(this.actions.delete(this.asInstanceOf[M])))
 
   /**
     * Returns a copy of this model with an updated ID and timestamp.

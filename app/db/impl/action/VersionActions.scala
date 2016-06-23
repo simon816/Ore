@@ -16,7 +16,7 @@ class VersionActions(override val service: ModelService)
   extends ModelActions[VersionTable, Version](service, classOf[Version], TableQuery[VersionTable]) {
 
   /** The [[StatActions]] for [[VersionDownload]]s. */
-  val DownloadActions = service.registry.register(
+  val DownloadActions = service.registry.registerActions(
     new StatActions[VersionDownloadsTable, VersionDownload](
       this.service, TableQuery[VersionDownloadsTable], classOf[VersionDownload]
     )
