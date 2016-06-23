@@ -41,7 +41,7 @@
                                 <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
-                                <strong>@messages("version.create.error")</strong> @flash.get("error").get
+                                <strong>@messages("project.create.error")</strong> @flash.get("error").get
                             </div>
                         }
 
@@ -110,8 +110,8 @@
                                         @if(showFileControls) {
                                             <tr>
                                                 <td><strong>Recommended</strong></td>
-                                                <td>
-                                                    <div class="recommended checkbox-inline">
+                                                <td class="rv">
+                                                    <div class="checkbox-inline">
                                                         <input form="form-publish" name="recommended" type="checkbox" checked
                                                         value="true"/>
                                                     </div>

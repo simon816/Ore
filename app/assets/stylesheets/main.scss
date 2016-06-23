@@ -23,7 +23,7 @@ body {
 }
 
 .index-header .alert {
-  @include margin-vert(20px, 0);
+  margin-bottom: 20px;
 }
 
 .logo {

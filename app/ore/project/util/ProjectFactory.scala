@@ -62,7 +62,9 @@ trait ProjectFactory {
     val meta = plugin.loadMeta
     val pathStr = plugin.path.toString
     val ext = pathStr.substring(pathStr.lastIndexOf('.'))
-    plugin.move(plugin.path.getParent.resolve(meta.getName + '-' + meta.getVersion + ext))
+    val path = plugin.path.getParent.resolve(meta.getName + '-' + meta.getVersion + ext)
+    deleteIfExists(path)
+    plugin.move(path)
 
     plugin
   }
