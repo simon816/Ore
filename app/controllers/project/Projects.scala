@@ -59,6 +59,7 @@ class Projects @Inject()(val stats: StatTracker,
         this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user) match {
           case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
             // PEBKAC
+            thrown.printStackTrace()
             Redirect(self.showCreator()).flashing("error" -> "Invalid plugin file.")
           } else {
             throw thrown

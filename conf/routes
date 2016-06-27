@@ -98,8 +98,11 @@ GET     /:author/:slug/versions                                     @controllers
 GET     /:author/:slug/versions/:version/approve                    @controllers.project.Versions.approve(author, slug, version)
 GET     /:author/:slug/versions/:version/delete                     @controllers.project.Versions.delete(author, slug, version)
 
-GET     /:author/:slug/versions/download/recommended                @controllers.project.Versions.downloadRecommended(author, slug)
-GET     /:author/:slug/versions/download/:version                   @controllers.project.Versions.download(author, slug, version)
+GET     /:author/:slug/versions/recommended/download                @controllers.project.Versions.downloadRecommended(author, slug)
+GET     /:author/:slug/versions/:version/download                   @controllers.project.Versions.download(author, slug, version)
+
+GET     /:author/:slug/versions/recommended/jar                     @controllers.project.Versions.downloadRecommendedJar(author, slug)
+GET     /:author/:slug/versions/:version/jar                        @controllers.project.Versions.downloadJar(author, slug, version)
 
 GET     /:author/:slug/versions/new                                 @controllers.project.Versions.showCreator(author, slug)
 POST    /:author/:slug/versions/new/upload                          @controllers.project.Versions.upload(author, slug)

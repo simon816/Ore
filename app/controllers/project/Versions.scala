@@ -1,18 +1,21 @@
 package controllers.project
 
+import java.nio.file.{Files, StandardCopyOption}
 import javax.inject.Inject
 
 import controllers.BaseController
+import controllers.Requests.ProjectRequest
 import controllers.project.routes.{Versions => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import form.OreForms
 import forums.DiscourseApi
-import models.project.{Channel, Project}
+import models.project.{Channel, Project, Version}
 import ore.StatTracker
 import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.util._
 import play.api.i18n.MessagesApi
+import play.api.mvc.Result
 import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
 import views.html.projects.{versions => views}
@@ -172,6 +175,7 @@ class Versions @Inject()(val stats: StatTracker,
           this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, request.user) match {
             case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
               // PEBKAC
+              thrown.printStackTrace()
               Redirect(self.showCreator(author, slug))
                 .flashing("error" -> "Invalid plugin file.")
             } else {
@@ -353,6 +357,55 @@ class Versions @Inject()(val stats: StatTracker,
       val rv = project.recommendedVersion
       this.stats.versionDownloaded(rv) { implicit request =>
         Ok.sendFile(this.fileManager.getProjectDir(author, project.name).resolve(rv.fileName).toFile)
+      }
+    }
+  }
+
+  /**
+    * Downloads the specified version as a JAR regardless of the original
+    * uploaded file type.
+    *
+    * @param author         Project owner
+    * @param slug           Project slug
+    * @param versionString  Version name
+    * @return               Sent file
+    */
+  def downloadJar(author: String, slug: String, versionString: String) = {
+    ProjectAction(author, slug) { implicit request =>
+      implicit val project = request.project
+      withVersion(versionString)(version => sendJar(project, version))
+    }
+  }
+
+  /**
+    * Downloads the Project's recommended version as a JAR regardless of the
+    * original uploaded file type.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return       Sent file
+    */
+  def downloadRecommendedJar(author: String, slug: String) = {
+    ProjectAction(author, slug) { implicit request =>
+      val project = request.project
+      sendJar(project, project.recommendedVersion)
+    }
+  }
+
+  private def sendJar(project: Project, version: Version)(implicit request: ProjectRequest[_]): Result = {
+    val fileName = version.fileName
+    val path = this.fileManager.getProjectDir(project.ownerName, project.name).resolve(fileName)
+    this.stats.versionDownloaded(version) { implicit request =>
+      if (fileName.endsWith(".jar"))
+        Ok.sendFile(path.toFile)
+      else {
+        val pluginFile = new PluginFile(path, project.owner.user)
+        val jarName = fileName.substring(0, fileName.lastIndexOf('.')) + ".jar"
+        val jarPath = this.fileManager.env.tmp.resolve(project.ownerName).resolve(jarName)
+        val jarIn = pluginFile.newJarStream
+        Files.copy(jarIn, jarPath, StandardCopyOption.REPLACE_EXISTING)
+        jarIn.close()
+        Ok.sendFile(jarPath.toFile, onClose = () => Files.delete(jarPath))
       }
     }
   }

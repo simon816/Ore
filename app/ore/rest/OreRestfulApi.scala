@@ -8,6 +8,7 @@ import db.impl.action.{ProjectActions, UserActions, VersionActions}
 import db.impl.service.{ProjectBase, UserBase}
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
+import play.api.libs.json.Json.toJson
 import play.api.libs.json.{JsValue, Json}
 import util.OreConfig
 import util.StringUtils.equalsIgnoreCase
@@ -22,9 +23,9 @@ trait OreRestfulApi {
 
   val service: ModelService
   val config: OreConfig
-  val users: UserBase = service.access(classOf[UserBase])
+  val users: UserBase = this.service.access(classOf[UserBase])
 
-  implicit val projects: ProjectBase = service.access(classOf[ProjectBase])
+  implicit val projects: ProjectBase = this.service.access(classOf[ProjectBase])
 
   /**
     * Returns a Json value of the Projects meeting the specified criteria.
@@ -38,15 +39,15 @@ trait OreRestfulApi {
     */
   def getProjectList(categories: Option[String], sort: Option[Int], q: Option[String],
                      limit: Option[Int], offset: Option[Int]): JsValue = {
-    val queries = service.getActions(classOf[ProjectActions])
+    val queries = this.service.getActions(classOf[ProjectActions])
     val categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
-    val s = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
+    val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
     val filter = q.map(queries.searchFilter).orNull
-    val maxLoad = config.projects.getInt("init-load").get
+    val maxLoad = this.config.projects.getInt("init-load").get
     val lim = Math.max(limit.getOrElse(maxLoad), maxLoad)
-    val f = queries.collect(filter, categoryArray, lim, offset.getOrElse(-1), s)
-    val projects = service.await(f).get
-    Json.toJson(projects)
+    val future = queries.collect(filter, categoryArray, lim, offset.getOrElse(-1), ordering)
+    val projects = this.service.await(future).get
+    toJson(projects)
   }
 
   /**
@@ -55,8 +56,7 @@ trait OreRestfulApi {
     * @param pluginId Project plugin ID
     * @return Json value of project if found, None otherwise
     */
-  def getProject(pluginId: String): Option[JsValue]
-  = projects.withPluginId(pluginId).map(Json.toJson(_))
+  def getProject(pluginId: String): Option[JsValue] = this.projects.withPluginId(pluginId).map(toJson(_))
 
   /**
     * Returns a Json value of the Versions meeting the specified criteria.
@@ -69,16 +69,18 @@ trait OreRestfulApi {
     */
   def getVersionList(pluginId: String, channels: Option[String],
                      limit: Option[Int], offset: Option[Int]): Option[JsValue] = {
-    projects.withPluginId(pluginId).map { project =>
+    this.projects.withPluginId(pluginId).map { project =>
       // Map channel names to IDs
       val channelIds: Option[Seq[Int]] = channels.map(_.toLowerCase.split(',').map { name =>
         project.channels.find(equalsIgnoreCase(_.name, name)).get.id.get
       })
+
       // Only allow versions in the specified channels
       val filter = channelIds.map(service.getActions(classOf[VersionActions]).channelFilter).orNull
-      val maxLoad = config.projects.getInt("init-version-load").get
+      val maxLoad = this.config.projects.getInt("init-version-load").get
       val lim = Math.max(limit.getOrElse(maxLoad), maxLoad)
-      Json.toJson(project.versions.sorted(_.createdAt.desc, filter, lim, offset.getOrElse(-1)))
+
+      toJson(project.versions.sorted(_.createdAt.desc, filter, lim, offset.getOrElse(-1)))
     }
   }
 
@@ -90,9 +92,9 @@ trait OreRestfulApi {
     * @return         JSON version if found, None otherwise
     */
   def getVersion(pluginId: String, name: String): Option[JsValue] = {
-    projects.withPluginId(pluginId)
+    this.projects.withPluginId(pluginId)
       .flatMap(_.versions.find(equalsIgnoreCase(_.versionString, name)))
-      .map(Json.toJson(_))
+      .map(toJson(_))
   }
 
   /**
@@ -102,8 +104,12 @@ trait OreRestfulApi {
     * @param offset Amount to drop
     * @return       List of users
     */
-  def getUserList(limit: Option[Int], offset: Option[Int]): JsValue
-  = Json.toJson(service.await(service.getActions(classOf[UserActions]).collect(limit = limit.getOrElse(-1), offset = offset.getOrElse(-1))).get)
+  def getUserList(limit: Option[Int], offset: Option[Int]): JsValue = toJson {
+    this.service.await(service.getActions(classOf[UserActions]).collect(
+      limit = limit.getOrElse(-1),
+      offset = offset.getOrElse(-1))
+    ).get
+  }
 
   /**
     * Returns a Json value of the User with the specified username.
@@ -111,8 +117,7 @@ trait OreRestfulApi {
     * @param username Username of User
     * @return         JSON user if found, None otherwise
     */
-  def getUser(username: String): Option[JsValue]
-  = users.withName(username).map(Json.toJson(_))
+  def getUser(username: String): Option[JsValue] = this.users.withName(username).map(toJson(_))
 
 }
 
