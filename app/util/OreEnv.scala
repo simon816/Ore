@@ -9,10 +9,11 @@ import play.api.Environment
   */
 final class OreEnv @Inject()(val env: Environment) {
 
-  lazy val root    =  env.rootPath.toPath
-  lazy val conf    =  root.resolve("conf")
-  lazy val uploads =  root.resolve("uploads")
-  lazy val plugins =  uploads.resolve("plugins")
-  lazy val tmp     =  uploads.resolve("tmp")
+  lazy val root    =  this.env.rootPath.toPath
+  lazy val public  =  this.root.resolve("public")
+  lazy val conf    =  this.root.resolve("conf")
+  lazy val uploads =  this.root.resolve("uploads")
+  lazy val plugins =  this.uploads.resolve("plugins")
+  lazy val tmp     =  this.uploads.resolve("tmp")
 
 }

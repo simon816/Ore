@@ -10,8 +10,8 @@ import db.impl.service.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import org.apache.commons.io.FileUtils
-import util.{OreConfig, OreEnv}
 import util.StringUtils._
+import util.{OreConfig, OreEnv}
 
 /**
   * Handles management tasks for [[models.project.Project]]s and their components.

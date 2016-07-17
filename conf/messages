@@ -75,6 +75,7 @@ project.create.info-text.head   =   A project contains your downloads and the do
 project.create.info-text.bottom =   Begin by uploading your plugin JAR file with a valid <i>mcmod.info</i> file in the first level or a ZIP file with your valid plugin JAR in the first level. Plugins with missing or incomplete metadata files will not be accepted.
 project.create.issue-input      =   Issue tracker URL
 project.create.source-input     =   Source code URL
+project.icon                    =   Project icon
 
 project.members.info-text.head   =   Project members are other users of Ore that have special access to your project. Different user "roles" define what a user can and cannot do to your project.
 project.members.info-text.bottom =   Ore was able to find <strong>{0}</strong> users who are registered with Ore in your plugin file.

@@ -3,7 +3,9 @@ package ore.project.util
 import java.nio.file.Files._
 import java.nio.file.Path
 
+import models.project.Project
 import util.OreEnv
+import util.StringUtils.optional2option
 
 import scala.util.Try
 
@@ -20,6 +22,20 @@ class ProjectFileManager(val env: OreEnv) {
     * @return       Plugin directory
     */
   def getProjectDir(owner: String, name: String): Path = getUserDir(owner).resolve(name)
+
+  /**
+    * Returns the path to a custom [[Project]] icon, if any, None otherwise.
+    *
+    * @param project Project to get icon for
+    * @return Project icon
+    */
+  def getIconPath(project: Project): Option[Path] = {
+    val dir = getProjectDir(project.ownerName, project.name).resolve("icon")
+    if (exists(dir))
+      list(dir).findFirst()
+    else
+      None
+  }
 
   /**
     * Returns the specified user's plugin directory.

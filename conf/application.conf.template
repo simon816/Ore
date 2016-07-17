@@ -49,6 +49,7 @@ ore.projects.init-version-load  =   10
 ore.projects.max-desc-len       =   120
 ore.projects.file-validate      =   true
 ore.projects.tmp-file-save      =   false
+ore.projects.icon-size          =   200
 
 ore.users.stars-per-page    =   5
 ore.users.max-tagline-len   =   100

@@ -123,7 +123,6 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
       while (entries.hasMoreElements) {
         val entry = entries.nextElement()
         val name = entry.getName
-        println("ZIP ENTRY: " + name)
         if (!entry.isDirectory && name.split("/").length == 1 && name.endsWith(".jar")) {
           pluginEntry = entry
           break

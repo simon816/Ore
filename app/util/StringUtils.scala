@@ -1,7 +1,7 @@
 package util
 
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.{Date, Optional}
 
 import db.impl.OrePostgresDriver.api._
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
@@ -78,5 +78,7 @@ object StringUtils {
     }
     str
   }
+
+  implicit def optional2option[A](opt: Optional[A]): Option[A] = if (opt.isPresent) Some(opt.get()) else None
 
 }

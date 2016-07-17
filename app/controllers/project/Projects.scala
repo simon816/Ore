@@ -12,6 +12,7 @@ import ore.StatTracker
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
 import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectManager}
+import org.apache.commons.io.FileUtils
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.OreConfig
@@ -302,6 +303,24 @@ class Projects @Inject()(val stats: StatTracker,
       request.project.source match {
         case None => NotFound
         case Some(link) => Redirect(link)
+      }
+    }
+  }
+
+  /**
+    * Shows either a customly uploaded icon for a [[models.project.Project]]
+    * or the owner's avatar if there is none.
+    *
+    * @param author Project owner
+    * @param slug Project slug
+    * @return Project icon
+    */
+  def showIcon(author: String, slug: String) = {
+    ProjectAction(author, slug) { implicit request =>
+      val project = request.project
+      this.manager.fileManager.getIconPath(project) match {
+        case None => Redirect(project.owner.user.avatarUrl(this.config.projects.getInt("icon-size").get))
+        case Some(iconPath) => Ok(FileUtils.readFileToByteArray(iconPath.toFile)).as("image/jpeg")
       }
     }
   }

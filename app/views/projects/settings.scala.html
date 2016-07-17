@@ -4,7 +4,6 @@
 @import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import models.project.Project
-@import models.user.User
 @import ore.permission.HideProjects
 @import ore.permission.scope.GlobalScope
 @import views.html.helper.form
@@ -20,18 +19,18 @@
     <div class="container">
         <div class="row">
             <div class="col-md-8">
+
+                <!-- Main settings -->
                 <div class="panel panel-default panel-settings">
                     <div class="panel-heading">
                         <h3 class="panel-title pull-left">@messages("project.settings")</h3>
-
                         @if(users.current.get can HideProjects in GlobalScope) {
                             @projects.util.btnHide(project, "pull-right")
                         }
-
                         <div class="clearfix"></div>
                     </div>
-                    <div class="panel-body">
 
+                    <div class="panel-body">
                         @projects.util.inputSettings("save", project.issues, project.source, Some(project.category))
 
                         <label for="description">Project description</label>
@@ -44,7 +43,14 @@
                           }
                         />
 
+                        @form(action = routes.Application.showHome(None, None, None, None)) {
+                            <label for="icon">Project icon</label>
+                            <input type="file" id="icon" name="icon" />
+                        }
+
+                        <!-- Destructive actions -->
                         <div class="danger-zone">
+                            <!-- Rename -->
                             <label for="name">Project name</label>
                             <div class="form-inline form-rename">
                                 <input form="rename" id="name" name="name" class="form-control" type="text" value="@project.name"
@@ -53,7 +59,6 @@
                                     @messages("project.rename")
                                 </button>
                             </div>
-
                             <div class="modal fade" id="modal-rename" tabindex="-1" role="dialog" aria-labelledby="label-rename">
                                 <div class="modal-dialog" role="document">
                                     <div class="modal-content">
@@ -80,8 +85,10 @@
                                 </div>
                             </div>
 
-                            <button class="btn btn-delete btn-danger" data-toggle="modal" data-target="#modal-delete">@messages("project.delete")</button>
-
+                            <!-- Delete -->
+                            <button class="btn btn-delete btn-danger" data-toggle="modal" data-target="#modal-delete">
+                                @messages("project.delete")
+                            </button>
                             <div class="modal fade" id="modal-delete" tabindex="-1" role="dialog" aria-labelledby="label-delete">
                                 <div class="modal-dialog" role="document">
                                     <div class="modal-content">
@@ -100,7 +107,8 @@
                                                     <button type="button" class="btn btn-default" data-dismiss="modal">
                                                         @messages("channel.edit.close")
                                                     </button>
-                                                    <input type="submit" name="delete" value="@messages("project.delete")" class="btn btn-danger">
+                                                    <input type="submit" name="delete"
+                                                           value="@messages("project.delete")" class="btn btn-danger">
                                                 }
                                             </div>
                                         </div>
@@ -117,14 +125,13 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
 
+            <!-- Side panel -->
+            <div class="col-md-4">
                 <div class="alert alert-danger" role="alert" @if(flash.get("error").isEmpty) { style="display: none;" }>
                     <strong>Whoops!</strong> <span>@flash.get("error").getOrElse("")</span>
                 </div>
-
                 @projects.members.list(project, editable = true)
-
             </div>
         </div>
     </div>

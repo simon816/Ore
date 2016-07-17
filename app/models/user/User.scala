@@ -12,7 +12,7 @@ import db.meta._
 import models.project.{Flag, Project}
 import ore.UserOwned
 import ore.permission._
-import ore.permission.role.RoleTypes.RoleType
+import ore.permission.role.RoleTypes.{DonorType, RoleType}
 import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
 import util.StringUtils._

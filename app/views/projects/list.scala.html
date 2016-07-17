@@ -1,14 +1,14 @@
 @*
 Collection of all projects.
 *@
-@import _root_.util.OreConfig
+@import _root_.util.{OreConfig, OreEnv}
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
 @import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import models.project.Project
 @(models: Seq[Project], page: Int, pageSize: Int, call: Int => Call)(implicit messages: Messages, session: Session,
-        flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
+        flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
 
 <ul class="list-group project-list">
     @models.map { project =>
@@ -16,7 +16,7 @@ Collection of all projects.
             <div class="project-list-header pull-left">
                 <a class="pull-left" href="@routes.Users.showProjects(project.ownerName, None)">
                     <img class="user-avatar" height="50" width="50" title="@project.ownerName"
-                    alt="@project.ownerName" src="@project.owner.user.avatarUrl(200)" />
+                    alt="@project.ownerName" src="@projectRoutes.showIcon(project.ownerName, project.slug)" />
                 </a>
                 <div class="project-title">
                     <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
