@@ -21,15 +21,14 @@ import util.StringUtils._
 import views.html.{projects => views}
 
 import scala.util.{Failure, Success}
-import collection.JavaConverters._
 
 /**
   * Controller for handling Project related actions.
   */
 class Projects @Inject()(val stats: StatTracker,
                          val forms: OreForms,
-                         val manager: ProjectManager,
                          val factory: ProjectFactory,
+                         implicit val manager: ProjectManager,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val config: OreConfig,
                          implicit override val forums: DiscourseApi,
@@ -335,7 +334,6 @@ class Projects @Inject()(val stats: StatTracker,
     AuthedProjectAction(author, slug) { implicit request =>
       request.body.asMultipartFormData.get.file("icon") match {
         case None =>
-          println("no file")
           Redirect(self.showSettings(author, slug)).flashing("error" -> "No file submitted.")
         case Some(tmpFile) =>
           println(tmpFile.filename)

@@ -28,6 +28,16 @@ trait ProjectManager {
   implicit val config: OreConfig
   implicit val forums: DiscourseApi
 
+  def savePendingIcon(project: Project) = {
+    this.fileManager.getPendingIconPath(project).foreach { iconPath =>
+      val iconDir = this.fileManager.getIconDir(project.ownerName, project.name)
+      if (notExists(iconDir))
+        createDirectories(iconDir)
+      FileUtils.cleanDirectory(iconDir.toFile)
+      move(iconPath, iconDir.resolve(iconPath.getFileName))
+    }
+  }
+
   /**
     * Renames the specified [[Project]].
     *

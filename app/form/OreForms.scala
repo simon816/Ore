@@ -66,7 +66,8 @@ class OreForms @Inject()(implicit config: OreConfig) {
     "users" -> list(number),
     "roles" -> list(text),
     "userUps" -> list(text),
-    "roleUps" -> list(text)
+    "roleUps" -> list(text),
+    "update-icon" -> boolean
   )(ProjectSettings.apply)(ProjectSettings.unapply))
 
   /**

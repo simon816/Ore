@@ -5,7 +5,6 @@ import java.nio.file.Path
 
 import models.project.Project
 import util.OreEnv
-import util.StringUtils.optional2option
 
 import scala.util.Try
 import collection.JavaConverters._
@@ -31,7 +30,9 @@ class ProjectFileManager(val env: OreEnv) {
     * @param name Project name
     * @return Icon directory path
     */
-  def getIconDir(owner: String, name: String): Path = getProjectDir(owner, name).resolve("icon")
+  def getIconsDir(owner: String, name: String): Path = getProjectDir(owner, name).resolve("icons")
+
+  def getIconDir(owner: String, name: String): Path = getIconsDir(owner, name).resolve("icon")
 
   /**
     * Returns the path to a custom [[Project]] icon, if any, None otherwise.
@@ -41,7 +42,7 @@ class ProjectFileManager(val env: OreEnv) {
     */
   def getIconPath(project: Project): Option[Path] = findFirstFile(getIconDir(project.ownerName, project.name))
 
-  def getPendingIconDir(owner: String, name: String): Path = getIconDir(owner, name).resolve("pending")
+  def getPendingIconDir(owner: String, name: String): Path = getIconsDir(owner, name).resolve("pending")
 
   def getPendingIconPath(project: Project): Option[Path]
   = findFirstFile(getPendingIconDir(project.ownerName, project.name))
