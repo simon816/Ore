@@ -1,14 +1,14 @@
 @*
 Collection of all projects.
 *@
-@import _root_.util.{OreConfig, OreEnv}
+@import _root_.util.OreConfig
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
 @import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import models.project.Project
 @(models: Seq[Project], page: Int, pageSize: Int, call: Int => Call)(implicit messages: Messages, session: Session,
-        flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
+        flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 <ul class="list-group project-list">
     @models.map { project =>

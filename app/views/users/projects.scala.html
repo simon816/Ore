@@ -6,10 +6,9 @@
 @import models.user.User
 @import util.OreConfig
 @import views.html.projects.{list => projectList}
-@import _root_.util.OreEnv
 @(user: User, models: Seq[Project], page: Int)(implicit messages: Messages,
         session: Session, flash: Flash, request: RequestHeader, service: ModelService, forums: DiscourseApi,
-        config: OreConfig, userBase: UserBase, env: OreEnv)
+        config: OreConfig, userBase: UserBase)
 
 @users.view(user) {
 

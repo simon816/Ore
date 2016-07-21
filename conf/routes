@@ -72,7 +72,10 @@ POST    /:author/:slug/manage/members/remove                        @controllers
 
 GET     /:author/:slug/issues                                       @controllers.project.Projects.showIssues(author, slug)
 GET     /:author/:slug/source                                       @controllers.project.Projects.showSource(author, slug)
+
 GET     /:author/:slug/icon                                         @controllers.project.Projects.showIcon(author, slug)
+POST    /:author/:slug/icon                                         @controllers.project.Projects.uploadIcon(author, slug)
+GET     /:author/:slug/icon/pending                                 @controllers.project.Projects.showPendingIcon(author, slug)
 # ------- End Projects ---------
 
 

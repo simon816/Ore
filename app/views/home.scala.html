@@ -13,11 +13,9 @@ sorted according to different criteria.
 @import ore.project.ProjectSortingStrategies.{values, _}
 @import ore.project.ProjectSortingStrategies
 @import scala.util.Random
-@import _root_.util.OreEnv
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], query: Option[String], page: Int,
         sort: ProjectSortingStrategy)(implicit messages: Messages, session: Session, flash: Flash,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
-        env: OreEnv)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 @randomSponsor = @{
     val logos = config.sponge.getStringList("sponsors.logos").get

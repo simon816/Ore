@@ -1,5 +1,6 @@
 package controllers.project
 
+import java.nio.file.{Files, Path}
 import javax.inject.Inject
 
 import controllers.BaseController
@@ -20,6 +21,7 @@ import util.StringUtils._
 import views.html.{projects => views}
 
 import scala.util.{Failure, Success}
+import collection.JavaConverters._
 
 /**
   * Controller for handling Project related actions.
@@ -36,6 +38,8 @@ class Projects @Inject()(val stats: StatTracker,
 
   private def SettingsEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditSettings)
+
+  private def showImage(path: Path) = Ok(FileUtils.readFileToByteArray(path.toFile)).as("image/jpeg")
 
   /**
     * Displays the "create project" page.
@@ -319,8 +323,39 @@ class Projects @Inject()(val stats: StatTracker,
     ProjectAction(author, slug) { implicit request =>
       val project = request.project
       this.manager.fileManager.getIconPath(project) match {
-        case None => Redirect(project.owner.user.avatarUrl(this.config.projects.getInt("icon-size").get))
-        case Some(iconPath) => Ok(FileUtils.readFileToByteArray(iconPath.toFile)).as("image/jpeg")
+        case None =>
+          Redirect(project.owner.user.avatarUrl(this.config.projects.getInt("icon-size").get))
+        case Some(iconPath) =>
+          showImage(iconPath)
+      }
+    }
+  }
+
+  def uploadIcon(author: String, slug: String) = {
+    AuthedProjectAction(author, slug) { implicit request =>
+      request.body.asMultipartFormData.get.file("icon") match {
+        case None =>
+          println("no file")
+          Redirect(self.showSettings(author, slug)).flashing("error" -> "No file submitted.")
+        case Some(tmpFile) =>
+          println(tmpFile.filename)
+          val project = request.project
+          val pendingDir = this.manager.fileManager.getPendingIconDir(project.ownerName, project.name)
+          if (Files.notExists(pendingDir))
+            Files.createDirectories(pendingDir)
+          FileUtils.cleanDirectory(pendingDir.toFile)
+          tmpFile.ref.moveTo(pendingDir.resolve(tmpFile.filename).toFile, replace = true)
+          Ok
+      }
+    }
+  }
+
+  def showPendingIcon(author: String, slug: String) = {
+    ProjectAction(author, slug) { implicit request =>
+      val project = request.project
+      this.manager.fileManager.getPendingIconPath(project) match {
+        case None => NotFound
+        case Some(path) => showImage(path)
       }
     }
   }

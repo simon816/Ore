@@ -17,14 +17,13 @@ import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
 import play.api.mvc._
-import util.{DataHelper, OreConfig, OreEnv}
+import util.{DataHelper, OreConfig}
 import views.{html => views}
 
 /**
   * Main entry point for application.
   */
 class Application @Inject()(data: DataHelper,
-                            implicit val env: OreEnv,
                             implicit override val messagesApi: MessagesApi,
                             implicit override val config: OreConfig,
                             implicit override val forums: DiscourseApi,

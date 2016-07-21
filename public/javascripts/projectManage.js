@@ -1,4 +1,6 @@
 var projectName = null;
+var PROJECT_OWNER = null;
+var PROJECT_SLUG = null;
 
 $(function() {
     $('#name').on('input', function() {
