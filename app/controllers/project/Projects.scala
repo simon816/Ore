@@ -355,6 +355,13 @@ class Projects @Inject()(val stats: StatTracker,
     }
   }
 
+  /**
+    * Resets the specified Project's icon to the default user avatar.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return       Ok
+    */
   def resetIcon(author: String, slug: String) = {
     AuthedProjectAction(author, slug) { implicit request =>
       val project = request.project
