@@ -56,9 +56,12 @@
                                  src="@projectRoutes.showIcon(project.ownerName, project.slug)" />
                             <div class="form-inline">
                                 <input class="form-control-static" type="file" id="icon" name="icon" />
-                                <button class="btn btn-default pull-right">
-                                    <i class="fa fa-upload"></i> Upload
-                                </button>
+                                <div class="btn-group pull-right">
+                                    <button class="btn btn-info pull-right" disabled>
+                                        <i class="fa fa-upload"></i> Upload
+                                    </button>
+                                    <div class="btn btn-default btn-reset">Reset</div>
+                                </div>
                             </div>
                         </form>
 

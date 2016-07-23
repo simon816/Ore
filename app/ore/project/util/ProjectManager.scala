@@ -28,16 +28,6 @@ trait ProjectManager {
   implicit val config: OreConfig
   implicit val forums: DiscourseApi
 
-  def savePendingIcon(project: Project) = {
-    this.fileManager.getPendingIconPath(project).foreach { iconPath =>
-      val iconDir = this.fileManager.getIconDir(project.ownerName, project.name)
-      if (notExists(iconDir))
-        createDirectories(iconDir)
-      FileUtils.cleanDirectory(iconDir.toFile)
-      move(iconPath, iconDir.resolve(iconPath.getFileName))
-    }
-  }
-
   /**
     * Renames the specified [[Project]].
     *
@@ -57,6 +47,21 @@ trait ProjectManager {
     if (project.topicId.isDefined) {
       this.forums.embed.renameTopic(project)
       this.forums.embed.updateTopic(project)
+    }
+  }
+
+  /**
+    * Saves any pending icon that has been uploaded for the specified [[Project]].
+    *
+    * @param project Project to save icon for
+    */
+  def savePendingIcon(project: Project) = {
+    this.fileManager.getPendingIconPath(project).foreach { iconPath =>
+      val iconDir = this.fileManager.getIconDir(project.ownerName, project.name)
+      if (notExists(iconDir))
+        createDirectories(iconDir)
+      FileUtils.cleanDirectory(iconDir.toFile)
+      move(iconPath, iconDir.resolve(iconPath.getFileName))
     }
   }
 

@@ -75,6 +75,7 @@ GET     /:author/:slug/source                                       @controllers
 
 GET     /:author/:slug/icon                                         @controllers.project.Projects.showIcon(author, slug)
 POST    /:author/:slug/icon                                         @controllers.project.Projects.uploadIcon(author, slug)
+POST    /:author/:slug/icon/reset                                   @controllers.project.Projects.resetIcon(author, slug)
 GET     /:author/:slug/icon/pending                                 @controllers.project.Projects.showPendingIcon(author, slug)
 # ------- End Projects ---------
 

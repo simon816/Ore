@@ -330,6 +330,13 @@ class Projects @Inject()(val stats: StatTracker,
     }
   }
 
+  /**
+    * Uploads a new icon to be saved for the specified [[models.project.Project]].
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return       Ok or redirection if no file
+    */
   def uploadIcon(author: String, slug: String) = {
     AuthedProjectAction(author, slug) { implicit request =>
       request.body.asMultipartFormData.get.file("icon") match {
@@ -348,6 +355,22 @@ class Projects @Inject()(val stats: StatTracker,
     }
   }
 
+  def resetIcon(author: String, slug: String) = {
+    AuthedProjectAction(author, slug) { implicit request =>
+      val project = request.project
+      FileUtils.deleteDirectory(this.manager.fileManager.getIconsDir(project.ownerName, project.name).toFile)
+      Ok
+    }
+  }
+
+  /**
+    * Displays the specified [[models.project.Project]]'s current pending
+    * icon, if any.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return       Pending icon
+    */
   def showPendingIcon(author: String, slug: String) = {
     ProjectAction(author, slug) { implicit request =>
       val project = request.project
