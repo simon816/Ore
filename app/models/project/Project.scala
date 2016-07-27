@@ -69,7 +69,7 @@ case class Project(// Immutable
                    @(Bind @field) private var _postId: Option[Int] = None,
                    @(Bind @field) private var _isVisible: Boolean = true)
                    extends OreModel(id, createdAt)
-                     with ProjectScope { self =>
+                     with ProjectScope {
 
   override type M = Project
   override type T = ProjectTable

@@ -12,7 +12,7 @@ import db.meta._
 import models.project.{Flag, Project}
 import ore.UserOwned
 import ore.permission._
-import ore.permission.role.RoleTypes.RoleType
+import ore.permission.role.RoleTypes.{DonorType, RoleType}
 import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
 import util.StringUtils._
@@ -42,7 +42,7 @@ case class User(override val id: Option[Int] = None,
                 @(Bind @field) private var _avatarUrl: Option[String] = None)
                 extends OreModel(id, createdAt)
                   with UserOwned
-                  with ScopeSubject { self =>
+                  with ScopeSubject {
 
   override type M = User
   override type T = UserTable
@@ -208,6 +208,18 @@ case class User(override val id: Option[Int] = None,
   def globalRoles_=(_globalRoles: Set[RoleType]) = {
     this._globalRoles = _globalRoles.toList
     if (isDefined) update(GlobalRoles)
+  }
+
+  /**
+    * Returns the highest level [[DonorType]] this User has.
+    *
+    * @return Highest level donor type
+    */
+  def donorType: Option[DonorType] = {
+    this.globalRoles.toList
+      .filter(_.isInstanceOf[DonorType])
+      .map(_.asInstanceOf[DonorType])
+      .sortBy(_.id).lastOption
   }
 
   /**

@@ -30,7 +30,7 @@ case class ProjectRole(override val id: Option[Int] = None,
                        extends OreModel(id, createdAt)
                          with Role
                          with ProjectScope
-                         with Ordered[ProjectRole] { self =>
+                         with Ordered[ProjectRole] {
 
   def this(userId: Int, roleType: RoleType, projectId: Int) = {
     this(id=None, createdAt=None, userId=userId, _roleType=roleType, projectId=projectId)

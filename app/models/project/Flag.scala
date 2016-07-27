@@ -32,7 +32,7 @@ case class Flag(override val id: Option[Int],
                 @(Bind @field) private var _isResolved: Boolean = false)
                 extends OreModel(id, createdAt)
                   with UserOwned
-                  with ProjectScope { self =>
+                  with ProjectScope {
 
   def this(projectId: Int, userId: Int, reason: FlagReason) = {
     this(id=None, createdAt=None, projectId=projectId, userId=userId, reason=reason)

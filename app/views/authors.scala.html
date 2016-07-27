@@ -53,7 +53,16 @@
                                        src="@user.avatarUrl()" width="32" height="32" class="user-avatar" />
                               </a>
                           </td>
-                          <td><a href="@routes.Users.showProjects(user.username, None)">@user.username</a></td>
+                          <td>
+                              <a href="@routes.Users.showProjects(user.username, None)">@user.username</a>
+                              @defining(user.donorType) { donorType =>
+                                @donorType.map { dt =>
+                                  <span class="channel channel-sm" style="background-color: @dt.color.hex">
+                                    @dt.title
+                                  </span>
+                                }
+                              }
+                          </td>
                           <td>@prettifyDate(user.joinDate.getOrElse(user.createdAt.get))</td>
                           <td>@user.projects.size</td>
                       </tr>

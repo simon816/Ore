@@ -36,7 +36,7 @@ case class Page(override val id: Option[Int] = None,
                 isDeletable: Boolean = true,
                 @(Bind @field) private var _contents: String)
                 extends OreModel(id, createdAt)
-                  with ProjectScope { self =>
+                  with ProjectScope {
 
   override type M = Page
   override type T = PageTable

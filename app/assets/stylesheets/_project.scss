@@ -125,6 +125,10 @@
   cursor: default;
 }
 
+.channel-sm {
+  font-size: 10px;
+}
+
 .channel-head {
   @include towardsBottomRight(15px, 23px);
   font-size: 20px;

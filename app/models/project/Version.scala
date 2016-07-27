@@ -46,7 +46,7 @@ case class Version(override val id: Option[Int] = None,
                    @(Bind @field) private var _isReviewed: Boolean = false,
                    fileName: String)
                    extends OreModel(id, createdAt)
-                     with ProjectScope { self =>
+                     with ProjectScope {
 
   override type M = Version
   override type T = VersionTable

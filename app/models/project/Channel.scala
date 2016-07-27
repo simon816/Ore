@@ -31,7 +31,7 @@ case class Channel(override val id: Option[Int] = None,
                    @(Bind @field) private var _color: Color)
                    extends OreModel(id, createdAt)
                      with Ordered[Channel]
-                     with ProjectScope { self =>
+                     with ProjectScope {
 
   def this(name: String, color: Color, projectId: Int) = this(_name=name, _color=color, projectId=projectId)
 
