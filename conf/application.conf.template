@@ -81,5 +81,5 @@ discourse.embed.disabled    =   false
 # Sponge stuff
 sponge.logo = "https://forums-cdn.spongepowered.org/uploads/default/original/2X/7/77fa5f82289385db14561fac384ddea2a84a0070.png"
 sponge.icon = "https://forums-cdn.spongepowered.org/uploads/default/original/2X/9/9ba706a80e45cf427617525ee2a19fad7bb6b109.png"
-sponge.sponsors.urls = [ "https://www.enjin.com/", "http://www.multiplaygameservers.com", "https://www.beastnode.com/", "https://serverminer.com/", "https://www.nitrous-networks.com", "https://billing.creeperhost.net/link.php?id=8", "https://mcprohosting.com/?promo=Sponge" ]
-sponge.sponsors.logos = [ "enjin.png", "multiplay.png", "beastnode.png", "serverminer.png", "nitrous.png", "creeperhost.svg", "mcprohosting.png" ]
+sponge.sponsors.urls = [  "https://billing.creeperhost.net/link.php?id=8", "https://www.enjin.com/", "http://www.multiplaygameservers.com", "https://www.beastnode.com/", "https://serverminer.com/", "https://mcprohosting.com/?promo=Sponge" ]
+sponge.sponsors.logos = [ "creeperhost.svg", "enjin.png", "multiplay.png", "beastnode.png", "serverminer.png", "mcprohosting.png" ]
