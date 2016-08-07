@@ -11,6 +11,8 @@ GET     /admin/queue                                                @controllers
 GET     /admin/flags                                                @controllers.Application.showFlags
 GET     /admin/flags/:id/resolve/:resolved                          @controllers.Application.setFlagResolved(id: Int, resolved: Boolean)
 
+GET     /statusz                                                    @controllers.ApiController.showStatusZ
+
 # ---------- API (v1) ----------
 GET     /api/projects                                               @controllers.ApiController.listProjects(version = "v1", categories: Option[String], sort: Option[Int], q: Option[String], limit: Option[Int], offset: Option[Int])
 GET     /api/projects/:pluginId                                     @controllers.ApiController.showProject(version = "v1", pluginId)

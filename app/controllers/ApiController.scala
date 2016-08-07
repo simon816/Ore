@@ -103,4 +103,11 @@ class ApiController @Inject()(val api: OreRestfulApi) extends Controller {
     }
   }
 
+  /**
+    * Returns a JSON statusz endpoint for Ore.
+    *
+    * @return statusz json
+    */
+  def showStatusZ = Action(Ok(this.api.getStatusZ))
+
 }
