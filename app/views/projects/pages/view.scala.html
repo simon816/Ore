@@ -9,6 +9,8 @@ Documentation page within Project overview.
 @import models.project.{Page, Project}
 @import models.user.User
 @import ore.permission.EditPages
+@import _root_.util.StringUtils.prettifyDate
+@import java.text.NumberFormat
 @(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi,
         config: OreConfig, users: UserBase)
@@ -41,6 +43,13 @@ Documentation page within Project overview.
                     </div>
                 </div>
                 <div class="col-md-3">
+
+                    <div class="stats minor">
+                        <p>Published on @prettifyDate(model.createdAt.get)</p>
+                        <p>@model.views views</p>
+                        <p>@NumberFormat.getInstance.format(model.downloads) total downloads</p>
+                    </div>
+
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h3 class="panel-title">@messages("page.plural")</h3>

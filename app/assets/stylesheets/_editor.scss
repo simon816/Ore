@@ -111,7 +111,17 @@ button.open:hover {
 }
 
 .new-page {
-  @include fromTopRight(34px, 14px);
+  margin-top: -15px;
+}
+
+.panel {
+  margin-bottom: 10px;
+}
+
+.stats {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  p { margin: 0; }
 }
 
 .channel-reset {
