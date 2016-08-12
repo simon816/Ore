@@ -1,10 +1,10 @@
 import javax.inject._
 
 import _root_.db.ModelService
-import _root_.util.OreConfig
+import _root_.util.{OreConfig, OreEnv}
 import _root_.forums.DiscourseApi
 import play.api._
-import _root_.db.impl.service.{UserBase, ProjectBase}
+import _root_.db.impl.service.{ProjectBase, UserBase}
 import play.api.http.DefaultHttpErrorHandler
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Results._
@@ -18,6 +18,7 @@ class ErrorHandler @Inject()(env: Environment,
                              conf: Configuration,
                              sourceMapper: OptionalSourceMapper,
                              router: Provider[Router],
+                             implicit val oreEnv: OreEnv,
                              implicit val config: OreConfig,
                              implicit val service: ModelService,
                              implicit val forums: DiscourseApi,

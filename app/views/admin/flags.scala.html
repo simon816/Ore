@@ -6,8 +6,10 @@
 @import db.impl.service.UserBase
 @import db.impl.service.ProjectBase
 @import db.impl.service.UserBase
+@import util.OreEnv
 @(flags: Seq[Flag])(implicit messages: Messages, session: Session, request: RequestHeader,
-        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, projectBase: ProjectBase)
+        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, projectBase: ProjectBase,
+        env: OreEnv)
 
 @bootstrap.layout("Flags") {
 

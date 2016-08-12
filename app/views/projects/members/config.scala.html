@@ -9,8 +9,10 @@
 @import views.html.helper.form
 
 @import scala.collection.JavaConversions._
+@import _root_.util.OreEnv
 @(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
+        env: OreEnv)
 
 @projects.util.panelCreate(messages("project.create"), 3) {
     @defining(users.current.get) { user =>

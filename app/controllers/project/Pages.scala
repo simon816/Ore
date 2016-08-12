@@ -12,7 +12,7 @@ import ore.StatTracker
 import ore.permission.EditPages
 import play.api.i18n.MessagesApi
 import play.api.mvc.Action
-import util.OreConfig
+import util.{OreConfig, OreEnv}
 import util.StringUtils.equalsIgnoreCase
 import views.html.projects.{pages => views}
 
@@ -22,6 +22,7 @@ import views.html.projects.{pages => views}
 class Pages @Inject()(val forms: OreForms,
                       val stats: StatTracker,
                       implicit override val messagesApi: MessagesApi,
+                      implicit override val env: OreEnv,
                       implicit override val config: OreConfig,
                       implicit override val forums: DiscourseApi,
                       implicit override val service: ModelService)

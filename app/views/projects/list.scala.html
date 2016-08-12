@@ -7,8 +7,9 @@ Collection of all projects.
 @import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import models.project.Project
+@import _root_.util.OreEnv
 @(models: Seq[Project], page: Int, pageSize: Int, call: Int => Call)(implicit messages: Messages, session: Session,
-        flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
+        flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
 
 <ul class="list-group project-list">
     @models.map { project =>

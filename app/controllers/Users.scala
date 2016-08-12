@@ -10,7 +10,7 @@ import form.OreForms
 import forums.{DiscourseApi, DiscourseSSO}
 import play.api.i18n.MessagesApi
 import play.api.mvc.{Security, _}
-import util.{FakeUser, OreConfig}
+import util.{FakeUser, OreConfig, OreEnv}
 import views.{html => views}
 
 /**
@@ -20,6 +20,7 @@ class Users @Inject()(val fakeUser: FakeUser,
                       val forms: OreForms,
                       val auth: DiscourseSSO,
                       implicit override val messagesApi: MessagesApi,
+                      implicit override val env: OreEnv,
                       implicit override val config: OreConfig,
                       implicit override val forums: DiscourseApi,
                       implicit override val service: ModelService) extends BaseController {

@@ -6,8 +6,9 @@
 @import _root_.util.OreConfig
 @import db.impl.service.UserBase
 @import util.StringUtils.prettifyDate
+@import util.OreEnv
 @(user: User)(content: Html)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader,
-        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
+        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
 
 @isThisUser = @{ users.current.isDefined && users.current.get.equals(user) }
 

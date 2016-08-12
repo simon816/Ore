@@ -11,9 +11,10 @@ Base template for Project overview.
 @import ore.permission.EditSettings
 @import ore.project.FlagReasons
 @import views.html.helper.form
+@import _root_.util.OreEnv
 @(project: Project, active: String, noButtons: Boolean = false)(content: Html)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService,
-        forums: DiscourseApi, config: OreConfig, users: UserBase)
+        forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
 
 @hasUser = @{ users.current.isDefined }
 @user = @{ users.current.get }

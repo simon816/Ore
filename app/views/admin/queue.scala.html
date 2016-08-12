@@ -6,8 +6,9 @@
 @import models.project.{Project, Version}
 @import util.StringUtils
 @import util.StringUtils.prettifyDate
+@import util.OreEnv
 @(versions: Seq[(Project, Version)])(implicit messages: Messages, session: Session, request: RequestHeader,
-        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
+        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
 
 @bootstrap.layout("Project queue") {
 

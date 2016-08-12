@@ -8,8 +8,9 @@ Discussion page within Project overview.
 @import forums.DiscourseApi
 @import models.project.Project
 @import models.user.User
+@import _root_.util.OreEnv
 @(model: Project)(implicit messages: Messages, session: Session, request: RequestHeader,
-        flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
+        flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
 
 @projects.view(model, "#discussion") {
 

@@ -10,7 +10,7 @@ import forums.DiscourseApi
 import ore.permission.EditChannels
 import ore.project.util.{ProjectFactory, ProjectManager}
 import play.api.i18n.MessagesApi
-import util.OreConfig
+import util.{OreConfig, OreEnv}
 import views.html.projects.{channels => views}
 
 /**
@@ -20,6 +20,7 @@ class Channels @Inject()(val forms: OreForms,
                          val manager: ProjectManager,
                          val factory: ProjectFactory,
                          implicit override val messagesApi: MessagesApi,
+                         implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
                          implicit override val forums: DiscourseApi,
                          implicit override val service: ModelService)

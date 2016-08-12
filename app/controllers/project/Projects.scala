@@ -16,7 +16,7 @@ import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectMana
 import org.apache.commons.io.FileUtils
 import play.api.i18n.MessagesApi
 import play.api.mvc._
-import util.OreConfig
+import util.{OreConfig, OreEnv}
 import util.StringUtils._
 import views.html.{projects => views}
 
@@ -30,6 +30,7 @@ class Projects @Inject()(val stats: StatTracker,
                          val factory: ProjectFactory,
                          implicit val manager: ProjectManager,
                          implicit override val messagesApi: MessagesApi,
+                         implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
                          implicit override val forums: DiscourseApi,
                          implicit override val service: ModelService)

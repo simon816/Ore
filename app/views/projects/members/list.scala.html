@@ -7,8 +7,9 @@
 @import ore.permission.EditSettings
 @import ore.permission.role.RoleTypes
 @import views.html.helper.form
+@import _root_.util.OreEnv
 @(model: Project, editable: Boolean = false)(implicit messages: Messages, session: Session, service: ModelService,
-        forums: DiscourseApi, config: OreConfig, users: UserBase)
+        forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
 
 @canEdit = @{
     editable && users.current.isDefined && (users.current.get can EditSettings in model)

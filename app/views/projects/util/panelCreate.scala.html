@@ -3,8 +3,10 @@
 @import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import play.twirl.api.Html
+@import util.OreEnv
 @(title: String, step: Int)(content: Html)(implicit messages: Messages, session: Session,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
+        env: OreEnv)
 
 @bootstrap.layout(title) {
 

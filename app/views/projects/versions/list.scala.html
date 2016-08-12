@@ -10,10 +10,11 @@ Versions page within Project overview.
 @import models.user.User
 @import ore.permission.{EditChannels, EditVersions}
 @import util.StringUtils.prettifyDate
+@import util.OreEnv
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
   visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session,
         request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig,
-        users: UserBase)
+        users: UserBase, env: OreEnv)
 
 @projects.view(model, "#versions") {
 

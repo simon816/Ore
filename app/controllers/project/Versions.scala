@@ -16,7 +16,7 @@ import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.util._
 import play.api.i18n.MessagesApi
 import play.api.mvc.Result
-import util.OreConfig
+import util.{OreConfig, OreEnv}
 import util.StringUtils.equalsIgnoreCase
 import views.html.projects.{versions => views}
 
@@ -30,6 +30,7 @@ class Versions @Inject()(val stats: StatTracker,
                          val manager: ProjectManager,
                          val factory: ProjectFactory,
                          implicit override val messagesApi: MessagesApi,
+                         implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
                          implicit override val forums: DiscourseApi,
                          implicit override val service: ModelService)

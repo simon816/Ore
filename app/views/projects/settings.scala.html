@@ -7,8 +7,10 @@
 @import ore.permission.HideProjects
 @import ore.permission.scope.GlobalScope
 @import views.html.helper.form
+@import _root_.util.OreEnv
 @(project: Project)(implicit messages: Messages, session: Session, flash: Flash,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
+        env: OreEnv)
 
 @projects.view(project, "#settings") {
 

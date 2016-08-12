@@ -11,9 +11,10 @@ Documentation page within Project overview.
 @import ore.permission.EditPages
 @import _root_.util.StringUtils.prettifyDate
 @import java.text.NumberFormat
+@import util.OreEnv
 @(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi,
-        config: OreConfig, users: UserBase)
+        config: OreConfig, users: UserBase, env: OreEnv)
 
 @canEditPages = @{
     users.current.isDefined && (users.current.get can EditPages in model)

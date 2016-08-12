@@ -6,9 +6,10 @@
 @import util.StringUtils.prettifyDate
 @import models.user.User
 @import db.impl.service.UserBase._
+@import util.OreEnv
 @(authors: Seq[User], ordering: String, page: Int)(implicit messages: Messages, session: Session,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
-        projectBase: ProjectBase)
+        projectBase: ProjectBase, env: OreEnv)
 
 @pageSize = @{ config.users.getInt("author-page-size").get }
 @direction = @{ if (ordering.startsWith("-")) "o-chevron-down" else "o-chevron-up" }

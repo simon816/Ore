@@ -6,13 +6,14 @@ import forums.DiscourseApi
 import models.project.{Project, Version}
 import play.api.i18n.I18nSupport
 import play.api.mvc._
-import util.OreConfig
+import util.{OreConfig, OreEnv}
 import util.StringUtils.equalsIgnoreCase
 
 /**
   * Represents a Secured base Controller for this application.
   */
-abstract class BaseController(implicit val config: OreConfig,
+abstract class BaseController(implicit val env: OreEnv,
+                              val config: OreConfig,
                               val service: ModelService,
                               override val forums: DiscourseApi)
                               extends Controller

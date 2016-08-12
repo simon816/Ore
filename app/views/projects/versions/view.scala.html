@@ -9,9 +9,10 @@
 @import ore.permission.{EditVersions, ReviewProjects}
 @import util.StringUtils
 @import util.StringUtils.prettifyDate
+@import util.OreEnv
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService,
-        forums: DiscourseApi, config: OreConfig, users: UserBase, projectBase: ProjectBase)
+        forums: DiscourseApi, config: OreConfig, users: UserBase, projectBase: ProjectBase, env: OreEnv)
 
 @hasUser = @{ users.current.isDefined }
 @user = @{ users.current.get }

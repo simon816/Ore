@@ -2,8 +2,9 @@
 @import db.ModelService
 @import db.impl.service.UserBase
 @import forums.DiscourseApi
+@import util.OreEnv
 @(message: String)(implicit messages: Messages, session: Session, request: RequestHeader,
-        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase)
+        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
 
 @bootstrap.layout("Error") {
 
