@@ -41,12 +41,10 @@ this.
         @content
         @bootstrap.footer()
 
-        @if(env.env.mode == Mode.Prod) {
-            <div class="channel commit">
-            @defining(sys.env("GIT_COMMIT")) { commit =>
-                <a href="https://github.com/SpongePowered/Ore/commit/@commit">@commit.substring(0, 8)</a>
-            }
-            </div>
+        @sys.env.get("GIT_COMMIT").map { commit =>
+          <div class="channel commit">
+              <a href="https://github.com/SpongePowered/Ore/commit/@commit">@commit.substring(0, 8)</a>
+          </div>
         }
 
         <script>
