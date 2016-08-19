@@ -255,11 +255,12 @@ class Versions @Inject()(val stats: StatTracker,
     * @return New version view
     */
   def publish(author: String, slug: String, versionString: String) = {
-    // TODO: Cleanup
     Authenticated { implicit request =>
       // First get the pending Version
       this.factory.getPendingVersion(author, slug, versionString) match {
-        case None => Redirect(self.showCreator(author, slug)) // Not found
+        case None =>
+          // Not found
+          Redirect(self.showCreator(author, slug))
         case Some(pendingVersion) =>
           // Get submitted channel
           this.forms.VersionCreate.bindFromRequest.fold(
@@ -284,7 +285,9 @@ class Versions @Inject()(val stats: StatTracker,
                     }.orNull
 
                     var channelResult: Either[String, Channel] = Right(existingChannel)
-                    if (existingChannel == null) channelResult = versionData.addTo(project)
+                    if (existingChannel == null)
+                      channelResult = versionData.addTo(project)
+
                     channelResult.fold(
                       error => {
                         Redirect(self.showCreatorWithMeta(author, slug, versionString))
@@ -292,7 +295,12 @@ class Versions @Inject()(val stats: StatTracker,
                       },
                       channel => {
                         val newVersion = pendingVersion.complete.get
-                        if (versionData.recommended) project.recommendedVersion = newVersion
+                        if (versionData.recommended)
+                          project.recommendedVersion = newVersion
+
+                        // Create forum topic reply
+                        this.forums.embed.postReply(project, project.owner.user, newVersion.postContent)
+
                         Redirect(self.show(author, slug, versionString))
                       }
                     )

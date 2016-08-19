@@ -1,8 +1,6 @@
 package models.project
 
-import java.nio.file.Files
 import java.sql.Timestamp
-import java.text.MessageFormat
 
 import com.google.common.base.Preconditions._
 import db.action.ModelAccess
@@ -18,8 +16,8 @@ import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import ore.project.{Categories, ProjectMember}
-import util.OreEnv
 import util.StringUtils.{compact, slugify}
+import util.{OreEnv, StringUtils}
 
 import scala.annotation.meta.field
 
@@ -135,6 +133,8 @@ case class Project(// Immutable
     this._slug = _slug
     update(Slug)
   }
+
+  def url: String = this.config.app.getString("baseUrl").get + '/' + this.ownerName + '/' + this.slug
 
   /**
     * Returns this Project's description.
@@ -475,9 +475,8 @@ case class Project(// Immutable
     * @return Topic content string
     */
   def topicContent(implicit env: OreEnv): String = {
-    val template = new String(Files.readAllBytes(env.conf.resolve("discourse/project_topic.md")))
-    val url = this.config.app.getString("baseUrl").get + '/' + project.ownerName + '/' + project.slug
-    MessageFormat.format(template, project.name, url, project.homePage.contents)
+    val templatePath = env.conf.resolve("discourse/project_topic.md")
+    StringUtils.readAndFormatFile(templatePath, project.name, this.url, project.homePage.contents)
   }
 
   override def projectId = Defined(this.id.get)

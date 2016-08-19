@@ -14,6 +14,7 @@ import ore.permission.scope.ProjectScope
 import ore.project.Dependency
 import org.apache.commons.io.FileUtils
 import play.twirl.api.Html
+import util.{OreEnv, StringUtils}
 
 import scala.annotation.meta.field
 
@@ -103,6 +104,8 @@ case class Version(override val id: Option[Int] = None,
   def descriptionHtml: Html
   = this.description.map(str => Html(Page.MarkdownProcessor.markdownToHtml(str))).getOrElse(Html(""))
 
+  def url: String = this.project.url + "/versions/" + this.versionString
+
   /**
     * Returns true if this version has been reviewed by the moderation staff.
     *
@@ -158,6 +161,13 @@ case class Version(override val id: Option[Int] = None,
   def exists: Boolean = {
     this.projectId > -1 && (this.service.await(this.actions.hashExists(this.projectId, this.hash)).get
       || this.project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase))
+  }
+
+  def postContent(implicit env: OreEnv): String = {
+    val templatePath = env.conf.resolve("discourse/version_post.md")
+    val project = this.project
+    StringUtils.readAndFormatFile(templatePath, project.name, project.url, this.url,
+      this.description.getOrElse("*No description given.*"))
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)

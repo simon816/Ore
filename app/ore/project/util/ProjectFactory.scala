@@ -24,19 +24,19 @@ import scala.util.Try
   */
 trait ProjectFactory {
 
+  val manager: ProjectManager
+  val fileManager: ProjectFileManager = this.manager.fileManager
+  val cacheApi: CacheApi
+
   implicit val service: ModelService
   implicit val config: OreConfig
   implicit val forums: DiscourseApi
+  implicit val env = this.fileManager.env
 
   implicit val users: UserBase = this.service.access(classOf[UserBase])
   implicit val projects: ProjectBase = this.service.access(classOf[ProjectBase])
 
   import service.processor.process
-
-  val manager: ProjectManager
-  val fileManager: ProjectFileManager = this.manager.fileManager
-  val cacheApi: CacheApi
-  val env = this.fileManager.env
 
   /**
     * Initializes a new PluginFile with the specified owner and temporary file.
@@ -232,7 +232,7 @@ trait ProjectFactory {
 
   private def uploadPlugin(channel: Channel, plugin: PluginFile): Try[Unit] = Try {
     val meta = plugin.meta.get
-    var oldPath = plugin.path
+    val oldPath = plugin.path
     val newPath = this.fileManager.getProjectDir(plugin.user.username, meta.getName).resolve(plugin.path.getFileName)
     if (!exists(newPath.getParent)) createDirectories(newPath.getParent)
     move(oldPath, newPath)

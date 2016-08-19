@@ -1,6 +1,7 @@
 package util
 
-import java.text.SimpleDateFormat
+import java.nio.file.{Files, Path}
+import java.text.{MessageFormat, SimpleDateFormat}
 import java.util.Date
 
 import db.impl.OrePostgresDriver.api._
@@ -78,5 +79,16 @@ object StringUtils {
     }
     str
   }
+
+  /**
+    * Reads the specified Path's file content and formats it with the
+    * specified parameters.
+    *
+    * @param path   Path to file
+    * @param params Format parameters
+    * @return       Formatted string
+    */
+  def readAndFormatFile(path: Path, params: String*): String
+  = MessageFormat.format(new String(Files.readAllBytes(path)), params.map(_.asInstanceOf[AnyRef]): _*)
 
 }
