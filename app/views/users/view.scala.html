@@ -85,7 +85,10 @@
                         <i class="minor">@user.projects.size projects</i><br/>
                         <i class="minor">
                             A member since @user.joinDate.map(prettifyDate).getOrElse(prettifyDate(user.createdAt.get))
-                        </i>
+                        </i><br/>
+                        <a href="https://forums.spongepowered.org/users/@user.username">
+                            View on forums <i class="fa fa-external-link"></i>
+                        </a>
                     </div>
                 </div>
             </div>
