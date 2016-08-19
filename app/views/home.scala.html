@@ -109,6 +109,7 @@ sorted according to different criteria.
                         <option value="@strategy.id">@strategy.title</option>
                     }
                 </select>
+
                 <!-- Category table -->
                 <div class="panel panel-default">
                     <div class="panel-heading">
@@ -136,6 +137,16 @@ sorted according to different criteria.
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Featured sponsor -->
+                @config.sponge.getString("sponsors.featured.logo").map { logo =>
+                  <div class="sponsor sponsor-featured">
+                      <i>Featured Sponsor</i><br/>
+                      <a href="@config.sponge.getString("sponsors.featured.url")">
+                          <img class="sponsor-logo" src="@routes.Assets.at("images/sponsors/" + logo)" />
+                      </a>
+                  </div>
+                }
             </div>
         </div>
     </div>
