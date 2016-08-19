@@ -104,6 +104,11 @@ case class Version(override val id: Option[Int] = None,
   def descriptionHtml: Html
   = this.description.map(str => Html(Page.MarkdownProcessor.markdownToHtml(str))).getOrElse(Html(""))
 
+  /**
+    * Returns the base URL for this Version.
+    *
+    * @return Base URL for version
+    */
   def url: String = this.project.url + "/versions/" + this.versionString
 
   /**
@@ -135,13 +140,26 @@ case class Version(override val id: Option[Int] = None,
     }
   }
 
+  /**
+    * Returns the amount of unique downloads this Version has.
+    *
+    * @return Amount of unique downloads
+    */
   def downloads: Int = this._downloads
 
+  /**
+    * Adds a download to the amount of unique downloads this Version has.
+    */
   def addDownload() = {
     this._downloads += 1
     update(Downloads)
   }
 
+  /**
+    * Returns [[db.action.ModelAccess]] to the recorded unique downloads.
+    *
+    * @return Recorded downloads
+    */
   def downloadEntries = this.getRelated[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
 
   /**
@@ -163,6 +181,12 @@ case class Version(override val id: Option[Int] = None,
       || this.project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase))
   }
 
+  /**
+    * Returns the raw markdown content for the "update post" on the forums.
+    *
+    * @param env  OreEnv
+    * @return     Raw markdown content
+    */
   def postContent(implicit env: OreEnv): String = {
     val templatePath = env.conf.resolve("discourse/version_post.md")
     val project = this.project

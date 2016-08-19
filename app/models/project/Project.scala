@@ -134,6 +134,11 @@ case class Project(// Immutable
     update(Slug)
   }
 
+  /**
+    * Returns the base URL for this Project.
+    *
+    * @return Base URL for project
+    */
   def url: String = this.config.app.getString("baseUrl").get + '/' + this.ownerName + '/' + this.slug
 
   /**

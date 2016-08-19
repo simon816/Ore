@@ -110,14 +110,12 @@ class Application @Inject()(data: DataHelper,
     * @param path Path with trailing slash
     * @return     Redirect to proper route
     */
-  def removeTrail(path: String) = Action {
-    MovedPermanently('/' + path)
-  }
+  def removeTrail(path: String) = Action(MovedPermanently('/' + path))
 
   /**
     * Helper route to reset Ore.
     */
-  def reset = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
+  def reset() = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
     this.config.checkDebug()
     this.data.reset()
     Redirect(self.showHome(None, None, None, None)).withNewSession

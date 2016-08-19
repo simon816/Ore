@@ -4,14 +4,14 @@
 
 GET     /*path/                                                     @controllers.Application.removeTrail(path)
 
-GET     /admin/reset                                                @controllers.Application.reset
+GET     /admin/reset                                                @controllers.Application.reset()
 GET     /admin/seed                                                 @controllers.Application.seed(users: Int ?= 200, projects: Int ?= 1, versions: Int ?= 2, channels: Int ?= 2)
-GET     /admin/migrate                                              @controllers.Application.migrate
-GET     /admin/queue                                                @controllers.Application.showQueue
-GET     /admin/flags                                                @controllers.Application.showFlags
+GET     /admin/migrate                                              @controllers.Application.migrate()
+GET     /admin/queue                                                @controllers.Application.showQueue()
+GET     /admin/flags                                                @controllers.Application.showFlags()
 GET     /admin/flags/:id/resolve/:resolved                          @controllers.Application.setFlagResolved(id: Int, resolved: Boolean)
 
-GET     /statusz                                                    @controllers.ApiController.showStatusZ
+GET     /statusz                                                    @controllers.ApiController.showStatusZ()
 
 # ---------- API (v1) ----------
 GET     /api/projects                                               @controllers.ApiController.listProjects(version = "v1", categories: Option[String], sort: Option[Int], q: Option[String], limit: Option[Int], offset: Option[Int])
@@ -43,13 +43,13 @@ GET     /logout                                                     @controllers
 
 GET     /p/:pluginId                                                @controllers.project.Projects.showProjectById(pluginId)
 
-GET     /new                                                        @controllers.project.Projects.showCreator
+GET     /new                                                        @controllers.project.Projects.showCreator()
 
-POST    /new/upload                                                 @controllers.project.Projects.upload
+POST    /new/upload                                                 @controllers.project.Projects.upload()
 GET     /new/:author/:slug                                          @controllers.project.Projects.showCreatorWithMeta(author, slug)
 POST    /new/:author/:slug/members                                  @controllers.project.Projects.showMembersConfig(author, slug)
 
-POST    /pages/preview                                              @controllers.project.Pages.showPreview
+POST    /pages/preview                                              @controllers.project.Pages.showPreview()
 
 # ---------- Users ----------
 GET     /authors                                                    @controllers.Users.showAuthors(sort: Option[String], page: Option[Int])

@@ -46,7 +46,7 @@ class Projects @Inject()(val stats: StatTracker,
     *
     * @return Create project view
     */
-  def showCreator = Authenticated { implicit request =>
+  def showCreator() = Authenticated { implicit request =>
     Ok(views.create(None))
   }
 
@@ -55,7 +55,7 @@ class Projects @Inject()(val stats: StatTracker,
     *
     * @return Result
     */
-  def upload = Authenticated { implicit request =>
+  def upload() = Authenticated { implicit request =>
     request.body.asMultipartFormData.get.file("pluginFile") match {
       case None => Redirect(self.showCreator()).flashing("error" -> "No file submitted.")
       case Some(tmpFile) =>

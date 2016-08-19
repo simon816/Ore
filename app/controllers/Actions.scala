@@ -37,7 +37,8 @@ trait Actions {
   def onUnauthorized(request: RequestHeader) = {
     if (request.flash.get("noRedirect").isEmpty && this.users.current(request.session).isEmpty)
       Redirect(routes.Users.logIn(None, None, Some(request.path)))
-    else Redirect(routes.Application.showHome(None, None, None, None))
+    else
+      Redirect(routes.Application.showHome(None, None, None, None))
   }
 
   /**
@@ -60,11 +61,10 @@ trait Actions {
     */
   def PermissionAction[R[_] <: ScopedRequest[_]](p: Permission) = new ActionRefiner[ScopedRequest, R] {
     def refine[A](request: ScopedRequest[A]) = Future.successful {
-      if (!(request.user can p in request.subject)) {
+      if (!(request.user can p in request.subject))
         Left(onUnauthorized(request))
-      } else {
+      else
         Right(request.asInstanceOf[R[A]])
-      }
     }
   }
 
@@ -80,7 +80,7 @@ trait Actions {
   private def projectAction(author: String, slug: String) = new ActionRefiner[Request, ProjectRequest] {
     def refine[A](request: Request[A]) = Future.successful {
       projects.withSlug(author, slug)
-        .flatMap(processProject(_, users.current(request.session)))
+        .flatMap(processProject(_, Actions.this.users.current(request.session)))
         .map(new ProjectRequest[A](_, request))
         .toRight(NotFound)
     }
@@ -88,7 +88,8 @@ trait Actions {
 
   private def processProject(project: Project, user: Option[User]): Option[Project] = {
     if (project.isVisible || (user.isDefined && (user.get can HideProjects in GlobalScope))) {
-      if (project.topicId.isEmpty) this.forums.embed.createTopic(project)
+      if (project.topicId.isEmpty)
+        this.forums.embed.createTopic(project)
       Some(project)
     } else {
       None

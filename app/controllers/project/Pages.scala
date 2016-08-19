@@ -70,7 +70,7 @@ class Pages @Inject()(val forms: OreForms,
     *
     * @return Rendered content
     */
-  def showPreview = Action { implicit request =>
+  def showPreview() = Action { implicit request =>
     Ok(Page.MarkdownProcessor.markdownToHtml((request.body.asJson.get \ "raw").as[String]))
   }
 
