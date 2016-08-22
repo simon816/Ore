@@ -82,3 +82,5 @@ sponge.logo = "https://forums-cdn.spongepowered.org/uploads/default/original/2X/
 sponge.icon = "https://forums-cdn.spongepowered.org/uploads/default/original/2X/9/9ba706a80e45cf427617525ee2a19fad7bb6b109.png"
 sponge.sponsors.urls = [  "https://billing.creeperhost.net/link.php?id=8", "https://www.enjin.com/", "http://www.multiplaygameservers.com", "https://www.beastnode.com/", "https://serverminer.com/", "https://mcprohosting.com/?promo=Sponge" ]
 sponge.sponsors.logos = [ "creeperhost.svg", "enjin.png", "multiplay.png", "beastnode.png", "serverminer.png", "mcprohosting.png" ]
+sponge.sponsors.featured.logo = "creeperhost.svg"
+sponge.sponsors.featured.url = "https://billing.creeperhost.net/link.php?id=8"
