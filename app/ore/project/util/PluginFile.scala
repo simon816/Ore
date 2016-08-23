@@ -11,6 +11,7 @@ import org.apache.commons.codec.digest.DigestUtils
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 
 import scala.util.control.Breaks._
+import scala.collection.JavaConverters._
 
 /**
   * Represents an uploaded plugin file.
@@ -21,6 +22,7 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
 
   private val MetaFileName = "mcmod.info"
 
+  private var _metaList: List[PluginMetadata] = List.empty
   private var _meta: Option[PluginMetadata] = None
 
   /**
@@ -45,6 +47,8 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
     */
   def delete() = Files.delete(this._path)
 
+  def metaList: List[PluginMetadata] = this._metaList
+
   /**
     * Returns the loaded PluginMetadata, if any.
     *
@@ -64,7 +68,7 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
     *
     * @return Result of parse
     */
-  def loadMeta: PluginMetadata = {
+  def loadMeta(): PluginMetadata = {
     try {
       // Find plugin JAR
       val jarIn: JarInputStream = new JarInputStream(newJarStream)
@@ -82,15 +86,16 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
       }
 
       if (!metaFound)
+        throw new InvalidPluginFileException("No plugin meta file found.")
+
+      // Read the meta file
+      this._metaList = McModInfo.DEFAULT.read(jarIn).asScala.toList
+      jarIn.close()
+      if (metaList.isEmpty)
         throw new InvalidPluginFileException("No plugin meta entries found.")
 
-      val metaList = McModInfo.DEFAULT.read(jarIn)
-      jarIn.close()
-      if (metaList.size() > 1)
-        throw new InvalidPluginFileException("Multiple meta entries found.")
-
       // Parse plugin meta info
-      val meta = metaList.get(0)
+      val meta = metaList.head
       this._meta = Some(meta)
       meta
     } catch {

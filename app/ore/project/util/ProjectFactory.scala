@@ -53,13 +53,15 @@ trait ProjectFactory {
     val tmpPath = this.env.tmp.resolve(owner.username).resolve(name)
     val plugin = new PluginFile(tmpPath, owner)
 
-    if (notExists(tmpPath.getParent)) createDirectories(tmpPath.getParent)
+    if (notExists(tmpPath.getParent))
+      createDirectories(tmpPath.getParent)
     val oldPath = tmp.file.toPath
     tmp.moveTo(plugin.path.toFile, replace = true)
 
-    if (this.config.projects.getBoolean("tmp-file-save").get) copy(plugin.path, oldPath)
+    if (this.config.projects.getBoolean("tmp-file-save").get)
+      copy(plugin.path, oldPath)
 
-    val meta = plugin.loadMeta
+    val meta = plugin.loadMeta()
     val pathStr = plugin.path.toString
     val ext = pathStr.substring(pathStr.lastIndexOf('.'))
     val path = plugin.path.getParent.resolve(meta.getName + '-' + meta.getVersion + ext)
@@ -91,7 +93,8 @@ trait ProjectFactory {
     */
   def versionFromFile(project: Project, plugin: PluginFile): Version = {
     val meta = plugin.meta.get
-    val depends = for (depend <- meta.getRequiredDependencies.asScala) yield depend.getId + ":" + depend.getVersion
+    val depends = for (depend <- meta.getRequiredDependencies.asScala) yield
+      depend.getId + ":" + depend.getVersion
     val path = plugin.path
     process {
       new Version(
@@ -211,9 +214,8 @@ trait ProjectFactory {
 
     // Create version
     val pendingVersion = pending.version
-    if (pendingVersion.exists && this.config.projects.getBoolean("file-validate").get) {
+    if (pendingVersion.exists && this.config.projects.getBoolean("file-validate").get)
       throw new IllegalArgumentException("Version already exists.")
-    }
 
     val newVersion = channel.versions.add(new Version(
       versionString = pendingVersion.versionString,
@@ -235,7 +237,8 @@ trait ProjectFactory {
     val meta = plugin.meta.get
     val oldPath = plugin.path
     val newPath = this.fileManager.getProjectDir(plugin.user.username, meta.getName).resolve(plugin.path.getFileName)
-    if (!exists(newPath.getParent)) createDirectories(newPath.getParent)
+    if (!exists(newPath.getParent))
+      createDirectories(newPath.getParent)
     move(oldPath, newPath)
     delete(oldPath)
   }
