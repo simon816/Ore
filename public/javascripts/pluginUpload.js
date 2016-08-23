@@ -1,4 +1,4 @@
-var MAX_FILE_SIZE = 1048576;
+var MAX_FILE_SIZE = 20971520;
 
 function getAlert() {
     return $('.alert-file');
