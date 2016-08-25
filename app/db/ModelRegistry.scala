@@ -81,7 +81,7 @@ trait ModelRegistry {
     * @return       Registered setter, if any, None otherwise
     */
   def getTypeSetter[A](clazz: Class[A]): TypeSetter[A] = {
-    checkNotNull(clazz, "type class is null")
+    checkNotNull(clazz, "type class is null", "")
     this.typeSetters.asScala.get(clazz)
       .map(_.asInstanceOf[TypeSetter[A]])
       .getOrElse(throw new RuntimeException("No type setter found for type: " + clazz.getSimpleName))
