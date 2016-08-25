@@ -2,6 +2,7 @@ package db
 
 import java.sql.Timestamp
 
+import com.google.common.base.Preconditions.checkNotNull
 import db.action.{ModelAccess, ModelActions, ModelFilter}
 import db.meta.{Actions, FieldBinding, ManyBinding}
 import slick.driver.JdbcDriver
@@ -37,11 +38,15 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     * @return         ModelActions
     */
   def actions(implicit service: ModelService = null): A = {
-    if (this.service == null) this.service = service
+    if (this.service == null)
+      this.service = service
+    checkNotNull(this.service, "service is null", "")
     val clazz = this.getClass
-    if (!clazz.isAnnotationPresent(classOf[Actions])) throw new RuntimeException("missing @Actions annotation")
+    if (!clazz.isAnnotationPresent(classOf[Actions]))
+      throw new RuntimeException("missing @Actions annotation")
     val actions = this.service.getActions(clazz.getAnnotation(classOf[Actions]).value)
-    if (!actions.isInstanceOf[A]) throw new RuntimeException("model actions class does not match type")
+    if (!actions.isInstanceOf[A])
+      throw new RuntimeException("model actions class does not match type")
     actions.asInstanceOf[A]
   }
 
@@ -51,8 +56,12 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     * @param key  Field name
     * @param f    Update function
     */
-  def bind[R](key: String, value: M => R, f: R => Future[_])
-  = this.fieldBindings += key -> FieldBinding[M, R](value, f)
+  def bind[R](key: String, value: M => R, f: R => Future[_]) = {
+    checkNotNull(key, "key is null", "")
+    checkNotNull(value, "value function is null", "")
+    checkNotNull(f, "update function is null", "")
+    this.fieldBindings += key -> FieldBinding[M, R](value, f)
+  }
 
   /**
     * Updates the specified key in the table.
@@ -61,11 +70,12 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     * @tparam R   Value type
     */
   def update[R](key: String) = {
+    checkNotNull(key, "key is null", "")
     val binding = this.fieldBindings
       .getOrElse(key, throw new RuntimeException("No field binding found for key " + key + " in model " + this))
       .asInstanceOf[FieldBinding[M, R]]
     val value = binding.getValue(this.asInstanceOf[M])
-    service.await(binding.setValue(value)).get
+    this.service.await(binding.setValue(value)).get
   }
 
   /**
@@ -75,8 +85,10 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     * @tparam R   Value type
     * @return     Value of key
     */
-  def get[R](key: String): Option[R]
-  = this.fieldBindings.get(key).map(_.asInstanceOf[FieldBinding[M, R]].getValue(this.asInstanceOf[M]))
+  def get[R](key: String): Option[R] = {
+    checkNotNull(key, "key is null", "")
+    this.fieldBindings.get(key).map(_.asInstanceOf[FieldBinding[M, R]].getValue(this.asInstanceOf[M]))
+  }
 
   /**
     * Marks the specified model class as a child of this model.
@@ -84,8 +96,11 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     * @param childClass   Child model class
     * @param ref          Reference column to this model in child table
     */
-  def bindMany(childClass: Class[_ <: Model], ref: ModelTable[_] => Rep[Int])
-  = this.manyBindings += childClass -> ManyBinding(childClass, ref)
+  def bindMany(childClass: Class[_ <: Model], ref: ModelTable[_] => Rep[Int]) = {
+    checkNotNull(childClass, "child class is null", "")
+    checkNotNull(ref, "parent reference is null", "")
+    this.manyBindings += childClass -> ManyBinding(childClass, ref)
+  }
 
   /**
     * Returns a [[ModelAccess]] of the children for the specified child class.
@@ -94,7 +109,8 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
     * @tparam Many       Child
     * @return            Set of children
     */
-  def getRelated[ManyTable <: ModelTable[Many], Many <: Model](modelClass: Class[Many]) = Defined {
+  def getMany[ManyTable <: ModelTable[Many], Many <: Model](modelClass: Class[Many]) = Defined {
+    checkNotNull(modelClass, "model class is null", "")
     val binding = this.manyBindings
       .find(_._1.isAssignableFrom(modelClass))
       .getOrElse(throw new RuntimeException("No child binding found for model " + modelClass + " in model " + this))._2
@@ -132,6 +148,11 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
 
   protected[db] def setProcessed(processed: Boolean) = this._isProcessed = processed
 
-  protected def Defined[R](f: => R): R = if (isDefined) f else throw new IllegalStateException("model must exist")
+  protected def Defined[R](f: => R): R = {
+    if (isDefined)
+      f
+    else
+      throw new IllegalStateException("model must exist")
+  }
 
 }

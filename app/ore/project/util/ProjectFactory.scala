@@ -96,9 +96,12 @@ trait ProjectFactory {
     val depends = for (depend <- meta.getRequiredDependencies.asScala) yield
       depend.getId + ":" + depend.getVersion
     val path = plugin.path
+    println("meta = " + meta)
+    println("(ore) mcversion = " + meta.getMinecraftVersion)
     process {
       new Version(
         versionString = meta.getVersion,
+        mcversion = Option(meta.getMinecraftVersion),
         dependencyIds = depends.toList,
         _description = Option(meta.getDescription),
         projectId = project.id.getOrElse(-1),
@@ -219,6 +222,7 @@ trait ProjectFactory {
 
     val newVersion = channel.versions.add(new Version(
       versionString = pendingVersion.versionString,
+      mcversion = pendingVersion.mcversion,
       dependencyIds = pendingVersion.dependencyIds,
       _description = pendingVersion.description,
       assets = pendingVersion.assets,

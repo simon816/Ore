@@ -57,9 +57,12 @@ class ProjectActions(override val service: ModelService)
     * @return List of Members
     */
   def getMembers(project: Project): Future[Seq[ProjectMember]] = {
-    val distinctUserIds = (for (role <- this.service.getActions(classOf[UserActions]).ProjectRoleActions.baseQuery.filter {
-      _.projectId === project.id.get
-    }) yield role.userId).distinct.result
+    val userActions = this.service.getActions(classOf[UserActions])
+    val distinctUserIds = {
+      (for (role <- userActions.ProjectRoleActions.baseQuery.filter {
+        _.projectId === project.id.get
+      }) yield role.userId).distinct.result
+    }
 
     service.DB.db.run(distinctUserIds)
       .map(_.map(this.users.get(_).get))
@@ -103,10 +106,15 @@ class ProjectActions(override val service: ModelService)
     */
   def collect(filter: Filter, categories: Array[Category],
               limit: Int, offset: Int, sort: ProjectSortingStrategy): Future[Seq[Project]] = {
-    val f: ProjectTable => Rep[Boolean] = if (categories != null) {
-      val cf: ProjectTable => Rep[Boolean] = p => p.category inSetBind categories
-      if (filter != null) p => cf(p) && filter(p) else cf
-    } else filter
+    val f: ProjectTable => Rep[Boolean] = {
+      if (categories != null) {
+        val cf: ProjectTable => Rep[Boolean] = p => p.category inSetBind categories
+        if (filter != null)
+          p => cf(p) && filter(p)
+        else
+          cf
+      } else filter
+    }
     collect(f, sort, limit, offset)
   }
 

@@ -184,14 +184,14 @@ case class User(override val id: Option[Int] = None,
     *
     * @return All projects owned by User
     */
-  def projects = this.getRelated[ProjectTable, Project](classOf[Project])
+  def projects = this.getMany[ProjectTable, Project](classOf[Project])
 
   /**
     * Returns a [[ModelAccess]] of [[ProjectRole]]s.
     *
     * @return ProjectRoles
     */
-  def projectRoles = this.getRelated[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+  def projectRoles = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns a Set of [[RoleType]]s that this User has globally.
@@ -240,7 +240,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Flags submitted by user
     */
-  def flags = this.getRelated[FlagTable, Flag](classOf[Flag])
+  def flags = this.getMany[FlagTable, Flag](classOf[Flag])
 
   /**
     * Returns true if the User has an unresolved [[Flag]] on the specified

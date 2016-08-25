@@ -10,7 +10,9 @@ import db.action.ModelAccess
   */
 trait ModelBase[T <: ModelTable[M], M <: Model] {
 
+  /** The [[Model]] that this provides access to */
   val modelClass: Class[M]
+  /** The [[ModelService]] to retrieve the model */
   val service: ModelService
 
   /**

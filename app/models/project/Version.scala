@@ -37,6 +37,7 @@ case class Version(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                    override val projectId: Int,
                    versionString: String,
+                   mcversion: Option[String] = None,
                    dependencyIds: List[String] = List(),
                    assets: Option[String] = None,
                    channelId: Int = -1,
@@ -160,7 +161,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Recorded downloads
     */
-  def downloadEntries = this.getRelated[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
+  def downloadEntries = this.getMany[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
 
   /**
     * Returns a human readable file size for this Version.

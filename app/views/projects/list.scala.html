@@ -15,22 +15,34 @@ Collection of all projects.
     @models.map { project =>
         <li class="list-group-item @if(!project.isVisible) { project-hidden }">
             <div class="project-list-header pull-left">
+                <!-- Avatar -->
                 <a class="pull-left" href="@routes.Users.showProjects(project.ownerName, None)">
                     <img class="user-avatar" height="50" width="50" title="@project.ownerName"
                     alt="@project.ownerName" src="@projectRoutes.showIcon(project.ownerName, project.slug)" />
                 </a>
+                <!-- Title -->
                 <div class="project-title">
                     <strong><a class="" href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a></strong>
                     <div class="project-description minor">@project.description</div>
                 </div>
             </div>
+
+            <!-- Stats -->
             <div class="pull-right minor">
-                <span class="stat" title="Recommended version">
-                    <i class="fa fa-diamond"></i>
-                    <a href="@controllers.project.routes.Versions.show(project.ownerName, project.slug, project.recommendedVersion.name)">
-                        <strong>@project.recommendedVersion.name</strong>
-                    </a>
-                </span>
+                @defining(project.recommendedVersion) { rv =>
+                    <span class="stat" title="Recommended version">
+                        <i class="fa fa-diamond"></i>
+                        <a href="@controllers.project.routes.Versions.show(
+                            project.ownerName, project.slug, rv.name)">
+                            <strong>@rv.name</strong>
+                        </a>
+                    </span>
+                    @rv.mcversion.map { mcversion =>
+                        <span class="stat" title="Minecraft version">
+                            <strong>MC@mcversion</strong>
+                        </span>
+                    }
+                }
                 <span class="stat" title="Views"><i class="fa fa-eye"></i> @project.views</span>
                 <span class="stat" title="Download"><i class="fa fa-download"></i> @project.downloads</span>
                 <span class="stat" title="Stars"><i class="fa fa-star"></i> @project.stars</span>

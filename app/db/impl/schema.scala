@@ -83,6 +83,7 @@ class ChannelTable(tag: Tag) extends ModelTable[Channel](tag, "channels") {
 class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions") {
 
   def versionString   =   column[String]("version_string")
+  def mcversion       =   column[String]("mcversion")
   def dependencies    =   column[List[String]]("dependencies")
   def description     =   column[String]("description")
   def assets          =   column[String]("assets")
@@ -94,8 +95,9 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions") {
   def isReviewed      =   column[Boolean]("is_reviewed")
   def fileName        =   column[String]("file_name")
 
-  override def * = (id.?, createdAt.?, projectId, versionString, dependencies, assets.?, channelId, fileSize, hash,
-                    description.?, downloads, isReviewed, fileName) <> ((Version.apply _).tupled, Version.unapply)
+  override def * = (id.?, createdAt.?, projectId, versionString, mcversion.?, dependencies, assets.?, channelId,
+                    fileSize, hash, description.?, downloads, isReviewed, fileName) <> ((Version.apply _).tupled,
+                    Version.unapply)
 }
 
 class VersionDownloadsTable(tag: Tag) extends StatTable[VersionDownload](tag, "version_downloads", "version_id") {

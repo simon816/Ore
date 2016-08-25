@@ -22,7 +22,6 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
 
   private val MetaFileName = "mcmod.info"
 
-  private var _metaList: List[PluginMetadata] = List.empty
   private var _meta: Option[PluginMetadata] = None
 
   /**
@@ -46,8 +45,6 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
     * Deletes the File at this PluginFile's Path
     */
   def delete() = Files.delete(this._path)
-
-  def metaList: List[PluginMetadata] = this._metaList
 
   /**
     * Returns the loaded PluginMetadata, if any.
@@ -89,7 +86,7 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
         throw new InvalidPluginFileException("No plugin meta file found.")
 
       // Read the meta file
-      this._metaList = McModInfo.DEFAULT.read(jarIn).asScala.toList
+      val metaList = McModInfo.DEFAULT.read(jarIn).asScala.toList
       jarIn.close()
       if (metaList.isEmpty)
         throw new InvalidPluginFileException("No plugin meta entries found.")

@@ -1,5 +1,6 @@
 package db
 
+import com.google.common.base.Preconditions.checkNotNull
 import com.google.common.collect.{BiMap, HashBiMap}
 import db.action.ModelActions
 import db.meta.TypeSetter
@@ -24,6 +25,7 @@ trait ModelRegistry {
     * @return Registered actions
     */
   def registerActions[Q <: ModelActions[_, _ <: Model]](actions: Q): Q = {
+    checkNotNull(actions, "actions are null", "")
     this.modelActions.put(actions.modelClass, actions)
     actions
   }
@@ -36,10 +38,12 @@ trait ModelRegistry {
     * @return             ModelActions
     */
   //noinspection ComparingUnrelatedTypes
-  def getActions[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q
-  = this.modelActions.asScala.find(_._2.getClass.equals(actionsClass))
-    .getOrElse(throw new RuntimeException("actions not found of type " + actionsClass))
-    ._2.asInstanceOf[Q]
+  def getActions[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q = {
+    checkNotNull(actionsClass, "actions class is null", "")
+    this.modelActions.asScala.find(_._2.getClass.equals(actionsClass))
+      .getOrElse(throw new RuntimeException("actions not found of type " + actionsClass))
+      ._2.asInstanceOf[Q]
+  }
 
   /**
     * Returns a registered ModelActions for the specified Model class.
@@ -49,6 +53,7 @@ trait ModelRegistry {
     * @return           ModelActions of Model
     */
   def getActionsByModel[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M]): ModelActions[T, M] = {
+    checkNotNull(modelClass, "model class is null", "")
     this.modelActions.asScala.find(_._1.isAssignableFrom(modelClass))
       .getOrElse(throw new RuntimeException("actions not found for model " + modelClass))
       ._2.asInstanceOf[ModelActions[T, M]]
@@ -62,6 +67,8 @@ trait ModelRegistry {
     * @tparam A     Type
     */
   def registerTypeSetter[A](clazz: Class[A], setter: TypeSetter[A]): TypeSetter[A] = {
+    checkNotNull(clazz, "type class is null", "")
+    checkNotNull(setter, "type setter is null", "")
     this.typeSetters.put(clazz, setter)
     setter
   }
@@ -74,6 +81,7 @@ trait ModelRegistry {
     * @return       Registered setter, if any, None otherwise
     */
   def getTypeSetter[A](clazz: Class[A]): TypeSetter[A] = {
+    checkNotNull(clazz, "type class is null")
     this.typeSetters.asScala.get(clazz)
       .map(_.asInstanceOf[TypeSetter[A]])
       .getOrElse(throw new RuntimeException("No type setter found for type: " + clazz.getSimpleName))
@@ -87,6 +95,8 @@ trait ModelRegistry {
     * @tparam B     Type
     */
   def registerModelBase[B <: ModelBase[_, _]](clazz: Class[B], base: B): B = {
+    checkNotNull(clazz, "model class is null", "")
+    checkNotNull(base, "model base is null", "")
     this.modelBases += clazz -> base
     base
   }
@@ -99,6 +109,7 @@ trait ModelRegistry {
     * @return       ModelBase of class
     */
   def getModelBase[B <: ModelBase[_, _]](clazz: Class[B]): B = {
+    checkNotNull(clazz, "model class is null", "")
     this.modelBases
       .getOrElse(clazz, throw new RuntimeException("model base not found for class " + clazz))
       .asInstanceOf[B]
