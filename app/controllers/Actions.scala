@@ -30,6 +30,14 @@ trait Actions {
     */
   def ProjectAction(author: String, slug: String) = Action andThen projectAction(author, slug)
 
+  /**
+    * Retrieves, processes, and adds a [[Project]] to a request.
+    *
+    * @param pluginId The project's unique plugin ID
+    * @return         Request with a project if found, NotFound otherwise
+    */
+  def ProjectAction(pluginId: String) = Action andThen projectAction(pluginId)
+
   /** Ensures a request is authenticated */
   def Authenticated = Action andThen authAction
 
@@ -78,12 +86,20 @@ trait Actions {
   def ProjectPermissionAction(p: Permission) = PermissionAction[AuthedProjectRequest](p)
 
   private def projectAction(author: String, slug: String) = new ActionRefiner[Request, ProjectRequest] {
-    def refine[A](request: Request[A]) = Future.successful {
-      projects.withSlug(author, slug)
-        .flatMap(processProject(_, Actions.this.users.current(request.session)))
-        .map(new ProjectRequest[A](_, request))
-        .toRight(NotFound)
-    }
+    def refine[A](request: Request[A])
+    = Future.successful(maybeProjectRequest(request, Actions.this.projects.withSlug(author, slug)))
+  }
+
+  private def projectAction(pluginId: String) = new ActionRefiner[Request, ProjectRequest] {
+    def refine[A](request: Request[A]): Future[Either[Result, ProjectRequest[A]]]
+    = Future.successful(maybeProjectRequest(request, Actions.this.projects.withPluginId(pluginId)))
+  }
+
+  private def maybeProjectRequest[A](request: Request[A], project: Option[Project]) = {
+    project
+      .flatMap(processProject(_, this.users.current(request.session)))
+      .map(new ProjectRequest[A](_, request))
+      .toRight(NotFound)
   }
 
   private def processProject(project: Project, user: Option[User]): Option[Project] = {

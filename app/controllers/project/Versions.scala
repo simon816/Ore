@@ -16,8 +16,8 @@ import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.util._
 import play.api.i18n.MessagesApi
 import play.api.mvc.Result
-import util.{OreConfig, OreEnv}
 import util.StringUtils.equalsIgnoreCase
+import util.{OreConfig, OreEnv}
 import views.html.projects.{versions => views}
 
 import scala.util.{Failure, Success}
@@ -387,6 +387,21 @@ class Versions @Inject()(val stats: StatTracker,
   }
 
   /**
+    * Downloads the specified version as a JAR regardless of the original
+    * uploaded file type.
+    *
+    * @param pluginId       Project unique plugin ID
+    * @param versionString  Version name
+    * @return               Sent file
+    */
+  def downloadJarById(pluginId: String, versionString: String) = {
+    ProjectAction(pluginId) { implicit request =>
+      implicit val project = request.project
+      withVersion(versionString)(version => sendJar(project, version))
+    }
+  }
+
+  /**
     * Downloads the Project's recommended version as a JAR regardless of the
     * original uploaded file type.
     *
@@ -396,6 +411,20 @@ class Versions @Inject()(val stats: StatTracker,
     */
   def downloadRecommendedJar(author: String, slug: String) = {
     ProjectAction(author, slug) { implicit request =>
+      val project = request.project
+      sendJar(project, project.recommendedVersion)
+    }
+  }
+
+  /**
+    * Downloads the Project's recommended version as a JAR regardless of the
+    * original uploaded file type.
+    *
+    * @param pluginId Project unique plugin ID
+    * @return         Sent file
+    */
+  def downloadRecommendedJarById(pluginId: String) = {
+    ProjectAction(pluginId) { implicit request =>
       val project = request.project
       sendJar(project, project.recommendedVersion)
     }

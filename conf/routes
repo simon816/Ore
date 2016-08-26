@@ -20,6 +20,9 @@ GET     /api/projects/:pluginId                                     @controllers
 GET     /api/projects/:pluginId/versions                            @controllers.ApiController.listVersions(version = "v1", pluginId, channels: Option[String], limit: Option[Int], offset: Option[Int])
 GET     /api/projects/:pluginId/versions/:name                      @controllers.ApiController.showVersion(version = "v1", pluginId, name)
 
+GET     /api/projects/:pluginId/versions/recommended/download       @controllers.project.Versions.downloadRecommendedJarById(pluginId)
+GET     /api/projects/:pluginId/versions/:name/download             @controllers.project.Versions.downloadJarById(pluginId, name)
+
 GET     /api/users                                                  @controllers.ApiController.listUsers(version = "v1", limit: Option[Int], offset: Option[Int])
 GET     /api/users/:user                                            @controllers.ApiController.showUser(version = "v1", user)
 
