@@ -139,6 +139,7 @@ object DiscourseEmbeddingService {
     override def updateTopic(project: Project) = Future(null)
     override def renameTopic(project: Project) = Future(null)
     override def deleteTopic(project: Project) = Future(null)
+    override def postReply(project: Project, user: User, content: String) = Future(null)
   }
 
 }
