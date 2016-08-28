@@ -78,7 +78,10 @@ class ProjectActions(override val service: ModelService)
   def searchFilter(query: String): ModelFilter[ProjectTable, Project] = {
     val q = '%' + query.toLowerCase + '%'
     ModelFilter { p =>
-      (p.name.toLowerCase like q) || (p.description.toLowerCase like q) || (p.ownerName.toLowerCase like q)
+      (p.name.toLowerCase like q) ||
+        (p.description.toLowerCase like q) ||
+        (p.ownerName.toLowerCase like q) ||
+        (p.pluginId.toLowerCase like q)
     }
   }
 

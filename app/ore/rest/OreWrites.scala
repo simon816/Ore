@@ -8,6 +8,7 @@ import db.ModelService
 import db.impl.service.ProjectBase
 import models.project.{Channel, Project, Version}
 import models.user.User
+import ore.project.ProjectMember
 import play.api.libs.json.Json.{obj, toJson}
 import play.api.libs.json._
 
@@ -22,17 +23,21 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
     def writes(channel: Channel) = obj("name" -> channel.name, "color" -> channel.color.hex)
   }
 
+  implicit val memberWrites = new Writes[ProjectMember] {
+    def writes(member: ProjectMember) = {
+      obj(
+        "userId"    ->  member.user.id,
+        "name"      ->  member.name,
+        "roles"     ->  JsArray(member.roles.map(r => JsString(r.roleType.title)).toSeq),
+        "headRole"  ->  member.headRole.roleType.title
+      )
+    }
+  }
+
   implicit val projectWrites = new Writes[Project] {
     def writes(project: Project) = {
       val category = project.category
       val rv = project.recommendedVersion
-
-      val members: List[JsObject] = (for (member <- project.members) yield {
-        obj(
-          "name"  ->  JsString(member.name),
-          "roles" ->  JsArray(member.roles.map(r => JsString(r.roleType.title)).toSeq)
-        )
-      }).toList
 
       obj(
         "pluginId"      ->  project.pluginId,
@@ -41,7 +46,7 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "owner"         ->  project.ownerName,
         "description"   ->  project.description,
         "href"          ->  ('/' + project.ownerName + '/' + project.slug),
-        "members"       ->  members,
+        "members"       ->  project.members,
         "channels"      ->  toJson(project.channels.toSeq),
         "recommended"   ->  obj("channel" -> rv.channel.name, "version" -> rv.versionString),
         "category"      ->  obj("title" -> category.title, "icon" -> category.icon),
