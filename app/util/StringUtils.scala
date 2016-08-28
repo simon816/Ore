@@ -60,27 +60,6 @@ object StringUtils {
   = str1(_).toLowerCase === str2.toLowerCase
 
   /**
-    * Returns the first non-numeric element in the specified [[ListItem]].
-    *
-    * @param items  List to search
-    * @return       First non-numeric element
-    */
-  def firstString(items: ListItem): Option[String] = {
-    // Get the first non-number component in the version string
-    var str: Option[String] = None
-    var i = 0
-    while (str.isEmpty && i < items.size()) {
-      items.get(i) match {
-        case item: StringItem => str = Some(item.getValue)
-        case item: ListItem => str = firstString(item)
-        case _ => ;
-      }
-      i += 1
-    }
-    str
-  }
-
-  /**
     * Reads the specified Path's file content and formats it with the
     * specified parameters.
     *

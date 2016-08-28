@@ -34,29 +34,6 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
     }
   }
 
-  implicit val projectWrites = new Writes[Project] {
-    def writes(project: Project) = {
-      val category = project.category
-      val rv = project.recommendedVersion
-
-      obj(
-        "pluginId"      ->  project.pluginId,
-        "createdAt"     ->  prettifyDate(project.createdAt.get),
-        "name"          ->  project.name,
-        "owner"         ->  project.ownerName,
-        "description"   ->  project.description,
-        "href"          ->  ('/' + project.ownerName + '/' + project.slug),
-        "members"       ->  project.members,
-        "channels"      ->  toJson(project.channels.toSeq),
-        "recommended"   ->  obj("channel" -> rv.channel.name, "version" -> rv.versionString),
-        "category"      ->  obj("title" -> category.title, "icon" -> category.icon),
-        "views"         ->  project.views,
-        "downloads"     ->  project.downloads,
-        "stars"         ->  project.stars
-      )
-    }
-  }
-
   implicit val versionWrites = new Writes[Version] {
     def writes(version: Version) = {
       val project = version.project
@@ -72,6 +49,27 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "pluginId"      ->  project.pluginId,
         "channel"       ->  toJson(project.channels.get(version.channelId).get),
         "fileSize"      ->  version.fileSize
+      )
+    }
+  }
+
+  implicit val projectWrites = new Writes[Project] {
+    def writes(project: Project) = {
+      val category = project.category
+      obj(
+        "pluginId"      ->  project.pluginId,
+        "createdAt"     ->  prettifyDate(project.createdAt.get),
+        "name"          ->  project.name,
+        "owner"         ->  project.ownerName,
+        "description"   ->  project.description,
+        "href"          ->  ('/' + project.ownerName + '/' + project.slug),
+        "members"       ->  project.members,
+        "channels"      ->  toJson(project.channels.toSeq),
+        "recommended"   ->  toJson(project.recommendedVersion),
+        "category"      ->  obj("title" -> category.title, "icon" -> category.icon),
+        "views"         ->  project.views,
+        "downloads"     ->  project.downloads,
+        "stars"         ->  project.stars
       )
     }
   }

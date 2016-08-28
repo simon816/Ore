@@ -7,7 +7,7 @@ import ore.Colors._
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
 import play.api.Configuration
-import util.StringUtils.{compact, firstString}
+import util.StringUtils.compact
 
 /**
   * A helper class for the Ore configuration.
@@ -70,7 +70,7 @@ final class OreConfig @Inject()(config: Configuration) {
     * @return         Suggested channel name
     */
   def getSuggestedNameForVersion(version: String): String
-  = firstString(new ComparableVersion(version).getItems).getOrElse(this.defaultChannelName)
+  = Option(new ComparableVersion(version).getFirstString).getOrElse(this.defaultChannelName)
 
   lazy val debugLevel = ore.getInt("debug-level").get
   /** Returns true if the application is running in debug mode. */
