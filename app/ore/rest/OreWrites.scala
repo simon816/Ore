@@ -82,7 +82,8 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "username"        ->  user.username,
         "roles"           ->  user.globalRoles.map(_.title),
         "starred"         ->  user.starred().map(p => p.pluginId),
-        "avatarTemplate"  ->  user.avatarTemplate
+        "avatarTemplate"  ->  user.avatarTemplate,
+        "projects"        ->  user.projects.all
       )
     }
   }
