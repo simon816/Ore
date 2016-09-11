@@ -39,11 +39,15 @@ Discussion page within Project overview.
                             </div>
                         }
 
-                        @projects.util.editor(
-                            saveCall = projectRoutes.Projects.postDiscussionReply(model.ownerName, model.slug),
-                            cancellable = false,
-                            enabled = true
-                        )
+                        @if(forums.isAvailable) {
+                            @projects.util.editor(
+                                saveCall = projectRoutes.Projects.postDiscussionReply(model.ownerName, model.slug),
+                                cancellable = false,
+                                enabled = true
+                            )
+                        } else {
+                            <i class="minor">Sponge Forums are currently unavailable, please try again later.</i>
+                        }
                     </div>
                     <div class="reply-controls">
                         <a class="forums" target="_blank" href="https://forums.spongepowered.org/t/@model.topicId.get">

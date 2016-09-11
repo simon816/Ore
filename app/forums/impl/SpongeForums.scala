@@ -2,6 +2,7 @@ package forums.impl
 
 import javax.inject.Inject
 
+import akka.actor.ActorSystem
 import forums.{DiscourseApi, DiscourseEmbeddingService}
 import play.api.libs.ws.WSClient
 import util.{OreConfig, OreEnv}
@@ -9,8 +10,9 @@ import util.{OreConfig, OreEnv}
 /**
   * Handles interactions between Ore and the Sponge forums.
   */
-class SpongeForums @Inject()(val config: OreConfig,
-                             val env: OreEnv,
+class SpongeForums @Inject()(config: OreConfig,
+                             env: OreEnv,
+                             actorSystem: ActorSystem,
                              override val ws: WSClient) extends DiscourseApi {
 
   lazy val conf = config.forums
@@ -25,7 +27,8 @@ class SpongeForums @Inject()(val config: OreConfig,
       categoryId = conf.getInt("embed.categoryId").get,
       ws = ws,
       config = config,
-      env = env
+      env = env,
+      actorSystem = actorSystem
     )
   } else DiscourseEmbeddingService.Disabled
 

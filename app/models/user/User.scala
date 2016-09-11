@@ -1,6 +1,7 @@
 package models.user
 
 import java.sql.Timestamp
+import java.text.DateFormat
 
 import com.google.common.base.Preconditions._
 import db.action.ModelAccess
@@ -15,6 +16,7 @@ import ore.permission._
 import ore.permission.role.RoleTypes.{DonorType, RoleType}
 import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
+import play.api.libs.json.JsObject
 import util.StringUtils._
 
 import scala.annotation.meta.field

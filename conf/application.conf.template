@@ -22,6 +22,7 @@ play.evolutions.autocommit              =   false
 play.evolutions.db.default.autoApply    =   true
 play.http.session.maxAge                =   2419200 # 4 weeks
 play.http.parser.maxDiskBuffer          =   20MB
+play.ws.timeout.connection              =   10000
 
 
 # Ore configuration
@@ -77,6 +78,7 @@ discourse.api.enabled       =   true
 discourse.api.key           =   ${?DISCOURSE_API_KEY}
 discourse.embed.categoryId  =   32
 discourse.embed.disabled    =   false
+discourse.embed.retryRate   =   60000
 
 # Sponge stuff
 sponge.logo = "https://forums-cdn.spongepowered.org/uploads/default/original/2X/7/77fa5f82289385db14561fac384ddea2a84a0070.png"

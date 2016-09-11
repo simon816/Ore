@@ -481,7 +481,7 @@ case class Project(// Immutable
     */
   def topicContent(implicit env: OreEnv): String = {
     val templatePath = env.conf.resolve("discourse/project_topic.md")
-    StringUtils.readAndFormatFile(templatePath, project.name, this.url, project.homePage.contents)
+    StringUtils.readAndFormatFile(templatePath, this.name, this.url, this.homePage.contents)
   }
 
   override def projectId = Defined(this.id.get)

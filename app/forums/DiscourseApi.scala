@@ -2,6 +2,7 @@ package forums
 
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import java.util.concurrent.TimeUnit
 
 import models.user.User
 import ore.permission.role.RoleTypes
@@ -10,7 +11,8 @@ import play.api.libs.json.JsObject
 import play.api.libs.ws.{WSClient, WSResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 /**
   * A DiscourseApi that depends on the OreModelService.
@@ -28,6 +30,17 @@ trait DiscourseApi {
 
   protected val ws: WSClient
 
+  /**
+    * Returns true if the Discourse instance is available.
+    *
+    * @return True if available
+    */
+  def isAvailable: Boolean = {
+    Await.result(this.ws.url(this.url).get().map(_ => true).recover {
+      case e: Exception => false
+    }, Duration(10000, TimeUnit.MILLISECONDS))
+  }
+
   /** Returns a user URL for the specified username. */
   def userUrl(username: String): String = url + "/users/" + username + ".json"
 
@@ -39,7 +52,7 @@ trait DiscourseApi {
     * @return         New user or None
     */
   def fetchUser(username: String): Future[Option[User]] = {
-    ws.url(userUrl(username)).get.map { response =>
+    this.ws.url(userUrl(username)).get.map { response =>
       validate(response) { json =>
         val userObj = (json \ "user").as[JsObject]
         val user = new User(
@@ -64,7 +77,7 @@ trait DiscourseApi {
     * @return         Avatar URL
     */
   def fetchAvatarUrl(username: String, size: Int): Future[Option[String]] = {
-    ws.url(userUrl(username)).get.map { response =>
+    this.ws.url(userUrl(username)).get.map { response =>
       validate(response) { json =>
         val template = (json \ "user" \ "avatar_template").as[String]
         this.url + template.replace("{size}", size.toString)
@@ -94,11 +107,9 @@ trait DiscourseApi {
     * @tparam A       Return type
     * @return         Return type
     */
-  def validate[A](response: WSResponse)(f: JsObject => A): Option[A] = try {
+  def validate[A](response: WSResponse)(f: JsObject => A): Option[A] = {
     val json = response.json.as[JsObject]
     if (!json.keys.contains("errors")) Some(f(json)) else None
-  } catch {
-    case e: Exception => None
   }
 
 }
