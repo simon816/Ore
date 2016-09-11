@@ -38,9 +38,16 @@ class ProjectMember(val project: Project, val name: String)(implicit users: User
   def headRole: ProjectRole = this.roles.toList.sorted.last
 
   override val scope: Scope = project.scope
-  override def compare(that: ProjectMember) = this.headRole compare that.headRole
   override def toString: String = MoreObjects.toStringHelper(this).add("name", this.name).toString
   override def hashCode: Int = Objects.hashCode(this.project, this.name)
+
+  override def compare(that: ProjectMember) = {
+    if (!this.headRole.equals(that.headRole))
+      this.headRole compare that.headRole
+    else
+      this.name compare that.name
+  }
+
   override def equals(o: Any): Boolean = {
     o match {
       case that: ProjectMember => that.project.equals(this.project) && that.name.equals(this.name)

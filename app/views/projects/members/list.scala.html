@@ -60,7 +60,7 @@
         </div>
         <ul class="list-members list-group">
             <!-- Member list -->
-            @model.members.map { member =>
+            @model.members.toList.sorted.reverse.map { member =>
                 <li class="list-group-item">
 
                     <a class="username" href="@routes.Users.showProjects(member.name, None)">
