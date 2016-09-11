@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
-import controllers.routes.{Users => self}
+import controllers.routes.{Users => self, Application => app}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.service.UserBase.ORDER_PROJECTS
@@ -38,8 +38,11 @@ class Users @Inject()(val fakeUser: FakeUser,
       this.users.getOrCreate(this.fakeUser)
       this.redirectBack(returnPath.getOrElse(request.path), this.fakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
-      // Send to forums for authentication
-      Redirect(this.auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
+      if (this.forums.isAvailable)
+        Redirect(this.auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
+      else
+        Redirect(app.showHome(None, None, None, None))
+          .flashing("error" -> "Login is temporarily unavailable, please try again later.")
     } else {
       // Decode SSO payload received from forums and get Ore user
       val user = this.auth.authenticate(sso.get, sig.get)
