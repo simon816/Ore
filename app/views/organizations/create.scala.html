@@ -1,0 +1,40 @@
+@import db.ModelService
+@import forums.DiscourseApi
+@import util.OreConfig
+@import db.impl.service.UserBase
+@import util.OreEnv
+@import views.html.helper.form
+@()(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader, service: ModelService,
+        forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
+
+@bootstrap.layout(messages("org.create")) {
+
+    <div class="container" style="margin-top: 90px">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            @messages("org.create.title")
+                        </h3>
+                    </div>
+
+                    <div class="project-body panel-body">
+                        <p class="minor">
+                            Organizations allow you group users provide closer collaboration between them within your
+                            projects on Ore.
+                        </p>
+
+                        @form(action = routes.Application.showHome(None, None, None, None)) {
+                            <label for="name">Organization name</label>
+                            <input name="name" type="text" class="form-control" placeholder="SpongePowered" />
+
+
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}

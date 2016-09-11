@@ -168,6 +168,19 @@ The main header displayed on each layout.
                             </li>
                         }
 
+                        <li>
+                            <a href="@projectRoutes.Projects.showCreator()">
+                                <span class="pull-left">New Project</span>
+                                <i class="pull-right fa fa-plus"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@routes.Organizations.showCreator()">
+                                <span class="pull-left">New Organization</span>
+                                <i class="pull-right fa fa-plus"></i>
+                            </a>
+                        </li>
+
                         <li role="separator" class="divider"></li>
                         <li>
                             <a href="@routes.Users.logOut(Some(request.path))">

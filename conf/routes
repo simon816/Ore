@@ -54,6 +54,12 @@ POST    /new/:author/:slug/members                                  @controllers
 
 POST    /pages/preview                                              @controllers.project.Pages.showPreview()
 
+
+# ---------- Organizations ----------
+
+GET     /organizations/new                                          @controllers.Organizations.showCreator()
+
+
 # ---------- Users ----------
 GET     /authors                                                    @controllers.Users.showAuthors(sort: Option[String], page: Option[Int])
 

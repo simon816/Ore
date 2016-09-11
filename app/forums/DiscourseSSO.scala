@@ -1,8 +1,6 @@
 package forums
 
-import java.math.BigInteger
 import java.net.{URLDecoder, URLEncoder}
-import java.security.SecureRandom
 import java.util.Base64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -11,6 +9,7 @@ import db.ModelService
 import db.impl.access.UserBase
 import models.user.User
 import org.apache.commons.codec.binary.Hex
+import util.CryptoUtils
 
 /**
   * Handles single-sign-on authentication to a Discourse forum.
@@ -22,11 +21,8 @@ trait DiscourseSSO {
   protected val url: String
   protected val secret: String
 
-  protected val charEncoding = "UTF-8"
-  protected val random = new SecureRandom
-  protected val algo = "HmacSHA256"
-
-  protected def nonce: String = new BigInteger(130, this.random).toString(32)
+  protected final val charEncoding = "UTF-8"
+  protected final val algo = "HmacSHA256"
 
   protected def hmac_sha256(data: Array[Byte]): String = {
     val hmac = Mac.getInstance(this.algo)
@@ -42,7 +38,7 @@ trait DiscourseSSO {
     * @return           Redirect URL
     */
   def toForums(returnUrl: String): String = {
-    val payload = "require_validation=true&return_sso_url=" + returnUrl + "&nonce=" + nonce
+    val payload = "require_validation=true&return_sso_url=" + returnUrl + "&nonce=" + CryptoUtils.nonce
     val encoded = new String(Base64.getEncoder.encode(payload.getBytes(this.charEncoding)))
     val urlEncoded = URLEncoder.encode(encoded, this.charEncoding)
     val hmac = hmac_sha256(encoded.getBytes(this.charEncoding))

@@ -21,12 +21,12 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.spongepowered"     %   "plugin-meta"             % "0.2",
-  "com.typesafe.play"     %%  "play-slick"              % "2.0.0",
-  "com.typesafe.play"     %%  "play-slick-evolutions"   % "2.0.0",
-  "org.postgresql"        %   "postgresql"              % "9.4.1208.jre7",
-  "com.github.tminglei"   %%  "slick-pg"                % "0.12.0",
-  "org.apache.commons"    %   "commons-io"              % "1.3.2",
-  "org.pegdown"           %   "pegdown"                 % "1.6.0",
-  "com.getsentry.raven"   %   "raven-logback"           % "7.2.2"
+  "org.spongepowered"     %   "plugin-meta"             %   "0.2",
+  "com.typesafe.play"     %%  "play-slick"              %   "2.0.0",
+  "com.typesafe.play"     %%  "play-slick-evolutions"   %   "2.0.0",
+  "org.postgresql"        %   "postgresql"              %   "9.4.1208.jre7",
+  "com.github.tminglei"   %%  "slick-pg"                %   "0.12.0",
+  "org.apache.commons"    %   "commons-io"              %   "1.3.2",
+  "org.pegdown"           %   "pegdown"                 %   "1.6.0",
+  "com.getsentry.raven"   %   "raven-logback"           %   "7.2.2"
 )

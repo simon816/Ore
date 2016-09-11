@@ -80,6 +80,9 @@ project.icon                    =   Project icon
 project.members.info-text.head   =   Project members are other users of Ore that have special access to your project. Different user "roles" define what a user can and cannot do to your project.
 project.members.info-text.bottom =   Ore was able to find <strong>{0}</strong> users who are registered with Ore in your plugin file.
 
+org.create          =   New Organization
+org.create.title    =   Create a new Organization
+
 version                         =   Version
 version.description             =   Description
 version.delete                  =   Delete
