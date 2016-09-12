@@ -34,7 +34,7 @@ class Organizations @Inject()(forms: OreForms,
   def create() = Authenticated { implicit request =>
     val name = this.forms.OrganizationCreate.bindFromRequest().get
     val org = this.service.access[OrganizationBase](classOf[OrganizationBase]).create(name, request.user.id.get)
-    Ok(org.toString)
+    Ok(views.organizations.view(org))
   }
 
 }

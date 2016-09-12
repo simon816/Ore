@@ -1,8 +1,5 @@
 package forums
 
-import java.util.concurrent.TimeUnit
-
-import akka.actor.ActorSystem
 import models.project.Project
 import models.user.User
 import play.api.libs.ws.WSClient
@@ -10,7 +7,6 @@ import util.{OreConfig, OreEnv}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.concurrent.duration.Duration
 
 /**
   * Handles forum topic management for Projects.
@@ -26,18 +22,10 @@ class DiscourseEmbeddingService(api: DiscourseApi,
                                 categoryId: Int,
                                 ws: WSClient,
                                 config: OreConfig,
-                                actorSystem: ActorSystem,
-                                disabled: Boolean = false,
                                 implicit val env: OreEnv) {
 
-  import api.{validate, FatalForumErrorException}
+  import api.{FatalForumErrorException, validate, sync}
   import config.debug
-
-  val sync = if (!disabled)
-    new DiscourseSync(this.actorSystem.scheduler, Duration(this.config.forums.getInt("embed.retryRate").get,
-      TimeUnit.MILLISECONDS))
-  else
-    null
 
   /**
     * Creates a new topic for the specified [[Project]].
@@ -72,7 +60,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
     } recover {
       case e: Exception =>
         debug("Failed to create topic, rescheduling: " + e.getMessage, 3)
-        this.sync.scheduleRetry(() => createTopic(project))
+        sync.scheduleRetry(() => createTopic(project))
         throw e
     }
   }
@@ -89,7 +77,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
     } recover {
       case e: Exception =>
         debug("Failed to update topic category, rescheduling: " + e.getMessage, 3)
-        this.sync.scheduleRetry(() => updateTopicCategory(username, topicId, url))
+        sync.scheduleRetry(() => updateTopicCategory(username, topicId, url))
         throw e
     }
   }
@@ -115,7 +103,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
         } recover {
           case e: Exception =>
             debug("Failed to update topic, rescheduling: " + e.getMessage, 3)
-            this.sync.scheduleRetry(() => updateTopic(project))
+            sync.scheduleRetry(() => updateTopic(project))
             throw e
         }
     }
@@ -145,7 +133,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
         } recover {
           case e: Exception =>
             debug("Failed to rename topic, rescheduling: " + e.getMessage)
-            this.sync.scheduleRetry(() => renameTopic(project))
+            sync.scheduleRetry(() => renameTopic(project))
             throw e
         }
     }
@@ -170,7 +158,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
       } recover {
         case e: Exception =>
           debug("Failed to delete topic, rescheduling: " + e.getMessage, 3)
-          this.sync.scheduleRetry(() => deleteTopic(project))
+          sync.scheduleRetry(() => deleteTopic(project))
           throw e
       }
     }
@@ -212,7 +200,7 @@ object DiscourseEmbeddingService {
   /**
     * Represents a disabled state of [[DiscourseEmbeddingService]].
     */
-  object Disabled extends DiscourseEmbeddingService(null, null, null, -1, null, null, null, true, null) {
+  object Disabled extends DiscourseEmbeddingService(null, null, null, -1, null, null, null) {
     override def createTopic(project: Project) = Future(None)
     override def updateTopic(project: Project) = Future(null)
     override def renameTopic(project: Project) = Future(null)

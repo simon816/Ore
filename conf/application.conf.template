@@ -60,6 +60,7 @@ ore.users.project-page-size =   5
 
 ore.orgs.passwordLength     =   60
 ore.orgs.dummyEmailDomain   =   "spongepowered.org"
+ore.orgs.groupId            =   64
 
 
 # Slick configuration

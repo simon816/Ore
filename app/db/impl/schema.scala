@@ -27,6 +27,7 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
   def slug                  =   column[String]("slug")
   def ownerName             =   column[String]("owner_name")
   def userId                =   column[Int]("owner_id")
+  def organizationId        =   column[Int]("organization_id")
   def homepage              =   column[String]("homepage")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
   def category              =   column[Category]("category")
@@ -142,8 +143,12 @@ class OrganizationTable(tag: Tag) extends ModelTable[Organization](tag, "organiz
   def name          =   column[String]("name")
   def password      =   column[String]("password")
   def ownerId       =   column[Int]("owner_id")
+  def avatarUrl     =   column[String]("avatar_url")
+  def tagline       =   column[String]("tagline")
+  def globalRoles   =   column[List[RoleType]]("global_roles")
 
-  override def * = (id.?, createdAt.?, name, password, ownerId) <> ((Organization.apply _).tupled, Organization.unapply)
+  override def * = (id.?, createdAt.?, name, password, ownerId, avatarUrl.?, tagline.?,
+                    globalRoles) <> ((Organization.apply _).tupled, Organization.unapply)
 
 }
 

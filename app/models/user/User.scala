@@ -44,6 +44,7 @@ case class User(override val id: Option[Int] = None,
                 @(Bind @field) private var _joinDate: Option[Timestamp] = None,
                 @(Bind @field) private var _avatarUrl: Option[String] = None)
                 extends OreModel(id, createdAt)
+                  with UserLike
                   with UserOwned
                   with ScopeSubject {
 
@@ -76,13 +77,6 @@ case class User(override val id: Option[Int] = None,
   }
 
   /**
-    * Returns this User's username.
-    *
-    * @return Username of User
-    */
-  def username: String = this._username
-
-  /**
     * Sets this User's username.
     *
     * @param _username Username of User
@@ -111,14 +105,6 @@ case class User(override val id: Option[Int] = None,
   }
 
   /**
-    * Returns the Timestamp instant when this User joined Sponge for the first
-    * time.
-    *
-    * @return Sponge join date
-    */
-  def joinDate: Option[Timestamp] = this._joinDate
-
-  /**
     * Sets the Timestamp instant when this User joined Sponge for the first
     * time.
     *
@@ -130,23 +116,6 @@ case class User(override val id: Option[Int] = None,
   }
 
   /**
-    * Returns this User's avatar url with the specified size.
-    *
-    * @param size Size of avatar
-    * @return     Avatar URL
-    */
-  def avatarUrl(size: Int = 100): String = this._avatarUrl.map { s =>
-    config.forums.getString("baseUrl").get + s.replace("{size}", size.toString)
-  }.getOrElse("")
-
-  /**
-    * Returns the template for this User's avatar URL.
-    *
-    * @return Avatar URL template
-    */
-  def avatarTemplate: Option[String] = this._avatarUrl.map(config.forums.getString("baseUrl").get + _)
-
-  /**
     * Sets this User's avatar url.
     *
     * @param _avatarUrl Avatar url
@@ -155,13 +124,6 @@ case class User(override val id: Option[Int] = None,
     this._avatarUrl = Option(_avatarUrl)
     if (isDefined) update(AvatarUrl)
   }
-
-  /**
-    * Returns this User's "tagline" that is displayed on the User page.
-    *
-    * @return User tagline
-    */
-  def tagline: Option[String] = this._tagline
 
   /**
     * Sets this User's "tagline" that is displayed on the User page.
@@ -181,13 +143,6 @@ case class User(override val id: Option[Int] = None,
     * @return       Owned project, if any, None otherwise
     */
   def getProject(name: String): Option[Project] = this.projects.find(_.userId === this.id.get)
-
-  /**
-    * Returns all Projects owned by this User.
-    *
-    * @return All projects owned by User
-    */
-  def projects = this.oneToMany[ProjectTable, Project](classOf[Project])
 
   /**
     * Returns a [[ModelAccess]] of [[ProjectRole]]s.
@@ -217,13 +172,6 @@ case class User(override val id: Option[Int] = None,
     else
       assoc.disassoc(this, project)
   }
-
-  /**
-    * Returns a Set of [[RoleType]]s that this User has globally.
-    *
-    * @return Global RoleTypes.
-    */
-  def globalRoles: Set[RoleType] = this._globalRoles.toSet
 
   /**
     * Sets the [[RoleTypes]]s that this User has globally.
@@ -341,6 +289,12 @@ case class User(override val id: Option[Int] = None,
     this.globalRoles = user.globalRoles
     this
   }
+
+  override def username: String = this._username
+  override def globalRoles: Set[RoleType] = this._globalRoles.toSet
+  override def avatarTemplate: Option[String] = this._avatarUrl.map(this.config.forums.getString("baseUrl").get + _)
+  override def tagline: Option[String] = this._tagline
+  override def joinDate: Option[Timestamp] = this._joinDate
 
   override val scope = GlobalScope
   override def userId = this.id.get

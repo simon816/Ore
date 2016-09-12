@@ -1,0 +1,14 @@
+@import db.ModelService
+@import util.OreEnv
+@import db.impl.service.UserBase
+@import util.OreConfig
+@import forums.DiscourseApi
+@import models.user.Organization
+@(org: Organization)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader,
+        service: ModelService, forums: DiscourseApi, config: OreConfig, userBase: UserBase, env: OreEnv)
+
+@users.view(org) {
+
+    <p>Hello, world!</p>
+
+}

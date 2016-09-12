@@ -4,12 +4,14 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 
+import akka.actor.ActorSystem
 import models.user.User
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 import play.api.Logger
 import play.api.libs.json.JsObject
 import play.api.libs.ws.{WSClient, WSResponse}
+import util.OreConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -34,6 +36,14 @@ trait DiscourseApi {
 
   /** The username of an administrator */
   val admin: String
+
+  val actorSystem: ActorSystem
+
+  val config: OreConfig
+
+  val sync = new DiscourseSync(
+    this.actorSystem.scheduler, Duration(this.config.forums.getInt("embed.retryRate").get, TimeUnit.MILLISECONDS)
+  )
 
   private val logger: Logger = Logger("Discourse")
   protected val ws: WSClient
@@ -110,6 +120,21 @@ trait DiscourseApi {
         throw FatalForumErrorException(errors)
       case Right(json) =>
         (json \ "user_id").as[Int]
+    })
+  }
+
+  /**
+    * Adds a group to the specified user.
+    *
+    * @param userId   User ID
+    * @param groupId  ID of group to add
+    * @return         True if successful
+    */
+  def addUserGroup(userId: Int, groupId: Int) = {
+    val url = this.url + "/admin/users/" + userId + "/groups?api_key=" + this.key + "&api_username=" + this.admin
+    val data = Map("group_id" -> Seq(groupId.toString))
+    this.ws.url(url).post(data).map(response => validate(response).left.foreach { errors =>
+      throw FatalForumErrorException(errors)
     })
   }
 

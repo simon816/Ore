@@ -6,6 +6,8 @@ create table project_watchers (
   unique (project_id, user_id)
 );
 
+alter table projects add column organization_id bigint REFERENCES organizations;
+
 # --- !Downs
 
 drop table project_watchers;
