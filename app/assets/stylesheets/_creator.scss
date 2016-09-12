@@ -1,6 +1,35 @@
 @import 'utils';
 @import 'pallette';
 
+.project-create-steps {
+  @include rounded-corners();
+  background-color: #fafafa;
+  color: #ccc;
+  border: 1px solid $lighter;
+  padding: 0;
+}
+
+.project-create-steps .step-active {
+  color: black;
+  background-color: white;
+}
+
+.project-create-steps .step-complete {
+  color: gray;
+}
+
+.project-create-steps .project-create-step:not(:last-child) {
+  border-bottom: 1px solid $lighter;
+}
+
+.project-create-steps .project-create-step .step-content {
+  padding: 10px;
+}
+
+.project-create-steps .project-create-step .fa-check-square {
+  color: green;
+}
+
 .create-blurb {
   @include padding-vert(10px, 20px);
   margin-bottom: 0;

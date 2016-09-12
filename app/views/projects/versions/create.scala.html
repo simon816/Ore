@@ -14,6 +14,10 @@
         session: Session, flash: Flash, request: RequestHeader, service: ModelService, forums: DiscourseApi,
         config: OreConfig, users: UserBase, env: OreEnv)
 
+@mainWidth = {
+    @pending.map(_ => "col-md-10").getOrElse("col-md-12")
+}
+
 @bootstrap.layout(messages("version.create.page-title")) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/channelManage.js")"></script>
@@ -21,7 +25,7 @@
 
     <div class="container" style="margin-top: 90px">
         <div class="row">
-            <div class="col-md-8 col-md-offset-2">
+            <div class="@mainWidth">
                 <div class="panel panel-default panel-create">
                     <div class="panel-heading">
                         <h3 class="panel-title">
@@ -173,6 +177,9 @@
                     </span>
                 }
             </div>
+            @if(pending.isDefined) {
+                @projects.util.createSteps(4)
+            }
         </div>
     </div>
 
