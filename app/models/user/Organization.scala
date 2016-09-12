@@ -12,6 +12,21 @@ import ore.permission.scope.{GlobalScope, Scope, ScopeSubject}
 
 import scala.annotation.meta.field
 
+/**
+  * Represents an Ore Organization. An organization is like a [[User]] in the
+  * sense that it shares many qualities with Users and also has a companion
+  * User on the forums. An organization is made up by a group of Users who each
+  * have a corresponding rank within the organization.
+  *
+  * @param id             Unique ID
+  * @param createdAt      Date of creation
+  * @param name           Organization name
+  * @param password       Sponge forums password (encrypted)
+  * @param ownerId        The ID of the [[User]] that owns this organization
+  * @param _avatarUrl     URL for user avatar
+  * @param _tagline       Configured tagline
+  * @param _globalRoles   Global roles this organization possesses
+  */
 @HasMany(Array(classOf[Project]))
 case class Organization(override val id: Option[Int] = None,
                         override val createdAt: Option[Timestamp] = None,

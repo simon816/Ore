@@ -152,6 +152,15 @@ class OrganizationTable(tag: Tag) extends ModelTable[Organization](tag, "organiz
 
 }
 
+class OrganizationMembersTable(tag: Tag) extends Table[(Int, Int)](tag, "organization_members") {
+
+  def userId          =   column[Int]("user_id")
+  def organizationId  =   column[Int]("organization_id")
+
+  override def * = (userId, organizationId)
+
+}
+
 class ProjectRoleTable(tag: Tag) extends ModelTable[ProjectRole](tag, "user_project_roles") {
 
   def userId      =   column[Int]("user_id")

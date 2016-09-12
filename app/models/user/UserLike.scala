@@ -42,7 +42,7 @@ trait UserLike extends Model {
     * @return     avatar url
     */
   def avatarUrl(size: Int = 100): String = this.avatarTemplate.map { s =>
-    this.config.forums.getString("baseUrl").get + s.replace("{size}", size.toString)
+    s.replace("{size}", size.toString)
   }.getOrElse("")
 
   /**

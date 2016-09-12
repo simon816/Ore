@@ -116,6 +116,13 @@ case class User(override val id: Option[Int] = None,
   }
 
   /**
+    * Returns this User's avatar url.
+    *
+    * @return Avatar url
+    */
+  def avatarUrl: Option[String] = this._avatarUrl
+
+  /**
     * Sets this User's avatar url.
     *
     * @param _avatarUrl Avatar url

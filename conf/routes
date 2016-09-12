@@ -60,6 +60,8 @@ POST    /pages/preview                                              @controllers
 GET     /organizations/new                                          @controllers.Organizations.showCreator()
 POST    /organizations/new                                          @controllers.Organizations.create()
 
+GET     /organizations/:name                                        @controllers.Organizations.show(name)
+
 
 # ---------- Users ----------
 GET     /authors                                                    @controllers.Users.showAuthors(sort: Option[String], page: Option[Int])

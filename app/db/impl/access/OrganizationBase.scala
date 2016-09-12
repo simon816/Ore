@@ -5,7 +5,7 @@ import db.{ModelBase, ModelService}
 import forums.DiscourseApi
 import models.user.Organization
 import org.apache.commons.lang3.RandomStringUtils
-import util.{CryptoUtils, OreConfig}
+import util.{CryptoUtils, OreConfig, StringUtils}
 
 class OrganizationBase(override val service: ModelService, forums: DiscourseApi, config: OreConfig)
                        extends ModelBase[OrganizationTable, Organization] {
@@ -37,5 +37,13 @@ class OrganizationBase(override val service: ModelService, forums: DiscourseApi,
     val organization = Organization(Some(userId), None, name, encryptedPassword, ownerId)
     this.service.access[OrganizationTable, Organization](this.modelClass).add(organization)
   }
+
+  /**
+    * Returns an [[Organization]] with the specified name if it exists.
+    *
+    * @param name Organization name
+    * @return     Organization with name if exists, None otherwise
+    */
+  def withName(name: String): Option[Organization] = this.find(StringUtils.equalsIgnoreCase(_.name, name))
 
 }
