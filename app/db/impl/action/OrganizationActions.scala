@@ -30,6 +30,7 @@ class OrganizationActions(override val service: ModelService)
     * @return Users in Organization
     */
   def getMembers(org: Organization): Future[Seq[User]] = {
+    // TODO: Add ManyToMany annotation to avoid stuff like this
     this.service.DB.db.run {
       (for (member <- Members.filter(_.organizationId === org.id.get)) yield member.userId).result
     } map { userIds =>

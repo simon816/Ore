@@ -10,6 +10,7 @@ import db.impl.action.ProjectActions
 import db.impl.pg.OrePostgresDriver.api._
 import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
 import db.meta.{Actions, Bind}
+import db.meta.{Actions, Bind}
 import models.statistic.ProjectView
 import models.user.{ProjectRole, User}
 import ore.Colors.Color

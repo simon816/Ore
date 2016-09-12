@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.Model
 import db.impl.OreModel
-import db.meta.{Bind, HasMany}
+import db.meta.{Bind, OneToMany}
 import models.project.Project
 import ore.UserOwned
 import ore.permission.role.RoleTypes.RoleType
@@ -27,7 +27,7 @@ import scala.annotation.meta.field
   * @param _tagline       Configured tagline
   * @param _globalRoles   Global roles this organization possesses
   */
-@HasMany(Array(classOf[Project]))
+@OneToMany(Array(classOf[Project]))
 case class Organization(override val id: Option[Int] = None,
                         override val createdAt: Option[Timestamp] = None,
                         @(Bind @field) name: String,
