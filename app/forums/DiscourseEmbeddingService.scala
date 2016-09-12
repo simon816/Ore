@@ -28,13 +28,17 @@ class DiscourseEmbeddingService(api: DiscourseApi,
                                 ws: WSClient,
                                 config: OreConfig,
                                 actorSystem: ActorSystem,
+                                disabled: Boolean = false,
                                 implicit val env: OreEnv) {
 
   import api.validate
   import config.debug
 
-  val sync = new DiscourseSync(
-    actorSystem.scheduler, Duration(this.config.forums.getInt("embed.retryRate").get, TimeUnit.MILLISECONDS))
+  val sync = if (!disabled)
+    new DiscourseSync(this.actorSystem.scheduler, Duration(this.config.forums.getInt("embed.retryRate").get,
+      TimeUnit.MILLISECONDS))
+  else
+    null
 
   /**
     * Creates a new topic for the specified [[Project]].
@@ -192,7 +196,7 @@ object DiscourseEmbeddingService {
   /**
     * Represents a disabled state of [[DiscourseEmbeddingService]].
     */
-  object Disabled extends DiscourseEmbeddingService(null, null, null, -1, null, null, null, null) {
+  object Disabled extends DiscourseEmbeddingService(null, null, null, -1, null, null, null, true, null) {
     override def createTopic(project: Project) = Future(None)
     override def updateTopic(project: Project) = Future(null)
     override def renameTopic(project: Project) = Future(null)

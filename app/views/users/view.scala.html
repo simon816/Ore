@@ -82,7 +82,9 @@
                         }
                     </ul>
                     <div class="user-info">
-                        <i class="minor">@user.projects.size projects</i><br/>
+                        @defining(user.projects.size) { size =>
+                          <i class="minor">@size @if(size == 1) { project } else { projects }</i><br/>
+                        }
                         <i class="minor">
                             A member since @user.joinDate.map(prettifyDate).getOrElse(prettifyDate(user.createdAt.get))
                         </i><br/>
