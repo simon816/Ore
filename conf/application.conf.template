@@ -58,6 +58,9 @@ ore.users.max-tagline-len   =   100
 ore.users.author-page-size  =   25
 ore.users.project-page-size =   5
 
+ore.orgs.passwordLength     =   60
+ore.orgs.dummyEmailDomain   =   "spongepowered.org"
+
 
 # Slick configuration
 slick.dbs.default.driver        =   "slick.driver.PostgresDriver$"
@@ -76,6 +79,7 @@ discourse.sso.url           =   ${?DISCOURSE_SSO_URL}
 discourse.baseUrl           =   "https://forums.spongepowered.org"
 discourse.api.enabled       =   true
 discourse.api.key           =   ${?DISCOURSE_API_KEY}
+discourse.api.admin         =   windy
 discourse.embed.categoryId  =   32
 discourse.embed.disabled    =   false
 discourse.embed.retryRate   =   60000

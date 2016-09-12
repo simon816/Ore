@@ -82,6 +82,7 @@ project.members.info-text.bottom =   Ore was able to find <strong>{0}</strong> u
 
 org.create          =   New Organization
 org.create.title    =   Create a new Organization
+ore.create.continue =   Continue
 
 version                         =   Version
 version.description             =   Description

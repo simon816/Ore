@@ -10,6 +10,8 @@ import scala.concurrent.Future
   */
 class DisabledDiscourseApi extends DiscourseApi {
   override val url = null
+  override val key: String = null
+  override val admin: String = null
   override val embed = DiscourseEmbeddingService.Disabled
   override protected val ws: WSClient = null
   override def fetchUser(username: String) = Future(None)

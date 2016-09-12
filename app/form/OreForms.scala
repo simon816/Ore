@@ -42,6 +42,11 @@ class OreForms @Inject()(implicit config: OreConfig) {
   )(ProjectRoleSetBuilder.apply)(ProjectRoleSetBuilder.unapply))
 
   /**
+    * Creates a new Organization.
+    */
+  lazy val OrganizationCreate = Form(single("name" -> text))
+
+  /**
     * Submits changes on a documentation page.
     */
   lazy val PageEdit = Form(single(

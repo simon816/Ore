@@ -36,6 +36,12 @@
   border-bottom: 1px solid $lighter;
 }
 
+.status-org-name {
+  position: absolute;
+  right: 40px;
+  top: 115px;
+}
+
 .create-body {
   padding-bottom: 3px;
 }
@@ -106,10 +112,6 @@
 
 #continue {
   margin-left: 5px;
-}
-
-.continue-btn:disabled {
-  opacity: 1;
 }
 
 .slug {

@@ -29,6 +29,12 @@ trait DiscourseApi {
   /** The base URL */
   val url: String
 
+  /** The super secret API key */
+  val key: String
+
+  /** The username of an administrator */
+  val admin: String
+
   private val logger: Logger = Logger("Discourse")
   protected val ws: WSClient
 
@@ -81,6 +87,33 @@ trait DiscourseApi {
   = Await.result(fetchUser(username), Duration(10000, TimeUnit.MILLISECONDS)).get.isDefined
 
   /**
+    * Creates a new user on the forums with the given parameters.
+    *
+    * @param name     User's full name
+    * @param username User's username
+    * @param email    User's email
+    * @param password User's password
+    * @return         ID of new user if created, None otherwise
+    */
+  def createUser(name: String, username: String, email: String, password: String): Future[Int] = {
+    val url = this.url + "/users?api_key=" + this.key + "&api_username=" + this.admin
+    val data = Map(
+      "name" -> Seq(name),
+      "username" -> Seq(username),
+      "email" -> Seq(email),
+      "password" -> Seq(password),
+      "active" -> Seq("true")
+    )
+
+    this.ws.url(url).post(data).map(response => validate(response) match {
+      case Left(errors) =>
+        throw FatalForumErrorException(errors)
+      case Right(json) =>
+        (json \ "user_id").as[Int]
+    })
+  }
+
+  /**
     * Returns the URL to the specified user's avatar image.
     *
     * @param username Username to get avatar URL for
@@ -125,5 +158,14 @@ trait DiscourseApi {
     } else
       Right(json)
   }
+
+  /**
+    * Constructs a new exception for fatal forum responses.
+    *
+    * @param errors Error list
+    * @return       New exception
+    */
+  def FatalForumErrorException(errors: List[String])
+  = new RuntimeException("discourse responded with errors: \n\t- " + errors.mkString("\n\t- "))
 
 }

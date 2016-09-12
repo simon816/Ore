@@ -30,7 +30,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
                                 disabled: Boolean = false,
                                 implicit val env: OreEnv) {
 
-  import api.validate
+  import api.{validate, FatalForumErrorException}
   import config.debug
 
   val sync = if (!disabled)
@@ -60,7 +60,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
     this.ws.url(url + "/posts").post(params).map { response =>
       validate(response) match {
         case Left(errors) =>
-          throw CriticalForumErrorException(errors)
+          throw FatalForumErrorException(errors)
         case Right(json) =>
           val postId = (json \ "id").as[Int]
           val topicId = (json \ "topic_id").as[Int]
@@ -204,9 +204,6 @@ class DiscourseEmbeddingService(api: DiscourseApi,
   private def keyedRequest(username: String) = Map("api_key" -> Seq(this.key), "api_username" -> Seq(username))
 
   private def UndefinedProjectException = new RuntimeException("undefined project")
-
-  private def CriticalForumErrorException(errors: List[String])
-  = new RuntimeException("discourse responded with errors: \n\t- " + errors.mkString("\n\t- "))
 
 }
 

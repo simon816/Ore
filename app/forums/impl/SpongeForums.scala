@@ -15,16 +15,18 @@ class SpongeForums @Inject()(config: OreConfig,
                              actorSystem: ActorSystem,
                              override val ws: WSClient) extends DiscourseApi {
 
-  lazy val conf = config.forums
+  lazy val conf = this.config.forums
 
-  override lazy val url = conf.getString("baseUrl").get
+  override lazy val url = this.conf.getString("baseUrl").get
+  override lazy val key = this.conf.getString("api.key").get
+  override lazy val admin = this.conf.getString("api.admin").get
 
-  override lazy val embed = if (!conf.getBoolean("embed.disabled").get) {
+  override lazy val embed = if (!this.conf.getBoolean("embed.disabled").get) {
     new DiscourseEmbeddingService(
       api = this,
-      url = url,
-      key = conf.getString("api.key").get,
-      categoryId = conf.getInt("embed.categoryId").get,
+      url = this.url,
+      key = this.key,
+      categoryId = this.conf.getInt("embed.categoryId").get,
       ws = ws,
       config = config,
       env = env,

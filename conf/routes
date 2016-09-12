@@ -58,6 +58,7 @@ POST    /pages/preview                                              @controllers
 # ---------- Organizations ----------
 
 GET     /organizations/new                                          @controllers.Organizations.showCreator()
+POST    /organizations/new                                          @controllers.Organizations.create()
 
 
 # ---------- Users ----------

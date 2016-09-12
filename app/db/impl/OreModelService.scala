@@ -4,15 +4,18 @@ import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 
 import db.impl.access.{FlagBase, ProjectBase, UserBase, VersionBase}
+import db.impl.access._
 import db.impl.action.{PageActions, ProjectActions, UserActions, VersionActions}
 import db.impl.pg.OrePostgresDriver
 import db.impl.pg.OrePostgresDriver.api._
 import db.impl.pg.OreTypeSetters._
 import db.meta.ModelAssociation
 import db.{ModelActions, ModelRegistry, ModelService}
+import db.impl.{ChannelTable, NotificationTable, OrganizationTable}
+import db.{ModelRegistry, ModelService}
 import forums.DiscourseApi
 import models.project.Channel
-import models.user.Notification
+import models.user.{Notification, Organization}
 import ore.Colors.Color
 import ore.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType
@@ -49,6 +52,7 @@ class OreModelService @Inject()(env: OreEnv,
   val projects = registerModelBase(classOf[ProjectBase], new ProjectBase(this, this.env, this.config, this.forums))
   val versions = registerModelBase(classOf[VersionBase], new VersionBase(this))
   val flags = registerModelBase(classOf[FlagBase], new FlagBase(this))
+  val orgs = registerModelBase[OrganizationBase](classOf[OrganizationBase], new OrganizationBase(this, forums, config))
 
   // Custom types
   registerTypeSetter(classOf[Color], ColorTypeSetter)
@@ -69,5 +73,8 @@ class OreModelService @Inject()(env: OreEnv,
   registerActions(new ModelActions(this, classOf[Channel], TableQuery[ChannelTable]))
   registerActions(new PageActions(this))
   registerActions(new ModelActions(this, classOf[Notification], TableQuery[NotificationTable]))
+
+  registerActions(new ModelActions[OrganizationTable, Organization](this, classOf[Organization],
+    TableQuery[OrganizationTable]))
 
 }

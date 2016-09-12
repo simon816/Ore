@@ -1,6 +1,10 @@
 @import 'pallette';
 @import 'fontawesome/font-awesome';
 
+.push-down {
+  margin-top: 10px;
+}
+
 .icon-save {
   @extend .fa-save
 }
