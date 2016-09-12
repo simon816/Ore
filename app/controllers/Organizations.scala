@@ -38,7 +38,7 @@ class Organizations @Inject()(forms: OreForms,
     */
   def create() = Authenticated { implicit request =>
     val name = this.forms.OrganizationCreate.bindFromRequest().get
-    this.service.access[OrganizationBase](classOf[OrganizationBase]).create(name, request.user.id.get)
+    this.service.access(classOf[OrganizationBase]).create(name, request.user.id.get)
     Redirect(self.show(name))
   }
 

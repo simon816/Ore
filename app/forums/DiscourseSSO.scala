@@ -21,8 +21,8 @@ trait DiscourseSSO {
   protected val url: String
   protected val secret: String
 
-  protected final val charEncoding = "UTF-8"
-  protected final val algo = "HmacSHA256"
+  protected val charEncoding = "UTF-8"
+  protected val algo = "HmacSHA256"
 
   protected def hmac_sha256(data: Array[Byte]): String = {
     val hmac = Mac.getInstance(this.algo)

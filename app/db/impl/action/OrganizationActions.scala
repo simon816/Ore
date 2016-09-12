@@ -9,6 +9,7 @@ import models.user.{Organization, User}
 import slick.lifted.TableQuery
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Custom [[ModelActions]] implementation for [[Organization]]s to keep track
@@ -19,7 +20,7 @@ import scala.concurrent.Future
 class OrganizationActions(override val service: ModelService)
   extends ModelActions[OrganizationTable, Organization](service, classOf[Organization], TableQuery[OrganizationTable]) {
 
-  final val Members = TableQuery[OrganizationMembersTable]
+  val Members = TableQuery[OrganizationMembersTable]
   private val users = this.service.access(classOf[UserBase])
 
   /**
