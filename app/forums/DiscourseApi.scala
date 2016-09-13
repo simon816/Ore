@@ -70,6 +70,15 @@ trait DiscourseApi {
   }
 
   /**
+    * Returns true if a Discourse user exists with the given username.
+    *
+    * @param username Username to find
+    * @return True if user exists
+    */
+  def userExists(username: String): Boolean
+  = Await.result(fetchUser(username), Duration(10000, TimeUnit.MILLISECONDS)).get.isDefined
+
+  /**
     * Returns the URL to the specified user's avatar image.
     *
     * @param username Username to get avatar URL for

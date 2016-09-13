@@ -14,7 +14,7 @@
     @if(s < step) {
         fa-check-square
     } else {
-        @defaultIcon
+        @Html(defaultIcon)
     }
 }
 
@@ -31,7 +31,7 @@
     </div>
     <div class="project-create-step @stepState(3)">
         <div class="step-content">
-            <i class="fa @stepIcon(3, "fa-users")"></i> <strong>Add members</strong>
+            <i class="fa @stepIcon(3, "fa-users")"></i> <strong>Invite members</strong>
         </div>
     </div>
     <div class="project-create-step @stepState(4)">
