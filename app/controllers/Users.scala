@@ -109,6 +109,15 @@ class Users @Inject()(val fakeUser: FakeUser,
     Ok(views.authors(this.users.getAuthors(ordering, p), ordering, p))
   }
 
+  /**
+    * Displays the current user's unread notifications.
+    *
+    * @return Unread notifications
+    */
+  def showNotifications() = Authenticated { implicit request =>
+    Ok(views.users.notifications())
+  }
+
   private def redirectBack(url: String, username: String) = {
     Redirect(this.config.app.getString("baseUrl").get + url).withSession(Security.username -> username)
   }

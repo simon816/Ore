@@ -1,12 +1,12 @@
 @import _root_.util.OreConfig
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
-@import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import models.project.{Project, Version}
 @import util.StringUtils
 @import util.StringUtils.prettifyDate
 @import util.OreEnv
+@import db.impl.service.UserBase
 @(versions: Seq[(Project, Version)])(implicit messages: Messages, session: Session, request: RequestHeader,
         service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
 
@@ -17,9 +17,10 @@
     <div class="container" style="margin-top: 90px">
         <div class="row">
             <div class="col-md-12 header-flags">
-                <h2 class="minor no-versions" @if(versions.nonEmpty) { style="display: none;" }>
+                <h2>Approval queue</h2>
+                <h3 class="minor no-versions" @if(versions.nonEmpty) { style="display: none;" }>
                     <i class="fa fa-thumbs-o-up"></i> There are no versions to review.
-                </h2>
+                </h3>
             </div>
         </div>
         <div class="row">

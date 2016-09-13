@@ -1,9 +1,9 @@
 @import _root_.util.OreConfig
 @import db.ModelService
-@import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import play.twirl.api.Html
 @import util.OreEnv
+@import db.impl.service.UserBase
 @(title: String, step: Int)(content: Html)(implicit messages: Messages, session: Session,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
         env: OreEnv)

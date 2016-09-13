@@ -5,7 +5,6 @@ sorted according to different criteria.
 @import _root_.util.OreConfig
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
-@import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import models.project.Project
 @import ore.project.Categories
@@ -14,6 +13,7 @@ sorted according to different criteria.
 @import ore.project.ProjectSortingStrategies
 @import scala.util.Random
 @import util.OreEnv
+@import db.impl.service.UserBase
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], query: Option[String], page: Int,
         sort: ProjectSortingStrategy)(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,

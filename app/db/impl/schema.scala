@@ -6,8 +6,9 @@ import db.impl.OrePostgresDriver.api._
 import db.ModelTable
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
-import models.user.{ProjectRole, User}
+import models.user.{Notification, ProjectRole, User}
 import ore.Colors.Color
+import ore.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
@@ -107,7 +108,9 @@ class VersionDownloadsTable(tag: Tag) extends StatTable[VersionDownload](tag, "v
 
 class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
 
+  // Override to remove auto increment
   override def id   =   column[Int]("id", O.PrimaryKey)
+
   def name          =   column[String]("name")
   def username      =   column[String]("username")
   def email         =   column[String]("email")
@@ -127,7 +130,21 @@ class ProjectRoleTable(tag: Tag) extends ModelTable[ProjectRole](tag, "user_proj
   def roleType    =   column[RoleType]("role_type")
   def projectId   =   column[Int]("project_id")
 
-  override def * = (id.?, createdAt.?, userId, projectId, roleType) <> ((ProjectRole.apply _).tupled, ProjectRole.unapply)
+  override def * = (id.?, createdAt.?, userId, projectId, roleType) <> ((ProjectRole.apply _).tupled,
+                    ProjectRole.unapply)
+
+}
+
+class NotificationTable(tag: Tag) extends ModelTable[Notification](tag, "notifications") {
+
+  def userId            =   column[Int]("user_id")
+  def notificationType  =   column[NotificationType]("notification_type")
+  def message           =   column[String]("message")
+  def action            =   column[String]("action")
+  def read              =   column[Boolean]("read")
+
+  override def * = (id.?, createdAt.?, userId, notificationType) <> ((Notification.apply _).tupled,
+                    Notification.unapply)
 
 }
 

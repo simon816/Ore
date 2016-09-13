@@ -18,7 +18,7 @@ import util.StringUtils._
 class UserBase(override val service: ModelService,
                forums: DiscourseApi,
                config: OreConfig)
-               extends ModelBase[UserTable, User] {
+  extends ModelBase[UserTable, User] {
 
   override val modelClass = classOf[User]
 

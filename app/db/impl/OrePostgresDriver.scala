@@ -1,8 +1,9 @@
 package db.impl
 
 import com.github.tminglei.slickpg._
-import ore.Colors
+import ore.{Colors, NotificationTypes}
 import ore.Colors.Color
+import ore.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
@@ -26,6 +27,7 @@ trait OrePostgresDriver extends ExPostgresDriver with PgArraySupport with PgNetS
     ).to(_.toList)
     implicit val categoryTypeMapper = MappedJdbcType.base[Category, Int](_.id, Categories.apply)
     implicit val flagReasonTypeMapper = MappedJdbcType.base[FlagReason, Int](_.id, FlagReasons.apply)
+    implicit val notificationTypeTypeMapper = MappedJdbcType.base[NotificationType, Int](_.id, NotificationTypes.apply)
   }
 
 }

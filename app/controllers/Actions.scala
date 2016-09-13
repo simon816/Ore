@@ -115,7 +115,7 @@ trait Actions {
   private def authAction = new ActionRefiner[Request, AuthRequest] {
     def refine[A](request: Request[A]): Future[Either[Result, AuthRequest[A]]] = Future.successful {
       users.current(request.session)
-        .map(new AuthRequest(_, request))
+        .map(AuthRequest(_, request))
         .toRight(onUnauthorized(request))
     }
   }

@@ -4,13 +4,13 @@ Versions page within Project overview.
 @import _root_.util.OreConfig
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
-@import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import models.project.{Channel, Project, Version}
 @import models.user.User
 @import ore.permission.{EditChannels, EditVersions}
 @import util.StringUtils.prettifyDate
 @import util.OreEnv
+@import db.impl.service.UserBase
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
   visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session,
         request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig,

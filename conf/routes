@@ -56,6 +56,7 @@ POST    /pages/preview                                              @controllers
 
 # ---------- Users ----------
 GET     /authors                                                    @controllers.Users.showAuthors(sort: Option[String], page: Option[Int])
+GET     /notifications                                              @controllers.Users.showNotifications()
 GET     /:user                                                      @controllers.Users.showProjects(user, page: Option[Int])
 POST    /:user/settings/tagline                                     @controllers.Users.saveTagline(user)
 # -------- End Users --------

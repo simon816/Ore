@@ -60,7 +60,7 @@ final class DataHelper @Inject()(config: OreConfig,
 
     for (i <- 0 until users) {
       debug("User: " + i + '/' + users)
-      val user = this.users.getOrCreate(new User(id = Some(i), _username = "User-" + i))
+      val user = this.users.getOrCreate(User(id = Some(i), _username = "User-" + i))
       for (j <- 0 until projects) {
         debug("Project: " + j + '/' + projects)
         while (!pluginFile.exists()) pluginFile = copyPlugin // /me throws up

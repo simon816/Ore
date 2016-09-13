@@ -4,7 +4,6 @@ Documentation page within Project overview.
 @import _root_.util.OreConfig
 @import controllers.project.routes
 @import db.ModelService
-@import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import models.project.{Page, Project}
 @import models.user.User
@@ -12,6 +11,7 @@ Documentation page within Project overview.
 @import _root_.util.StringUtils.prettifyDate
 @import java.text.NumberFormat
 @import util.OreEnv
+@import db.impl.service.UserBase
 @(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi,
         config: OreConfig, users: UserBase, env: OreEnv)

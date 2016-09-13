@@ -4,19 +4,14 @@ The main header displayed on each layout.
 @import _root_.util.OreConfig
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
-@import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import models.project.{Flag, Version}
 @import models.user.User
 @import ore.permission.scope.GlobalScope
 @import ore.permission.{ReviewFlags, ReviewProjects}
+@import db.impl.service.UserBase
 @()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService,
         forums: DiscourseApi, config: OreConfig, users: UserBase)
-
-@canViewFlags(user: User) = @{ user can ReviewFlags in GlobalScope }
-@canReviewProjects(user: User) = @{ user can ReviewProjects in GlobalScope }
-@hasFlags = @{ Flag.unresolved.nonEmpty }
-@queueNonEmpty = @{ Version.notReviewed.nonEmpty }
 
 <nav id="top" class="navbar-main navbar navbar-fixed-top navbar-inverse">
     <div class="container">
@@ -88,7 +83,7 @@ The main header displayed on each layout.
                 @* Show user controls *@
                 <li class="dropdown user-controls">
                     <a href="#" class="drop-down-toggle user-toggle" data-toggle="dropdown">
-                        @if((canViewFlags(user) && hasFlags) || (canReviewProjects(user) && queueNonEmpty)) {
+                        @if(user.hasUnreadNotifications) {
                             <span class="unread"></span>
                         }
                         <img height="32" width="32" class="user-avatar" src="@user.avatarUrl(100)" />
@@ -101,6 +96,14 @@ The main header displayed on each layout.
                                 <i class="pull-right fa fa-user"></i>
                             </a>
                         </li>
+
+                        <li>
+                            <a href="@routes.Application.showHome(None, None, None, None)">
+                                <span class="pull-left">Notifications</span>
+                                <i class="pull-right fa fa-bell"></i>
+                            </a>
+                        </li>
+
                         <li>
                             <a href="@projectRoutes.Projects.showCreator()">
                                 <span class="pull-left">New</span>
@@ -108,12 +111,12 @@ The main header displayed on each layout.
                             </a>
                         </li>
 
-                        @if(canViewFlags(user)) {
+                        @if(user can ReviewFlags in GlobalScope) {
                             <li>
                                 <a href="@routes.Application.showFlags()">
                                     <span class="flags pull-left">
                                         Flags
-                                        @if(hasFlags) {
+                                        @if(Flag.unresolved.nonEmpty) {
                                             <span class="unread"></span>
                                         }
                                     </span>
@@ -122,12 +125,12 @@ The main header displayed on each layout.
                             </li>
                         }
 
-                        @if(canReviewProjects(user)) {
+                        @if(user can ReviewProjects in GlobalScope) {
                             <li>
                                 <a href="@routes.Application.showQueue()">
                                     <span class="pull-left">
                                         Queue
-                                        @if(queueNonEmpty) {
+                                        @if(Version.notReviewed.nonEmpty) {
                                             <span class="unread"></span>
                                         }
                                     </span>

@@ -1,8 +1,8 @@
 @import _root_.util.OreConfig
 @import db.ModelService
-@import db.impl.service.UserBase
 @import forums.DiscourseApi
 @import util.OreEnv
+@import db.impl.service.UserBase
 @(message: String)(implicit messages: Messages, session: Session, request: RequestHeader,
         service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
 

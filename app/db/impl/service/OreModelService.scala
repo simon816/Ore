@@ -7,11 +7,13 @@ import db.action.ModelActions
 import db.impl.OrePostgresDriver.api._
 import db.impl.OreTypeSetters._
 import db.impl.action.{PageActions, ProjectActions, UserActions, VersionActions}
-import db.impl.{ChannelTable, OrePostgresDriver}
+import db.impl.{ChannelTable, NotificationTable, OrePostgresDriver}
 import db.{ModelRegistry, ModelService}
 import forums.DiscourseApi
 import models.project.Channel
+import models.user.Notification
 import ore.Colors.Color
+import ore.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
@@ -50,6 +52,7 @@ class OreModelService @Inject()(config: OreConfig,
   registerTypeSetter(classOf[List[RoleType]], RoleTypeListTypeSetter)
   registerTypeSetter(classOf[Category], CategoryTypeSetter)
   registerTypeSetter(classOf[FlagReason], FlagReasonTypeSetter)
+  registerTypeSetter(classOf[NotificationType], NotificationTypeTypeSetter)
 
   // Ore models
   registerActions(new ModelActions[ChannelTable, Channel](this, classOf[Channel], TableQuery[ChannelTable]))
@@ -57,5 +60,8 @@ class OreModelService @Inject()(config: OreConfig,
   registerActions(new ProjectActions(this))
   registerActions(new UserActions(this))
   registerActions(new VersionActions(this))
+
+  registerActions(new ModelActions[NotificationTable, Notification](this, classOf[Notification],
+    TableQuery[NotificationTable]))
 
 }

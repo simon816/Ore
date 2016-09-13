@@ -10,7 +10,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.action.{ProjectActions, UserActions}
 import db.meta._
-import models.project.{Flag, Project}
+import models.project.{Flag, Project, Version}
 import ore.UserOwned
 import ore.permission._
 import ore.permission.role.RoleTypes.{DonorType, RoleType}
@@ -253,6 +253,16 @@ case class User(override val id: Option[Int] = None,
     */
   def hasUnresolvedFlagFor(project: Project): Boolean
   = this.flags.exists(f => f.projectId === project.id.get && !f.isResolved)
+
+  /**
+    * Returns true if this User has any unread notifications.
+    *
+    * @return True if has unread notifications
+    */
+  def hasUnreadNotifications: Boolean = {
+    ((this can ReviewFlags in GlobalScope) && Flag.unresolved.nonEmpty) ||
+      ((this can ReviewProjects in GlobalScope) && Version.notReviewed.nonEmpty)
+  }
 
   /**
     * Returns the Projects that this User has starred.

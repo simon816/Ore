@@ -1,0 +1,22 @@
+@import db.ModelService
+@import forums.DiscourseApi
+@import util.OreConfig
+@import util.OreEnv
+@import db.impl.service.UserBase
+@()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService, forums: DiscourseApi,
+        config: OreConfig, users: UserBase, env: OreEnv)
+
+@bootstrap.layout("Notifications") {
+
+    <div class="container" style="margin-top: 90px">
+        <div class="row">
+            <div class="col-md-12 header-flags">
+                <h2>Notifications</h2>
+                <h3 class="minor no-notifications">
+                    <i class="fa fa-thumbs-o-up"></i> You have no new notifications!
+                </h3>
+            </div>
+        </div>
+    </div>
+
+}
