@@ -234,7 +234,7 @@ case class User(override val id: Option[Int] = None,
       case pScope: ProjectScope =>
         pScope.project.members
           .find(_.user.equals(this))
-          .map(_.roles.filter(_.isAccepted).toList.sorted.last.roleType.trust)
+          .flatMap(_.roles.filter(_.isAccepted).toList.sorted.lastOption.map(_.roleType.trust))
           .getOrElse(Default)
     }
   }
@@ -257,13 +257,16 @@ case class User(override val id: Option[Int] = None,
   = this.flags.exists(f => f.projectId === project.id.get && !f.isResolved)
 
   /**
-    * Sends a [[Notification]] to this user asynchronously.
+    * Sends a [[Notification]] to this user.
     *
     * @param notification Notification to send
     * @return Future result
     */
-  def sendNotification(notification: Notification)
-  = this.service.getActionsByModel(classOf[Notification]).insert(notification.copy(userId = this.id.get))
+  def sendNotification(notification: Notification) = {
+    this.config.debug("Sending notification: " + notification, -1)
+    this.service.access[NotificationTable, Notification](classOf[Notification])
+      .add(notification.copy(userId = this.id.get))
+  }
 
   /**
     * Returns this User's notifications.

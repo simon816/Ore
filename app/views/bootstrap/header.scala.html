@@ -105,6 +105,7 @@ The main header displayed on each layout.
                                 <span class="pull-left">
                                     Notifications
                                     @if(user.notifications.filterNot(_.read).nonEmpty) {
+                                        @println(user.notifications.filterNot(_.read).size)
                                         <span class="unread"></span>
                                     }
                                 </span>

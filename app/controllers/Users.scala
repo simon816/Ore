@@ -46,6 +46,7 @@ class Users @Inject()(val fakeUser: FakeUser,
     } else {
       // Decode SSO payload received from forums and get Ore user
       val user = this.auth.authenticate(sso.get, sig.get)
+      this.config.debug(user.username + " has " + user.notifications.size + " notifications.", -1)
       this.redirectBack(request.flash.get("url").get, user.username)
     }
   }

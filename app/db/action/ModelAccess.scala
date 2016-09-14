@@ -122,7 +122,7 @@ class ModelAccess[T <: ModelTable[M], M <: Model](service: ModelService,
     * @return       Filtered models
     */
   def filter(filter: Filter, limit: Int = -1, offset: Int = -1): Seq[M]
-  = this.service.await(this.actions.filter(filter, limit, offset)).get
+  = this.service.await(this.actions.filter(this.baseFilter && filter, limit, offset)).get
 
   /**
     * Filters this set by the opposite of the given function.
