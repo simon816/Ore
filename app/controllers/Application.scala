@@ -8,6 +8,7 @@ import db.ModelService
 import db.action.ModelFilter
 import db.impl.OrePostgresDriver.api._
 import db.impl.action.ProjectActions
+import db.impl.service.FlagBase
 import db.impl.{FlagTable, ProjectTable}
 import forums.DiscourseApi
 import models.project.{Flag, Project, Version}
@@ -85,7 +86,7 @@ class Application @Inject()(data: DataHelper,
     * @return Flag overview
     */
   def showFlags() = FlagAction { implicit request =>
-    Ok(views.admin.flags(Flag.unresolved))
+    Ok(views.admin.flags(this.service.access(classOf[FlagBase]).unresolved))
   }
 
   /**

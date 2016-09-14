@@ -161,7 +161,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Recorded downloads
     */
-  def downloadEntries = this.getMany[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
+  def downloadEntries = this.oneToMany[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
 
   /**
     * Returns a human readable file size for this Version.

@@ -1,7 +1,6 @@
 package models.user
 
 import java.sql.Timestamp
-import java.text.DateFormat
 
 import com.google.common.base.Preconditions._
 import db.action.ModelAccess
@@ -9,14 +8,14 @@ import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.action.{ProjectActions, UserActions}
+import db.impl.service.FlagBase
 import db.meta._
-import models.project.{Flag, Project, Version}
+import models.project.{Flag, Project, ProjectInvite, Version}
 import ore.UserOwned
 import ore.permission._
 import ore.permission.role.RoleTypes.{DonorType, RoleType}
 import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
-import play.api.libs.json.JsObject
 import util.StringUtils._
 
 import scala.annotation.meta.field
@@ -32,7 +31,7 @@ import scala.annotation.meta.field
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
 @Actions(classOf[UserActions])
-@HasMany(Array(classOf[Project], classOf[ProjectRole], classOf[Flag]))
+@HasMany(Array(classOf[Project], classOf[ProjectRole], classOf[Flag], classOf[Notification], classOf[ProjectInvite]))
 case class User(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
                 @(Bind @field) private var _name: Option[String] = None,
@@ -186,14 +185,14 @@ case class User(override val id: Option[Int] = None,
     *
     * @return All projects owned by User
     */
-  def projects = this.getMany[ProjectTable, Project](classOf[Project])
+  def projects = this.oneToMany[ProjectTable, Project](classOf[Project])
 
   /**
     * Returns a [[ModelAccess]] of [[ProjectRole]]s.
     *
     * @return ProjectRoles
     */
-  def projectRoles = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+  def projectRoles = this.oneToMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns a Set of [[RoleType]]s that this User has globally.
@@ -242,7 +241,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Flags submitted by user
     */
-  def flags = this.getMany[FlagTable, Flag](classOf[Flag])
+  def flags = this.oneToMany[FlagTable, Flag](classOf[Flag])
 
   /**
     * Returns true if the User has an unresolved [[Flag]] on the specified
@@ -255,12 +254,44 @@ case class User(override val id: Option[Int] = None,
   = this.flags.exists(f => f.projectId === project.id.get && !f.isResolved)
 
   /**
+    * Sends a [[Notification]] to this user asynchronously.
+    *
+    * @param notification Notification to send
+    * @return Future result
+    */
+  def sendNotification(notification: Notification)
+  = this.service.getActionsByModel(classOf[Notification]).insert(notification.copy(userId = this.id.get))
+
+  /**
+    * Returns this User's notifications.
+    *
+    * @return User notifications
+    */
+  def notifications = this.oneToMany[NotificationTable, Notification](classOf[Notification])
+
+  /**
+    * Invites this user to the specified [[Project]] asynchronously.
+    *
+    * @param project Project to invite user to
+    * @return Future result
+    */
+  def sendProjectInvite(project: Project)
+  = this.service.getActionsByModel(classOf[ProjectInvite]).insert(new ProjectInvite(project, this))
+
+  /**
+    * Returns the [[ProjectInvite]]s that this User currently has.
+    *
+    * @return ProjectInvites
+    */
+  def projectInvites = this.oneToMany[ProjectInviteTable, ProjectInvite](classOf[ProjectInvite])
+
+  /**
     * Returns true if this User has any unread notifications.
     *
     * @return True if has unread notifications
     */
   def hasUnreadNotifications: Boolean = {
-    ((this can ReviewFlags in GlobalScope) && Flag.unresolved.nonEmpty) ||
+    ((this can ReviewFlags in GlobalScope) && this.service.access(classOf[FlagBase]).unresolved.nonEmpty) ||
       ((this can ReviewProjects in GlobalScope) && Version.notReviewed.nonEmpty)
   }
 
@@ -271,10 +302,10 @@ case class User(override val id: Option[Int] = None,
     * @return     Projects user has starred
     */
   def starred(page: Int = -1): Seq[Project] = Defined {
-    val starsPerPage = config.users.getInt("stars-per-page").get
+    val starsPerPage = this.config.users.getInt("stars-per-page").get
     val limit = if (page < 1) -1 else starsPerPage
-    val actions = service.getActions(classOf[ProjectActions])
-    service.await(actions.starredBy(this.id.get, limit, (page - 1) * starsPerPage)).get
+    val actions = this.service.getActions(classOf[ProjectActions])
+    this.service.await(actions.starredBy(this.id.get, limit, (page - 1) * starsPerPage)).get
   }
 
   /**

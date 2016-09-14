@@ -10,8 +10,11 @@ The main header displayed on each layout.
 @import ore.permission.scope.GlobalScope
 @import ore.permission.{ReviewFlags, ReviewProjects}
 @import db.impl.service.UserBase
+@import db.impl.service.FlagBase
 @()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService,
         forums: DiscourseApi, config: OreConfig, users: UserBase)
+
+@flags = @{ service.access(classOf[FlagBase]) }
 
 <nav id="top" class="navbar-main navbar navbar-fixed-top navbar-inverse">
     <div class="container">
@@ -116,7 +119,7 @@ The main header displayed on each layout.
                                 <a href="@routes.Application.showFlags()">
                                     <span class="flags pull-left">
                                         Flags
-                                        @if(Flag.unresolved.nonEmpty) {
+                                        @if(flags.unresolved.nonEmpty) {
                                             <span class="unread"></span>
                                         }
                                     </span>

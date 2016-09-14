@@ -59,15 +59,3 @@ case class Flag(override val id: Option[Int],
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
 
 }
-
-object Flag {
-
-  /**
-    * Returns all Flags that are unresolved.
-    *
-    * @return All unresolved flags
-    */
-  def unresolved(implicit service: ModelService): Seq[Flag]
-  = service.access[FlagTable, Flag](classOf[Flag]).filterNot(_.isResolved)
-
-}

@@ -82,6 +82,17 @@ trait ModelService {
   def getActions[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q = this.registry.getActions(actionsClass)
 
   /**
+    * Provides the registered ModelActions instance for the specified Model.
+    *
+    * @param modelClass Model class
+    * @tparam T Table type
+    * @tparam M Model type
+    * @return ModelActions
+    */
+  def getActionsByModel[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M]): ModelActions[T, M]
+  = this.registry.getActionsByModel(modelClass)
+
+  /**
     * Returns the base query for the specified Model class.
     *
     * @param modelClass Model class
@@ -99,9 +110,8 @@ trait ModelService {
     * @param action   Action to run
     * @return         Processed result
     */
-  def doAction[R: TypeTag](action: AbstractModelAction[R]): Future[R] = DB.db.run(action).map {
-    case r => action.processResult(this, r)
-  }
+  def doAction[R: TypeTag](action: AbstractModelAction[R]): Future[R]
+  = DB.db.run(action).map(r => action.processResult(this, r))
 
   /**
     * Returns a new ModelAccess to access a ModelTable synchronously.

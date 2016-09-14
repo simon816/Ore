@@ -106,6 +106,15 @@ class VersionDownloadsTable(tag: Tag) extends StatTable[VersionDownload](tag, "v
                     VersionDownload.unapply)
 }
 
+class ProjectInviteTable(tag: Tag) extends ModelTable[ProjectInvite](tag, "project_invites") {
+
+  def projectId = column[Int]("project_id")
+  def userId = column[Int]("user_id")
+
+  override def * = (id.?, createdAt.?, projectId, userId) <> ((ProjectInvite.apply _).tupled, ProjectInvite.unapply)
+
+}
+
 class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
 
   // Override to remove auto increment
@@ -143,8 +152,8 @@ class NotificationTable(tag: Tag) extends ModelTable[Notification](tag, "notific
   def action            =   column[String]("action")
   def read              =   column[Boolean]("read")
 
-  override def * = (id.?, createdAt.?, userId, notificationType) <> ((Notification.apply _).tupled,
-                    Notification.unapply)
+  override def * = (id.?, createdAt.?, userId, notificationType, message, action,
+                    read) <> ((Notification.apply _).tupled, Notification.unapply)
 
 }
 

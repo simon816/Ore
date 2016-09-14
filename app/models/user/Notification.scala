@@ -10,6 +10,17 @@ import ore.UserOwned
 
 import scala.annotation.meta.field
 
+/**
+  * Represents a [[User]] notification.
+  *
+  * @param id               Unique ID
+  * @param createdAt        Instant of cretion
+  * @param userId           ID of User this notification belongs to
+  * @param notificationType Type of notification
+  * @param message          Message to display
+  * @param action           Action to perform on click
+  * @param read             True if notification has been read
+  */
 case class Notification(override val id: Option[Int],
                         override val createdAt: Option[Timestamp],
                         @(Bind @field) override val userId: Int,

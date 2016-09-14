@@ -42,8 +42,8 @@ import scala.annotation.meta.field
   */
 @Actions(classOf[ProjectActions])
 @HasMany(Array(
-  classOf[Channel], classOf[Version], classOf[Page],
-  classOf[Flag], classOf[ProjectRole], classOf[ProjectView]
+  classOf[Channel], classOf[Version], classOf[Page], classOf[Flag], classOf[ProjectRole], classOf[ProjectView],
+  classOf[ProjectInvite]
 ))
 case class Project(// Immutable
                    override val id: Option[Int] = None,
@@ -183,7 +183,7 @@ case class Project(// Immutable
     *
     * @return Unique project views
     */
-  def viewEntries = this.getMany[ProjectViewsTable, ProjectView](classOf[ProjectView])
+  def viewEntries = this.oneToMany[ProjectViewsTable, ProjectView](classOf[ProjectView])
 
   /**
     * Returns the amount of unique views this Project has.
@@ -367,14 +367,14 @@ case class Project(// Immutable
     *
     * @return Set of all ProjectRoles
     */
-  def roles = this.getMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+  def roles = this.oneToMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns the Channels in this Project.
     *
     * @return Channels in project
     */
-  def channels = this.getMany[ChannelTable, Channel](classOf[Channel])
+  def channels = this.oneToMany[ChannelTable, Channel](classOf[Channel])
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -393,7 +393,7 @@ case class Project(// Immutable
     *
     * @return Versions in project
     */
-  def versions = this.getMany[VersionTable, Version](classOf[Version])
+  def versions = this.oneToMany[VersionTable, Version](classOf[Version])
 
   /**
     * Returns this Project's recommended version.
@@ -418,7 +418,7 @@ case class Project(// Immutable
     *
     * @return Pages in project
     */
-  def pages = this.getMany[PageTable, Page](classOf[Page])
+  def pages = this.oneToMany[PageTable, Page](classOf[Page])
 
   /**
     * Returns true if a page with the specified name exists.
@@ -444,7 +444,7 @@ case class Project(// Immutable
     *
     * @return Flags on project
     */
-  def flags = this.getMany[FlagTable, Flag](classOf[Flag])
+  def flags = this.oneToMany[FlagTable, Flag](classOf[Flag])
 
   /**
     * Returns this Project's home page.
@@ -483,6 +483,13 @@ case class Project(// Immutable
     val templatePath = env.conf.resolve("discourse/project_topic.md")
     StringUtils.readAndFormatFile(templatePath, this.name, this.url, this.homePage.contents)
   }
+
+  /**
+    * Returns all currently pending [[ProjectInvite]]s that are out.
+    *
+    * @return ProjectInvites
+    */
+  def invites = this.oneToMany[ProjectInviteTable, ProjectInvite](classOf[ProjectInvite])
 
   override def projectId = Defined(this.id.get)
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
