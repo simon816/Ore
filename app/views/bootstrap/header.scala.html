@@ -11,6 +11,7 @@ The main header displayed on each layout.
 @import ore.permission.{ReviewFlags, ReviewProjects}
 @import db.impl.service.UserBase
 @import db.impl.service.FlagBase
+@import db.impl.service.VersionBase
 @()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService,
         forums: DiscourseApi, config: OreConfig, users: UserBase)
 
@@ -105,7 +106,6 @@ The main header displayed on each layout.
                                 <span class="pull-left">
                                     Notifications
                                     @if(user.notifications.filterNot(_.read).nonEmpty) {
-                                        @println(user.notifications.filterNot(_.read).size)
                                         <span class="unread"></span>
                                     }
                                 </span>
@@ -139,7 +139,7 @@ The main header displayed on each layout.
                                 <a href="@routes.Application.showQueue()">
                                     <span class="pull-left">
                                         Queue
-                                        @if(Version.notReviewed.nonEmpty) {
+                                        @if(service.access(classOf[VersionBase]).notReviewed.nonEmpty) {
                                             <span class="unread"></span>
                                         }
                                     </span>

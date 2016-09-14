@@ -45,6 +45,7 @@ class OreModelService @Inject()(config: OreConfig,
 
   val users = registerModelBase(classOf[UserBase], new UserBase(this, forums, config))
   val projects = registerModelBase(classOf[ProjectBase], new ProjectBase(this))
+  val versions = registerModelBase(classOf[VersionBase], new VersionBase(this))
   val flags = registerModelBase(classOf[FlagBase], new FlagBase(this))
 
   // Custom types

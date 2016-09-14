@@ -200,15 +200,3 @@ case class Version(override val id: Option[Int] = None,
   override def equals(o: Any) = o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get
 
 }
-
-object Version {
-
-  /**
-    * Returns all Versions that have not been reviewed by the moderation staff.
-    *
-    * @return All versions not reviewed
-    */
-  def notReviewed(implicit service: ModelService): Seq[Version]
-  = service.access[VersionTable, Version](classOf[Version]).filterNot(_.isReviewed)
-
-}

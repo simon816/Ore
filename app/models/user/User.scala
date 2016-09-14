@@ -8,7 +8,7 @@ import db.impl.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.action.{ProjectActions, UserActions}
-import db.impl.service.FlagBase
+import db.impl.service.{FlagBase, VersionBase}
 import db.meta._
 import models.project.{Flag, Project, Version}
 import ore.UserOwned
@@ -282,7 +282,7 @@ case class User(override val id: Option[Int] = None,
     */
   def hasUnreadNotifications: Boolean = {
     ((this can ReviewFlags in GlobalScope) && this.service.access(classOf[FlagBase]).unresolved.nonEmpty) ||
-      ((this can ReviewProjects in GlobalScope) && Version.notReviewed.nonEmpty) ||
+      ((this can ReviewProjects in GlobalScope) && this.service.access(classOf[VersionBase]).notReviewed.nonEmpty) ||
       this.notifications.filterNot(_.read).nonEmpty
   }
 

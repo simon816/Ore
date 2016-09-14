@@ -8,7 +8,7 @@ import db.ModelService
 import db.action.ModelFilter
 import db.impl.OrePostgresDriver.api._
 import db.impl.action.ProjectActions
-import db.impl.service.FlagBase
+import db.impl.service.{FlagBase, VersionBase}
 import db.impl.{FlagTable, ProjectTable}
 import forums.DiscourseApi
 import models.project.{Flag, Project, Version}
@@ -76,7 +76,7 @@ class Application @Inject()(data: DataHelper,
     */
   def showQueue() = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) { implicit request =>
-      Ok(views.admin.queue(Version.notReviewed.map(v => (v.project, v))))
+      Ok(views.admin.queue(this.service.access(classOf[VersionBase]).notReviewed.map(v => (v.project, v))))
     }
   }
 
