@@ -7,10 +7,10 @@ import db.action.ModelActions
 import db.impl.OrePostgresDriver.api._
 import db.impl.OreTypeSetters._
 import db.impl.action.{PageActions, ProjectActions, UserActions, VersionActions}
-import db.impl.{ChannelTable, NotificationTable, OrePostgresDriver, ProjectInviteTable}
+import db.impl.{ChannelTable, NotificationTable, OrePostgresDriver}
 import db.{ModelRegistry, ModelService}
 import forums.DiscourseApi
-import models.project.{Channel, ProjectInvite}
+import models.project.Channel
 import models.user.Notification
 import ore.Colors.Color
 import ore.NotificationTypes.NotificationType
@@ -58,7 +58,6 @@ class OreModelService @Inject()(config: OreConfig,
   // Ore models
   registerActions(new ModelActions(this, classOf[Channel], TableQuery[ChannelTable]))
   registerActions(new ModelActions(this, classOf[Notification], TableQuery[NotificationTable]))
-  registerActions(new ModelActions(this, classOf[ProjectInvite], TableQuery[ProjectInviteTable]))
   registerActions(new PageActions(this))
   registerActions(new ProjectActions(this))
   registerActions(new UserActions(this))

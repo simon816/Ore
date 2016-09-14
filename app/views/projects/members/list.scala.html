@@ -61,23 +61,32 @@
         <ul class="list-members list-group">
             <!-- Member list -->
             @model.members.toList.sorted.reverse.map { member =>
-                <li class="list-group-item">
+                @if(member.headRole.isAccepted
+                        || (users.current.isDefined && users.current.get.username.equals(model.ownerName))) {
+                    <li class="list-group-item">
 
-                    <a class="username" href="@routes.Users.showProjects(member.name, None)">
-                        <img class="user-avatar" src="@member.user.avatarUrl(100)" width="32" height="32" />
-                        @member.name
-                    </a>
-
-                    @if(canEdit && !member.headRole.roleType.equals(RoleTypes.ProjectOwner)) {
-                        <a href="#">
-                            <i class="fa fa-trash" data-toggle="modal" data-target="#modal-user-delete"></i>
+                        <a class="username" href="@routes.Users.showProjects(member.name, None)">
+                            <img class="user-avatar" src="@member.user.avatarUrl(100)" width="32" height="32" />
+                            @member.name
                         </a>
-                        <a href="#"><i class="fa fa-edit"></i></a>
-                    }
 
-                    <span class="minor pull-right">@member.headRole.roleType.title</span>
+                        @if(canEdit && !member.headRole.roleType.equals(RoleTypes.ProjectOwner)) {
+                            <a href="#">
+                                <i class="fa fa-trash" data-toggle="modal" data-target="#modal-user-delete"></i>
+                            </a>
+                            <a href="#"><i class="fa fa-edit"></i></a>
+                        }
 
-                </li>
+                        <span class="minor pull-right">
+                        @if(!member.headRole.isAccepted) {
+                            <span class="minor">(Invited)</span>
+                        } else {
+                            @member.headRole.roleType.title
+                        }
+                        </span>
+
+                    </li>
+                }
             }
 
             <!-- User search -->

@@ -21,8 +21,8 @@ import scala.annotation.meta.field
   * @param action           Action to perform on click
   * @param read             True if notification has been read
   */
-case class Notification(override val id: Option[Int],
-                        override val createdAt: Option[Timestamp],
+case class Notification(override val id: Option[Int] = None,
+                        override val createdAt: Option[Timestamp] = None,
                         @(Bind @field) override val userId: Int,
                         @(Bind @field) notificationType: NotificationType,
                         @(Bind @field) message: String,

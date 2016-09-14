@@ -42,8 +42,7 @@ import scala.annotation.meta.field
   */
 @Actions(classOf[ProjectActions])
 @HasMany(Array(
-  classOf[Channel], classOf[Version], classOf[Page], classOf[Flag], classOf[ProjectRole], classOf[ProjectView],
-  classOf[ProjectInvite]
+  classOf[Channel], classOf[Version], classOf[Page], classOf[Flag], classOf[ProjectRole], classOf[ProjectView]
 ))
 case class Project(// Immutable
                    override val id: Option[Int] = None,
@@ -483,13 +482,6 @@ case class Project(// Immutable
     val templatePath = env.conf.resolve("discourse/project_topic.md")
     StringUtils.readAndFormatFile(templatePath, this.name, this.url, this.homePage.contents)
   }
-
-  /**
-    * Returns all currently pending [[ProjectInvite]]s that are out.
-    *
-    * @return ProjectInvites
-    */
-  def invites = this.oneToMany[ProjectInviteTable, ProjectInvite](classOf[ProjectInvite])
 
   override def projectId = Defined(this.id.get)
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)

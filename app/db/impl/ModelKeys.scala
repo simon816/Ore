@@ -17,6 +17,7 @@ object ModelKeys {
   val Color                 =   "color"
   val Contents              =   "contents"
   val RoleType              =   "roleType"
+  val IsAccepted            =   "isAccepted"
   val TopicId               =   "topicId"
   val PostId                =   "postId"
   val IsResolved            =   "isResolved"

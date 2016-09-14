@@ -106,15 +106,6 @@ class VersionDownloadsTable(tag: Tag) extends StatTable[VersionDownload](tag, "v
                     VersionDownload.unapply)
 }
 
-class ProjectInviteTable(tag: Tag) extends ModelTable[ProjectInvite](tag, "project_invites") {
-
-  def projectId = column[Int]("project_id")
-  def userId = column[Int]("user_id")
-
-  override def * = (id.?, createdAt.?, projectId, userId) <> ((ProjectInvite.apply _).tupled, ProjectInvite.unapply)
-
-}
-
 class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
 
   // Override to remove auto increment
@@ -138,8 +129,9 @@ class ProjectRoleTable(tag: Tag) extends ModelTable[ProjectRole](tag, "user_proj
   def userId      =   column[Int]("user_id")
   def roleType    =   column[RoleType]("role_type")
   def projectId   =   column[Int]("project_id")
+  def isAccepted  =   column[Boolean]("is_accepted")
 
-  override def * = (id.?, createdAt.?, userId, projectId, roleType) <> ((ProjectRole.apply _).tupled,
+  override def * = (id.?, createdAt.?, userId, projectId, roleType, isAccepted) <> ((ProjectRole.apply _).tupled,
                     ProjectRole.unapply)
 
 }

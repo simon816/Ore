@@ -16,8 +16,8 @@ import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectMana
 import org.apache.commons.io.FileUtils
 import play.api.i18n.MessagesApi
 import play.api.mvc._
-import util.{OreConfig, OreEnv}
 import util.StringUtils._
+import util.{OreConfig, OreEnv}
 import views.html.{projects => views}
 
 import scala.util.{Failure, Success}

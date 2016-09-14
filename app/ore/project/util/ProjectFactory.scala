@@ -8,7 +8,8 @@ import db.ModelService
 import db.impl.service.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
-import models.user.{ProjectRole, User}
+import models.user.{Notification, ProjectRole, User}
+import ore.NotificationTypes
 import ore.permission.role.RoleTypes
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.cache.CacheApi
@@ -47,7 +48,7 @@ trait ProjectFactory {
     */
   def processPluginFile(tmp: TemporaryFile, name: String, owner: User): Try[PluginFile] = Try {
     if (!name.endsWith(".zip") && !name.endsWith(".jar")) {
-      throw new InvalidPluginFileException("Plugin file must be either a JAR or ZIP file.")
+      throw InvalidPluginFileException("Plugin file must be either a JAR or ZIP file.")
     }
 
     val tmpPath = this.env.tmp.resolve(owner.username).resolve(name)
@@ -188,11 +189,14 @@ trait ProjectFactory {
     checkArgument(this.config.isValidProjectName(pending.project.name), "invalid name", "")
     val newProject = this.projects.add(pending.project)
 
-    // Add Project roles
+    // Invite members
     val user = pending.file.user
-    user.projectRoles.add(new ProjectRole(user.id.get, RoleTypes.ProjectOwner, newProject.id.get))
+    user.projectRoles.add(new ProjectRole(user.id.get, RoleTypes.ProjectOwner, newProject.id.get, accepted = true))
     for (role <- pending.roles) {
-      this.users.get(role.userId).get.projectRoles.add(role.copy(projectId=newProject.id.get))
+      val user = role.user
+      user.projectRoles.add(role.copy(projectId = newProject.id.get))
+      user.sendNotification(Notification(userId = user.id.get, notificationType = NotificationTypes.ProjectInvite,
+        message = "Test 123", action = "/"))
     }
 
     this.forums.embed.createTopic(newProject)

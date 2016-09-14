@@ -10,7 +10,7 @@ import db.impl._
 import db.impl.action.{ProjectActions, UserActions}
 import db.impl.service.FlagBase
 import db.meta._
-import models.project.{Flag, Project, ProjectInvite, Version}
+import models.project.{Flag, Project, Version}
 import ore.UserOwned
 import ore.permission._
 import ore.permission.role.RoleTypes.{DonorType, RoleType}
@@ -31,7 +31,7 @@ import scala.annotation.meta.field
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
 @Actions(classOf[UserActions])
-@HasMany(Array(classOf[Project], classOf[ProjectRole], classOf[Flag], classOf[Notification], classOf[ProjectInvite]))
+@HasMany(Array(classOf[Project], classOf[ProjectRole], classOf[Flag], classOf[Notification]))
 case class User(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
                 @(Bind @field) private var _name: Option[String] = None,
@@ -230,9 +230,12 @@ case class User(override val id: Option[Int] = None,
     */
   def trustIn(scope: Scope = GlobalScope): Trust = Defined {
     scope match {
-      case GlobalScope => this.globalRoles.map(_.trust).toList.sorted.reverse.headOption.getOrElse(Default)
+      case GlobalScope => this.globalRoles.map(_.trust).toList.sorted.lastOption.getOrElse(Default)
       case pScope: ProjectScope =>
-        this.projectRoles.find(_.projectId === pScope.projectId).map(_.roleType.trust).getOrElse(Default)
+        pScope.project.members
+          .find(_.user.equals(this))
+          .map(_.roles.filter(_.isAccepted).toList.sorted.last.roleType.trust)
+          .getOrElse(Default)
     }
   }
 
@@ -270,29 +273,14 @@ case class User(override val id: Option[Int] = None,
   def notifications = this.oneToMany[NotificationTable, Notification](classOf[Notification])
 
   /**
-    * Invites this user to the specified [[Project]] asynchronously.
-    *
-    * @param project Project to invite user to
-    * @return Future result
-    */
-  def sendProjectInvite(project: Project)
-  = this.service.getActionsByModel(classOf[ProjectInvite]).insert(new ProjectInvite(project, this))
-
-  /**
-    * Returns the [[ProjectInvite]]s that this User currently has.
-    *
-    * @return ProjectInvites
-    */
-  def projectInvites = this.oneToMany[ProjectInviteTable, ProjectInvite](classOf[ProjectInvite])
-
-  /**
     * Returns true if this User has any unread notifications.
     *
     * @return True if has unread notifications
     */
   def hasUnreadNotifications: Boolean = {
     ((this can ReviewFlags in GlobalScope) && this.service.access(classOf[FlagBase]).unresolved.nonEmpty) ||
-      ((this can ReviewProjects in GlobalScope) && Version.notReviewed.nonEmpty)
+      ((this can ReviewProjects in GlobalScope) && Version.notReviewed.nonEmpty) ||
+      this.notifications.filterNot(_.read).nonEmpty
   }
 
   /**

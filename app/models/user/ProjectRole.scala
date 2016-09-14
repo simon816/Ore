@@ -26,14 +26,15 @@ case class ProjectRole(override val id: Option[Int] = None,
                        override val createdAt: Option[Timestamp] = None,
                        override val userId: Int,
                        override val projectId: Int,
-                       @(Bind @field) private var  _roleType: RoleType)
+                       @(Bind @field) private var  _roleType: RoleType,
+                       @(Bind @field) private var _isAccepted: Boolean = false)
                        extends OreModel(id, createdAt)
                          with Role
                          with ProjectScope
                          with Ordered[ProjectRole] {
 
-  def this(userId: Int, roleType: RoleType, projectId: Int) = {
-    this(id=None, createdAt=None, userId=userId, _roleType=roleType, projectId=projectId)
+  def this(userId: Int, roleType: RoleType, projectId: Int, accepted: Boolean) = {
+    this(id=None, createdAt=None, userId=userId, _roleType=roleType, projectId=projectId, _isAccepted=accepted)
   }
 
   /**
@@ -45,6 +46,23 @@ case class ProjectRole(override val id: Option[Int] = None,
     this._roleType = _roleType
     if (isDefined) update(RoleType)
   }
+
+  /**
+    * Sets whether this role has been accepted by the [[User]] it belongs to.
+    *
+    * @param accepted True if role accepted
+    */
+  def setAccepted(accepted: Boolean) = Defined {
+    this._isAccepted = accepted
+    update(IsAccepted)
+  }
+
+  /**
+    * Returns true if this role has been accepted by the [[User]] it belongs to.
+    *
+    * @return True if accepted by user
+    */
+  def isAccepted: Boolean = this._isAccepted
 
   override def roleType = this._roleType
   override def compare(that: ProjectRole) = this.roleType.trust compare that.roleType.trust

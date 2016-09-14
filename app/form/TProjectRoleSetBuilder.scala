@@ -28,7 +28,7 @@ trait TProjectRoleSetBuilder {
     * @return Result set
     */
   def build(): Set[ProjectRole] = (for ((userId, i) <- users.zipWithIndex) yield {
-    new ProjectRole(userId, RoleTypes.withName(roles(i)), -1)
+    new ProjectRole(userId, RoleTypes.withName(roles(i)), -1, false)
   }).toSet
 
 }
