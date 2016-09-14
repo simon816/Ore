@@ -116,7 +116,24 @@ class Users @Inject()(val fakeUser: FakeUser,
     * @return Unread notifications
     */
   def showNotifications() = Authenticated { implicit request =>
-    Ok(views.users.notifications())
+    val user = request.user
+    Ok(views.users.notifications(user.notifications.filterNot(_.read), user.projectRoles.filterNot(_.isAccepted)))
+  }
+
+  /**
+    * Marks a [[models.user.User]]'s notification as read.
+    *
+    * @param id Notification ID
+    * @return   Ok if marked as read, NotFound if notification does not exist
+    */
+  def markNotificationRead(id: Int) = Authenticated { implicit request =>
+    request.user.notifications.get(id) match {
+      case None =>
+        NotFound
+      case Some(notification) =>
+        notification.setRead(read = true)
+        Ok
+    }
   }
 
   private def redirectBack(url: String, username: String) = {

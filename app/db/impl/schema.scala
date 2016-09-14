@@ -139,12 +139,13 @@ class ProjectRoleTable(tag: Tag) extends ModelTable[ProjectRole](tag, "user_proj
 class NotificationTable(tag: Tag) extends ModelTable[Notification](tag, "notifications") {
 
   def userId            =   column[Int]("user_id")
+  def originId          =   column[Int]("origin_id")
   def notificationType  =   column[NotificationType]("notification_type")
   def message           =   column[String]("message")
   def action            =   column[String]("action")
   def read              =   column[Boolean]("read")
 
-  override def * = (id.?, createdAt.?, userId, notificationType, message, action,
+  override def * = (id.?, createdAt.?, userId, originId, notificationType, message, action.?,
                     read) <> ((Notification.apply _).tupled, Notification.unapply)
 
 }

@@ -88,3 +88,70 @@
     }
   }
 }
+
+.notification-controls {
+  margin-top: 20px;
+}
+
+.notification:hover {
+  background-color: #f3f2f0;
+  cursor: pointer;
+}
+
+.btn-mark-read {
+  padding: 5px;
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  top: 30%;
+  right: 1%;
+  @include rounded-corners();
+}
+
+.btn-mark-read:hover {
+  background-color: #5cb85c;
+  color: white;
+  -webkit-transition: all .2s ease-out;
+  -moz-transition: all .2s ease-out;
+  -ms-transition: all .2s ease-out;
+  -o-transition: all .2s ease-out;
+  transition: all .2s ease-out;
+}
+
+.invite {
+  padding-left: 0;
+  padding-right: 5px;
+  padding-bottom: 5px;
+  overflow: hidden;
+
+  .invite-content {
+    background-color: white;
+    border: 1px solid $lighter;
+    text-align: center;
+    padding: 5px;
+
+    .invite-message {
+      position: absolute;
+      width: 90%;
+      top: 30%;
+    }
+
+    .invite-accepted {
+      top: 20%;
+    }
+
+    .invite-dismiss {
+      padding: 1px;
+    }
+
+    .invite-dismiss:hover {
+      color: white;
+      background-color: gray;
+      -webkit-transition: all .2s ease-out;
+      -moz-transition: all .2s ease-out;
+      -ms-transition: all .2s ease-out;
+      -o-transition: all .2s ease-out;
+      transition: all .2s ease-out;
+    }
+  }
+}

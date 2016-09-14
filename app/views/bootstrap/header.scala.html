@@ -102,7 +102,7 @@ The main header displayed on each layout.
                         </li>
 
                         <li>
-                            <a href="@routes.Application.showHome(None, None, None, None)">
+                            <a href="@routes.Users.showNotifications()">
                                 <span class="pull-left">
                                     Notifications
                                     @if(user.notifications.filterNot(_.read).nonEmpty) {

@@ -3,18 +3,104 @@
 @import util.OreConfig
 @import util.OreEnv
 @import db.impl.service.UserBase
-@()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService, forums: DiscourseApi,
-        config: OreConfig, users: UserBase, env: OreEnv)
+@import models.user.Notification
+@import models.user.ProjectRole
+@import db.impl.service.ProjectBase
+@(notifications: Seq[Notification], invites: Seq[ProjectRole])(implicit messages: Messages, session: Session,
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
+        env: OreEnv, projects: ProjectBase)
 
 @bootstrap.layout("Notifications") {
 
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/notifications.js")"></script>
+
     <div class="container" style="margin-top: 90px">
         <div class="row">
-            <div class="col-md-12 header-flags">
-                <h2>Notifications</h2>
-                <h3 class="minor no-notifications">
-                    <i class="fa fa-thumbs-o-up"></i> You have no new notifications!
-                </h3>
+            <div class="col-md-8 header-flags">
+                <div class="pull-left">
+                    <h2>Notifications</h2>
+                    <h3 class="minor no-notifications" @if(notifications.nonEmpty) { style="display: none; }">
+                        <i class="fa fa-thumbs-o-up"></i> You have no new notifications!
+                        <a href="/" class="btn btn-sm bbtn-primary">View read</a>
+                    </h3>
+                </div>
+
+                @if(notifications.nonEmpty) {
+                    <div class="pull-right form-inline notification-controls">
+                        <select class="form-control select-notifications">
+                            <option selected>Unread</option>
+                            <option>Read</option>
+                            <option>All</option>
+                        </select>
+                        <button class="btn-mark-all-read btn btn-primary">
+                            <i class="fa fa-check"></i> <strong>Mark all as read</strong>
+                        </button>
+                    </div>
+                }
+            </div>
+            <div class="col-md-4 form-inline">
+                <h2 class="pull-left">Invites</h2>
+                <select class="pull-right form-control notification-controls select-invites">
+                    <option selected>All</option>
+                    <option>Projects</option>
+                    <option>Organizations</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <ul class="list-group">
+                    @notifications.map { notification =>
+                      <li class="list-group-item notification" data-action="@notification.action.getOrElse("none")"
+                          data-id="@notification.id.get">
+                          <img src="@notification.origin.avatarUrl(100)" width="40" height="40" />
+                          @notification.message
+                          <i class="btn-mark-read minor pull-right fa fa-lg fa-check"></i>
+                      </li>
+                    }
+                </ul>
+            </div>
+            <div class="col-md-4">
+
+                @for((invite, i) <- invites.zipWithIndex) {
+                    @if(i % 2 == 0) {
+                        <div class="row">
+                    }
+
+                    <div class="invite col-md-6">
+                        <div class="invite-content">
+                            <span class="minor">
+                                <i class="invite-dismiss pull-left fa fa-times" style="display: none;"></i>
+                                <span class="pull-right"><i class="fa fa-tag"></i> Project</span>
+                            </span>
+                            <br/>
+
+                            <div class="invite-message invite-choice" style="display: auto;">
+                                <p>
+                                    You have been invited to join <a href="@invite.project.url">@invite.project.name</a>.
+                                </p>
+                                <button class="btn btn-invite btn-accept btn-sm btn-success">Accept</button>
+                                <button class="btn btn-invite btn-decline btn-sm btn-danger">Decline</button>
+                            </div>
+
+                            <div class="invite-message invite-accepted" style="display: none;">
+                                <i class="minor fa fa-3x fa-birthday-cake"></i>
+                                <p>You have joined <strong>@invite.project.name</strong>!</p>
+                                <a href="@invite.project.url" class="btn btn-sm btn-primary">Visit now</a>
+                                <button class="btn btn-undo btn-sm btn-info">Undo</button>
+                            </div>
+
+                            <div class="invite-message invite-declined" style="display: none;">
+                                <i class="minor fa fa-3x fa-times"></i>
+                                <p>You have declined an invite from <strong>@invite.project.name</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if((i + 1) % 2 == 0) {
+                        </div>
+                    }
+                }
             </div>
         </div>
     </div>

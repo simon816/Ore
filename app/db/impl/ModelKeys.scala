@@ -32,5 +32,6 @@ object ModelKeys {
   val RecommendedVersionId  =   "recommendedVersionId"
   val UserId                =   "userId"
   val ChannelId             =   "channelId"
+  val Read                  =   "read"
 
 }

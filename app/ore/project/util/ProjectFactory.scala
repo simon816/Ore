@@ -190,13 +190,13 @@ trait ProjectFactory {
     val newProject = this.projects.add(pending.project)
 
     // Invite members
-    val user = pending.file.user
-    user.projectRoles.add(new ProjectRole(user.id.get, RoleTypes.ProjectOwner, newProject.id.get, accepted = true))
+    val owner = pending.file.user
+    owner.projectRoles.add(new ProjectRole(owner.id.get, RoleTypes.ProjectOwner, newProject.id.get, accepted = true))
     for (role <- pending.roles) {
       val user = role.user
       user.projectRoles.add(role.copy(projectId = newProject.id.get))
-      user.sendNotification(Notification(userId = user.id.get, notificationType = NotificationTypes.ProjectInvite,
-        message = "Test 123", action = "/"))
+      user.sendNotification(Notification(userId = user.id.get, originId = owner.id.get,
+        notificationType = NotificationTypes.ProjectInvite, message = "Test 123"))
     }
 
     this.forums.embed.createTopic(newProject)
