@@ -39,7 +39,7 @@ final class DataHelper @Inject()(config: OreConfig,
   def reset() = {
     for (project <- this.projects.all) this.manager.deleteProject(project)
     this.users.removeAll()
-    FileUtils.deleteDirectory(factory.env.uploads.toFile)
+    FileUtils.deleteDirectory(this.factory.env.uploads.toFile)
   }
 
   /**

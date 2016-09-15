@@ -49,9 +49,8 @@ trait ProjectFactory {
     * @return       New plugin file
     */
   def processPluginFile(tmp: TemporaryFile, name: String, owner: User): Try[PluginFile] = Try {
-    if (!name.endsWith(".zip") && !name.endsWith(".jar")) {
+    if (!name.endsWith(".zip") && !name.endsWith(".jar"))
       throw InvalidPluginFileException("Plugin file must be either a JAR or ZIP file.")
-    }
 
     val tmpPath = this.env.tmp.resolve(owner.username).resolve(name)
     val plugin = new PluginFile(tmpPath, owner)

@@ -5,7 +5,7 @@ import forums._
 import forums.impl.{SpongeAuth, SpongeForums}
 import ore._
 import ore.project.util.{OreProjectFactory, OreProjectManager, ProjectFactory, ProjectManager}
-import ore.rest.{OreRestful, OreRestfulApi}
+import ore.rest.{OreRestfulServer, OreRestfulApi}
 import play.api.{Configuration, Environment}
 import util.OreConfig
 
@@ -19,7 +19,7 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     bind(classOf[ProjectFactory]).to(classOf[OreProjectFactory])
     bind(classOf[ProjectManager]).to(classOf[OreProjectManager])
 
-    bind(classOf[OreRestfulApi]).to(classOf[OreRestful])
+    bind(classOf[OreRestfulApi]).to(classOf[OreRestfulServer])
     bind(classOf[StatTracker]).to(classOf[OreStatTracker])
 
     if (config.forums.getBoolean("api.enabled").get)

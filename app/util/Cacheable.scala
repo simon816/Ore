@@ -7,7 +7,7 @@ import play.api.cache.CacheApi
   */
 trait Cacheable {
 
-  val cacheApi: CacheApi
+  def cacheApi: CacheApi
 
   /**
     * Returns the key to this in the Cache.
@@ -19,11 +19,11 @@ trait Cacheable {
   /**
     * Caches this.
     */
-  def cache() = cacheApi.set(this.key, this)
+  def cache() = this.cacheApi.set(this.key, this)
 
   /**
     * Removes this from the Cache.
     */
-  def free() = cacheApi.remove(this.key)
+  def free() = this.cacheApi.remove(this.key)
 
 }

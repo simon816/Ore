@@ -29,14 +29,14 @@ case class PendingProject(manager: ProjectManager,
     */
   val pendingVersion: PendingVersion = {
     val version = this.factory.versionFromFile(this.project, this.file)
-    factory.setVersionPending(project.ownerName, project.slug,
+    this.factory.setVersionPending(project.ownerName, project.slug,
       this.config.getSuggestedNameForVersion(version.versionString), version, this.file)
   }
 
   override def complete: Try[Project] = Try {
     free()
-    val newProject = factory.createProject(this).get
-    val newVersion = factory.createVersion(this.pendingVersion).get
+    val newProject = this.factory.createProject(this).get
+    val newVersion = this.factory.createVersion(this.pendingVersion).get
     newProject.recommendedVersion = newVersion
     newProject
   }
@@ -44,7 +44,8 @@ case class PendingProject(manager: ProjectManager,
   override def cancel() = {
     free()
     this.file.delete()
-    if (this.project.isDefined) this.manager.deleteProject(this.project)
+    if (this.project.isDefined)
+      this.manager.deleteProject(this.project)
   }
 
   override def key: String = this.project.ownerName + '/' + this.project.slug

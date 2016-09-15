@@ -31,13 +31,14 @@ case class PendingVersion(manager: ProjectManager,
 
   override def complete: Try[Version] = Try {
     free()
-    return factory.createVersion(this)
+    return this.factory.createVersion(this)
   }
 
   override def cancel() = {
     free()
     this.plugin.delete()
-    if (this.version.isDefined) this.manager.deleteVersion(this.version)
+    if (this.version.isDefined)
+      this.manager.deleteVersion(this.version)
   }
 
   override def key: String = this.owner + '/' + this.projectSlug + '/' + this.version.versionString

@@ -83,13 +83,13 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
       }
 
       if (!metaFound)
-        throw new InvalidPluginFileException("No plugin meta file found.")
+        throw InvalidPluginFileException("No plugin meta file found.")
 
       // Read the meta file
       val metaList = McModInfo.DEFAULT.read(jarIn).asScala.toList
       jarIn.close()
       if (metaList.isEmpty)
-        throw new InvalidPluginFileException("No plugin meta entries found.")
+        throw InvalidPluginFileException("No plugin meta entries found.")
 
       // Parse plugin meta info
       val meta = metaList.head
@@ -97,7 +97,7 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
       meta
     } catch {
       case e: Exception =>
-        throw new InvalidPluginFileException(cause = e)
+        throw InvalidPluginFileException(cause = e)
     }
   }
 
@@ -133,7 +133,7 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
     }
 
     if (pluginEntry == null)
-      throw new InvalidPluginFileException("Could not find a JAR file in the top level of ZIP file.")
+      throw InvalidPluginFileException("Could not find a JAR file in the top level of ZIP file.")
     pluginEntry
   }
 

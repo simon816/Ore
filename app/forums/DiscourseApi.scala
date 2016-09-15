@@ -55,15 +55,15 @@ trait DiscourseApi {
     this.ws.url(userUrl(username)).get.map { response =>
       validate(response) { json =>
         val userObj = (json \ "user").as[JsObject]
-        val user = new User(
-          id            =   (userObj \ "id").asOpt[Int],
-          _name         =   (userObj \ "name").asOpt[String],
-          _username     =   (userObj \ "username").as[String],
-          _email        =   (userObj \ "email").asOpt[String],
-          _joinDate     =   (userObj \ "created_at").asOpt[String]
+        val user = User(
+          id = (userObj \ "id").asOpt[Int],
+          _name = (userObj \ "name").asOpt[String],
+          _username = (userObj \ "username").as[String],
+          _email = (userObj \ "email").asOpt[String],
+          _joinDate = (userObj \ "created_at").asOpt[String]
             .map(jd => new Timestamp(DateFormat.parse(jd).getTime)),
-          _avatarUrl    =   (userObj \ "avatar_template").asOpt[String],
-          _globalRoles  =   parseRoles(userObj).toList)
+          _avatarUrl = (userObj \ "avatar_template").asOpt[String],
+          _globalRoles = parseRoles(userObj).toList)
         user
       }
     }

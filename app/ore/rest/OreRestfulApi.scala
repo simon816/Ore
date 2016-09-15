@@ -136,7 +136,7 @@ trait OreRestfulApi {
 
 }
 
-class OreRestful @Inject()(override val writes: OreWrites,
-                           override val service: ModelService,
-                           override val config: OreConfig)
+class OreRestfulServer @Inject()(override val writes: OreWrites,
+                                 override val service: ModelService,
+                                 override val config: OreConfig)
                            extends OreRestfulApi

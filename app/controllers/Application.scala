@@ -51,10 +51,13 @@ class Application @Inject()(data: DataHelper,
       var filter: ProjectTable => Rep[Boolean] = query.map { q =>
         // Search filter + visible
         var f  = actions.searchFilter(q)
-        if (!canHideProjects) f = f && (_.isVisible)
+        if (!canHideProjects)
+          f = f && (_.isVisible)
         f
       }.orNull[ModelFilter[ProjectTable, Project]]
-      if (filter == null && !canHideProjects) filter = _.isVisible
+
+      if (filter == null && !canHideProjects)
+        filter = _.isVisible
 
       // Get projects
       val pageSize = this.config.projects.getInt("init-load").get
@@ -63,7 +66,8 @@ class Application @Inject()(data: DataHelper,
       val future = actions.collect(filter, categoryArray, pageSize, offset, ordering)
       val projects = this.service.await(future).get
 
-      if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet)) categoryArray = null
+      if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet))
+        categoryArray = null
 
       Ok(views.home(projects, Option(categoryArray), query, p, ordering))
     }

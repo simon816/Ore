@@ -72,7 +72,8 @@ trait ProjectManager {
     */
   def deleteProject(project: Project) = {
     FileUtils.deleteDirectory(this.fileManager.getProjectDir(project.ownerName, project.name).toFile)
-    if (project.topicId.isDefined) forums.embed.deleteTopic(project)
+    if (project.topicId.isDefined)
+      this.forums.embed.deleteTopic(project)
     project.remove()
   }
 
@@ -113,7 +114,8 @@ trait ProjectManager {
 
     // Delete channel if now empty
     val channel: Channel = version.channel
-    if (channel.versions.isEmpty) this.deleteChannel(channel)
+    if (channel.versions.isEmpty)
+      this.deleteChannel(channel)
 
     delete(this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(version.fileName))
   }

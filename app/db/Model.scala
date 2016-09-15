@@ -24,7 +24,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp], val 
   type A <: ModelActions[T, M]
 
   /** The ModelService that this Model was processed with */
-  implicit var service: ModelService = null
+  implicit var service: ModelService = _
 
   private var _isProcessed = false
   private var fieldBindings: Map[String, FieldBinding[M, _]] = Map.empty

@@ -15,7 +15,7 @@ import scala.concurrent.duration.FiniteDuration
 class DiscourseSync(scheduler: Scheduler, delay: FiniteDuration) extends Runnable {
 
   private var tasks: List[() => Unit] = List.empty
-  private var currentTask: Cancellable = null
+  private var currentTask: Cancellable = _
 
   /**
     * Schedules a function to be executed on the next pass.
