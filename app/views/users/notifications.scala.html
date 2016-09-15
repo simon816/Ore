@@ -19,24 +19,21 @@
             <div class="col-md-8 header-flags">
                 <div class="pull-left">
                     <h2>Notifications</h2>
-                    <h3 class="minor no-notifications" @if(notifications.nonEmpty) { style="display: none; }">
-                        <i class="fa fa-thumbs-o-up"></i> You have no new notifications!
-                        <a href="/" class="btn btn-sm bbtn-primary">View read</a>
-                    </h3>
                 </div>
 
-                @if(notifications.nonEmpty) {
-                    <div class="pull-right form-inline notification-controls">
-                        <select class="form-control select-notifications">
-                            <option selected>Unread</option>
-                            <option>Read</option>
-                            <option>All</option>
-                        </select>
+                <div class="pull-right form-inline notification-controls">
+                    <select class="form-control select-notifications">
+                        <option selected>Unread</option>
+                        <option>Read</option>
+                        <option>All</option>
+                    </select>
+
+                    @if(notifications.nonEmpty) {
                         <button class="btn-mark-all-read btn btn-primary">
                             <i class="fa fa-check"></i> <strong>Mark all as read</strong>
                         </button>
-                    </div>
-                }
+                    }
+                </div>
             </div>
             <div class="col-md-4 form-inline">
                 <h2 class="pull-left">Invites</h2>
@@ -49,11 +46,22 @@
         </div>
         <div class="row">
             <div class="col-md-8">
+
+                <div class="list-group-item no-notifications" @if(notifications.nonEmpty) { style="display: none; }">
+                    <h3 class="minor">
+                        <i class="fa fa-thumbs-o-up"></i> You have no new notifications!
+                        <a href="/" class="btn btn-sm bbtn-primary">View read</a>
+                    </h3>
+                </div>
+
                 <ul class="list-group">
                     @notifications.map { notification =>
                       <li class="list-group-item notification" data-action="@notification.action.getOrElse("none")"
                           data-id="@notification.id.get">
-                          <img src="@notification.origin.avatarUrl(100)" width="40" height="40" />
+                          @defining(notification.origin) { origin =>
+                              <img src="@origin.avatarUrl(100)" class="user-avatar" width="40" height="40"
+                                   alt="@origin.username" title="@origin.username"/>
+                          }
                           @notification.message
                           <i class="btn-mark-read minor pull-right fa fa-lg fa-check"></i>
                       </li>
@@ -68,7 +76,7 @@
                     }
 
                     <div class="invite col-md-6">
-                        <div class="invite-content">
+                        <div class="invite-content" data-id="@invite.id.get">
                             <span class="minor">
                                 <i class="invite-dismiss pull-left fa fa-times" style="display: none;"></i>
                                 <span class="pull-right"><i class="fa fa-tag"></i> Project</span>
@@ -94,6 +102,9 @@
                                 <i class="minor fa fa-3x fa-times"></i>
                                 <p>You have declined an invite from <strong>@invite.project.name</strong>.</p>
                             </div>
+
+                            <i class="minor invite-loading fa fa-5x fa-spinner fa-spin"
+                               style="display: none;"></i>
                         </div>
                     </div>
 

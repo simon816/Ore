@@ -136,6 +136,36 @@ class Users @Inject()(val fakeUser: FakeUser,
     }
   }
 
+  /**
+    * Marks a particular invite as accepted or declined.
+    *
+    * @param inviteType Invitation type
+    * @param id         Invitation ID
+    * @param action     What to do with invitation
+    * @return           NotFound if invitation does not exists or Ok if
+    *                   successful
+    */
+  def setInviteAccepted(inviteType: String, id: Int, action: String) = Authenticated { implicit request =>
+    val roles = request.user.projectRoles
+    roles.get(id) match {
+      case None =>
+        NotFound
+      case Some(role) => action.toLowerCase match {
+        case "decline" =>
+          roles.remove(role)
+          Ok
+        case "accept" =>
+          role.setAccepted(accepted = true)
+          Ok
+        case "unaccept" =>
+          role.setAccepted(accepted = false)
+          Ok
+        case _ =>
+          BadRequest
+      }
+    }
+  }
+
   private def redirectBack(url: String, username: String) = {
     Redirect(this.config.app.getString("baseUrl").get + url).withSession(Security.username -> username)
   }

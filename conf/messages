@@ -125,3 +125,5 @@ aria.dropdown.menu              =   dropdownMenu{0}
 
 user.tagline.edit   =   Edit tagline
 user.no-stars       =   {0} has not starred any projects. :(
+
+notification.projectInvite = You have been invited to join the group {0} on the project {1}.

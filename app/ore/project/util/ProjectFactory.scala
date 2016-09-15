@@ -13,6 +13,7 @@ import ore.NotificationTypes
 import ore.permission.role.RoleTypes
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.cache.CacheApi
+import play.api.i18n.MessagesApi
 import play.api.libs.Files.TemporaryFile
 import util.OreConfig
 import util.StringUtils._
@@ -28,6 +29,7 @@ trait ProjectFactory {
   val manager: ProjectManager
   val fileManager: ProjectFileManager = this.manager.fileManager
   val cacheApi: CacheApi
+  val messages: MessagesApi
 
   implicit val service: ModelService
   implicit val config: OreConfig
@@ -97,10 +99,8 @@ trait ProjectFactory {
     val depends = for (depend <- meta.getRequiredDependencies.asScala) yield
       depend.getId + ":" + depend.getVersion
     val path = plugin.path
-    println("meta = " + meta)
-    println("(ore) mcversion = " + meta.getMinecraftVersion)
     process {
-      new Version(
+      Version(
         versionString = meta.getVersion,
         mcversion = Option(meta.getMinecraftVersion),
         dependencyIds = depends.toList,
@@ -195,8 +195,11 @@ trait ProjectFactory {
     for (role <- pending.roles) {
       val user = role.user
       user.projectRoles.add(role.copy(projectId = newProject.id.get))
-      user.sendNotification(Notification(userId = user.id.get, originId = owner.id.get,
-        notificationType = NotificationTypes.ProjectInvite, message = "Test 123"))
+      user.sendNotification(Notification(
+        originId = owner.id.get,
+        notificationType = NotificationTypes.ProjectInvite,
+        message = messages("notification.projectInvite", role.roleType.title, project.name)
+      ))
     }
 
     this.forums.embed.createTopic(newProject)
@@ -224,7 +227,7 @@ trait ProjectFactory {
     if (pendingVersion.exists && this.config.projects.getBoolean("file-validate").get)
       throw new IllegalArgumentException("Version already exists.")
 
-    val newVersion = channel.versions.add(new Version(
+    val newVersion = channel.versions.add(Version(
       versionString = pendingVersion.versionString,
       mcversion = pendingVersion.mcversion,
       dependencyIds = pendingVersion.dependencyIds,
@@ -257,5 +260,6 @@ class OreProjectFactory @Inject()(override val service: ModelService,
                                   override val config: OreConfig,
                                   override val forums: DiscourseApi,
                                   override val manager: ProjectManager,
-                                  override val cacheApi: CacheApi)
+                                  override val cacheApi: CacheApi,
+                                  override val messages: MessagesApi)
                                   extends ProjectFactory

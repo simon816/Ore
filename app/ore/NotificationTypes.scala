@@ -1,5 +1,8 @@
 package ore
 
+/**
+  * Represents the different types of notifications.
+  */
 object NotificationTypes extends Enumeration {
 
   val ProjectInvite = NotificationType(0)

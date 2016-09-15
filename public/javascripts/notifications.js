@@ -8,19 +8,25 @@ function markRead(notification) {
         },
         success: function() {
             notification.fadeOut('slow', function() {
-                item.remove();
+                notification.remove();
+                if ($('.notification').length === 0)
+                    $('.no-notifications').fadeIn('slow');
             })
         }
     })
 }
 
-$(function() {
+function replyToInvite(invite, reply, success, error) {
+    $.ajax({
+        url: '/invites/project/' + invite.data('id') + '/' + reply,
+        success: success,
+        error: error
+    });
+}
 
-    var invites = $('.invite-content');
-    invites.css('height', invites.width());
-
+function setupNotificationButtons() {
     $('.btn-mark-all-read').click(function() {
-       $('.btn-mark-read').click();
+        $('.btn-mark-read').click();
     });
 
     $('.btn-mark-read').click(function() {
@@ -36,7 +42,9 @@ $(function() {
         if (action !== 'none')
             window.location.href = action;
     });
+}
 
+function setupFilters() {
     $('.select-notifications').on('change', function() {
         window.location = '/notifications/?notification_filter=' + $(this).val();
     });
@@ -44,6 +52,13 @@ $(function() {
     $('.select-invites').on('change', function() {
         window.location = '/notifications/?invite_filter=' + $(this).val();
     });
+}
+
+function setupInvites() {
+
+    function fadeOutLoading(loading, after) {
+        loading.fadeOut('fast', after);
+    }
 
     $('.btn-invite').click(function() {
         var btn = $(this);
@@ -52,10 +67,24 @@ $(function() {
         choice.animate({
             right: "+=200"
         }, 200, function() {
-            choice.hide().css('right', 'auto');
-            invite.find('.invite-dismiss').fadeIn('slow');
-            var clazz = btn.hasClass('btn-accept') ? '.invite-accepted' : '.invite-declined';
-            invite.find(clazz).fadeIn('slow');
+            choice.hide();
+
+            var loading = invite.find('.invite-loading').fadeIn('fast');
+            var accepted = btn.hasClass('btn-accept');
+            var result = invite.find(accepted ? '.invite-accepted' : '.invite-declined');
+
+            replyToInvite(invite, accepted ? 'accept' : 'decline', function() {
+                fadeOutLoading(loading, function() {
+                    result.fadeIn('slow');
+                    invite.find('.invite-dismiss').fadeIn('slow');
+                })
+            }, function() {
+                fadeOutLoading(loading, function() {
+                    choice.show().animate({
+                        right: '5%'
+                    }, 200);
+                });
+            });
         });
     });
 
@@ -64,10 +93,17 @@ $(function() {
         var accepted = invite.find('.invite-accepted');
         invite.find('.invite-dismiss').fadeOut('slow');
         accepted.fadeOut('slow', function() {
-            var choice = invite.find('.invite-choice');
-            choice.css('right', '+=200').show().animate({
-                right: "5%"
-            }, 200)
+            var loading = invite.find('.invite-loading').fadeIn('fast');
+            replyToInvite(invite, 'unaccept', function() {
+                fadeOutLoading(loading, function() {
+                    var choice = invite.find('.invite-choice');
+                    choice.css('right', '+=200').show().animate({
+                        right: "5%"
+                    }, 200);
+                });
+            }, function() {
+                accepted.fadeIn('slow');
+            });
         });
     });
 
@@ -77,5 +113,12 @@ $(function() {
             invite.remove();
         })
     });
+}
 
+$(function() {
+    var invites = $('.invite-content');
+    invites.css('height', invites.width());
+    setupNotificationButtons();
+    setupFilters();
+    setupInvites();
 });

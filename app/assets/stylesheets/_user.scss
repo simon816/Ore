@@ -153,5 +153,11 @@
       -o-transition: all .2s ease-out;
       transition: all .2s ease-out;
     }
+
+    .invite-loading {
+      position: absolute;
+      top: 30%;
+      right: 35%;
+    }
   }
 }

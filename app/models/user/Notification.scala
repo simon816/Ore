@@ -24,7 +24,7 @@ import scala.annotation.meta.field
   */
 case class Notification(override val id: Option[Int] = None,
                         override val createdAt: Option[Timestamp] = None,
-                        @(Bind @field) override val userId: Int,
+                        @(Bind @field) override val userId: Int = -1,
                         @(Bind @field) originId: Int,
                         @(Bind @field) notificationType: NotificationType,
                         @(Bind @field) message: String,
