@@ -5,7 +5,7 @@ import db.impl.access.UserBase
 import forums.DiscourseApi
 import models.project.Project
 import models.user.Notification
-import ore.NotificationTypes
+import ore.notification.NotificationTypes
 import ore.permission.role.RoleTypes
 import ore.project.Categories
 import ore.project.util.ProjectManager

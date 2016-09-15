@@ -8,7 +8,7 @@ import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.{Notification, ProjectRole, User}
 import ore.Colors.Color
-import ore.NotificationTypes.NotificationType
+import ore.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason

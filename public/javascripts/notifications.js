@@ -46,11 +46,11 @@ function setupNotificationButtons() {
 
 function setupFilters() {
     $('.select-notifications').on('change', function() {
-        window.location = '/notifications/?notification_filter=' + $(this).val();
+        window.location = '/notifications?notificationFilter=' + $(this).val();
     });
 
     $('.select-invites').on('change', function() {
-        window.location = '/notifications/?invite_filter=' + $(this).val();
+        window.location = '/notifications?inviteFilter=' + $(this).val();
     });
 }
 

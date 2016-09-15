@@ -6,7 +6,7 @@ import db.Model
 import db.impl.ModelKeys._
 import db.impl.OreModel
 import db.meta.Bind
-import ore.NotificationTypes.NotificationType
+import ore.notification.NotificationTypes.NotificationType
 import ore.UserOwned
 
 import scala.annotation.meta.field

@@ -2,12 +2,15 @@ package controllers
 
 import javax.inject.Inject
 
-import controllers.routes.{Users => self, Application => app}
+import controllers.routes.{Application => app, Users => self}
 import db.ModelService
 import db.impl.pg.OrePostgresDriver.api._
 import db.impl.access.UserBase.ORDER_PROJECTS
 import form.OreForms
 import forums.{DiscourseApi, DiscourseSSO}
+import ore.notification.InviteFilters.InviteFilter
+import ore.notification.NotificationFilters.NotificationFilter
+import ore.notification.{InviteFilters, NotificationFilters}
 import play.api.i18n.MessagesApi
 import play.api.mvc.{Security, _}
 import util.{FakeUser, OreConfig, OreEnv}
@@ -115,9 +118,48 @@ class Users @Inject()(val fakeUser: FakeUser,
     *
     * @return Unread notifications
     */
-  def showNotifications() = Authenticated { implicit request =>
-    val user = request.user
-    Ok(views.users.notifications(user.notifications.filterNot(_.read), user.projectRoles.filterNot(_.isAccepted)))
+  def showNotifications(notificationFilter: Option[String], inviteFilter: Option[String]) = {
+    Authenticated { implicit request =>
+      val nFilter: NotificationFilter = notificationFilter
+        .map(str => NotificationFilters.values
+          .find(_.name.equalsIgnoreCase(str))
+          .getOrElse(NotificationFilters.Unread))
+        .getOrElse(NotificationFilters.Unread)
+
+      val iFilter: InviteFilter = inviteFilter
+        .map(str => InviteFilters.values
+          .find(_.name.equalsIgnoreCase(str))
+          .getOrElse(InviteFilters.All))
+        .getOrElse(InviteFilters.All)
+
+      val user = request.user
+      val notifications = user.notifications
+      val visibleNotifications = nFilter match {
+        case NotificationFilters.Unread =>
+          notifications.filterNot(_.read)
+        case NotificationFilters.Read =>
+          notifications.filter(_.read)
+        case NotificationFilters.All =>
+          notifications.all
+      }
+
+      val projectInvites = user.projectRoles.filterNot(_.isAccepted)
+      val visibleInvites = iFilter match {
+        case InviteFilters.All =>
+          projectInvites
+        case InviteFilters.Projects =>
+          projectInvites
+        case InviteFilters.Organizations =>
+          // TODO
+          Seq()
+      }
+
+      Ok(views.users.notifications(
+        visibleNotifications.toSeq,
+        visibleInvites,
+        nFilter, iFilter
+      ))
+    }
   }
 
   /**

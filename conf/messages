@@ -126,4 +126,7 @@ aria.dropdown.menu              =   dropdownMenu{0}
 user.tagline.edit   =   Edit tagline
 user.no-stars       =   {0} has not starred any projects. :(
 
-notification.projectInvite = You have been invited to join the group {0} on the project {1}.
+notification.projectInvite  =   You have been invited to join the group {0} on the project {1}.
+notification.empty.unread   =   You have no unread notifications.
+notification.empty.read     =   You have no read notifications.
+notification.empty.all      =   You have no notifications.

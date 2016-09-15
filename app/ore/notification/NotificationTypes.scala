@@ -1,4 +1,4 @@
-package ore
+package ore.notification
 
 /**
   * Represents the different types of notifications.

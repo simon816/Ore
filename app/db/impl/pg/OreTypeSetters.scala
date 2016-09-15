@@ -4,7 +4,7 @@ import db.meta.TypeSetter
 import db.{Model, ModelService, ModelTable}
 import db.impl.pg.OrePostgresDriver.api._
 import ore.Colors.Color
-import ore.NotificationTypes.NotificationType
+import ore.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason

@@ -9,7 +9,7 @@ import db.impl.access.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.{Notification, ProjectRole, User}
-import ore.NotificationTypes
+import ore.notification.NotificationTypes
 import ore.permission.role.RoleTypes
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.cache.CacheApi

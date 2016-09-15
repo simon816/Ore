@@ -8,7 +8,7 @@ import ore.permission.role.{Absolute, Limited, Standard, Trust}
 sealed trait Permission { def trust: Trust }
 case object EditChannels    extends Permission { val trust = Standard }
 case object EditPages       extends Permission { val trust = Limited  }
-case object EditSettings    extends Permission { val trust = Standard }
+case object EditSettings    extends Permission { val trust = Absolute }
 case object EditVersions    extends Permission { val trust = Standard }
 case object HideProjects    extends Permission { val trust = Standard }
 case object ReviewFlags     extends Permission { val trust = Standard }
