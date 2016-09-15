@@ -5,10 +5,10 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions._
 import db.action.ModelAccess
 import db.impl.ModelKeys._
-import db.impl.OrePostgresDriver.api._
+import db.impl.pg.OrePostgresDriver.api._
 import db.impl._
 import db.impl.action.ProjectActions
-import db.meta.{Actions, Bind, HasMany}
+import db.meta.{Actions, Bind, OneToMany}
 import models.statistic.ProjectView
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
@@ -41,7 +41,7 @@ import scala.annotation.meta.field
   * @param _description           Short description of Project
   */
 @Actions(classOf[ProjectActions])
-@HasMany(Array(
+@OneToMany(Array(
   classOf[Channel], classOf[Version], classOf[Page], classOf[Flag], classOf[ProjectRole], classOf[ProjectView]
 ))
 case class Project(// Immutable

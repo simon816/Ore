@@ -5,8 +5,9 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions._
 import db.action.ModelAccess
 import db.impl.ModelKeys._
-import db.impl.OrePostgresDriver.api._
+import db.impl.pg.OrePostgresDriver.api._
 import db.impl._
+import db.impl.access.{FlagBase, VersionBase}
 import db.impl.action.{ProjectActions, UserActions}
 import db.impl.service.{FlagBase, VersionBase}
 import db.meta._
@@ -31,7 +32,7 @@ import scala.annotation.meta.field
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
 @Actions(classOf[UserActions])
-@HasMany(Array(classOf[Project], classOf[ProjectRole], classOf[Flag], classOf[Notification]))
+@OneToMany(Array(classOf[Project], classOf[ProjectRole], classOf[Flag], classOf[Notification]))
 case class User(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
                 @(Bind @field) private var _name: Option[String] = None,

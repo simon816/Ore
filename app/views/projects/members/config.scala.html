@@ -9,7 +9,7 @@
 
 @import scala.collection.JavaConverters._
 @import _root_.util.OreEnv
-@import db.impl.service.UserBase
+@import db.impl.access.UserBase
 @(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
         env: OreEnv)

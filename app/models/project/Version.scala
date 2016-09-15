@@ -5,10 +5,10 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions
 import db.ModelService
 import db.impl.ModelKeys._
-import db.impl.OrePostgresDriver.api._
+import db.impl.pg.OrePostgresDriver.api._
 import db.impl.action.VersionActions
 import db.impl.{ChannelTable, OreModel, VersionDownloadsTable, VersionTable}
-import db.meta.{Actions, Bind, HasMany}
+import db.meta.{Actions, Bind, OneToMany}
 import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
@@ -32,7 +32,7 @@ import scala.annotation.meta.field
   * @param channelId        ID of channel this version belongs to
   */
 @Actions(classOf[VersionActions])
-@HasMany(Array(classOf[VersionDownload]))
+@OneToMany(Array(classOf[VersionDownload]))
 case class Version(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                    override val projectId: Int,

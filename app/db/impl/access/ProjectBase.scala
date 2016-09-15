@@ -1,8 +1,8 @@
-package db.impl.service
+package db.impl.access
 
 import _root_.util.StringUtils._
-import db.impl.OrePostgresDriver.api._
 import db.impl.ProjectTable
+import db.impl.pg.OrePostgresDriver.api._
 import db.{ModelBase, ModelService}
 import models.project.Project
 

@@ -1,10 +1,9 @@
-package db.impl.service
+package db.impl.access
 
 import java.sql.Timestamp
 
 import db.impl.UserTable
 import db.impl.action.ProjectActions
-import db.impl.service.UserBase.{ORDER_JOINED, ORDER_PROJECTS, ORDER_USERNAME}
 import db.{ModelBase, ModelService}
 import forums.DiscourseApi
 import models.user.User

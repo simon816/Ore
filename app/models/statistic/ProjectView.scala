@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
-import db.impl.service.UserBase
+import db.impl.access.UserBase
 import db.meta.Bind
 import models.project.Project
 import ore.StatTracker._

@@ -11,7 +11,7 @@ Base template for Project overview.
 @import ore.project.FlagReasons
 @import views.html.helper.form
 @import _root_.util.OreEnv
-@import db.impl.service.UserBase
+@import db.impl.access.UserBase
 @(project: Project, active: String, noButtons: Boolean = false)(content: Html)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService,
         forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)

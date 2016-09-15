@@ -1,7 +1,6 @@
-package db.impl
+package db.impl.pg
 
 import com.github.tminglei.slickpg._
-import ore.{Colors, NotificationTypes}
 import ore.Colors.Color
 import ore.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes
@@ -9,6 +8,7 @@ import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import ore.project.{Categories, FlagReasons}
+import ore.{Colors, NotificationTypes}
 
 /**
   * Custom Postgres driver to support array data and custom type mappings.

@@ -6,6 +6,7 @@ import java.util.UUID
 import javax.inject.Inject
 
 import db.ModelService
+import db.impl.access.{ProjectBase, UserBase}
 import db.impl.service.{ProjectBase, UserBase}
 import forums.{DisabledDiscourseApi, DiscourseApi}
 import models.project.Channel

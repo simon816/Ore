@@ -67,7 +67,7 @@ class ModelProcessor(service: ModelService) {
   }
 
   /**
-    * Binds the [[HasMany]] relationships within a [[Model]].
+    * Binds the [[OneToMany]] relationships within a [[Model]].
     *
     * @param model  Model to bind
     * @tparam T     Model table
@@ -78,8 +78,8 @@ class ModelProcessor(service: ModelService) {
     val modelClass = model.getClass
     val key = modelClass.getSimpleName.toLowerCase + "Id"
     //noinspection ComparingUnrelatedTypes
-    if (modelClass.getDeclaredAnnotations.exists(_.annotationType.equals(classOf[HasMany]))) {
-      val relations = modelClass.getDeclaredAnnotation(classOf[HasMany])
+    if (modelClass.getDeclaredAnnotations.exists(_.annotationType.equals(classOf[OneToMany]))) {
+      val relations = modelClass.getDeclaredAnnotation(classOf[OneToMany])
       for (relation <- relations.value) model.bindMany(relation, t => BootstrapTypeSetters.getRep[Int](key, t))
     }
     model

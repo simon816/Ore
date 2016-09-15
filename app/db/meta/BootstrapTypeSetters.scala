@@ -2,7 +2,7 @@ package db.meta
 
 import java.sql.Timestamp
 
-import db.impl.OrePostgresDriver.api._
+import db.impl.pg.OrePostgresDriver.api._
 import db.{Model, ModelService, ModelTable}
 
 /**

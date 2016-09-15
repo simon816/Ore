@@ -1,6 +1,5 @@
-package db.impl
+package db.impl.pg
 
-import db.impl.OrePostgresDriver.api._
 import db.meta.TypeSetter
 import db.{Model, ModelService, ModelTable}
 import ore.Colors.Color

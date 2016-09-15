@@ -9,7 +9,7 @@ Page used for uploading and creating new projects.
 @import play.twirl.api.Html
 @import views.html.helper.form
 @import _root_.util.OreEnv
-@import db.impl.service.UserBase
+@import db.impl.access.UserBase
 @(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
         env: OreEnv)

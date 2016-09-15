@@ -1,6 +1,6 @@
 package db.meta
 
-import db.impl.OrePostgresDriver.api._
+import db.impl.pg.OrePostgresDriver.api._
 import db.{Model, ModelTable}
 
 /**

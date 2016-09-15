@@ -4,7 +4,7 @@ import java.nio.file.{Files, Path}
 import java.text.{MessageFormat, SimpleDateFormat}
 import java.util.Date
 
-import db.impl.OrePostgresDriver.api._
+import db.impl.pg.OrePostgresDriver.api._
 import org.spongepowered.plugin.meta.version.ComparableVersion.{ListItem, StringItem}
 
 /**

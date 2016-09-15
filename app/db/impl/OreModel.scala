@@ -3,6 +3,8 @@ package db.impl
 import java.sql.Timestamp
 
 import db.Model
+import db.impl.access.{ProjectBase, UserBase}
+import db.impl.pg.OrePostgresDriver
 import db.impl.service.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import util.OreConfig

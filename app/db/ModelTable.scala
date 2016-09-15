@@ -2,7 +2,7 @@ package db
 
 import java.sql.Timestamp
 
-import db.impl.OrePostgresDriver.api._
+import db.impl.pg.OrePostgresDriver.api._
 import slick.lifted.Tag
 
 /** Represents a Table in the database that contains Models. */

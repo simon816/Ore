@@ -4,8 +4,8 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
+import db.impl.access.UserBase
 import db.impl.action.VersionActions
-import db.impl.service.UserBase
 import db.meta.{Actions, Bind}
 import models.project.Version
 import ore.StatTracker._

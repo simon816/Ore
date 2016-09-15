@@ -4,8 +4,8 @@ import javax.inject.Inject
 
 import controllers.routes.{Users => self, Application => app}
 import db.ModelService
-import db.impl.OrePostgresDriver.api._
-import db.impl.service.UserBase.ORDER_PROJECTS
+import db.impl.pg.OrePostgresDriver.api._
+import db.impl.access.UserBase.ORDER_PROJECTS
 import form.OreForms
 import forums.{DiscourseApi, DiscourseSSO}
 import play.api.i18n.MessagesApi

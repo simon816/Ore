@@ -1,11 +1,12 @@
 @import db.ModelService
+@import db.impl.access.ProjectBase
 @import forums.DiscourseApi
 @import util.OreConfig
 @import util.OreEnv
 @import db.impl.service.UserBase
 @import models.user.Notification
 @import models.user.ProjectRole
-@import db.impl.service.ProjectBase
+@import db.impl.access.UserBase
 @(notifications: Seq[Notification], invites: Seq[ProjectRole])(implicit messages: Messages, session: Session,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
         env: OreEnv, projects: ProjectBase)

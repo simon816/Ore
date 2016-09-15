@@ -5,7 +5,7 @@ import javax.inject.Inject
 import _root_.util.OreConfig
 import _root_.util.StringUtils.prettifyDate
 import db.ModelService
-import db.impl.service.ProjectBase
+import db.impl.access.ProjectBase
 import models.project.{Channel, Project, Version}
 import models.user.User
 import ore.project.ProjectMember

@@ -7,7 +7,7 @@
 @import ore.permission.role.RoleTypes
 @import views.html.helper.form
 @import _root_.util.OreEnv
-@import db.impl.service.UserBase
+@import db.impl.access.UserBase
 @(model: Project, editable: Boolean = false)(implicit messages: Messages, session: Session, service: ModelService,
         forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
 

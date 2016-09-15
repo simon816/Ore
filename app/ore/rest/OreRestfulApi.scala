@@ -3,7 +3,8 @@ package ore.rest
 import javax.inject.Inject
 
 import db.ModelService
-import db.impl.OrePostgresDriver.api._
+import db.impl.access.{ProjectBase, UserBase}
+import db.impl.pg.OrePostgresDriver.api._
 import db.impl.action.{ProjectActions, UserActions, VersionActions}
 import db.impl.service.{ProjectBase, UserBase}
 import ore.project.Categories.Category

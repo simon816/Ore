@@ -1,6 +1,7 @@
 package controllers
 
 import db.ModelService
+import db.impl.access.{ProjectBase, UserBase}
 import db.impl.service.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.{Project, Version}

@@ -1,7 +1,7 @@
 package db.impl.action
 
 import db.action.{ModelActions, ModelFilter}
-import db.impl.OrePostgresDriver.api._
+import db.impl.pg.OrePostgresDriver.api._
 import db.ModelService
 import db.impl.StatTable
 import models.statistic.StatEntry

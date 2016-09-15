@@ -1,7 +1,7 @@
-package db.impl.service
+package db.impl.access
 
-import db.{ModelBase, ModelService}
 import db.impl.FlagTable
+import db.{ModelBase, ModelService}
 import models.project.Flag
 
 class FlagBase(override val service: ModelService) extends ModelBase[FlagTable, Flag] {

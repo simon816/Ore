@@ -1,4 +1,4 @@
-package db.impl.service
+package db.impl.access
 
 import db.impl.VersionTable
 import db.{ModelBase, ModelService}

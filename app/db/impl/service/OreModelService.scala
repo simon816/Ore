@@ -4,10 +4,12 @@ import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 
 import db.action.ModelActions
-import db.impl.OrePostgresDriver.api._
-import db.impl.OreTypeSetters._
+import db.impl.access.{FlagBase, ProjectBase, UserBase, VersionBase}
+import db.impl.pg.OrePostgresDriver.api._
+import db.impl.pg.OreTypeSetters._
 import db.impl.action.{PageActions, ProjectActions, UserActions, VersionActions}
-import db.impl.{ChannelTable, NotificationTable, OrePostgresDriver}
+import db.impl.pg.OrePostgresDriver
+import db.impl.{ChannelTable, NotificationTable}
 import db.{ModelRegistry, ModelService}
 import forums.DiscourseApi
 import models.project.Channel

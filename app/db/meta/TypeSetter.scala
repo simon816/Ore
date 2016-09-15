@@ -2,7 +2,7 @@ package db.meta
 
 import java.lang.reflect.Field
 
-import db.impl.OrePostgresDriver.api._
+import db.impl.pg.OrePostgresDriver.api._
 import db.{Model, ModelService, ModelTable}
 
 import scala.concurrent.Future

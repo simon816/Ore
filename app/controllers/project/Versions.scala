@@ -7,7 +7,7 @@ import controllers.BaseController
 import controllers.Requests.ProjectRequest
 import controllers.project.routes.{Versions => self}
 import db.ModelService
-import db.impl.OrePostgresDriver.api._
+import db.impl.pg.OrePostgresDriver.api._
 import form.OreForms
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
