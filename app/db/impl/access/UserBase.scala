@@ -19,6 +19,8 @@ class UserBase(override val service: ModelService,
                config: OreConfig)
   extends ModelBase[UserTable, User] {
 
+  import UserBase._
+
   override val modelClass = classOf[User]
 
   /**

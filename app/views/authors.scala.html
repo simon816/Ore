@@ -1,11 +1,10 @@
 @import db.ModelService
 @import db.impl.access.UserBase
+@import db.impl.access.UserBase._
 @import forums.DiscourseApi
 @import util.OreConfig
-@import db.impl.service.ProjectBase
 @import util.StringUtils.prettifyDate
 @import models.user.User
-@import db.impl.service.UserBase._
 @import util.OreEnv
 @import db.impl.access.ProjectBase
 @(authors: Seq[User], ordering: String, page: Int)(implicit messages: Messages, session: Session,

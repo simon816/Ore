@@ -5,7 +5,6 @@
 @import forums.DiscourseApi
 @import models.project.Flag
 @import util.OreEnv
-@import db.impl.service.UserBase
 @import db.impl.access.UserBase
 @(flags: Seq[Flag])(implicit messages: Messages, session: Session, request: RequestHeader,
         service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, projectBase: ProjectBase,

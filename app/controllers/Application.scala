@@ -9,7 +9,6 @@ import db.action.ModelFilter
 import db.impl.access.{FlagBase, VersionBase}
 import db.impl.pg.OrePostgresDriver.api._
 import db.impl.action.ProjectActions
-import db.impl.service.{FlagBase, VersionBase}
 import db.impl.{FlagTable, ProjectTable}
 import forums.DiscourseApi
 import models.project.{Flag, Project, Version}

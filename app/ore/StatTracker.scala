@@ -6,7 +6,6 @@ import javax.inject.Inject
 import controllers.Requests.ProjectRequest
 import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
-import db.impl.service.{ProjectBase, UserBase}
 import models.project.Version
 import models.statistic.{ProjectView, VersionDownload}
 import ore.StatTracker.COOKIE_UID

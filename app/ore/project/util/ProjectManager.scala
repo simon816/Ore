@@ -7,7 +7,6 @@ import com.google.common.base.Preconditions._
 import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
 import db.impl.pg.OrePostgresDriver.api._
-import db.impl.service.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import org.apache.commons.io.FileUtils

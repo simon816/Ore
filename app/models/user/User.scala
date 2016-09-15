@@ -9,7 +9,6 @@ import db.impl.pg.OrePostgresDriver.api._
 import db.impl._
 import db.impl.access.{FlagBase, VersionBase}
 import db.impl.action.{ProjectActions, UserActions}
-import db.impl.service.{FlagBase, VersionBase}
 import db.meta._
 import models.project.{Flag, Project, Version}
 import ore.UserOwned

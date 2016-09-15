@@ -6,7 +6,6 @@ import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
 import db.impl.pg.OrePostgresDriver.api._
 import db.impl.action.{ProjectActions, UserActions, VersionActions}
-import db.impl.service.{ProjectBase, UserBase}
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.libs.json.Json.toJson
