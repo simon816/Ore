@@ -2,9 +2,9 @@ package db.impl.action
 
 import db.ModelService
 import db.action.ModelActions
+import db.impl.access.UserBase
 import db.impl.{OrganizationMembersTable, OrganizationTable}
-import db.impl.OrePostgresDriver.api._
-import db.impl.service.UserBase
+import db.impl.pg.OrePostgresDriver.api._
 import models.user.{Organization, User}
 import slick.lifted.TableQuery
 
