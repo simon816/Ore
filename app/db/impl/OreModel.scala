@@ -4,16 +4,14 @@ import java.sql.Timestamp
 
 import db.Model
 import db.impl.access.{ProjectBase, UserBase}
-import db.impl.pg.OrePostgresDriver
 import forums.DiscourseApi
 import util.OreConfig
 
 /** An Ore Model */
 abstract class OreModel(override val id: Option[Int],
-                        override val createdAt: Option[Timestamp],
-                        override val driver: OrePostgresDriver = OrePostgresDriver)
+                        override val createdAt: Option[Timestamp])
                        (implicit var userBase: UserBase = null,
                         var projectBase: ProjectBase = null,
                         var config: OreConfig = null,
                         var forums: DiscourseApi = null)
-                        extends Model(id, createdAt, driver)
+                        extends Model(id, createdAt)

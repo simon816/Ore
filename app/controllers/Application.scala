@@ -7,11 +7,11 @@ import controllers.routes.{Application => self}
 import db.ModelService
 import db.action.ModelFilter
 import db.impl.access.{FlagBase, VersionBase}
-import db.impl.pg.OrePostgresDriver.api._
 import db.impl.action.ProjectActions
+import db.impl.pg.OrePostgresDriver.api._
 import db.impl.{FlagTable, ProjectTable}
 import forums.DiscourseApi
-import models.project.{Flag, Project, Version}
+import models.project.{Flag, Project}
 import ore.permission._
 import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category

@@ -11,11 +11,9 @@ import db.impl.pg.OrePostgresDriver.api._
   * @param table            Target model TableQuery instance
   * @param selfRef          Reference to this model in mediator table
   * @param otherRef         Reference to target model in mediator table
-  * @param finalRef         Reference to target model in it's ModelTable
   * @tparam RelationsTable  Mediator table type
   */
 case class ManyToManyBinding[RelationsTable <: Table[_]](childClass: Class[_ <: Model],
                                                          table: TableQuery[RelationsTable],
                                                          selfRef: RelationsTable => Rep[Int],
-                                                         otherRef: RelationsTable => Rep[Int],
-                                                         finalRef: ModelTable[_ <: Model] => Rep[Int])
+                                                         otherRef: RelationsTable => Rep[Int])

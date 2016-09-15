@@ -7,6 +7,7 @@ import db.action.{ModelAccess, ModelActions, ModelFilter}
 import db.impl.pg.OrePostgresDriver.api._
 import db.meta.{Actions, FieldBinding, ManyToManyBinding, OneToManyBinding}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 
 /**
@@ -124,17 +125,17 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
     * @param relationTable  A TableQuery instance of the relations table
     * @param selfRef        How the relations table references this model
     * @param otherRef       How the relations table references the target model
-    * @param finalRef       The primary key field within the target ModelTable
     * @tparam RelationTable Relation table type
     */
   def bindManyToMany[RelationTable <: Table[_]](childClass: Class[_ <: Model],
-                                                relationTable: TableQuery[_],
+                                                relationTable: TableQuery[RelationTable],
                                                 selfRef: RelationTable => Rep[Int],
-                                                otherRef: RelationTable => Rep[Int],
-                                                finalRef: ModelTable[_] => Rep[Int]) = {
+                                                otherRef: RelationTable => Rep[Int]) = {
     checkNotNull(childClass, "child class is null", "")
     checkNotNull(relationTable, "relation table is null", "")
-    this.manyToManyBindings += childClass -> ManyToManyBinding(childClass, relationTable, selfRef, otherRef, finalRef)
+    this.manyToManyBindings += childClass -> ManyToManyBinding[RelationTable](
+      childClass, relationTable, selfRef, otherRef
+    )
   }
 
   /**
@@ -166,11 +167,11 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
       } andThen {
         case manyIds =>
           promise.success {
-            this.service.access[ManyTable, Many](modelClass, ModelFilter(binding.finalRef(_) inSetBind manyIds.get))
+            this.service.access[ManyTable, Many](modelClass, ModelFilter(_.id inSetBind manyIds.get))
           }
       }
 
-      promise.future
+      this.service.await(promise.future).get
     }
   }
 
