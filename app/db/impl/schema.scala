@@ -45,7 +45,8 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
 
 }
 
-class ProjectWatchersTable(tag: Tag) extends AssociativeTable(tag, "project_watchers") {
+class ProjectWatchersTable(tag: Tag)
+  extends AssociativeTable(tag, "project_watchers", classOf[Project], classOf[User]) {
 
   def projectId = column[Int]("project_id")
   def userId = column[Int]("user_id")

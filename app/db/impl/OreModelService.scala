@@ -11,8 +11,8 @@ import db.impl.pg.OreTypeSetters._
 import db.meta.ModelAssociation
 import db.{ModelActions, ModelRegistry, ModelService}
 import forums.DiscourseApi
-import models.project.{Channel, Project}
-import models.user.{Notification, User}
+import models.project.Channel
+import models.user.Notification
 import ore.Colors.Color
 import ore.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType
@@ -59,8 +59,7 @@ class OreModelService @Inject()(config: OreConfig,
 
   // Associations
   val projectWatchers = new ModelAssociation[ProjectWatchersTable](
-    this, classOf[Project], classOf[User], _.projectId, _.userId, classOf[ProjectWatchersTable],
-    TableQuery[ProjectWatchersTable])
+    this, _.projectId, _.userId, classOf[ProjectWatchersTable], TableQuery[ProjectWatchersTable])
 
   // Ore models
   registerActions(new UserActions(this)).withAssociation(this.projectWatchers)

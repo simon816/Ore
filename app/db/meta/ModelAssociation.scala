@@ -13,8 +13,6 @@ import db.{AssociativeTable, Model, ModelService}
   */
 class ModelAssociation[AssocTable <: AssociativeTable]
                       (service: ModelService,
-                       firstModel: Class[_ <: Model],
-                       secondModel: Class[_ <: Model],
                        ref1: AssocTable => Rep[Int],
                        ref2: AssocTable => Rep[Int],
                        val tableClass: Class[AssocTable],
@@ -46,16 +44,18 @@ class ModelAssociation[AssocTable <: AssociativeTable]
   }
 
   private def orderModels(model1: Model, model2: Model): (Model, Model) = {
+    val firstModel = this.assocTable.baseTableRow.firstClass
+    val secondModel = this.assocTable.baseTableRow.secondClass
     val clazz1 = model1.getClass
     val clazz2 = model2.getClass
-    if (clazz1.equals(this.firstModel)) {
-      if (clazz2.equals(this.secondModel)) {
+    if (clazz1.equals(firstModel)) {
+      if (clazz2.equals(secondModel)) {
         (model1, model2)
       } else {
         throw ModelPairException
       }
-    } else if (clazz1.equals(this.secondModel)) {
-      if (clazz2.equals(this.firstModel)) {
+    } else if (clazz1.equals(secondModel)) {
+      if (clazz2.equals(firstModel)) {
         (model2, model1)
       } else {
         throw ModelPairException

@@ -8,4 +8,8 @@ import db.impl.pg.OrePostgresDriver.api._
   * @param tag Table tag
   * @param name Table name
   */
-abstract class AssociativeTable(tag: Tag, name: String) extends Table[(Int, Int)](tag, name)
+abstract class AssociativeTable(tag: Tag,
+                                name: String,
+                                val firstClass: Class[_ <: Model],
+                                val secondClass: Class[_ <: Model])
+  extends Table[(Int, Int)](tag, name)
