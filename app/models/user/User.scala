@@ -10,6 +10,7 @@ import db.impl._
 import db.impl.access.{FlagBase, VersionBase}
 import db.impl.action.{ProjectActions, UserActions}
 import db.meta._
+import db.meta.relation.OneToMany
 import models.project.{Flag, Project, Version}
 import ore.UserOwned
 import ore.permission._

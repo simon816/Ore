@@ -1,6 +1,4 @@
-package db.meta;
-
-import db.Model;
+package db.meta.relation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,17 +6,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Represents a one-to-many relationship between two models.
+ * A collection of {@link ManyToMany} relations.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface OneToMany {
+public @interface ManyToManyCollection {
 
     /**
-     * The "many" Model class.
+     * The bindings.
      *
-     * @return Model class
+     * @return ManyToMany bindings
      */
-    Class<? extends Model>[] value();
+    ManyToMany[] value();
 
 }

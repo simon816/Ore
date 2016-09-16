@@ -5,7 +5,8 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions.checkNotNull
 import db.action.{ModelAccess, ModelActions, ModelFilter}
 import db.impl.pg.OrePostgresDriver.api._
-import db.meta.{Actions, FieldBinding, ManyToManyBinding, OneToManyBinding}
+import db.meta.relation.{ManyToManyBinding, OneToManyBinding}
+import db.meta.{Actions, FieldBinding}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
@@ -28,7 +29,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
   private var _isProcessed = false
   private var fieldBindings: Map[String, FieldBinding[M, _]] = Map.empty
   private var oneToManyBindings: Map[Class[_ <: Model], OneToManyBinding] = Map.empty
-  private var manyToManyBindings: Map[Class[_ <: Model], ManyToManyBinding[_]] = Map.empty
+  private var manyToManyBindings: Map[Class[_ <: Model], ManyToManyBinding] = Map.empty
 
   /**
     * Returns the ModelActions associated with this Model.
@@ -125,15 +126,14 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
     * @param relationTable  A TableQuery instance of the relations table
     * @param selfRef        How the relations table references this model
     * @param otherRef       How the relations table references the target model
-    * @tparam RelationTable Relation table type
     */
-  def bindManyToMany[RelationTable <: Table[_]](childClass: Class[_ <: Model],
-                                                relationTable: TableQuery[RelationTable],
-                                                selfRef: RelationTable => Rep[Int],
-                                                otherRef: RelationTable => Rep[Int]) = {
+  def bindManyToMany(childClass: Class[_ <: Model],
+                     relationTable: TableQuery[_ <: Table[_]],
+                     selfRef: Table[_] => Rep[Int],
+                     otherRef: Table[_] => Rep[Int]) = {
     checkNotNull(childClass, "child class is null", "")
     checkNotNull(relationTable, "relation table is null", "")
-    this.manyToManyBindings += childClass -> ManyToManyBinding[RelationTable](
+    this.manyToManyBindings += childClass -> ManyToManyBinding(
       childClass, relationTable, selfRef, otherRef
     )
   }
@@ -157,7 +157,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
       val binding = this.manyToManyBindings
         .find(_._1.isAssignableFrom(modelClass))
         .getOrElse(throw new RuntimeException("No child binding found for model " + modelClass + " in model " + this))
-        ._2.asInstanceOf[ManyToManyBinding[RelationTable]]
+        ._2.asInstanceOf[ManyToManyBinding]
 
       // Find all entries in relations table that match the ID of this model
       val promise: Promise[ModelAccess[ManyTable, Many]] = Promise()

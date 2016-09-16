@@ -9,11 +9,11 @@ import db.impl.pg.OrePostgresDriver.api._
 import db.impl.pg.OreTypeSetters._
 import db.impl.action.{PageActions, ProjectActions, UserActions, VersionActions}
 import db.impl.pg.OrePostgresDriver
-import db.impl.{ChannelTable, NotificationTable}
+import db.impl.{ChannelTable, NotificationTable, ProjectWatchersTable}
 import db.{ModelRegistry, ModelService}
 import forums.DiscourseApi
-import models.project.Channel
-import models.user.Notification
+import models.project.{Channel, Project}
+import models.user.{Notification, User}
 import ore.Colors.Color
 import ore.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType
@@ -59,11 +59,13 @@ class OreModelService @Inject()(config: OreConfig,
   registerTypeSetter(classOf[NotificationType], NotificationTypeTypeSetter)
 
   // Ore models
-  registerActions(new ModelActions(this, classOf[Channel], TableQuery[ChannelTable]))
-  registerActions(new ModelActions(this, classOf[Notification], TableQuery[NotificationTable]))
-  registerActions(new PageActions(this))
-  registerActions(new ProjectActions(this))
   registerActions(new UserActions(this))
+    .withLink(classOf[Project], classOf[ProjectWatchersTable], TableQuery[ProjectWatchersTable])
+  registerActions(new ProjectActions(this))
+    .withLink(classOf[User], classOf[ProjectWatchersTable], TableQuery[ProjectWatchersTable])
   registerActions(new VersionActions(this))
+  registerActions(new ModelActions(this, classOf[Channel], TableQuery[ChannelTable]))
+  registerActions(new PageActions(this))
+  registerActions(new ModelActions(this, classOf[Notification], TableQuery[NotificationTable]))
 
 }

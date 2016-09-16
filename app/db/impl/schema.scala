@@ -45,6 +45,15 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
 
 }
 
+class ProjectWatchersTable(tag: Tag) extends Table[(Int, Int)](tag, "project_watchers") {
+
+  def projectId = column[Int]("project_id")
+  def userId = column[Int]("user_id")
+
+  override def * = (projectId, userId)
+
+}
+
 class ProjectViewsTable(tag: Tag) extends StatTable[ProjectView](tag, "project_views", "project_id") {
   override def * = (id.?, createdAt.?, modelId, address, cookie,
                     userId.?) <> ((ProjectView.apply _).tupled, ProjectView.unapply)

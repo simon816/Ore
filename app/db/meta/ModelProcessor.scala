@@ -1,5 +1,7 @@
 package db.meta
 
+import db.impl.pg.OrePostgresDriver.api._
+import db.meta.relation.{ManyToManyCollection, OneToMany}
 import db.{Model, ModelService, ModelTable}
 
 import scala.reflect.runtime.universe._
@@ -18,9 +20,9 @@ class ModelProcessor(service: ModelService) {
     * @tparam M     Model type
     */
   def process[T <: ModelTable[M], M <: Model: TypeTag](model: M): M = {
+    model.service = this.service
     bindFields(model)
     bindRelations(model)
-    model.service = this.service
     model.setProcessed(true)
     model
   }
@@ -74,14 +76,30 @@ class ModelProcessor(service: ModelService) {
     * @tparam M     Model type
     * @return       Model
     */
+  //noinspection ComparingUnrelatedTypes
   def bindRelations[T <: ModelTable[M], M <: Model](model: M): M = {
     val modelClass = model.getClass
     val key = modelClass.getSimpleName.toLowerCase + "Id"
-    //noinspection ComparingUnrelatedTypes
     if (modelClass.getDeclaredAnnotations.exists(_.annotationType.equals(classOf[OneToMany]))) {
       val relations = modelClass.getDeclaredAnnotation(classOf[OneToMany])
-      for (relation <- relations.value) model.bindOneToMany(relation, t => BootstrapTypeSetters.getRep[Int](key, t))
+      for (relation <- relations.value)
+        model.bindOneToMany(relation, t => BootstrapTypeSetters.getRep[Int](key, t))
     }
+
+    if (modelClass.getDeclaredAnnotations.exists(_.annotationType.equals(classOf[ManyToManyCollection]))) {
+      val relations = modelClass.getDeclaredAnnotation(classOf[ManyToManyCollection])
+      for (relation <- relations.value) {
+        val link = model.actions.getLink(relation.tableClass.asInstanceOf[Class[_ <: Table[_]]])
+        val childClass = relation.modelClass
+        val childKey = childClass.getSimpleName.toLowerCase + "Id"
+        model.bindManyToMany(
+          relation.modelClass, link.linkTable,
+          t => BootstrapTypeSetters.getRep[Int](key, t),
+          t => BootstrapTypeSetters.getRep[Int](childKey, t)
+        )
+      }
+    }
+
     model
   }
 

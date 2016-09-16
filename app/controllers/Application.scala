@@ -145,8 +145,9 @@ class Application @Inject()(data: DataHelper,
     * @return Redirect home
     */
   def migrate() = (Authenticated andThen PermissionAction[AuthRequest](MigrateOre)) { implicit request =>
-    this.data.migrate()
-    Redirect(self.showHome(None, None, None, None))
+//    this.data.migrate()
+//    Redirect(self.showHome(None, None, None, None))
+    Ok(this.projects.withName("windy", "Ore").get.watchers.all.toString)
   }
 
 }

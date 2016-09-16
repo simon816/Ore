@@ -6,7 +6,8 @@ import com.google.common.base.Preconditions._
 import db.action.ModelActions
 import db.impl.ModelKeys._
 import db.impl.{ChannelTable, ModelKeys, OreModel, VersionTable}
-import db.meta.{Actions, Bind, OneToMany}
+import db.meta.relation.OneToMany
+import db.meta.{Actions, Bind}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
 

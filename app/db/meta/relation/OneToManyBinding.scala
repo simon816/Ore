@@ -1,4 +1,4 @@
-package db.meta
+package db.meta.relation
 
 import db.impl.pg.OrePostgresDriver.api._
 import db.{Model, ModelTable}

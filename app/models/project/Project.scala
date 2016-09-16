@@ -5,10 +5,11 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions._
 import db.action.ModelAccess
 import db.impl.ModelKeys._
-import db.impl.pg.OrePostgresDriver.api._
 import db.impl._
 import db.impl.action.ProjectActions
-import db.meta.{Actions, Bind, OneToMany}
+import db.impl.pg.OrePostgresDriver.api._
+import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
+import db.meta.{Actions, Bind}
 import models.statistic.ProjectView
 import models.user.{ProjectRole, User}
 import ore.Colors.Color
@@ -41,6 +42,7 @@ import scala.annotation.meta.field
   * @param _description           Short description of Project
   */
 @Actions(classOf[ProjectActions])
+@ManyToManyCollection(Array(new ManyToMany(modelClass = classOf[User], tableClass = classOf[ProjectWatchersTable])))
 @OneToMany(Array(
   classOf[Channel], classOf[Version], classOf[Page], classOf[Flag], classOf[ProjectRole], classOf[ProjectView]
 ))
@@ -90,6 +92,13 @@ case class Project(// Immutable
     * @return All Members of project
     */
   def members: Set[ProjectMember] = this.service.await(this.actions.getMembers(this)).get.toSet
+
+  /**
+    * Returns ModelAccess to the user's who are watching this project.
+    *
+    * @return Users watching project
+    */
+  def watchers = this.manyToMany[ProjectWatchersTable, UserTable, User](classOf[User])
 
   /**
     * Removes the [[ProjectMember]] that belongs to the specified [[User]] from this

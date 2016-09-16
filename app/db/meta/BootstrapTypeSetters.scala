@@ -19,7 +19,7 @@ object BootstrapTypeSetters {
     * @tparam A     Rep type
     * @return       Rep from table
     */
-  def getRep[A](name: String, table: ModelTable[_]): Rep[A]
+  def getRep[A](name: String, table: Table[_]): Rep[A]
   = table.getClass.getMethod(name).invoke(table).asInstanceOf[Rep[A]]
 
   case object IntTypeSetter extends TypeSetter[Int] {

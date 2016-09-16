@@ -8,7 +8,8 @@ import db.impl.ModelKeys._
 import db.impl.pg.OrePostgresDriver.api._
 import db.impl.action.VersionActions
 import db.impl.{ChannelTable, OreModel, VersionDownloadsTable, VersionTable}
-import db.meta.{Actions, Bind, OneToMany}
+import db.meta.relation.OneToMany
+import db.meta.{Actions, Bind}
 import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
