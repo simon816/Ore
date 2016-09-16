@@ -203,6 +203,12 @@ case class User(override val id: Option[Int] = None,
     */
   def watching = this.manyToMany[ProjectWatchersTable, ProjectTable, Project](classOf[Project])
 
+  /**
+    * Sets the "watching" status on the specified project.
+    *
+    * @param project Project to update status on
+    * @param watching True if watching
+    */
   def setWatching(project: Project, watching: Boolean) = {
     val assoc = this.actions.getAssociation(classOf[ProjectWatchersTable])
     if (watching)

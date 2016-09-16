@@ -3,6 +3,7 @@ package ore.project.util
 import java.nio.file.Files._
 import javax.inject.Inject
 
+import akka.actor.ActorSystem
 import com.google.common.base.Preconditions._
 import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
@@ -19,7 +20,10 @@ import util.OreConfig
 import util.StringUtils._
 
 import scala.collection.JavaConverters._
+import scala.concurrent.duration.Duration
 import scala.util.Try
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Handles creation of Project's and their components.
@@ -30,6 +34,7 @@ trait ProjectFactory {
   val fileManager: ProjectFileManager = this.manager.fileManager
   val cacheApi: CacheApi
   val messages: MessagesApi
+  val actorSystem: ActorSystem
 
   implicit val service: ModelService
   implicit val config: OreConfig
@@ -197,7 +202,7 @@ trait ProjectFactory {
       user.sendNotification(Notification(
         originId = owner.id.get,
         notificationType = NotificationTypes.ProjectInvite,
-        message = messages("notification.projectInvite", role.roleType.title, project.name)
+        message = messages("notification.project.invite", role.roleType.title, project.name)
       ))
     }
 
@@ -239,6 +244,9 @@ trait ProjectFactory {
       fileName = pendingVersion.fileName
     ))
 
+    // Notify watchers
+    this.actorSystem.scheduler.scheduleOnce(Duration.Zero, NotifyWatchersTask(newVersion, messages))
+
     uploadPlugin(channel, pending.plugin)
     newVersion
   }
@@ -260,5 +268,6 @@ class OreProjectFactory @Inject()(override val service: ModelService,
                                   override val forums: DiscourseApi,
                                   override val manager: ProjectManager,
                                   override val cacheApi: CacheApi,
-                                  override val messages: MessagesApi)
+                                  override val messages: MessagesApi,
+                                  override val actorSystem: ActorSystem)
                                   extends ProjectFactory

@@ -51,7 +51,7 @@ case class ProjectSettings(categoryName: String,
         role.user.sendNotification(Notification(
           originId = project.ownerId,
           notificationType = NotificationTypes.ProjectInvite,
-          message = messages("notification.projectInvite", role.roleType.title, project.name)
+          message = messages("notification.project.invite", role.roleType.title, project.name)
         ))
       }
 
