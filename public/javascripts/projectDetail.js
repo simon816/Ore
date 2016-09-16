@@ -187,6 +187,21 @@ $(function() {
         flagMsg.hide().fadeIn(1000).delay(2000).fadeOut(1000);
     }
 
+    // watch button
+    $('.btn-watch').click(function() {
+        var status = $(this).find('.watch-status');
+        var watching = $(this).hasClass('watching');
+        if (watching) {
+            status.text('Watch');
+            $(this).removeClass('watching');
+        } else {
+            status.text('Unwatch');
+            $(this).addClass('watching');
+        }
+
+        $.ajax(decodeHtml('/' + projectOwner + '/' + projectSlug) + '/watch/' + !watching);
+    });
+
     // setup star button
     var increment = alreadyStarred ? -1 : 1;
     $('.btn-star').click(function() {

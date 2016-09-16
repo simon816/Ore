@@ -1,6 +1,6 @@
 package db.meta;
 
-import db.action.ModelActions;
+import db.ModelActions;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

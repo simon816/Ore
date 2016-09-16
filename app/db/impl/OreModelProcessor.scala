@@ -1,6 +1,5 @@
-package db.impl.service
+package db.impl
 
-import db.impl.OreModel
 import db.impl.access.{ProjectBase, UserBase}
 import db.meta.ModelProcessor
 import db.{Model, ModelService, ModelTable}

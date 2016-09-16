@@ -3,7 +3,7 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions
-import db.ModelService
+import db.{ModelAccess, ModelService}
 import db.impl.ModelKeys._
 import db.impl.pg.OrePostgresDriver.api._
 import db.impl.action.VersionActions
@@ -158,7 +158,7 @@ case class Version(override val id: Option[Int] = None,
   }
 
   /**
-    * Returns [[db.action.ModelAccess]] to the recorded unique downloads.
+    * Returns [[ModelAccess]] to the recorded unique downloads.
     *
     * @return Recorded downloads
     */

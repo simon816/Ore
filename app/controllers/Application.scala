@@ -4,8 +4,7 @@ import javax.inject.Inject
 
 import controllers.Requests.AuthRequest
 import controllers.routes.{Application => self}
-import db.ModelService
-import db.action.ModelFilter
+import db.{ModelFilter, ModelService}
 import db.impl.access.{FlagBase, VersionBase}
 import db.impl.action.ProjectActions
 import db.impl.pg.OrePostgresDriver.api._
@@ -145,9 +144,8 @@ class Application @Inject()(data: DataHelper,
     * @return Redirect home
     */
   def migrate() = (Authenticated andThen PermissionAction[AuthRequest](MigrateOre)) { implicit request =>
-//    this.data.migrate()
-//    Redirect(self.showHome(None, None, None, None))
-    Ok(this.projects.withName("windy", "Ore").get.watchers.all.toString)
+    this.data.migrate()
+    Redirect(self.showHome(None, None, None, None))
   }
 
 }

@@ -3,7 +3,7 @@ package db.impl
 import java.sql.Timestamp
 
 import db.impl.pg.OrePostgresDriver.api._
-import db.ModelTable
+import db.{AssociativeTable, ModelTable}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.{Notification, ProjectRole, User}
@@ -45,7 +45,7 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
 
 }
 
-class ProjectWatchersTable(tag: Tag) extends Table[(Int, Int)](tag, "project_watchers") {
+class ProjectWatchersTable(tag: Tag) extends AssociativeTable(tag, "project_watchers") {
 
   def projectId = column[Int]("project_id")
   def userId = column[Int]("user_id")

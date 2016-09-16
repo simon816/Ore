@@ -1,6 +1,5 @@
-package db.action
+package db
 
-import db.{Model, ModelService}
 import slick.dbio.{DBIOAction, NoStream}
 
 import scala.reflect.runtime.universe._

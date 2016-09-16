@@ -1,7 +1,7 @@
 package db.meta.relation
 
-import db.impl.pg.OrePostgresDriver.api._
 import db.Model
+import db.impl.pg.OrePostgresDriver.api._
 
 /**
   * Represents a many-to-many relationship between two models. This is handled

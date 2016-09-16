@@ -1,11 +1,11 @@
 import com.google.inject.AbstractModule
 import db.ModelService
-import db.impl.service.OreModelService
+import db.impl.OreModelService
 import forums._
 import forums.impl.{SpongeAuth, SpongeForums}
 import ore._
 import ore.project.util.{OreProjectFactory, OreProjectManager, ProjectFactory, ProjectManager}
-import ore.rest.{OreRestfulServer, OreRestfulApi}
+import ore.rest.{OreRestfulApi, OreRestfulServer}
 import play.api.{Configuration, Environment}
 import util.OreConfig
 

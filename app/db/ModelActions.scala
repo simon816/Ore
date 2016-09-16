@@ -1,8 +1,7 @@
-package db.action
+package db
 
 import db.impl.pg.OrePostgresDriver.api._
-import db.meta.ModelLink
-import db.{Model, ModelService, ModelTable}
+import db.meta.ModelAssociation
 import slick.lifted.ColumnOrdered
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -22,39 +21,35 @@ class ModelActions[ThisTable <: ModelTable[ThisModel], ThisModel <: Model: TypeT
   type Filter = ThisTable => Rep[Boolean]
   type Ordering = ThisTable => ColumnOrdered[_]
 
-  private var links: Map[Class[_ <: Table[_]], ModelLink] = Map.empty
+  private var associations: Map[Class[_ <: AssociativeTable], ModelAssociation[_, _, _]] = Map.empty
 
   // Model specific
 
   /**
-    * Adds a new [[ModelLink]] to this ModelActions instance, to use the
-    * [[db.meta.relation.ManyToManyCollection]] binding, one must register
-    * their mediator class here.
+    * Adds a new [[ModelAssociation]] between two models. The order of the
+    * model types must match the order in the table.
     *
-    * @param targetClass    Model to target
-    * @param linkTableClass Mediator table class
-    * @param linkTable      Mediator table query
-    * @tparam Link          Table type
-    * @return               This instance
+    * @param assoc    ModelAssociation
+    * @tparam Model1  First model
+    * @tparam Model2  Second model
+    * @tparam Assoc   Association table
+    * @return         This instance
     */
-  def withLink[Link <: Table[_]](targetClass: Class[_ <: Model],
-                                 linkTableClass: Class[Link],
-                                 linkTable: TableQuery[Link]) = {
-    this.links += linkTableClass -> ModelLink(targetClass, linkTable)
+  def withAssociation[Model1 <: Model,
+                      Model2 <: Model,
+                      Assoc <: AssociativeTable]
+                     (assoc: ModelAssociation[Model1, Model2, Assoc]) = {
+    this.associations += assoc.tableClass -> assoc
     this
   }
 
   /**
-    * Returns a [[ModelLink]] for the specified mediator table class. Used for
-    * many-to-many relationships.
+    * Returns the [[ModelAssociation]] for the specified [[AssociativeTable]].
     *
-    * @param linkTableClass Mediator table
-    * @return ModelLink for table
+    * @param assocTableClass  AssociativeTable
+    * @return                 ModelAssociation
     */
-  def getLink(linkTableClass: Class[_ <: Table[_]]) = {
-    this.links.getOrElse(linkTableClass, throw new RuntimeException("No link found for table " + linkTableClass
-      + ". Did you add it to your ModelActions? (see: withLink())"))
-  }
+  def getAssociation(assocTableClass: Class[_ <: AssociativeTable]) = this.associations(assocTableClass)
 
   /**
     * Returns the specified model or creates it if it doesn't exist.

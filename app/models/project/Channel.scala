@@ -3,7 +3,7 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.action.ModelActions
+import db.ModelActions
 import db.impl.ModelKeys._
 import db.impl.{ChannelTable, ModelKeys, OreModel, VersionTable}
 import db.meta.relation.OneToMany

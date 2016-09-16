@@ -3,15 +3,15 @@ package models.user
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.action.ModelAccess
+import db.ModelAccess
 import db.impl.ModelKeys._
-import db.impl.pg.OrePostgresDriver.api._
 import db.impl._
 import db.impl.access.{FlagBase, VersionBase}
 import db.impl.action.{ProjectActions, UserActions}
+import db.impl.pg.OrePostgresDriver.api._
 import db.meta._
-import db.meta.relation.OneToMany
-import models.project.{Flag, Project, Version}
+import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
+import models.project.{Flag, Project}
 import ore.UserOwned
 import ore.permission._
 import ore.permission.role.RoleTypes.{DonorType, RoleType}
@@ -32,6 +32,7 @@ import scala.annotation.meta.field
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
 @Actions(classOf[UserActions])
+@ManyToManyCollection(Array(new ManyToMany(modelClass = classOf[Project], tableClass = classOf[ProjectWatchersTable])))
 @OneToMany(Array(classOf[Project], classOf[ProjectRole], classOf[Flag], classOf[Notification]))
 case class User(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
@@ -194,6 +195,21 @@ case class User(override val id: Option[Int] = None,
     * @return ProjectRoles
     */
   def projectRoles = this.oneToMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+
+  /**
+    * Returns the [[Project]]s that this User is watching.
+    *
+    * @return Projects user is watching
+    */
+  def watching = this.manyToMany[ProjectWatchersTable, ProjectTable, Project](classOf[Project])
+
+  def setWatching(project: Project, watching: Boolean) = {
+    val assoc = this.actions.getAssociation(classOf[ProjectWatchersTable])
+    if (watching)
+      assoc.assoc(this, project)
+    else
+      assoc.disassoc(this, project)
+  }
 
   /**
     * Returns a Set of [[RoleType]]s that this User has globally.

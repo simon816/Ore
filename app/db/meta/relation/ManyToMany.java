@@ -1,5 +1,6 @@
 package db.meta.relation;
 
+import db.AssociativeTable;
 import db.Model;
 
 import java.lang.annotation.ElementType;
@@ -26,6 +27,6 @@ public @interface ManyToMany {
      *
      * @return Mediator table class
      */
-    Class<?> tableClass();
+    Class<? extends AssociativeTable> tableClass();
 
 }

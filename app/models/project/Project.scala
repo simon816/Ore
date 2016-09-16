@@ -3,7 +3,7 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.action.ModelAccess
+import db.ModelAccess
 import db.impl.ModelKeys._
 import db.impl._
 import db.impl.action.ProjectActions

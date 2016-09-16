@@ -3,7 +3,6 @@ package db
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions.checkNotNull
-import db.action.{ModelAccess, ModelActions, ModelFilter}
 import db.impl.pg.OrePostgresDriver.api._
 import db.meta.relation.{ManyToManyBinding, OneToManyBinding}
 import db.meta.{Actions, FieldBinding}

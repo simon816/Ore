@@ -2,8 +2,7 @@ package models.project
 
 import java.sql.Timestamp
 
-import db.ModelService
-import db.action.ModelActions
+import db.{ModelActions, ModelService}
 import db.impl.ModelKeys._
 import db.impl.{FlagTable, OreModel}
 import db.meta.{Actions, Bind}

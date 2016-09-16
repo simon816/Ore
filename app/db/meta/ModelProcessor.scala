@@ -89,11 +89,11 @@ class ModelProcessor(service: ModelService) {
     if (modelClass.getDeclaredAnnotations.exists(_.annotationType.equals(classOf[ManyToManyCollection]))) {
       val relations = modelClass.getDeclaredAnnotation(classOf[ManyToManyCollection])
       for (relation <- relations.value) {
-        val link = model.actions.getLink(relation.tableClass.asInstanceOf[Class[_ <: Table[_]]])
+        val assoc = model.actions.getAssociation(relation.tableClass)
         val childClass = relation.modelClass
         val childKey = childClass.getSimpleName.toLowerCase + "Id"
         model.bindManyToMany(
-          relation.modelClass, link.linkTable,
+          relation.modelClass, assoc.assocTable.asInstanceOf[TableQuery[_ <: Table[_]]],
           t => BootstrapTypeSetters.getRep[Int](key, t),
           t => BootstrapTypeSetters.getRep[Int](childKey, t)
         )

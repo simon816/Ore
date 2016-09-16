@@ -1,7 +1,5 @@
 package db
 
-import db.action.ModelAccess
-
 /**
   * Represents something that provides access to a ModelTable.
   *

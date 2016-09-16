@@ -2,7 +2,6 @@ package db
 
 import com.google.common.base.Preconditions.checkNotNull
 import com.google.common.collect.{BiMap, HashBiMap}
-import db.action.ModelActions
 import db.meta.TypeSetter
 
 import scala.collection.JavaConverters._

@@ -1,16 +1,15 @@
-package db.impl.service
+package db.impl
 
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 
-import db.action.ModelActions
 import db.impl.access.{FlagBase, ProjectBase, UserBase, VersionBase}
-import db.impl.pg.OrePostgresDriver.api._
-import db.impl.pg.OreTypeSetters._
 import db.impl.action.{PageActions, ProjectActions, UserActions, VersionActions}
 import db.impl.pg.OrePostgresDriver
-import db.impl.{ChannelTable, NotificationTable, ProjectWatchersTable}
-import db.{ModelRegistry, ModelService}
+import db.impl.pg.OrePostgresDriver.api._
+import db.impl.pg.OreTypeSetters._
+import db.meta.ModelAssociation
+import db.{ModelActions, ModelRegistry, ModelService}
 import forums.DiscourseApi
 import models.project.{Channel, Project}
 import models.user.{Notification, User}
@@ -58,11 +57,13 @@ class OreModelService @Inject()(config: OreConfig,
   registerTypeSetter(classOf[FlagReason], FlagReasonTypeSetter)
   registerTypeSetter(classOf[NotificationType], NotificationTypeTypeSetter)
 
+  // Associations
+  val projectWatchers = new ModelAssociation[Project, User, ProjectWatchersTable](
+    this, _.projectId, _.userId, classOf[ProjectWatchersTable], TableQuery[ProjectWatchersTable])
+
   // Ore models
-  registerActions(new UserActions(this))
-    .withLink(classOf[Project], classOf[ProjectWatchersTable], TableQuery[ProjectWatchersTable])
-  registerActions(new ProjectActions(this))
-    .withLink(classOf[User], classOf[ProjectWatchersTable], TableQuery[ProjectWatchersTable])
+  registerActions(new UserActions(this)).withAssociation(this.projectWatchers)
+  registerActions(new ProjectActions(this)).withAssociation(this.projectWatchers)
   registerActions(new VersionActions(this))
   registerActions(new ModelActions(this, classOf[Channel], TableQuery[ChannelTable]))
   registerActions(new PageActions(this))

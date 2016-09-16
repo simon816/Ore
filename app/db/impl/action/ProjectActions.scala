@@ -1,12 +1,10 @@
 package db.impl.action
 
 import db._
-import db.action.ModelAction.wrapSeq
-import db.action.{ModelActions, ModelFilter}
-import db.impl.pg.OrePostgresDriver.api._
+import ModelAction.wrapSeq
 import db.impl._
 import db.impl.access.UserBase
-import forums.DiscourseApi
+import db.impl.pg.OrePostgresDriver.api._
 import models.project._
 import models.statistic.ProjectView
 import models.user.User

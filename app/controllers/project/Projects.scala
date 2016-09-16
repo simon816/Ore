@@ -186,6 +186,13 @@ class Projects @Inject()(val stats: StatTracker,
     }
   }
 
+  def setWatching(author: String, slug: String, watching: Boolean) = {
+    AuthedProjectAction(author, slug) { implicit request =>
+      request.user.setWatching(request.project, watching)
+      Ok
+    }
+  }
+
   /**
     * Shortcut for navigating to a project.
     *
@@ -193,7 +200,7 @@ class Projects @Inject()(val stats: StatTracker,
     * @return Redirect to project page.
     */
   def showProjectById(pluginId: String) = Action { implicit request =>
-    projects.withPluginId(pluginId) match {
+    this.projects.withPluginId(pluginId) match {
       case None => NotFound
       case Some(project) => Redirect(self.show(project.ownerName, project.slug))
     }
