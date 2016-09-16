@@ -58,8 +58,9 @@ class OreModelService @Inject()(config: OreConfig,
   registerTypeSetter(classOf[NotificationType], NotificationTypeTypeSetter)
 
   // Associations
-  val projectWatchers = new ModelAssociation[Project, User, ProjectWatchersTable](
-    this, _.projectId, _.userId, classOf[ProjectWatchersTable], TableQuery[ProjectWatchersTable])
+  val projectWatchers = new ModelAssociation[ProjectWatchersTable](
+    this, classOf[Project], classOf[User], _.projectId, _.userId, classOf[ProjectWatchersTable],
+    TableQuery[ProjectWatchersTable])
 
   // Ore models
   registerActions(new UserActions(this)).withAssociation(this.projectWatchers)

@@ -9,12 +9,12 @@ import db.{AssociativeTable, Model, ModelService}
   * @param service      ModelService
   * @param tableClass   AssociativeTable class
   * @param assocTable   AssociativeTable TableQuery instance
-  * @tparam Model1      First model in table
-  * @tparam Model2      Second model in table
-  * @tparam AssocTable  AssocitiveTable type
+  * @tparam AssocTable  AssociativeTable type
   */
-class ModelAssociation[Model1 <: Model, Model2 <: Model, AssocTable <: AssociativeTable]
+class ModelAssociation[AssocTable <: AssociativeTable]
                       (service: ModelService,
+                       firstModel: Class[_ <: Model],
+                       secondModel: Class[_ <: Model],
                        ref1: AssocTable => Rep[Int],
                        ref2: AssocTable => Rep[Int],
                        val tableClass: Class[AssocTable],
@@ -46,24 +46,22 @@ class ModelAssociation[Model1 <: Model, Model2 <: Model, AssocTable <: Associati
   }
 
   private def orderModels(model1: Model, model2: Model): (Model, Model) = {
-    model1 match {
-      case _: Model1 =>
-        model2 match {
-          case _: Model2 =>
-            (model1, model2)
-          case _ =>
-            throw ModelPairException
-        }
-      case _: Model2 =>
-        model2 match {
-          case _: Model1 =>
-            (model2, model1)
-          case _ =>
-            throw ModelPairException
-        }
-      case _ =>
+    val clazz1 = model1.getClass
+    val clazz2 = model2.getClass
+    if (clazz1.equals(this.firstModel)) {
+      if (clazz2.equals(this.secondModel)) {
+        (model1, model2)
+      } else {
         throw ModelPairException
-    }
+      }
+    } else if (clazz1.equals(this.secondModel)) {
+      if (clazz2.equals(this.firstModel)) {
+        (model2, model1)
+      } else {
+        throw ModelPairException
+      }
+    } else
+      throw ModelPairException
   }
 
   private def ModelPairException = new RuntimeException("invalid model pair for association")

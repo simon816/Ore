@@ -21,7 +21,7 @@ class ModelActions[ThisTable <: ModelTable[ThisModel], ThisModel <: Model: TypeT
   type Filter = ThisTable => Rep[Boolean]
   type Ordering = ThisTable => ColumnOrdered[_]
 
-  private var associations: Map[Class[_ <: AssociativeTable], ModelAssociation[_, _, _]] = Map.empty
+  private var associations: Map[Class[_ <: AssociativeTable], ModelAssociation[_]] = Map.empty
 
   // Model specific
 
@@ -30,15 +30,10 @@ class ModelActions[ThisTable <: ModelTable[ThisModel], ThisModel <: Model: TypeT
     * model types must match the order in the table.
     *
     * @param assoc    ModelAssociation
-    * @tparam Model1  First model
-    * @tparam Model2  Second model
     * @tparam Assoc   Association table
     * @return         This instance
     */
-  def withAssociation[Model1 <: Model,
-                      Model2 <: Model,
-                      Assoc <: AssociativeTable]
-                     (assoc: ModelAssociation[Model1, Model2, Assoc]) = {
+  def withAssociation[Assoc <: AssociativeTable](assoc: ModelAssociation[Assoc]) = {
     this.associations += assoc.tableClass -> assoc
     this
   }
