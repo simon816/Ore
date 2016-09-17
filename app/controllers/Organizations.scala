@@ -2,13 +2,11 @@ package controllers
 
 import javax.inject.Inject
 
-import controllers.routes.{Organizations => self}
 import db.ModelService
 import db.impl.access.OrganizationBase
 import form.OreForms
 import forums.DiscourseApi
 import play.api.i18n.MessagesApi
-import play.api.mvc.Action
 import util.{OreConfig, OreEnv}
 import views.{html => views}
 
@@ -39,20 +37,7 @@ class Organizations @Inject()(forms: OreForms,
   def create() = Authenticated { implicit request =>
     val name = this.forms.OrganizationCreate.bindFromRequest().get
     this.service.access(classOf[OrganizationBase]).create(name, request.user.id.get)
-    Redirect(self.show(name))
-  }
-
-  /**
-    * Displays an organization page.
-    *
-    * @param name Organization name
-    * @return     Organization page
-    */
-  def show(name: String) = Action { implicit request =>
-    this.service.access(classOf[OrganizationBase]).withName(name) match {
-      case None => NotFound
-      case Some(org) => Ok(views.organizations.view(org))
-    }
+    Redirect(routes.Users.showProjects(name, None))
   }
 
 }

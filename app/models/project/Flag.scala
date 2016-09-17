@@ -2,10 +2,9 @@ package models.project
 
 import java.sql.Timestamp
 
-import db.{ModelActions, ModelService}
 import db.impl.ModelKeys._
-import db.impl.{FlagTable, OreModel}
-import db.meta.{Actions, Bind}
+import db.impl.OreModel
+import db.meta.Bind
 import ore.permission.scope.ProjectScope
 import ore.project.FlagReasons.FlagReason
 import ore.user.UserOwned
@@ -22,7 +21,6 @@ import scala.annotation.meta.field
   * @param reason       Reason for flag
   * @param _isResolved  True if has been reviewed and resolved by staff member
   */
-@Actions(classOf[ModelActions[FlagTable, Flag]])
 case class Flag(override val id: Option[Int],
                 override val createdAt: Option[Timestamp],
                 override val projectId: Int,

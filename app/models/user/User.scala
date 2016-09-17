@@ -16,7 +16,7 @@ import models.user.role.ProjectRole
 import ore.permission._
 import ore.permission.role.RoleTypes.{DonorType, RoleType}
 import ore.permission.role._
-import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
+import ore.permission.scope._
 import ore.user.{UserLike, UserOwned}
 import util.StringUtils._
 
@@ -32,7 +32,6 @@ import scala.annotation.meta.field
   * @param _email       Email
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
-@Actions(classOf[UserActions])
 @ManyToManyCollection(Array(new ManyToMany(modelClass = classOf[Project], tableClass = classOf[ProjectWatchersTable])))
 @OneToMany(Array(classOf[Project], classOf[ProjectRole], classOf[Flag], classOf[Notification]))
 case class User(override val id: Option[Int] = None,
@@ -210,7 +209,8 @@ case class User(override val id: Option[Int] = None,
     */
   def trustIn(scope: Scope = GlobalScope): Trust = Defined {
     scope match {
-      case GlobalScope => this.globalRoles.map(_.trust).toList.sorted.lastOption.getOrElse(Default)
+      case GlobalScope =>
+        this.globalRoles.map(_.trust).toList.sorted.lastOption.getOrElse(Default)
       case pScope: ProjectScope =>
         pScope.project.members
           .find(_.user.equals(this))

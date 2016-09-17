@@ -3,11 +3,10 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.ModelActions
 import db.impl.ModelKeys._
-import db.impl.{ChannelTable, ModelKeys, OreModel, VersionTable}
+import db.impl.{ModelKeys, OreModel, VersionTable}
+import db.meta.Bind
 import db.meta.relation.OneToMany
-import db.meta.{Actions, Bind}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
 
@@ -23,7 +22,6 @@ import scala.annotation.meta.field
   * @param _color       Color used to represent this Channel
   * @param projectId    ID of project this channel belongs to
   */
-@Actions(classOf[ModelActions[ChannelTable, Channel]])
 @OneToMany(Array(classOf[Version]))
 case class Channel(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,

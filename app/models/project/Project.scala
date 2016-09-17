@@ -9,8 +9,7 @@ import db.impl._
 import db.impl.action.ProjectActions
 import db.impl.pg.OrePostgresDriver.api._
 import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
-import db.meta.{Actions, Bind}
-import db.meta.{Actions, Bind}
+import db.meta.Bind
 import models.statistic.ProjectView
 import models.user.User
 import models.user.role.ProjectRole
@@ -43,7 +42,6 @@ import scala.annotation.meta.field
   * @param _source                External link to source code
   * @param _description           Short description of Project
   */
-@Actions(classOf[ProjectActions])
 @ManyToManyCollection(Array(new ManyToMany(modelClass = classOf[User], tableClass = classOf[ProjectWatchersTable])))
 @OneToMany(Array(
   classOf[Channel], classOf[Version], classOf[Page], classOf[Flag], classOf[ProjectRole], classOf[ProjectView]

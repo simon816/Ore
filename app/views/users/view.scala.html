@@ -7,10 +7,9 @@
 @import ore.user.UserLike
 @import util.StringUtils.prettifyDate
 @import util.OreEnv
-@(user: UserLike)(content: Html)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader,
-        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
-
-@isThisUser = @{ users.current.isDefined && users.current.get.equals(user) }
+@(user: UserLike)(content: Html)(implicit messages: Messages, session: Session, flash: Flash,
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
+        env: OreEnv)
 
 @bootstrap.layout(user.username) {
 
@@ -39,12 +38,12 @@
                             <i class="minor">
                                 @if(user.tagline.isDefined) {
                                     @user.tagline.get
-                                } else { @if(isThisUser) {
+                                } else { @if(user.isCurrent) {
                                     Add a tagline
                                 }}
                             </i>
 
-                            @if(isThisUser) {
+                            @if(user.isCurrent) {
                                 <a href="#" data-toggle="modal" data-target="#modal-tagline"><i class="fa fa-edit"></i></a>
                             }
                         </div>

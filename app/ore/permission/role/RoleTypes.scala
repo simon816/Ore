@@ -10,30 +10,34 @@ object RoleTypes extends Enumeration {
 
   // Global
 
-  val Admin             =   new  RoleType( 0, 61,   Absolute,   "Ore Admin",             Red)
-  val Mod               =   new  RoleType( 1, 62,   Standard,   "Ore Moderator",         Aqua)
-  val SpongeLeader      =   new  RoleType( 2, 44,   Absolute,   "Sponge Leader",         Amber)
-  val TeamLeader        =   new  RoleType( 3, 58,   Standard,   "Team Leader",           Amber)
-  val CommunityLeader   =   new  RoleType( 4, 59,   Standard,   "Community Leader",      Amber)
-  val Staff             =   new  RoleType( 5, 3,    Standard,   "Sponge Staff",          Amber)
-  val SpongeDev         =   new  RoleType( 6, 41,   Standard,   "Sponge Developer",      Green)
-  val WebDev            =   new  RoleType( 7, 45,   Standard,   "Web Developer",         Blue)
-  val Scribe            =   new  RoleType( 8, 51,   Limited,    "Sponge Documenter",     Aqua)
-  val Support           =   new  RoleType( 9, 43,   Limited,    "Sponge Support",        Aqua)
-  val Contributor       =   new  RoleType(10, 49,   Default,    "Sponge Contributor",    Green)
-  val Adviser           =   new  RoleType(11, 48,   Default,    "Sponge Adviser",        Aqua)
-  val StoneDonor        =   new DonorType(12, 57,               "Stone Donor",           Gray)
-  val QuartzDonor       =   new DonorType(13, 54,               "Quartz Donor",          Quartz)
-  val IronDonor         =   new DonorType(14, 56,               "Iron Donor",            Silver)
-  val GoldDonor         =   new DonorType(15, 53,               "Gold Donor",            Gold)
-  val DiamondDonor      =   new DonorType(16, 52,               "Diamond Donor",         LightBlue)
+  val Admin             =   new  RoleType( 0, 61,   Absolute,   "Ore Admin",            Red)
+  val Mod               =   new  RoleType( 1, 62,   Standard,   "Ore Moderator",        Aqua)
+  val SpongeLeader      =   new  RoleType( 2, 44,   Absolute,   "Sponge Leader",        Amber)
+  val TeamLeader        =   new  RoleType( 3, 58,   Standard,   "Team Leader",          Amber)
+  val CommunityLeader   =   new  RoleType( 4, 59,   Standard,   "Community Leader",     Amber)
+  val Staff             =   new  RoleType( 5, 3,    Standard,   "Sponge Staff",         Amber)
+  val SpongeDev         =   new  RoleType( 6, 41,   Standard,   "Sponge Developer",     Green)
+  val WebDev            =   new  RoleType( 7, 45,   Standard,   "Web Developer",        Blue)
+  val Scribe            =   new  RoleType( 8, 51,   Limited,    "Sponge Documenter",    Aqua)
+  val Support           =   new  RoleType( 9, 43,   Limited,    "Sponge Support",       Aqua)
+  val Contributor       =   new  RoleType(10, 49,   Default,    "Sponge Contributor",   Green)
+  val Adviser           =   new  RoleType(11, 48,   Default,    "Sponge Adviser",       Aqua)
+  val StoneDonor        =   new DonorType(12, 57,               "Stone Donor",          Gray)
+  val QuartzDonor       =   new DonorType(13, 54,               "Quartz Donor",         Quartz)
+  val IronDonor         =   new DonorType(14, 56,               "Iron Donor",           Silver)
+  val GoldDonor         =   new DonorType(15, 53,               "Gold Donor",           Gold)
+  val DiamondDonor      =   new DonorType(16, 52,               "Diamond Donor",        LightBlue)
 
   // Project
 
-  val ProjectOwner      =   new  RoleType(17, -1,   Absolute,   "Owner",                 Transparent)
-  val ProjectDev        =   new  RoleType(18, -2,   Standard,   "Developer",             Transparent)
-  val ProjectEditor     =   new  RoleType(19, -3,   Limited,    "Editor",                Transparent)
-  val ProjectSupport    =   new  RoleType(20, -4,   Default,    "Support",               Transparent)
+  val ProjectOwner    =   new  RoleType(17, -1,   Absolute,   "Owner",      Transparent)
+  val ProjectDev      =   new  RoleType(18, -2,   Standard,   "Developer",  Transparent)
+  val ProjectEditor   =   new  RoleType(19, -3,   Limited,    "Editor",     Transparent)
+  val ProjectSupport  =   new  RoleType(20, -4,   Default,    "Support",    Transparent)
+
+  // Organization
+
+  val Organization   =   new RoleType(64, -5, Absolute, "Organization", Purple)
 
   /**
     * Returns the role with the specified external ID.

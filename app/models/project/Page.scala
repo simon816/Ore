@@ -6,7 +6,7 @@ import com.google.common.base.Preconditions._
 import db.impl.ModelKeys._
 import db.impl.action.PageActions
 import db.impl.{OreModel, PageTable}
-import db.meta.{Actions, Bind}
+import db.meta.Bind
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
@@ -27,7 +27,6 @@ import scala.annotation.meta.field
   * @param _contents    Markdown contents
   * @param isDeletable  True if can be deleted by the user
   */
-@Actions(classOf[PageActions])
 case class Page(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
                 override val projectId: Int,

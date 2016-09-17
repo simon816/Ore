@@ -4,9 +4,12 @@ import java.sql.Timestamp
 
 import db.Model
 import db.impl.ProjectTable
+import db.impl.access.{OrganizationBase, UserBase}
+import db.impl.pg.OrePostgresDriver.api._
 import models.project.Project
 import models.user.{Organization, User}
 import ore.permission.role.RoleTypes.RoleType
+import play.api.mvc.Session
 import util.OreConfig
 
 /**
@@ -80,5 +83,31 @@ trait UserLike extends Model {
     * @return Creation date
     */
   def createdAt: Option[Timestamp]
+
+  /**
+    * Returns true if this User is also an organization.
+    *
+    * @return True if organization
+    */
+  def isOrganization: Boolean = this.service.access(classOf[OrganizationBase]).exists(_.id === this.id.get)
+
+  /**
+    * Converts this User to an [[Organization]].
+    *
+    * @return Organization
+    */
+  def toOrganization: Organization = {
+    this.service.access(classOf[OrganizationBase]).get(this.id.get)
+      .getOrElse(throw new IllegalStateException("user is not an organization"))
+  }
+
+  /**
+    * Returns true if this User is the currently authenticated user.
+    *
+    * @return True if currently authenticated user
+    */
+  def isCurrent(implicit session: Session): Boolean = this.service.access(classOf[UserBase]).current.forall { user =>
+    user.equals(this) || (this.isOrganization && this.toOrganization.owner.equals(user))
+  }
 
 }

@@ -46,6 +46,13 @@ case class Organization(override val id: Option[Int] = None,
                           with ScopeSubject {
 
   /**
+    * Returns the [[User]] that owns this Organization.
+    *
+    * @return User that owns organization
+    */
+  def owner: User = this.userBase.get(this.ownerId).get
+
+  /**
     * Returns all [[OrganizationMember]]s of this Organization.
     *
     * @return All OrganizationMembers

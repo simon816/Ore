@@ -4,6 +4,7 @@ import db.impl.OrganizationTable
 import db.{ModelBase, ModelService}
 import forums.DiscourseApi
 import models.user.Organization
+import ore.permission.role.RoleTypes
 import org.apache.commons.lang3.RandomStringUtils
 import util.{CryptoUtils, OreConfig, StringUtils}
 

@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions.checkNotNull
 import db.impl.pg.OrePostgresDriver.api._
 import db.meta.relation.{ManyToManyBinding, OneToManyBinding}
-import db.meta.{Actions, FieldBinding}
+import db.meta.FieldBinding
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
@@ -41,13 +41,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
     if (this.service == null)
       this.service = service
     checkNotNull(this.service, "service is null", "")
-    val clazz = this.getClass
-    if (!clazz.isAnnotationPresent(classOf[Actions]))
-      throw new RuntimeException("missing @Actions annotation")
-    val actions = this.service.getActions(clazz.getAnnotation(classOf[Actions]).value)
-    if (!actions.isInstanceOf[A])
-      throw new RuntimeException("model actions class does not match type")
-    actions.asInstanceOf[A]
+    this.service.getActionsByModel(getClass).asInstanceOf[A]
   }
 
   /**

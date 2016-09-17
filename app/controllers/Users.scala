@@ -92,13 +92,19 @@ class Users @Inject()(val fakeUser: FakeUser,
     */
   def saveTagline(username: String) = {
     Authenticated { implicit request =>
-      val user = request.user
-      val tagline = this.forms.UserTagline.bindFromRequest.get.trim
-      if (tagline.length > this.config.users.getInt("max-tagline-len").get) {
-        Redirect(self.showProjects(user.username, None)).flashing("error" -> "Tagline is too long.")
-      } else {
-        user.tagline = tagline
-        Redirect(self.showProjects(user.username, None))
+      this.users.withName(username) match {
+        case None => NotFound
+        case Some(user) =>
+          if (user.equals(request.user) || (user.isOrganization && user.toOrganization.owner.equals(user))) {
+            val tagline = this.forms.UserTagline.bindFromRequest.get.trim
+            if (tagline.length > this.config.users.getInt("max-tagline-len").get) {
+              Redirect(self.showProjects(user.username, None)).flashing("error" -> "Tagline is too long.")
+            } else {
+              user.tagline = tagline
+              Redirect(self.showProjects(user.username, None))
+            }
+          } else
+            Unauthorized
       }
     }
   }
