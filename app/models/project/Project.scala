@@ -66,7 +66,8 @@ case class Project(// Immutable
                    @(Bind @field) private var _description: Option[String] = None,
                    @(Bind @field) private var _topicId: Option[Int] = None,
                    @(Bind @field) private var _postId: Option[Int] = None,
-                   @(Bind @field) private var _isVisible: Boolean = true)
+                   @(Bind @field) private var _isVisible: Boolean = true,
+                   @(Bind @field) private var _lastUpdated: Timestamp = null)
                    extends OreModel(id, createdAt)
                      with ProjectScope {
 
@@ -419,6 +420,23 @@ case class Project(// Immutable
   def recommendedVersion_=(_version: Version) = {
     this.recommendedVersionId = _version.id
     if (isDefined) update(RecommendedVersionId)
+  }
+
+  /**
+    * Returns the last time this [[Project]] was updated.
+    *
+    * @return Last time project was updated
+    */
+  def lastUpdated: Timestamp = this._lastUpdated
+
+  /**
+    * Sets the last time this [[Project]] was updated.
+    *
+    * @param lastUpdated Last time project was updated
+    */
+  def lastUpdated_=(lastUpdated: Timestamp) = {
+    this._lastUpdated = lastUpdated
+    if (isDefined) update(LastUpdated)
   }
 
   /**
