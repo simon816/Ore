@@ -1,5 +1,6 @@
 package ore.permission.role
 
+import models.user.role.ProjectRole
 import ore.Colors._
 
 /**
@@ -47,7 +48,7 @@ object RoleTypes extends Enumeration {
   }
 
   /**
-    * Returns the typical RoleTypes of [[models.user.ProjectRole]]s.
+    * Returns the typical RoleTypes of [[ProjectRole]]s.
     *
     * @return RoleTypes used by ProjectRoles
     */

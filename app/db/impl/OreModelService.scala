@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 
 import db.impl.access.{FlagBase, ProjectBase, UserBase, VersionBase, _}
-import db.impl.action.{PageActions, ProjectActions, UserActions, VersionActions, _}
+import db.impl.action.{PageActions, ProjectActions, UserActions, VersionActions}
 import db.impl.pg.OrePostgresDriver
 import db.impl.pg.OrePostgresDriver.api._
 import db.impl.pg.OreTypeSetters._
@@ -12,7 +12,7 @@ import db.meta.ModelAssociation
 import db.{ModelActions, ModelRegistry, ModelService}
 import forums.DiscourseApi
 import models.project.Channel
-import models.user.Notification
+import models.user.{Notification, Organization}
 import ore.Colors.Color
 import ore.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType
@@ -61,7 +61,12 @@ class OreModelService @Inject()(env: OreEnv,
 
   // Associations
   val projectWatchers = new ModelAssociation[ProjectWatchersTable](
-    this, _.projectId, _.userId, classOf[ProjectWatchersTable], TableQuery[ProjectWatchersTable])
+    this, _.projectId, _.userId, classOf[ProjectWatchersTable], TableQuery[ProjectWatchersTable]
+  )
+
+  val organizationMembers = new ModelAssociation[OrganizationMembersTable](
+    this, _.userId, _.organizationId, classOf[OrganizationMembersTable], TableQuery[OrganizationMembersTable]
+  )
 
   // Ore models
   registerActions(new UserActions(this)).withAssociation(this.projectWatchers)
@@ -70,6 +75,7 @@ class OreModelService @Inject()(env: OreEnv,
   registerActions(new ModelActions(this, classOf[Channel], TableQuery[ChannelTable]))
   registerActions(new PageActions(this))
   registerActions(new ModelActions(this, classOf[Notification], TableQuery[NotificationTable]))
-  registerActions(new OrganizationActions(this))
+  registerActions(new ModelActions(this, classOf[Organization], TableQuery[OrganizationTable]))
+    .withAssociation(this.organizationMembers)
 
 }

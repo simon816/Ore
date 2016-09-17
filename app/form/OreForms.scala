@@ -4,6 +4,7 @@ import javax.inject.Inject
 
 import models.project.Channel
 import models.project.Page._
+import models.user.role.ProjectRole
 import play.api.data.Form
 import play.api.data.Forms._
 import util.OreConfig
@@ -34,7 +35,7 @@ class OreForms @Inject()(implicit config: OreConfig) {
 
   /**
     * Submits changes to a [[models.project.Project]]'s
-    * [[models.user.ProjectRole]]s.
+    * [[ProjectRole]]s.
     */
   lazy val MemberRoles = Form(mapping(
     "users" -> list(number),

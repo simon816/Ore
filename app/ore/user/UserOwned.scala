@@ -1,4 +1,4 @@
-package ore
+package ore.user
 
 import db.impl.access.UserBase
 import models.user.User

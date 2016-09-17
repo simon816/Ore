@@ -65,9 +65,9 @@
                         || (users.current.isDefined && users.current.get.username.equals(model.ownerName))) {
                     <li class="list-group-item">
 
-                        <a class="username" href="@routes.Users.showProjects(member.name, None)">
+                        <a class="username" href="@routes.Users.showProjects(member.username, None)">
                             <img class="user-avatar" src="@member.user.avatarUrl(100)" width="32" height="32" />
-                            @member.name
+                            @member.username
                         </a>
 
                         @if(canEdit && !member.headRole.roleType.equals(RoleTypes.ProjectOwner)) {

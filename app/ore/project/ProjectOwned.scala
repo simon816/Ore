@@ -1,9 +1,11 @@
-package ore
+package ore.project
 
 import db.impl.access.ProjectBase
 import models.project.Project
 
-/** Represents anything that has a [[models.project.Project]]. */
+/**
+  * Represents anything that has a [[models.project.Project]].
+  */
 trait ProjectOwned {
   /** Returns the Project ID */
   def projectId: Int

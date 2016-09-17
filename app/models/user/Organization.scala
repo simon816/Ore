@@ -3,12 +3,15 @@ package models.user
 import java.sql.Timestamp
 
 import db.Model
-import db.impl.OreModel
-import db.meta.{Bind, OneToMany}
+import db.impl.{OreModel, OrganizationMembersTable, OrganizationRoleTable, UserTable}
+import db.meta.Bind
+import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
 import models.project.Project
-import ore.UserOwned
+import models.user.role.OrganizationRole
+import ore.organization.OrganizationMember
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.{GlobalScope, Scope, ScopeSubject}
+import ore.user.{UserLike, UserOwned}
 
 import scala.annotation.meta.field
 
@@ -27,7 +30,8 @@ import scala.annotation.meta.field
   * @param _tagline       Configured tagline
   * @param _globalRoles   Global roles this organization possesses
   */
-@OneToMany(Array(classOf[Project]))
+@OneToMany(Array(classOf[Project], classOf[OrganizationRole]))
+@ManyToManyCollection(Array(new ManyToMany(modelClass = classOf[User], tableClass = classOf[OrganizationMembersTable])))
 case class Organization(override val id: Option[Int] = None,
                         override val createdAt: Option[Timestamp] = None,
                         @(Bind @field) name: String,
@@ -40,6 +44,23 @@ case class Organization(override val id: Option[Int] = None,
                           with UserLike
                           with UserOwned
                           with ScopeSubject {
+
+  /**
+    * Returns all [[OrganizationMember]]s of this Organization.
+    *
+    * @return All OrganizationMembers
+    */
+  def members = {
+    this.manyToMany[OrganizationMembersTable, UserTable, User](classOf[User]).all
+      .map(user => new OrganizationMember(this, user.id.get))
+  }
+
+  /**
+    * Returns all [[OrganizationRole]]s of this Organization.
+    *
+    * @return All OrganizationRoles
+    */
+  def roles = this.oneToMany[OrganizationRoleTable, OrganizationRole](classOf[OrganizationRole])
 
   override def username: String = this.name
   override def tagline: Option[String] = this._tagline

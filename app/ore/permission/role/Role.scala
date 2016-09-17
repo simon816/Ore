@@ -1,8 +1,8 @@
 package ore.permission.role
 
-import ore.UserOwned
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.ScopeSubject
+import ore.user.UserOwned
 
 /**
   * Represents a "role" that is posessed by a [[models.user.User]].

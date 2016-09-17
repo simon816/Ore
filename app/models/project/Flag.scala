@@ -6,9 +6,9 @@ import db.{ModelActions, ModelService}
 import db.impl.ModelKeys._
 import db.impl.{FlagTable, OreModel}
 import db.meta.{Actions, Bind}
-import ore.UserOwned
 import ore.permission.scope.ProjectScope
 import ore.project.FlagReasons.FlagReason
+import ore.user.UserOwned
 
 import scala.annotation.meta.field
 

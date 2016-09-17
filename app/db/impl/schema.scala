@@ -6,8 +6,8 @@ import db.impl.pg.OrePostgresDriver.api._
 import db.{AssociativeTable, ModelTable}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
-import models.user.{Notification, ProjectRole, User}
-import models.user.{Organization, ProjectRole, User}
+import models.user.role.{OrganizationRole, ProjectRole}
+import models.user.{Notification, Organization, User}
 import ore.Colors.Color
 import ore.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType
@@ -152,12 +152,25 @@ class OrganizationTable(tag: Tag) extends ModelTable[Organization](tag, "organiz
 
 }
 
-class OrganizationMembersTable(tag: Tag) extends Table[(Int, Int)](tag, "organization_members") {
+class OrganizationMembersTable(tag: Tag) extends AssociativeTable(tag, "organization_members", classOf[User],
+  classOf[Organization]) {
 
   def userId          =   column[Int]("user_id")
   def organizationId  =   column[Int]("organization_id")
 
   override def * = (userId, organizationId)
+
+}
+
+class OrganizationRoleTable(tag: Tag) extends ModelTable[OrganizationRole](tag, "user_organization_roles") {
+
+  def userId = column[Int]("user_id")
+  def roleType = column[RoleType]("role_type")
+  def organizationId = column[Int]("organization_id")
+  def isAccepted = column[Boolean]("is_accepted")
+
+  override def * = (id.?, createdAt.?, userId, organizationId, roleType,
+                    isAccepted) <> ((OrganizationRole.apply _).tupled, OrganizationRole.unapply)
 
 }
 

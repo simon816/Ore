@@ -1,6 +1,6 @@
 package form
 
-import models.user.ProjectRole
+import models.user.role.ProjectRole
 import ore.permission.role.RoleTypes
 
 /**

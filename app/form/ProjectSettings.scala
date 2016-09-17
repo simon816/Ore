@@ -55,9 +55,8 @@ case class ProjectSettings(categoryName: String,
       }
 
       // Update existing roles
-      for ((user, i) <- this.userUps.zipWithIndex) {
-        project.members.find(_.name.equalsIgnoreCase(user)).get.headRole.roleType = RoleTypes.withName(roleUps(i))
-      }
+      for ((user, i) <- this.userUps.zipWithIndex)
+        project.members.find(_.username.equalsIgnoreCase(user)).get.headRole.roleType = RoleTypes.withName(roleUps(i))
     }
   }
 }

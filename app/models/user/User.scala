@@ -12,11 +12,12 @@ import db.impl.pg.OrePostgresDriver.api._
 import db.meta._
 import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
 import models.project.{Flag, Project}
-import ore.UserOwned
+import models.user.role.ProjectRole
 import ore.permission._
 import ore.permission.role.RoleTypes.{DonorType, RoleType}
 import ore.permission.role._
 import ore.permission.scope.{GlobalScope, ProjectScope, Scope, ScopeSubject}
+import ore.user.{UserLike, UserOwned}
 import util.StringUtils._
 
 import scala.annotation.meta.field
@@ -215,6 +216,7 @@ case class User(override val id: Option[Int] = None,
           .find(_.user.equals(this))
           .flatMap(_.roles.filter(_.isAccepted).toList.sorted.lastOption.map(_.roleType.trust))
           .getOrElse(Default)
+      case _ => throw new RuntimeException("unknown scope: " + scope)
     }
   }
 

@@ -12,7 +12,8 @@ import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
 import db.meta.{Actions, Bind}
 import db.meta.{Actions, Bind}
 import models.statistic.ProjectView
-import models.user.{ProjectRole, User}
+import models.user.User
+import models.user.role.ProjectRole
 import ore.Colors.Color
 import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
@@ -86,7 +87,7 @@ case class Project(// Immutable
     *
     * @return Owner Member of project
     */
-  def owner: ProjectMember = new ProjectMember(this, this.ownerName)
+  def owner: ProjectMember = new ProjectMember(this, this.ownerId)
 
   /**
     * Returns all [[ProjectMember]]s of this project.

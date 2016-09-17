@@ -27,7 +27,7 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
     def writes(member: ProjectMember) = {
       obj(
         "userId"    ->  member.user.id,
-        "name"      ->  member.name,
+        "name"      ->  member.username,
         "roles"     ->  JsArray(member.roles.map(r => JsString(r.roleType.title)).toSeq),
         "headRole"  ->  member.headRole.roleType.title
       )

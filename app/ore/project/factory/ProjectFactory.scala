@@ -9,7 +9,8 @@ import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
-import models.user.{Notification, ProjectRole, User}
+import models.user.role.ProjectRole
+import models.user.{Notification, User}
 import ore.notification.NotificationTypes
 import ore.permission.role.RoleTypes
 import ore.project.NotifyWatchersTask

@@ -64,7 +64,7 @@ class ProjectActions(override val service: ModelService)
 
     service.DB.db.run(distinctUserIds)
       .map(_.map(this.users.get(_).get))
-      .map(for (user <- _) yield new ProjectMember(project, user.username))
+      .map(for (user <- _) yield new ProjectMember(project, user.id.get))
   }
 
   /**

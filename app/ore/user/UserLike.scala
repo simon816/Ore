@@ -1,10 +1,11 @@
-package models.user
+package ore.user
 
 import java.sql.Timestamp
 
 import db.Model
 import db.impl.ProjectTable
 import models.project.Project
+import models.user.{Organization, User}
 import ore.permission.role.RoleTypes.RoleType
 import util.OreConfig
 

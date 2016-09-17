@@ -2,8 +2,8 @@ package ore.project.factory
 
 import db.impl.access.ProjectBase
 import models.project.Project
-import models.user.ProjectRole
 import ore.project.io.PluginFile
+import models.user.role.ProjectRole
 import play.api.cache.CacheApi
 import util.{Cacheable, OreConfig, PendingAction}
 

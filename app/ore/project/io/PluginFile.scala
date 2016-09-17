@@ -6,7 +6,7 @@ import java.util.jar.{JarEntry, JarInputStream}
 import java.util.zip.{ZipEntry, ZipFile}
 
 import models.user.User
-import ore.UserOwned
+import ore.user.UserOwned
 import org.apache.commons.codec.digest.DigestUtils
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 

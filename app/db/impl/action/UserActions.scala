@@ -3,7 +3,8 @@ package db.impl.action
 import db.{ModelActions, ModelService}
 import db.impl.pg.OrePostgresDriver.api._
 import db.impl.{ProjectRoleTable, UserTable}
-import models.user.{ProjectRole, User}
+import models.user.User
+import models.user.role.ProjectRole
 
 import scala.concurrent.Future
 
