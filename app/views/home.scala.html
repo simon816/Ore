@@ -96,6 +96,15 @@ sorted according to different criteria.
         <div class="row project-content">
             <!-- Project table -->
             <div class="col-md-9">
+
+                @if(query.isDefined) {
+                    <li class="list-group-item minor search-header">
+                        <span class="pull-left">Showing results for: <i>@query</i></span>
+                        <i class="fa fa-times pull-right dismiss"></i>
+                        <div class="clearfix"></div>
+                    </li>
+                }
+
                 @projects.list(
                     models = models,
                     page = page,

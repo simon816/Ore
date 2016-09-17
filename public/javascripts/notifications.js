@@ -107,7 +107,7 @@ function setupInvites() {
         });
     });
 
-    $('.invite-dismiss').click(function() {
+    $('.dismiss').click(function() {
         var invite = $(this).closest('.invite-content');
         invite.fadeOut('slow', function() {
             invite.remove();

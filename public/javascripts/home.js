@@ -19,6 +19,21 @@ $(function() {
         $(this).text(abbreviateStat($(this).text()));
     });
 
+    $('.dismiss').click(function() {
+        $('.search-header').fadeOut('slow');
+        var url = '/';
+        if (CATEGORY_STRING || SORT_STRING)
+            url += '?';
+        if (CATEGORY_STRING)
+            url += 'categories=' + CATEGORY_STRING;
+        if (SORT_STRING) {
+            if (CATEGORY_STRING)
+                url += '&';
+            url += '&sort=' + SORT_STRING;
+        }
+        go(url);
+    });
+
     // Setup category table
     $('.category-table').find('tr').click(function() {
         var categoryString = '';

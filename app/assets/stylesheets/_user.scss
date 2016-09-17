@@ -118,6 +118,21 @@
   transition: all .2s ease-out;
 }
 
+.dismiss {
+  padding: 5px;
+  text-align: center;
+}
+
+.dismiss:hover {
+  color: white;
+  background-color: gray;
+  -webkit-transition: all .2s ease-out;
+  -moz-transition: all .2s ease-out;
+  -ms-transition: all .2s ease-out;
+  -o-transition: all .2s ease-out;
+  transition: all .2s ease-out;
+}
+
 .invite {
   padding-left: 0;
   padding-right: 5px;
@@ -138,20 +153,6 @@
 
     .invite-accepted {
       top: 20%;
-    }
-
-    .invite-dismiss {
-      padding: 1px;
-    }
-
-    .invite-dismiss:hover {
-      color: white;
-      background-color: gray;
-      -webkit-transition: all .2s ease-out;
-      -moz-transition: all .2s ease-out;
-      -ms-transition: all .2s ease-out;
-      -o-transition: all .2s ease-out;
-      transition: all .2s ease-out;
     }
 
     .invite-loading {
