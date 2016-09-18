@@ -511,7 +511,8 @@ case class Project(// Immutable
   }
 
   override def projectId = Defined(this.id.get)
-  override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
+  override def copyWith(id: Option[Int], theTime: Option[Timestamp])
+  = this.copy(id = id, createdAt = theTime, _lastUpdated = theTime.orNull)
   override def hashCode() = this.id.get.hashCode
   override def equals(o: Any) = o.isInstanceOf[Project] && o.asInstanceOf[Project].id.get == this.id.get
 
