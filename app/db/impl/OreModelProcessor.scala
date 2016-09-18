@@ -1,6 +1,6 @@
 package db.impl
 
-import db.impl.access.{ProjectBase, UserBase}
+import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import db.meta.ModelProcessor
 import db.{Model, ModelService, ModelTable}
 import forums.DiscourseApi
@@ -17,6 +17,7 @@ import scala.reflect.runtime.universe._
 class OreModelProcessor(service: ModelService,
                         users: UserBase,
                         projects: ProjectBase,
+                        organizations: OrganizationBase,
                         config: OreConfig,
                         forums: DiscourseApi)
                         extends ModelProcessor(service) {
@@ -26,6 +27,7 @@ class OreModelProcessor(service: ModelService,
       case oreModel: OreModel =>
         oreModel.userBase = this.users
         oreModel.projectBase = this.projects
+        oreModel.organizationBase = this.organizations
         oreModel.config = this.config
         oreModel.forums = this.forums
       case _ =>

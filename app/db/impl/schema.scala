@@ -3,7 +3,7 @@ package db.impl
 import java.sql.Timestamp
 
 import db.impl.pg.OrePostgresDriver.api._
-import db.{AssociativeTable, ModelTable}
+import db.{AssociativeTable, Model, ModelTable}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole}
@@ -158,9 +158,14 @@ class OrganizationMembersTable(tag: Tag) extends AssociativeTable(tag, "organiza
 
 }
 
-class OrganizationRoleTable(tag: Tag) extends ModelTable[OrganizationRole](tag, "user_organization_roles") {
-
+trait UserColumn[M <: Model] extends ModelTable[M] {
   def userId = column[Int]("user_id")
+}
+
+class OrganizationRoleTable(tag: Tag)
+  extends ModelTable[OrganizationRole](tag, "user_organization_roles")
+  with UserColumn[OrganizationRole] {
+
   def roleType = column[RoleType]("role_type")
   def organizationId = column[Int]("organization_id")
   def isAccepted = column[Boolean]("is_accepted")
@@ -170,15 +175,25 @@ class OrganizationRoleTable(tag: Tag) extends ModelTable[OrganizationRole](tag, 
 
 }
 
-class ProjectRoleTable(tag: Tag) extends ModelTable[ProjectRole](tag, "user_project_roles") {
+class ProjectRoleTable(tag: Tag)
+  extends ModelTable[ProjectRole](tag, "user_project_roles")
+  with UserColumn[ProjectRole] {
 
-  def userId      =   column[Int]("user_id")
   def roleType    =   column[RoleType]("role_type")
   def projectId   =   column[Int]("project_id")
   def isAccepted  =   column[Boolean]("is_accepted")
 
   override def * = (id.?, createdAt.?, userId, projectId, roleType, isAccepted) <> ((ProjectRole.apply _).tupled,
                     ProjectRole.unapply)
+
+}
+
+class ProjectMembersTable(tag: Tag) extends AssociativeTable(tag, "project_members", classOf[Project], classOf[User]) {
+
+  def projectId = column[Int]("project_id")
+  def userId    = column[Int]("user_id")
+
+  override def * = (projectId, userId)
 
 }
 

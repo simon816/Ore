@@ -195,11 +195,13 @@ trait ProjectFactory {
     val newProject = this.projects.add(pending.project)
 
     // Invite members
+    val dossier = newProject.memberships
     val owner = pending.file.user
-    owner.projectRoles.add(new ProjectRole(owner.id.get, RoleTypes.ProjectOwner, newProject.id.get, accepted = true))
+    dossier.addRole(new ProjectRole(owner.id.get, RoleTypes.ProjectOwner, newProject.id.get, accepted = true))
+
     for (role <- pending.roles) {
       val user = role.user
-      user.projectRoles.add(role.copy(projectId = newProject.id.get))
+      dossier.addRole(role.copy(projectId = newProject.id.get))
       user.sendNotification(Notification(
         originId = owner.id.get,
         notificationType = NotificationTypes.ProjectInvite,

@@ -7,6 +7,7 @@ import db.impl.ModelKeys._
 import db.impl.action.PageActions
 import db.impl.{OreModel, PageTable}
 import db.meta.Bind
+import ore.Visitable
 import ore.permission.scope.ProjectScope
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
@@ -30,12 +31,13 @@ import scala.annotation.meta.field
 case class Page(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
                 override val projectId: Int,
-                name: String,
+                override val name: String,
                 slug: String,
                 isDeletable: Boolean = true,
                 @(Bind @field) private var _contents: String)
                 extends OreModel(id, createdAt)
-                  with ProjectScope {
+                  with ProjectScope
+                  with Visitable {
 
   override type M = Page
   override type T = PageTable
@@ -89,6 +91,7 @@ case class Page(override val id: Option[Int] = None,
     */
   def isHome: Boolean = this.name.equals(HomeName)
 
+  override def url: String = this.project.url + "/pages/" + this.slug
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
 
 }

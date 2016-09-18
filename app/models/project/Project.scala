@@ -3,17 +3,17 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.ModelAccess
 import db.impl.ModelKeys._
 import db.impl._
 import db.impl.action.ProjectActions
 import db.impl.pg.OrePostgresDriver.api._
-import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
 import db.meta.Bind
+import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
 import models.statistic.ProjectView
 import models.user.User
 import models.user.role.ProjectRole
 import ore.Colors.Color
+import ore.{MembershipDossier, Visitable}
 import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
@@ -42,7 +42,10 @@ import scala.annotation.meta.field
   * @param _source                External link to source code
   * @param _description           Short description of Project
   */
-@ManyToManyCollection(Array(new ManyToMany(modelClass = classOf[User], tableClass = classOf[ProjectWatchersTable])))
+@ManyToManyCollection(Array(
+  new ManyToMany(modelClass = classOf[User], tableClass = classOf[ProjectWatchersTable]),
+  new ManyToMany(modelClass = classOf[User], tableClass = classOf[ProjectMembersTable])
+))
 @OneToMany(Array(
   classOf[Channel], classOf[Version], classOf[Page], classOf[Flag], classOf[ProjectRole], classOf[ProjectView]
 ))
@@ -69,11 +72,31 @@ case class Project(// Immutable
                    @(Bind @field) private var _isVisible: Boolean = true,
                    @(Bind @field) private var _lastUpdated: Timestamp = null)
                    extends OreModel(id, createdAt)
-                     with ProjectScope {
+                     with ProjectScope
+                     with Visitable {
 
   override type M = Project
   override type T = ProjectTable
   override type A = ProjectActions
+
+  /**
+    * Contains all information for [[User]] memberships.
+    */
+  val memberships = new MembershipDossier {
+
+    type ModelType = Project
+    type RoleType = ProjectRole
+    type RoleTable = ProjectRoleTable
+    type MemberType = ProjectMember
+    type MembersTable = ProjectMembersTable
+
+    val membersTableClass: Class[MembersTable] = classOf[ProjectMembersTable]
+    val roleClass: Class[RoleType] = classOf[ProjectRole]
+    val model: ModelType = Project.this
+
+    def newMember(userId: Int): MemberType = new ProjectMember(this.model, userId)
+
+  }
 
   def this(pluginId: String, name: String, owner: String, ownerId: Int, homepage: String) = {
     this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
@@ -88,13 +111,6 @@ case class Project(// Immutable
   def owner: ProjectMember = new ProjectMember(this, this.ownerId)
 
   /**
-    * Returns all [[ProjectMember]]s of this project.
-    *
-    * @return All Members of project
-    */
-  def members: Set[ProjectMember] = this.service.await(this.actions.getMembers(this)).get.toSet
-
-  /**
     * Returns ModelAccess to the user's who are watching this project.
     *
     * @return Users watching project
@@ -102,19 +118,11 @@ case class Project(// Immutable
   def watchers = this.manyToMany[ProjectWatchersTable, UserTable, User](classOf[User], classOf[ProjectWatchersTable])
 
   /**
-    * Removes the [[ProjectMember]] that belongs to the specified [[User]] from this
-    * project.
-    *
-    * @param user User to remove
-    */
-  def removeMember(user: User) = this.roles.removeAll(_.userId === user.id.get)
-
-  /**
     * Returns the name of this Project.
     *
     * @return Name of project
     */
-  def name: String = this._name
+  override def name: String = this._name
 
   /**
     * Sets the name of this project.
@@ -148,7 +156,7 @@ case class Project(// Immutable
     *
     * @return Base URL for project
     */
-  def url: String = this.config.app.getString("baseUrl").get + '/' + this.ownerName + '/' + this.slug
+  override def url: String = this.ownerName + '/' + this.slug
 
   /**
     * Returns this Project's description.
@@ -370,13 +378,6 @@ case class Project(// Immutable
     this._postId = Some(_postId)
     update(PostId)
   }
-
-  /**
-    * Returns a [[ModelAccess]] of all [[ProjectRole]]s in this Project.
-    *
-    * @return Set of all ProjectRoles
-    */
-  def roles = this.oneToMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
 
   /**
     * Returns the Channels in this Project.

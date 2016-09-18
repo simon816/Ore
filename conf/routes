@@ -66,8 +66,6 @@ GET     /authors                                                    @controllers
 GET     /notifications                                              @controllers.Users.showNotifications(notificationFilter: Option[String], inviteFilter: Option[String])
 GET     /notifications/read/:id                                     @controllers.Users.markNotificationRead(id: Int)
 
-GET     /invites/:inviteType/:id/:action                            @controllers.Users.setInviteAccepted(inviteType, id: Int, action)
-
 GET     /:user                                                      @controllers.Users.showProjects(user, page: Option[Int])
 POST    /:user/settings/tagline                                     @controllers.Users.saveTagline(user)
 # -------- End Users --------

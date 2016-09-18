@@ -41,7 +41,9 @@ class OreModelService @Inject()(env: OreEnv,
                                 extends ModelService {
 
   override lazy val registry = new ModelRegistry {}
-  override lazy val processor = new OreModelProcessor(this, this.users, this.projects, this.config, this.forums)
+  override lazy val processor = new OreModelProcessor(
+    this, this.users, this.projects, this.orgs, this.config, this.forums
+  )
   override lazy val driver = OrePostgresDriver
   override lazy val DB = db.get[JdbcProfile]
   override lazy val DefaultTimeout: Duration = Duration(config.app.getInt("db.default-timeout").get, TimeUnit.SECONDS)
@@ -69,13 +71,17 @@ class OreModelService @Inject()(env: OreEnv,
     this, _.projectId, _.userId, classOf[ProjectWatchersTable], TableQuery[ProjectWatchersTable]
   )
 
+  val projectMembers = new ModelAssociation[ProjectMembersTable](
+    this, _.projectId, _.userId, classOf[ProjectMembersTable], TableQuery[ProjectMembersTable]
+  )
+
   val organizationMembers = new ModelAssociation[OrganizationMembersTable](
     this, _.userId, _.organizationId, classOf[OrganizationMembersTable], TableQuery[OrganizationMembersTable]
   )
 
   // Ore models
-  registerActions(new UserActions(this)).withAssociation(this.projectWatchers)
-  registerActions(new ProjectActions(this)).withAssociation(this.projectWatchers)
+  registerActions(new UserActions(this)).withAssociation(this.projectWatchers).withAssociation(this.projectMembers)
+  registerActions(new ProjectActions(this)).withAssociation(this.projectWatchers).withAssociation(this.projectMembers)
   registerActions(new VersionActions(this))
   registerActions(new ModelActions(this, classOf[Channel], TableQuery[ChannelTable]))
   registerActions(new PageActions(this))

@@ -5,6 +5,7 @@ import java.sql.Timestamp
 import db.impl.ModelKeys._
 import db.impl.OreModel
 import models.user.User
+import ore.Visitable
 import ore.permission.role.Role
 import ore.permission.role.RoleTypes.RoleType
 
@@ -25,6 +26,13 @@ abstract class RoleModel(override val id: Option[Int],
                          private var _isAccepted: Boolean = false)
                          extends OreModel(id, createdAt)
                            with Role { self =>
+
+  /**
+    * Returns the subject of this Role.
+    *
+    * @return Subject of Role
+    */
+  def subject: Visitable
 
   /**
     * Sets this role's [[RoleType]].

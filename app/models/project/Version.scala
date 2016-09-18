@@ -3,14 +3,15 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions
-import db.{ModelAccess, ModelService}
+import db.ModelAccess
 import db.impl.ModelKeys._
-import db.impl.pg.OrePostgresDriver.api._
 import db.impl.action.VersionActions
+import db.impl.pg.OrePostgresDriver.api._
 import db.impl.{ChannelTable, OreModel, VersionDownloadsTable, VersionTable}
-import db.meta.relation.OneToMany
 import db.meta.Bind
+import db.meta.relation.OneToMany
 import models.statistic.VersionDownload
+import ore.Visitable
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
 import org.apache.commons.io.FileUtils
@@ -48,7 +49,8 @@ case class Version(override val id: Option[Int] = None,
                    @(Bind @field) private var _isReviewed: Boolean = false,
                    fileName: String)
                    extends OreModel(id, createdAt)
-                     with ProjectScope {
+                     with ProjectScope
+                     with Visitable {
 
   override type M = Version
   override type T = VersionTable
@@ -59,7 +61,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Name of channel
     */
-  def name: String = this.versionString
+  override def name: String = this.versionString
 
   /**
     * Returns the channel this version belongs to.
@@ -110,7 +112,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Base URL for version
     */
-  def url: String = this.project.url + "/versions/" + this.versionString
+  override def url: String = this.project.url + "/versions/" + this.versionString
 
   /**
     * Returns true if this version has been reviewed by the moderation staff.

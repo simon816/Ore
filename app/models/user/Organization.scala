@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.Model
 import db.impl.access.UserBase
-import db.impl.{OreModel, OrganizationMembersTable, OrganizationRoleTable, UserTable}
+import db.impl.{OreModel, OrganizationMembersTable, OrganizationRoleTable}
 import db.meta.Bind
 import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
 import models.project.Project
@@ -12,6 +12,7 @@ import models.user.role.OrganizationRole
 import ore.organization.OrganizationMember
 import ore.permission.scope.{GlobalScope, Scope, ScopeSubject}
 import ore.user.UserOwned
+import ore.{MembershipDossier, Visitable}
 
 import scala.annotation.meta.field
 
@@ -35,7 +36,27 @@ case class Organization(override val id: Option[Int] = None,
                         @(Bind @field) ownerId: Int)
                         extends OreModel(id, createdAt)
                           with UserOwned
-                          with ScopeSubject {
+                          with ScopeSubject
+                          with Visitable {
+
+  /**
+    * Contains all information for [[User]] memberships.
+    */
+  val memberships = new MembershipDossier {
+
+    type ModelType = Organization
+    type RoleType = OrganizationRole
+    type RoleTable = OrganizationRoleTable
+    type MembersTable = OrganizationMembersTable
+    type MemberType = OrganizationMember
+
+    val membersTableClass: Class[MembersTable] = classOf[OrganizationMembersTable]
+    val roleClass: Class[RoleType] = classOf[OrganizationRole]
+    val model: ModelType = Organization.this
+
+    def newMember(userId: Int) = new OrganizationMember(this.model, userId)
+
+  }
 
   /**
     * Returns the [[User]] that owns this Organization.
@@ -45,29 +66,14 @@ case class Organization(override val id: Option[Int] = None,
   def owner: User = this.userBase.get(this.ownerId).get
 
   /**
-    * Returns all [[OrganizationMember]]s of this Organization.
-    *
-    * @return All OrganizationMembers
-    */
-  def members = {
-    this.manyToMany[OrganizationMembersTable, UserTable, User](classOf[User]).all
-      .map(user => new OrganizationMember(this, user.id.get))
-  }
-
-  /**
-    * Returns all [[OrganizationRole]]s of this Organization.
-    *
-    * @return All OrganizationRoles
-    */
-  def roles = this.oneToMany[OrganizationRoleTable, OrganizationRole](classOf[OrganizationRole])
-
-  /**
     * Returns this Organization as a [[User]].
     *
     * @return This Organization as a User
     */
   def toUser = this.service.access(classOf[UserBase]).withName(this.username).get
 
+  override val name: String = this.username
+  override def url: String = this.toUser.url
   override val userId: Int = this.ownerId
   override val scope: Scope = GlobalScope
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Model = this.copy(createdAt = theTime)

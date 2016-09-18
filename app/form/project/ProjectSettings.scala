@@ -44,10 +44,11 @@ case class ProjectSettings(categoryName: String,
 
     if (project.isDefined) {
       // Add new roles
-      val roles = project.roles
+      val dossier = project.memberships
       for (role <- this.build()) {
-        roles.add(role.copy(projectId = project.id.get))
-        role.user.sendNotification(Notification(
+        val user = role.user
+        dossier.addRole(role.copy(projectId = project.id.get))
+        user.sendNotification(Notification(
           originId = project.ownerId,
           notificationType = NotificationTypes.ProjectInvite,
           message = messages("notification.project.invite", role.roleType.title, project.name)
@@ -56,7 +57,8 @@ case class ProjectSettings(categoryName: String,
 
       // Update existing roles
       for ((user, i) <- this.userUps.zipWithIndex)
-        project.members.find(_.username.equalsIgnoreCase(user)).get.headRole.roleType = RoleTypes.withName(roleUps(i))
+        project.memberships.members
+          .find(_.username.equalsIgnoreCase(user)).get.headRole.roleType = RoleTypes.withName (roleUps(i))
     }
   }
 }

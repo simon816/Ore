@@ -15,7 +15,7 @@
     editable && users.current.isDefined && (users.current.get can EditSettings in model)
 }
 
-@if(model.members.nonEmpty) {
+@if(model.memberships.members.nonEmpty) {
 
     @if(canEdit) {
         <script type="text/javascript" src="@routes.Assets.at("javascripts/userSearch.js")"></script>
@@ -60,7 +60,7 @@
         </div>
         <ul class="list-members list-group">
             <!-- Member list -->
-            @model.members.toList.sorted.reverse.map { member =>
+            @model.memberships.members.toList.sorted.reverse.map { member =>
                 @if(member.headRole.isAccepted
                         || (users.current.isDefined && users.current.get.username.equals(model.ownerName))) {
                     <li class="list-group-item">

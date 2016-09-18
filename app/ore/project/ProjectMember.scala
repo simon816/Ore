@@ -17,10 +17,10 @@ import ore.user.Member
 class ProjectMember(val project: Project, override val userId: Int)(implicit users: UserBase)
                     extends Member[ProjectRole](userId) {
 
-  override def roles: Set[ProjectRole] = this.project.roles.filter(_.userId === this.user.id.get).toSet
+  override def roles: Set[ProjectRole] = this.project.memberships.getRoles(this.user)
   override val scope: Scope = this.project.scope
-  override def toString: String = MoreObjects.toStringHelper(this).add("name", this.name).toString
-  override def hashCode: Int = Objects.hashCode(this.project, this.name)
+  override def toString: String = MoreObjects.toStringHelper(this).add("name", this.fullName).toString
+  override def hashCode: Int = Objects.hashCode(this.project, this.fullName)
 
   override def equals(o: Any): Boolean = {
     o match {

@@ -49,25 +49,6 @@ class ProjectActions(override val service: ModelService)
   }
 
   /**
-    * Returns the [[ProjectMember]]s in the specified Project, sorted by role.
-    *
-    * @param project Project to get Members for
-    * @return List of Members
-    */
-  def getMembers(project: Project): Future[Seq[ProjectMember]] = {
-    val userActions = this.service.getActions(classOf[UserActions])
-    val distinctUserIds = {
-      (for (role <- userActions.ProjectRoleActions.baseQuery.filter {
-        _.projectId === project.id.get
-      }) yield role.userId).distinct.result
-    }
-
-    service.DB.db.run(distinctUserIds)
-      .map(_.map(this.users.get(_).get))
-      .map(for (user <- _) yield new ProjectMember(project, user.id.get))
-  }
-
-  /**
     * Returns a ModelFilter to match a string query
     *
     * @param query String query

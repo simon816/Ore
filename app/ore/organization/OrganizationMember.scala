@@ -17,7 +17,7 @@ import ore.user.Member
 class OrganizationMember(val organization: Organization, override val userId: Int)(implicit users: UserBase)
                          extends Member[OrganizationRole](userId) {
 
-  override def roles: Set[OrganizationRole] = this.organization.roles.filter(_.userId === userId).toSet
+  override def roles: Set[OrganizationRole] = this.organization.memberships.getRoles(this.user)
   override def scope: Scope = this.organization.scope
 
 }

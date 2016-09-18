@@ -3,6 +3,7 @@ package models.user.role
 import java.sql.Timestamp
 
 import db.meta.Bind
+import ore.Visitable
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.ProjectScope
 
@@ -32,6 +33,7 @@ case class ProjectRole(override val id: Option[Int] = None,
     this(id=None, createdAt=None, userId=userId, _roleType=roleType, projectId=projectId, _isAccepted=accepted)
   }
 
+  override def subject: Visitable = this.project
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
 
 }

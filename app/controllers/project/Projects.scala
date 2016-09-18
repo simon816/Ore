@@ -383,7 +383,8 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def removeMember(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
-      request.project.removeMember(users.withName(this.forms.ProjectMemberRemove.bindFromRequest.get.trim).get)
+      request.project.memberships
+        .removeMember(users.withName(this.forms.ProjectMemberRemove.bindFromRequest.get.trim).get)
       Redirect(self.showSettings(author, slug))
     }
   }

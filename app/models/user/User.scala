@@ -13,6 +13,7 @@ import db.meta._
 import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
 import models.project.{Flag, Project}
 import models.user.role.{OrganizationRole, ProjectRole}
+import ore.Visitable
 import ore.permission._
 import ore.permission.role.RoleTypes.{DonorType, RoleType}
 import ore.permission.role._
@@ -48,7 +49,8 @@ case class User(override val id: Option[Int] = None,
                 @(Bind @field) private var _avatarUrl: Option[String] = None)
                 extends OreModel(id, createdAt)
                   with UserOwned
-                  with ScopeSubject {
+                  with ScopeSubject
+                  with Visitable {
 
   override type M = User
   override type T = UserTable
@@ -66,14 +68,14 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Full name of user
     */
-  def name: Option[String] = this._name
+  def fullName: Option[String] = this._name
 
   /**
     * Sets this User's full name.
     *
     * @param _fullName Full name of user
     */
-  def name_=(_fullName: String) = {
+  def fullName_=(_fullName: String) = {
     this._name = Option(_fullName)
     if (isDefined) update(Name)
   }
@@ -273,7 +275,7 @@ case class User(override val id: Option[Int] = None,
       case GlobalScope =>
         this.globalRoles.map(_.trust).toList.sorted.lastOption.getOrElse(Default)
       case pScope: ProjectScope =>
-        pScope.project.members
+        pScope.project.memberships.members
           .find(_.user.equals(this))
           .flatMap(_.roles.filter(_.isAccepted).toList.sorted.lastOption.map(_.roleType.trust))
           .getOrElse(Default)
@@ -376,7 +378,7 @@ case class User(override val id: Option[Int] = None,
     */
   def fill(user: User): User = {
     if (user == null) return this
-    user.name.foreach(this.name_=)
+    user.fullName.foreach(this.fullName_=)
     user.email.foreach(this.email_=)
     user.tagline.foreach(this.tagline_=)
     user.joinDate.foreach(this.joinDate_=)
@@ -386,6 +388,8 @@ case class User(override val id: Option[Int] = None,
     this
   }
 
+  override val name = this.username
+  override val url = this.username
   override val scope = GlobalScope
   override def userId = this.id.get
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(createdAt = theTime)

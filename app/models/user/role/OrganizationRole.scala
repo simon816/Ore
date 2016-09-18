@@ -4,6 +4,7 @@ import java.sql.Timestamp
 
 import db.Model
 import db.meta.Bind
+import ore.Visitable
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.OrganizationScope
 
@@ -30,6 +31,7 @@ case class OrganizationRole(override val id: Option[Int] = None,
 
   def this(userId: Int, roleType: RoleType) = this(userId = userId, _roleType = roleType)
 
+  override def subject: Visitable = this.organization
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Model = this.copy(id = id, createdAt = theTime)
 
 }

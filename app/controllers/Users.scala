@@ -4,10 +4,11 @@ import javax.inject.Inject
 
 import controllers.routes.{Application => app, Users => self}
 import db.ModelService
-import db.impl.pg.OrePostgresDriver.api._
 import db.impl.access.UserBase.ORDER_PROJECTS
+import db.impl.pg.OrePostgresDriver.api._
 import form.OreForms
 import forums.{DiscourseApi, DiscourseSSO}
+import models.user.role.RoleModel
 import ore.notification.InviteFilters.InviteFilter
 import ore.notification.NotificationFilters.NotificationFilter
 import ore.notification.{InviteFilters, NotificationFilters}
@@ -150,14 +151,14 @@ class Users @Inject()(val fakeUser: FakeUser,
       }
 
       val projectInvites = user.projectRoles.filterNot(_.isAccepted)
-      val visibleInvites = iFilter match {
+      val organizationInvites = user.organizationRoles.filterNot(_.isAccepted)
+      val visibleInvites: Seq[RoleModel] = iFilter match {
         case InviteFilters.All =>
-          projectInvites
+          projectInvites ++ organizationInvites
         case InviteFilters.Projects =>
           projectInvites
         case InviteFilters.Organizations =>
-          // TODO
-          Seq()
+          organizationInvites
       }
 
       Ok(views.users.notifications(
@@ -181,36 +182,6 @@ class Users @Inject()(val fakeUser: FakeUser,
       case Some(notification) =>
         notification.setRead(read = true)
         Ok
-    }
-  }
-
-  /**
-    * Marks a particular invite as accepted or declined.
-    *
-    * @param inviteType Invitation type
-    * @param id         Invitation ID
-    * @param action     What to do with invitation
-    * @return           NotFound if invitation does not exists or Ok if
-    *                   successful
-    */
-  def setInviteAccepted(inviteType: String, id: Int, action: String) = Authenticated { implicit request =>
-    val roles = request.user.projectRoles
-    roles.get(id) match {
-      case None =>
-        NotFound
-      case Some(role) => action.toLowerCase match {
-        case "decline" =>
-          roles.remove(role)
-          Ok
-        case "accept" =>
-          role.setAccepted(accepted = true)
-          Ok
-        case "unaccept" =>
-          role.setAccepted(accepted = false)
-          Ok
-        case _ =>
-          BadRequest
-      }
     }
   }
 
