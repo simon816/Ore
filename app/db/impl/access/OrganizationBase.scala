@@ -35,8 +35,10 @@ class OrganizationBase(override val service: ModelService, forums: DiscourseApi,
         this.forums.sync.scheduleRetry(() => this.forums.addUserGroup(userId, groupId))
     }
 
-    val organization = Organization(Some(userId), None, name, encryptedPassword, ownerId)
-    this.service.access[OrganizationTable, Organization](this.modelClass).add(organization)
+    val org = Organization(id = Some(userId), username = name, password = encryptedPassword, ownerId = ownerId)
+    val user = this.service.access[OrganizationTable, Organization](this.modelClass).add(org).toUser
+    user.globalRoles = user.globalRoles + RoleTypes.Organization
+    user.toOrganization
   }
 
   /**
@@ -45,6 +47,6 @@ class OrganizationBase(override val service: ModelService, forums: DiscourseApi,
     * @param name Organization name
     * @return     Organization with name if exists, None otherwise
     */
-  def withName(name: String): Option[Organization] = this.find(StringUtils.equalsIgnoreCase(_.name, name))
+  def withName(name: String): Option[Organization] = this.find(StringUtils.equalsIgnoreCase(_.username, name))
 
 }

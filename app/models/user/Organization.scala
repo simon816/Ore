@@ -3,15 +3,15 @@ package models.user
 import java.sql.Timestamp
 
 import db.Model
+import db.impl.access.UserBase
 import db.impl.{OreModel, OrganizationMembersTable, OrganizationRoleTable, UserTable}
 import db.meta.Bind
 import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
 import models.project.Project
 import models.user.role.OrganizationRole
 import ore.organization.OrganizationMember
-import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.{GlobalScope, Scope, ScopeSubject}
-import ore.user.{UserLike, UserOwned}
+import ore.user.UserOwned
 
 import scala.annotation.meta.field
 
@@ -23,25 +23,17 @@ import scala.annotation.meta.field
   *
   * @param id             Unique ID
   * @param createdAt      Date of creation
-  * @param name           Organization name
   * @param password       Sponge forums password (encrypted)
   * @param ownerId        The ID of the [[User]] that owns this organization
-  * @param _avatarUrl     URL for user avatar
-  * @param _tagline       Configured tagline
-  * @param _globalRoles   Global roles this organization possesses
   */
 @OneToMany(Array(classOf[Project], classOf[OrganizationRole]))
 @ManyToManyCollection(Array(new ManyToMany(modelClass = classOf[User], tableClass = classOf[OrganizationMembersTable])))
 case class Organization(override val id: Option[Int] = None,
                         override val createdAt: Option[Timestamp] = None,
-                        @(Bind @field) name: String,
+                        @(Bind @field) username: String,
                         @(Bind @field) password: String,
-                        @(Bind @field) ownerId: Int,
-                        @(Bind @field) _avatarUrl: Option[String] = None,
-                        @(Bind @field) _tagline: Option[String] = None,
-                        @(Bind @field) _globalRoles: List[RoleType] = List())
+                        @(Bind @field) ownerId: Int)
                         extends OreModel(id, createdAt)
-                          with UserLike
                           with UserOwned
                           with ScopeSubject {
 
@@ -69,11 +61,12 @@ case class Organization(override val id: Option[Int] = None,
     */
   def roles = this.oneToMany[OrganizationRoleTable, OrganizationRole](classOf[OrganizationRole])
 
-  override def username: String = this.name
-  override def tagline: Option[String] = this._tagline
-  override def globalRoles: Set[RoleType] = this._globalRoles.toSet
-  override def joinDate: Option[Timestamp] = this.createdAt
-  override def avatarTemplate: Option[String] = this._avatarUrl.map(this.config.forums.getString("baseUrl").get + _)
+  /**
+    * Returns this Organization as a [[User]].
+    *
+    * @return This Organization as a User
+    */
+  def toUser = this.service.access(classOf[UserBase]).withName(this.username).get
 
   override val userId: Int = this.ownerId
   override val scope: Scope = GlobalScope

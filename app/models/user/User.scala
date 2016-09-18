@@ -6,7 +6,7 @@ import com.google.common.base.Preconditions._
 import db.ModelAccess
 import db.impl.ModelKeys._
 import db.impl._
-import db.impl.access.{FlagBase, VersionBase}
+import db.impl.access.{FlagBase, OrganizationBase, UserBase, VersionBase}
 import db.impl.action.{ProjectActions, UserActions}
 import db.impl.pg.OrePostgresDriver.api._
 import db.meta._
@@ -17,7 +17,8 @@ import ore.permission._
 import ore.permission.role.RoleTypes.{DonorType, RoleType}
 import ore.permission.role._
 import ore.permission.scope._
-import ore.user.{UserLike, UserOwned}
+import ore.user.UserOwned
+import play.api.mvc.Session
 import util.StringUtils._
 
 import scala.annotation.meta.field
@@ -44,7 +45,6 @@ case class User(override val id: Option[Int] = None,
                 @(Bind @field) private var _joinDate: Option[Timestamp] = None,
                 @(Bind @field) private var _avatarUrl: Option[String] = None)
                 extends OreModel(id, createdAt)
-                  with UserLike
                   with UserOwned
                   with ScopeSubject {
 
@@ -77,6 +77,13 @@ case class User(override val id: Option[Int] = None,
   }
 
   /**
+    * The User's username
+    *
+    * @return Username
+    */
+  def username: String = this._username
+
+  /**
     * Sets this User's username.
     *
     * @param _username Username of User
@@ -105,6 +112,20 @@ case class User(override val id: Option[Int] = None,
   }
 
   /**
+    * Returns all [[Project]]s owned by this user.
+    *
+    * @return Projects owned by user
+    */
+  def projects = this.oneToMany[ProjectTable, Project](classOf[Project])
+
+  /**
+    * Returns the date this User joined any Sponge services.
+    *
+    * @return Join date
+    */
+  def joinDate: Option[Timestamp] = this._joinDate
+
+  /**
     * Sets the Timestamp instant when this User joined Sponge for the first
     * time.
     *
@@ -114,6 +135,23 @@ case class User(override val id: Option[Int] = None,
     this._joinDate = Option(_joinDate)
     if (isDefined) update(JoinDate)
   }
+
+  /**
+    * Returns a template string for constructing an avatar URL.
+    *
+    * @return Avatar template
+    */
+  def avatarTemplate: Option[String] = this._avatarUrl
+
+  /**
+    * Returns a URL to this user's avatar for the specified size
+    *
+    * @param size avatar size
+    * @return     avatar url
+    */
+  def avatarUrl(size: Int = 100): String = this.avatarTemplate.map { s =>
+    this.config.forums.getString("baseUrl").get + s.replace("{size}", size.toString)
+  }.getOrElse("")
 
   /**
     * Returns this User's avatar url.
@@ -131,6 +169,13 @@ case class User(override val id: Option[Int] = None,
     this._avatarUrl = Option(_avatarUrl)
     if (isDefined) update(AvatarUrl)
   }
+
+  /**
+    * Returns this user's tagline.
+    *
+    * @return User tagline
+    */
+  def tagline: Option[String] = this._tagline
 
   /**
     * Sets this User's "tagline" that is displayed on the User page.
@@ -179,6 +224,13 @@ case class User(override val id: Option[Int] = None,
     else
       assoc.disassoc(this, project)
   }
+
+  /**
+    * Returns this user's global [[RoleType]]s.
+    *
+    * @return Global RoleTypes
+    */
+  def globalRoles: Set[RoleType] = this._globalRoles.toSet
 
   /**
     * Sets the [[RoleTypes]]s that this User has globally.
@@ -281,6 +333,32 @@ case class User(override val id: Option[Int] = None,
   }
 
   /**
+    * Returns true if this User is also an organization.
+    *
+    * @return True if organization
+    */
+  def isOrganization: Boolean = this.service.access(classOf[OrganizationBase]).exists(_.id === this.id.get)
+
+  /**
+    * Converts this User to an [[Organization]].
+    *
+    * @return Organization
+    */
+  def toOrganization: Organization = {
+    this.service.access(classOf[OrganizationBase]).get(this.id.get)
+      .getOrElse(throw new IllegalStateException("user is not an organization"))
+  }
+
+  /**
+    * Returns true if this User is the currently authenticated user.
+    *
+    * @return True if currently authenticated user
+    */
+  def isCurrent(implicit session: Session): Boolean = this.service.access(classOf[UserBase]).current.forall { user =>
+    user.equals(this) || (this.isOrganization && this.toOrganization.owner.equals(user))
+  }
+
+  /**
     * Fills the mutable field in this User with the specified User's
     * non-missing mutable fields.
     *
@@ -298,12 +376,6 @@ case class User(override val id: Option[Int] = None,
     this.globalRoles = user.globalRoles
     this
   }
-
-  override def username: String = this._username
-  override def globalRoles: Set[RoleType] = this._globalRoles.toSet
-  override def avatarTemplate: Option[String] = this._avatarUrl.map(this.config.forums.getString("baseUrl").get + _)
-  override def tagline: Option[String] = this._tagline
-  override def joinDate: Option[Timestamp] = this._joinDate
 
   override val scope = GlobalScope
   override def userId = this.id.get

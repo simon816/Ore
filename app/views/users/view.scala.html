@@ -4,10 +4,10 @@
 @import forums.DiscourseApi
 @import _root_.util.OreConfig
 @import db.impl.access.UserBase
-@import ore.user.UserLike
 @import util.StringUtils.prettifyDate
 @import util.OreEnv
-@(user: UserLike)(content: Html)(implicit messages: Messages, session: Session, flash: Flash,
+@import models.user.User
+@(user: User)(content: Html)(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
         env: OreEnv)
 

@@ -27,7 +27,6 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
   def slug                  =   column[String]("slug")
   def ownerName             =   column[String]("owner_name")
   def userId                =   column[Int]("owner_id")
-  def organizationId        =   column[Int]("organization_id")
   def homepage              =   column[String]("homepage")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
   def category              =   column[Category]("category")
@@ -140,15 +139,12 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
 class OrganizationTable(tag: Tag) extends ModelTable[Organization](tag, "organizations") {
 
   override def id   =   column[Int]("id", O.PrimaryKey)
-  def name          =   column[String]("name")
+  def username      =   column[String]("username")
   def password      =   column[String]("password")
   def ownerId       =   column[Int]("owner_id")
-  def avatarUrl     =   column[String]("avatar_url")
-  def tagline       =   column[String]("tagline")
-  def globalRoles   =   column[List[RoleType]]("global_roles")
 
-  override def * = (id.?, createdAt.?, name, password, ownerId, avatarUrl.?, tagline.?,
-                    globalRoles) <> ((Organization.apply _).tupled, Organization.unapply)
+  override def * = (id.?, createdAt.?, username, password,
+                    ownerId) <> ((Organization.apply _).tupled, Organization.unapply)
 
 }
 
