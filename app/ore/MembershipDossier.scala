@@ -41,7 +41,7 @@ trait MembershipDossier {
     * @return All members
     */
   def members: Set[MemberType] = {
-    this.model.manyToMany[MembersTable, UserTable, User](classOf[User]).all.map { user =>
+    this.model.manyToMany[MembersTable, UserTable, User](classOf[User], this.membersTableClass).all.map { user =>
       newMember(user.id.get)
     }
   }
@@ -82,6 +82,7 @@ trait MembershipDossier {
     * Clears all user roles and removes the user from the dossier.
     *
     * @param user User to remove
+    * @return
     */
   def removeMember(user: User) = {
     clearRoles(user)
