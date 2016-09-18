@@ -39,8 +39,6 @@ class Projects @Inject()(val stats: StatTracker,
   private def SettingsEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditSettings)
 
-  private def showImage(path: Path) = Ok(FileUtils.readFileToByteArray(path.toFile)).as("image/jpeg")
-
   /**
     * Displays the "create project" page.
     *
@@ -144,52 +142,7 @@ class Projects @Inject()(val stats: StatTracker,
   def show(author: String, slug: String) = {
     ProjectAction(author, slug) { implicit request =>
       val project = request.project
-      this.config.debug("isProcessed: " + project.name + " = " + project.isProcessed + " " + project.hashCode())
       this.stats.projectViewed(implicit request => Ok(views.pages.view(project, project.homePage)))
-    }
-  }
-
-  /**
-    * Submits a flag on the specified project for further review.
-    *
-    * @param author Project owner
-    * @param slug   Project slug
-    * @return       View of project
-    */
-  def flag(author: String, slug: String) = {
-    AuthedProjectAction(author, slug) { implicit request =>
-      val user = request.user
-      val project = request.project
-      if (user.hasUnresolvedFlagFor(project)) {
-        // One flag per project, per user at a time
-        BadRequest
-      } else {
-        val reason = FlagReasons(this.forms.ProjectFlag.bindFromRequest.get)
-        project.flagFor(user, reason)
-        Redirect(self.show(author, slug)).flashing("reported" -> "true")
-      }
-    }
-  }
-
-  /**
-    * Sets the visible state of the specified Project.
-    *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @param visible  Project visibility
-    * @return         Ok
-    */
-  def setVisible(author: String, slug: String, visible: Boolean) = {
-    (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(HideProjects)) { implicit request =>
-      request.project.setVisible(visible)
-      Ok
-    }
-  }
-
-  def setWatching(author: String, slug: String, watching: Boolean) = {
-    AuthedProjectAction(author, slug) { implicit request =>
-      request.user.setWatching(request.project, watching)
-      Ok
     }
   }
 
@@ -203,39 +156,6 @@ class Projects @Inject()(val stats: StatTracker,
     this.projects.withPluginId(pluginId) match {
       case None => NotFound
       case Some(project) => Redirect(self.show(project.ownerName, project.slug))
-    }
-  }
-
-  /**
-    * Saves the specified Project from the settings manager.
-    *
-    * @param author Project owner
-    * @param slug   Project slug
-    * @return View of project
-    */
-  def save(author: String, slug: String) = {
-    SettingsEditAction(author, slug) { implicit request =>
-      this.forms.ProjectSave.bindFromRequest.get.saveTo(request.project)
-      Redirect(self.show(author, slug))
-    }
-  }
-
-  /**
-    * Sets the "starred" status of a Project for the current user.
-    *
-    * @param author  Project owner
-    * @param slug    Project slug
-    * @param starred True if should set to starred
-    * @return Result code
-    */
-  def setStarred(author: String, slug: String, starred: Boolean) = {
-    AuthedProjectAction(author, slug) { implicit request =>
-      if (request.project.ownerId != request.user.userId) {
-        request.project.setStarredBy(request.user, starred)
-        Ok
-      } else {
-        BadRequest
-      }
     }
   }
 
@@ -266,23 +186,11 @@ class Projects @Inject()(val stats: StatTracker,
         content => {
           val error = service.await(this.forums.embed.postReply(request.project, request.user, content)).get
           var result = Redirect(self.showDiscussion(author, slug))
-          if (error.isDefined) result = result.flashing("error" -> error.get)
+          if (error.isDefined)
+            result = result.flashing("error" -> error.get)
           result
         }
       )
-    }
-  }
-
-  /**
-    * Shows the project manager or "settings" pane.
-    *
-    * @param author Project owner
-    * @param slug   Project slug
-    * @return Project manager
-    */
-  def showSettings(author: String, slug: String) = {
-    SettingsEditAction(author, slug) { implicit request =>
-      Ok(views.settings(request.project))
     }
   }
 
@@ -338,6 +246,77 @@ class Projects @Inject()(val stats: StatTracker,
     }
   }
 
+  private def showImage(path: Path) = Ok(FileUtils.readFileToByteArray(path.toFile)).as("image/jpeg")
+
+  /**
+    * Submits a flag on the specified project for further review.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return       View of project
+    */
+  def flag(author: String, slug: String) = {
+    AuthedProjectAction(author, slug) { implicit request =>
+      val user = request.user
+      val project = request.project
+      if (user.hasUnresolvedFlagFor(project)) {
+        // One flag per project, per user at a time
+        BadRequest
+      } else {
+        val reason = FlagReasons(this.forms.ProjectFlag.bindFromRequest.get)
+        project.flagFor(user, reason)
+        Redirect(self.show(author, slug)).flashing("reported" -> "true")
+      }
+    }
+  }
+
+  /**
+    * Sets whether a [[models.user.User]] is watching a project.
+    *
+    * @param author   Project owner
+    * @param slug     Project slug
+    * @param watching True if watching
+    * @return         Ok
+    */
+  def setWatching(author: String, slug: String, watching: Boolean) = {
+    AuthedProjectAction(author, slug) { implicit request =>
+      request.user.setWatching(request.project, watching)
+      Ok
+    }
+  }
+
+  /**
+    * Sets the "starred" status of a Project for the current user.
+    *
+    * @param author  Project owner
+    * @param slug    Project slug
+    * @param starred True if should set to starred
+    * @return Result code
+    */
+  def setStarred(author: String, slug: String, starred: Boolean) = {
+    AuthedProjectAction(author, slug) { implicit request =>
+      if (request.project.ownerId != request.user.userId) {
+        request.project.setStarredBy(request.user, starred)
+        Ok
+      } else {
+        BadRequest
+      }
+    }
+  }
+
+  /**
+    * Shows the project manager or "settings" pane.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return Project manager
+    */
+  def showSettings(author: String, slug: String) = {
+    SettingsEditAction(author, slug) { implicit request =>
+      Ok(views.settings(request.project))
+    }
+  }
+
   /**
     * Uploads a new icon to be saved for the specified [[models.project.Project]].
     *
@@ -346,7 +325,7 @@ class Projects @Inject()(val stats: StatTracker,
     * @return       Ok or redirection if no file
     */
   def uploadIcon(author: String, slug: String) = {
-    AuthedProjectAction(author, slug) { implicit request =>
+    SettingsEditAction(author, slug) { implicit request =>
       request.body.asMultipartFormData.get.file("icon") match {
         case None =>
           Redirect(self.showSettings(author, slug)).flashing("error" -> "No file submitted.")
@@ -371,7 +350,7 @@ class Projects @Inject()(val stats: StatTracker,
     * @return       Ok
     */
   def resetIcon(author: String, slug: String) = {
-    AuthedProjectAction(author, slug) { implicit request =>
+    SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
       FileUtils.deleteDirectory(this.manager.fileManager.getIconsDir(project.ownerName, project.name).toFile)
       Ok
@@ -410,6 +389,20 @@ class Projects @Inject()(val stats: StatTracker,
   }
 
   /**
+    * Saves the specified Project from the settings manager.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return View of project
+    */
+  def save(author: String, slug: String) = {
+    SettingsEditAction(author, slug) { implicit request =>
+      this.forms.ProjectSave.bindFromRequest.get.saveTo(request.project)
+      Redirect(self.show(author, slug))
+    }
+  }
+
+  /**
     * Renames the specified project.
     *
     * @param author Project owner
@@ -426,6 +419,21 @@ class Projects @Inject()(val stats: StatTracker,
         this.manager.renameProject(project, newName)
         Redirect(self.show(author, project.slug))
       }
+    }
+  }
+
+  /**
+    * Sets the visible state of the specified Project.
+    *
+    * @param author   Project owner
+    * @param slug     Project slug
+    * @param visible  Project visibility
+    * @return         Ok
+    */
+  def setVisible(author: String, slug: String, visible: Boolean) = {
+    (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(HideProjects)) { implicit request =>
+      request.project.setVisible(visible)
+      Ok
     }
   }
 
