@@ -99,7 +99,7 @@ case class Project(// Immutable
     *
     * @return Users watching project
     */
-  def watchers = this.manyToMany[ProjectWatchersTable, UserTable, User](classOf[User])
+  def watchers = this.manyToMany[ProjectWatchersTable, UserTable, User](classOf[User], classOf[ProjectWatchersTable])
 
   /**
     * Removes the [[ProjectMember]] that belongs to the specified [[User]] from this

@@ -44,7 +44,8 @@ class ModelActions[ThisTable <: ModelTable[ThisModel], ThisModel <: Model: TypeT
     * @param assocTableClass  AssociativeTable
     * @return                 ModelAssociation
     */
-  def getAssociation(assocTableClass: Class[_ <: AssociativeTable]) = this.associations(assocTableClass)
+  def getAssociation[Assoc <: AssociativeTable](assocTableClass: Class[Assoc]): ModelAssociation[Assoc]
+  = this.associations(assocTableClass).asInstanceOf[ModelAssociation[Assoc]]
 
   /**
     * Returns the specified model or creates it if it doesn't exist.

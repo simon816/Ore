@@ -28,7 +28,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
   private var _isProcessed = false
   private var fieldBindings: Map[String, FieldBinding[M, _]] = Map.empty
   private var oneToManyBindings: Map[Class[_ <: Model], OneToManyBinding] = Map.empty
-  private var manyToManyBindings: Map[Class[_ <: Model], ManyToManyBinding] = Map.empty
+  private var manyToManyBindings: Map[Class[_ <: AssociativeTable], ManyToManyBinding] = Map.empty
 
   /**
     * Returns the ModelActions associated with this Model.
@@ -127,12 +127,12 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
     * @param otherRef       How the relations table references the target model
     */
   def bindManyToMany(childClass: Class[_ <: Model],
-                     relationTable: TableQuery[_ <: Table[_]],
+                     relationTable: TableQuery[_ <: AssociativeTable],
                      selfRef: Table[_] => Rep[Int],
                      otherRef: Table[_] => Rep[Int]) = {
     checkNotNull(childClass, "child class is null", "")
     checkNotNull(relationTable, "relation table is null", "")
-    this.manyToManyBindings += childClass -> ManyToManyBinding(
+    this.manyToManyBindings += relationTable.baseTableRow.getClass -> ManyToManyBinding(
       childClass, relationTable, selfRef, otherRef
     )
   }
@@ -143,19 +143,23 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
     * have a reference to this model's ID and then using the target model's ID
     * in that same row within the target model's ModelTable.
     *
-    * @param modelClass     Target model class
+    * @param  modelClass     Target model class
     * @tparam RelationTable Mediator table
     * @tparam ManyTable     Target model table
     * @tparam Many          Target model
     * @return               ModelAccess to target model
     */
-  def manyToMany[RelationTable <: Table[_], ManyTable <: ModelTable[Many], Many <: Model](modelClass: Class[Many]) = {
+  def manyToMany[RelationTable <: Table[_],
+                 ManyTable <: ModelTable[Many],
+                 Many <: Model]
+                (modelClass: Class[Many],
+                 tableClass: Class[RelationTable]) = {
     Defined {
       checkNotNull(modelClass, "model class is null", "")
 
       val binding = this.manyToManyBindings
-        .find(_._1.isAssignableFrom(modelClass))
-        .getOrElse(throw new RuntimeException("No child binding found for model " + modelClass + " in model " + this))
+        .find(_._1.isAssignableFrom(tableClass))
+        .getOrElse(throw new RuntimeException("No child binding found for table " + tableClass + " in model " + this))
         ._2.asInstanceOf[ManyToManyBinding]
 
       // Find all entries in relations table that match the ID of this model

@@ -201,7 +201,8 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Projects user is watching
     */
-  def watching = this.manyToMany[ProjectWatchersTable, ProjectTable, Project](classOf[Project])
+  def watching
+  = this.manyToMany[ProjectWatchersTable, ProjectTable, Project](classOf[Project], classOf[ProjectWatchersTable])
 
   /**
     * Sets the "watching" status on the specified project.

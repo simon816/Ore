@@ -1,6 +1,5 @@
 package db.meta
 
-import db.impl.pg.OrePostgresDriver.api._
 import db.meta.relation.{ManyToManyCollection, OneToMany}
 import db.{Model, ModelService, ModelTable}
 
@@ -93,7 +92,7 @@ class ModelProcessor(service: ModelService) {
         val childClass = relation.modelClass
         val childKey = childClass.getSimpleName.toLowerCase + "Id"
         model.bindManyToMany(
-          relation.modelClass, assoc.assocTable.asInstanceOf[TableQuery[_ <: Table[_]]],
+          relation.modelClass, assoc.assocTable,
           t => BootstrapTypeSetters.getRep[Int](key, t),
           t => BootstrapTypeSetters.getRep[Int](childKey, t)
         )
