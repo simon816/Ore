@@ -5,7 +5,7 @@
 @import views.html.helper.form
 @import db.impl.access.UserBase
 @()(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader, service: ModelService,
-        forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
+        forums: DiscourseApi, config: OreConfig, userBase: UserBase, env: OreEnv)
 
 @bootstrap.layout(messages("org.create")) {
 
@@ -27,19 +27,21 @@
                             projects on Ore.
                         </p>
 
-                        @form(action = routes.Organizations.create()) {
+                        @form(action = routes.Organizations.create(), 'id -> "form-continue") {
                             <label for="name">Organization name</label>
                             <input name="name" type="text" class="input-name form-control" placeholder="SpongePowered"
                                    maxlength="20" />
 
                             <i class="fa fa-spinner fa-spin status-org-name" style="display: none;"></i>
-
-                            <button title="Continue" type="submit" name="create"
-                                    value="@messages("org.create.continue")"
-                                    class="push-down pull-right continue-btn btn btn-primary" disabled>
-                                <i class="fa fa-arrow-right"></i>
-                            </button>
                         }
+
+                        @users.list()
+
+                        <button title="Continue" type="submit" name="create" form="form-continue"
+                                value="@messages("org.create.continue")"
+                                class="push-down pull-right continue-btn btn btn-primary" disabled>
+                            Create
+                        </button>
                     </div>
                 </div>
             </div>

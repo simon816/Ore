@@ -12,6 +12,7 @@ import db.meta.ModelAssociation
 import db.{ModelActions, ModelRegistry, ModelService}
 import forums.DiscourseApi
 import models.project.Channel
+import models.user.role.OrganizationRole
 import models.user.{Notification, Organization}
 import ore.Colors.Color
 import ore.notification.NotificationTypes.NotificationType
@@ -77,5 +78,6 @@ class OreModelService @Inject()(env: OreEnv,
   registerActions(new ModelActions(this, classOf[Notification], TableQuery[NotificationTable]))
   registerActions(new ModelActions(this, classOf[Organization], TableQuery[OrganizationTable]))
     .withAssociation(this.organizationMembers)
+  registerActions(new ModelActions(this, classOf[OrganizationRole], TableQuery[OrganizationRoleTable]))
 
 }

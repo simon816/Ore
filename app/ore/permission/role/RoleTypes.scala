@@ -37,7 +37,8 @@ object RoleTypes extends Enumeration {
 
   // Organization
 
-  val Organization   =   new RoleType(64, -5, Absolute, "Organization", Purple)
+  val Organization        =   new RoleType(21, 64, Absolute, "Organization",        Purple)
+  val OrganizationOwner   =   new RoleType(22, -5, Absolute, "Organization Owner",  Purple)
 
   /**
     * Returns the role with the specified external ID.

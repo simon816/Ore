@@ -25,6 +25,6 @@ create table user_organization_roles (
 
 # --- !Downs
 
-drop table organizations;
 drop table organization_members;
 drop table user_organization_roles;
+drop table organizations;

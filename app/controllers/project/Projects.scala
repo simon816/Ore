@@ -124,7 +124,7 @@ class Projects @Inject()(val stats: StatTracker,
       this.factory.getPendingProject(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pendingProject) =>
-          pendingProject.roles = this.forms.MemberRoles.bindFromRequest.get.build()
+          pendingProject.roles = this.forms.ProjectMemberRoles.bindFromRequest.get.build()
           val pendingVersion = pendingProject.pendingVersion
           Redirect(routes.Versions.showCreatorWithMeta(
             author, slug, pendingVersion.version.versionString))
@@ -383,7 +383,7 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def removeMember(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
-      request.project.removeMember(users.withName(this.forms.MemberRemove.bindFromRequest.get.trim).get)
+      request.project.removeMember(users.withName(this.forms.ProjectMemberRemove.bindFromRequest.get.trim).get)
       Redirect(self.showSettings(author, slug))
     }
   }

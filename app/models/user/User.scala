@@ -12,7 +12,7 @@ import db.impl.pg.OrePostgresDriver.api._
 import db.meta._
 import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
 import models.project.{Flag, Project}
-import models.user.role.ProjectRole
+import models.user.role.{OrganizationRole, ProjectRole}
 import ore.permission._
 import ore.permission.role.RoleTypes.{DonorType, RoleType}
 import ore.permission.role._
@@ -34,7 +34,9 @@ import scala.annotation.meta.field
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
 @ManyToManyCollection(Array(new ManyToMany(modelClass = classOf[Project], tableClass = classOf[ProjectWatchersTable])))
-@OneToMany(Array(classOf[Project], classOf[ProjectRole], classOf[Flag], classOf[Notification]))
+@OneToMany(
+  Array(classOf[Project], classOf[ProjectRole], classOf[OrganizationRole], classOf[Flag], classOf[Notification])
+)
 case class User(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
                 @(Bind @field) private var _name: Option[String] = None,
@@ -141,7 +143,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Avatar template
     */
-  def avatarTemplate: Option[String] = this._avatarUrl
+  def avatarTemplate: Option[String] = this._avatarUrl.map(this.config.forums.getString("baseUrl").get + _)
 
   /**
     * Returns a URL to this user's avatar for the specified size
@@ -150,7 +152,7 @@ case class User(override val id: Option[Int] = None,
     * @return     avatar url
     */
   def avatarUrl(size: Int = 100): String = this.avatarTemplate.map { s =>
-    this.config.forums.getString("baseUrl").get + s.replace("{size}", size.toString)
+     s.replace("{size}", size.toString)
   }.getOrElse("")
 
   /**
@@ -202,6 +204,13 @@ case class User(override val id: Option[Int] = None,
     * @return ProjectRoles
     */
   def projectRoles = this.oneToMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
+
+  /**
+    * Returns a [[ModelAccess]] of [[OrganizationRole]]s.
+    *
+    * @return OrganizationRoles
+    */
+  def organizationRoles = this.oneToMany[OrganizationRoleTable, OrganizationRole](classOf[OrganizationRole])
 
   /**
     * Returns the [[Project]]s that this User is watching.

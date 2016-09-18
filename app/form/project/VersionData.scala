@@ -1,4 +1,4 @@
-package form
+package form.project
 
 import util.OreConfig
 

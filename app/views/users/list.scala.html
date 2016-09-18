@@ -1,0 +1,64 @@
+@import db.impl.access.UserBase
+@import models.user.User
+@(loadedUsers: Seq[User] = Seq())(implicit userBase: UserBase, session: Session)
+
+<script type="text/javascript" src="@routes.Assets.at("javascripts/userSearch.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/membersConfig.js")"></script>
+
+<!-- Template row -->
+<table style="display: none;">
+    <tbody>
+        <tr id="result-row">
+            <td>
+                <input type="hidden"/>
+                <img class="user-avatar" width="32" height="32" />
+                <i class="fa fa-times user-cancel"></i>
+                <a target="_blank" href=""></a>
+            </td>
+            <td>@projects.members.util.roleSelect("")</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- User not found alert (hidden) -->
+<div class="alert alert-danger alert-dismissible" role="alert" style="display: none;">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <strong>Whoops!</strong> Could not find user "<span class="error-username"></span>"
+</div>
+
+<table class="table table-members">
+    <tbody>
+        @defining(userBase.current.get) { currentUser =>
+            <!-- Owner (not submitted) -->
+            <tr>
+                <td>
+                    <img class="user-avatar" width="32" height="32" src="@currentUser.avatarUrl(100)" />
+                    <strong>@currentUser.username</strong>
+                </td>
+                <td><i class="minor">Owner</i></td>
+            </tr>
+        }
+
+        @loadedUsers.map { user =>
+            <tr>
+                <td>
+                    <input form="form-continue" type="hidden" value="@user.id.get" />
+                    <img class="user-avatar" width="32" height="32" src="@user.avatarUrl(100)" />
+                    <a target="_blank" href="@routes.Users.showProjects(user.username, None)">
+                    @user.username
+                    </a>
+                </td>
+                <td>@projects.members.util.roleSelect()</td>
+            </tr>
+        }
+
+        <!-- User search -->
+        <tr>
+            <td>@projects.members.util.userSearch()</td>
+            <td></td>
+        </tr>
+
+    </tbody>
+</table>

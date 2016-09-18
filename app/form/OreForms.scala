@@ -2,6 +2,7 @@ package form
 
 import javax.inject.Inject
 
+import form.project.{ChannelData, ProjectRoleSetBuilder, ProjectSettings, VersionData}
 import models.project.Channel
 import models.project.Page._
 import models.user.role.ProjectRole
@@ -31,21 +32,25 @@ class OreForms @Inject()(implicit config: OreConfig) {
   /**
     * Submits a member to be removed from a Project.
     */
-  lazy val MemberRemove = Form(single("username" -> text))
+  lazy val ProjectMemberRemove = Form(single("username" -> text))
 
   /**
     * Submits changes to a [[models.project.Project]]'s
     * [[ProjectRole]]s.
     */
-  lazy val MemberRoles = Form(mapping(
+  lazy val ProjectMemberRoles = Form(mapping(
     "users" -> list(number),
     "roles" -> list(text)
   )(ProjectRoleSetBuilder.apply)(ProjectRoleSetBuilder.unapply))
 
   /**
-    * Creates a new Organization.
+    * Submits a list of organization members to be invited.
     */
-  lazy val OrganizationCreate = Form(single("name" -> text))
+  lazy val OrganizationCreate = Form(mapping(
+    "name" -> text,
+    "users" -> list(number),
+    "roles" -> list(text)
+  )(OrganizationRoleSetBuilder.apply)(OrganizationRoleSetBuilder.unapply))
 
   /**
     * Submits changes on a documentation page.

@@ -3,17 +3,25 @@ package db.impl.access
 import db.impl.OrganizationTable
 import db.{ModelBase, ModelService}
 import forums.DiscourseApi
-import models.user.Organization
+import models.user.{Notification, Organization}
+import models.user.role.OrganizationRole
+import ore.notification.NotificationTypes
 import ore.permission.role.RoleTypes
 import org.apache.commons.lang3.RandomStringUtils
+import play.api.i18n.MessagesApi
 import util.{CryptoUtils, OreConfig, StringUtils}
 
-class OrganizationBase(override val service: ModelService, forums: DiscourseApi, config: OreConfig)
+class OrganizationBase(override val service: ModelService,
+                       forums: DiscourseApi,
+                       config: OreConfig,
+                       messages: MessagesApi)
                        extends ModelBase[OrganizationTable, Organization] {
 
   import this.service.await
 
   override val modelClass = classOf[Organization]
+
+  implicit val users: UserBase = this.service.access(classOf[UserBase])
 
   /**
     * Creates a new [[Organization]]. This method creates a new user on the
@@ -23,7 +31,7 @@ class OrganizationBase(override val service: ModelService, forums: DiscourseApi,
     * @param ownerId  User ID of the organization owner
     * @return         New organization if successful, None otherwise
     */
-  def create(name: String, ownerId: Int): Organization = {
+  def create(name: String, ownerId: Int, members: Set[OrganizationRole]): Organization = {
     val password = RandomStringUtils.randomAlphanumeric(60)
     val encryptedPassword = CryptoUtils.encrypt(password, this.config.play.getString("crypto.secret").get)
     val email = name + '@' + this.config.orgs.getString("dummyEmailDomain").get
@@ -35,10 +43,38 @@ class OrganizationBase(override val service: ModelService, forums: DiscourseApi,
         this.forums.sync.scheduleRetry(() => this.forums.addUserGroup(userId, groupId))
     }
 
-    val org = Organization(id = Some(userId), username = name, password = encryptedPassword, ownerId = ownerId)
-    val user = this.service.access[OrganizationTable, Organization](this.modelClass).add(org).toUser
-    user.globalRoles = user.globalRoles + RoleTypes.Organization
-    user.toOrganization
+    val org = this.service.access[OrganizationTable, Organization](this.modelClass).add(Organization(
+      id = Some(userId),
+      username = name,
+      password = encryptedPassword,
+      ownerId = ownerId
+    ))
+
+    // Initialize user companion
+    val userOrg = org.toUser
+    userOrg.globalRoles = userOrg.globalRoles + RoleTypes.Organization
+    userOrg.toOrganization
+
+    // Invite members
+    val owner = org.owner
+    owner.organizationRoles.add(OrganizationRole(
+      userId = owner.id.get,
+      organizationId = org.id.get,
+      _roleType = RoleTypes.OrganizationOwner,
+      _isAccepted = true)
+    )
+
+    for (role <- members) {
+      val user = role.user
+      user.organizationRoles.add(role.copy(organizationId = org.id.get))
+      user.sendNotification(Notification(
+        originId = org.id.get,
+        notificationType = NotificationTypes.OrganizationInvite,
+        message = this.messages("notification.organization.invite", role.roleType.title, org.username)
+      ))
+    }
+
+    userOrg.toOrganization
   }
 
   /**
