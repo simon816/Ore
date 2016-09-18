@@ -20,6 +20,7 @@ import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import play.api.db.slick.DatabaseConfigProvider
+import play.api.i18n.MessagesApi
 import slick.driver.JdbcProfile
 import util.{OreConfig, OreEnv}
 
@@ -35,7 +36,8 @@ import scala.concurrent.duration.Duration
 class OreModelService @Inject()(env: OreEnv,
                                 config: OreConfig,
                                 forums: DiscourseApi,
-                                db: DatabaseConfigProvider)
+                                db: DatabaseConfigProvider,
+                                messages: MessagesApi)
                                 extends ModelService {
 
   override lazy val registry = new ModelRegistry {}
@@ -50,7 +52,9 @@ class OreModelService @Inject()(env: OreEnv,
   val projects = registerModelBase(classOf[ProjectBase], new ProjectBase(this, this.env, this.config, this.forums))
   val versions = registerModelBase(classOf[VersionBase], new VersionBase(this))
   val flags = registerModelBase(classOf[FlagBase], new FlagBase(this))
-  val orgs = registerModelBase[OrganizationBase](classOf[OrganizationBase], new OrganizationBase(this, forums, config))
+  val orgs = registerModelBase[OrganizationBase](classOf[OrganizationBase], new OrganizationBase(
+    this, this.forums, this.config, this.messages
+  ))
 
   // Custom types
   registerTypeSetter(classOf[Color], ColorTypeSetter)
