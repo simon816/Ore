@@ -28,7 +28,13 @@ function clearUnread(e) {
 
 $(function() {
     $('.alert-fade').fadeIn('slow');
-    $('[data-toggle="tooltip"]').tooltip();
+
+    $('[data-toggle="tooltip"]').tooltip({
+        delay: {
+            "show": 500
+        }
+    });
+
     $('.authors-icon').click(function() { window.location = '/authors'; });
     
     $('.btn-spinner').click(function() {

@@ -70,30 +70,40 @@
 }
 
 .nav-icon {
-  @include size(40px, 40px);
   @include transition2(background-color, 0.5s);
   cursor: pointer;
   padding: 7px;
   margin-right: 5px;
+  text-align: center;
+
+  .icon {
+    @include transition2(color, 0.5s);
+    cursor: pointer;
+    font-size: 25px;
+    color: #F6CF17;
+  }
 }
 
 .nav-icon:hover {
   background-color: white;
+  .icon { color: black; }
 }
 
-.nav-icon:hover > i {
-  color: black;
+.new-icon {
+  .caret { padding-bottom: 10px; }
 }
 
-.nav-icon > i {
-  @include transition2(color, 0.5s);
-  cursor: pointer;
-  font-size: 25px;
-  color: #F6CF17;
+.new-icon:hover {
+  background-color: transparent;
+  .icon { color: #F6CF17; }
 }
 
 .user-controls {
   @include padding-vert(5px, 16px);
+}
+
+.new-controls {
+  @include padding-vert(10px, 17px);
 }
 
 .user-avatar:hover {
