@@ -11,6 +11,8 @@
 @import util.OreEnv
 @import db.impl.access.UserBase
 @import db.impl.access.ProjectBase
+@import ore.project.Dependency
+@import ore.project.Dependency.SpongeApiId
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService,
         forums: DiscourseApi, config: OreConfig, users: UserBase, projectBase: ProjectBase, env: OreEnv)
@@ -121,9 +123,17 @@
                 <!-- Dependencies -->
                 <div class="col-md-4">
                     <div class="panel panel-default">
-                        <div class="panel-heading"><h3 class="panel-title">Dependencies</h3></div>
+                        <div class="panel-heading">
+                            <h3 class="pull-left panel-title">Dependencies</h3>
+                            @version.dependencies.find(_.pluginId.equals(SpongeApiId)).map { spongeApi =>
+                                <span class="pull-right channel channel-sm spongeapi">
+                                    <a href="https://www.spongepowered.org/#downloads">SpongeAPI @spongeApi.version</a>
+                                </span>
+                                <div class="clearfix"></div>
+                            }
+                        </div>
                         <ul class="list-group">
-                        @version.dependencies.map { depend =>
+                        @version.dependencies.filterNot(_.pluginId.equals(SpongeApiId)).map { depend =>
                             <li class="list-group-item">
                                 @defining(depend.project) { project =>
                                     @if(project.isDefined) {

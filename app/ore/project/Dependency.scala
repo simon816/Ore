@@ -19,3 +19,12 @@ case class Dependency(pluginId: String, version: String) {
   def project(implicit projects: ProjectBase): Option[Project] = projects.withPluginId(this.pluginId)
 
 }
+
+object Dependency {
+
+  /**
+    * The Sponge API dependency ID
+    */
+  val SpongeApiId: String = "spongeapi"
+
+}
