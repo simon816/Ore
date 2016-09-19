@@ -1,14 +1,13 @@
 package form
 
 import db.ModelService
-import db.impl.access.UserBase
+import db.impl.access.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.Project
 import models.user.Notification
 import ore.notification.NotificationTypes
 import ore.permission.role.RoleTypes
 import ore.project.Categories
-import ore.project.util.ProjectManager
 import play.api.i18n.MessagesApi
 import util.OreConfig
 import util.StringUtils._
@@ -33,7 +32,7 @@ case class ProjectSettings(categoryName: String,
     *
     * @param project Project to save to
     */
-  def saveTo(project: Project)(implicit service: ModelService, manager: ProjectManager, forums: DiscourseApi,
+  def saveTo(project: Project)(implicit service: ModelService, projects: ProjectBase, forums: DiscourseApi,
                                config: OreConfig, messages: MessagesApi, users: UserBase) = {
     project.category = Categories.withName(this.categoryName)
     project.issues = nullIfEmpty(this.issues)
@@ -41,7 +40,7 @@ case class ProjectSettings(categoryName: String,
     project.description = nullIfEmpty(this.description)
 
     if (this.updateIcon)
-      manager.savePendingIcon(project)
+      projects.savePendingIcon(project)
 
     if (project.isDefined) {
       // Add new roles

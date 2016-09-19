@@ -13,7 +13,8 @@ import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import ore.StatTracker
 import ore.permission.{EditVersions, ReviewProjects}
-import ore.project.util._
+import ore.project.factory.{PendingProject, ProjectFactory}
+import ore.project.io.{InvalidPluginFileException, PluginFile}
 import play.api.i18n.MessagesApi
 import play.api.mvc.Result
 import util.StringUtils.equalsIgnoreCase
@@ -27,7 +28,6 @@ import scala.util.{Failure, Success}
   */
 class Versions @Inject()(val stats: StatTracker,
                          val forms: OreForms,
-                         val manager: ProjectManager,
                          val factory: ProjectFactory,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
@@ -36,7 +36,7 @@ class Versions @Inject()(val stats: StatTracker,
                          implicit override val service: ModelService)
                          extends BaseController {
 
-  private val fileManager = this.manager.fileManager
+  private val fileManager = this.projects.fileManager
 
   private def VersionEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditVersions)
@@ -328,7 +328,7 @@ class Versions @Inject()(val stats: StatTracker,
     VersionEditAction(author, slug) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
-        this.manager.deleteVersion(version)
+        this.projects.deleteVersion(version)
         Redirect(self.showList(author, slug, None))
       }
     }

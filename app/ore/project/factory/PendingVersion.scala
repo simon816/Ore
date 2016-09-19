@@ -1,7 +1,9 @@
-package ore.project.util
+package ore.project.factory
 
+import db.impl.access.ProjectBase
 import models.project.Version
 import ore.Colors.Color
+import ore.project.io.PluginFile
 import play.api.cache.CacheApi
 import util.{Cacheable, PendingAction}
 
@@ -17,7 +19,7 @@ import scala.util.Try
   * @param version        Version that is pending
   * @param plugin         Uploaded plugin
   */
-case class PendingVersion(manager: ProjectManager,
+case class PendingVersion(projects: ProjectBase,
                           factory: ProjectFactory,
                           owner: String,
                           projectSlug: String,
@@ -38,7 +40,7 @@ case class PendingVersion(manager: ProjectManager,
     free()
     this.plugin.delete()
     if (this.version.isDefined)
-      this.manager.deleteVersion(this.version)
+      this.projects.deleteVersion(this.version)
   }
 
   override def key: String = this.owner + '/' + this.projectSlug + '/' + this.version.versionString

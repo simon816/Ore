@@ -1,4 +1,4 @@
-package ore.project.util
+package ore.project.io
 
 import java.io.InputStream
 import java.nio.file.{Files, Path}
@@ -10,8 +10,8 @@ import ore.UserOwned
 import org.apache.commons.codec.digest.DigestUtils
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 
-import scala.util.control.Breaks._
 import scala.collection.JavaConverters._
+import scala.util.control.Breaks._
 
 /**
   * Represents an uploaded plugin file.

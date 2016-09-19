@@ -1,4 +1,4 @@
-package ore.project.util
+package ore.project.factory
 
 import java.nio.file.Files._
 import javax.inject.Inject
@@ -12,6 +12,8 @@ import models.project.{Channel, Project, Version}
 import models.user.{Notification, ProjectRole, User}
 import ore.notification.NotificationTypes
 import ore.permission.role.RoleTypes
+import ore.project.NotifyWatchersTask
+import ore.project.io.{InvalidPluginFileException, PluginFile, ProjectFileManager}
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.cache.CacheApi
 import play.api.i18n.MessagesApi
@@ -20,29 +22,27 @@ import util.OreConfig
 import util.StringUtils._
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.Try
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Handles creation of Project's and their components.
   */
 trait ProjectFactory {
 
-  val manager: ProjectManager
-  val fileManager: ProjectFileManager = this.manager.fileManager
+  implicit val service: ModelService
+  implicit val users: UserBase = this.service.access(classOf[UserBase])
+  implicit val projects: ProjectBase = this.service.access(classOf[ProjectBase])
+
+  val fileManager: ProjectFileManager = this.projects.fileManager
   val cacheApi: CacheApi
   val messages: MessagesApi
   val actorSystem: ActorSystem
 
-  implicit val service: ModelService
   implicit val config: OreConfig
   implicit val forums: DiscourseApi
   implicit val env = this.fileManager.env
-
-  implicit val users: UserBase = this.service.access(classOf[UserBase])
-  implicit val projects: ProjectBase = this.service.access(classOf[ProjectBase])
 
   import service.processor.process
 
@@ -125,7 +125,7 @@ trait ProjectFactory {
     */
   def setProjectPending(project: Project, firstVersion: PluginFile): PendingProject =  {
     val pendingProject = PendingProject(
-      this.manager, this, project, firstVersion, this.config, Set.empty, this.cacheApi
+      this.projects, this, project, firstVersion, this.config, Set.empty, this.cacheApi
     )
     pendingProject.cache()
     pendingProject
@@ -153,7 +153,7 @@ trait ProjectFactory {
   def setVersionPending(owner: String, slug: String, channel: String,
                         version: Version, plugin: PluginFile): PendingVersion = {
     val pending = PendingVersion(
-      manager = this.manager,
+      projects = this.projects,
       factory = this,
       owner = owner,
       projectSlug = slug,
@@ -268,7 +268,6 @@ trait ProjectFactory {
 class OreProjectFactory @Inject()(override val service: ModelService,
                                   override val config: OreConfig,
                                   override val forums: DiscourseApi,
-                                  override val manager: ProjectManager,
                                   override val cacheApi: CacheApi,
                                   override val messages: MessagesApi,
                                   override val actorSystem: ActorSystem)

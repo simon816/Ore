@@ -4,7 +4,7 @@ import db.impl.OreModelService
 import forums._
 import forums.impl.{SpongeAuth, SpongeForums}
 import ore._
-import ore.project.util.{OreProjectFactory, OreProjectManager, ProjectFactory, ProjectManager}
+import ore.project.factory.{OreProjectFactory, ProjectFactory}
 import ore.rest.{OreRestfulApi, OreRestfulServer}
 import play.api.{Configuration, Environment}
 import util.OreConfig
@@ -17,12 +17,11 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
   def configure() = {
     bind(classOf[ModelService]).to(classOf[OreModelService])
     bind(classOf[ProjectFactory]).to(classOf[OreProjectFactory])
-    bind(classOf[ProjectManager]).to(classOf[OreProjectManager])
 
     bind(classOf[OreRestfulApi]).to(classOf[OreRestfulServer])
     bind(classOf[StatTracker]).to(classOf[OreStatTracker])
 
-    if (config.forums.getBoolean("api.enabled").get)
+    if (this.config.forums.getBoolean("api.enabled").get)
       bind(classOf[DiscourseApi]).to(classOf[SpongeForums])
     else
       bind(classOf[DiscourseApi]).to(classOf[DisabledDiscourseApi])

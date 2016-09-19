@@ -1,12 +1,12 @@
 @import controllers.project.{routes => projectRoutes}
 @import views.html.helper.form
-@import ore.project.util.PendingVersion
 @import models.project.Channel
 @import models.project.Project
 @import _root_.util.OreConfig
 @import db.ModelService
 @import db.impl.access.UserBase
 @import forums.DiscourseApi
+@import ore.project.factory.PendingVersion
 @import util.StringUtils
 @import util.OreEnv
 @(project: Project, pending: Option[PendingVersion],

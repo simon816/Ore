@@ -3,13 +3,13 @@
 @import db.ModelService
 @import forums.DiscourseApi
 @import models.user.User
-@import ore.project.util.PendingProject
 @import play.twirl.api.Html
 @import views.html.helper.form
 
 @import scala.collection.JavaConverters._
 @import _root_.util.OreEnv
 @import db.impl.access.UserBase
+@import ore.project.factory.PendingProject
 @(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
         env: OreEnv)

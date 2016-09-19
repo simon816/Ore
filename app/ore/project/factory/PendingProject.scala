@@ -1,7 +1,9 @@
-package ore.project.util
+package ore.project.factory
 
+import db.impl.access.ProjectBase
 import models.project.Project
 import models.user.ProjectRole
+import ore.project.io.PluginFile
 import play.api.cache.CacheApi
 import util.{Cacheable, OreConfig, PendingAction}
 
@@ -14,7 +16,7 @@ import scala.util.Try
   * @param project  Pending project
   * @param file     Uploaded plugin
   */
-case class PendingProject(manager: ProjectManager,
+case class PendingProject(projects: ProjectBase,
                           factory: ProjectFactory,
                           project: Project,
                           file: PluginFile,
@@ -45,7 +47,7 @@ case class PendingProject(manager: ProjectManager,
     free()
     this.file.delete()
     if (this.project.isDefined)
-      this.manager.deleteProject(this.project)
+      this.projects.delete(this.project)
   }
 
   override def key: String = this.project.ownerName + '/' + this.project.slug

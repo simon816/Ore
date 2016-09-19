@@ -20,7 +20,7 @@ import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
-import util.OreConfig
+import util.{OreConfig, OreEnv}
 
 import scala.concurrent.duration.Duration
 
@@ -31,7 +31,8 @@ import scala.concurrent.duration.Duration
   * @param db DatabaseConfig
   */
 @Singleton
-class OreModelService @Inject()(config: OreConfig,
+class OreModelService @Inject()(env: OreEnv,
+                                config: OreConfig,
                                 forums: DiscourseApi,
                                 db: DatabaseConfigProvider)
                                 extends ModelService {
@@ -45,7 +46,7 @@ class OreModelService @Inject()(config: OreConfig,
   import registry.{registerActions, registerModelBase, registerTypeSetter}
 
   val users = registerModelBase(classOf[UserBase], new UserBase(this, forums, config))
-  val projects = registerModelBase(classOf[ProjectBase], new ProjectBase(this))
+  val projects = registerModelBase(classOf[ProjectBase], new ProjectBase(this, this.env, this.config, this.forums))
   val versions = registerModelBase(classOf[VersionBase], new VersionBase(this))
   val flags = registerModelBase(classOf[FlagBase], new FlagBase(this))
 

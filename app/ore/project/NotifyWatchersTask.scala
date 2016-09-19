@@ -1,4 +1,4 @@
-package ore.project.util
+package ore.project
 
 import db.impl.access.ProjectBase
 import models.project.Version

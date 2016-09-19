@@ -12,7 +12,8 @@ import forums.DiscourseApi
 import ore.StatTracker
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
-import ore.project.util.{InvalidPluginFileException, ProjectFactory, ProjectManager}
+import ore.project.factory.ProjectFactory
+import ore.project.io.InvalidPluginFileException
 import org.apache.commons.io.FileUtils
 import play.api.i18n.MessagesApi
 import play.api.mvc._
@@ -28,7 +29,6 @@ import scala.util.{Failure, Success}
 class Projects @Inject()(val stats: StatTracker,
                          val forms: OreForms,
                          val factory: ProjectFactory,
-                         implicit val manager: ProjectManager,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
@@ -237,7 +237,7 @@ class Projects @Inject()(val stats: StatTracker,
   def showIcon(author: String, slug: String) = {
     ProjectAction(author, slug) { implicit request =>
       val project = request.project
-      this.manager.fileManager.getIconPath(project) match {
+      this.projects.fileManager.getIconPath(project) match {
         case None =>
           Redirect(project.owner.user.avatarUrl(this.config.projects.getInt("icon-size").get))
         case Some(iconPath) =>
@@ -332,7 +332,7 @@ class Projects @Inject()(val stats: StatTracker,
         case Some(tmpFile) =>
           println(tmpFile.filename)
           val project = request.project
-          val pendingDir = this.manager.fileManager.getPendingIconDir(project.ownerName, project.name)
+          val pendingDir = this.projects.fileManager.getPendingIconDir(project.ownerName, project.name)
           if (Files.notExists(pendingDir))
             Files.createDirectories(pendingDir)
           FileUtils.cleanDirectory(pendingDir.toFile)
@@ -352,7 +352,7 @@ class Projects @Inject()(val stats: StatTracker,
   def resetIcon(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
-      FileUtils.deleteDirectory(this.manager.fileManager.getIconsDir(project.ownerName, project.name).toFile)
+      FileUtils.deleteDirectory(this.projects.fileManager.getIconsDir(project.ownerName, project.name).toFile)
       Ok
     }
   }
@@ -368,7 +368,7 @@ class Projects @Inject()(val stats: StatTracker,
   def showPendingIcon(author: String, slug: String) = {
     ProjectAction(author, slug) { implicit request =>
       val project = request.project
-      this.manager.fileManager.getPendingIconPath(project) match {
+      this.projects.fileManager.getPendingIconPath(project) match {
         case None => NotFound
         case Some(path) => showImage(path)
       }
@@ -416,7 +416,7 @@ class Projects @Inject()(val stats: StatTracker,
         Redirect(self.showSettings(author, slug)).flashing("error" -> "That name is not available.")
       } else {
         val project = request.project
-        this.manager.renameProject(project, newName)
+        this.projects.rename(project, newName)
         Redirect(self.show(author, project.slug))
       }
     }
@@ -447,7 +447,7 @@ class Projects @Inject()(val stats: StatTracker,
   def delete(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
-      this.manager.deleteProject(project)
+      this.projects.delete(project)
       Redirect(app.showHome(None, None, None, None))
         .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
     }

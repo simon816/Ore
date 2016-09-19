@@ -1,4 +1,4 @@
-package ore.project.util
+package ore.project.io
 
 import java.nio.file.Files._
 import java.nio.file.Path
@@ -6,8 +6,8 @@ import java.nio.file.Path
 import models.project.Project
 import util.OreEnv
 
+import scala.collection.JavaConverters._
 import scala.util.Try
-import collection.JavaConverters._
 
 /**
   * Handles file management of Projects.
