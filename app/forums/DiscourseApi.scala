@@ -37,13 +37,8 @@ trait DiscourseApi {
   /** The username of an administrator */
   val admin: String
 
-  val actorSystem: ActorSystem
-
-  val config: OreConfig
-
-  val sync = new DiscourseSync(
-    this.actorSystem.scheduler, Duration(this.config.forums.getInt("embed.retryRate").get, TimeUnit.MILLISECONDS)
-  )
+  /** DiscourseSync instance **/
+  val sync: DiscourseSync
 
   private val logger: Logger = Logger("Discourse")
   protected val ws: WSClient

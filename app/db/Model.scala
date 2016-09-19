@@ -69,7 +69,6 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
       .getOrElse(key, throw new RuntimeException("No field binding found for key " + key + " in model " + this))
       .asInstanceOf[FieldBinding[M, R]]
     val value = binding.getValue(this.asInstanceOf[M])
-    println("updating " + key + ": " + value)
     this.service.await(binding.setValue(value)).get
   }
 

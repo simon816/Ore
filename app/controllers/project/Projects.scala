@@ -360,7 +360,6 @@ class Projects @Inject()(val stats: StatTracker,
         case None =>
           Redirect(self.showSettings(author, slug)).flashing("error" -> "No file submitted.")
         case Some(tmpFile) =>
-          println(tmpFile.filename)
           val project = request.project
           val pendingDir = this.projects.fileManager.getPendingIconDir(project.ownerName, project.name)
           if (Files.notExists(pendingDir))

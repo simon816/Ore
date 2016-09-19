@@ -5,7 +5,7 @@ import javax.inject.Inject
 import models.project.Channel
 import ore.Colors._
 import org.spongepowered.plugin.meta.version.ComparableVersion
-import play.api.Configuration
+import play.api.{Configuration, Logger}
 import util.StringUtils.compact
 
 /**
@@ -73,12 +73,20 @@ final class OreConfig @Inject()(config: Configuration) {
   = Option(new ComparableVersion(version).getFirstString).getOrElse(this.defaultChannelName)
 
   lazy val debugLevel = this.ore.getInt("debug-level").get
+
   /** Returns true if the application is running in debug mode. */
   def isDebug: Boolean = this.ore.getBoolean("debug").get
+
   /** Sends a debug message if in debug mode */
-  def debug(msg: Any, level: Int = 1) = if (isDebug && (level == this.debugLevel || level == -1)) println(msg)
+  def debug(msg: Any, level: Int = 1) = {
+    if (isDebug && (level == this.debugLevel || level == -1))
+      Logger.debug(msg.toString)
+  }
+
   /** Asserts that the application is in debug mode. */
-  def checkDebug()
-  = if(!isDebug) throw new UnsupportedOperationException("this function is supported in debug mode only")
+  def checkDebug() = {
+    if(!isDebug)
+      throw new UnsupportedOperationException("this function is supported in debug mode only")
+  }
 
 }

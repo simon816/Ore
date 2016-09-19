@@ -16,4 +16,5 @@ class DisabledDiscourseApi extends DiscourseApi {
   override protected val ws: WSClient = null
   override def fetchUser(username: String) = Future(None)
   override def fetchAvatarUrl(username: String, size: Int) = Future(None)
+  override val sync = null
 }
