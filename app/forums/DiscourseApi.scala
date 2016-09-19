@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit
 import models.user.User
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
+import play.api.Logger
 import play.api.libs.json.JsObject
 import play.api.libs.ws.{WSClient, WSResponse}
 
@@ -28,6 +29,7 @@ trait DiscourseApi {
   /** The base URL */
   val url: String
 
+  private val logger: Logger = Logger("Discourse")
   protected val ws: WSClient
 
   /**
@@ -53,7 +55,7 @@ trait DiscourseApi {
     */
   def fetchUser(username: String): Future[Option[User]] = {
     this.ws.url(userUrl(username)).get.map { response =>
-      validate(response) { json =>
+      validate(response).right.map { json =>
         val userObj = (json \ "user").as[JsObject]
         val user = User(
           id = (userObj \ "id").asOpt[Int],
@@ -65,7 +67,7 @@ trait DiscourseApi {
           _avatarUrl = (userObj \ "avatar_template").asOpt[String],
           _globalRoles = parseRoles(userObj).toList)
         user
-      }
+      }.right.toOption
     }
   }
 
@@ -87,10 +89,10 @@ trait DiscourseApi {
     */
   def fetchAvatarUrl(username: String, size: Int): Future[Option[String]] = {
     this.ws.url(userUrl(username)).get.map { response =>
-      validate(response) { json =>
+      validate(response).right.map { json =>
         val template = (json \ "user" \ "avatar_template").as[String]
         this.url + template.replace("{size}", size.toString)
-      }
+      }.right.toOption
     }
   }
 
@@ -112,13 +114,16 @@ trait DiscourseApi {
     * Validates an incoming Discourse API response.
     *
     * @param response Response to validate
-    * @param f        Function to run if validated
-    * @tparam A       Return type
     * @return         Return type
     */
-  def validate[A](response: WSResponse)(f: JsObject => A): Option[A] = {
+  def validate(response: WSResponse): Either[List[String], JsObject] = {
     val json = response.json.as[JsObject]
-    if (!json.keys.contains("errors")) Some(f(json)) else None
+    if (json.keys.contains("errors")) {
+      val errors = (json \ "errors").as[List[String]]
+      errors.foreach(this.logger.warn(_))
+      Left(errors)
+    } else
+      Right(json)
   }
 
 }

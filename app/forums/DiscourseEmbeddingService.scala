@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit
 import akka.actor.ActorSystem
 import models.project.Project
 import models.user.User
-import play.api.libs.json.JsArray
 import play.api.libs.ws.WSClient
 import util.{OreConfig, OreEnv}
 
@@ -49,7 +48,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
     debug("Creating topic for " + project.name, 3)
 
     if (!project.isDefined)
-      return
+      throw UndefinedProjectException
 
     // Prepare request
     val username = project.ownerName
@@ -59,20 +58,22 @@ class DiscourseEmbeddingService(api: DiscourseApi,
 
     // Send request
     this.ws.url(url + "/posts").post(params).map { response =>
-      validate(response) { json =>
-        debug("TOPIC CREATED: " + json, 3)
+      validate(response) match {
+        case Left(errors) =>
+          throw CriticalForumErrorException(errors)
+        case Right(json) =>
+          val postId = (json \ "id").as[Int]
+          val topicId = (json \ "topic_id").as[Int]
+          project.topicId = topicId
+          project.postId = postId
 
-        val postId = (json \ "id").as[Int]
-        val topicId = (json \ "topic_id").as[Int]
-        project.topicId = topicId
-        project.postId = postId
-
-        updateTopicCategory(username, topicId, url)
+          updateTopicCategory(username, topicId, url)
       }
     } recover {
       case e: Exception =>
         debug("Failed to create topic, rescheduling: " + e.getMessage, 3)
         this.sync.scheduleRetry(() => createTopic(project))
+        throw e
     }
   }
 
@@ -89,6 +90,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
       case e: Exception =>
         debug("Failed to update topic category, rescheduling: " + e.getMessage, 3)
         this.sync.scheduleRetry(() => updateTopicCategory(username, topicId, url))
+        throw e
     }
   }
 
@@ -99,18 +101,23 @@ class DiscourseEmbeddingService(api: DiscourseApi,
     */
   def updateTopic(project: Project): Unit = {
     if (!project.isDefined)
-      return
+      throw UndefinedProjectException
 
-    val postId = project.postId.get
-    val params = this.keyedRequest(project.ownerName) + ("post[raw]" -> Seq(project.topicContent))
-    ws.url(url + "/posts/" + postId).put(params).andThen {
-      case r =>
-        debug("TOPIC UPDATE: " + r.get, 3)
-        debug(r.get.json, 3)
-    } recover {
-      case e: Exception =>
-        debug("Failed to update topic, rescheduling: " + e.getMessage, 3)
-        this.sync.scheduleRetry(() => updateTopic(project))
+    project.postId match {
+      case None =>
+        createTopic(project)
+      case Some(postId) =>
+        val params = this.keyedRequest(project.ownerName) + ("post[raw]" -> Seq(project.topicContent))
+        ws.url(url + "/posts/" + postId).put(params).andThen {
+          case r =>
+            debug("TOPIC UPDATE: " + r.get, 3)
+            debug(r.get.json, 3)
+        } recover {
+          case e: Exception =>
+            debug("Failed to update topic, rescheduling: " + e.getMessage, 3)
+            this.sync.scheduleRetry(() => updateTopic(project))
+            throw e
+        }
     }
   }
 
@@ -121,21 +128,26 @@ class DiscourseEmbeddingService(api: DiscourseApi,
     */
   def renameTopic(project: Project): Unit = {
     if (!project.isDefined)
-      return
+      throw UndefinedProjectException
 
-    val topicId = project.topicId.get
-    val params = this.keyedRequest(project.ownerName) + (
-      "topic_id" -> Seq(topicId.toString),
-      "title" -> Seq(project.name + project.description.map(" - " + _).getOrElse("")))
+    project.topicId match {
+      case None =>
+        createTopic(project)
+      case Some(topicId) =>
+        val params = this.keyedRequest(project.ownerName) + (
+          "topic_id" -> Seq(topicId.toString),
+          "title" -> Seq(project.name + project.description.map(" - " + _).getOrElse("")))
 
-    this.ws.url(url + "/t/" + topicId).put(params).andThen {
-      case r =>
-        debug("TOPIC RENAME: " + r.get, 3)
-        debug(r.get.json, 3)
-    } recover {
-      case e: Exception =>
-        debug("Failed to rename topic, rescheduling: " + e.getMessage)
-        this.sync.scheduleRetry(() => renameTopic(project))
+        this.ws.url(url + "/t/" + topicId).put(params).andThen {
+          case r =>
+            debug("TOPIC RENAME: " + r.get, 3)
+            debug(r.get.json, 3)
+        } recover {
+          case e: Exception =>
+            debug("Failed to rename topic, rescheduling: " + e.getMessage)
+            this.sync.scheduleRetry(() => renameTopic(project))
+            throw e
+        }
     }
   }
 
@@ -146,18 +158,21 @@ class DiscourseEmbeddingService(api: DiscourseApi,
     */
   def deleteTopic(project: Project): Unit = {
     if (!project.isDefined)
-      return
+      throw UndefinedProjectException
 
     val k = "api_key" -> this.key
     val u = "api_username" -> project.ownerName
 
-    this.ws.url(url + "/t/" + project.topicId.get).withQueryString(k, u).delete().andThen {
-      case r =>
-        debug("TOPIC DELETE: " + r.get, 3)
-    } recover {
-      case e: Exception =>
-        debug("Failed to delete topic, rescheduling: " + e.getMessage, 3)
-        this.sync.scheduleRetry(() => deleteTopic(project))
+    project.topicId.foreach { topicId =>
+      this.ws.url(url + "/t/" + project.topicId.get).withQueryString(k, u).delete().andThen {
+        case r =>
+          debug("TOPIC DELETE: " + r.get, 3)
+      } recover {
+        case e: Exception =>
+          debug("Failed to delete topic, rescheduling: " + e.getMessage, 3)
+          this.sync.scheduleRetry(() => deleteTopic(project))
+          throw e
+      }
     }
   }
 
@@ -169,25 +184,29 @@ class DiscourseEmbeddingService(api: DiscourseApi,
     * @param user     User to post as
     * @param content  Content to post
     */
-  def postReply(project: Project, user: User, content: String): Future[Option[String]] = {
-    if (!project.isDefined || !user.isDefined)
-      return Future(None)
+  def postReply(project: Project, user: User, content: String): Future[Option[List[String]]] = {
+    if (!project.isDefined)
+      throw UndefinedProjectException
+    if (!user.isDefined)
+      throw new RuntimeException("undefined user")
 
-    val params = this.keyedRequest(user.username) + (
-      "topic_id" -> Seq(project.topicId.get.toString),
-      "raw" -> Seq(content))
-
-    this.ws.url(url + "/posts").post(params).map { r =>
-      val json = r.json
-      debug("NEW POST: " + r, 3)
-      debug(json, 3)
-      (json \ "errors").asOpt[JsArray].flatMap(_(0).asOpt[String])
+    project.topicId match {
+      case None =>
+        throw new RuntimeException("user tried to post reply to project without a topic")
+      case Some(topicId) =>
+        val params = this.keyedRequest(user.username) + (
+          "topic_id" -> Seq(topicId.toString),
+          "raw" -> Seq(content))
+        this.ws.url(url + "/posts").post(params).map(validate(_).left.toOption)
     }
   }
 
-  private def keyedRequest(username: String) = {
-    Map("api_key" -> Seq(this.key), "api_username" -> Seq(username))
-  }
+  private def keyedRequest(username: String) = Map("api_key" -> Seq(this.key), "api_username" -> Seq(username))
+
+  private def UndefinedProjectException = new RuntimeException("undefined project")
+
+  private def CriticalForumErrorException(errors: List[String])
+  = new RuntimeException("discourse responded with errors: \n\t- " + errors.mkString("\n\t- "))
 
 }
 

@@ -187,7 +187,7 @@ class Projects @Inject()(val stats: StatTracker,
           val error = service.await(this.forums.embed.postReply(request.project, request.user, content)).get
           var result = Redirect(self.showDiscussion(author, slug))
           if (error.isDefined)
-            result = result.flashing("error" -> error.get)
+            result = result.flashing("error" -> error.get.head)
           result
         }
       )
