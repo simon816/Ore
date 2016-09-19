@@ -50,7 +50,6 @@ class Organizations @Inject()(forms: OreForms,
     */
   def setInviteStatus(id: Int, status: String) = Authenticated { implicit request =>
     val user = request.user
-    println("user = " + user)
     user.organizationRoles.get(id) match {
       case None =>
         NotFound
@@ -61,7 +60,6 @@ class Organizations @Inject()(forms: OreForms,
             dossier.removeRole(role)
             Ok
           case "accept" =>
-            println("role accepted")
             role.setAccepted(true)
             Ok
           case "unaccept" =>
