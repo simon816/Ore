@@ -3,7 +3,7 @@ package models.user
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.ModelAccess
+import db.{ImmutableModelAccess, ModelAccess}
 import db.impl.ModelKeys._
 import db.impl._
 import db.impl.access.{FlagBase, OrganizationBase, UserBase, VersionBase}
@@ -64,23 +64,6 @@ case class User(override val id: Option[Int] = None,
   val cannot: PermissionPredicate = PermissionPredicate(this, not = true)
 
   /**
-    * Returns this User's full name.
-    *
-    * @return Full name of user
-    */
-  def fullName: Option[String] = this._name
-
-  /**
-    * Sets this User's full name.
-    *
-    * @param _fullName Full name of user
-    */
-  def fullName_=(_fullName: String) = {
-    this._name = Option(_fullName)
-    if (isDefined) update(Name)
-  }
-
-  /**
     * The User's username
     *
     * @return Username
@@ -116,11 +99,21 @@ case class User(override val id: Option[Int] = None,
   }
 
   /**
-    * Returns all [[Project]]s owned by this user.
+    * Returns this User's full name.
     *
-    * @return Projects owned by user
+    * @return Full name of user
     */
-  def projects = this.oneToMany[ProjectTable, Project](classOf[Project])
+  def fullName: Option[String] = this._name
+
+  /**
+    * Sets this User's full name.
+    *
+    * @param _fullName Full name of user
+    */
+  def fullName_=(_fullName: String) = {
+    this._name = Option(_fullName)
+    if (isDefined) update(Name)
+  }
 
   /**
     * Returns the date this User joined any Sponge services.
@@ -154,7 +147,7 @@ case class User(override val id: Option[Int] = None,
     * @return     avatar url
     */
   def avatarUrl(size: Int = 100): String = this.avatarTemplate.map { s =>
-     s.replace("{size}", size.toString)
+    s.replace("{size}", size.toString)
   }.getOrElse("")
 
   /**
@@ -190,50 +183,6 @@ case class User(override val id: Option[Int] = None,
     checkArgument(_tagline.length <= config.users.getInt("max-tagline-len").get, "tagline too long", "")
     this._tagline = Option(nullIfEmpty(_tagline))
     if (isDefined) update(Tagline)
-  }
-
-  /**
-    * Returns the Project with the specified name that this User owns.
-    *
-    * @param name   Name of project
-    * @return       Owned project, if any, None otherwise
-    */
-  def getProject(name: String): Option[Project] = this.projects.find(_.userId === this.id.get)
-
-  /**
-    * Returns a [[ModelAccess]] of [[ProjectRole]]s.
-    *
-    * @return ProjectRoles
-    */
-  def projectRoles = this.oneToMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole])
-
-  /**
-    * Returns a [[ModelAccess]] of [[OrganizationRole]]s.
-    *
-    * @return OrganizationRoles
-    */
-  def organizationRoles = this.oneToMany[OrganizationRoleTable, OrganizationRole](classOf[OrganizationRole])
-
-  /**
-    * Returns the [[Project]]s that this User is watching.
-    *
-    * @return Projects user is watching
-    */
-  def watching
-  = this.manyToMany[ProjectWatchersTable, ProjectTable, Project](classOf[Project], classOf[ProjectWatchersTable])
-
-  /**
-    * Sets the "watching" status on the specified project.
-    *
-    * @param project Project to update status on
-    * @param watching True if watching
-    */
-  def setWatching(project: Project, watching: Boolean) = {
-    val assoc = this.actions.getAssociation(classOf[ProjectWatchersTable])
-    if (watching)
-      assoc.assoc(this, project)
-    else
-      assoc.disassoc(this, project)
   }
 
   /**
@@ -281,53 +230,6 @@ case class User(override val id: Option[Int] = None,
           .getOrElse(Default)
       case _ => throw new RuntimeException("unknown scope: " + scope)
     }
-  }
-
-  /**
-    * Returns the [[Flag]]s submitted by this User.
-    *
-    * @return Flags submitted by user
-    */
-  def flags = this.oneToMany[FlagTable, Flag](classOf[Flag])
-
-  /**
-    * Returns true if the User has an unresolved [[Flag]] on the specified
-    * [[Project]].
-    *
-    * @param project  Project to check
-    * @return         True if has pending flag on Project
-    */
-  def hasUnresolvedFlagFor(project: Project): Boolean
-  = this.flags.exists(f => f.projectId === project.id.get && !f.isResolved)
-
-  /**
-    * Sends a [[Notification]] to this user.
-    *
-    * @param notification Notification to send
-    * @return Future result
-    */
-  def sendNotification(notification: Notification) = {
-    this.config.debug("Sending notification: " + notification, -1)
-    this.service.access[NotificationTable, Notification](classOf[Notification])
-      .add(notification.copy(userId = this.id.get))
-  }
-
-  /**
-    * Returns this User's notifications.
-    *
-    * @return User notifications
-    */
-  def notifications = this.oneToMany[NotificationTable, Notification](classOf[Notification])
-
-  /**
-    * Returns true if this User has any unread notifications.
-    *
-    * @return True if has unread notifications
-    */
-  def hasUnreadNotifications: Boolean = {
-    ((this can ReviewFlags in GlobalScope) && this.service.access(classOf[FlagBase]).unresolved.nonEmpty) ||
-      ((this can ReviewProjects in GlobalScope) && this.service.access(classOf[VersionBase]).notReviewed.nonEmpty) ||
-      this.notifications.filterNot(_.read).nonEmpty
   }
 
   /**
@@ -386,6 +288,105 @@ case class User(override val id: Option[Int] = None,
     this.username = user.username
     this.globalRoles = user.globalRoles
     this
+  }
+
+  /**
+    * Returns all [[Project]]s owned by this user.
+    *
+    * @return Projects owned by user
+    */
+  def projects = ImmutableModelAccess(this.oneToMany[ProjectTable, Project](classOf[Project]))
+
+  /**
+    * Returns the Project with the specified name that this User owns.
+    *
+    * @param name   Name of project
+    * @return       Owned project, if any, None otherwise
+    */
+  def getProject(name: String): Option[Project] = this.projects.find(equalsIgnoreCase(_.name, name))
+
+  /**
+    * Returns a [[ModelAccess]] of [[ProjectRole]]s.
+    *
+    * @return ProjectRoles
+    */
+  def projectRoles = ImmutableModelAccess(this.oneToMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole]))
+
+  /**
+    * Returns a [[ModelAccess]] of [[OrganizationRole]]s.
+    *
+    * @return OrganizationRoles
+    */
+  def organizationRoles
+  = ImmutableModelAccess(this.oneToMany[OrganizationRoleTable, OrganizationRole](classOf[OrganizationRole]))
+
+  /**
+    * Returns the [[Project]]s that this User is watching.
+    *
+    * @return Projects user is watching
+    */
+  def watching
+  = this.manyToMany[ProjectWatchersTable, ProjectTable, Project](classOf[Project], classOf[ProjectWatchersTable])
+
+  /**
+    * Sets the "watching" status on the specified project.
+    *
+    * @param project Project to update status on
+    * @param watching True if watching
+    */
+  def setWatching(project: Project, watching: Boolean) = {
+    val assoc = this.actions.getAssociation(classOf[ProjectWatchersTable])
+    if (watching)
+      assoc.assoc(this, project)
+    else
+      assoc.disassoc(this, project)
+  }
+
+  /**
+    * Returns the [[Flag]]s submitted by this User.
+    *
+    * @return Flags submitted by user
+    */
+  def flags = ImmutableModelAccess(this.oneToMany[FlagTable, Flag](classOf[Flag]))
+
+  /**
+    * Returns true if the User has an unresolved [[Flag]] on the specified
+    * [[Project]].
+    *
+    * @param project  Project to check
+    * @return         True if has pending flag on Project
+    */
+  def hasUnresolvedFlagFor(project: Project): Boolean
+  = this.flags.exists(f => f.projectId === project.id.get && !f.isResolved)
+
+  /**
+    * Returns this User's notifications.
+    *
+    * @return User notifications
+    */
+  def notifications = ImmutableModelAccess(this.oneToMany[NotificationTable, Notification](classOf[Notification]))
+
+  /**
+    * Sends a [[Notification]] to this user.
+    *
+    * @param notification Notification to send
+    * @return Future result
+    */
+  def sendNotification(notification: Notification) = {
+    this.config.debug("Sending notification: " + notification, -1)
+    this.service.access[NotificationTable, Notification](classOf[Notification])
+      .add(notification.copy(userId = this.id.get))
+  }
+
+  /**
+    * Returns true if this User has any unread notifications.
+    *
+    * @return True if has unread notifications
+    */
+  def hasUnreadNotifications: Boolean = {
+    ((this can ReviewFlags in GlobalScope) && this.service.access(classOf[FlagBase]).unresolved.nonEmpty) ||
+      ((this can ReviewProjects in GlobalScope) && this.service.access(classOf[VersionBase]).notReviewed.nonEmpty) ||
+      this.notifications.filterNot(_.read).nonEmpty
   }
 
   override val name = this.username

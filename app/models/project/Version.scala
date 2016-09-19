@@ -3,7 +3,7 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions
-import db.ModelAccess
+import db.{ImmutableModelAccess, ModelAccess}
 import db.impl.ModelKeys._
 import db.impl.action.VersionActions
 import db.impl.pg.OrePostgresDriver.api._
@@ -163,7 +163,8 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Recorded downloads
     */
-  def downloadEntries = this.oneToMany[VersionDownloadsTable, VersionDownload](classOf[VersionDownload])
+  def downloadEntries
+  = ImmutableModelAccess(this.oneToMany[VersionDownloadsTable, VersionDownload](classOf[VersionDownload]))
 
   /**
     * Returns a human readable file size for this Version.

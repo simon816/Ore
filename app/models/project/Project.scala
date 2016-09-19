@@ -3,6 +3,7 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
+import db.ImmutableModelAccess
 import db.impl.ModelKeys._
 import db.impl._
 import db.impl.action.ProjectActions
@@ -13,11 +14,11 @@ import models.statistic.ProjectView
 import models.user.User
 import models.user.role.ProjectRole
 import ore.Colors.Color
-import ore.{MembershipDossier, Visitable}
 import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import ore.project.{Categories, ProjectMember}
+import ore.{MembershipDossier, Visitable}
 import util.StringUtils.{compact, slugify}
 import util.{OreEnv, StringUtils}
 
@@ -196,11 +197,79 @@ case class Project(// Immutable
   }
 
   /**
+    * Returns true if this Project is visible.
+    *
+    * @return True if visible
+    */
+  def isVisible: Boolean = this._isVisible
+
+  /**
+    * Sets whether this project is visible.
+    *
+    * @param visible True if visible
+    */
+  def setVisible(visible: Boolean) = {
+    this._isVisible = visible
+    if (isDefined) update(IsVisible)
+  }
+
+  /**
+    * Returns the link to this Project's issue tracker, if any.
+    *
+    * @return Link to issue tracker
+    */
+  def issues: Option[String] = this._issues
+
+  /**
+    * Sets the link to this Project's issue tracker.
+    *
+    * @param _issues Issue tracker link
+    */
+  def issues_=(_issues: String) = {
+    this._issues = Option(_issues)
+    if (isDefined) update(Issues)
+  }
+
+  /**
+    * Returns the link to this Project's source code, if any.
+    *
+    * @return Link to source
+    */
+  def source: Option[String] = this._source
+
+  /**
+    * Sets the link to this Project's source code.
+    *
+    * @param _source Source code link
+    */
+  def source_=(_source: String) = {
+    this._source = Option(_source)
+    if (isDefined) update(Source)
+  }
+
+  /**
+    * Returns the last time this [[Project]] was updated.
+    *
+    * @return Last time project was updated
+    */
+  def lastUpdated: Timestamp = this._lastUpdated
+
+  /**
+    * Sets the last time this [[Project]] was updated.
+    *
+    * @param lastUpdated Last time project was updated
+    */
+  def lastUpdated_=(lastUpdated: Timestamp) = {
+    this._lastUpdated = lastUpdated
+    if (isDefined) update(LastUpdated)
+  }
+
+  /**
     * Returns the record of unique Project views.
     *
     * @return Unique project views
     */
-  def viewEntries = this.oneToMany[ProjectViewsTable, ProjectView](classOf[ProjectView])
+  def viewEntries = ImmutableModelAccess(this.oneToMany[ProjectViewsTable, ProjectView](classOf[ProjectView]))
 
   /**
     * Returns the amount of unique views this Project has.
@@ -299,6 +368,15 @@ case class Project(// Immutable
     }
   }
 
+  private def _flags = this.oneToMany[FlagTable, Flag](classOf[Flag])
+
+  /**
+    * Returns all flags on this project.
+    *
+    * @return Flags on project
+    */
+  def flags = ImmutableModelAccess(this._flags)
+
   /**
     * Submits a flag on this project for the specified user.
     *
@@ -308,75 +386,7 @@ case class Project(// Immutable
   def flagFor(user: User, reason: FlagReason) = Defined {
     val userId = user.id.get
     checkArgument(userId != this.ownerId, "cannot flag own project", "")
-    this.flags.add(new Flag(this.id.get, user.id.get, reason))
-  }
-
-  /**
-    * Returns the link to this Project's issue tracker, if any.
-    *
-    * @return Link to issue tracker
-    */
-  def issues: Option[String] = this._issues
-
-  /**
-    * Sets the link to this Project's issue tracker.
-    *
-    * @param _issues Issue tracker link
-    */
-  def issues_=(_issues: String) = {
-    this._issues = Option(_issues)
-    if (isDefined) update(Issues)
-  }
-
-  /**
-    * Returns the link to this Project's source code, if any.
-    *
-    * @return Link to source
-    */
-  def source: Option[String] = this._source
-
-  /**
-    * Sets the link to this Project's source code.
-    *
-    * @param _source Source code link
-    */
-  def source_=(_source: String) = {
-    this._source = Option(_source)
-    if (isDefined) update(Source)
-  }
-
-  /**
-    * Returns the forum topic ID for this Project.
-    *
-    * @return Forum topic ID
-    */
-  def topicId: Option[Int] = this._topicId
-
-  /**
-    * Sets the forum topic ID for this Project.
-    *
-    * @param _topicId ID to set
-    */
-  def topicId_=(_topicId: Int) = Defined {
-    this._topicId = Some(_topicId)
-    update(TopicId)
-  }
-
-  /**
-    * Returns the forum post ID for this Project.
-    *
-    * @return Forum post ID
-    */
-  def postId: Option[Int] = this._postId
-
-  /**
-    * Sets the forum post ID for this Project.
-    *
-    * @param _postId Forum post ID
-    */
-  def postId_=(_postId: Int) = Defined {
-    this._postId = Some(_postId)
-    update(PostId)
+    this._flags.add(new Flag(this.id.get, user.id.get, reason))
   }
 
   /**
@@ -424,28 +434,21 @@ case class Project(// Immutable
   }
 
   /**
-    * Returns the last time this [[Project]] was updated.
-    *
-    * @return Last time project was updated
-    */
-  def lastUpdated: Timestamp = this._lastUpdated
-
-  /**
-    * Sets the last time this [[Project]] was updated.
-    *
-    * @param lastUpdated Last time project was updated
-    */
-  def lastUpdated_=(lastUpdated: Timestamp) = {
-    this._lastUpdated = lastUpdated
-    if (isDefined) update(LastUpdated)
-  }
-
-  /**
     * Returns the pages in this Project.
     *
     * @return Pages in project
     */
   def pages = this.oneToMany[PageTable, Page](classOf[Page])
+
+  /**
+    * Returns this Project's home page.
+    *
+    * @return Project home page
+    */
+  def homePage: Page = Defined {
+    val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false)
+    this.service.await(page.actions.getOrInsert(page)).get
+  }
 
   /**
     * Returns true if a page with the specified name exists.
@@ -467,37 +470,37 @@ case class Project(// Immutable
   }
 
   /**
-    * Returns all flags on this project.
+    * Returns the forum topic ID for this Project.
     *
-    * @return Flags on project
+    * @return Forum topic ID
     */
-  def flags = this.oneToMany[FlagTable, Flag](classOf[Flag])
+  def topicId: Option[Int] = this._topicId
 
   /**
-    * Returns this Project's home page.
+    * Sets the forum topic ID for this Project.
     *
-    * @return Project home page
+    * @param _topicId ID to set
     */
-  def homePage: Page = Defined {
-    val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false)
-    this.service.await(page.actions.getOrInsert(page)).get
+  def topicId_=(_topicId: Int) = Defined {
+    this._topicId = Some(_topicId)
+    update(TopicId)
   }
 
   /**
-    * Returns true if this Project is visible.
+    * Returns the forum post ID for this Project.
     *
-    * @return True if visible
+    * @return Forum post ID
     */
-  def isVisible: Boolean = this._isVisible
+  def postId: Option[Int] = this._postId
 
   /**
-    * Sets whether this project is visible.
+    * Sets the forum post ID for this Project.
     *
-    * @param visible True if visible
+    * @param _postId Forum post ID
     */
-  def setVisible(visible: Boolean) = {
-    this._isVisible = visible
-    if (isDefined) update(IsVisible)
+  def postId_=(_postId: Int) = Defined {
+    this._postId = Some(_postId)
+    update(PostId)
   }
 
   /**

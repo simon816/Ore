@@ -169,7 +169,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
           }
       }
 
-      this.service.await(promise.future).get
+      ImmutableModelAccess(this.service.await(promise.future).get)
     }
   }
 

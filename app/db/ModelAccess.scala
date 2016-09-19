@@ -7,9 +7,9 @@ import slick.lifted.ColumnOrdered
 /**
   * Provides simple, synchronous, access to a ModelTable.
   */
-class ModelAccess[T <: ModelTable[M], M <: Model](service: ModelService,
-                                                  modelClass: Class[M],
-                                                  baseFilter: ModelFilter[T, M] = ModelFilter[T, M]()) {
+class ModelAccess[T <: ModelTable[M], M <: Model](val service: ModelService,
+                                                  val modelClass: Class[M],
+                                                  val baseFilter: ModelFilter[T, M] = ModelFilter[T, M]()) {
 
   /** Model filter alias */
   type Filter = T => Rep[Boolean]
