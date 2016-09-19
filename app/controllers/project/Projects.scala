@@ -305,6 +305,36 @@ class Projects @Inject()(val stats: StatTracker,
   }
 
   /**
+    * Sets the status of a pending Project invite for the current user.
+    *
+    * @param id     Invite ID
+    * @param status Invite status
+    * @return       NotFound if invite doesn't exist, Ok otherwise
+    */
+  def setInviteStatus(id: Int, status: String) = Authenticated { implicit request =>
+    val user = request.user
+    user.projectRoles.get(id) match {
+      case None =>
+        NotFound
+      case Some(role) =>
+        val dossier = role.project.memberships
+        status match {
+          case "decline" =>
+            dossier.removeRole(role)
+            Ok
+          case "accept" =>
+            role.setAccepted(true)
+            Ok
+          case "unaccept" =>
+            role.setAccepted(false)
+            Ok
+          case _ =>
+            BadRequest
+        }
+    }
+  }
+
+  /**
     * Shows the project manager or "settings" pane.
     *
     * @param author Project owner

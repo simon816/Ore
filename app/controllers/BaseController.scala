@@ -1,7 +1,7 @@
 package controllers
 
 import db.ModelService
-import db.impl.access.{ProjectBase, UserBase}
+import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.{Project, Version}
 import play.api.i18n.I18nSupport
@@ -22,6 +22,7 @@ abstract class BaseController(implicit val env: OreEnv,
 
   implicit override val users: UserBase = this.service.access(classOf[UserBase])
   implicit override val projects: ProjectBase = this.service.access(classOf[ProjectBase])
+  implicit val organizations: OrganizationBase = this.service.access(classOf[OrganizationBase])
 
   /**
     * Executes the given function with the specified result or returns a

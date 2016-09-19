@@ -52,13 +52,16 @@ POST    /new/upload                                                 @controllers
 GET     /new/:author/:slug                                          @controllers.project.Projects.showCreatorWithMeta(author, slug)
 POST    /new/:author/:slug/members                                  @controllers.project.Projects.showMembersConfig(author, slug)
 
-POST    /pages/preview                                              @controllers.project.Pages.showPreview()
+GET     /invite/:id/:status                                         @controllers.project.Projects.setInviteStatus(id: Int, status)
 
+POST    /pages/preview                                              @controllers.project.Pages.showPreview()
 
 # ---------- Organizations ----------
 
 GET     /organizations/new                                          @controllers.Organizations.showCreator()
 POST    /organizations/new                                          @controllers.Organizations.create()
+
+GET     /organizations/invite/:id/:status                           @controllers.Organizations.setInviteStatus(id: Int, status)
 
 # ---------- Users ----------
 GET     /authors                                                    @controllers.Users.showAuthors(sort: Option[String], page: Option[Int])

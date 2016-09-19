@@ -57,7 +57,8 @@ class OrganizationBase(override val service: ModelService,
 
     // Invite members
     val owner = org.owner
-    owner.organizationRoles.add(OrganizationRole(
+    val dossier = org.memberships
+    dossier.addRole(OrganizationRole(
       userId = owner.id.get,
       organizationId = org.id.get,
       _roleType = RoleTypes.OrganizationOwner,
@@ -66,7 +67,7 @@ class OrganizationBase(override val service: ModelService,
 
     for (role <- members) {
       val user = role.user
-      user.organizationRoles.add(role.copy(organizationId = org.id.get))
+      dossier.addRole(role.copy(organizationId = org.id.get))
       user.sendNotification(Notification(
         originId = org.id.get,
         notificationType = NotificationTypes.OrganizationInvite,

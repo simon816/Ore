@@ -41,4 +41,36 @@ class Organizations @Inject()(forms: OreForms,
     Redirect(routes.Users.showProjects(name, None))
   }
 
+  /**
+    * Sets the status of a pending Organization invite for the current user.
+    *
+    * @param id     Invite ID
+    * @param status Invite status
+    * @return       NotFound if invite doesn't exist, Ok otherwise
+    */
+  def setInviteStatus(id: Int, status: String) = Authenticated { implicit request =>
+    val user = request.user
+    println("user = " + user)
+    user.organizationRoles.get(id) match {
+      case None =>
+        NotFound
+      case Some(role) =>
+        val dossier = role.organization.memberships
+        status match {
+          case "decline" =>
+            dossier.removeRole(role)
+            Ok
+          case "accept" =>
+            println("role accepted")
+            role.setAccepted(true)
+            Ok
+          case "unaccept" =>
+            role.setAccepted(false)
+            Ok
+          case _ =>
+            BadRequest
+        }
+    }
+  }
+
 }

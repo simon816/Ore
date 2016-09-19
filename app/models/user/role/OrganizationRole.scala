@@ -3,12 +3,9 @@ package models.user.role
 import java.sql.Timestamp
 
 import db.Model
-import db.meta.Bind
 import ore.Visitable
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.OrganizationScope
-
-import scala.annotation.meta.field
 
 /**
   * Represents a [[RoleModel]] within an [[models.user.Organization]].
@@ -24,8 +21,8 @@ case class OrganizationRole(override val id: Option[Int] = None,
                             override val createdAt: Option[Timestamp] = None,
                             override val userId: Int,
                             override val organizationId: Int = -1,
-                            @(Bind @field) private var _roleType: RoleType,
-                            @(Bind @field) private var _isAccepted: Boolean = false)
+                            private val _roleType: RoleType,
+                            private val _isAccepted: Boolean = false)
                             extends RoleModel(id, createdAt, userId, _roleType, _isAccepted)
                               with OrganizationScope {
 

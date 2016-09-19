@@ -2,12 +2,9 @@ package models.user.role
 
 import java.sql.Timestamp
 
-import db.meta.Bind
 import ore.Visitable
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.ProjectScope
-
-import scala.annotation.meta.field
 
 /**
   * Represents a [[ore.project.ProjectMember]]'s role in a
@@ -24,8 +21,8 @@ case class ProjectRole(override val id: Option[Int] = None,
                        override val createdAt: Option[Timestamp] = None,
                        override val userId: Int,
                        override val projectId: Int,
-                       @(Bind @field) private var _roleType: RoleType,
-                       @(Bind @field) private var _isAccepted: Boolean = false)
+                       private val _roleType: RoleType,
+                       private val _isAccepted: Boolean = false)
                        extends RoleModel(id, createdAt, userId, _roleType, _isAccepted)
                          with ProjectScope {
 

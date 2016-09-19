@@ -1,5 +1,7 @@
 package db.meta
 
+import java.lang.reflect.Field
+
 import db.meta.relation.{ManyToManyCollection, OneToMany}
 import db.{Model, ModelService, ModelTable}
 
@@ -37,7 +39,7 @@ class ModelProcessor(service: ModelService) {
   def bindFields[T <: ModelTable[M], M <: Model: TypeTag](model: M): M = {
     val modelClass = model.getClass
     //noinspection ComparingUnrelatedTypes
-    val bindFields = modelClass.getDeclaredFields
+    val bindFields = getModelFields(modelClass)
       .filter(_.getAnnotations.exists(_.annotationType.equals(classOf[Bind])))
 
     for (bindField <- bindFields) {
@@ -65,6 +67,16 @@ class ModelProcessor(service: ModelService) {
       service.registry.getTypeSetter(fieldType).bindTo(model, key, bindField)(service)
     }
     model
+  }
+
+  private def getModelFields(clazz: Class[_]): Set[Field] = {
+    var fields: Set[Field] = Set.empty
+    var currentClass = clazz
+    while (!currentClass.equals(classOf[Model])) {
+      fields ++= currentClass.getDeclaredFields
+      currentClass = currentClass.getSuperclass
+    }
+    fields
   }
 
   /**
