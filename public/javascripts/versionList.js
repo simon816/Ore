@@ -108,3 +108,10 @@ $(function() {
         go(url);
     });
 });
+
+$(function() {
+    $('.version-panel').find('tr').click(function(e) {
+        console.log('clicked');
+        window.location.href = $(this).find('td:first-child').find('a').prop('href');
+    });
+});

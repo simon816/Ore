@@ -54,13 +54,15 @@ Documentation page within Project overview.
 
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 class="panel-title">@messages("page.plural")</h3>
+                            <h3 class="pull-left panel-title">@messages("page.plural")</h3>
                             @if(canEditPages && model.pages.size < config.projects.getInt("max-pages").get) {
-                                <a data-toggle="modal" data-target="#new-page">
-                                    <i title="New" class="new-page pull-right fa fa-plus"></i>
-                                </a>
+                                <button data-toggle="modal" data-target="#new-page" title="New"
+                                        class="btn-panel new-page btn btn-default btn-xs pull-right">
+                                    <i class="fa fa-plus"></i>
+                                </button>
                                 @projects.pages.modalPageCreate(model)
                             }
+                            <div class="clearfix"></div>
                         </div>
                         <ul class="list-group">
                             @for(page <- model.pages.all) {

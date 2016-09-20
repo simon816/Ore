@@ -19,6 +19,13 @@
             </div>
             <div class="col-md-4">
                 <div class="social pull-right">
+
+                    @sys.env.get("GIT_COMMIT").map { commit =>
+                        <a tabindex="1" class="commit" href="https://github.com/SpongePowered/Ore/commit/@commit">
+                            @commit.substring(0, 8)
+                        </a>
+                    }
+
                     <a target="_blank" href="https://github.com/SpongePowered/Ore/issues">Issues</a>
                     <a target="_blank" href="https://github.com/SpongePowered/Ore">Source</a>
                     <a href="#">API</a>

@@ -56,7 +56,14 @@
 
     <div class="panel panel-default">
         <div class="panel-heading">
-            <h3 class="panel-title">@messages("project.settings.members")</h3>
+            <h3 class="pull-left panel-title">@messages("project.settings.members")</h3>
+            @if(!editable && users.current.isDefined && (users.current.get can EditSettings in model)) {
+                <a href="@projectRoutes.Projects.showSettings(model.ownerName, model.slug)"
+                   class="pull-right btn btn-default btn-panel btn-xs">
+                    <i class="fa fa-edit"></i>
+                </a>
+            }
+            <div class="clearfix"></div>
         </div>
         <ul class="list-members list-group">
             <!-- Member list -->

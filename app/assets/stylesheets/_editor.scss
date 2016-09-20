@@ -110,8 +110,25 @@ button.open:hover {
   border-bottom: 1px solid black;
 }
 
-.new-page {
-  margin-top: -15px;
+.btn-panel {
+  background-color: #337ab7;
+  border: 1px solid #1A619E;
+  color: white;
+}
+
+.btn-panel:hover {
+  background-color: #22527b;
+  color: white;
+  border-color: #093962;
+}
+
+.btn-panel:active {
+  background-color: #22527b;
+  color: white;
+}
+
+.btn-panel:focus {
+  color: white;
 }
 
 .panel {

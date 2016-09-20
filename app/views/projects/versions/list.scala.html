@@ -53,64 +53,71 @@ Versions page within Project overview.
             <div class="col-md-12">
                 <div class="row">
                     <div class="col-md-9">
+
+                        <h2 class="versions-header">Versions</h2>
+
                         <div class="panel panel-default version-panel">
                             <!-- Version table -->
-                            <table class="table version-table">
-                                <thead class="panel-heading">
-                                    <tr class="panel-title">
-                                        <th>Version</th>
-                                        <th><i class="fa fa-spinner fa-spin pull-right" style="display: none;"></i></th>
-                                    </tr>
-                                </thead>
-                                <tbody class="panel-body">
+                            <table class="table">
+                                <tbody>
                                     @versions.map { version =>
-                                      @defining(version.findChannelFrom(channels).get) { channel =>
-                                        <tr>
-                                            <td>
-                                                <i title="@channel.name" class="fa fa-circle channel-id" style="color: @channel.color.hex"></i>
-                                                <a href="@projectRoutes.Versions.show(
-                                                    model.ownerName, model.slug, version.versionString)">
-                                                    <strong>@version.versionString</strong>
-                                                </a>
-                                            </td>
-                                            <td>
-                                                <div class="pull-right">
-                                                    <span class="date">@prettifyDate(version.createdAt.get)</span>
-                                                    <span class="date">@version.humanFileSize</span>
-                                                    <a href="@projectRoutes.Versions.download(
+                                        @defining(version.findChannelFrom(channels).get) { channel =>
+                                            <tr>
+                                                <td>
+                                                    <i title="@channel.name" class="fa fa-circle channel-id" style="color: @channel.color.hex"></i>
+                                                    <a href="@projectRoutes.Versions.show(
                                                         model.ownerName, model.slug, version.versionString)">
-                                                        <i title="Download" class="fa fa-download"></i>
+                                                        <strong>@version.versionString</strong>
                                                     </a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                      }
+                                                </td>
+                                                <td>
+                                                    <div class="pull-right">
+                                                        <span class="date">@prettifyDate(version.createdAt.get)</span>
+                                                        <span class="date">@version.humanFileSize</span>
+                                                        <a href="@projectRoutes.Versions.download(
+                                                            model.ownerName, model.slug, version.versionString)">
+                                                            <i title="Download" class="fa fa-download"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
                                     }
                                 </tbody>
                             </table>
-                            <div class="panel-footer">
-                                <span class="pull-left minor">
-                                    <strong><span class="offset">@versions.size</span>/@model.versions.size</strong>
-                                </span>
-                                <div class="pull-right">
-                                    <a class="prev" href="#" style="display: none;"><i class="fa fa-arrow-left"></i></a>
-                                    <a class="next" href="#"
-                                        @if(versions.size < config.projects.getInt("init-version-load").get) {
-                                            style="display: none;"
-                                        }
-                                    >
-                                        <i class="fa fa-arrow-right"></i>
-                                    </a>
-                                </div>
-                                <div class="clearfix"></div>
-                            </div>
+
+                            @defining(versions.size) { size =>
+                                @if(size > 1) {
+                                    <div class="panel-footer">
+                                        <span class="pull-left minor">
+                                            <strong>
+                                                <span class="offset">@versions.size</span>/@model.versions.size
+                                            </strong>
+                                        </span>
+
+                                        <div class="pull-right">
+                                            <a class="prev" href="#" style="display: none;">
+                                                <i class="fa fa-arrow-left"></i>
+                                            </a>
+                                            <a class="next" href="#"
+                                                @if(versions.size < config.projects.getInt("init-version-load").get) {
+                                                    style="display: none;"
+                                                    }
+                                            >
+                                                <i class="fa fa-arrow-right"></i>
+                                            </a>
+                                        </div>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                }
+                            }
                         </div>
 
                     </div>
                     <div class="col-md-3">
                         @if(users.current.isDefined && (users.current.get can EditVersions in model)) {
                             <a href="@projectRoutes.Versions.showCreator(model.ownerName, model.slug)"
-                            class="btn btn-block btn-primary btn-panel btn-version">
+                            class="btn btn-block btn-primary btn-version">
                                 <i class="fa fa-plus"></i> New version
                             </a>
                         }

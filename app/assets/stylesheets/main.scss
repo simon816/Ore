@@ -18,6 +18,11 @@ body {
   margin-bottom: 60px;
 }
 
+.panel {
+  .panel-heading { background-color: white; }
+  .panel-footer { background-color: white; }
+}
+
 .index-header {
   @include padding-vert(20px, 20px);
 }
@@ -39,12 +44,12 @@ body {
   @include padding-horiz(5px, 5px);
   @include rounded-corners();
   max-height: 60px;
-  background-color: $lighter;
+  background-color: #ddd;
   border: 1px solid $light;
   padding-bottom: 5px;
   i {
     font-size: 10px;
-    color: white;
+    color: #fafafa;
   }
 }
 
