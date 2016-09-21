@@ -80,14 +80,23 @@ class OreModelService @Inject()(env: OreEnv,
   )
 
   // Ore models
-  registerActions(new UserActions(this)).withAssociation(this.projectWatchers).withAssociation(this.projectMembers)
-  registerActions(new ProjectActions(this)).withAssociation(this.projectWatchers).withAssociation(this.projectMembers)
+  registerActions(new UserActions(this))
+    .withAssociation(this.projectWatchers)
+    .withAssociation(this.projectMembers)
+    .withAssociation(this.organizationMembers)
+
+  registerActions(new ProjectActions(this))
+    .withAssociation(this.projectWatchers)
+    .withAssociation(this.projectMembers)
+
   registerActions(new VersionActions(this))
   registerActions(new ModelActions(this, classOf[Channel], TableQuery[ChannelTable]))
   registerActions(new PageActions(this))
   registerActions(new ModelActions(this, classOf[Notification], TableQuery[NotificationTable]))
+
   registerActions(new ModelActions(this, classOf[Organization], TableQuery[OrganizationTable]))
     .withAssociation(this.organizationMembers)
+
   registerActions(new ModelActions(this, classOf[OrganizationRole], TableQuery[OrganizationRoleTable]))
 
 }

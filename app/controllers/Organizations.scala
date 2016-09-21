@@ -6,8 +6,10 @@ import db.ModelService
 import db.impl.access.OrganizationBase
 import form.OreForms
 import forums.DiscourseApi
+import ore.permission.EditSettings
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
+import play.api.libs.json.Json
 import views.{html => views}
 
 /**
@@ -68,6 +70,40 @@ class Organizations @Inject()(forms: OreForms,
           case _ =>
             BadRequest
         }
+    }
+  }
+
+  /**
+    * Updates an [[models.user.Organization]]'s avatar.
+    *
+    * @param organization Organization to update avatar of
+    * @return             Json response with errors if any
+    */
+  def updateAvatar(organization: String) = {
+    (AuthedOrganizationAction(organization) andThen OrganizationPermissionAction(EditSettings)) { implicit request =>
+      val formData = this.forms.OrganizationUpdateAvatar.bindFromRequest.get
+      if (formData.isFileUpload) {
+        println("file upload")
+        request.body.asMultipartFormData.get.file("avatar-file") match {
+          case None =>
+            BadRequest
+          case Some(file) =>
+            this.forums.setAvatar(organization, file.filename, file.ref.file) match {
+              case None =>
+                Ok("[]")
+              case Some(errors) =>
+                Ok(Json.toJson(errors))
+            }
+        }
+      } else {
+        println("url change")
+        this.forums.setAvatar(organization, formData.url.get) match {
+          case None =>
+            Ok("[]")
+          case Some(errors) =>
+            Ok(Json.toJson(errors))
+        }
+      }
     }
   }
 

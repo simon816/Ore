@@ -26,11 +26,69 @@
             </div>
         }
 
+        <div class="alert alert-success alert-dismissable" role="alert" style="display: none;">
+            <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <strong>Success!</strong> <span class="success"></span>
+        </div>
+
         <div class="user-header">
             <div class="header-body">
                 <div class="pull-left user-badge">
-                    <img title="@user.username" alt="@user.username" height="100" width="100"
-                         class="user-avatar" src="@user.avatarUrl(200)" />
+                    @defining(user.isOrganization) { isOrganization =>
+                        <img title="@user.username" alt="@user.username" height="100" width="100"
+                             class="user-avatar @if(isOrganization) { organization-avatar }"
+                             @if(isOrganization) { data-toggle="modal" data-target="#modal-avatar" }
+                             src="@user.avatarUrl(200)" />
+
+                        @if(isOrganization) {
+                            <div class="edit-avatar" style="display: none;">
+                                <i class="fa fa-edit"></i> Edit avatar
+                            </div>
+
+                            <div class="modal fade" id="modal-avatar" tabindex="-1" role="dialog"
+                                 aria-labelledby="modal-avatar-label">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal"
+                                                    aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                            <h4 class="modal-title" id="modal-avatar-label">Edit avatar</h4>
+                                        </div>
+
+                                        @form(action = routes.Organizations.updateAvatar(user.name),
+                                            'id -> "form-avatar", 'enctype -> "multipart/form-data") {
+                                            <div class="modal-body">
+                                                <div class="alert alert-danger">
+                                                    <strong>Whoops!</strong> <span class="error"></span>
+                                                </div>
+
+                                                <input checked type="radio" name="avatar-method" value="by-url" />
+                                                <label for="avatar-url">Update by URL</label>
+                                                <input name="avatar-url" type="url" class="form-control" />
+
+                                                <input type="radio" name="avatar-method" value="by-file" />
+                                                <label for="avatar-file">Update by file</label>
+                                                <input name="avatar-file" type="file" disabled />
+                                            </div>
+
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                    Cancel
+                                                </button>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fa fa-spinner fa-spin" style="display: none;"></i> Update
+                                                </button>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
 
                     <div class="user-title">
                         <h1>@user.username</h1>
@@ -84,8 +142,20 @@
 
                 <div class="pull-right">
                     <ul class="user-roles">
-                        @user.globalRoles.toList.sortBy(_.trust).lastOption.map { role =>
-                          <li class="user-role channel" style="background-color: @role.color.hex;">@role.title</li>
+                        @user.organizations.all.map { organization =>
+                            <li class="organization-role" data-toggle="tooltip" data-placement="top"
+                                data-title="@organization.name">
+                                <a href="@organization.url">
+                                    <img class="user-avatar" src="@organization.toUser.avatarUrl(50)" width="26"
+                                         height="26" />
+                                </a>
+                            </li>
+                        }
+
+                        @defining(user.globalRoles.toList.sortBy(_.trust).lastOption) { roleOpt =>
+                          @roleOpt.map { role =>
+                            <li class="user-role channel" style="background-color: @role.color.hex">@role.title</li>
+                          }
                         }
                     </ul>
 

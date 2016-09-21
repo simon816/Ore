@@ -153,11 +153,7 @@ Versions page within Project overview.
                                 }
                             </ul>
                         </div>
-                        @users.memberList(
-                            model = model,
-                            removeCall = projectRoutes.Projects.removeMember(model.ownerName, model.slug),
-                            settingsCall = projectRoutes.Projects.showSettings(model.ownerName, model.slug)
-                        )
+                        @users.memberList(model)
                     </div>
                 </div>
             </div>

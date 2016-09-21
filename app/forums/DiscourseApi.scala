@@ -1,15 +1,18 @@
 package forums
 
+import java.io.File
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 
+import akka.stream.scaladsl.{FileIO, Source}
 import models.user.User
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 import play.api.Logger
 import play.api.libs.json.JsObject
 import play.api.libs.ws.{WSClient, WSResponse}
+import play.api.mvc.MultipartFormData.{DataPart, FilePart}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -47,9 +50,9 @@ trait DiscourseApi {
     * @return True if available
     */
   def isAvailable: Boolean = {
-    Await.result(this.ws.url(this.url).get().map(_ => true).recover {
+    await(this.ws.url(this.url).get().map(_ => true).recover {
       case e: Exception => false
-    }, Duration(10000, TimeUnit.MILLISECONDS))
+    })
   }
 
   /** Returns a user URL for the specified username. */
@@ -86,8 +89,7 @@ trait DiscourseApi {
     * @param username Username to find
     * @return True if user exists
     */
-  def userExists(username: String): Boolean
-  = Await.result(fetchUser(username), Duration(10000, TimeUnit.MILLISECONDS)).get.isDefined
+  def userExists(username: String): Boolean = await(fetchUser(username)).get.isDefined
 
   /**
     * Creates a new user on the forums with the given parameters.
@@ -99,7 +101,6 @@ trait DiscourseApi {
     * @return         ID of new user if created, None otherwise
     */
   def createUser(name: String, username: String, email: String, password: String): Future[Int] = {
-    val url = this.url + "/users?api_key=" + this.key + "&api_username=" + this.admin
     val data = Map(
       "name" -> Seq(name),
       "username" -> Seq(username),
@@ -107,8 +108,7 @@ trait DiscourseApi {
       "password" -> Seq(password),
       "active" -> Seq("true")
     )
-
-    this.ws.url(url).post(data).map(response => validate(response) match {
+    this.ws.url(getUrl("/users")).post(data).map(response => validate(response) match {
       case Left(errors) =>
         throw FatalForumErrorException(errors)
       case Right(json) =>
@@ -124,7 +124,7 @@ trait DiscourseApi {
     * @return         True if successful
     */
   def addUserGroup(userId: Int, groupId: Int) = {
-    val url = this.url + "/admin/users/" + userId + "/groups?api_key=" + this.key + "&api_username=" + this.admin
+    val url = getUrl("/admin/users/" + userId + "/groups")
     val data = Map("group_id" -> Seq(groupId.toString))
     this.ws.url(url).post(data).map(response => validate(response).left.foreach { errors =>
       throw FatalForumErrorException(errors)
@@ -145,6 +145,63 @@ trait DiscourseApi {
         this.url + template.replace("{size}", size.toString)
       }.right.toOption
     }
+  }
+
+  /**
+    * Sets the avatar for the specified user.
+    *
+    * @param username   User username
+    * @param avatarUrl  Avatar URL
+    * @return           List of errors if any
+    */
+  def setAvatar(username: String, avatarUrl: String): Option[List[String]] = {
+    val url = this.url + "/uploads"
+    val data = args(username) ++ Map(
+      "username" -> Seq(username),
+      "url" -> Seq(avatarUrl),
+      "type" -> Seq("avatar"),
+      "synchronous" -> Seq("true")
+    )
+    println(url)
+    println(data)
+    await(this.ws.url(url).post(data).map(response => validate(response) match {
+      case Left(errors) =>
+        Some(errors)
+      case Right(json) =>
+        pickAvatar(json, username)
+    }))
+  }
+
+  /**
+    * Sets the avatar for the specified user.
+    *
+    * @param username User username
+    * @param file     Avatar file
+    * @return         List of errors if any
+    */
+  def setAvatar(username: String, fileName: String, file: File): Option[List[String]] = {
+    val url = this.url + "/uploads"
+    val data = Source(
+      DataPart("api_key", this.key)
+        :: DataPart("api_username", username)
+        :: DataPart("username", username)
+        :: FilePart("file", fileName, Some("image/jpeg"), FileIO.fromFile(file))
+        :: DataPart("type", "avatar")
+        :: DataPart("synchronous", "true")
+        :: List())
+    await(this.ws.url(url).post(data).map(response => validate(response) match {
+      case Left(errors) =>
+        Some(errors)
+      case Right(json) =>
+        pickAvatar(json, username)
+    }))
+  }
+
+  private def pickAvatar(uploadResponse: JsObject, username: String): Option[List[String]] = {
+    val uploadId = (uploadResponse \ "id").as[Int]
+    val url = this.url + "/users/" + username + "/preferences/avatar/pick"
+    val data = args(username) ++ Map("upload_id" -> Seq(uploadId.toString))
+    await(this.ws.url(url).put(data).map(response => validate(response).left.toOption))
   }
 
   /**
@@ -170,7 +227,7 @@ trait DiscourseApi {
   def validate(response: WSResponse): Either[List[String], JsObject] = {
     val json = response.json.as[JsObject]
     if (json.keys.contains("errors")) {
-      val errors = (json \ "errors").as[List[String]]
+      val errors = (json \ "errors").asOpt[List[String]].getOrElse((json \ "errors").as[String] :: List())
       errors.foreach(this.logger.warn(_))
       Left(errors)
     } else
@@ -185,5 +242,10 @@ trait DiscourseApi {
     */
   def FatalForumErrorException(errors: List[String])
   = new RuntimeException("discourse responded with errors: \n\t- " + errors.mkString("\n\t- "))
+
+  private def await[A](future: Future[A]): A = Await.result(future, Duration(10000, TimeUnit.MILLISECONDS))
+  private def args(username: String = this.admin) = Map("api_key" -> Seq(this.key), "api_username" -> Seq(username))
+  private def getUrl(url: String, username: String = this.admin)
+  = this.url + url + "?api_key=" + this.key + "&api_username=" + username
 
 }

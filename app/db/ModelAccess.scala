@@ -14,6 +14,7 @@ class ModelAccess[T <: ModelTable[M], M <: Model](val service: ModelService,
   /** Model filter alias */
   type Filter = T => Rep[Boolean]
   type Ordering = T => ColumnOrdered[_]
+  type Column = T => Rep[_]
 
   private val actions: ModelActions[T, M] = this.service.registry.getActionsByModel[T, M](this.modelClass)
 

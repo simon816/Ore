@@ -7,9 +7,9 @@
 @import ore.{Joinable, OreConfig, OreEnv}
 @import views.html.helper.form
 @import models.user.role.RoleModel
-@(model: Joinable[_ <: Member[_]], editable: Boolean = false, removeCall: Call,
-        settingsCall: Call)(implicit messages: Messages, session: Session, service: ModelService, forums: DiscourseApi,
-        config: OreConfig, userBase: UserBase, env: OreEnv)
+@(model: Joinable[_ <: Member[_]], editable: Boolean = false, removeCall: Call = null,
+        settingsCall: Call = null)(implicit messages: Messages, session: Session, service: ModelService,
+        forums: DiscourseApi, config: OreConfig, userBase: UserBase, env: OreEnv)
 
 @canEdit = @{
     editable && userBase.current.isDefined && (userBase.current.get can EditSettings in model)

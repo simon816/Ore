@@ -80,9 +80,55 @@ function loadStars(increment) {
     });
 }
 
+function setupAvatarForm() {
+    $('.organization-avatar').hover(function() {
+        $('.edit-avatar').fadeIn('fast');
+    }, function() {
+        $('.edit-avatar').fadeOut('fast');
+    });
+
+    var avatarModal = $('#modal-avatar');
+    avatarModal.find('.alert').hide();
+
+    var avatarForm = avatarModal.find('#form-avatar');
+    avatarForm.find('input[name="avatar-method"]').change(function() {
+        avatarForm.find('input[name="avatar-file"]').prop('disabled', $(this).val() !== 'by-file');
+    });
+
+    avatarForm.submit(function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        var spinner = $(this).find('.fa-spinner').show();
+        $.ajax({
+            url: 'organizations/' + USERNAME + '/settings/avatar',
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false,
+            type: 'post',
+            dataType: 'json',
+            complete: function() {
+                spinner.hide();
+            },
+            success: function(errors) {
+                if (errors.length > 0) {
+                    var alert = avatarForm.find('.alert-danger');
+                    alert.find('.error').text(errors[0]);
+                    alert.fadeIn('slow');
+                } else {
+                    avatarModal.modal('hide');
+                    var success = $('.alert-success');
+                    success.find('.success').text('Avatar successfully updated!');
+                    success.fadeIn('slow');
+                }
+            }
+        })
+    });
+}
+
 $(function() {
     var footer = getStarsFooter();
     footer.find('.next').click(function() { loadStars(1); });
     footer.find('.prev').click(function() { loadStars(-1); });
-    $('.alert').fadeIn('slow');
+    setupAvatarForm();
 });

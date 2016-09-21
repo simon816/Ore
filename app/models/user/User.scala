@@ -34,7 +34,10 @@ import scala.annotation.meta.field
   * @param _email       Email
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
-@ManyToManyCollection(Array(new ManyToMany(modelClass = classOf[Project], tableClass = classOf[ProjectWatchersTable])))
+@ManyToManyCollection(Array(
+  new ManyToMany(modelClass = classOf[Project], tableClass = classOf[ProjectWatchersTable]),
+  new ManyToMany(modelClass = classOf[Organization], tableClass = classOf[OrganizationMembersTable])
+))
 @OneToMany(Array(
   classOf[Project], classOf[ProjectRole], classOf[OrganizationRole], classOf[Flag], classOf[Notification],
   classOf[Organization]
@@ -301,7 +304,17 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Organizations user owns
     */
-  def organizations = ImmutableModelAccess(this.oneToMany[OrganizationTable, Organization](classOf[Organization]))
+  def ownedOrganizations = ImmutableModelAccess(this.oneToMany[OrganizationTable, Organization](classOf[Organization]))
+
+  /**
+    * Returns the [[Organization]]s that this User belongs to.
+    *
+    * @return Organizations user belongs to
+    */
+  def organizations = {
+    this.manyToMany[OrganizationMembersTable, OrganizationTable, Organization](classOf[Organization],
+      classOf[OrganizationMembersTable])
+  }
 
   /**
     * Returns a [[ModelAccess]] of [[OrganizationRole]]s.

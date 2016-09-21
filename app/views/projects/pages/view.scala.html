@@ -72,11 +72,7 @@ Documentation page within Project overview.
                     </div>
 
                     <!-- Member list -->
-                    @users.memberList(
-                        model = model,
-                        removeCall = routes.Projects.removeMember(model.ownerName, model.slug),
-                        settingsCall = routes.Projects.showSettings(model.ownerName, model.slug)
-                    )
+                    @users.memberList(model)
                 </div>
             </div>
         </div>

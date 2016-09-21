@@ -47,10 +47,18 @@ class OreForms @Inject()(implicit config: OreConfig) {
     * Submits a list of organization members to be invited.
     */
   lazy val OrganizationCreate = Form(mapping(
-    "name" -> text,
+    "name" -> nonEmptyText,
     "users" -> list(number),
     "roles" -> list(text)
   )(OrganizationRoleSetBuilder.apply)(OrganizationRoleSetBuilder.unapply))
+
+  /**
+    * Submits an avatar update for an [[models.user.Organization]].
+    */
+  lazy val OrganizationUpdateAvatar = Form(mapping(
+    "avatar-method" -> nonEmptyText,
+    "avatar-url" -> optional(nonEmptyText)
+  )(OrganizationAvatarUpdate.apply)(OrganizationAvatarUpdate.unapply))
 
   /**
     * Submits changes on a documentation page.

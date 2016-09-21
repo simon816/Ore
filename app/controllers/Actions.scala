@@ -1,7 +1,7 @@
 package controllers
 
-import controllers.Requests._
-import db.impl.access.{ProjectBase, UserBase}
+import controllers.Requests.{OrganizationRequest, _}
+import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.Project
 import models.user.User
@@ -20,23 +20,7 @@ trait Actions {
   val forums: DiscourseApi
   val users: UserBase
   val projects: ProjectBase
-
-  /**
-    * Retrieves, processes, and adds a [[Project]] to a request.
-    *
-    * @param author Project owner
-    * @param slug   Project slug
-    * @return       Request with a project if found, NotFound otherwise.
-    */
-  def ProjectAction(author: String, slug: String) = Action andThen projectAction(author, slug)
-
-  /**
-    * Retrieves, processes, and adds a [[Project]] to a request.
-    *
-    * @param pluginId The project's unique plugin ID
-    * @return         Request with a project if found, NotFound otherwise
-    */
-  def ProjectAction(pluginId: String) = Action andThen projectAction(pluginId)
+  val organizations: OrganizationBase
 
   /** Ensures a request is authenticated */
   def Authenticated = Action andThen authAction
@@ -48,16 +32,6 @@ trait Actions {
     else
       Redirect(routes.Application.showHome(None, None, None, None))
   }
-
-  /**
-    * Ensures a request is authenticated and retrieves, processes, and adds a
-    * [[Project]] to a request.
-    *
-    * @param author Project owner
-    * @param slug Project slug
-    * @return Authenticated request with a project if found, NotFound otherwise.
-    */
-  def AuthedProjectAction(author: String, slug: String) = Authenticated andThen authedProjectAction(author, slug)
 
   /**
     * Action to perform a permission check for the current ScopedRequest and
@@ -77,6 +51,33 @@ trait Actions {
   }
 
   /**
+    * Retrieves, processes, and adds a [[Project]] to a request.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return       Request with a project if found, NotFound otherwise.
+    */
+  def ProjectAction(author: String, slug: String) = Action andThen projectAction(author, slug)
+
+  /**
+    * Retrieves, processes, and adds a [[Project]] to a request.
+    *
+    * @param pluginId The project's unique plugin ID
+    * @return         Request with a project if found, NotFound otherwise
+    */
+  def ProjectAction(pluginId: String) = Action andThen projectAction(pluginId)
+
+  /**
+    * Ensures a request is authenticated and retrieves, processes, and adds a
+    * [[Project]] to a request.
+    *
+    * @param author Project owner
+    * @param slug Project slug
+    * @return Authenticated request with a project if found, NotFound otherwise.
+    */
+  def AuthedProjectAction(author: String, slug: String) = Authenticated andThen authedProjectAction(author, slug)
+
+  /**
     * A PermissionAction that uses an AuthedProjectRequest for the
     * ScopedRequest.
     *
@@ -84,6 +85,40 @@ trait Actions {
     * @return   An [[AuthedProjectRequest]]
     */
   def ProjectPermissionAction(p: Permission) = PermissionAction[AuthedProjectRequest](p)
+
+  /**
+    * Retrieves an [[models.user.Organization]] and adds it to the request.
+    *
+    * @param organization Organization to retrieve
+    * @return             Request with organization if found, NotFound otherwise
+    */
+  def OrganizationAction(organization: String) = Action andThen organizationAction(organization)
+
+  /**
+    * Ensures a request is authenticated and retrieves and adds a
+    * [[models.user.Organization]] to the request.
+    *
+    * @param organization Organization to retrieve
+    * @return             Authenticated request with Organization if found, NotFound otherwise
+    */
+  def AuthedOrganizationAction(organization: String) = Authenticated andThen authedOrganizationAction(organization)
+
+  /**
+    * A PermissionAction that uses an AuthedOrganizationRequest for the
+    * ScopedRequest.
+    *
+    * @param p  Permission to check
+    * @return   [[AuthedOrganizationRequest]]
+    */
+  def OrganizationPermissionAction(p: Permission) = PermissionAction[AuthedOrganizationRequest](p)
+
+  private def authAction = new ActionRefiner[Request, AuthRequest] {
+    def refine[A](request: Request[A]): Future[Either[Result, AuthRequest[A]]] = Future.successful {
+      users.current(request.session)
+        .map(AuthRequest(_, request))
+        .toRight(onUnauthorized(request))
+    }
+  }
 
   private def projectAction(author: String, slug: String) = new ActionRefiner[Request, ProjectRequest] {
     def refine[A](request: Request[A])
@@ -112,20 +147,29 @@ trait Actions {
     }
   }
 
-  private def authAction = new ActionRefiner[Request, AuthRequest] {
-    def refine[A](request: Request[A]): Future[Either[Result, AuthRequest[A]]] = Future.successful {
-      users.current(request.session)
-        .map(AuthRequest(_, request))
-        .toRight(onUnauthorized(request))
-    }
-  }
-
   private def authedProjectAction(author: String, slug: String)
   = new ActionRefiner[AuthRequest, AuthedProjectRequest] {
     def refine[A](request: AuthRequest[A]) = Future.successful {
-      projects.withSlug(author, slug)
+      Actions.this.projects.withSlug(author, slug)
         .flatMap(processProject(_, Some(request.user)))
         .map(new AuthedProjectRequest[A](_, request))
+        .toRight(NotFound)
+    }
+  }
+
+  private def organizationAction(organization: String) = new ActionRefiner[Request, OrganizationRequest] {
+    def refine[A](request: Request[A]): Future[Either[Result, OrganizationRequest[A]]] = Future.successful {
+      Actions.this.organizations.withName(organization)
+        .map(new OrganizationRequest(_, request))
+        .toRight(NotFound)
+    }
+  }
+
+  private def authedOrganizationAction(organization: String)
+  = new ActionRefiner[AuthRequest, AuthedOrganizationRequest] {
+    def refine[A](request: AuthRequest[A]) = Future.successful {
+      Actions.this.organizations.withName(organization)
+        .map(new AuthedOrganizationRequest[A](_, request))
         .toRight(NotFound)
     }
   }

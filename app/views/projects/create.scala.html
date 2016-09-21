@@ -52,7 +52,7 @@ Page used for uploading and creating new projects.
                             <tr>
                                 <td colspan="2"><strong>@messages("project.owner")</strong></td>
                                 <td>
-                                    @defining(project.owner.organizations) { organizations =>
+                                    @defining(project.owner.ownedOrganizations) { organizations =>
                                         @if(organizations.nonEmpty) {
                                             <select name="owner" form="continue">
                                                 <option value="@project.ownerId" selected>@project.ownerName</option>

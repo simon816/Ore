@@ -20,6 +20,7 @@ class ModelActions[ThisTable <: ModelTable[ThisModel], ThisModel <: Model: TypeT
   /** Model filter alias */
   type Filter = ThisTable => Rep[Boolean]
   type Ordering = ThisTable => ColumnOrdered[_]
+  type Column = ThisTable => Rep[_]
 
   private var associations: Map[Class[_ <: AssociativeTable], ModelAssociation[_]] = Map.empty
 
@@ -76,16 +77,16 @@ class ModelActions[ThisTable <: ModelTable[ThisModel], ThisModel <: Model: TypeT
   // Generic (delegate to service)
 
   def insert(model: ThisModel) = this.service.insert(model)
-  def find(filter: Filter) = this.service.find(modelClass, filter)
-  def count(filter: Filter = null) = this.service.count(modelClass, filter)
+  def find(filter: Filter) = this.service.find(this.modelClass, filter)
+  def count(filter: Filter = null) = this.service.count(this.modelClass, filter)
   def delete(model: ThisModel) = this.service.delete(model)
-  def deleteWhere(filter: Filter) = this.service.deleteWhere(modelClass, filter)
-  def get(id: Int, filter: ThisTable => Rep[Boolean]) = this.service.get(modelClass, id, filter)
+  def deleteWhere(filter: Filter) = this.service.deleteWhere(this.modelClass, filter)
+  def get(id: Int, filter: ThisTable => Rep[Boolean]) = this.service.get(this.modelClass, id, filter)
   def collect(filter: Filter = null, sort: Ordering = null, limit: Int = -1, offset: Int = -1)
-  = this.service.collect(modelClass, filter, sort, limit, offset)
+  = this.service.collect(this.modelClass, filter, sort, limit, offset)
   def filter(filter: Filter, limit: Int = -1, offset: Int = -1)
-  = this.service.filter(modelClass, filter, limit, offset)
+  = this.service.filter(this.modelClass, filter, limit, offset)
   def sorted(sort: Ordering, filter: Filter = null, limit: Int = -1, offset: Int = -1)
-  = this.service.sorted(modelClass, sort, filter, limit, offset)
+  = this.service.sorted(this.modelClass, sort, filter, limit, offset)
 
 }
