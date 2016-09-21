@@ -1,23 +1,22 @@
 @*
 Documentation page within Project overview.
 *@
-@import controllers.project.routes
-@import db.ModelService
-@import forums.DiscourseApi
-@import models.project.{Page, Project}
-@import models.user.User
-@import ore.permission.EditPages
-@import _root_.util.StringUtils.prettifyDate
 @import java.text.NumberFormat
 
+@import _root_.util.StringUtils.prettifyDate
+@import controllers.project.routes
+@import db.ModelService
 @import db.impl.access.UserBase
+@import forums.DiscourseApi
+@import models.project.{Page, Project}
+@import ore.permission.EditPages
 @import ore.{OreConfig, OreEnv}
 @(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi,
-        config: OreConfig, users: UserBase, env: OreEnv)
+        config: OreConfig, userBase: UserBase, env: OreEnv)
 
 @canEditPages = @{
-    users.current.isDefined && (users.current.get can EditPages in model)
+    userBase.current.isDefined && (userBase.current.get can EditPages in model)
 }
 
 @projects.view(model, "#docs") {
@@ -32,7 +31,7 @@ Documentation page within Project overview.
                 <div class="col-md-9">
                     <div class="row">
                         <div class="col-md-12">
-                            @projects.util.editor(
+                            @editor(
                                 saveCall = routes.Pages.save(model.ownerName, model.slug, page.name),
                                 deleteCall = routes.Pages.delete(model.ownerName, model.slug, page.name),
                                 deletable = !page.isHome,
@@ -73,7 +72,11 @@ Documentation page within Project overview.
                     </div>
 
                     <!-- Member list -->
-                    @projects.members.list(model)
+                    @users.memberList(
+                        model = model,
+                        removeCall = routes.Projects.removeMember(model.ownerName, model.slug),
+                        settingsCall = routes.Projects.showSettings(model.ownerName, model.slug)
+                    )
                 </div>
             </div>
         </div>

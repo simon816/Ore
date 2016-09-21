@@ -1,7 +1,7 @@
 package db.impl.action
 
+import db.ModelAction.wrapSeq
 import db._
-import ModelAction.wrapSeq
 import db.impl._
 import db.impl.access.UserBase
 import db.impl.pg.OrePostgresDriver.api._
@@ -9,7 +9,6 @@ import models.project._
 import models.statistic.ProjectView
 import models.user.User
 import ore.project.Categories.Category
-import ore.project.ProjectMember
 import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
 
 import scala.concurrent.ExecutionContext.Implicits.global

@@ -3,17 +3,17 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions
-import db.{ImmutableModelAccess, ModelAccess}
 import db.impl.ModelKeys._
 import db.impl.action.VersionActions
 import db.impl.pg.OrePostgresDriver.api._
 import db.impl.{ChannelTable, OreModel, VersionDownloadsTable, VersionTable}
 import db.meta.Bind
 import db.meta.relation.OneToMany
+import db.{ImmutableModelAccess, ModelAccess}
 import models.statistic.VersionDownload
-import ore.{OreEnv, Visitable}
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
+import ore.{OreEnv, Visitable}
 import org.apache.commons.io.FileUtils
 import play.twirl.api.Html
 import util.StringUtils

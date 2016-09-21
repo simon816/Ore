@@ -9,11 +9,11 @@ import db.impl.pg.OrePostgresDriver.api._
 import form.OreForms
 import forums.{DiscourseApi, DiscourseSSO}
 import models.user.role.RoleModel
-import ore.{OreConfig, OreEnv}
 import ore.notification.InviteFilters.InviteFilter
 import ore.notification.NotificationFilters.NotificationFilter
 import ore.notification.{InviteFilters, NotificationFilters}
 import ore.user.FakeUser
+import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import play.api.mvc.{Security, _}
 import views.{html => views}
@@ -97,7 +97,7 @@ class Users @Inject()(val fakeUser: FakeUser,
       this.users.withName(username) match {
         case None => NotFound
         case Some(user) =>
-          if (user.equals(request.user) || (user.isOrganization && user.toOrganization.owner.equals(user))) {
+          if (user.equals(request.user) || (user.isOrganization && user.toOrganization.owner.user.equals(user))) {
             val tagline = this.forms.UserTagline.bindFromRequest.get.trim
             if (tagline.length > this.config.users.getInt("max-tagline-len").get) {
               Redirect(self.showProjects(user.username, None)).flashing("error" -> "Tagline is too long.")
@@ -118,7 +118,7 @@ class Users @Inject()(val fakeUser: FakeUser,
   def showAuthors(sort: Option[String], page: Option[Int]) = Action { implicit request =>
     val ordering = sort.getOrElse(ORDER_PROJECTS)
     val p = page.getOrElse(1)
-    Ok(views.authors(this.users.getAuthors(ordering, p), ordering, p))
+    Ok(views.users.authors(this.users.getAuthors(ordering, p), ordering, p))
   }
 
   /**

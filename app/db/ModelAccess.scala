@@ -1,7 +1,7 @@
 package db
 
-import db.impl.pg.OrePostgresDriver.api._
 import db.ModelFilter.IdFilter
+import db.impl.pg.OrePostgresDriver.api._
 import slick.lifted.ColumnOrdered
 
 /**

@@ -6,14 +6,13 @@ Versions page within Project overview.
 @import db.impl.access.UserBase
 @import forums.DiscourseApi
 @import models.project.{Channel, Project, Version}
-@import models.user.User
-@import ore.{OreConfig, OreEnv}
 @import ore.permission.{EditChannels, EditVersions}
+@import ore.{OreConfig, OreEnv}
 @import util.StringUtils.prettifyDate
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
   visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session,
         request: RequestHeader, flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig,
-        users: UserBase, env: OreEnv)
+        userBase: UserBase, env: OreEnv)
 
 @projects.view(model, "#versions") {
 
@@ -114,7 +113,7 @@ Versions page within Project overview.
 
                     </div>
                     <div class="col-md-3">
-                        @if(users.current.isDefined && (users.current.get can EditVersions in model)) {
+                        @if(userBase.current.isDefined && (userBase.current.get can EditVersions in model)) {
                             <a href="@projectRoutes.Versions.showCreator(model.ownerName, model.slug)"
                             class="btn btn-block btn-primary btn-version">
                                 <i class="fa fa-plus"></i> New version
@@ -145,7 +144,7 @@ Versions page within Project overview.
                                   </li>
                                 }
 
-                                @if(users.current.isDefined && (users.current.get can EditChannels in model)) {
+                                @if(userBase.current.isDefined && (userBase.current.get can EditChannels in model)) {
                                     <li class="list-group-item text-right">
                                         <a href="@projectRoutes.Channels.showList(model.ownerName, model.slug)">
                                             <i class="fa fa-cog"></i> Edit
@@ -154,7 +153,11 @@ Versions page within Project overview.
                                 }
                             </ul>
                         </div>
-                        @projects.members.list(model)
+                        @users.memberList(
+                            model = model,
+                            removeCall = projectRoutes.Projects.removeMember(model.ownerName, model.slug),
+                            settingsCall = projectRoutes.Projects.showSettings(model.ownerName, model.slug)
+                        )
                     </div>
                 </div>
             </div>

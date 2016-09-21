@@ -1,8 +1,8 @@
 package db.impl.pg
 
+import db.impl.pg.OrePostgresDriver.api._
 import db.meta.TypeSetter
 import db.{Model, ModelService, ModelTable}
-import db.impl.pg.OrePostgresDriver.api._
 import ore.Colors.Color
 import ore.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType

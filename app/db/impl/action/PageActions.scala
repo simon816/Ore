@@ -1,8 +1,8 @@
 package db.impl.action
 
-import db.{ModelActions, ModelService}
-import db.impl.pg.OrePostgresDriver.api._
 import db.impl.PageTable
+import db.impl.pg.OrePostgresDriver.api._
+import db.{ModelActions, ModelService}
 import models.project.Page
 
 import scala.concurrent.Future

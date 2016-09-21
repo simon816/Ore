@@ -12,7 +12,7 @@ import models.user.role.OrganizationRole
 import ore.organization.OrganizationMember
 import ore.permission.scope.{GlobalScope, Scope, ScopeSubject}
 import ore.user.{MembershipDossier, UserOwned}
-import ore.Visitable
+import ore.{Joinable, Visitable}
 
 import scala.annotation.meta.field
 
@@ -37,12 +37,13 @@ case class Organization(override val id: Option[Int] = None,
                         extends OreModel(id, createdAt)
                           with UserOwned
                           with ScopeSubject
-                          with Visitable {
+                          with Visitable
+                          with Joinable[OrganizationMember] {
 
   /**
     * Contains all information for [[User]] memberships.
     */
-  val memberships = new MembershipDossier {
+  override val memberships = new MembershipDossier {
 
     type ModelType = Organization
     type RoleType = OrganizationRole
@@ -63,7 +64,7 @@ case class Organization(override val id: Option[Int] = None,
     *
     * @return User that owns organization
     */
-  def owner: User = this.userBase.get(this.ownerId).get
+  override def owner: OrganizationMember = new OrganizationMember(this, this.ownerId)
 
   /**
     * Returns this Organization as a [[User]].

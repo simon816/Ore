@@ -3,8 +3,8 @@ package db
 import java.sql.Timestamp
 import java.util.Date
 
-import ModelAction._
-import ModelFilter.IdFilter
+import db.ModelAction._
+import db.ModelFilter.IdFilter
 import db.meta.BootstrapTypeSetters._
 import db.meta.ModelProcessor
 import slick.backend.DatabaseConfig

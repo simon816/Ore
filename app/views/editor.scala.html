@@ -5,22 +5,26 @@
 
 @if(enabled) {
     @form(action = saveCall) {
+        <!-- Edit -->
         <button type="button" class="btn btn-sm btn-edit btn-page btn-default">
             <i class="fa fa-edit"></i> @messages("page.edit")
         </button>
 
+        <!-- Preview -->
         <div class="btn-edit-container btn-preview-container">
             <button type="button" class="btn btn-sm btn-preview btn-page btn-default">
                 <i class="fa fa-eye"></i>
             </button>
         </div>
 
+        <!-- Save -->
         <div class="btn-edit-container btn-save-container">
             <button type="submit" class="btn btn-sm btn-save btn-page btn-default">
                 <i class="fa icon-save"></i>
             </button>
         </div>
 
+        <!-- Cancel -->
         @if(cancellable) {
             <div class="btn-edit-container btn-cancel-container">
                 <button type="button" class="btn btn-sm btn-cancel btn-page btn-default">
@@ -29,6 +33,7 @@
             </div>
         }
 
+        <!-- Delete -->
         @if(deletable) {
             <div class="btn-edit-container btn-delete-container">
                 <button type="button" class="btn btn-sm btn-page-delete btn-page btn-default"
@@ -60,13 +65,16 @@
             </div>
         }
 
+        <!-- Edit window -->
         <div class="page-edit" style="display: none ;">
             <textarea name="content" class="form-control">@raw</textarea>
         </div>
 
+        <!-- Preview window -->
         <div class="page-preview page-rendered" style="display: none ;"></div>
 
     }
 }
 
+<!-- Saved window -->
 <div class="page-content page-rendered">@cooked</div>

@@ -31,8 +31,8 @@ abstract class Member[RoleType <: RoleModel](override val userId: Int)(implicit 
 
 object Member {
 
-  implicit def toUser[RoleType <: RoleModel](member: Member[RoleType]): User = member.user
-  implicit def ordering[A <: Member[RoleType], RoleType <: RoleModel]: Ordering[A]
+  implicit def toUser(member: Member[_]): User = member.user
+  implicit def ordering[A <: Member[_ <: RoleModel]]: Ordering[A]
   = Ordering.by(m => (m.headRole, m.username))
 
 }

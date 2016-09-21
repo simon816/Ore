@@ -4,8 +4,8 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions.checkNotNull
 import db.impl.pg.OrePostgresDriver.api._
-import db.meta.relation.{ManyToManyBinding, OneToManyBinding}
 import db.meta.FieldBinding
+import db.meta.relation.{ManyToManyBinding, OneToManyBinding}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}

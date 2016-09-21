@@ -3,9 +3,9 @@ import db.ModelService
 import db.impl.OreModelService
 import forums._
 import forums.impl.{SpongeAuth, SpongeForums}
-import ore.{OreConfig, _}
 import ore.project.factory.{OreProjectFactory, ProjectFactory}
 import ore.rest.{OreRestfulApi, OreRestfulServer}
+import ore.{OreConfig, _}
 import play.api.{Configuration, Environment}
 
 /** The Ore Module */

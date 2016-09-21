@@ -7,9 +7,9 @@ import controllers.project.routes.{Channels => self}
 import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
-import ore.{OreConfig, OreEnv}
 import ore.permission.EditChannels
 import ore.project.factory.ProjectFactory
+import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import views.html.projects.{channels => views}
 

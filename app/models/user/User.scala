@@ -3,7 +3,6 @@ package models.user
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.{ImmutableModelAccess, ModelAccess}
 import db.impl.ModelKeys._
 import db.impl._
 import db.impl.access.{FlagBase, OrganizationBase, UserBase, VersionBase}
@@ -11,6 +10,7 @@ import db.impl.action.{ProjectActions, UserActions}
 import db.impl.pg.OrePostgresDriver.api._
 import db.meta._
 import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
+import db.{ImmutableModelAccess, ModelAccess}
 import models.project.{Flag, Project}
 import models.user.role.{OrganizationRole, ProjectRole}
 import ore.Visitable
@@ -251,8 +251,8 @@ case class User(override val id: Option[Int] = None,
     *
     * @return True if currently authenticated user
     */
-  def isCurrent(implicit session: Session): Boolean = this.service.access(classOf[UserBase]).current.forall { user =>
-    user.equals(this) || (this.isOrganization && this.toOrganization.owner.equals(user))
+  def isCurrent(implicit session: Session): Boolean = this.service.access(classOf[UserBase]).current.exists { user =>
+    user.equals(this) || (this.isOrganization && this.toOrganization.owner.user.equals(user))
   }
 
   /**

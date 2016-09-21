@@ -9,11 +9,11 @@ import controllers.routes.{Application => app}
 import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
-import ore.{OreConfig, OreEnv, StatTracker}
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
 import ore.project.factory.ProjectFactory
 import ore.project.io.InvalidPluginFileException
+import ore.{OreConfig, OreEnv, StatTracker}
 import org.apache.commons.io.FileUtils
 import play.api.i18n.MessagesApi
 import play.api.mvc._
@@ -105,7 +105,7 @@ class Projects @Inject()(val stats: StatTracker,
         case None => Redirect(self.showCreator())
         case Some(pendingProject) =>
           this.forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.project)
-          Ok(views.members.config(pendingProject))
+          Ok(views.invite(pendingProject))
       }
     }
   }

@@ -11,10 +11,10 @@ import db.impl.pg.OrePostgresDriver.api._
 import form.OreForms
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
-import ore.{OreConfig, OreEnv, StatTracker}
 import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.factory.{PendingProject, ProjectFactory}
 import ore.project.io.{InvalidPluginFileException, PluginFile}
+import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.i18n.MessagesApi
 import play.api.mvc.Result
 import util.StringUtils.equalsIgnoreCase

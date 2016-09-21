@@ -10,8 +10,8 @@ import db.impl.pg.OrePostgresDriver.api._
 import db.{ModelBase, ModelService}
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
-import ore.{OreConfig, OreEnv}
 import ore.project.io.ProjectFileManager
+import ore.{OreConfig, OreEnv}
 import org.apache.commons.io.FileUtils
 
 class ProjectBase(override val service: ModelService,

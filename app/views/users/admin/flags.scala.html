@@ -1,9 +1,8 @@
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
-@import db.impl.access.ProjectBase
+@import db.impl.access.{ProjectBase, UserBase}
 @import forums.DiscourseApi
 @import models.project.Flag
-@import db.impl.access.UserBase
 @import ore.{OreConfig, OreEnv}
 @(flags: Seq[Flag])(implicit messages: Messages, session: Session, request: RequestHeader,
         service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, projectBase: ProjectBase,
@@ -53,7 +52,7 @@
                                 <a target="_blank" href="https://forums.spongepowered.org/users/@flag.project.ownerName" class="btn btn-default">
                                     <i class="fa fa-reply"></i> Message project owner
                                 </a>
-                                @projects.util.btnHide(flag.project)
+                                @projects.utils.btnHide(flag.project)
                                 <button type="submit" class="btn btn-primary btn-resolve">
                                     <i class="fa fa-check"></i> <strong>Mark resolved</strong>
                                 </button>

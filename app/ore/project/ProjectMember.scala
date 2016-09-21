@@ -2,7 +2,6 @@ package ore.project
 
 import com.google.common.base.{MoreObjects, Objects}
 import db.impl.access.UserBase
-import db.impl.pg.OrePostgresDriver.api._
 import models.project.Project
 import models.user.role.ProjectRole
 import ore.permission.scope.Scope
@@ -33,6 +32,6 @@ class ProjectMember(val project: Project, override val userId: Int)(implicit use
 
 object ProjectMember {
 
-  implicit def ordering[A <: ProjectMember] = Member.ordering[A, ProjectRole]
+  implicit def ordering[A <: ProjectMember] = Member.ordering[A]
 
 }

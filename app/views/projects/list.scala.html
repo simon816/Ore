@@ -3,9 +3,9 @@ Collection of all projects.
 *@
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
+@import db.impl.access.UserBase
 @import forums.DiscourseApi
 @import models.project.Project
-@import db.impl.access.UserBase
 @import ore.{OreConfig, OreEnv}
 @(models: Seq[Project], page: Int, pageSize: Int, call: Int => Call)(implicit messages: Messages, session: Session,
         flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)

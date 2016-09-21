@@ -1,15 +1,15 @@
 package db.impl.pg
 
 import com.github.tminglei.slickpg._
+import ore.Colors
 import ore.Colors.Color
+import ore.notification.NotificationTypes
 import ore.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import ore.project.{Categories, FlagReasons}
-import ore.Colors
-import ore.notification.NotificationTypes
 
 /**
   * Custom Postgres driver to support array data and custom type mappings.

@@ -7,8 +7,8 @@ import db.impl.ModelKeys._
 import db.impl.action.PageActions
 import db.impl.{OreModel, PageTable}
 import db.meta.Bind
-import ore.{OreConfig, Visitable}
 import ore.permission.scope.ProjectScope
+import ore.{OreConfig, Visitable}
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
 import play.twirl.api.Html

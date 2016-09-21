@@ -26,7 +26,7 @@ class Organizations @Inject()(forms: OreForms,
     * @return Organization creation panel
     */
   def showCreator() = Authenticated { implicit request =>
-    Ok(views.organizations.create())
+    Ok(views.createOrganization())
   }
 
   /**

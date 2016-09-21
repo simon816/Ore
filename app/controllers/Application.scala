@@ -4,18 +4,18 @@ import javax.inject.Inject
 
 import controllers.Requests.AuthRequest
 import controllers.routes.{Application => self}
-import db.{ModelFilter, ModelService}
 import db.impl.access.{FlagBase, VersionBase}
 import db.impl.action.ProjectActions
 import db.impl.pg.OrePostgresDriver.api._
 import db.impl.{FlagTable, ProjectTable}
+import db.{ModelFilter, ModelService}
 import forums.DiscourseApi
 import models.project.{Flag, Project}
-import ore.{OreConfig, OreEnv}
 import ore.permission._
 import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
+import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.DataHelper
@@ -80,7 +80,7 @@ class Application @Inject()(data: DataHelper,
     */
   def showQueue() = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) { implicit request =>
-      Ok(views.admin.queue(this.service.access(classOf[VersionBase]).notReviewed.map(v => (v.project, v))))
+      Ok(views.users.admin.queue(this.service.access(classOf[VersionBase]).notReviewed.map(v => (v.project, v))))
     }
   }
 
@@ -90,7 +90,7 @@ class Application @Inject()(data: DataHelper,
     * @return Flag overview
     */
   def showFlags() = FlagAction { implicit request =>
-    Ok(views.admin.flags(this.service.access(classOf[FlagBase]).unresolved))
+    Ok(views.users.admin.flags(this.service.access(classOf[FlagBase]).unresolved))
   }
 
   /**

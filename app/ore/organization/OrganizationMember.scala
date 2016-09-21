@@ -1,7 +1,6 @@
 package ore.organization
 
 import db.impl.access.UserBase
-import db.impl.pg.OrePostgresDriver.api._
 import models.user.Organization
 import models.user.role.OrganizationRole
 import ore.permission.scope.Scope
@@ -24,6 +23,6 @@ class OrganizationMember(val organization: Organization, override val userId: In
 
 object OrganizationMember {
 
-  implicit def ordering[A <: OrganizationMember] = Member.ordering[A, OrganizationRole]
+  implicit def ordering[A <: OrganizationMember] = Member.ordering[A]
 
 }

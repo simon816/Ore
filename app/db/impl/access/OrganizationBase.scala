@@ -3,8 +3,8 @@ package db.impl.access
 import db.impl.OrganizationTable
 import db.{ModelBase, ModelService}
 import forums.DiscourseApi
-import models.user.{Notification, Organization}
 import models.user.role.OrganizationRole
+import models.user.{Notification, Organization, User}
 import ore.OreConfig
 import ore.notification.NotificationTypes
 import ore.permission.role.RoleTypes
@@ -18,7 +18,7 @@ class OrganizationBase(override val service: ModelService,
                        messages: MessagesApi)
                        extends ModelBase[OrganizationTable, Organization] {
 
-  import this.service.await
+  import service.await
 
   override val modelClass = classOf[Organization]
 
@@ -56,7 +56,7 @@ class OrganizationBase(override val service: ModelService,
     userOrg.globalRoles = userOrg.globalRoles + RoleTypes.Organization
 
     // Invite members
-    val owner = org.owner
+    val owner: User = org.owner
     val dossier = org.memberships
     dossier.addRole(OrganizationRole(
       userId = owner.id.get,

@@ -1,14 +1,14 @@
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
+@import db.impl.access.UserBase
 @import forums.DiscourseApi
 @import models.project.Project
 @import ore.permission.HideProjects
 @import ore.permission.scope.GlobalScope
-@import views.html.helper.form
-@import db.impl.access.UserBase
 @import ore.{OreConfig, OreEnv}
+@import views.html.helper.form
 @(project: Project)(implicit messages: Messages, session: Session, flash: Flash,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
+        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, userBase: UserBase,
         env: OreEnv)
 
 @projects.view(project, "#settings") {
@@ -30,14 +30,14 @@
                 <div class="panel panel-default panel-settings">
                     <div class="panel-heading">
                         <h3 class="panel-title pull-left">@messages("project.settings")</h3>
-                        @if(users.current.get can HideProjects in GlobalScope) {
-                            @projects.util.btnHide(project, "pull-right")
+                        @if(userBase.current.get can HideProjects in GlobalScope) {
+                            @projects.utils.btnHide(project, "pull-right")
                         }
                         <div class="clearfix"></div>
                     </div>
 
                     <div class="panel-body">
-                        @projects.util.inputSettings("save", project.issues, project.source, Some(project.category))
+                        @projects.utils.inputSettings("save", project.issues, project.source, Some(project.category))
 
                         <!-- Description -->
                         <label for="description">Project description</label>
@@ -153,7 +153,12 @@
                 <div class="alert alert-danger" role="alert" @if(flash.get("error").isEmpty) { style="display: none;" }>
                     <strong>Whoops!</strong> <span>@flash.get("error").getOrElse("")</span>
                 </div>
-                @projects.members.list(project, editable = true)
+                @users.memberList(
+                    model = project,
+                    editable = true,
+                    removeCall = projectRoutes.removeMember(project.ownerName, project.slug),
+                    settingsCall = projectRoutes.showSettings(project.ownerName, project.slug)
+                )
             </div>
         </div>
     </div>

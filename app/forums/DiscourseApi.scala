@@ -4,9 +4,7 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 
-import akka.actor.ActorSystem
 import models.user.User
-import ore.OreConfig
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 import play.api.Logger

@@ -24,7 +24,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
                                 config: OreConfig,
                                 implicit val env: OreEnv) {
 
-  import api.{FatalForumErrorException, validate, sync}
+  import api.{FatalForumErrorException, sync, validate}
   import config.debug
 
   /**

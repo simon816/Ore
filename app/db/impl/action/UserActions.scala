@@ -1,8 +1,8 @@
 package db.impl.action
 
-import db.{ModelActions, ModelService}
 import db.impl.pg.OrePostgresDriver.api._
 import db.impl.{ProjectRoleTable, UserTable}
+import db.{ModelActions, ModelService}
 import models.user.User
 import models.user.role.ProjectRole
 

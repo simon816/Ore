@@ -1,8 +1,8 @@
 @import db.ModelService
-@import forums.DiscourseApi
-@import views.html.helper.form
 @import db.impl.access.UserBase
+@import forums.DiscourseApi
 @import ore.{OreConfig, OreEnv}
+@import views.html.helper.form
 @()(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader, service: ModelService,
         forums: DiscourseApi, config: OreConfig, userBase: UserBase, env: OreEnv)
 
@@ -34,7 +34,7 @@
                             <i class="fa fa-spinner fa-spin status-org-name" style="display: none;"></i>
                         }
 
-                        @users.list(owner = userBase.current.get)
+                        @users.invite.form(owner = userBase.current.get)
 
                         <button title="Continue" type="submit" name="create" form="form-continue"
                                 value="@messages("org.create.continue")"

@@ -18,10 +18,10 @@ import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import ore.project.{Categories, ProjectMember}
-import ore.{OreEnv, Visitable}
 import ore.user.MembershipDossier
-import util.StringUtils.{compact, slugify}
+import ore.{Joinable, OreEnv, Visitable}
 import util.StringUtils
+import util.StringUtils.{compact, slugify}
 
 import scala.annotation.meta.field
 
@@ -73,7 +73,8 @@ case class Project(override val id: Option[Int] = None,
                    @(Bind @field) private var _lastUpdated: Timestamp = null)
                    extends OreModel(id, createdAt)
                      with ProjectScope
-                     with Visitable {
+                     with Visitable
+                     with Joinable[ProjectMember] {
 
   override type M = Project
   override type T = ProjectTable
@@ -82,7 +83,7 @@ case class Project(override val id: Option[Int] = None,
   /**
     * Contains all information for [[User]] memberships.
     */
-  val memberships = new MembershipDossier {
+  override val memberships = new MembershipDossier {
 
     type ModelType = Project
     type RoleType = ProjectRole
@@ -122,7 +123,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Owner Member of project
     */
-  def owner: ProjectMember = new ProjectMember(this, this.ownerId)
+  override def owner: ProjectMember = new ProjectMember(this, this.ownerId)
 
   /**
     * Sets the [[User]] that owns this Project.

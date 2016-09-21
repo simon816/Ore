@@ -1,8 +1,8 @@
 package db.impl.action
 
-import db.{ModelActions, ModelFilter, ModelService}
 import db.impl.pg.OrePostgresDriver.api._
 import db.impl.{VersionDownloadsTable, VersionTable}
+import db.{ModelActions, ModelFilter, ModelService}
 import models.project.Version
 import models.statistic.VersionDownload
 
