@@ -1,13 +1,12 @@
 @*
 Collection of all projects.
 *@
-@import _root_.util.OreConfig
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
 @import models.project.Project
-@import _root_.util.OreEnv
 @import db.impl.access.UserBase
+@import ore.{OreConfig, OreEnv}
 @(models: Seq[Project], page: Int, pageSize: Int, call: Int => Call)(implicit messages: Messages, session: Session,
         flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
 

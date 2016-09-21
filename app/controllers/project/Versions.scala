@@ -11,14 +11,13 @@ import db.impl.pg.OrePostgresDriver.api._
 import form.OreForms
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
-import ore.StatTracker
+import ore.{OreConfig, OreEnv, StatTracker}
 import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.factory.{PendingProject, ProjectFactory}
 import ore.project.io.{InvalidPluginFileException, PluginFile}
 import play.api.i18n.MessagesApi
 import play.api.mvc.Result
 import util.StringUtils.equalsIgnoreCase
-import util.{OreConfig, OreEnv}
 import views.html.projects.{versions => views}
 
 import scala.util.{Failure, Success}
@@ -200,7 +199,7 @@ class Versions @Inject()(val stats: StatTracker,
                   val channelName: String = project.channels.all.head.name
 
                   // Cache for later use
-                  this.factory.setVersionPending(author, slug, channelName, version, plugin)
+                  this.factory.setVersionPending(project, channelName, version, plugin)
                   Redirect(self.showCreatorWithMeta(author, slug, version.versionString))
                 }
               }
@@ -220,12 +219,15 @@ class Versions @Inject()(val stats: StatTracker,
   def showCreatorWithMeta(author: String, slug: String, versionString: String) = {
     Authenticated { implicit request =>
       // Get pending version
-      this.factory.getPendingVersion(author, slug, versionString) match {
-        case None => Redirect(self.showCreator(author, slug))
+      val username = request.user.name
+      this.factory.getPendingVersion(username, slug, versionString) match {
+        case None =>
+          Redirect(self.showCreator(author, slug))
         case Some(pendingVersion) =>
           // Get project
-          pendingOrReal(author, slug) match {
-            case None => Redirect(self.showCreator(author, slug))
+          pendingOrReal(username, slug) match {
+            case None =>
+              Redirect(self.showCreator(author, slug))
             case Some(p) => p match {
               case pending: PendingProject =>
                 Ok(views.create(pending.project, Some(pendingVersion), None, showFileControls = false))
@@ -257,7 +259,8 @@ class Versions @Inject()(val stats: StatTracker,
   def publish(author: String, slug: String, versionString: String) = {
     Authenticated { implicit request =>
       // First get the pending Version
-      this.factory.getPendingVersion(author, slug, versionString) match {
+      val username = request.user.name
+      this.factory.getPendingVersion(username, slug, versionString) match {
         case None =>
           // Not found
           Redirect(self.showCreator(author, slug))
@@ -276,7 +279,7 @@ class Versions @Inject()(val stats: StatTracker,
               pendingVersion.channelColor = versionData.color
 
               // Check for pending project
-              this.factory.getPendingProject(author, slug) match {
+              this.factory.getPendingProject(username, slug) match {
                 case None =>
                   // No pending project, create version for existing project
                   withProject(author, slug) { project =>

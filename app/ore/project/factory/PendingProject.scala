@@ -4,8 +4,9 @@ import db.impl.access.ProjectBase
 import models.project.Project
 import ore.project.io.PluginFile
 import models.user.role.ProjectRole
+import ore.{Cacheable, OreConfig}
 import play.api.cache.CacheApi
-import util.{Cacheable, OreConfig, PendingAction}
+import util.PendingAction
 
 import scala.util.Try
 
@@ -31,13 +32,14 @@ case class PendingProject(projects: ProjectBase,
     */
   val pendingVersion: PendingVersion = {
     val version = this.factory.versionFromFile(this.project, this.file)
-    this.factory.setVersionPending(project.ownerName, project.slug,
-      this.config.getSuggestedNameForVersion(version.versionString), version, this.file)
+    this.factory.setVersionPending(this.project, this.config.getSuggestedNameForVersion(version.versionString), version,
+      this.file)
   }
 
   override def complete: Try[Project] = Try {
     free()
     val newProject = this.factory.createProject(this).get
+    this.pendingVersion.project = newProject
     val newVersion = this.factory.createVersion(this.pendingVersion).get
     newProject.recommendedVersion = newVersion
     newProject

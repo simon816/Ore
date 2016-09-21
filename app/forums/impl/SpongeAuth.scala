@@ -5,7 +5,7 @@ import javax.inject.Inject
 import db.ModelService
 import db.impl.access.UserBase
 import forums.{DiscourseApi, DiscourseSSO}
-import util.OreConfig
+import ore.OreConfig
 
 /**
   * Sponge forums authentication service.

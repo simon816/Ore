@@ -1,4 +1,4 @@
-package util
+package ore
 
 import play.api.cache.CacheApi
 

@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import db.Model
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import forums.DiscourseApi
-import util.OreConfig
+import ore.OreConfig
 
 /** An Ore Model */
 abstract class OreModel(override val id: Option[Int],

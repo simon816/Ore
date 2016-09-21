@@ -50,7 +50,6 @@ $(function() {
         fileName = fileName.substr(fileName.lastIndexOf('\\') + 1, fileName.length);
         alert.find('.file-name').text(fileName);
         alert.find('.file-size').text(filesize(this.files[0].size));
-        console.log(alert);
         alert.fadeIn('slow');
     });
 

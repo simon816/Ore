@@ -1,6 +1,6 @@
 package form.project
 
-import util.OreConfig
+import ore.OreConfig
 
 /**
   * Represents submitted [[models.project.Version]] data.

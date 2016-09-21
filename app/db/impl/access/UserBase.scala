@@ -7,8 +7,8 @@ import db.impl.action.ProjectActions
 import db.{ModelBase, ModelService}
 import forums.DiscourseApi
 import models.user.User
+import ore.OreConfig
 import play.api.mvc.Session
-import util.OreConfig
 import util.StringUtils._
 
 /**

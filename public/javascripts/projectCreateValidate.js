@@ -57,7 +57,6 @@ function checkName(name, idSuccess, owner, slug) {
         statusCode: {
             404: function() {
                 success('.name-status', function() {
-                    console.log('name checked');
                     updateContinueButton(idSuccess, true);
                 });
             },

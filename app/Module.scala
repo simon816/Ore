@@ -3,11 +3,10 @@ import db.ModelService
 import db.impl.OreModelService
 import forums._
 import forums.impl.{SpongeAuth, SpongeForums}
-import ore._
+import ore.{OreConfig, _}
 import ore.project.factory.{OreProjectFactory, ProjectFactory}
 import ore.rest.{OreRestfulApi, OreRestfulServer}
 import play.api.{Configuration, Environment}
-import util.OreConfig
 
 /** The Ore Module */
 class Module(environment: Environment, configuration: Configuration) extends AbstractModule {

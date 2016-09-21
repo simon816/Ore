@@ -4,7 +4,7 @@ import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import db.meta.ModelProcessor
 import db.{Model, ModelService, ModelTable}
 import forums.DiscourseApi
-import util.OreConfig
+import ore.OreConfig
 
 import scala.reflect.runtime.universe._
 

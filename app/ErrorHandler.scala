@@ -1,10 +1,10 @@
 import javax.inject._
 
 import _root_.db.ModelService
-import _root_.util.{OreConfig, OreEnv}
 import _root_.forums.DiscourseApi
 import play.api._
 import _root_.db.impl.access.{ProjectBase, UserBase}
+import ore.{OreConfig, OreEnv}
 import play.api.http.DefaultHttpErrorHandler
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Results._

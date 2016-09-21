@@ -4,7 +4,7 @@ import java.nio.file.Files._
 import java.nio.file.Path
 
 import models.project.Project
-import util.OreEnv
+import ore.OreEnv
 
 import scala.collection.JavaConverters._
 import scala.util.Try

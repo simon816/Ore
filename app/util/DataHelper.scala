@@ -10,6 +10,7 @@ import db.impl.access.{ProjectBase, UserBase}
 import forums.{DisabledDiscourseApi, DiscourseApi}
 import models.project.Channel
 import models.user.User
+import ore.OreConfig
 import ore.project.Categories
 import ore.project.factory.{PendingProject, PendingVersion, ProjectFactory}
 import org.apache.commons.io.FileUtils
@@ -114,8 +115,7 @@ final class DataHelper @Inject()(config: OreConfig,
             PendingVersion(
               projects = this.projects,
               factory = this.factory,
-              owner = user.username,
-              projectSlug = project.slug,
+              project = project,
               channelName = channel.name,
               channelColor = this.config.defaultChannelColor,
               version = version,

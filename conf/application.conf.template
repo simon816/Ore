@@ -59,7 +59,7 @@ ore.users.author-page-size  =   25
 ore.users.project-page-size =   5
 
 ore.orgs.passwordLength     =   60
-ore.orgs.dummyEmailDomain   =   "spongepowered.org"
+ore.orgs.dummyEmailDomain   =   "ore.spongepowered.org"
 ore.orgs.groupId            =   64
 
 

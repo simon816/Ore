@@ -9,7 +9,7 @@ import controllers.routes.{Application => app}
 import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
-import ore.StatTracker
+import ore.{OreConfig, OreEnv, StatTracker}
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
 import ore.project.factory.ProjectFactory
@@ -18,7 +18,6 @@ import org.apache.commons.io.FileUtils
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.StringUtils._
-import util.{OreConfig, OreEnv}
 import views.html.{projects => views}
 
 import scala.util.{Failure, Success}
@@ -94,13 +93,13 @@ class Projects @Inject()(val stats: StatTracker,
   }
 
   /**
-    * Shows the members configuration page during Project creation.
+    * Shows the members invitation page during Project creation.
     *
     * @param author   Project owner
     * @param slug     Project slug
     * @return         View of members config
     */
-  def showMembersConfig(author: String, slug: String) = {
+  def showInvitationForm(author: String, slug: String) = {
     Authenticated { implicit request =>
       this.factory.getPendingProject(author, slug) match {
         case None => Redirect(self.showCreator())
@@ -121,8 +120,9 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def showFirstVersionCreator(author: String, slug: String) = {
     Authenticated { implicit request =>
-      this.factory.getPendingProject(author, slug) match {
-        case None => Redirect(self.showCreator())
+      this.factory.getPendingProject(request.user.name, slug) match {
+        case None =>
+          Redirect(self.showCreator())
         case Some(pendingProject) =>
           pendingProject.roles = this.forms.ProjectMemberRoles.bindFromRequest.get.build()
           val pendingVersion = pendingProject.pendingVersion

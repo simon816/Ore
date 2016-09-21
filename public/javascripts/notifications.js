@@ -19,7 +19,6 @@ function markRead(notification) {
 function replyToInvite(invite, reply, success, error) {
     var url = invite.data('type') === 'project' ? '' : 'organizations';
     url += '/invite/' + invite.data('id') + '/' + reply;
-    console.log(url);
     $.ajax({
         url: url,
         success: success,

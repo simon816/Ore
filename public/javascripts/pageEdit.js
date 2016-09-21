@@ -13,8 +13,6 @@ $(function() {
         }
     });
 
-    console.log(PROJECT_SLUG);
-
     $('#continue-page').click(function() {
         var url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/pages/' + $('#page-name').val() + '/edit'
         go(url);

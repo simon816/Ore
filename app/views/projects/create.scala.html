@@ -1,14 +1,13 @@
 @*
 Page used for uploading and creating new projects.
 *@
-@import _root_.util.OreConfig
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
 @import play.twirl.api.Html
 @import views.html.helper.form
-@import _root_.util.OreEnv
 @import db.impl.access.UserBase
+@import ore.{OreConfig, OreEnv}
 @import ore.project.factory.PendingProject
 @(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
@@ -39,6 +38,7 @@ Page used for uploading and creating new projects.
             @defining(pending.get.project) { project =>
                 <div class="plugin-meta">
                     <i class="minor">mcmod.info</i>
+
                     <table class="plugin-meta-table">
                         <tbody>
                             <tr>
@@ -51,7 +51,18 @@ Page used for uploading and creating new projects.
                             </tr>
                             <tr>
                                 <td colspan="2"><strong>@messages("project.owner")</strong></td>
-                                <td>@project.ownerName</td>
+                                <td>
+                                    @defining(project.owner.organizations) { organizations =>
+                                        @if(organizations.nonEmpty) {
+                                            <select name="owner" form="continue">
+                                                <option value="@project.ownerId" selected>@project.ownerName</option>
+                                                @organizations.all.map { organization =>
+                                                  <option value="@organization.id.get">@organization.name</option>
+                                                }
+                                            </select>
+                                        }
+                                    }
+                                </td>
                             </tr>
                             <tr>
                                 <td colspan="2">
@@ -99,7 +110,7 @@ Page used for uploading and creating new projects.
             @* Continue to next step *@
             @if(pending.isDefined) {
                 @defining(pending.get.project) { project =>
-                    @form(action = projectRoutes.showMembersConfig(project.ownerName, project.slug),
+                    @form(action = projectRoutes.showInvitationForm(project.ownerName, project.slug),
                         'id -> "continue", 'class -> "pull-right") {
 
                         <div class="btn-group">

@@ -11,6 +11,7 @@ import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.role.ProjectRole
 import models.user.{Notification, User}
+import ore.OreConfig
 import ore.notification.NotificationTypes
 import ore.permission.role.RoleTypes
 import ore.project.NotifyWatchersTask
@@ -19,7 +20,6 @@ import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.cache.CacheApi
 import play.api.i18n.MessagesApi
 import play.api.libs.Files.TemporaryFile
-import util.OreConfig
 import util.StringUtils._
 
 import scala.collection.JavaConverters._
@@ -145,19 +145,16 @@ trait ProjectFactory {
   /**
     * Marks the specified Version as pending and caches it for later use.
     *
-    * @param owner    Name of owner
-    * @param slug     Project slug
+    * @param project  Project version belongs to
     * @param channel  Name of channel
     * @param version  Name of version
     * @param plugin   Uploaded plugin
     */
-  def setVersionPending(owner: String, slug: String, channel: String,
-                        version: Version, plugin: PluginFile): PendingVersion = {
+  def setVersionPending(project: Project, channel: String, version: Version, plugin: PluginFile): PendingVersion = {
     val pending = PendingVersion(
       projects = this.projects,
       factory = this,
-      owner = owner,
-      projectSlug = slug,
+      project = project,
       channelName = channel,
       channelColor = this.config.defaultChannelColor,
       version = version,
@@ -221,7 +218,7 @@ trait ProjectFactory {
     */
   def createVersion(pending: PendingVersion): Try[Version] = Try {
     var channel: Channel = null
-    val project = this.projects.withSlug(pending.owner, pending.projectSlug).get
+    val project = pending.project
 
     // Create channel if not exists
     project.channels.find(equalsIgnoreCase(_.name, pending.channelName)) match {

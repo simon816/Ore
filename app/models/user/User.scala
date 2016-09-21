@@ -35,9 +35,10 @@ import scala.annotation.meta.field
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
 @ManyToManyCollection(Array(new ManyToMany(modelClass = classOf[Project], tableClass = classOf[ProjectWatchersTable])))
-@OneToMany(
-  Array(classOf[Project], classOf[ProjectRole], classOf[OrganizationRole], classOf[Flag], classOf[Notification])
-)
+@OneToMany(Array(
+  classOf[Project], classOf[ProjectRole], classOf[OrganizationRole], classOf[Flag], classOf[Notification],
+  classOf[Organization]
+))
 case class User(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
                 @(Bind @field) private var _name: Option[String] = None,
@@ -246,23 +247,6 @@ case class User(override val id: Option[Int] = None,
   }
 
   /**
-    * Returns true if this User is also an organization.
-    *
-    * @return True if organization
-    */
-  def isOrganization: Boolean = this.service.access(classOf[OrganizationBase]).exists(_.id === this.id.get)
-
-  /**
-    * Converts this User to an [[Organization]].
-    *
-    * @return Organization
-    */
-  def toOrganization: Organization = {
-    this.service.access(classOf[OrganizationBase]).get(this.id.get)
-      .getOrElse(throw new IllegalStateException("user is not an organization"))
-  }
-
-  /**
     * Returns true if this User is the currently authenticated user.
     *
     * @return True if currently authenticated user
@@ -313,12 +297,36 @@ case class User(override val id: Option[Int] = None,
   def projectRoles = ImmutableModelAccess(this.oneToMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole]))
 
   /**
+    * Returns the [[Organization]]s that this User owns.
+    *
+    * @return Organizations user owns
+    */
+  def organizations = ImmutableModelAccess(this.oneToMany[OrganizationTable, Organization](classOf[Organization]))
+
+  /**
     * Returns a [[ModelAccess]] of [[OrganizationRole]]s.
     *
     * @return OrganizationRoles
     */
   def organizationRoles
   = ImmutableModelAccess(this.oneToMany[OrganizationRoleTable, OrganizationRole](classOf[OrganizationRole]))
+
+  /**
+    * Returns true if this User is also an organization.
+    *
+    * @return True if organization
+    */
+  def isOrganization: Boolean = this.service.access(classOf[OrganizationBase]).exists(_.id === this.id.get)
+
+  /**
+    * Converts this User to an [[Organization]].
+    *
+    * @return Organization
+    */
+  def toOrganization: Organization = {
+    this.service.access(classOf[OrganizationBase]).get(this.id.get)
+      .getOrElse(throw new IllegalStateException("user is not an organization"))
+  }
 
   /**
     * Returns the [[Project]]s that this User is watching.

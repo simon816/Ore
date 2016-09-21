@@ -11,8 +11,8 @@ import models.project.Project
 import models.user.role.OrganizationRole
 import ore.organization.OrganizationMember
 import ore.permission.scope.{GlobalScope, Scope, ScopeSubject}
-import ore.user.UserOwned
-import ore.{MembershipDossier, Visitable}
+import ore.user.{MembershipDossier, UserOwned}
+import ore.Visitable
 
 import scala.annotation.meta.field
 

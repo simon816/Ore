@@ -4,9 +4,9 @@ import db.ModelService
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.{Project, Version}
+import ore.{OreConfig, OreEnv}
 import play.api.i18n.I18nSupport
 import play.api.mvc._
-import util.{OreConfig, OreEnv}
 import util.StringUtils.equalsIgnoreCase
 
 /**

@@ -6,8 +6,8 @@ import db.ModelService
 import db.impl.access.OrganizationBase
 import form.OreForms
 import forums.DiscourseApi
+import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
-import util.{OreConfig, OreEnv}
 import views.{html => views}
 
 /**

@@ -5,11 +5,11 @@ import db.impl.access.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.Project
 import models.user.Notification
+import ore.OreConfig
 import ore.notification.NotificationTypes
 import ore.permission.role.RoleTypes
 import ore.project.Categories
 import play.api.i18n.MessagesApi
-import util.OreConfig
 import util.StringUtils._
 
 /**
@@ -24,7 +24,8 @@ case class ProjectSettings(categoryName: String,
                            override val roles: List[String],
                            userUps: List[String],
                            roleUps: List[String],
-                           updateIcon: Boolean)
+                           updateIcon: Boolean,
+                           ownerId: Option[Int])
                            extends TProjectRoleSetBuilder {
 
   /**
@@ -38,6 +39,8 @@ case class ProjectSettings(categoryName: String,
     project.issues = nullIfEmpty(this.issues)
     project.source = nullIfEmpty(this.source)
     project.description = nullIfEmpty(this.description)
+
+    this.ownerId.find(_ != project.ownerId).foreach(ownerId => project.owner = users.get(ownerId).get)
 
     if (this.updateIcon)
       projects.savePendingIcon(project)

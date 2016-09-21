@@ -15,6 +15,7 @@ import models.project.Channel
 import models.user.role.OrganizationRole
 import models.user.{Notification, Organization}
 import ore.Colors.Color
+import ore.{OreConfig, OreEnv}
 import ore.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
@@ -22,7 +23,6 @@ import ore.project.FlagReasons.FlagReason
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.i18n.MessagesApi
 import slick.driver.JdbcProfile
-import util.{OreConfig, OreEnv}
 
 import scala.concurrent.duration.Duration
 

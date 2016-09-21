@@ -6,12 +6,12 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import models.user.User
+import ore.OreConfig
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 import play.api.Logger
 import play.api.libs.json.JsObject
 import play.api.libs.ws.{WSClient, WSResponse}
-import util.OreConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration

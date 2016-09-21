@@ -5,11 +5,12 @@ import db.{ModelBase, ModelService}
 import forums.DiscourseApi
 import models.user.{Notification, Organization}
 import models.user.role.OrganizationRole
+import ore.OreConfig
 import ore.notification.NotificationTypes
 import ore.permission.role.RoleTypes
 import org.apache.commons.lang3.RandomStringUtils
 import play.api.i18n.MessagesApi
-import util.{CryptoUtils, OreConfig, StringUtils}
+import util.{CryptoUtils, StringUtils}
 
 class OrganizationBase(override val service: ModelService,
                        forums: DiscourseApi,
@@ -53,7 +54,6 @@ class OrganizationBase(override val service: ModelService,
     // Initialize user companion
     val userOrg = org.toUser
     userOrg.globalRoles = userOrg.globalRoles + RoleTypes.Organization
-    userOrg.toOrganization
 
     // Invite members
     val owner = org.owner
@@ -64,11 +64,9 @@ class OrganizationBase(override val service: ModelService,
       _roleType = RoleTypes.OrganizationOwner,
       _isAccepted = true)
     )
-
     for (role <- members) {
-      val user = role.user
       dossier.addRole(role.copy(organizationId = org.id.get))
-      user.sendNotification(Notification(
+      role.user.sendNotification(Notification(
         originId = org.id.get,
         notificationType = NotificationTypes.OrganizationInvite,
         message = this.messages("notification.organization.invite", role.roleType.title, org.username)

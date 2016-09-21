@@ -2,7 +2,7 @@ package form.project
 
 import models.project.{Channel, Project}
 import ore.Colors.Color
-import util.OreConfig
+import ore.OreConfig
 
 /**
   * Represents submitted [[Channel]] data.

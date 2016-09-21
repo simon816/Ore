@@ -1,4 +1,3 @@
-@import _root_.util.OreConfig
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import forums.DiscourseApi
@@ -8,9 +7,9 @@
 @import ore.permission.{EditVersions, ReviewProjects}
 @import util.StringUtils
 @import util.StringUtils.prettifyDate
-@import util.OreEnv
 @import db.impl.access.UserBase
 @import db.impl.access.ProjectBase
+@import ore.{OreConfig, OreEnv}
 @import ore.project.Dependency
 @import ore.project.Dependency.SpongeApiId
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,

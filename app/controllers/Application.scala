@@ -11,13 +11,14 @@ import db.impl.pg.OrePostgresDriver.api._
 import db.impl.{FlagTable, ProjectTable}
 import forums.DiscourseApi
 import models.project.{Flag, Project}
+import ore.{OreConfig, OreEnv}
 import ore.permission._
 import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.i18n.MessagesApi
 import play.api.mvc._
-import util.{DataHelper, OreConfig, OreEnv}
+import util.DataHelper
 import views.{html => views}
 
 /**
@@ -68,7 +69,7 @@ class Application @Inject()(data: DataHelper,
       if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet))
         categoryArray = null
 
-      Ok(views.home(projects, Option(categoryArray), query, p, ordering))
+      Ok(views.home(projects, Option(categoryArray), query.find(_.nonEmpty), p, ordering))
     }
   }
 

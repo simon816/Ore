@@ -8,11 +8,10 @@ import db.ModelService
 import form.OreForms
 import forums.DiscourseApi
 import models.project.Page
-import ore.StatTracker
+import ore.{OreConfig, OreEnv, StatTracker}
 import ore.permission.EditPages
 import play.api.i18n.MessagesApi
 import play.api.mvc.Action
-import util.{OreConfig, OreEnv}
 import util.StringUtils.equalsIgnoreCase
 import views.html.projects.{pages => views}
 

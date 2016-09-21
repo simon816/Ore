@@ -11,12 +11,12 @@ import db.impl.{ChannelTable, OreModel, VersionDownloadsTable, VersionTable}
 import db.meta.Bind
 import db.meta.relation.OneToMany
 import models.statistic.VersionDownload
-import ore.Visitable
+import ore.{OreEnv, Visitable}
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
 import org.apache.commons.io.FileUtils
 import play.twirl.api.Html
-import util.{OreEnv, StringUtils}
+import util.StringUtils
 
 import scala.annotation.meta.field
 

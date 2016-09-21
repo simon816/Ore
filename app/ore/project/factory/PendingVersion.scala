@@ -1,19 +1,19 @@
 package ore.project.factory
 
 import db.impl.access.ProjectBase
-import models.project.Version
+import models.project.{Project, Version}
+import ore.Cacheable
 import ore.Colors.Color
 import ore.project.io.PluginFile
 import play.api.cache.CacheApi
-import util.{Cacheable, PendingAction}
+import util.PendingAction
 
 import scala.util.Try
 
 /**
   * Represents a pending version to be created later.
   *
-  * @param owner          Name of project owner
-  * @param projectSlug    Project slug
+  * @param project        Project version belongs to
   * @param channelName    Name of channel this version will be in
   * @param channelColor   Color of channel for this version
   * @param version        Version that is pending
@@ -21,8 +21,7 @@ import scala.util.Try
   */
 case class PendingVersion(projects: ProjectBase,
                           factory: ProjectFactory,
-                          owner: String,
-                          projectSlug: String,
+                          var project: Project,
                           var channelName: String,
                           var channelColor: Color,
                           version: Version,
@@ -43,6 +42,6 @@ case class PendingVersion(projects: ProjectBase,
       this.projects.deleteVersion(this.version)
   }
 
-  override def key: String = this.owner + '/' + this.projectSlug + '/' + this.version.versionString
+  override def key: String = this.project.url + '/' + this.version.versionString
 
 }

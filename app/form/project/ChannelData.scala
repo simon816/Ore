@@ -1,6 +1,6 @@
 package form.project
 
-import util.OreConfig
+import ore.OreConfig
 
 /**
   * Concrete counterpart to [[TChannelData]].

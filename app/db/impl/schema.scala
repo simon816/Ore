@@ -141,10 +141,10 @@ class OrganizationTable(tag: Tag) extends ModelTable[Organization](tag, "organiz
   override def id   =   column[Int]("id", O.PrimaryKey)
   def username      =   column[String]("username")
   def password      =   column[String]("password")
-  def ownerId       =   column[Int]("owner_id")
+  def userId        =   column[Int]("user_id")
 
   override def * = (id.?, createdAt.?, username, password,
-                    ownerId) <> ((Organization.apply _).tupled, Organization.unapply)
+                    userId) <> ((Organization.apply _).tupled, Organization.unapply)
 
 }
 

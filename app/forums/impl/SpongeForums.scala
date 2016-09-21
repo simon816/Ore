@@ -5,8 +5,8 @@ import javax.inject.Inject
 
 import akka.actor.ActorSystem
 import forums.{DiscourseApi, DiscourseEmbeddingService, DiscourseSync}
+import ore.{OreConfig, OreEnv}
 import play.api.libs.ws.WSClient
-import util.{OreConfig, OreEnv}
 
 import scala.concurrent.duration.Duration
 

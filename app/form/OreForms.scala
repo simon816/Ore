@@ -6,9 +6,9 @@ import form.project.{ChannelData, ProjectRoleSetBuilder, ProjectSettings, Versio
 import models.project.Channel
 import models.project.Page._
 import models.user.role.ProjectRole
+import ore.OreConfig
 import play.api.data.Form
 import play.api.data.Forms._
-import util.OreConfig
 
 /**
   * Collection of forms used in this application.
@@ -78,7 +78,8 @@ class OreForms @Inject()(implicit config: OreConfig) {
     "roles" -> list(text),
     "userUps" -> list(text),
     "roleUps" -> list(text),
-    "update-icon" -> boolean
+    "update-icon" -> boolean,
+    "owner" -> optional(number)
   )(ProjectSettings.apply)(ProjectSettings.unapply))
 
   /**

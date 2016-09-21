@@ -18,9 +18,10 @@ import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import ore.project.{Categories, ProjectMember}
-import ore.{MembershipDossier, Visitable}
+import ore.{OreEnv, Visitable}
+import ore.user.MembershipDossier
 import util.StringUtils.{compact, slugify}
-import util.{OreEnv, StringUtils}
+import util.StringUtils
 
 import scala.annotation.meta.field
 
@@ -33,7 +34,7 @@ import scala.annotation.meta.field
   * @param createdAt              Instant of creation
   * @param pluginId               Plugin ID
   * @param _name                  Name of plugin
-  * @param ownerName              The owner Author for this project
+  * @param _ownerName             The owner Author for this project
   * @param homepage               The external project URL
   * @param recommendedVersionId   The ID of this project's recommended version
   * @param _category              The project's Category
@@ -50,14 +51,12 @@ import scala.annotation.meta.field
 @OneToMany(Array(
   classOf[Channel], classOf[Version], classOf[Page], classOf[Flag], classOf[ProjectRole], classOf[ProjectView]
 ))
-case class Project(// Immutable
-                   override val id: Option[Int] = None,
+case class Project(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
-                                pluginId: String,
-                                ownerName: String,
-                                ownerId: Int,
-                                homepage: Option[String] = None,
-                   // Mutable
+                   pluginId: String,
+                   @(Bind @field) private var _ownerName: String,
+                   @(Bind @field) private var _ownerId: Int,
+                   homepage: Option[String] = None,
                    @(Bind @field) private var _name: String,
                    @(Bind @field) private var _slug: String,
                    @(Bind @field) private var recommendedVersionId: Option[Int] = None,
@@ -101,8 +100,22 @@ case class Project(// Immutable
 
   def this(pluginId: String, name: String, owner: String, ownerId: Int, homepage: String) = {
     this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
-         ownerName=owner, ownerId=ownerId, homepage=Option(homepage))
+         _ownerName=owner, _ownerId=ownerId, homepage=Option(homepage))
   }
+
+  /**
+    * Returns the ID of the [[User]] that owns this Project.
+    *
+    * @return ID of user
+    */
+  def ownerId: Int = this._ownerId
+
+  /**
+    * Returns the name of the [[User]] that owns this Project.
+    *
+    * @return Name of user that owns project
+    */
+  def ownerName: String = this._ownerName
 
   /**
     * Returns the owner [[ProjectMember]] of this project.
@@ -110,6 +123,20 @@ case class Project(// Immutable
     * @return Owner Member of project
     */
   def owner: ProjectMember = new ProjectMember(this, this.ownerId)
+
+  /**
+    * Sets the [[User]] that owns this Project.
+    *
+    * @param user User that owns project
+    */
+  def owner_=(user: User) = {
+    this._ownerId = user.id.get
+    this._ownerName = user.name
+    if (isDefined) {
+      update(OwnerId)
+      update(OwnerName)
+    }
+  }
 
   /**
     * Returns ModelAccess to the user's who are watching this project.

@@ -2,12 +2,11 @@
 Base layout template for website. Most templates within the project will extend
 this.
 *@
-@import _root_.util.OreConfig
 @import db.ModelService
 @import db.impl.access.UserBase
 @import forums.DiscourseApi
+@import ore.{OreConfig, OreEnv}
 @import play.twirl.api.Html
-@import util.OreEnv
 @(title: String)(content: Html)(implicit messages: Messages, session: Session,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
         env: OreEnv)

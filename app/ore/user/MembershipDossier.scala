@@ -1,13 +1,11 @@
-package ore
+package ore.user
 
 import db.impl.access.UserBase
 import db.impl.pg.OrePostgresDriver.api._
 import db.impl.{OreModel, UserColumn, UserTable}
-import db.meta.ModelAssociation
 import db.{AssociativeTable, ModelAccess}
 import models.user.User
 import models.user.role.RoleModel
-import ore.user.Member
 
 /**
   * Handles and keeps track of [[User]] "memberships" for an [[OreModel]].
@@ -25,6 +23,14 @@ trait MembershipDossier {
   val membersTableClass: Class[MembersTable]
 
   implicit def userBase: UserBase = this.model.userBase
+
+  private def association = this.model.actions.getAssociation(this.membersTableClass)
+  private def roles: ModelAccess[RoleTable, RoleType] = this.model.oneToMany[RoleTable, RoleType](this.roleClass)
+  private def addMember(user: User) = this.association.assoc(model, user)
+
+  private def clearRoles(user: User) = {
+    this.model.oneToMany[RoleTable, RoleType](this.roleClass).removeAll(_.userId === user.id.get)
+  }
 
   /**
     * Constructs a new member object of the MemberType.
@@ -88,15 +94,5 @@ trait MembershipDossier {
     clearRoles(user)
     this.association.disassoc(model, user)
   }
-
-  private def roles: ModelAccess[RoleTable, RoleType] = this.model.oneToMany[RoleTable, RoleType](this.roleClass)
-
-  private def clearRoles(user: User) = {
-    this.model.oneToMany[RoleTable, RoleType](this.roleClass).removeAll(_.userId === user.id.get)
-  }
-
-  private def addMember(user: User) = this.association.assoc(model, user)
-
-  private def association: ModelAssociation[MembersTable] = this.model.actions.getAssociation(this.membersTableClass)
 
 }

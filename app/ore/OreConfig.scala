@@ -1,4 +1,4 @@
-package util
+package ore
 
 import javax.inject.Inject
 

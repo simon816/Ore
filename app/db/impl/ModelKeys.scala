@@ -5,6 +5,8 @@ package db.impl
   */
 object ModelKeys {
 
+  val OwnerId               =   "ownerId"
+  val OwnerName             =   "ownerName"
   val Name                  =   "name"
   val Slug                  =   "slug"
   val Category              =   "category"

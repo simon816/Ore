@@ -50,7 +50,7 @@ GET     /new                                                        @controllers
 
 POST    /new/upload                                                 @controllers.project.Projects.upload()
 GET     /new/:author/:slug                                          @controllers.project.Projects.showCreatorWithMeta(author, slug)
-POST    /new/:author/:slug/members                                  @controllers.project.Projects.showMembersConfig(author, slug)
+POST    /new/:author/:slug/members                                  @controllers.project.Projects.showInvitationForm(author, slug)
 
 GET     /invite/:id/:status                                         @controllers.project.Projects.setInviteStatus(id: Int, status)
 

@@ -2,8 +2,8 @@ package forums
 
 import models.project.Project
 import models.user.User
+import ore.{OreConfig, OreEnv}
 import play.api.libs.ws.WSClient
-import util.{OreConfig, OreEnv}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
