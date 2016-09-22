@@ -10,7 +10,7 @@ import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
 import models.project.Project
 import models.user.role.OrganizationRole
 import ore.organization.OrganizationMember
-import ore.permission.scope.{GlobalScope, Scope, ScopeSubject}
+import ore.permission.scope.OrganizationScope
 import ore.user.{MembershipDossier, UserOwned}
 import ore.{Joinable, Visitable}
 
@@ -36,7 +36,7 @@ case class Organization(override val id: Option[Int] = None,
                         @(Bind @field) ownerId: Int)
                         extends OreModel(id, createdAt)
                           with UserOwned
-                          with ScopeSubject
+                          with OrganizationScope
                           with Visitable
                           with Joinable[OrganizationMember] {
 
@@ -76,7 +76,7 @@ case class Organization(override val id: Option[Int] = None,
   override val name: String = this.username
   override def url: String = this.toUser.url
   override val userId: Int = this.ownerId
-  override val scope: Scope = GlobalScope
+  override def organizationId: Int = this.id.get
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): Model = this.copy(createdAt = theTime)
 
 }

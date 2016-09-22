@@ -8,8 +8,8 @@
 @import views.html.helper.form
 @import models.user.role.RoleModel
 @(model: Joinable[_ <: Member[_]], editable: Boolean = false, removeCall: Call = null,
-        settingsCall: Call = null)(implicit messages: Messages, session: Session, service: ModelService,
-        forums: DiscourseApi, config: OreConfig, userBase: UserBase, env: OreEnv)
+        settingsCall: Call = null, interactive: Boolean = false)(implicit messages: Messages, session: Session,
+        service: ModelService, forums: DiscourseApi, config: OreConfig, userBase: UserBase, env: OreEnv)
 
 @canEdit = @{
     editable && userBase.current.isDefined && (userBase.current.get can EditSettings in model)
@@ -19,6 +19,9 @@
     member.headRole.isAccepted ||
             (userBase.current.isDefined && userBase.current.get.username.equals(model.owner.user.name))
 }
+
+<!-- TODO: Pagination -->
+<!-- TODO: Rewrite -->
 
 @if(model.memberships.members.nonEmpty) {
 
@@ -44,7 +47,9 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                         <h4 class="modal-title" id="label-user-delete">Modal title</h4>
                     </div>
                     <div class="modal-body">Are you sure you want to remove this user?</div>
@@ -64,14 +69,18 @@
         <div class="panel-heading">
             <h3 class="pull-left panel-title">@messages("project.settings.members")</h3>
 
-            @if(!editable && userBase.current.isDefined && (userBase.current.get can EditSettings in model)) {
-                <a href="@settingsCall"
-                   class="pull-right btn btn-default btn-panel btn-xs">
-                    <i class="fa fa-edit"></i>
-                </a>
+            @if(canEdit || userBase.current.isDefined && (userBase.current.get can EditSettings in model)) {
+                @if(settingsCall != null || interactive) {
+                    <a href="@settingsCall"
+                       class="pull-right btn btn-default btn-panel btn-xs @if(interactive) { btn-members }">
+                        <i class="fa fa-edit"></i>
+                    </a>
+                }
             }
+
             <div class="clearfix"></div>
         </div>
+
         <ul class="list-members list-group">
             <!-- Member list -->
             @model.memberships.members.toList.sorted.reverse.map { member =>
@@ -103,7 +112,7 @@
 
             <!-- User search -->
             @if(canEdit) {
-                <li class="list-group-item">
+                <li class="list-group-item @if(interactive) { search-interact }">
                     @users.invite.userSearch()
                 </li>
             }

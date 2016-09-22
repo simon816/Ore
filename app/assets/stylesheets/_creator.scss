@@ -31,15 +31,14 @@
 }
 
 .create-blurb {
-  @include padding-vert(10px, 20px);
+  @include padding-vert(10px, 10px);
   margin-bottom: 0;
-  border-bottom: 1px solid $lighter;
 }
 
 .status-org-name {
   position: absolute;
-  right: 40px;
-  top: 115px;
+  bottom: 30px;
+  right: 30px;
 }
 
 .create-body {
@@ -68,10 +67,6 @@
     text-align: right;
     float: right;
   }
-}
-
-.create-buttons {
-  border-top: 1px solid #ddd;
 }
 
 .create-buttons > form {
@@ -120,10 +115,17 @@
   color: gray;
 }
 
+.member-table-container {
+  padding: 20px;
+}
+
 .table-members {
+  border-top: none;
   border-bottom: 1px solid #ddd;
   .input-group { max-width: 35%; }
+  tbody > tr > td { padding: 10px; }
   tr > td:last-child { text-align: right; }
+  tr:first-child > td { border-top: none; }
 }
 
 .table-members > tbody > tr > td {

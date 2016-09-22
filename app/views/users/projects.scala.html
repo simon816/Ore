@@ -62,7 +62,12 @@
                     </div>
                 </div>
             } else {
-                @users.memberList(user.toOrganization)
+                @users.memberList(
+                    model = user.toOrganization,
+                    editable = true,
+                    interactive = true,
+                    removeCall = routes.Application.showHome(None, None, None, None)
+                )
             }
         </div>
     </div>

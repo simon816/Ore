@@ -162,8 +162,6 @@ trait DiscourseApi {
       "type" -> Seq("avatar"),
       "synchronous" -> Seq("true")
     )
-    println(url)
-    println(data)
     await(this.ws.url(url).post(data).map(response => validate(response) match {
       case Left(errors) =>
         Some(errors)

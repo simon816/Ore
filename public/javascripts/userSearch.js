@@ -18,7 +18,7 @@ function initUserSearch(callback) {
     });
 
     // Search for user
-    search.find('.btn').click(function() {
+    search.find('.btn-search').click(function() {
         var input = $(this).closest('.user-search').find('input');
         var username = input.val().trim();
         var icon = $(this).find('i').removeClass('fa-search').addClass('fa-spinner fa-spin');

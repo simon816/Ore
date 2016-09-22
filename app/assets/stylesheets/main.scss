@@ -18,6 +18,10 @@ body {
   margin-bottom: 60px;
 }
 
+.modal-body {
+  width: 100%;
+}
+
 .panel {
   .panel-heading { background-color: white; }
   .panel-footer { background-color: white; }
@@ -165,6 +169,11 @@ form {
     width: 100%;
   }
 
+}
+
+.setting-no-border {
+  border: none;
+  margin-bottom: 0;
 }
 
 .category-reset {

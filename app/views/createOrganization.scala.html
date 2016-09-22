@@ -27,11 +27,15 @@
                         </p>
 
                         @form(action = routes.Organizations.create(), 'id -> "form-continue") {
-                            <label for="name">Organization name</label>
-                            <input name="name" type="text" class="input-name form-control" placeholder="SpongePowered"
-                                   maxlength="20" />
-
-                            <i class="fa fa-spinner fa-spin status-org-name" style="display: none;"></i>
+                            <div class="setting">
+                                <div class="setting-description">
+                                    <h4>Organization name</h4>
+                                </div>
+                                <input name="name" type="text" class="input-name form-control" placeholder="SpongePowered"
+                                       maxlength="20" />
+                                <i class="fa fa-spinner fa-spin status-org-name" style="display: none;"></i>
+                                <div class="clearfix"></div>
+                            </div>
                         }
 
                         @users.invite.form(owner = userBase.current.get)

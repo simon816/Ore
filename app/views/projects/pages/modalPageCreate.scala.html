@@ -18,8 +18,16 @@
                 <h4 class="modal-title" id="new-page-label">@messages("page.new.title")</h4>
             </div>
             <div class="modal-body input-group">
-                <label for="page-name">@messages("page.new.name")</label>
-                <input class="form-control" type="text" id="page-name" name="page-name">
+                <div class="setting setting-no-border">
+                    <div class="setting-description">
+                        <h4>Page name</h4>
+                        <p>Enter a title for your new page.</p>
+                    </div>
+                    <div class="setting-content">
+                        <input class="form-control" type="text" id="page-name" name="page-name">
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">@messages("page.new.close")</button>

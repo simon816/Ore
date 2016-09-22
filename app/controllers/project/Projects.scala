@@ -427,7 +427,6 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def save(author: String, slug: String) = {
     SettingsEditAction(author, slug) { implicit request =>
-      println(request.body.asFormUrlEncoded)
       this.forms.ProjectSave.bindFromRequest.get.saveTo(request.project)
       Redirect(self.show(author, slug))
     }

@@ -28,35 +28,37 @@
     <strong>Whoops!</strong> Could not find user "<span class="error-username"></span>"
 </div>
 
-<table class="table table-members">
-    <tbody>
-        <!-- Owner (not submitted) -->
-        <tr>
-            <td>
-                <img class="user-avatar" width="32" height="32" src="@owner.avatarUrl(100)" />
-                <strong>@owner.username</strong>
-            </td>
-            <td><i class="minor">Owner</i></td>
-        </tr>
-
-        @loadedUsers.map { user =>
+<div class="member-table-container">
+    <table class="table table-members">
+        <tbody>
+            <!-- Owner (not submitted) -->
             <tr>
                 <td>
-                    <input form="form-continue" type="hidden" value="@user.id.get" />
-                    <img class="user-avatar" width="32" height="32" src="@user.avatarUrl(100)" />
-                    <a target="_blank" href="@routes.Users.showProjects(user.username, None)">
-                    @user.username
-                    </a>
+                    <img class="user-avatar" width="32" height="32" src="@owner.avatarUrl(100)" />
+                    <strong>@owner.username</strong>
                 </td>
-                <td>@users.invite.roleSelect()</td>
+                <td><i class="minor">Owner</i></td>
             </tr>
-        }
 
-        <!-- User search -->
-        <tr>
-            <td>@users.invite.userSearch()</td>
-            <td></td>
-        </tr>
+            @loadedUsers.map { user =>
+                <tr>
+                    <td>
+                        <input form="form-continue" type="hidden" value="@user.id.get" />
+                        <img class="user-avatar" width="32" height="32" src="@user.avatarUrl(100)" />
+                        <a target="_blank" href="@routes.Users.showProjects(user.username, None)">
+                        @user.username
+                        </a>
+                    </td>
+                    <td>@users.invite.roleSelect()</td>
+                </tr>
+            }
 
-    </tbody>
-</table>
+            <!-- User search -->
+            <tr>
+                <td>@users.invite.userSearch()</td>
+                <td></td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>

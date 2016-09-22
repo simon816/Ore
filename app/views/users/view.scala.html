@@ -33,6 +33,7 @@
             <strong>Success!</strong> <span class="success"></span>
         </div>
 
+        <!-- Header -->
         <div class="user-header">
             <div class="header-body">
                 <div class="pull-left user-badge">
@@ -66,13 +67,28 @@
                                                     <strong>Whoops!</strong> <span class="error"></span>
                                                 </div>
 
-                                                <input checked type="radio" name="avatar-method" value="by-url" />
-                                                <label for="avatar-url">Update by URL</label>
-                                                <input name="avatar-url" type="url" class="form-control" />
+                                                <div class="setting">
+                                                    <div class="setting-description">
+                                                        <h4>
+                                                            <input checked type="radio" name="avatar-method"
+                                                                   value="by-url" />
+                                                            Update by URL
+                                                        </h4>
+                                                    </div>
+                                                    <input name="avatar-url" type="url" class="form-control" />
+                                                    <div class="clearfix"></div>
+                                                </div>
 
-                                                <input type="radio" name="avatar-method" value="by-file" />
-                                                <label for="avatar-file">Update by file</label>
-                                                <input name="avatar-file" type="file" disabled />
+                                                <div class="setting setting-no-border">
+                                                    <div class="setting-description">
+                                                        <h4>
+                                                            <input type="radio" name="avatar-method" value="by-file" />
+                                                            Update by file
+                                                        </h4>
+                                                    </div>
+                                                    <input name="avatar-file" type="file" disabled />
+                                                    <div class="clearfix"></div>
+                                                </div>
                                             </div>
 
                                             <div class="modal-footer">

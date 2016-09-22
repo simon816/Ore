@@ -83,7 +83,6 @@ class Organizations @Inject()(forms: OreForms,
     (AuthedOrganizationAction(organization) andThen OrganizationPermissionAction(EditSettings)) { implicit request =>
       val formData = this.forms.OrganizationUpdateAvatar.bindFromRequest.get
       if (formData.isFileUpload) {
-        println("file upload")
         request.body.asMultipartFormData.get.file("avatar-file") match {
           case None =>
             BadRequest
@@ -96,7 +95,6 @@ class Organizations @Inject()(forms: OreForms,
             }
         }
       } else {
-        println("url change")
         this.forums.setAvatar(organization, formData.url.get) match {
           case None =>
             Ok("[]")

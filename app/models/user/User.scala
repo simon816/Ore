@@ -224,11 +224,17 @@ case class User(override val id: Option[Int] = None,
     * @return Highest level of trust
     */
   def trustIn(scope: Scope = GlobalScope): Trust = Defined {
+    println(scope)
     scope match {
       case GlobalScope =>
         this.globalRoles.map(_.trust).toList.sorted.lastOption.getOrElse(Default)
       case pScope: ProjectScope =>
         pScope.project.memberships.members
+          .find(_.user.equals(this))
+          .flatMap(_.roles.filter(_.isAccepted).toList.sorted.lastOption.map(_.roleType.trust))
+          .getOrElse(Default)
+      case oScope: OrganizationScope =>
+        oScope.organization.memberships.members
           .find(_.user.equals(this))
           .flatMap(_.roles.filter(_.isAccepted).toList.sorted.lastOption.map(_.roleType.trust))
           .getOrElse(Default)
