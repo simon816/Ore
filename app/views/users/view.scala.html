@@ -6,9 +6,14 @@
 @import ore.{OreConfig, OreEnv}
 @import util.StringUtils.prettifyDate
 @import views.html.helper.form
+@import ore.permission.EditSettings
 @(user: User)(content: Html)(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
         env: OreEnv)
+
+@canEditOrganization = @{
+    user.isOrganization && users.current.isDefined && (users.current.get can EditSettings in user.toOrganization)
+}
 
 @bootstrap.layout(user.username) {
 
@@ -37,73 +42,71 @@
         <div class="user-header">
             <div class="header-body">
                 <div class="pull-left user-badge">
-                    @defining(user.isOrganization) { isOrganization =>
-                        <img title="@user.username" alt="@user.username" height="100" width="100"
-                             class="user-avatar @if(isOrganization) { organization-avatar }"
-                             @if(isOrganization) { data-toggle="modal" data-target="#modal-avatar" }
-                             src="@user.avatarUrl(200)" />
+                    <img title="@user.username" alt="@user.username" height="100" width="100"
+                         class="user-avatar @if(canEditOrganization) { organization-avatar }"
+                         @if(canEditOrganization) { data-toggle="modal" data-target="#modal-avatar" }
+                         src="@user.avatarUrl(200)" />
 
-                        @if(isOrganization) {
-                            <div class="edit-avatar" style="display: none;">
-                                <i class="fa fa-edit"></i> Edit avatar
-                            </div>
+                    @if(canEditOrganization) {
+                        <div class="edit-avatar" style="display: none;">
+                            <i class="fa fa-edit"></i> Edit avatar
+                        </div>
 
-                            <div class="modal fade" id="modal-avatar" tabindex="-1" role="dialog"
-                                 aria-labelledby="modal-avatar-label">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal"
-                                                    aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                            <h4 class="modal-title" id="modal-avatar-label">Edit avatar</h4>
+                        <div class="modal fade" id="modal-avatar" tabindex="-1" role="dialog"
+                        aria-labelledby="modal-avatar-label">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal"
+                                        aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                        <h4 class="modal-title" id="modal-avatar-label">Edit avatar</h4>
+                                    </div>
+
+                                    @form(action = routes.Organizations.updateAvatar(user.name),
+                                        'id -> "form-avatar", 'enctype -> "multipart/form-data") {
+                                        <div class="modal-body">
+                                            <div class="alert alert-danger">
+                                                <strong>Whoops!</strong> <span class="error"></span>
+                                            </div>
+
+                                            <div class="setting">
+                                                <div class="setting-description">
+                                                    <h4>
+                                                        <input checked type="radio" name="avatar-method"
+                                                        value="by-url" />
+                                                        Update by URL
+                                                    </h4>
+                                                </div>
+                                                <input name="avatar-url" type="url" class="form-control" />
+                                                <div class="clearfix"></div>
+                                            </div>
+
+                                            <div class="setting setting-no-border">
+                                                <div class="setting-description">
+                                                    <h4>
+                                                        <input type="radio" name="avatar-method" value="by-file" />
+                                                        Update by file
+                                                    </h4>
+                                                </div>
+                                                <input name="avatar-file" type="file" disabled />
+                                                <div class="clearfix"></div>
+                                            </div>
                                         </div>
 
-                                        @form(action = routes.Organizations.updateAvatar(user.name),
-                                            'id -> "form-avatar", 'enctype -> "multipart/form-data") {
-                                            <div class="modal-body">
-                                                <div class="alert alert-danger">
-                                                    <strong>Whoops!</strong> <span class="error"></span>
-                                                </div>
-
-                                                <div class="setting">
-                                                    <div class="setting-description">
-                                                        <h4>
-                                                            <input checked type="radio" name="avatar-method"
-                                                                   value="by-url" />
-                                                            Update by URL
-                                                        </h4>
-                                                    </div>
-                                                    <input name="avatar-url" type="url" class="form-control" />
-                                                    <div class="clearfix"></div>
-                                                </div>
-
-                                                <div class="setting setting-no-border">
-                                                    <div class="setting-description">
-                                                        <h4>
-                                                            <input type="radio" name="avatar-method" value="by-file" />
-                                                            Update by file
-                                                        </h4>
-                                                    </div>
-                                                    <input name="avatar-file" type="file" disabled />
-                                                    <div class="clearfix"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-default" data-dismiss="modal">
-                                                    Cancel
-                                                </button>
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fa fa-spinner fa-spin" style="display: none;"></i> Update
-                                                </button>
-                                            </div>
-                                        }
-                                    </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                Cancel
+                                            </button>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fa fa-spinner fa-spin" style="display: none;"></i> Update
+                                            </button>
+                                        </div>
+                                    }
                                 </div>
                             </div>
-                        }
+                        </div>
                     }
 
                     <div class="user-title">

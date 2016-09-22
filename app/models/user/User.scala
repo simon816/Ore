@@ -284,6 +284,16 @@ case class User(override val id: Option[Int] = None,
   }
 
   /**
+    * Pulls information from the forums and updates this User.
+    *
+    * @return This user
+    */
+  def refresh(): User = {
+    this.service.await(this.forums.fetchUser(this.name)).get.foreach(fill)
+    this
+  }
+
+  /**
     * Returns all [[Project]]s owned by this user.
     *
     * @return Projects owned by user

@@ -110,16 +110,18 @@ function setupAvatarForm() {
             complete: function() {
                 spinner.hide();
             },
-            success: function(errors) {
-                if (errors.length > 0) {
+            success: function(json) {
+                if (json.hasOwnProperty('errors')) {
                     var alert = avatarForm.find('.alert-danger');
-                    alert.find('.error').text(errors[0]);
+                    alert.find('.error').text(json['errors'][0]);
                     alert.fadeIn('slow');
                 } else {
                     avatarModal.modal('hide');
                     var success = $('.alert-success');
                     success.find('.success').text('Avatar successfully updated!');
                     success.fadeIn('slow');
+                    $('.user-avatar[title="' + USERNAME + '"]')
+                        .prop('src', json['avatarTemplate'].replace('{size}', '200'));
                 }
             }
         })

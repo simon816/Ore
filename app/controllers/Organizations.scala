@@ -7,6 +7,7 @@ import db.impl.access.OrganizationBase
 import form.OreForms
 import forums.DiscourseApi
 import ore.permission.EditSettings
+import ore.rest.OreWrites
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
@@ -16,11 +17,15 @@ import views.{html => views}
   * Controller for handling Organization based actions.
   */
 class Organizations @Inject()(forms: OreForms,
+                              writes: OreWrites,
                               implicit override val env: OreEnv,
                               implicit override val config: OreConfig,
                               implicit override val service: ModelService,
                               implicit override val forums: DiscourseApi,
                               implicit override val messagesApi: MessagesApi) extends BaseController {
+
+  private def EditOrganizationAction(organization: String)
+  = AuthedOrganizationAction(organization) andThen OrganizationPermissionAction(EditSettings)
 
   /**
     * Shows the creation panel for Organizations.
@@ -79,29 +84,29 @@ class Organizations @Inject()(forms: OreForms,
     * @param organization Organization to update avatar of
     * @return             Json response with errors if any
     */
-  def updateAvatar(organization: String) = {
-    (AuthedOrganizationAction(organization) andThen OrganizationPermissionAction(EditSettings)) { implicit request =>
-      val formData = this.forms.OrganizationUpdateAvatar.bindFromRequest.get
-      if (formData.isFileUpload) {
-        request.body.asMultipartFormData.get.file("avatar-file") match {
-          case None =>
-            BadRequest
-          case Some(file) =>
-            this.forums.setAvatar(organization, file.filename, file.ref.file) match {
-              case None =>
-                Ok("[]")
-              case Some(errors) =>
-                Ok(Json.toJson(errors))
-            }
-        }
-      } else {
-        this.forums.setAvatar(organization, formData.url.get) match {
-          case None =>
-            Ok("[]")
-          case Some(errors) =>
-            Ok(Json.toJson(errors))
-        }
+  def updateAvatar(organization: String) = EditOrganizationAction(organization) { implicit request =>
+
+    import this.writes._
+
+    def respond(errorsOpt: Option[List[String]]) = errorsOpt match {
+      case None =>
+        // send the user object
+        Ok(Json.toJson(request.organization.toUser.refresh()))
+      case Some(errors) =>
+        // send errors
+        Ok(Json.obj("errors" -> errors))
+    }
+
+    val formData = this.forms.OrganizationUpdateAvatar.bindFromRequest.get
+    if (formData.isFileUpload) {
+      request.body.asMultipartFormData.get.file("avatar-file") match {
+        case None =>
+          BadRequest
+        case Some(file) =>
+          respond(this.forums.setAvatar(organization, file.filename, file.ref.file))
       }
+    } else {
+      respond(this.forums.setAvatar(organization, formData.url.get))
     }
   }
 
