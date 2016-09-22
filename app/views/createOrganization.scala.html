@@ -3,6 +3,7 @@
 @import forums.DiscourseApi
 @import ore.{OreConfig, OreEnv}
 @import views.html.helper.form
+@import models.user.role.OrganizationRole
 @()(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader, service: ModelService,
         forums: DiscourseApi, config: OreConfig, userBase: UserBase, env: OreEnv)
 
@@ -38,7 +39,7 @@
                             </div>
                         }
 
-                        @users.invite.form(owner = userBase.current.get)
+                        @users.invite.form(owner = userBase.current.get, roleClass = classOf[OrganizationRole])
 
                         <button title="Continue" type="submit" name="create" form="form-continue"
                                 value="@messages("org.create.continue")"

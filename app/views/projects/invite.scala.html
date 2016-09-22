@@ -8,6 +8,7 @@
 @import views.html.helper.form
 
 @import scala.collection.JavaConverters._
+@import models.user.role.ProjectRole
 @(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, userBase: UserBase,
         env: OreEnv)
@@ -31,10 +32,11 @@
             </div>
 
             @users.invite.form(
-                pending.project.owner,
-                pending.file.meta.get.getAuthors
+                owner = pending.project.owner,
+                loadedUsers = pending.file.meta.get.getAuthors
                         .filterNot(_.equals(user.username))
-                        .flatMap(userBase.withName).toSeq
+                        .flatMap(userBase.withName).toSeq,
+                roleClass = classOf[ProjectRole]
             )
 
             <!-- Submission form -->

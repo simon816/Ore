@@ -7,6 +7,7 @@
 @import ore.{Joinable, OreConfig, OreEnv}
 @import views.html.helper.form
 @import models.user.role.RoleModel
+@import ore.permission.role.Role
 @(model: Joinable[_ <: Member[_]], editable: Boolean = false, removeCall: Call = null,
         settingsCall: Call = null, interactive: Boolean = false)(implicit messages: Messages, session: Session,
         service: ModelService, forums: DiscourseApi, config: OreConfig, userBase: UserBase, env: OreEnv)
@@ -20,8 +21,11 @@
             (userBase.current.isDefined && userBase.current.get.username.equals(model.owner.user.name))
 }
 
+@roleClass = @{
+    model.owner.headRole.getClass.asInstanceOf[Class[_ <: Role]]
+}
+
 <!-- TODO: Pagination -->
-<!-- TODO: Rewrite -->
 
 @if(model.memberships.members.nonEmpty) {
 
@@ -29,7 +33,12 @@
         <script type="text/javascript" src="@routes.Assets.at("javascripts/userSearch.js")"></script>
         <script type="text/javascript" src="@routes.Assets.at("javascripts/memberList.js")"></script>
 
-        @users.invite.roleSelect("", "select-role", "pull-right", hidden = true)
+        @users.invite.roleSelect(
+            roleClass = roleClass,
+            id = "select-role",
+            classes = "pull-right",
+            hidden = true
+        )
 
         <!-- Row template -->
         <ul style="display: none;">
@@ -38,7 +47,7 @@
                 <i class="fa fa-times user-cancel user-cancel2"></i>
                 <img class="user-avatar" width="32" height="32" />
                 <a></a>
-                @users.invite.roleSelect("", classes="pull-right")
+                @users.invite.roleSelect(roleClass = roleClass, classes="pull-right")
             </li>
         </ul>
 

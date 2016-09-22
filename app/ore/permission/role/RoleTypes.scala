@@ -1,6 +1,6 @@
 package ore.permission.role
 
-import models.user.role.ProjectRole
+import models.user.role.{OrganizationRole, ProjectRole}
 import ore.Colors._
 
 /**
@@ -10,35 +10,39 @@ object RoleTypes extends Enumeration {
 
   // Global
 
-  val Admin             =   new  RoleType( 0, 61,   Absolute,   "Ore Admin",            Red)
-  val Mod               =   new  RoleType( 1, 62,   Standard,   "Ore Moderator",        Aqua)
-  val SpongeLeader      =   new  RoleType( 2, 44,   Absolute,   "Sponge Leader",        Amber)
-  val TeamLeader        =   new  RoleType( 3, 58,   Standard,   "Team Leader",          Amber)
-  val CommunityLeader   =   new  RoleType( 4, 59,   Standard,   "Community Leader",     Amber)
-  val Staff             =   new  RoleType( 5, 3,    Standard,   "Sponge Staff",         Amber)
-  val SpongeDev         =   new  RoleType( 6, 41,   Standard,   "Sponge Developer",     Green)
-  val WebDev            =   new  RoleType( 7, 45,   Standard,   "Web Developer",        Blue)
-  val Scribe            =   new  RoleType( 8, 51,   Limited,    "Sponge Documenter",    Aqua)
-  val Support           =   new  RoleType( 9, 43,   Limited,    "Sponge Support",       Aqua)
-  val Contributor       =   new  RoleType(10, 49,   Default,    "Sponge Contributor",   Green)
-  val Adviser           =   new  RoleType(11, 48,   Default,    "Sponge Adviser",       Aqua)
-  val StoneDonor        =   new DonorType(12, 57,               "Stone Donor",          Gray)
-  val QuartzDonor       =   new DonorType(13, 54,               "Quartz Donor",         Quartz)
-  val IronDonor         =   new DonorType(14, 56,               "Iron Donor",           Silver)
-  val GoldDonor         =   new DonorType(15, 53,               "Gold Donor",           Gold)
-  val DiamondDonor      =   new DonorType(16, 52,               "Diamond Donor",        LightBlue)
+  val Admin           = new  RoleType( 0, 61, classOf[GlobalRole], Absolute, "Ore Admin",          Red)
+  val Mod             = new  RoleType( 1, 62, classOf[GlobalRole], Standard, "Ore Moderator",      Aqua)
+  val SpongeLeader    = new  RoleType( 2, 44, classOf[GlobalRole], Absolute, "Sponge Leader",      Amber)
+  val TeamLeader      = new  RoleType( 3, 58, classOf[GlobalRole], Standard, "Team Leader",        Amber)
+  val CommunityLeader = new  RoleType( 4, 59, classOf[GlobalRole], Standard, "Community Leader",   Amber)
+  val Staff           = new  RoleType( 5, 3,  classOf[GlobalRole], Standard, "Sponge Staff",       Amber)
+  val SpongeDev       = new  RoleType( 6, 41, classOf[GlobalRole], Standard, "Sponge Developer",   Green)
+  val WebDev          = new  RoleType( 7, 45, classOf[GlobalRole], Standard, "Web Developer",      Blue)
+  val Scribe          = new  RoleType( 8, 51, classOf[GlobalRole], Limited,  "Sponge Documenter",  Aqua)
+  val Support         = new  RoleType( 9, 43, classOf[GlobalRole], Limited,  "Sponge Support",     Aqua)
+  val Contributor     = new  RoleType(10, 49, classOf[GlobalRole], Default,  "Sponge Contributor", Green)
+  val Adviser         = new  RoleType(11, 48, classOf[GlobalRole], Default,  "Sponge Adviser",     Aqua)
+
+  val StoneDonor   = new DonorType(12, 57, "Stone Donor",   Gray)
+  val QuartzDonor  = new DonorType(13, 54, "Quartz Donor",  Quartz)
+  val IronDonor    = new DonorType(14, 56, "Iron Donor",    Silver)
+  val GoldDonor    = new DonorType(15, 53, "Gold Donor",    Gold)
+  val DiamondDonor = new DonorType(16, 52, "Diamond Donor", LightBlue)
 
   // Project
 
-  val ProjectOwner    =   new  RoleType(17, -1,   Absolute,   "Owner",      Transparent)
-  val ProjectDev      =   new  RoleType(18, -2,   Standard,   "Developer",  Transparent)
-  val ProjectEditor   =   new  RoleType(19, -3,   Limited,    "Editor",     Transparent)
-  val ProjectSupport  =   new  RoleType(20, -4,   Default,    "Support",    Transparent)
+  val ProjectOwner   = new  RoleType(17, -1, classOf[ProjectRole], Absolute, "Owner",     Transparent)
+  val ProjectDev     = new  RoleType(18, -2, classOf[ProjectRole], Standard, "Developer", Transparent)
+  val ProjectEditor  = new  RoleType(19, -3, classOf[ProjectRole], Limited,  "Editor",    Transparent)
+  val ProjectSupport = new  RoleType(20, -4, classOf[ProjectRole], Default,  "Support",   Transparent)
 
   // Organization
 
-  val Organization        =   new RoleType(21, 64, Absolute, "Organization",        Purple)
-  val OrganizationOwner   =   new RoleType(22, -5, Absolute, "Organization Owner",  Purple)
+  val Organization        = new RoleType(21, 64, classOf[OrganizationRole], Absolute, "Organization", Purple)
+  val OrganizationOwner   = new RoleType(22, -5, classOf[OrganizationRole], Absolute, "Owner",        Purple)
+  val OrganizationDev     = new RoleType(23, -6, classOf[OrganizationRole], Standard, "Developer",    Transparent)
+  val OrganizationEditor  = new RoleType(24, -7, classOf[OrganizationRole], Limited,  "Editor",       Transparent)
+  val OrganizationSupport = new RoleType(25, -8, classOf[OrganizationRole], Default,  "Support",      Transparent)
 
   /**
     * Returns the role with the specified external ID.
@@ -53,13 +57,6 @@ object RoleTypes extends Enumeration {
   }
 
   /**
-    * Returns the typical RoleTypes of [[ProjectRole]]s.
-    *
-    * @return RoleTypes used by ProjectRoles
-    */
-  def ofProjects = this.values.filter(_.roleId < 0)
-
-  /**
     * Represents a User role.
     *
     * @param i      Index
@@ -70,6 +67,7 @@ object RoleTypes extends Enumeration {
     */
   class RoleType(val i: Int,
                  val roleId: Int,
+                 val roleClass: Class[_ <: Role],
                  val trust: Trust,
                  val title: String,
                  val color: Color)
@@ -87,7 +85,7 @@ object RoleTypes extends Enumeration {
                   override val roleId: Int,
                   override val title: String,
                   override val color: Color)
-                  extends RoleType(i, roleId, Default, title, color)
+                  extends RoleType(i, roleId, classOf[GlobalRole], Default, title, color)
 
   implicit def convert(value: Value): RoleType = value.asInstanceOf[RoleType]
 
