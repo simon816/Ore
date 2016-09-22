@@ -3,8 +3,8 @@ package db.impl.pg
 import com.github.tminglei.slickpg._
 import ore.Colors
 import ore.Colors.Color
-import ore.notification.NotificationTypes
-import ore.notification.NotificationTypes.NotificationType
+import ore.user.notification.NotificationTypes
+import ore.user.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category

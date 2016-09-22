@@ -6,7 +6,7 @@ import forums.DiscourseApi
 import models.project.Project
 import models.user.Notification
 import ore.OreConfig
-import ore.notification.NotificationTypes
+import ore.user.notification.NotificationTypes
 import ore.permission.role.RoleTypes
 import ore.project.Categories
 import play.api.i18n.MessagesApi

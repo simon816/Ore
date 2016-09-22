@@ -9,9 +9,9 @@ import db.impl.pg.OrePostgresDriver.api._
 import form.OreForms
 import forums.{DiscourseApi, DiscourseSSO}
 import models.user.role.RoleModel
-import ore.notification.InviteFilters.InviteFilter
-import ore.notification.NotificationFilters.NotificationFilter
-import ore.notification.{InviteFilters, NotificationFilters}
+import ore.user.notification.InviteFilters.InviteFilter
+import ore.user.notification.NotificationFilters.NotificationFilter
+import ore.user.notification.{InviteFilters, NotificationFilters}
 import ore.user.FakeUser
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi

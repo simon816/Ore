@@ -122,12 +122,8 @@ button.open:hover {
   border-color: #093962;
 }
 
-.btn-panel:active {
+.btn-panel:active, .btn-panel:focus {
   background-color: #22527b;
-  color: white;
-}
-
-.btn-panel:focus {
   color: white;
 }
 

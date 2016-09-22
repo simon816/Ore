@@ -15,7 +15,7 @@ import models.project.Channel
 import models.user.role.OrganizationRole
 import models.user.{Notification, Organization}
 import ore.Colors.Color
-import ore.notification.NotificationTypes.NotificationType
+import ore.user.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason

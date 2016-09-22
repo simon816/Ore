@@ -124,8 +124,47 @@ form {
   margin-bottom: 10px;
 }
 
-.category-select {
-  margin-top: 10px;
+.setting {
+  @extend .minor;
+  @extend .form-group;
+  border-bottom: 1px solid $light;
+  padding: 20px;
+  position: relative;
+  form { margin: 0; }
+  .danger { color: #B34D4D; }
+
+  h4 {
+    font-weight: bold;
+    margin-top: 0;
+    i {
+      font-weight: normal;
+      font-size: 14px;
+    }
+  }
+
+  .setting-content {
+    width: 25%;
+    height: 100%;
+    float: right;
+  }
+
+  .setting-description {
+    width: 60%;
+    height: 100%;
+    float: left;
+  }
+
+  .icon-description {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    p { margin-bottom: 110px; }
+  }
+
+  #btn-rename, .btn-delete {
+    width: 100%;
+  }
+
 }
 
 .category-reset {

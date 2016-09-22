@@ -6,7 +6,7 @@ import forums.DiscourseApi
 import models.user.role.OrganizationRole
 import models.user.{Notification, Organization, User}
 import ore.OreConfig
-import ore.notification.NotificationTypes
+import ore.user.notification.NotificationTypes
 import ore.permission.role.RoleTypes
 import org.apache.commons.lang3.RandomStringUtils
 import play.api.i18n.MessagesApi

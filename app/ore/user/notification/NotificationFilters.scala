@@ -1,4 +1,4 @@
-package ore.notification
+package ore.user.notification
 
 /**
   * A collection of ways to filter notifications.

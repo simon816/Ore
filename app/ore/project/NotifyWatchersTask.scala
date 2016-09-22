@@ -3,7 +3,7 @@ package ore.project
 import db.impl.access.ProjectBase
 import models.project.Version
 import models.user.Notification
-import ore.notification.NotificationTypes
+import ore.user.notification.NotificationTypes
 import play.api.i18n.MessagesApi
 
 /**

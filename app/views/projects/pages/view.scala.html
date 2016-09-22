@@ -72,7 +72,10 @@ Documentation page within Project overview.
                     </div>
 
                     <!-- Member list -->
-                    @users.memberList(model)
+                    @users.memberList(
+                        model = model,
+                        settingsCall = routes.Projects.showSettings(model.ownerName, model.slug)
+                    )
                 </div>
             </div>
         </div>

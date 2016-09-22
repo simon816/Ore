@@ -12,7 +12,7 @@ import models.project.{Channel, Project, Version}
 import models.user.role.ProjectRole
 import models.user.{Notification, User}
 import ore.OreConfig
-import ore.notification.NotificationTypes
+import ore.user.notification.NotificationTypes
 import ore.permission.role.RoleTypes
 import ore.project.NotifyWatchersTask
 import ore.project.io.{InvalidPluginFileException, PluginFile, ProjectFileManager}
