@@ -20,6 +20,10 @@ function initMember(memberRow) {
     memberRow.find('.fa-edit').parent().click(function(event) {
         event.preventDefault();
 
+        var saveBtn = $('.btn-members-save');
+        if (!saveBtn.is(':visible'))
+            saveBtn.fadeIn('fast');
+
         // Mark user as changed
         var container = getItemContainer($(this)).addClass('user-changed');
         var input = $('#select-role').clone().removeAttr('id').attr('form', 'save');
@@ -53,6 +57,10 @@ $(function() {
             return;
         }
         alert.fadeOut();
+
+        var saveBtn = $('.btn-members-save');
+        if (!saveBtn.is(':visible'))
+            saveBtn.fadeIn('fast');
 
         var user = result.user;
         // Check if user is already defined

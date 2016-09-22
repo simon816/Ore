@@ -110,4 +110,21 @@ class Organizations @Inject()(forms: OreForms,
     }
   }
 
+  def removeMember(organization: String) = EditOrganizationAction(organization) { implicit request =>
+    // TODO: Validation!
+    this.users.withName(this.forms.OrganizationMemberRemove.bindFromRequest.get.trim) match {
+      case None =>
+        BadRequest
+      case Some(user) =>
+        request.organization.memberships.removeMember(user)
+        Redirect(routes.Users.showProjects(organization, None))
+    }
+  }
+
+  def updateMembers(organization: String) = EditOrganizationAction(organization) { implicit request =>
+    // TODO: Validation!
+    this.forms.OrganizationUpdateMembers.bindFromRequest.get.saveTo(request.organization)
+    Redirect(routes.Users.showProjects(organization, None))
+  }
+
 }

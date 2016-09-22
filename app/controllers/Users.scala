@@ -9,6 +9,7 @@ import db.impl.pg.OrePostgresDriver.api._
 import form.OreForms
 import forums.{DiscourseApi, DiscourseSSO}
 import models.user.role.RoleModel
+import ore.permission.EditSettings
 import ore.user.notification.InviteFilters.InviteFilter
 import ore.user.notification.NotificationFilters.NotificationFilter
 import ore.user.notification.{InviteFilters, NotificationFilters}
@@ -92,22 +93,21 @@ class Users @Inject()(val fakeUser: FakeUser,
     * @param username   User to update
     * @return           View of user page
     */
-  def saveTagline(username: String) = {
-    Authenticated { implicit request =>
-      this.users.withName(username) match {
-        case None => NotFound
-        case Some(user) =>
-          if (user.equals(request.user) || (user.isOrganization && user.toOrganization.owner.user.equals(user))) {
-            val tagline = this.forms.UserTagline.bindFromRequest.get.trim
-            if (tagline.length > this.config.users.getInt("max-tagline-len").get) {
-              Redirect(self.showProjects(user.username, None)).flashing("error" -> "Tagline is too long.")
-            } else {
-              user.tagline = tagline
-              Redirect(self.showProjects(user.username, None))
-            }
-          } else
-            Unauthorized
-      }
+  def saveTagline(username: String) = Authenticated { implicit request =>
+    this.users.withName(username) match {
+      case None =>
+        NotFound
+      case Some(user) =>
+        if (user.equals(request.user) || (user.isOrganization && (user can EditSettings in user.toOrganization))) {
+          val tagline = this.forms.UserTagline.bindFromRequest.get.trim
+          if (tagline.length > this.config.users.getInt("max-tagline-len").get) {
+            Redirect(self.showProjects(user.username, None)).flashing("error" -> "Tagline is too long.")
+          } else {
+            user.tagline = tagline
+            Redirect(self.showProjects(user.username, None))
+          }
+        } else
+          Unauthorized
     }
   }
 

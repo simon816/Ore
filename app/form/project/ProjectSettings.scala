@@ -5,6 +5,7 @@ import db.impl.access.{ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.Project
 import models.user.Notification
+import models.user.role.ProjectRole
 import ore.OreConfig
 import ore.user.notification.NotificationTypes
 import ore.permission.role.RoleTypes
@@ -33,6 +34,7 @@ case class ProjectSettings(categoryName: String,
     *
     * @param project Project to save to
     */
+  //noinspection ComparingUnrelatedTypes
   def saveTo(project: Project)(implicit service: ModelService, projects: ProjectBase, forums: DiscourseApi,
                                config: OreConfig, messages: MessagesApi, users: UserBase) = {
     project.category = Categories.withName(this.categoryName)
@@ -59,9 +61,13 @@ case class ProjectSettings(categoryName: String,
       }
 
       // Update existing roles
-      for ((user, i) <- this.userUps.zipWithIndex)
-        project.memberships.members
-          .find(_.username.equalsIgnoreCase(user)).get.headRole.roleType = RoleTypes.withName (roleUps(i))
+      val projectRoleTypes = RoleTypes.values.filter(_.roleClass.equals(classOf[ProjectRole]))
+      for ((user, i) <- this.userUps.zipWithIndex) {
+        project.memberships.members.find(_.username.equalsIgnoreCase(user)).foreach { user =>
+          user.headRole.roleType = projectRoleTypes.find(_.title.equals(roleUps(i)))
+            .getOrElse(throw new RuntimeException("supplied invalid role type"))
+        }
+      }
     }
   }
 }

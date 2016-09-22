@@ -55,23 +55,6 @@ a > .fa {
   cursor: pointer;
 }
 
-.user-cancel {
-  cursor: pointer;
-  padding: 1px;
-  position: absolute;
-  color: gray;
-  left: -7px;
-  bottom: 16px;
-}
-
-.user-cancel:hover {
-  background-color: #ddd;
-}
-
-.user-cancel2 {
-  left: 1px;
-}
-
 @mixin no-box-shadow() {
   -webkit-box-shadow: none;
   -moz-box-shadow: none;

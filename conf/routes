@@ -62,7 +62,10 @@ GET     /organizations/new                                          @controllers
 POST    /organizations/new                                          @controllers.Organizations.create()
 
 GET     /organizations/invite/:id/:status                           @controllers.Organizations.setInviteStatus(id: Int, status)
+
 POST    /organizations/:organization/settings/avatar                @controllers.Organizations.updateAvatar(organization)
+POST    /organizations/:organization/settings/members               @controllers.Organizations.updateMembers(organization)
+POST    /organizations/:organization/settings/members/remove        @controllers.Organizations.removeMember(organization)
 
 # ---------- Users ----------
 GET     /authors                                                    @controllers.Users.showAuthors(sort: Option[String], page: Option[Int])

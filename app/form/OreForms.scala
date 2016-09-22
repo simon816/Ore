@@ -2,6 +2,7 @@ package form
 
 import javax.inject.Inject
 
+import form.organization.{OrganizationAvatarUpdate, OrganizationMembersUpdate, OrganizationRoleSetBuilder}
 import form.project.{ChannelData, ProjectRoleSetBuilder, ProjectSettings, VersionData}
 import models.project.Channel
 import models.project.Page._
@@ -17,22 +18,9 @@ import play.api.data.Forms._
 class OreForms @Inject()(implicit config: OreConfig) {
 
   /**
-    * Submits a new Channel for a Project.
-    */
-  lazy val ChannelEdit = Form(mapping(
-    "channel-input" -> text.verifying(
-      "Invalid channel name.", config.isValidChannelName(_)
-    ),
-
-    "channel-color-input" -> text.verifying(
-      "Invalid channel color.", c => Channel.Colors.exists(_.hex.equalsIgnoreCase(c))
-    )
-  )(ChannelData.apply)(ChannelData.unapply))
-
-  /**
     * Submits a member to be removed from a Project.
     */
-  lazy val ProjectMemberRemove = Form(single("username" -> text))
+  lazy val ProjectMemberRemove = Form(single("username" -> nonEmptyText))
 
   /**
     * Submits changes to a [[models.project.Project]]'s
@@ -42,32 +30,6 @@ class OreForms @Inject()(implicit config: OreConfig) {
     "users" -> list(number),
     "roles" -> list(text)
   )(ProjectRoleSetBuilder.apply)(ProjectRoleSetBuilder.unapply))
-
-  /**
-    * Submits a list of organization members to be invited.
-    */
-  lazy val OrganizationCreate = Form(mapping(
-    "name" -> nonEmptyText,
-    "users" -> list(number),
-    "roles" -> list(text)
-  )(OrganizationRoleSetBuilder.apply)(OrganizationRoleSetBuilder.unapply))
-
-  /**
-    * Submits an avatar update for an [[models.user.Organization]].
-    */
-  lazy val OrganizationUpdateAvatar = Form(mapping(
-    "avatar-method" -> nonEmptyText,
-    "avatar-url" -> optional(nonEmptyText)
-  )(OrganizationAvatarUpdate.apply)(OrganizationAvatarUpdate.unapply))
-
-  /**
-    * Submits changes on a documentation page.
-    */
-  lazy val PageEdit = Form(single(
-    "content" -> text(
-      minLength = MinLength,
-      maxLength = MaxLength
-    )))
 
   /**
     * Submits a flag on a project for further review.
@@ -99,6 +61,60 @@ class OreForms @Inject()(implicit config: OreConfig) {
     * Submits a post reply for a project discussion.
     */
   lazy val ProjectReply = Form(single("content" -> text(minLength = MinLength, maxLength = MaxLength)))
+
+  /**
+    * Submits a list of organization members to be invited.
+    */
+  lazy val OrganizationCreate = Form(mapping(
+    "name" -> nonEmptyText,
+    "users" -> list(number),
+    "roles" -> list(text)
+  )(OrganizationRoleSetBuilder.apply)(OrganizationRoleSetBuilder.unapply))
+
+  /**
+    * Submits an avatar update for an [[models.user.Organization]].
+    */
+  lazy val OrganizationUpdateAvatar = Form(mapping(
+    "avatar-method" -> nonEmptyText,
+    "avatar-url" -> optional(nonEmptyText)
+  )(OrganizationAvatarUpdate.apply)(OrganizationAvatarUpdate.unapply))
+
+  /**
+    * Submits an organization member for removal.
+    */
+  lazy val OrganizationMemberRemove = Form(single("username" -> nonEmptyText))
+
+  /**
+    * Submits a list of members to be added or updated.
+    */
+  lazy val OrganizationUpdateMembers = Form(mapping(
+    "users" -> list(number),
+    "roles" -> list(text),
+    "userUps" -> list(text),
+    "roleUps" -> list(text)
+  )(OrganizationMembersUpdate.apply)(OrganizationMembersUpdate.unapply))
+
+  /**
+    * Submits a new Channel for a Project.
+    */
+  lazy val ChannelEdit = Form(mapping(
+    "channel-input" -> text.verifying(
+      "Invalid channel name.", config.isValidChannelName(_)
+    ),
+
+    "channel-color-input" -> text.verifying(
+      "Invalid channel color.", c => Channel.Colors.exists(_.hex.equalsIgnoreCase(c))
+    )
+  )(ChannelData.apply)(ChannelData.unapply))
+
+  /**
+    * Submits changes on a documentation page.
+    */
+  lazy val PageEdit = Form(single(
+    "content" -> text(
+      minLength = MinLength,
+      maxLength = MaxLength
+    )))
 
   /**
     * Submits a tagline change for a User.

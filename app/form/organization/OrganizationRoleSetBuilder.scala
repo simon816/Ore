@@ -1,7 +1,6 @@
-package form
+package form.organization
 
 import models.user.role.OrganizationRole
-import ore.permission.role.RoleTypes.RoleType
 
 /**
   * Builds a set of [[OrganizationRole]]s from input data.
@@ -12,8 +11,4 @@ import ore.permission.role.RoleTypes.RoleType
 case class OrganizationRoleSetBuilder(name: String,
                                       override val users: List[Int],
                                       override val roles: List[String])
-                                      extends RoleSetBuilder[OrganizationRole] {
-
-  override def newRole(userId: Int, role: RoleType): OrganizationRole = new OrganizationRole(userId, role)
-
-}
+                                      extends TOrganizationRoleSetBuilder

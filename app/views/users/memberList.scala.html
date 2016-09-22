@@ -8,8 +8,9 @@
 @import views.html.helper.form
 @import models.user.role.RoleModel
 @import ore.permission.role.Role
+@import ore.permission.role.Absolute
 @(model: Joinable[_ <: Member[_]], editable: Boolean = false, removeCall: Call = null,
-        settingsCall: Call = null, interactive: Boolean = false)(implicit messages: Messages, session: Session,
+        settingsCall: Call = null, saveCall: Call = null)(implicit messages: Messages, session: Session,
         service: ModelService, forums: DiscourseApi, config: OreConfig, userBase: UserBase, env: OreEnv)
 
 @canEdit = @{
@@ -44,9 +45,9 @@
         <ul style="display: none;">
             <li id="row-user" class="list-group-item">
                 <input type="hidden" />
-                <i class="fa fa-times user-cancel user-cancel2"></i>
                 <img class="user-avatar" width="32" height="32" />
                 <a></a>
+                <i class="fa fa-times user-cancel"></i>
                 @users.invite.roleSelect(roleClass = roleClass, classes="pull-right")
             </li>
         </ul>
@@ -78,13 +79,24 @@
         <div class="panel-heading">
             <h3 class="pull-left panel-title">@messages("project.settings.members")</h3>
 
-            @if(canEdit || userBase.current.isDefined && (userBase.current.get can EditSettings in model)) {
-                @if(settingsCall != null || interactive) {
-                    <a href="@settingsCall"
-                       class="pull-right btn btn-default btn-panel btn-xs @if(interactive) { btn-members }">
-                        <i class="fa fa-edit"></i>
-                    </a>
-                }
+            @if(userBase.current.isDefined && (userBase.current.get can EditSettings in model)) {
+                <div class="pull-right">
+                    @if(!editable && settingsCall != null) {
+                        <a href="@settingsCall"
+                           class="btn btn-default btn-panel btn-xs">
+                            <i class="fa fa-edit"></i>
+                        </a>
+                    }
+
+                    @if(saveCall != null) {
+                        @form(action = saveCall, 'id -> "save") {
+                            <button class="btn-members-save btn btn-default btn-panel btn-xs" data-toggle="tooltip"
+                                    data-placement="top" data-title="Send updates" style="display: none;">
+                                <i class="fa fa-paper-plane"></i>
+                            </button>
+                        }
+                    }
+                </div>
             }
 
             <div class="clearfix"></div>
@@ -100,7 +112,7 @@
                             @member.username
                         </a>
 
-                        @if(canEdit && !member.headRole.roleType.equals(RoleTypes.ProjectOwner)) {
+                        @if(canEdit && !member.headRole.roleType.trust.equals(Absolute)) {
                             <a href="#">
                                 <i class="fa fa-trash" data-toggle="modal" data-target="#modal-user-delete"></i>
                             </a>
@@ -121,7 +133,7 @@
 
             <!-- User search -->
             @if(canEdit) {
-                <li class="list-group-item @if(interactive) { search-interact }">
+                <li class="list-group-item">
                     @users.invite.userSearch()
                 </li>
             }

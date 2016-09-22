@@ -1,4 +1,4 @@
-package form
+package form.organization
 
 /**
   * Represents an action of updating an [[models.user.Organization]] avatar.

@@ -41,6 +41,7 @@
         <!-- Header -->
         <div class="user-header">
             <div class="header-body">
+                <!-- Title -->
                 <div class="pull-left user-badge">
                     <img title="@user.username" alt="@user.username" height="100" width="100"
                          class="user-avatar @if(canEditOrganization) { organization-avatar }"
@@ -141,10 +142,16 @@
                                     </div>
                                     @form(action = routes.Users.saveTagline(user.username)) {
                                         <div class="modal-body">
-                                            <label for="tagline">Tagline</label>
-                                            <input class="form-control" type="text" value="@user.tagline.getOrElse("")"
-                                                   id="tagline" name="tagline"
-                                                   maxlength="@config.users.getInt("max-tagline-len").get" />
+                                            <div class="setting setting-no-border">
+                                                <div class="setting-description">
+                                                    <h4>Tagline</h4>
+                                                    <p>Add a short tagline to let people know what you're about!</p>
+                                                </div>
+                                                <input class="form-control" type="text"
+                                                        value="@user.tagline.getOrElse("")" id="tagline" name="tagline"
+                                                        maxlength="@config.users.getInt("max-tagline-len").get" />
+                                            </div>
+                                            <div class="clearfix"></div>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-default" data-dismiss="modal">
@@ -159,7 +166,9 @@
                     </div>
                 </div>
 
+                <!-- Right side -->
                 <div class="pull-right">
+                    <!-- Roles -->
                     <ul class="user-roles">
                         @user.organizations.all.map { organization =>
                             <li class="organization-role" data-toggle="tooltip" data-placement="top"

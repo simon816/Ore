@@ -62,12 +62,14 @@
                     </div>
                 </div>
             } else {
-                @users.memberList(
-                    model = user.toOrganization,
-                    editable = true,
-                    interactive = true,
-                    removeCall = routes.Application.showHome(None, None, None, None)
-                )
+                @defining(user.toOrganization) { organization =>
+                    @users.memberList(
+                        model = organization,
+                        editable = true,
+                        saveCall = routes.Organizations.updateMembers(organization.name),
+                        removeCall = routes.Organizations.removeMember(organization.name)
+                    )
+                }
             }
         </div>
     </div>

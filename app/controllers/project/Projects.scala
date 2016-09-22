@@ -410,11 +410,14 @@ class Projects @Inject()(val stats: StatTracker,
     * @param author Project owner
     * @param slug   Project slug
     */
-  def removeMember(author: String, slug: String) = {
-    SettingsEditAction(author, slug) { implicit request =>
-      request.project.memberships
-        .removeMember(users.withName(this.forms.ProjectMemberRemove.bindFromRequest.get.trim).get)
-      Redirect(self.showSettings(author, slug))
+  def removeMember(author: String, slug: String) = SettingsEditAction(author, slug) { implicit request =>
+    // TODO: Validation!
+    this.users.withName(this.forms.ProjectMemberRemove.bindFromRequest.get.trim) match {
+      case None =>
+        BadRequest
+      case Some(user) =>
+        request.project.memberships.removeMember(user)
+        Redirect(self.showSettings(author, slug))
     }
   }
 
@@ -426,6 +429,7 @@ class Projects @Inject()(val stats: StatTracker,
     * @return View of project
     */
   def save(author: String, slug: String) = {
+    // TODO: Validation!
     SettingsEditAction(author, slug) { implicit request =>
       this.forms.ProjectSave.bindFromRequest.get.saveTo(request.project)
       Redirect(self.show(author, slug))
