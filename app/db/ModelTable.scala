@@ -5,7 +5,9 @@ import java.sql.Timestamp
 import db.impl.OrePostgresDriver.api._
 import slick.lifted.Tag
 
-/** Represents a Table in the database that contains Models. */
+/**
+  * Represents a Table in the database that contains [[Model]]s.
+  */
 abstract class ModelTable[M <: Model](tag: Tag, name: String) extends Table[M](tag, name) {
 
   /** The Model's primary key column */

@@ -44,7 +44,7 @@ class Application @Inject()(data: DataHelper,
       val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
 
       // Determine filter
-      val actions = this.service.getActions(classOf[ProjectSchema])
+      val actions = this.service.getSchema(classOf[ProjectSchema])
       val canHideProjects = this.users.current.isDefined && (this.users.current.get can HideProjects in GlobalScope)
 
       val filter: ModelFilter[Project] = query.map { q =>

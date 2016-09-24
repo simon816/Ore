@@ -6,54 +6,54 @@ import com.google.common.collect.{BiMap, HashBiMap}
 import scala.collection.JavaConverters._
 
 /**
-  * A registry for ModelActions. This contains all the necessary information to
-  * interact with any Model in the database.
+  * A registry for [[Model]] information such as [[ModelSchema]]s or
+  * [[ModelBase]]s.
   */
 trait ModelRegistry {
 
-  private val modelActions: BiMap[Class[_ <: Model], ModelSchema[_]] = HashBiMap.create()
+  private val modelSchemas: BiMap[Class[_ <: Model], ModelSchema[_]] = HashBiMap.create()
   private var modelBases: Map[Class[_ <: ModelBase[_]], ModelBase[_]] = Map.empty
 
   /**
-    * Registers a new ModelActions.
+    * Registers a new [[ModelSchema]].
     *
-    * @param actions ModelActions to register
-    * @tparam Q Type Actions type
-    * @return Registered actions
+    * @param schema ModelSchema to register
+    * @tparam S Schema type
+    * @return Registered schema
     */
   //noinspection ComparingUnrelatedTypes
-  def registerSchema[Q <: ModelSchema[_ <: Model]](actions: Q): Q = {
-    checkNotNull(actions, "actions are null", "")
-    this.modelActions.put(actions.modelClass, actions)
-    actions
+  def registerSchema[S <: ModelSchema[_ <: Model]](schema: S): S = {
+    checkNotNull(schema, "schema is null", "")
+    this.modelSchemas.put(schema.modelClass, schema)
+    schema
   }
 
   /**
-    * Finds a ModelActions instance by the ModelActions class.
+    * Finds a [[ModelSchema]] instance by the schema class.
     *
-    * @param actionsClass ModelActions class
-    * @tparam Q           Actions type
-    * @return             ModelActions
+    * @param schemaClass  ModelSchema class
+    * @tparam S           Actions type
+    * @return             ModelSchema
     */
   //noinspection ComparingUnrelatedTypes
-  def getSchema[Q <: ModelSchema[_]](actionsClass: Class[Q]): Q = {
-    checkNotNull(actionsClass, "actions class is null", "")
-    this.modelActions.asScala.find(_._2.getClass.equals(actionsClass))
-      .getOrElse(throw new RuntimeException("actions not found of type " + actionsClass))
-      ._2.asInstanceOf[Q]
+  def getSchema[S <: ModelSchema[_]](schemaClass: Class[S]): S = {
+    checkNotNull(schemaClass, "schema class is null", "")
+    this.modelSchemas.asScala.find(_._2.getClass.equals(schemaClass))
+      .getOrElse(throw new RuntimeException("schema not found of type " + schemaClass))
+      ._2.asInstanceOf[S]
   }
 
   /**
-    * Returns a registered ModelActions for the specified Model class.
+    * Returns a registered [[ModelSchema]] for the specified Model class.
     *
     * @param modelClass Model class
     * @tparam M         Model type
-    * @return           ModelActions of Model
+    * @return           ModelSchema of Model
     */
   def getSchemaByModel[M <: Model](modelClass: Class[_ <: M]): ModelSchema[M] = {
-    checkNotNull(modelClass, "model class is null", "")
-    this.modelActions.asScala.find(_._1.isAssignableFrom(modelClass))
-      .getOrElse(throw new RuntimeException("actions not found for model " + modelClass))
+    checkNotNull(modelClass, "schema class is null", "")
+    this.modelSchemas.asScala.find(_._1.isAssignableFrom(modelClass))
+      .getOrElse(throw new RuntimeException("schema not found for model " + modelClass))
       ._2.asInstanceOf[ModelSchema[M]]
   }
 

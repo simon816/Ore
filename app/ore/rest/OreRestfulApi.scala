@@ -40,7 +40,7 @@ trait OreRestfulApi {
     */
   def getProjectList(categories: Option[String], sort: Option[Int], q: Option[String],
                      limit: Option[Int], offset: Option[Int]): JsValue = {
-    val queries = this.service.getActions(classOf[ProjectSchema])
+    val queries = this.service.getSchema(classOf[ProjectSchema])
     val categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
     val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
     val filter = q.map(queries.searchFilter).orNull
@@ -77,7 +77,7 @@ trait OreRestfulApi {
       })
 
       // Only allow versions in the specified channels
-      val filter = channelIds.map(service.getActions(classOf[VersionSchema]).channelFilter).orNull
+      val filter = channelIds.map(service.getSchema(classOf[VersionSchema]).channelFilter).orNull
       val maxLoad = this.config.projects.getInt("init-version-load").get
       val lim = Math.max(limit.getOrElse(maxLoad), maxLoad)
 

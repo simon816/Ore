@@ -2,19 +2,17 @@ package db.impl
 
 import java.sql.Timestamp
 
-import OrePostgresDriver.api._
-import db.{AssociativeTable, Model, ModelTable}
+import db.impl.OrePostgresDriver.api._
+import db.{AssociativeTable, ModelTable}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
 import models.user.{Notification, Organization, User}
 import ore.Colors.Color
-import ore.user.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
-import ore.user.Prompts.Prompt
-import slick.lifted.{MappedProjection, ProvenShape}
+import ore.user.notification.NotificationTypes.NotificationType
 
 /*
  * Database schema definitions. Changes must be first applied as an evolutions
@@ -32,9 +30,7 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
   def homepage              =   column[String]("homepage")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
   def category              =   column[Category]("category")
-  def views                 =   column[Int]("views", O.Default(0))
   def downloads             =   column[Int]("downloads", O.Default(0))
-  def stars                 =   column[Int]("stars", O.Default(0))
   def issues                =   column[String]("issues")
   def source                =   column[String]("source")
   def description           =   column[String]("description")
@@ -44,27 +40,29 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
   def lastUpdated           =   column[Timestamp]("last_updated")
 
   override def * = (id.?, createdAt.?, pluginId, ownerName, userId, homepage.?, name, slug, recommendedVersionId.?,
-                    category, views, downloads, stars, issues.?, source.?, description.?, topicId.?, postId.?,
-                    isVisible, lastUpdated) <> ((Project.apply _).tupled, Project.unapply)
+                    category, downloads, issues.?, source.?, description.?, topicId.?, postId.?, isVisible,
+                    lastUpdated) <> (Project.tupled, Project.unapply)
 
 }
 
 class ProjectWatchersTable(tag: Tag)
   extends AssociativeTable(tag, "project_watchers", classOf[Project], classOf[User]) {
 
-  def projectId = column[Int]("project_id")
-  def userId = column[Int]("user_id")
+  def projectId   =   column[Int]("project_id")
+  def userId      =   column[Int]("user_id")
 
   override def * = (projectId, userId)
 
 }
 
 class ProjectViewsTable(tag: Tag) extends StatTable[ProjectView](tag, "project_views", "project_id") {
+
   override def * = (id.?, createdAt.?, modelId, address, cookie,
                     userId.?) <> ((ProjectView.apply _).tupled, ProjectView.unapply)
+
 }
 
-class ProjectStarsTable(tag: Tag) extends Table[(Int, Int)](tag, "project_stars") {
+class ProjectStarsTable(tag: Tag) extends AssociativeTable(tag, "project_stars", classOf[User], classOf[Project]) {
 
   def userId      =   column[Int]("user_id")
   def projectId   =   column[Int]("project_id")
@@ -111,13 +109,14 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions") {
   def fileName        =   column[String]("file_name")
 
   override def * = (id.?, createdAt.?, projectId, versionString, mcversion.?, dependencies, assets.?, channelId,
-                    fileSize, hash, description.?, downloads, isReviewed, fileName) <> ((Version.apply _).tupled,
-                    Version.unapply)
+                    fileSize, hash, description.?, downloads, isReviewed, fileName) <> (Version.tupled, Version.unapply)
 }
 
 class VersionDownloadsTable(tag: Tag) extends StatTable[VersionDownload](tag, "version_downloads", "version_id") {
+
   override def * = (id.?, createdAt.?, modelId, address, cookie, userId.?) <> ((VersionDownload.apply _).tupled,
                     VersionDownload.unapply)
+
 }
 
 class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
@@ -134,8 +133,8 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
   def avatarUrl     =   column[String]("avatar_url")
 //  def readPrompts   =   column[List[Prompt]]("read_prompts")
 
-  override def * = (id.?, createdAt.?, name.?, username, email.?, tagline.?,
-                    globalRoles, joinDate.?, avatarUrl.?) <> ((User.apply _).tupled, User.unapply)
+  override def * = (id.?, createdAt.?, name.?, username, email.?, tagline.?, globalRoles, joinDate.?,
+                    avatarUrl.?) <> (User.tupled, User.unapply)
 
 }
 
@@ -146,8 +145,7 @@ class OrganizationTable(tag: Tag) extends ModelTable[Organization](tag, "organiz
   def password      =   column[String]("password")
   def userId        =   column[Int]("user_id")
 
-  override def * = (id.?, createdAt.?, username, password,
-                    userId) <> ((Organization.apply _).tupled, Organization.unapply)
+  override def * = (id.?, createdAt.?, username, password, userId) <> (Organization.tupled, Organization.unapply)
 
 }
 
@@ -162,9 +160,11 @@ class OrganizationMembersTable(tag: Tag) extends AssociativeTable(tag, "organiza
 }
 
 trait RoleTable[R <: RoleModel] extends ModelTable[R] {
-  def userId = column[Int]("user_id")
-  def roleType = column[RoleType]("role_type")
-  def isAccepted = column[Boolean]("is_accepted")
+
+  def userId      =   column[Int]("user_id")
+  def roleType    =   column[RoleType]("role_type")
+  def isAccepted  =   column[Boolean]("is_accepted")
+
 }
 
 class OrganizationRoleTable(tag: Tag)
@@ -173,8 +173,8 @@ class OrganizationRoleTable(tag: Tag)
 
   def organizationId = column[Int]("organization_id")
 
-  override def * = (id.?, createdAt.?, userId, organizationId, roleType,
-                    isAccepted) <> ((OrganizationRole.apply _).tupled, OrganizationRole.unapply)
+  override def * = (id.?, createdAt.?, userId, organizationId, roleType, isAccepted) <> (OrganizationRole.tupled,
+                    OrganizationRole.unapply)
 
 }
 
@@ -182,7 +182,7 @@ class ProjectRoleTable(tag: Tag)
   extends ModelTable[ProjectRole](tag, "user_project_roles")
   with RoleTable[ProjectRole] {
 
-  def projectId   =   column[Int]("project_id")
+  def projectId = column[Int]("project_id")
 
   override def * = (id.?, createdAt.?, userId, projectId, roleType, isAccepted) <> (ProjectRole.tupled,
                     ProjectRole.unapply)
@@ -191,8 +191,8 @@ class ProjectRoleTable(tag: Tag)
 
 class ProjectMembersTable(tag: Tag) extends AssociativeTable(tag, "project_members", classOf[Project], classOf[User]) {
 
-  def projectId = column[Int]("project_id")
-  def userId    = column[Int]("user_id")
+  def projectId   =   column[Int]("project_id")
+  def userId      =   column[Int]("user_id")
 
   override def * = (projectId, userId)
 
@@ -208,17 +208,17 @@ class NotificationTable(tag: Tag) extends ModelTable[Notification](tag, "notific
   def read              =   column[Boolean]("read")
 
   override def * = (id.?, createdAt.?, userId, originId, notificationType, message, action.?,
-                    read) <> ((Notification.apply _).tupled, Notification.unapply)
+                    read) <> (Notification.tupled, Notification.unapply)
 
 }
 
 class FlagTable(tag: Tag) extends ModelTable[Flag](tag, "flags") {
 
-  def projectId = column[Int]("project_id")
-  def userId = column[Int]("user_id")
-  def reason = column[FlagReason]("reason")
-  def isResolved = column[Boolean]("is_resolved")
+  def projectId   =   column[Int]("project_id")
+  def userId      =   column[Int]("user_id")
+  def reason      =   column[FlagReason]("reason")
+  def isResolved  =   column[Boolean]("is_resolved")
 
-  override def * = (id.?, createdAt.?, projectId, userId, reason, isResolved) <> ((Flag.apply _).tupled, Flag.unapply)
+  override def * = (id.?, createdAt.?, projectId, userId, reason, isResolved) <> (Flag.tupled, Flag.unapply)
 
 }

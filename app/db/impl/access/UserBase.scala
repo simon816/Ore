@@ -51,7 +51,7 @@ class UserBase(override val service: ModelService,
 
     // get authors
     var users: Seq[User] = this.service.await {
-      this.service.getActions(classOf[ProjectSchema]).distinctAuthors
+      this.service.getSchema(classOf[ProjectSchema]).distinctAuthors
     }.get
 
     // sort
@@ -76,7 +76,7 @@ class UserBase(override val service: ModelService,
     * @param user User to find
     * @return     Found or new User
     */
-  def getOrCreate(user: User): User = this.service.await(user.actions(this.service).getOrInsert(user)).get
+  def getOrCreate(user: User): User = this.service.await(user.schema(this.service).getOrInsert(user)).get
 
   /**
     * Returns the currently authenticated User.

@@ -21,7 +21,6 @@ trait OrePostgresDriver extends ExPostgresDriver with PgArraySupport with PgNetS
   override val api = OreDriver
 
   object OreDriver extends API with ArrayImplicits with NetImplicits {
-    implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
     implicit val colorTypeMapper = MappedJdbcType.base[Color, Int](_.id, Colors.apply)
     implicit val roleTypeTypeMapper = MappedJdbcType.base[RoleType, Int](_.roleId, RoleTypes.withId)
     implicit val roleTypeListTypeMapper = new AdvancedArrayJdbcType[RoleType]("int2",

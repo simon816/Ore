@@ -73,7 +73,7 @@ case class Channel(override val id: Option[Int] = None,
     *
     * @return All versions
     */
-  def versions = this.actions.getChildren[Version](classOf[Version], this)
+  def versions = this.schema.getChildren[Version](classOf[Version], this)
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
   override def compare(that: Channel) = this._name compare that._name

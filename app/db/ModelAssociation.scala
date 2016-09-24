@@ -1,5 +1,6 @@
 package db
 
+import com.google.common.base.Preconditions._
 import db.impl.OrePostgresDriver.api._
 
 /**
@@ -16,6 +17,12 @@ class ModelAssociation[AssocTable <: AssociativeTable]
                        ref2: AssocTable => Rep[Int],
                        val tableClass: Class[AssocTable],
                        val assocTable: TableQuery[AssocTable]) {
+
+  checkNotNull(this.service, "service null", "")
+  checkNotNull(this.ref1, "ref1 null", "")
+  checkNotNull(this.ref2, "ref2 null", "")
+  checkNotNull(this.tableClass, "table class null")
+  checkNotNull(this.assocTable, "table null")
 
   /**
     * Associates the two models.
@@ -43,6 +50,8 @@ class ModelAssociation[AssocTable <: AssociativeTable]
   }
 
   private def orderModels(model1: Model, model2: Model): (Model, Model) = {
+    checkNotNull(model1, "model1 null", "")
+    checkNotNull(model2, "model2 null", "")
     val firstModel = this.assocTable.baseTableRow.firstClass
     val secondModel = this.assocTable.baseTableRow.secondClass
     val clazz1 = model1.getClass

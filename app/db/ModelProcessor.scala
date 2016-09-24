@@ -1,18 +1,21 @@
 package db
 
+import com.google.common.base.Preconditions.checkNotNull
+
 /**
-  * Processes an annotated Model and bind's the appropriate fields and
-  * children.
+  * [[Model]]s are processed immediately after they've been retrieved from the
+  * database.
   */
 class ModelProcessor(service: ModelService) {
 
   /**
-    * Processes and generates annotation bindings for the specified model.
+    * Processes a [[Model]].
     *
-    * @param model  Model to bind
+    * @param model  Model to process
     * @tparam M     Model type
     */
   def process[M <: Model](model: M): M = {
+    checkNotNull(model, "tried to process null model!", "")
     model.service = this.service
     model.setProcessed(true)
     model

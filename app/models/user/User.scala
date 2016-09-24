@@ -238,7 +238,7 @@ case class User(override val id: Option[Int] = None,
   def starred(page: Int = -1): Seq[Project] = Defined {
     val starsPerPage = this.config.users.getInt("stars-per-page").get
     val limit = if (page < 1) -1 else starsPerPage
-    val actions = this.service.getActions(classOf[ProjectSchema])
+    val actions = this.service.getSchema(classOf[ProjectSchema])
     this.service.await(actions.starredBy(this.id.get, limit, (page - 1) * starsPerPage)).get
   }
 
@@ -287,7 +287,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Projects owned by user
     */
-  def projects = this.actions.getChildren[Project](classOf[Project], this)
+  def projects = this.schema.getChildren[Project](classOf[Project], this)
 
   /**
     * Returns the Project with the specified name that this User owns.
@@ -302,21 +302,21 @@ case class User(override val id: Option[Int] = None,
     *
     * @return ProjectRoles
     */
-  def projectRoles = this.actions.getChildren[ProjectRole](classOf[ProjectRole], this)
+  def projectRoles = this.schema.getChildren[ProjectRole](classOf[ProjectRole], this)
 
   /**
     * Returns the [[Organization]]s that this User owns.
     *
     * @return Organizations user owns
     */
-  def ownedOrganizations = this.actions.getChildren[Organization](classOf[Organization], this)
+  def ownedOrganizations = this.schema.getChildren[Organization](classOf[Organization], this)
 
   /**
     * Returns the [[Organization]]s that this User belongs to.
     *
     * @return Organizations user belongs to
     */
-  def organizations = this.actions.getAssociation[OrganizationMembersTable, Organization](
+  def organizations = this.schema.getAssociation[OrganizationMembersTable, Organization](
     classOf[OrganizationMembersTable], this)
 
   /**
@@ -324,7 +324,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return OrganizationRoles
     */
-  def organizationRoles = this.actions.getChildren[OrganizationRole](classOf[OrganizationRole], this)
+  def organizationRoles = this.schema.getChildren[OrganizationRole](classOf[OrganizationRole], this)
 
   /**
     * Returns true if this User is also an organization.
@@ -348,7 +348,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Projects user is watching
     */
-  def watching = this.actions.getAssociation[ProjectWatchersTable, Project](classOf[ProjectWatchersTable], this)
+  def watching = this.schema.getAssociation[ProjectWatchersTable, Project](classOf[ProjectWatchersTable], this)
 
   /**
     * Sets the "watching" status on the specified project.
@@ -368,7 +368,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Flags submitted by user
     */
-  def flags = this.actions.getChildren[Flag](classOf[Flag], this)
+  def flags = this.schema.getChildren[Flag](classOf[Flag], this)
 
   /**
     * Returns true if the User has an unresolved [[Flag]] on the specified
@@ -385,7 +385,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return User notifications
     */
-  def notifications = this.actions.getChildren[Notification](classOf[Notification], this)
+  def notifications = this.schema.getChildren[Notification](classOf[Notification], this)
 
   /**
     * Sends a [[Notification]] to this user.

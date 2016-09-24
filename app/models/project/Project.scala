@@ -34,7 +34,6 @@ import util.StringUtils.{compact, slugify}
   * @param recommendedVersionId   The ID of this project's recommended version
   * @param _category              The project's Category
   * @param _downloads             How many times this project has been downloaded in total
-  * @param _stars                 How many times this project has been starred
   * @param _issues                External link to issue tracker
   * @param _source                External link to source code
   * @param _description           Short description of Project
@@ -49,9 +48,7 @@ case class Project(override val id: Option[Int] = None,
                    private var _slug: String,
                    private var recommendedVersionId: Option[Int] = None,
                    private var _category: Category = Categories.Undefined,
-                   private var _views: Int = 0,
                    private var _downloads: Int = 0,
-                   private var _stars: Int = 0,
                    private var _issues: Option[String] = None,
                    private var _source: Option[String] = None,
                    private var _description: Option[String] = None,
@@ -66,7 +63,7 @@ case class Project(override val id: Option[Int] = None,
 
   override type M = Project
   override type T = ProjectTable
-  override type A = ProjectSchema
+  override type S = ProjectSchema
 
   /**
     * Contains all information for [[User]] memberships.
@@ -132,7 +129,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Users watching project
     */
-  def watchers = this.actions.getAssociation[ProjectWatchersTable, User](classOf[ProjectWatchersTable], this)
+  def watchers = this.schema.getAssociation[ProjectWatchersTable, User](classOf[ProjectWatchersTable], this)
 
   /**
     * Returns the name of this Project.
@@ -285,22 +282,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Unique project views
     */
-  def viewEntries = this.actions.getChildren[ProjectView](classOf[ProjectView], this)
-
-  /**
-    * Returns the amount of unique views this Project has.
-    *
-    * @return Amount of unique views
-    */
-  def views: Int = this._views
-
-  /**
-    * Adds one view to this Project's view count.
-    */
-  def addView() = {
-    this._views += 1
-    update(Views)
-  }
+  def views = this.schema.getChildren[ProjectView](classOf[ProjectView], this)
 
   /**
     * Returns the amount of unique downloads this Project has.
@@ -320,33 +302,12 @@ case class Project(override val id: Option[Int] = None,
   }
 
   /**
-    * Returns the amount of times this Project has been starred.
+    * Returns [[db.access.ModelAccess]] to [[User]]s who have starred this
+    * project.
     *
-    * @return Amount of stars
+    * @return Users who have starred this project
     */
-  def stars: Int = this._stars
-
-  /**
-    * Returns true if this Project is starred by the specified User.
-    *
-    * @param user   User to check if starred for
-    * @return       True if starred by User
-    */
-  def isStarredBy(user: User): Boolean = Defined {
-    this.service.await(this.actions.isStarredBy(this.id.get, user.id.get)).get
-  }
-
-  /**
-    * Returns true if this Project is starred by the User with the specified
-    * username.
-    *
-    * @param username   To get User of
-    * @return           True if starred by User
-    */
-  def isStarredBy(username: String): Boolean = Defined {
-    val user = this.userBase.withName(username)
-    isStarredBy(user.get)
-  }
+  def stars = Defined(this.schema.getAssociation[ProjectStarsTable, User](classOf[ProjectStarsTable], this))
 
   /**
     * Sets the "starred" state of this Project for the specified User.
@@ -354,34 +315,11 @@ case class Project(override val id: Option[Int] = None,
     * @param user User to set starred state of
     * @param starred True if should star
     */
-  def setStarredBy(user: User, starred: Boolean) = if (starred) starFor(user) else unstarFor(user)
-
-  /**
-    * Sets this Project as starred for the specified User.
-    *
-    * @param user   User to star for
-    * @return       Future result
-    */
-  def starFor(user: User) = Defined {
-    if (!isStarredBy(user)) {
-      this._stars += 1
-      this.service.await(this.actions.starFor(this.id.get, user.id.get)).get
-      update(Stars)
-    }
-  }
-
-  /**
-    * Removes a star for this Project for the specified User.
-    *
-    * @param user   User to unstar for
-    * @return       Future result
-    */
-  def unstarFor(user: User) = Defined {
-    if (isStarredBy(user)) {
-      this._stars -= 1
-      this.service.await(this.actions.unstarFor(this.id.get, user.id.get)).get
-      update(Stars)
-    }
+  def setStarredBy(user: User, starred: Boolean) = {
+    if (starred)
+      this.stars.add(user)
+    else
+      this.stars.remove(user)
   }
 
   /**
@@ -389,7 +327,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Flags on project
     */
-  def flags = this.actions.getChildren[Flag](classOf[Flag], this)
+  def flags = this.schema.getChildren[Flag](classOf[Flag], this)
 
   /**
     * Submits a flag on this project for the specified user.
@@ -408,7 +346,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Channels in project
     */
-  def channels = this.actions.getChildren[Channel](classOf[Channel], this)
+  def channels = this.schema.getChildren[Channel](classOf[Channel], this)
 
   /**
     * Creates a new Channel for this project with the specified name.
@@ -429,7 +367,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Versions in project
     */
-  def versions = this.actions.getChildren[Version](classOf[Version], this)
+  def versions = this.schema.getChildren[Version](classOf[Version], this)
 
   /**
     * Returns this Project's recommended version.
@@ -454,7 +392,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Pages in project
     */
-  def pages = this.actions.getChildren[Page](classOf[Page], this)
+  def pages = this.schema.getChildren[Page](classOf[Page], this)
 
   /**
     * Returns this Project's home page.
@@ -463,7 +401,7 @@ case class Project(override val id: Option[Int] = None,
     */
   def homePage: Page = Defined {
     val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false)
-    this.service.await(page.actions.getOrInsert(page)).get
+    this.service.await(page.schema.getOrInsert(page)).get
   }
 
   /**
@@ -482,7 +420,7 @@ case class Project(override val id: Option[Int] = None,
     */
   def getOrCreatePage(name: String): Page = Defined {
     val page = new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true)
-    this.service.await(page.actions.getOrInsert(page)).get
+    this.service.await(page.schema.getOrInsert(page)).get
   }
 
   /**

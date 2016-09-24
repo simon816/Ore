@@ -40,7 +40,7 @@ trait ModelService {
     * process any returned models and should be used only for model "meta-data"
     * (e.g. Project stars).
     */
-  protected[db] val DB: DatabaseConfig[JdbcProfile]
+  val DB: DatabaseConfig[JdbcProfile]
 
   /**
     * Returns a current Timestamp.
@@ -60,22 +60,32 @@ trait ModelService {
   def await[M](f: Future[M], timeout: Duration = DefaultTimeout): Try[M] = Await.ready(f, timeout).value.get
 
   /**
-    * Provides the specified ModelActions granted that it is registered.
+    * Provides the specified [[ModelSchema]] granted that it is registered.
     *
-    * @tparam Q ModelActions
-    * @return ModelActions of type
+    * @tparam S ModelSchema
+    * @return   ModelSchema of type
     */
-  def getActions[Q <: ModelSchema[_]](actionsClass: Class[Q]): Q = this.registry.getSchema(actionsClass)
+  def getSchema[S <: ModelSchema[_]](actionsClass: Class[S]): S = this.registry.getSchema(actionsClass)
 
   /**
-    * Provides the registered ModelActions instance for the specified Model.
+    * Provides the registered [[ModelSchema]] instance for the specified
+    * [[Model]].
     *
     * @param modelClass Model class
-    * @tparam M Model type
-    * @return ModelActions
+    * @tparam M         Model type
+    * @return           ModelSchema
     */
-  def getActionsByModel[M <: Model](modelClass: Class[M]): ModelSchema[M]
+  def getSchemaByModel[M <: Model](modelClass: Class[M]): ModelSchema[M]
   = this.registry.getSchemaByModel(modelClass)
+
+  /**
+    * Returns the specified [[ModelBase]].
+    *
+    * @param clazz  ModelBase class
+    * @tparam B     ModelBase type
+    * @return       ModelBase
+    */
+  def getModelBase[B <: ModelBase[_]](clazz: Class[B]): B = this.registry.getModelBase(clazz)
 
   /**
     * Returns the base query for the specified Model class.
@@ -109,15 +119,6 @@ trait ModelService {
   = new ModelAccess[M](this, modelClass, baseFilter)
 
   /**
-    * Returns the specified [[ModelBase]].
-    *
-    * @param clazz  ModelBase class
-    * @tparam B     ModelBase type
-    * @return       ModelBase
-    */
-  def getModelBase[B <: ModelBase[_]](clazz: Class[B]): B = this.registry.getModelBase(clazz)
-
-  /**
     * Creates the specified model in it's table.
     *
     * @param model  Model to create
@@ -134,49 +135,90 @@ trait ModelService {
     }
   }
 
-  def setType[A <: MappedType[A], M <: Model](model: M, rep: M#T => Rep[A], v: A) = {
-    import v.mapper
+  /**
+    * Sets a [[MappedType]] in a [[ModelTable]].
+    *
+    * @param model  Model to update
+    * @param column Reference of column to update
+    * @param value  Value to set
+    * @tparam A     MappedType type
+    * @tparam M     Model type
+    */
+  def setType[A <: MappedType[A], M <: Model](model: M, column: M#T => Rep[A], value: A) = {
+    import value.mapper
     DB.db.run {
       (for {
         row <- newAction[M](model.getClass)
         if row.id === model.id.get
-      } yield rep(row)).update(v)
+      } yield column(row)).update(value)
     }
   }
 
-  def setInt[M <: Model](model: M, rep: M#T => Rep[Int], v: Int) = {
+  /**
+    * Sets an Int in a [[ModelTable]].
+    *
+    * @param model  Model to update
+    * @param column Reference of column to update
+    * @param value  Value to set
+    * @tparam M     Model type
+    */
+  def setInt[M <: Model](model: M, column: M#T => Rep[Int], value: Int) = {
     DB.db.run {
       (for {
         row <- newAction[M](model.getClass)
         if row.id === model.id.get
-      } yield rep(row)).update(v)
+      } yield column(row)).update(value)
     }
   }
 
-  def setString[M <: Model](model: M, rep: M#T => Rep[String], v: String) = {
+  /**
+    * Sets an String in a [[ModelTable]].
+    *
+    * @param model  Model to update
+    * @param column Reference of column to update
+    * @param value  Value to set
+    * @tparam M     Model type
+    */
+  def setString[M <: Model](model: M, column: M#T => Rep[String], value: String) = {
     DB.db.run {
       (for {
         row <- newAction[M](model.getClass)
         if row.id === model.id.get
-      } yield rep(row)).update(v)
+      } yield column(row)).update(value)
     }
   }
 
-  def setBoolean[M <: Model](model: M, rep: M#T => Rep[Boolean], v: Boolean) = {
+  /**
+    * Sets an Boolean in a [[ModelTable]].
+    *
+    * @param model  Model to update
+    * @param column Reference of column to update
+    * @param value  Value to set
+    * @tparam M     Model type
+    */
+  def setBoolean[M <: Model](model: M, column: M#T => Rep[Boolean], value: Boolean) = {
     DB.db.run {
       (for {
         row <- newAction[M](model.getClass)
         if row.id === model.id.get
-      } yield rep(row)).update(v)
+      } yield column(row)).update(value)
     }
   }
 
-  def setTimestamp[M <: Model](model: M, rep: M#T => Rep[Timestamp], v: Timestamp) = {
+  /**
+    * Sets an Boolean in a [[ModelTable]].
+    *
+    * @param model  Model to update
+    * @param column Reference of column to update
+    * @param value  Value to set
+    * @tparam M     Model type
+    */
+  def setTimestamp[M <: Model](model: M, column: M#T => Rep[Timestamp], value: Timestamp) = {
     DB.db.run {
       (for {
         row <- newAction[M](model.getClass)
         if row.id === model.id.get
-      } yield rep(row)).update(v)
+      } yield column(row)).update(value)
     }
   }
 
@@ -261,7 +303,7 @@ trait ModelService {
     * @return       Filtered models
     */
   def filter[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean], limit: Int = -1,
-                                  offset: Int = -1): Future[Seq[M]]
+                         offset: Int = -1): Future[Seq[M]]
   = collect(modelClass, filter, null, limit, offset)
 
   /**
@@ -274,8 +316,8 @@ trait ModelService {
     * @tparam M         Model
     * @return           Sorted models
     */
-  def sorted[M <: Model](modelClass: Class[M], sort: M#T => ColumnOrdered[_], filter: M#T => Rep[Boolean] = null, limit: Int = -1,
-                                  offset: Int = -1): Future[Seq[M]]
+  def sorted[M <: Model](modelClass: Class[M], sort: M#T => ColumnOrdered[_], filter: M#T => Rep[Boolean] = null,
+                         limit: Int = -1, offset: Int = -1): Future[Seq[M]]
   = collect(modelClass, filter, sort, limit, offset)
 
 }

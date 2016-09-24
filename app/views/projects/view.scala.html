@@ -116,7 +116,7 @@ Base template for Project overview.
                                     var projectSlug = "@project.slug";
                                 </script>
 
-                                @defining(project.isStarredBy(user.username)) { alreadyStarred =>
+                                @defining(project.stars.contains(user)) { alreadyStarred =>
 
                                     <script>var alreadyStarred = @alreadyStarred;</script>
 
@@ -126,11 +126,11 @@ Base template for Project overview.
                                                 class="fa fa-star"
                                             } else {
                                                 class="fa fa-star-o" }></i>
-                                            <span class="starred"> @project.stars</span>
+                                            <span class="starred"> @project.stars.size</span>
                                         </button>
                                     } else {
                                         <span class="minor stars-static">
-                                            <i class="fa fa-star"></i> @project.stars
+                                            <i class="fa fa-star"></i> @project.stars.size
                                         </span>
                                     }
                                 }

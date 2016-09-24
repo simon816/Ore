@@ -89,8 +89,6 @@ case class ModelFilter[M <: Model](fn: M#T => Rep[Boolean] = null) {
 
 object ModelFilter {
 
-  def convert[M <: Model](filter: M#T => Rep[Boolean]): M#T => Rep[Boolean] = filter.asInstanceOf[M#T => Rep[Boolean]]
-
   /** Filters models by ID */
   def IdFilter[M <: Model](id: Int): ModelFilter[M] = ModelFilter[M](_.id === id)
 

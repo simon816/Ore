@@ -1,6 +1,7 @@
 package db.impl.schema
 
-import db.{ModelSchema, ModelService}
+import db.impl.OrePostgresDriver.api._
+import db.{ModelFilter, ModelSchema, ModelService}
 import models.statistic.StatEntry
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -42,11 +43,11 @@ trait StatSchema[M <: StatEntry[_]] extends ModelSchema[M] {
     promise.future
   }
 
-//  override def like(entry: M): Future[Option[M]] = {
-//    val baseFilter: ModelFilter[M] = ModelFilter[M](_.modelId === entry.modelId)
-//    val filter: M#T => Rep[Boolean] = e => e.address === entry.address || e.cookie === entry.cookie
-//    val userFilter = entry.user.map[M#T => Rep[Boolean]](u => e => filter(e) || e.userId === u.id.get).getOrElse(filter)
-//    this.service.find(this.modelClass, (baseFilter && userFilter).fn)
-//  }
+  override def like(entry: M): Future[Option[M]] = {
+    val baseFilter: ModelFilter[M] = ModelFilter[M](_.modelId === entry.modelId)
+    val filter: M#T => Rep[Boolean] = e => e.address === entry.address || e.cookie === entry.cookie
+    val userFilter = entry.user.map[M#T => Rep[Boolean]](u => e => filter(e) || e.userId === u.id.get).getOrElse(filter)
+    this.service.find(this.modelClass, (baseFilter && userFilter).fn)
+  }
 
 }

@@ -14,8 +14,8 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
   type M <: Model { type M = self.M }
   /** The model's table */
   type T <: ModelTable[M]
-  /** The model's actions */
-  type A <: ModelSchema[M]
+  /** The model's schema */
+  type S <: ModelSchema[M]
 
   /** The ModelService that this Model was processed with */
   implicit var service: ModelService = _
@@ -32,7 +32,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
   def update(key: Key[M]) = key.update(this.asInstanceOf[M])
 
   /**
-    * Removes this model from it's table through it's ModelActions.
+    * Removes this model from it's table.
     */
   def remove() = Defined(this.service.await(this.service.delete(this.asInstanceOf[M])))
 
@@ -50,11 +50,11 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
     *                 not yet been processed
     * @return         ModelActions
     */
-  def actions(implicit service: ModelService = null): A = {
+  def schema(implicit service: ModelService = null): S = {
     if (this.service == null)
       this.service = service
     checkNotNull(this.service, "service is null", "")
-    this.service.getActionsByModel(getClass).asInstanceOf[A]
+    this.service.getSchemaByModel(getClass).asInstanceOf[S]
   }
 
   /**

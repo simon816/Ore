@@ -61,6 +61,9 @@ class OreModelService @Inject()(env: OreEnv,
   val organizationMembers = new ModelAssociation[OrganizationMembersTable](
     this, _.userId, _.organizationId, classOf[OrganizationMembersTable], TableQuery[OrganizationMembersTable])
 
+  val stars = new ModelAssociation[ProjectStarsTable](
+    this, _.userId, _.projectId, classOf[ProjectStarsTable], TableQuery[ProjectStarsTable])
+
   // User schema
   registerSchema(new UserSchema(this))
     .withChildren[Project](classOf[Project], _.userId)
@@ -84,6 +87,11 @@ class OreModelService @Inject()(env: OreEnv,
       selfReference = _.userId,
       targetClass = classOf[Organization],
       targetReference = _.organizationId)
+    .withAssociation[ProjectStarsTable, Project](
+      association = this.stars,
+      selfReference = _.userId,
+      targetClass = classOf[Project],
+      targetReference = _.projectId)
 
   // Project schema
   registerSchema(new ProjectSchema(this))
@@ -100,6 +108,11 @@ class OreModelService @Inject()(env: OreEnv,
       targetReference = _.userId)
     .withAssociation[ProjectMembersTable, User](
       association = this.projectMembers,
+      selfReference = _.projectId,
+      targetClass = classOf[User],
+      targetReference = _.userId)
+    .withAssociation[ProjectStarsTable, User](
+      association = this.stars,
       selfReference = _.projectId,
       targetClass = classOf[User],
       targetReference = _.userId)

@@ -68,9 +68,9 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "channels"      ->  toJson(project.channels.toSeq),
         "recommended"   ->  toJson(project.recommendedVersion),
         "category"      ->  obj("title" -> category.title, "icon" -> category.icon),
-        "views"         ->  project.views,
+        "views"         ->  project.views.size,
         "downloads"     ->  project.downloads,
-        "stars"         ->  project.stars
+        "stars"         ->  project.stars.size
       )
     }
   }

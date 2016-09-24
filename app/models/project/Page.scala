@@ -37,7 +37,7 @@ case class Page(override val id: Option[Int] = None,
 
   override type M = Page
   override type T = PageTable
-  override type A = PageSchema
+  override type S = PageSchema
 
   import models.project.Page._
 

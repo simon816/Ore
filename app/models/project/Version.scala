@@ -49,7 +49,7 @@ case class Version(override val id: Option[Int] = None,
 
   override type M = Version
   override type T = VersionTable
-  override type A = VersionSchema
+  override type S = VersionSchema
 
   /**
     * Returns the name of this Channel.
@@ -158,7 +158,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Recorded downloads
     */
-  def downloadEntries = this.actions.getChildren[VersionDownload](classOf[VersionDownload], this)
+  def downloadEntries = this.schema.getChildren[VersionDownload](classOf[VersionDownload], this)
 
   /**
     * Returns a human readable file size for this Version.
@@ -175,7 +175,7 @@ case class Version(override val id: Option[Int] = None,
     * @return True if exists
     */
   def exists: Boolean = {
-    this.projectId > -1 && (this.service.await(this.actions.hashExists(this.projectId, this.hash)).get
+    this.projectId > -1 && (this.service.await(this.schema.hashExists(this.projectId, this.hash)).get
       || this.project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase))
   }
 
