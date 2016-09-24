@@ -84,7 +84,7 @@ function setupAvatarForm() {
 
     var popover = $('.popover-avatar');
     popover.find('.btn').click(function() {
-        $.ajax('prompts/read' + popover.data('prompt-id'));
+        $.ajax('prompts/read/' + popover.data('prompt-id'));
         popover.fadeOut('fast');
     });
 

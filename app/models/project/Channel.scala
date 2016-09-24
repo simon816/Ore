@@ -4,10 +4,10 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.Named
-import db.impl.table.ModelKeys._
-import db.impl.model.OreModel
 import db.impl.ChannelTable
+import db.impl.model.OreModel
 import db.impl.table.ModelKeys
+import db.impl.table.ModelKeys._
 import ore.Colors._
 import ore.permission.scope.ProjectScope
 

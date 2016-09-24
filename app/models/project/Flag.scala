@@ -2,9 +2,9 @@ package models.project
 
 import java.sql.Timestamp
 
-import db.impl.table.ModelKeys._
 import db.impl.FlagTable
 import db.impl.model.OreModel
+import db.impl.table.ModelKeys._
 import ore.permission.scope.ProjectScope
 import ore.project.FlagReasons.FlagReason
 import ore.user.UserOwned

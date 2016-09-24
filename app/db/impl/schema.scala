@@ -13,6 +13,7 @@ import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
+import ore.user.Prompts.Prompt
 import ore.user.notification.NotificationTypes.NotificationType
 
 /*
@@ -131,10 +132,10 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
   def globalRoles   =   column[List[RoleType]]("global_roles")
   def joinDate      =   column[Timestamp]("join_date")
   def avatarUrl     =   column[String]("avatar_url")
-//  def readPrompts   =   column[List[Prompt]]("read_prompts")
+  def readPrompts   =   column[List[Prompt]]("read_prompts")
 
   override def * = (id.?, createdAt.?, fullName.?, name, email.?, tagline.?, globalRoles, joinDate.?,
-                    avatarUrl.?) <> (User.tupled, User.unapply)
+                    avatarUrl.?, readPrompts) <> (User.tupled, User.unapply)
 
 }
 

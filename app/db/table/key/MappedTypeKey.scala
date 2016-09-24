@@ -1,7 +1,7 @@
 package db.table.key
 
-import db.impl.OrePostgresDriver.api._
 import db.Model
+import db.impl.OrePostgresDriver.api._
 import db.table.MappedType
 
 case class MappedTypeKey[M <: Model, A <: MappedType[A]](ref: M#T => Rep[A], getter: M => A) extends Key[M] {

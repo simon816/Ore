@@ -4,12 +4,12 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.Named
-import db.impl.table.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.model.{Describable, Downloadable, OreModel}
 import db.impl.schema.ProjectSchema
 import db.impl.table.ModelKeys
+import db.impl.table.ModelKeys._
 import models.statistic.ProjectView
 import models.user.User
 import models.user.role.ProjectRole

@@ -3,9 +3,9 @@ package models.user
 import java.sql.Timestamp
 
 import db.Model
-import db.impl.table.ModelKeys._
 import db.impl.NotificationTable
 import db.impl.model.OreModel
+import db.impl.table.ModelKeys._
 import ore.user.UserOwned
 import ore.user.notification.NotificationTypes.NotificationType
 

@@ -1,8 +1,8 @@
 package db.access
 
-import db.{Model, ModelFilter, ModelService}
 import db.impl.OrePostgresDriver.api._
 import db.table.{AssociativeTable, ModelAssociation}
+import db.{Model, ModelFilter, ModelService}
 
 class ModelAssociationAccess[Assoc <: AssociativeTable, M <: Model](service: ModelService,
                                                                     parent: Model,

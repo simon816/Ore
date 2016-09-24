@@ -1,7 +1,6 @@
 package db.table.key
 
 import db.Model
-import db.table.ModelTable
 
 /**
   * Maps a [[Model]]'s field to the corresponding [[ModelTable]] column.

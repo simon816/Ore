@@ -42,7 +42,7 @@ class OreModelService @Inject()(env: OreEnv,
   override lazy val DB = db.get[JdbcProfile]
   override lazy val DefaultTimeout: Duration = Duration(config.app.getInt("db.default-timeout").get, TimeUnit.SECONDS)
 
-  import registry.{registerSchema, registerModelBase}
+  import registry.{registerModelBase, registerSchema}
 
   val users = registerModelBase(classOf[UserBase], new UserBase(this, forums, config))
   val projects = registerModelBase(classOf[ProjectBase], new ProjectBase(this, this.env, this.config, this.forums))

@@ -1,9 +1,9 @@
 @import db.ModelService
 @import db.impl.access.UserBase
 @import forums.DiscourseApi
+@import models.user.role.OrganizationRole
 @import ore.{OreConfig, OreEnv}
 @import views.html.helper.form
-@import models.user.role.OrganizationRole
 @()(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader, service: ModelService,
         forums: DiscourseApi, config: OreConfig, userBase: UserBase, env: OreEnv)
 

@@ -7,9 +7,9 @@ import models.project.Project
 import models.user.Notification
 import models.user.role.ProjectRole
 import ore.OreConfig
-import ore.user.notification.NotificationTypes
 import ore.permission.role.RoleTypes
 import ore.project.Categories
+import ore.user.notification.NotificationTypes
 import play.api.i18n.MessagesApi
 import util.StringUtils._
 

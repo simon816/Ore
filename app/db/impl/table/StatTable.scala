@@ -1,7 +1,7 @@
 package db.impl.table
 
-import db.impl.OrePostgresDriver.api._
 import com.github.tminglei.slickpg.InetString
+import db.impl.OrePostgresDriver.api._
 import db.table.ModelTable
 import models.statistic.StatEntry
 

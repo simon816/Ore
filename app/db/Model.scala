@@ -3,8 +3,8 @@ package db
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions.checkNotNull
-import db.table.key.Key
 import db.table.ModelTable
+import db.table.key.Key
 
 /**
   * Represents a Model that may or may not exist in the database.

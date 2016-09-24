@@ -6,8 +6,6 @@ import db.{Model, ModelProcessor, ModelService}
 import forums.DiscourseApi
 import ore.OreConfig
 
-import scala.reflect.runtime.universe._
-
 /**
   * A ModelProcessor that performs Ore specific model processing.
   *

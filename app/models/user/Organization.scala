@@ -2,10 +2,10 @@ package models.user
 
 import java.sql.Timestamp
 
-import db.{Model, Named}
 import db.impl.access.UserBase
 import db.impl.model.OreModel
 import db.impl.{OrganizationMembersTable, OrganizationRoleTable, OrganizationTable}
+import db.{Model, Named}
 import models.user.role.OrganizationRole
 import ore.organization.OrganizationMember
 import ore.permission.scope.OrganizationScope

@@ -4,10 +4,10 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.Named
-import db.impl.table.ModelKeys._
-import db.impl.schema.PageSchema
 import db.impl.PageTable
 import db.impl.model.OreModel
+import db.impl.schema.PageSchema
+import db.impl.table.ModelKeys._
 import ore.permission.scope.ProjectScope
 import ore.{OreConfig, Visitable}
 import org.pegdown.Extensions._

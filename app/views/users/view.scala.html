@@ -3,10 +3,11 @@
 @import db.impl.access.UserBase
 @import forums.DiscourseApi
 @import models.user.User
+@import ore.permission.EditSettings
 @import ore.{OreConfig, OreEnv}
 @import util.StringUtils.prettifyDate
 @import views.html.helper.form
-@import ore.permission.EditSettings
+@import ore.user.Prompts
 @(user: User)(content: Html)(implicit messages: Messages, session: Session, flash: Flash,
         request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
         env: OreEnv)
@@ -53,16 +54,18 @@
                             <i class="fa fa-edit"></i> Edit avatar
                         </div>
 
-                        <div class="popover-avatar popover right">
-                            <div class="arrow"></div>
-                            <h3 class="popover-title">Change your avatar!</h3>
-                            <div class="popover-content">
-                                <p>
-                                    Welcome to your new organization! Start by changing your avatar by clicking on it.
-                                </p>
-                                <button class="btn-got-it btn btn-success btn-sm">Got it!</button>
+                        @if(!users.current.get.readPrompts.contains(Prompts.ChangeAvatar)) {
+                            <div class="popover-avatar popover right" data-prompt-id="@Prompts.ChangeAvatar.id">
+                                <div class="arrow"></div>
+                                <h3 class="popover-title">Change your avatar!</h3>
+                                <div class="popover-content">
+                                    <p>
+                                        Welcome to your new organization! Start by changing your avatar by clicking on it.
+                                    </p>
+                                    <button class="btn-got-it btn btn-success btn-sm">Got it!</button>
+                                </div>
                             </div>
-                        </div>
+                        }
 
                         <div class="modal fade" id="modal-avatar" tabindex="-1" role="dialog"
                         aria-labelledby="modal-avatar-label">

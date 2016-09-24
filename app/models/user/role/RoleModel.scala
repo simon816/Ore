@@ -2,9 +2,9 @@ package models.user.role
 
 import java.sql.Timestamp
 
-import db.impl.table.ModelKeys._
 import db.impl.RoleTable
 import db.impl.model.OreModel
+import db.impl.table.ModelKeys._
 import models.user.User
 import ore.Visitable
 import ore.permission.role.Role

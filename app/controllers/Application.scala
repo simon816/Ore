@@ -4,9 +4,9 @@ import javax.inject.Inject
 
 import controllers.Requests.AuthRequest
 import controllers.routes.{Application => self}
-import db.{ModelFilter, ModelService}
 import db.impl.access.{FlagBase, VersionBase}
 import db.impl.schema.ProjectSchema
+import db.{ModelFilter, ModelService}
 import forums.DiscourseApi
 import models.project.{Flag, Project}
 import ore.permission._

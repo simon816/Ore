@@ -5,11 +5,11 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions._
 import db.Named
 import db.access.ModelAccess
-import db.impl.table.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.access.{FlagBase, OrganizationBase, UserBase, VersionBase}
 import db.impl.model.OreModel
+import db.impl.table.ModelKeys._
 import models.project.{Flag, Project}
 import models.user.role.{OrganizationRole, ProjectRole}
 import ore.Visitable
@@ -17,6 +17,7 @@ import ore.permission._
 import ore.permission.role.RoleTypes.{DonorType, RoleType}
 import ore.permission.role._
 import ore.permission.scope._
+import ore.user.Prompts.Prompt
 import ore.user.UserOwned
 import play.api.mvc.Session
 import util.StringUtils._
@@ -39,7 +40,8 @@ case class User(override val id: Option[Int] = None,
                 private var _tagline: Option[String] = None,
                 private var _globalRoles: List[RoleType] = List(),
                 private var _joinDate: Option[Timestamp] = None,
-                private var _avatarUrl: Option[String] = None)
+                private var _avatarUrl: Option[String] = None,
+                private var _readPrompts: List[Prompt] = List())
                 extends OreModel(id, createdAt)
                   with UserOwned
                   with ScopeSubject
@@ -213,7 +215,6 @@ case class User(override val id: Option[Int] = None,
     * @return Highest level of trust
     */
   def trustIn(scope: Scope = GlobalScope): Trust = Defined {
-    println(scope)
     scope match {
       case GlobalScope =>
         this.globalRoles.map(_.trust).toList.sorted.lastOption.getOrElse(Default)
@@ -412,6 +413,13 @@ case class User(override val id: Option[Int] = None,
       ((this can ReviewProjects in GlobalScope) &&
         this.service.getModelBase(classOf[VersionBase]).notReviewed.nonEmpty) ||
       this.notifications.filterNot(_.read).nonEmpty
+  }
+
+  def readPrompts: Set[Prompt] = this._readPrompts.toSet
+
+  def markPromptRead(prompt: Prompt) = {
+    this._readPrompts = (this.readPrompts + prompt).toList
+    if (isDefined) update(ReadPrompts)
   }
 
   override val name = this.username

@@ -1,16 +1,11 @@
-@import ore.permission.role.RoleTypes
-@import ore.permission.role.Role
-@import ore.permission.role.Absolute
-@import models.user.role.ProjectRole
 @import models.user.role.OrganizationRole
+@import ore.permission.role.{Absolute, Role, RoleTypes}
 @(roleClass: Class[_ <: Role], form: String = "form-continue", id: String = "", classes: String = "",
         hidden: Boolean = false)
 
 @roles = @{
     RoleTypes.values.filter(role => role.roleClass.equals(roleClass) && !role.trust.equals(Absolute))
 }
-
-@println(RoleTypes.values.filter(role => role.roleClass.equals(classOf[OrganizationRole]) && !role.trust.equals(Absolute)))
 
 <select id="@id" form="@form" class="@classes" @if(hidden) { style="display: none;" }>
     @for(roleType <- roles) {

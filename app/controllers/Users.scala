@@ -10,7 +10,7 @@ import form.OreForms
 import forums.{DiscourseApi, DiscourseSSO}
 import models.user.role.RoleModel
 import ore.permission.EditSettings
-import ore.user.FakeUser
+import ore.user.{FakeUser, Prompts}
 import ore.user.notification.InviteFilters.InviteFilter
 import ore.user.notification.NotificationFilters.NotificationFilter
 import ore.user.notification.{InviteFilters, NotificationFilters}
@@ -182,6 +182,16 @@ class Users @Inject()(val fakeUser: FakeUser,
         NotFound
       case Some(notification) =>
         notification.setRead(read = true)
+        Ok
+    }
+  }
+
+  def markPromptRead(id: Int) = Authenticated { implicit request =>
+    Prompts.values.find(_.id == id) match {
+      case None =>
+        BadRequest
+      case Some(prompt) =>
+        request.user.markPromptRead(prompt)
         Ok
     }
   }

@@ -34,7 +34,7 @@ trait OrePostgresDriver extends ExPostgresDriver with PgArraySupport with PgNetS
     implicit val promptListTypeMapper = new AdvancedArrayJdbcType[Prompt]("int2",
       str => utils.SimpleArrayUtils.fromString[Prompt](s => Prompts(Integer.parseInt(s)))(str).orNull,
       value => utils.SimpleArrayUtils.mkString[Prompt](_.id.toString)(value)
-    )
+    ).to(_.toList)
   }
 
 }

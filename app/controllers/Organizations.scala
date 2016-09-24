@@ -87,7 +87,7 @@ class Organizations @Inject()(forms: OreForms,
     */
   def updateAvatar(organization: String) = EditOrganizationAction(organization) { implicit request =>
 
-    import this.writes._
+    import writes._
 
     def respond(errorsOpt: Option[List[String]]) = errorsOpt match {
       case None =>

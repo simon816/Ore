@@ -11,6 +11,7 @@ import models.user.{Notification, User}
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
+import ore.user.Prompts.Prompt
 
 /**
   * Collection of String keys used for table bindings within Models.
@@ -42,6 +43,7 @@ object ModelKeys {
   val GlobalRoles           =   TypeKey[User, List[RoleType]](_.globalRoles, _.globalRoles.toList)
   val JoinDate              =   TimestampKey[User](_.joinDate, _.joinDate.orNull)
   val AvatarUrl             =   StringKey[User](_.avatarUrl, _.avatarUrl.orNull)
+  val ReadPrompts           =   TypeKey[User, List[Prompt]](_.readPrompts, _.readPrompts.toList)
 
   val IsReviewed            =   BooleanKey[Version](_.isReviewed, _.isReviewed)
   val ChannelId             =   IntKey[Version](_.channelId, _.channelId)
