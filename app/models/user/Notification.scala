@@ -4,12 +4,9 @@ import java.sql.Timestamp
 
 import db.Model
 import db.impl.ModelKeys._
-import db.impl.OreModel
-import db.meta.Bind
-import ore.user.notification.NotificationTypes.NotificationType
+import db.impl.{NotificationTable, OreModel}
 import ore.user.UserOwned
-
-import scala.annotation.meta.field
+import ore.user.notification.NotificationTypes.NotificationType
 
 /**
   * Represents a [[User]] notification.
@@ -24,14 +21,17 @@ import scala.annotation.meta.field
   */
 case class Notification(override val id: Option[Int] = None,
                         override val createdAt: Option[Timestamp] = None,
-                        @(Bind @field) override val userId: Int = -1,
-                        @(Bind @field) originId: Int,
-                        @(Bind @field) notificationType: NotificationType,
-                        @(Bind @field) message: String,
-                        @(Bind @field) action: Option[String] = None,
-                        @(Bind @field) private var read: Boolean = false)
+                        override val userId: Int = -1,
+                        originId: Int,
+                        notificationType: NotificationType,
+                        message: String,
+                        action: Option[String] = None,
+                        private var read: Boolean = false)
                         extends OreModel(id, createdAt)
                           with UserOwned {
+
+  override type M = Notification
+  override type T = NotificationTable
 
   /**
     * Returns the [[User]] from which this Notification originated from.

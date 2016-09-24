@@ -33,8 +33,8 @@ import scala.util.Try
 trait ProjectFactory {
 
   implicit val service: ModelService
-  implicit val users: UserBase = this.service.access(classOf[UserBase])
-  implicit val projects: ProjectBase = this.service.access(classOf[ProjectBase])
+  implicit val users: UserBase = this.service.getModelBase(classOf[UserBase])
+  implicit val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
 
   val fileManager: ProjectFileManager = this.projects.fileManager
   val cacheApi: CacheApi

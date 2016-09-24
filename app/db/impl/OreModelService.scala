@@ -3,22 +3,15 @@ package db.impl
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 
+import db.impl.OrePostgresDriver.api._
 import db.impl.access.{FlagBase, ProjectBase, UserBase, VersionBase, _}
-import db.impl.action.{PageActions, ProjectActions, UserActions, VersionActions}
-import db.impl.pg.OrePostgresDriver
-import db.impl.pg.OrePostgresDriver.api._
-import db.impl.pg.OreTypeSetters._
-import db.meta.ModelAssociation
-import db.{ModelActions, ModelRegistry, ModelService}
+import db.impl.schema.{PageSchema, ProjectSchema, UserSchema, VersionSchema}
+import db.{ModelAssociation, ModelRegistry, ModelSchema, ModelService}
 import forums.DiscourseApi
-import models.project.Channel
-import models.user.role.OrganizationRole
-import models.user.{Notification, Organization}
-import ore.Colors.Color
-import ore.user.notification.NotificationTypes.NotificationType
-import ore.permission.role.RoleTypes.RoleType
-import ore.project.Categories.Category
-import ore.project.FlagReasons.FlagReason
+import models.project._
+import models.statistic.{ProjectView, VersionDownload}
+import models.user.role.{OrganizationRole, ProjectRole}
+import models.user.{Notification, Organization, User}
 import ore.{OreConfig, OreEnv}
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.i18n.MessagesApi
@@ -48,7 +41,7 @@ class OreModelService @Inject()(env: OreEnv,
   override lazy val DB = db.get[JdbcProfile]
   override lazy val DefaultTimeout: Duration = Duration(config.app.getInt("db.default-timeout").get, TimeUnit.SECONDS)
 
-  import registry.{registerActions, registerModelBase, registerTypeSetter}
+  import registry.{registerSchema, registerModelBase}
 
   val users = registerModelBase(classOf[UserBase], new UserBase(this, forums, config))
   val projects = registerModelBase(classOf[ProjectBase], new ProjectBase(this, this.env, this.config, this.forums))
@@ -58,45 +51,77 @@ class OreModelService @Inject()(env: OreEnv,
     this, this.forums, this.config, this.messages
   ))
 
-  // Custom types
-  registerTypeSetter(classOf[Color], ColorTypeSetter)
-  registerTypeSetter(classOf[RoleType], RoleTypeTypeSetter)
-  registerTypeSetter(classOf[List[RoleType]], RoleTypeListTypeSetter)
-  registerTypeSetter(classOf[Category], CategoryTypeSetter)
-  registerTypeSetter(classOf[FlagReason], FlagReasonTypeSetter)
-  registerTypeSetter(classOf[NotificationType], NotificationTypeTypeSetter)
-
   // Associations
   val projectWatchers = new ModelAssociation[ProjectWatchersTable](
-    this, _.projectId, _.userId, classOf[ProjectWatchersTable], TableQuery[ProjectWatchersTable]
-  )
+    this, _.projectId, _.userId, classOf[ProjectWatchersTable], TableQuery[ProjectWatchersTable])
 
   val projectMembers = new ModelAssociation[ProjectMembersTable](
-    this, _.projectId, _.userId, classOf[ProjectMembersTable], TableQuery[ProjectMembersTable]
-  )
+    this, _.projectId, _.userId, classOf[ProjectMembersTable], TableQuery[ProjectMembersTable])
 
   val organizationMembers = new ModelAssociation[OrganizationMembersTable](
-    this, _.userId, _.organizationId, classOf[OrganizationMembersTable], TableQuery[OrganizationMembersTable]
-  )
+    this, _.userId, _.organizationId, classOf[OrganizationMembersTable], TableQuery[OrganizationMembersTable])
 
-  // Ore models
-  registerActions(new UserActions(this))
-    .withAssociation(this.projectWatchers)
-    .withAssociation(this.projectMembers)
-    .withAssociation(this.organizationMembers)
+  // User schema
+  registerSchema(new UserSchema(this))
+    .withChildren[Project](classOf[Project], _.userId)
+    .withChildren[ProjectRole](classOf[ProjectRole], _.userId)
+    .withChildren[OrganizationRole](classOf[OrganizationRole], _.userId)
+    .withChildren[Flag](classOf[Flag], _.userId)
+    .withChildren[Notification](classOf[Notification], _.userId)
+    .withChildren[Organization](classOf[Organization], _.userId)
+    .withAssociation[ProjectWatchersTable, Project](
+      association = this.projectWatchers,
+      selfReference = _.userId,
+      targetClass = classOf[Project],
+      targetReference = _.projectId)
+    .withAssociation[ProjectMembersTable, Project](
+      association = this.projectMembers,
+      selfReference = _.userId,
+      targetClass = classOf[Project],
+      targetReference = _.projectId)
+    .withAssociation[OrganizationMembersTable, Organization](
+      association = this.organizationMembers,
+      selfReference = _.userId,
+      targetClass = classOf[Organization],
+      targetReference = _.organizationId)
 
-  registerActions(new ProjectActions(this))
-    .withAssociation(this.projectWatchers)
-    .withAssociation(this.projectMembers)
+  // Project schema
+  registerSchema(new ProjectSchema(this))
+    .withChildren[Channel](classOf[Channel], _.projectId)
+    .withChildren[Version](classOf[Version], _.projectId)
+    .withChildren[Page](classOf[Page], _.projectId)
+    .withChildren[Flag](classOf[Flag], _.projectId)
+    .withChildren[ProjectRole](classOf[ProjectRole], _.projectId)
+    .withChildren[ProjectView](classOf[ProjectView], _.modelId)
+    .withAssociation[ProjectWatchersTable, User](
+      association = this.projectWatchers,
+      selfReference = _.projectId,
+      targetClass = classOf[User],
+      targetReference = _.userId)
+    .withAssociation[ProjectMembersTable, User](
+      association = this.projectMembers,
+      selfReference = _.projectId,
+      targetClass = classOf[User],
+      targetReference = _.userId)
 
-  registerActions(new VersionActions(this))
-  registerActions(new ModelActions(this, classOf[Channel], TableQuery[ChannelTable]))
-  registerActions(new PageActions(this))
-  registerActions(new ModelActions(this, classOf[Notification], TableQuery[NotificationTable]))
+  registerSchema(new VersionSchema(this)).withChildren[VersionDownload](classOf[VersionDownload], _.modelId)
 
-  registerActions(new ModelActions(this, classOf[Organization], TableQuery[OrganizationTable]))
-    .withAssociation(this.organizationMembers)
+  registerSchema(new ModelSchema[Channel](this, classOf[Channel], TableQuery[ChannelTable]))
+    .withChildren[Version](classOf[Version], _.channelId)
 
-  registerActions(new ModelActions(this, classOf[OrganizationRole], TableQuery[OrganizationRoleTable]))
+  registerSchema(new PageSchema(this))
+
+  registerSchema(new ModelSchema[Notification](this, classOf[Notification], TableQuery[NotificationTable]))
+
+  registerSchema(new ModelSchema[Organization](this, classOf[Organization], TableQuery[OrganizationTable]))
+    .withChildren[Project](classOf[Project], _.userId)
+    .withChildren[OrganizationRole](classOf[OrganizationRole], _.organizationId)
+    .withAssociation[OrganizationMembersTable, User](
+      association = this.organizationMembers,
+      selfReference = _.organizationId,
+      targetClass = classOf[User],
+      targetReference = _.userId)
+
+  registerSchema(new ModelSchema[OrganizationRole](this, classOf[OrganizationRole], TableQuery[OrganizationRoleTable]))
 
 }

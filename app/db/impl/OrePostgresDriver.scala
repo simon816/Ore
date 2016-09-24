@@ -1,15 +1,17 @@
-package db.impl.pg
+package db.impl
 
 import com.github.tminglei.slickpg._
 import ore.Colors
 import ore.Colors.Color
-import ore.user.notification.NotificationTypes
-import ore.user.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import ore.project.{Categories, FlagReasons}
+import ore.user.Prompts
+import ore.user.Prompts.Prompt
+import ore.user.notification.NotificationTypes
+import ore.user.notification.NotificationTypes.NotificationType
 
 /**
   * Custom Postgres driver to support array data and custom type mappings.
@@ -29,6 +31,11 @@ trait OrePostgresDriver extends ExPostgresDriver with PgArraySupport with PgNetS
     implicit val categoryTypeMapper = MappedJdbcType.base[Category, Int](_.id, Categories.apply)
     implicit val flagReasonTypeMapper = MappedJdbcType.base[FlagReason, Int](_.id, FlagReasons.apply)
     implicit val notificationTypeTypeMapper = MappedJdbcType.base[NotificationType, Int](_.id, NotificationTypes.apply)
+    implicit val promptTypeMapper = MappedJdbcType.base[Prompt, Int](_.id, Prompts.apply)
+    implicit val promptListTypeMapper = new AdvancedArrayJdbcType[Prompt]("int2",
+      str => utils.SimpleArrayUtils.fromString[Prompt](s => Prompts(Integer.parseInt(s)))(str).orNull,
+      value => utils.SimpleArrayUtils.mkString[Prompt](_.id.toString)(value)
+    )
   }
 
 }

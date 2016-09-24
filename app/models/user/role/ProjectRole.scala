@@ -2,6 +2,7 @@ package models.user.role
 
 import java.sql.Timestamp
 
+import db.impl.ProjectRoleTable
 import ore.Visitable
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.ProjectScope
@@ -25,6 +26,9 @@ case class ProjectRole(override val id: Option[Int] = None,
                        private val _isAccepted: Boolean = false)
                        extends RoleModel(id, createdAt, userId, _roleType, _isAccepted)
                          with ProjectScope {
+
+  override type M = ProjectRole
+  override type T = ProjectRoleTable
 
   def this(userId: Int, roleType: RoleType, projectId: Int, accepted: Boolean) = {
     this(id=None, createdAt=None, userId=userId, _roleType=roleType, projectId=projectId, _isAccepted=accepted)

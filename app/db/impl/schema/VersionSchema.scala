@@ -1,8 +1,8 @@
-package db.impl.action
+package db.impl.schema
 
-import db.impl.pg.OrePostgresDriver.api._
+import db.impl.OrePostgresDriver.api._
 import db.impl.{VersionDownloadsTable, VersionTable}
-import db.{ModelActions, ModelFilter, ModelService}
+import db.{ModelSchema, ModelFilter, ModelService}
 import models.project.Version
 import models.statistic.VersionDownload
 
@@ -11,15 +11,15 @@ import scala.concurrent.Future
 /**
   * Version related queries.
   */
-class VersionActions(override val service: ModelService)
-  extends ModelActions[VersionTable, Version](service, classOf[Version], TableQuery[VersionTable]) {
+class VersionSchema(override val service: ModelService)
+  extends ModelSchema[Version](service, classOf[Version], TableQuery[VersionTable]) {
 
-  /** The [[StatActions]] for [[VersionDownload]]s. */
-  val DownloadActions = service.registry.registerActions(
-    new StatActions[VersionDownloadsTable, VersionDownload](
-      this.service, TableQuery[VersionDownloadsTable], classOf[VersionDownload]
-    )
-  )
+  case object DownloadSchema extends ModelSchema[VersionDownload](
+    this.service, classOf[VersionDownload], TableQuery[VersionDownloadsTable])
+    with StatSchema[VersionDownload]
+
+  /** The [[StatSchema]] for [[VersionDownload]]s. */
+  val DownloadActions = service.registry.registerSchema(DownloadSchema)
 
   /**
     * Returns true if the specified hash is found in the specified
@@ -41,7 +41,6 @@ class VersionActions(override val service: ModelService)
     * @param channelIds Channel IDs to filter versions with
     * @return           Channel filter
     */
-  def channelFilter(channelIds: Seq[Int]): ModelFilter[VersionTable, Version]
-  = ModelFilter(_.channelId inSetBind channelIds)
+  def channelFilter(channelIds: Seq[Int]): ModelFilter[Version] = ModelFilter[Version](_.channelId inSetBind channelIds)
 
 }

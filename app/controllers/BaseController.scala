@@ -1,6 +1,7 @@
 package controllers
 
 import db.ModelService
+import db.impl.VersionTable
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import forums.DiscourseApi
 import models.project.{Project, Version}
@@ -20,9 +21,9 @@ abstract class BaseController(implicit val env: OreEnv,
                                 with Actions
                                 with I18nSupport {
 
-  implicit override val users: UserBase = this.service.access(classOf[UserBase])
-  implicit override val projects: ProjectBase = this.service.access(classOf[ProjectBase])
-  implicit val organizations: OrganizationBase = this.service.access(classOf[OrganizationBase])
+  implicit override val users: UserBase = this.service.getModelBase(classOf[UserBase])
+  implicit override val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
+  implicit val organizations: OrganizationBase = this.service.getModelBase(classOf[OrganizationBase])
 
   /**
     * Executes the given function with the specified result or returns a
@@ -49,6 +50,6 @@ abstract class BaseController(implicit val env: OreEnv,
     */
   def withVersion(versionString: String)(fn: Version => Result)
                  (implicit request: RequestHeader, project: Project): Result
-  = project.versions.find(equalsIgnoreCase(_.versionString, versionString)).map(fn).getOrElse(NotFound)
+  = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).map(fn).getOrElse(NotFound)
 
 }

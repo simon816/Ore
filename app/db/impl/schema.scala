@@ -2,17 +2,19 @@ package db.impl
 
 import java.sql.Timestamp
 
-import db.impl.pg.OrePostgresDriver.api._
+import OrePostgresDriver.api._
 import db.{AssociativeTable, Model, ModelTable}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
-import models.user.role.{OrganizationRole, ProjectRole}
+import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
 import models.user.{Notification, Organization, User}
 import ore.Colors.Color
 import ore.user.notification.NotificationTypes.NotificationType
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
+import ore.user.Prompts.Prompt
+import slick.lifted.{MappedProjection, ProvenShape}
 
 /*
  * Database schema definitions. Changes must be first applied as an evolutions
@@ -130,6 +132,7 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
   def globalRoles   =   column[List[RoleType]]("global_roles")
   def joinDate      =   column[Timestamp]("join_date")
   def avatarUrl     =   column[String]("avatar_url")
+//  def readPrompts   =   column[List[Prompt]]("read_prompts")
 
   override def * = (id.?, createdAt.?, name.?, username, email.?, tagline.?,
                     globalRoles, joinDate.?, avatarUrl.?) <> ((User.apply _).tupled, User.unapply)
@@ -158,17 +161,17 @@ class OrganizationMembersTable(tag: Tag) extends AssociativeTable(tag, "organiza
 
 }
 
-trait UserColumn[M <: Model] extends ModelTable[M] {
+trait RoleTable[R <: RoleModel] extends ModelTable[R] {
   def userId = column[Int]("user_id")
+  def roleType = column[RoleType]("role_type")
+  def isAccepted = column[Boolean]("is_accepted")
 }
 
 class OrganizationRoleTable(tag: Tag)
   extends ModelTable[OrganizationRole](tag, "user_organization_roles")
-  with UserColumn[OrganizationRole] {
+  with RoleTable[OrganizationRole] {
 
-  def roleType = column[RoleType]("role_type")
   def organizationId = column[Int]("organization_id")
-  def isAccepted = column[Boolean]("is_accepted")
 
   override def * = (id.?, createdAt.?, userId, organizationId, roleType,
                     isAccepted) <> ((OrganizationRole.apply _).tupled, OrganizationRole.unapply)
@@ -177,13 +180,11 @@ class OrganizationRoleTable(tag: Tag)
 
 class ProjectRoleTable(tag: Tag)
   extends ModelTable[ProjectRole](tag, "user_project_roles")
-  with UserColumn[ProjectRole] {
+  with RoleTable[ProjectRole] {
 
-  def roleType    =   column[RoleType]("role_type")
   def projectId   =   column[Int]("project_id")
-  def isAccepted  =   column[Boolean]("is_accepted")
 
-  override def * = (id.?, createdAt.?, userId, projectId, roleType, isAccepted) <> ((ProjectRole.apply _).tupled,
+  override def * = (id.?, createdAt.?, userId, projectId, roleType, isAccepted) <> (ProjectRole.tupled,
                     ProjectRole.unapply)
 
 }

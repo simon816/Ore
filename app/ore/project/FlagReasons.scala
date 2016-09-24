@@ -1,5 +1,9 @@
 package ore.project
 
+import db.MappedType
+import db.impl.OrePostgresDriver
+import slick.jdbc.JdbcType
+
 /**
   * Represents the reasons for submitting a [[models.project.Flag]].
   */
@@ -11,7 +15,9 @@ object FlagReasons extends Enumeration {
   val Spam                 = FlagReason(3, "Spam")
   val MalIntent            = FlagReason(4, "Malicious Intent")
 
-  case class FlagReason(i: Int, title: String) extends super.Val(i, title)
+  case class FlagReason(i: Int, title: String) extends super.Val(i, title) with MappedType[FlagReason] {
+    implicit val mapper: JdbcType[FlagReason] = OrePostgresDriver.api.flagReasonTypeMapper
+  }
   implicit def convert(value: Value): FlagReason = value.asInstanceOf[FlagReason]
 
 }

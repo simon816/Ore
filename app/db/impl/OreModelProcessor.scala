@@ -1,8 +1,7 @@
 package db.impl
 
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
-import db.meta.ModelProcessor
-import db.{Model, ModelService, ModelTable}
+import db.{Model, ModelProcessor, ModelService}
 import forums.DiscourseApi
 import ore.OreConfig
 
@@ -22,7 +21,7 @@ class OreModelProcessor(service: ModelService,
                         forums: DiscourseApi)
                         extends ModelProcessor(service) {
 
-  override def process[T <: ModelTable[M], M <: Model: TypeTag](model: M) = {
+  override def process[M <: Model](model: M) = {
     super.process(model) match {
       case oreModel: OreModel =>
         oreModel.userBase = this.users

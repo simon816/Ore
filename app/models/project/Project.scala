@@ -3,13 +3,10 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.ImmutableModelAccess
 import db.impl.ModelKeys._
+import db.impl.OrePostgresDriver.api._
 import db.impl._
-import db.impl.action.ProjectActions
-import db.impl.pg.OrePostgresDriver.api._
-import db.meta.Bind
-import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
+import db.impl.schema.ProjectSchema
 import models.statistic.ProjectView
 import models.user.User
 import models.user.role.ProjectRole
@@ -22,8 +19,6 @@ import ore.user.MembershipDossier
 import ore.{Joinable, OreEnv, Visitable}
 import util.StringUtils
 import util.StringUtils.{compact, slugify}
-
-import scala.annotation.meta.field
 
 /**
   * Represents an Ore package.
@@ -44,33 +39,26 @@ import scala.annotation.meta.field
   * @param _source                External link to source code
   * @param _description           Short description of Project
   */
-@ManyToManyCollection(Array(
-  new ManyToMany(modelClass = classOf[User], tableClass = classOf[ProjectWatchersTable]),
-  new ManyToMany(modelClass = classOf[User], tableClass = classOf[ProjectMembersTable])
-))
-@OneToMany(Array(
-  classOf[Channel], classOf[Version], classOf[Page], classOf[Flag], classOf[ProjectRole], classOf[ProjectView]
-))
 case class Project(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                    pluginId: String,
-                   @(Bind @field) private var _ownerName: String,
-                   @(Bind @field) private var _ownerId: Int,
+                   private var _ownerName: String,
+                   private var _ownerId: Int,
                    homepage: Option[String] = None,
-                   @(Bind @field) private var _name: String,
-                   @(Bind @field) private var _slug: String,
-                   @(Bind @field) private var recommendedVersionId: Option[Int] = None,
-                   @(Bind @field) private var _category: Category = Categories.Undefined,
-                   @(Bind @field) private var _views: Int = 0,
-                   @(Bind @field) private var _downloads: Int = 0,
-                   @(Bind @field) private var _stars: Int = 0,
-                   @(Bind @field) private var _issues: Option[String] = None,
-                   @(Bind @field) private var _source: Option[String] = None,
-                   @(Bind @field) private var _description: Option[String] = None,
-                   @(Bind @field) private var _topicId: Option[Int] = None,
-                   @(Bind @field) private var _postId: Option[Int] = None,
-                   @(Bind @field) private var _isVisible: Boolean = true,
-                   @(Bind @field) private var _lastUpdated: Timestamp = null)
+                   private var _name: String,
+                   private var _slug: String,
+                   private var recommendedVersionId: Option[Int] = None,
+                   private var _category: Category = Categories.Undefined,
+                   private var _views: Int = 0,
+                   private var _downloads: Int = 0,
+                   private var _stars: Int = 0,
+                   private var _issues: Option[String] = None,
+                   private var _source: Option[String] = None,
+                   private var _description: Option[String] = None,
+                   private var _topicId: Option[Int] = None,
+                   private var _postId: Option[Int] = None,
+                   private var _isVisible: Boolean = true,
+                   private var _lastUpdated: Timestamp = null)
                    extends OreModel(id, createdAt)
                      with ProjectScope
                      with Visitable
@@ -78,7 +66,7 @@ case class Project(override val id: Option[Int] = None,
 
   override type M = Project
   override type T = ProjectTable
-  override type A = ProjectActions
+  override type A = ProjectSchema
 
   /**
     * Contains all information for [[User]] memberships.
@@ -144,7 +132,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Users watching project
     */
-  def watchers = this.manyToMany[ProjectWatchersTable, UserTable, User](classOf[User], classOf[ProjectWatchersTable])
+  def watchers = this.actions.getAssociation[ProjectWatchersTable, User](classOf[ProjectWatchersTable], this)
 
   /**
     * Returns the name of this Project.
@@ -297,7 +285,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Unique project views
     */
-  def viewEntries = ImmutableModelAccess(this.oneToMany[ProjectViewsTable, ProjectView](classOf[ProjectView]))
+  def viewEntries = this.actions.getChildren[ProjectView](classOf[ProjectView], this)
 
   /**
     * Returns the amount of unique views this Project has.
@@ -396,14 +384,12 @@ case class Project(override val id: Option[Int] = None,
     }
   }
 
-  private def _flags = this.oneToMany[FlagTable, Flag](classOf[Flag])
-
   /**
     * Returns all flags on this project.
     *
     * @return Flags on project
     */
-  def flags = ImmutableModelAccess(this._flags)
+  def flags = this.actions.getChildren[Flag](classOf[Flag], this)
 
   /**
     * Submits a flag on this project for the specified user.
@@ -414,7 +400,7 @@ case class Project(override val id: Option[Int] = None,
   def flagFor(user: User, reason: FlagReason) = Defined {
     val userId = user.id.get
     checkArgument(userId != this.ownerId, "cannot flag own project", "")
-    this._flags.add(new Flag(this.id.get, user.id.get, reason))
+    this.service.access[Flag](classOf[Flag]).add(new Flag(this.id.get, user.id.get, reason))
   }
 
   /**
@@ -422,10 +408,12 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Channels in project
     */
-  def channels = this.oneToMany[ChannelTable, Channel](classOf[Channel])
+  def channels = this.actions.getChildren[Channel](classOf[Channel], this)
 
   /**
     * Creates a new Channel for this project with the specified name.
+    *
+    * TODO: Move elsewhere
     *
     * @param name   Name of channel
     * @return       New channel
@@ -433,7 +421,7 @@ case class Project(override val id: Option[Int] = None,
   def addChannel(name: String, color: Color): Channel = Defined {
     checkArgument(this.config.isValidChannelName(name), "invalid name", "")
     checkState(this.channels.size < this.config.projects.getInt("max-channels").get, "channel limit reached", "")
-    this.channels.add(new Channel(name, color, this.id.get))
+    this.service.access[Channel](classOf[Channel]).add(new Channel(name, color, this.id.get))
   }
 
   /**
@@ -441,7 +429,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Versions in project
     */
-  def versions = this.oneToMany[VersionTable, Version](classOf[Version])
+  def versions = this.actions.getChildren[Version](classOf[Version], this)
 
   /**
     * Returns this Project's recommended version.
@@ -466,7 +454,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Pages in project
     */
-  def pages = this.oneToMany[PageTable, Page](classOf[Page])
+  def pages = this.actions.getChildren[Page](classOf[Page], this)
 
   /**
     * Returns this Project's home page.

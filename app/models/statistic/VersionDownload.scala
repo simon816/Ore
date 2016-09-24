@@ -4,12 +4,10 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
+import db.impl.VersionDownloadsTable
 import db.impl.access.UserBase
-import db.meta.Bind
 import models.project.Version
 import ore.StatTracker._
-
-import scala.annotation.meta.field
 
 /**
   * Represents a unique download on a Project Version.
@@ -26,8 +24,11 @@ case class VersionDownload(override val id: Option[Int] = None,
                            override val modelId: Int,
                            override val address: InetString,
                            override val cookie: String,
-                           @(Bind @field) private var userId: Option[Int] = None)
+                           private var userId: Option[Int] = None)
                            extends StatEntry[Version](id, createdAt, modelId, address, cookie, userId) {
+
+  override type M = VersionDownload
+  override type T = VersionDownloadsTable
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
 

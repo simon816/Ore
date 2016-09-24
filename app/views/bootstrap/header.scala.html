@@ -11,7 +11,7 @@ The main header displayed on each layout.
 @()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService,
         forums: DiscourseApi, config: OreConfig, users: UserBase)
 
-@flags = @{ service.access(classOf[FlagBase]) }
+@flags = @{ service.getModelBase(classOf[FlagBase]) }
 @tooltip(title: String) = @{
     Html("data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"" + title + "\"")
 }
@@ -155,7 +155,7 @@ The main header displayed on each layout.
                                 <a href="@routes.Application.showQueue()">
                                     <span class="pull-left">
                                         Queue
-                                        @if(service.access(classOf[VersionBase]).notReviewed.nonEmpty) {
+                                        @if(service.getModelBase(classOf[VersionBase]).notReviewed.nonEmpty) {
                                             <span class="unread"></span>
                                         }
                                     </span>

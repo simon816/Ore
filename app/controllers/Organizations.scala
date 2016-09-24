@@ -8,6 +8,7 @@ import form.OreForms
 import forums.DiscourseApi
 import ore.permission.EditSettings
 import ore.rest.OreWrites
+import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
@@ -44,7 +45,7 @@ class Organizations @Inject()(forms: OreForms,
   def create() = Authenticated { implicit request =>
     val formData = this.forms.OrganizationCreate.bindFromRequest().get
     val name = formData.name
-    this.service.access(classOf[OrganizationBase]).create(name, request.user.id.get, formData.build())
+    this.service.getModelBase(classOf[OrganizationBase]).create(name, request.user.id.get, formData.build())
     Redirect(routes.Users.showProjects(name, None))
   }
 
@@ -63,13 +64,13 @@ class Organizations @Inject()(forms: OreForms,
       case Some(role) =>
         val dossier = role.organization.memberships
         status match {
-          case "decline" =>
+          case STATUS_DECLINE =>
             dossier.removeRole(role)
             Ok
-          case "accept" =>
+          case STATUS_ACCEPT =>
             role.setAccepted(true)
             Ok
-          case "unaccept" =>
+          case STATUS_UNACCEPT =>
             role.setAccepted(false)
             Ok
           case _ =>
@@ -110,6 +111,12 @@ class Organizations @Inject()(forms: OreForms,
     }
   }
 
+  /**
+    * Removes a member from an [[models.user.Organization]].
+    *
+    * @param organization Organization to update
+    * @return             Redirect to Organization page
+    */
   def removeMember(organization: String) = EditOrganizationAction(organization) { implicit request =>
     // TODO: Validation!
     this.users.withName(this.forms.OrganizationMemberRemove.bindFromRequest.get.trim) match {
@@ -121,6 +128,12 @@ class Organizations @Inject()(forms: OreForms,
     }
   }
 
+  /**
+    * Updates an [[models.user.Organization]]'s members.
+    *
+    * @param organization Organization to update
+    * @return             Redirect to Organization page
+    */
   def updateMembers(organization: String) = EditOrganizationAction(organization) { implicit request =>
     // TODO: Validation!
     this.forms.OrganizationUpdateMembers.bindFromRequest.get.saveTo(request.organization)

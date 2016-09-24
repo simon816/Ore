@@ -1,6 +1,6 @@
 package db
 
-import db.impl.pg.OrePostgresDriver.api._
+import db.impl.OrePostgresDriver.api._
 
 /**
   * Represents a associative table between two models.

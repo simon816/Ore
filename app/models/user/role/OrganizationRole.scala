@@ -3,6 +3,7 @@ package models.user.role
 import java.sql.Timestamp
 
 import db.Model
+import db.impl.OrganizationRoleTable
 import ore.Visitable
 import ore.permission.role.RoleTypes.RoleType
 import ore.permission.scope.OrganizationScope
@@ -25,6 +26,9 @@ case class OrganizationRole(override val id: Option[Int] = None,
                             private val _isAccepted: Boolean = false)
                             extends RoleModel(id, createdAt, userId, _roleType, _isAccepted)
                               with OrganizationScope {
+
+  override type M = OrganizationRole
+  override type T = OrganizationRoleTable
 
   def this(userId: Int, roleType: RoleType) = this(userId = userId, _roleType = roleType)
 

@@ -1,5 +1,9 @@
 package ore.project
 
+import db.MappedType
+import db.impl.OrePostgresDriver
+import slick.jdbc.JdbcType
+
 /**
   * Enumeration of Categories a Project may possess.
   */
@@ -52,7 +56,11 @@ object Categories extends Enumeration {
     * @param title  Title to display
     * @param icon   Icon to display
     */
-  case class Category(i: Int, title: String, icon: String, isVisible: Boolean = true) extends super.Val(i, title)
+  case class Category(i: Int, title: String, icon: String, isVisible: Boolean = true)
+    extends super.Val(i, title)
+      with MappedType[Category] {
+    implicit val mapper: JdbcType[Category] = OrePostgresDriver.api.categoryTypeMapper
+  }
   implicit def convert(value: Value): Category = value.asInstanceOf[Category]
 
 }

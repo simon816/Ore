@@ -2,8 +2,6 @@ package db
 
 import slick.dbio.{DBIOAction, NoStream}
 
-import scala.reflect.runtime.universe._
-
 object ModelAction {
 
   /**
@@ -23,7 +21,7 @@ object ModelAction {
     * @param action DBIOAction to wrap
     * @tparam M     Model type
     */
-  case class ModelAction[M <: Model: TypeTag](override val action: DBIOAction[M, NoStream, Nothing])
+  case class ModelAction[M <: Model](override val action: DBIOAction[M, NoStream, Nothing])
     extends AbstractModelAction(action) {
     def processResult(service: ModelService, result: M): M = process(service, result)
   }
@@ -34,7 +32,7 @@ object ModelAction {
     * @param action DBIOAction to wrap
     * @tparam M     Model type
     */
-  case class ModelSeqAction[M <: Model: TypeTag](override val action: DBIOAction[Seq[M], NoStream, Nothing])
+  case class ModelSeqAction[M <: Model](override val action: DBIOAction[Seq[M], NoStream, Nothing])
     extends AbstractModelAction(action) {
     def processResult(service: ModelService, result: Seq[M]) = for (model <- result) yield {
       process(service, model)
@@ -42,16 +40,16 @@ object ModelAction {
   }
 
   implicit def unwrap[M](action: AbstractModelAction[M]): DBIOAction[M, NoStream, Nothing] = action.action
-  implicit def wrapSingle[M <: Model: TypeTag](action: DBIOAction[M, NoStream, Nothing]): ModelAction[M]
+  implicit def wrapSingle[M <: Model](action: DBIOAction[M, NoStream, Nothing]): ModelAction[M]
   = ModelAction(action)
-  implicit def unwrapSingle[M <: Model: TypeTag](action: ModelAction[M]): DBIOAction[M, NoStream, Nothing]
+  implicit def unwrapSingle[M <: Model](action: ModelAction[M]): DBIOAction[M, NoStream, Nothing]
   = action.action
-  implicit def wrapSeq[M <: Model: TypeTag](action: DBIOAction[Seq[M], NoStream, Nothing]): ModelSeqAction[M]
+  implicit def wrapSeq[M <: Model](action: DBIOAction[Seq[M], NoStream, Nothing]): ModelSeqAction[M]
   = ModelSeqAction(action)
-  implicit def unwrapSeq[M <: Model: TypeTag](action: ModelSeqAction[M]): DBIOAction[Seq[M], NoStream, Nothing]
+  implicit def unwrapSeq[M <: Model](action: ModelSeqAction[M]): DBIOAction[Seq[M], NoStream, Nothing]
   = action.action
 
-  private def process[M <: Model: TypeTag](service: ModelService, model: M): M = {
+  private def process[M <: Model](service: ModelService, model: M): M = {
     if (!model.isProcessed)
       service.processor.process(model)
     model

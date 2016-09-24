@@ -4,11 +4,9 @@ import javax.inject.Inject
 
 import controllers.Requests.AuthRequest
 import controllers.routes.{Application => self}
-import db.impl.access.{FlagBase, VersionBase}
-import db.impl.action.ProjectActions
-import db.impl.pg.OrePostgresDriver.api._
-import db.impl.{FlagTable, ProjectTable}
 import db.{ModelFilter, ModelService}
+import db.impl.access.{FlagBase, VersionBase}
+import db.impl.schema.ProjectSchema
 import forums.DiscourseApi
 import models.project.{Flag, Project}
 import ore.permission._
@@ -46,24 +44,23 @@ class Application @Inject()(data: DataHelper,
       val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
 
       // Determine filter
-      val actions = this.service.getActions(classOf[ProjectActions])
+      val actions = this.service.getActions(classOf[ProjectSchema])
       val canHideProjects = this.users.current.isDefined && (this.users.current.get can HideProjects in GlobalScope)
-      var filter: ProjectTable => Rep[Boolean] = query.map { q =>
-        // Search filter + visible
-        var f  = actions.searchFilter(q)
-        if (!canHideProjects)
-          f = f && (_.isVisible)
-        f
-      }.orNull[ModelFilter[ProjectTable, Project]]
 
-      if (filter == null && !canHideProjects)
-        filter = _.isVisible
+      val filter: ModelFilter[Project] = query.map { q =>
+        var baseFilter = actions.searchFilter(q)
+        if (!canHideProjects)
+          baseFilter = baseFilter && (_.isVisible)
+        baseFilter
+      } getOrElse {
+        ModelFilter[Project](_.isVisible)
+      }
 
       // Get projects
       val pageSize = this.config.projects.getInt("init-load").get
       val p = page.getOrElse(1)
       val offset = (p - 1) * pageSize
-      val future = actions.collect(filter, categoryArray, pageSize, offset, ordering)
+      val future = actions.collect(filter.fn, categoryArray, pageSize, offset, ordering)
       val projects = this.service.await(future).get
 
       if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet))
@@ -80,7 +77,7 @@ class Application @Inject()(data: DataHelper,
     */
   def showQueue() = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) { implicit request =>
-      Ok(views.users.admin.queue(this.service.access(classOf[VersionBase]).notReviewed.map(v => (v.project, v))))
+      Ok(views.users.admin.queue(this.service.getModelBase(classOf[VersionBase]).notReviewed.map(v => (v.project, v))))
     }
   }
 
@@ -90,7 +87,7 @@ class Application @Inject()(data: DataHelper,
     * @return Flag overview
     */
   def showFlags() = FlagAction { implicit request =>
-    Ok(views.users.admin.flags(this.service.access(classOf[FlagBase]).unresolved))
+    Ok(views.users.admin.flags(this.service.getModelBase(classOf[FlagBase]).unresolved))
   }
 
   /**
@@ -101,7 +98,7 @@ class Application @Inject()(data: DataHelper,
     * @return         Ok
     */
   def setFlagResolved(flagId: Int, resolved: Boolean) = FlagAction { implicit request =>
-    this.service.access[FlagTable, Flag](classOf[Flag]).get(flagId) match {
+    this.service.access[Flag](classOf[Flag]).get(flagId) match {
       case None => NotFound
       case Some(flag) =>
         flag.setResolved(resolved)

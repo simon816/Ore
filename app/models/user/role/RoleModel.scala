@@ -3,14 +3,11 @@ package models.user.role
 import java.sql.Timestamp
 
 import db.impl.ModelKeys._
-import db.impl.OreModel
-import db.meta.Bind
+import db.impl.{OreModel, RoleTable}
 import models.user.User
 import ore.Visitable
 import ore.permission.role.Role
 import ore.permission.role.RoleTypes.RoleType
-
-import scala.annotation.meta.field
 
 /**
   * Represents a [[Role]] in something like a [[models.project.Project]] or
@@ -25,10 +22,13 @@ import scala.annotation.meta.field
 abstract class RoleModel(override val id: Option[Int],
                          override val createdAt: Option[Timestamp],
                          override val userId: Int,
-                         @(Bind @field) private var _roleType: RoleType,
-                         @(Bind @field) private var _isAccepted: Boolean = false)
+                         private var _roleType: RoleType,
+                         private var _isAccepted: Boolean = false)
                          extends OreModel(id, createdAt)
                            with Role { self =>
+
+  override type M <: RoleModel { type M = self.M }
+  override type T <: RoleTable[M]
 
   /**
     * Returns the subject of this Role.

@@ -6,7 +6,7 @@ import com.github.tminglei.slickpg.InetString
 import com.google.common.base.Preconditions._
 import db.Model
 import db.impl.ModelKeys._
-import db.impl.OreModel
+import db.impl.{OreModel, StatTable}
 import models.user.User
 
 /**
@@ -25,7 +25,10 @@ abstract class StatEntry[Subject <: Model](override val id: Option[Int] = None,
                                            val address: InetString,
                                            val cookie: String,
                                            private var userId: Option[Int] = None)
-                                           extends OreModel(id, createdAt) {
+                                           extends OreModel(id, createdAt) { self =>
+
+  override type M <: StatEntry[Subject] { type M = self.M }
+  override type T <: StatTable[M]
 
   checkNotNull(address, "client address cannot be null", "")
   checkNotNull(cookie, "browser cookie cannot be null", "")

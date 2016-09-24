@@ -3,14 +3,12 @@ package models.user
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
+import db.access.ModelAccess
 import db.impl.ModelKeys._
+import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.access.{FlagBase, OrganizationBase, UserBase, VersionBase}
-import db.impl.action.{ProjectActions, UserActions}
-import db.impl.pg.OrePostgresDriver.api._
-import db.meta._
-import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
-import db.{ImmutableModelAccess, ModelAccess}
+import db.impl.schema.ProjectSchema
 import models.project.{Flag, Project}
 import models.user.role.{OrganizationRole, ProjectRole}
 import ore.Visitable
@@ -22,8 +20,6 @@ import ore.user.UserOwned
 import play.api.mvc.Session
 import util.StringUtils._
 
-import scala.annotation.meta.field
-
 /**
   * Represents a Sponge user.
   *
@@ -34,23 +30,15 @@ import scala.annotation.meta.field
   * @param _email       Email
   * @param _tagline     The user configured "tagline" displayed on the user page.
   */
-@ManyToManyCollection(Array(
-  new ManyToMany(modelClass = classOf[Project], tableClass = classOf[ProjectWatchersTable]),
-  new ManyToMany(modelClass = classOf[Organization], tableClass = classOf[OrganizationMembersTable])
-))
-@OneToMany(Array(
-  classOf[Project], classOf[ProjectRole], classOf[OrganizationRole], classOf[Flag], classOf[Notification],
-  classOf[Organization]
-))
 case class User(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
-                @(Bind @field) private var _name: Option[String] = None,
-                @(Bind @field) private var _username: String,
-                @(Bind @field) private var _email: Option[String] = None,
-                @(Bind @field) private var _tagline: Option[String] = None,
-                @(Bind @field) private var _globalRoles: List[RoleType] = List(),
-                @(Bind @field) private var _joinDate: Option[Timestamp] = None,
-                @(Bind @field) private var _avatarUrl: Option[String] = None)
+                private var _name: Option[String] = None,
+                private var _username: String,
+                private var _email: Option[String] = None,
+                private var _tagline: Option[String] = None,
+                private var _globalRoles: List[RoleType] = List(),
+                private var _joinDate: Option[Timestamp] = None,
+                private var _avatarUrl: Option[String] = None)
                 extends OreModel(id, createdAt)
                   with UserOwned
                   with ScopeSubject
@@ -58,7 +46,6 @@ case class User(override val id: Option[Int] = None,
 
   override type M = User
   override type T = UserTable
-  override type A = UserActions
 
   /**
     * The User's [[PermissionPredicate]]. All permission checks go through
@@ -251,7 +238,7 @@ case class User(override val id: Option[Int] = None,
   def starred(page: Int = -1): Seq[Project] = Defined {
     val starsPerPage = this.config.users.getInt("stars-per-page").get
     val limit = if (page < 1) -1 else starsPerPage
-    val actions = this.service.getActions(classOf[ProjectActions])
+    val actions = this.service.getActions(classOf[ProjectSchema])
     this.service.await(actions.starredBy(this.id.get, limit, (page - 1) * starsPerPage)).get
   }
 
@@ -260,8 +247,10 @@ case class User(override val id: Option[Int] = None,
     *
     * @return True if currently authenticated user
     */
-  def isCurrent(implicit session: Session): Boolean = this.service.access(classOf[UserBase]).current.exists { user =>
-    user.equals(this) || (this.isOrganization && this.toOrganization.owner.user.equals(user))
+  def isCurrent(implicit session: Session): Boolean = {
+    this.service.getModelBase(classOf[UserBase]).current.exists { user =>
+        user.equals(this) || (this.isOrganization && this.toOrganization.owner.user.equals(user))
+    }
   }
 
   /**
@@ -298,7 +287,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Projects owned by user
     */
-  def projects = ImmutableModelAccess(this.oneToMany[ProjectTable, Project](classOf[Project]))
+  def projects = this.actions.getChildren[Project](classOf[Project], this)
 
   /**
     * Returns the Project with the specified name that this User owns.
@@ -313,39 +302,36 @@ case class User(override val id: Option[Int] = None,
     *
     * @return ProjectRoles
     */
-  def projectRoles = ImmutableModelAccess(this.oneToMany[ProjectRoleTable, ProjectRole](classOf[ProjectRole]))
+  def projectRoles = this.actions.getChildren[ProjectRole](classOf[ProjectRole], this)
 
   /**
     * Returns the [[Organization]]s that this User owns.
     *
     * @return Organizations user owns
     */
-  def ownedOrganizations = ImmutableModelAccess(this.oneToMany[OrganizationTable, Organization](classOf[Organization]))
+  def ownedOrganizations = this.actions.getChildren[Organization](classOf[Organization], this)
 
   /**
     * Returns the [[Organization]]s that this User belongs to.
     *
     * @return Organizations user belongs to
     */
-  def organizations = {
-    this.manyToMany[OrganizationMembersTable, OrganizationTable, Organization](classOf[Organization],
-      classOf[OrganizationMembersTable])
-  }
+  def organizations = this.actions.getAssociation[OrganizationMembersTable, Organization](
+    classOf[OrganizationMembersTable], this)
 
   /**
     * Returns a [[ModelAccess]] of [[OrganizationRole]]s.
     *
     * @return OrganizationRoles
     */
-  def organizationRoles
-  = ImmutableModelAccess(this.oneToMany[OrganizationRoleTable, OrganizationRole](classOf[OrganizationRole]))
+  def organizationRoles = this.actions.getChildren[OrganizationRole](classOf[OrganizationRole], this)
 
   /**
     * Returns true if this User is also an organization.
     *
     * @return True if organization
     */
-  def isOrganization: Boolean = this.service.access(classOf[OrganizationBase]).exists(_.id === this.id.get)
+  def isOrganization: Boolean = this.service.getModelBase(classOf[OrganizationBase]).exists(_.id === this.id.get)
 
   /**
     * Converts this User to an [[Organization]].
@@ -353,7 +339,7 @@ case class User(override val id: Option[Int] = None,
     * @return Organization
     */
   def toOrganization: Organization = {
-    this.service.access(classOf[OrganizationBase]).get(this.id.get)
+    this.service.getModelBase(classOf[OrganizationBase]).get(this.id.get)
       .getOrElse(throw new IllegalStateException("user is not an organization"))
   }
 
@@ -362,8 +348,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Projects user is watching
     */
-  def watching
-  = this.manyToMany[ProjectWatchersTable, ProjectTable, Project](classOf[Project], classOf[ProjectWatchersTable])
+  def watching = this.actions.getAssociation[ProjectWatchersTable, Project](classOf[ProjectWatchersTable], this)
 
   /**
     * Sets the "watching" status on the specified project.
@@ -372,11 +357,10 @@ case class User(override val id: Option[Int] = None,
     * @param watching True if watching
     */
   def setWatching(project: Project, watching: Boolean) = {
-    val assoc = this.actions.getAssociation(classOf[ProjectWatchersTable])
     if (watching)
-      assoc.assoc(this, project)
+      this.watching.add(project)
     else
-      assoc.disassoc(this, project)
+      this.watching.remove(project)
   }
 
   /**
@@ -384,7 +368,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Flags submitted by user
     */
-  def flags = ImmutableModelAccess(this.oneToMany[FlagTable, Flag](classOf[Flag]))
+  def flags = this.actions.getChildren[Flag](classOf[Flag], this)
 
   /**
     * Returns true if the User has an unresolved [[Flag]] on the specified
@@ -401,7 +385,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return User notifications
     */
-  def notifications = ImmutableModelAccess(this.oneToMany[NotificationTable, Notification](classOf[Notification]))
+  def notifications = this.actions.getChildren[Notification](classOf[Notification], this)
 
   /**
     * Sends a [[Notification]] to this user.
@@ -411,7 +395,7 @@ case class User(override val id: Option[Int] = None,
     */
   def sendNotification(notification: Notification) = {
     this.config.debug("Sending notification: " + notification, -1)
-    this.service.access[NotificationTable, Notification](classOf[Notification])
+    this.service.access[Notification](classOf[Notification])
       .add(notification.copy(userId = this.id.get))
   }
 
@@ -421,8 +405,9 @@ case class User(override val id: Option[Int] = None,
     * @return True if has unread notifications
     */
   def hasUnreadNotifications: Boolean = {
-    ((this can ReviewFlags in GlobalScope) && this.service.access(classOf[FlagBase]).unresolved.nonEmpty) ||
-      ((this can ReviewProjects in GlobalScope) && this.service.access(classOf[VersionBase]).notReviewed.nonEmpty) ||
+    ((this can ReviewFlags in GlobalScope) && this.service.getModelBase(classOf[FlagBase]).unresolved.nonEmpty) ||
+      ((this can ReviewProjects in GlobalScope) &&
+        this.service.getModelBase(classOf[VersionBase]).notReviewed.nonEmpty) ||
       this.notifications.filterNot(_.read).nonEmpty
   }
 

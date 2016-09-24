@@ -3,13 +3,10 @@ package models.project
 import java.sql.Timestamp
 
 import db.impl.ModelKeys._
-import db.impl.OreModel
-import db.meta.Bind
+import db.impl.{FlagTable, OreModel}
 import ore.permission.scope.ProjectScope
 import ore.project.FlagReasons.FlagReason
 import ore.user.UserOwned
-
-import scala.annotation.meta.field
 
 /**
   * Represents a flag on a Project that requires staff attention.
@@ -26,10 +23,13 @@ case class Flag(override val id: Option[Int],
                 override val projectId: Int,
                 override val userId: Int,
                 reason: FlagReason,
-                @(Bind @field) private var _isResolved: Boolean = false)
+                private var _isResolved: Boolean = false)
                 extends OreModel(id, createdAt)
                   with UserOwned
                   with ProjectScope {
+
+  override type M = Flag
+  override type T = FlagTable
 
   def this(projectId: Int, userId: Int, reason: FlagReason) = {
     this(id=None, createdAt=None, projectId=projectId, userId=userId, reason=reason)

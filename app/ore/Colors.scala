@@ -1,5 +1,9 @@
 package ore
 
+import db.MappedType
+import db.impl.OrePostgresDriver
+import slick.jdbc.JdbcType
+
 /**
   * Collection of colors used in Ore.
   */
@@ -25,7 +29,9 @@ object Colors extends Enumeration {
   val Transparent =   Color(17,   "transparent")
 
   /** Represents a color. */
-  case class Color(i: Int, hex: String) extends super.Val(i, hex)
+  case class Color(i: Int, hex: String) extends super.Val(i, hex) with MappedType[Color] {
+    implicit val mapper: JdbcType[Color] = OrePostgresDriver.api.colorTypeMapper
+  }
   implicit def convert(value: Value): Color = value.asInstanceOf[Color]
 
 }

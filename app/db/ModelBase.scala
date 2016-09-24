@@ -1,12 +1,13 @@
 package db
 
+import db.access.ModelAccess
+
 /**
   * Represents something that provides access to a ModelTable.
   *
-  * @tparam T ModelTable
   * @tparam M Model
   */
-trait ModelBase[T <: ModelTable[M], M <: Model] {
+trait ModelBase[M <: Model] {
 
   /** The [[Model]] that this provides access to */
   val modelClass: Class[M]
@@ -18,10 +19,10 @@ trait ModelBase[T <: ModelTable[M], M <: Model] {
     *
     * @return ModelAccess
     */
-  def access: ModelAccess[T, M] = this.service.access[T, M](this.modelClass)
+  def access: ModelAccess[M] = this.service.access[M](this.modelClass)
 
 }
 
 object ModelBase {
-  implicit def unwrap[T <: ModelTable[M], M <: Model](base: ModelBase[T, M]): ModelAccess[T, M] = base.access
+  implicit def unwrap[M <: Model](base: ModelBase[M]): ModelAccess[M] = base.access
 }

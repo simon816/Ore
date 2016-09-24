@@ -81,6 +81,13 @@ function loadStars(increment) {
 }
 
 function setupAvatarForm() {
+
+    var popover = $('.popover-avatar');
+    popover.find('.btn').click(function() {
+        $.ajax('prompts/read' + popover.data('prompt-id'));
+        popover.fadeOut('fast');
+    });
+
     $('.organization-avatar').hover(function() {
         $('.edit-avatar').fadeIn('fast');
     }, function() {

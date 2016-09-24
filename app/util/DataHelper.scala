@@ -30,8 +30,8 @@ final class DataHelper @Inject()(config: OreConfig,
   import config.debug
 
   private val pluginPath = Paths.get(this.config.ore.getString("test-plugin").get)
-  implicit private val projects: ProjectBase = this.service.access(classOf[ProjectBase])
-  private val users: UserBase = this.service.access(classOf[UserBase])
+  implicit private val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
+  private val users: UserBase = this.service.getModelBase(classOf[UserBase])
 
   /**
     * Resets the application to factory defaults.

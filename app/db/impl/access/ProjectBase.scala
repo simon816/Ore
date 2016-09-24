@@ -5,8 +5,7 @@ import java.nio.file.Files._
 
 import _root_.util.StringUtils._
 import com.google.common.base.Preconditions._
-import db.impl.ProjectTable
-import db.impl.pg.OrePostgresDriver.api._
+import db.impl.OrePostgresDriver.api._
 import db.{ModelBase, ModelService}
 import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
@@ -18,7 +17,7 @@ class ProjectBase(override val service: ModelService,
                   env: OreEnv,
                   config: OreConfig,
                   forums: DiscourseApi)
-                  extends ModelBase[ProjectTable, Project] {
+                  extends ModelBase[Project] {
 
   override val modelClass = classOf[Project]
 

@@ -4,16 +4,16 @@ import javax.inject.Inject
 
 import controllers.routes.{Application => app, Users => self}
 import db.ModelService
+import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase.ORDER_PROJECTS
-import db.impl.pg.OrePostgresDriver.api._
 import form.OreForms
 import forums.{DiscourseApi, DiscourseSSO}
 import models.user.role.RoleModel
 import ore.permission.EditSettings
+import ore.user.FakeUser
 import ore.user.notification.InviteFilters.InviteFilter
 import ore.user.notification.NotificationFilters.NotificationFilter
 import ore.user.notification.{InviteFilters, NotificationFilters}
-import ore.user.FakeUser
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import play.api.mvc.{Security, _}

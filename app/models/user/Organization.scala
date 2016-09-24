@@ -4,17 +4,12 @@ import java.sql.Timestamp
 
 import db.Model
 import db.impl.access.UserBase
-import db.impl.{OreModel, OrganizationMembersTable, OrganizationRoleTable}
-import db.meta.Bind
-import db.meta.relation.{ManyToMany, ManyToManyCollection, OneToMany}
-import models.project.Project
+import db.impl.{OreModel, OrganizationMembersTable, OrganizationRoleTable, OrganizationTable}
 import models.user.role.OrganizationRole
 import ore.organization.OrganizationMember
 import ore.permission.scope.OrganizationScope
 import ore.user.{MembershipDossier, UserOwned}
 import ore.{Joinable, Visitable}
-
-import scala.annotation.meta.field
 
 /**
   * Represents an Ore Organization. An organization is like a [[User]] in the
@@ -27,18 +22,19 @@ import scala.annotation.meta.field
   * @param password       Sponge forums password (encrypted)
   * @param ownerId        The ID of the [[User]] that owns this organization
   */
-@OneToMany(Array(classOf[Project], classOf[OrganizationRole]))
-@ManyToManyCollection(Array(new ManyToMany(modelClass = classOf[User], tableClass = classOf[OrganizationMembersTable])))
 case class Organization(override val id: Option[Int] = None,
                         override val createdAt: Option[Timestamp] = None,
-                        @(Bind @field) username: String,
-                        @(Bind @field) password: String,
-                        @(Bind @field) ownerId: Int)
+                        username: String,
+                        password: String,
+                        ownerId: Int)
                         extends OreModel(id, createdAt)
                           with UserOwned
                           with OrganizationScope
                           with Visitable
                           with Joinable[OrganizationMember] {
+
+  override type M = Organization
+  override type T = OrganizationTable
 
   /**
     * Contains all information for [[User]] memberships.
@@ -71,7 +67,7 @@ case class Organization(override val id: Option[Int] = None,
     *
     * @return This Organization as a User
     */
-  def toUser = this.service.access(classOf[UserBase]).withName(this.username).get
+  def toUser = this.service.getModelBase(classOf[UserBase]).withName(this.username).get
 
   override val name: String = this.username
   override def url: String = this.toUser.url

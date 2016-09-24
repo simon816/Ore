@@ -17,7 +17,7 @@ class SpongeAuth @Inject()(config: OreConfig,
                            service: ModelService,
                            override val api: DiscourseApi)
                            extends DiscourseSSO {
-  override protected val users = service.access(classOf[UserBase])
+  override protected val users = service.getModelBase(classOf[UserBase])
   override val url = config.forums.getString("sso.url").get
   override val secret = config.forums.getString("sso.secret").get
 }

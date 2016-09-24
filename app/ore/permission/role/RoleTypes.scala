@@ -1,7 +1,10 @@
 package ore.permission.role
 
+import db.MappedType
+import db.impl.OrePostgresDriver
 import models.user.role.{OrganizationRole, ProjectRole}
 import ore.Colors._
+import slick.jdbc.JdbcType
 
 /**
   * Represents a collection of roles a User may have.
@@ -71,7 +74,9 @@ object RoleTypes extends Enumeration {
                  val trust: Trust,
                  val title: String,
                  val color: Color)
-                 extends super.Val(i, title)
+                 extends super.Val(i, title) with MappedType[RoleType] {
+    implicit val mapper: JdbcType[RoleType] = OrePostgresDriver.api.roleTypeTypeMapper
+  }
 
   /**
     * Represents a type of Donor.

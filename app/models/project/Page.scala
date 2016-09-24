@@ -4,17 +4,14 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.impl.ModelKeys._
-import db.impl.action.PageActions
+import db.impl.schema.PageSchema
 import db.impl.{OreModel, PageTable}
-import db.meta.Bind
 import ore.permission.scope.ProjectScope
 import ore.{OreConfig, Visitable}
 import org.pegdown.Extensions._
 import org.pegdown.PegDownProcessor
 import play.twirl.api.Html
 import util.StringUtils._
-
-import scala.annotation.meta.field
 
 /**
   * Represents a documentation page within a project.
@@ -33,14 +30,14 @@ case class Page(override val id: Option[Int] = None,
                 override val name: String,
                 slug: String,
                 isDeletable: Boolean = true,
-                @(Bind @field) private var _contents: String)
+                private var _contents: String)
                 extends OreModel(id, createdAt)
                   with ProjectScope
                   with Visitable {
 
   override type M = Page
   override type T = PageTable
-  override type A = PageActions
+  override type A = PageSchema
 
   import models.project.Page._
 

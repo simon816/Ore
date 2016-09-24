@@ -1,10 +1,9 @@
 package db.impl.access
 
-import db.impl.VersionTable
 import db.{ModelBase, ModelService}
 import models.project.Version
 
-class VersionBase(override val service: ModelService) extends ModelBase[VersionTable, Version] {
+class VersionBase(override val service: ModelService) extends ModelBase[Version] {
 
   override val modelClass = classOf[Version]
 

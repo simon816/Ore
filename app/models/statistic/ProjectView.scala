@@ -4,13 +4,11 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import controllers.Requests.ProjectRequest
+import db.impl.ProjectViewsTable
 import db.impl.access.UserBase
-import db.meta.Bind
 import models.project.Project
 import ore.StatTracker._
 import ore.permission.scope.ProjectScope
-
-import scala.annotation.meta.field
 
 /**
   * Represents a unique view on a Project.
@@ -27,9 +25,12 @@ case class ProjectView(override val id: Option[Int] = None,
                        override val modelId: Int,
                        override val address: InetString,
                        override val cookie: String,
-                       @(Bind @field) private var userId: Option[Int] = None)
+                       private var userId: Option[Int] = None)
                        extends StatEntry[Project](id, createdAt, modelId, address, cookie, userId)
                          with ProjectScope {
+
+  override type M = ProjectView
+  override type T = ProjectViewsTable
 
   override def projectId: Int = this.modelId
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)

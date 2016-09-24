@@ -13,6 +13,7 @@ import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
 import ore.project.factory.ProjectFactory
 import ore.project.io.InvalidPluginFileException
+import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv, StatTracker}
 import org.apache.commons.io.FileUtils
 import play.api.i18n.MessagesApi
@@ -319,13 +320,13 @@ class Projects @Inject()(val stats: StatTracker,
       case Some(role) =>
         val dossier = role.project.memberships
         status match {
-          case "decline" =>
+          case STATUS_DECLINE =>
             dossier.removeRole(role)
             Ok
-          case "accept" =>
+          case STATUS_ACCEPT =>
             role.setAccepted(true)
             Ok
-          case "unaccept" =>
+          case STATUS_UNACCEPT =>
             role.setAccepted(false)
             Ok
           case _ =>

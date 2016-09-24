@@ -1,7 +1,6 @@
-package db.meta
+package db
 
-import db.impl.pg.OrePostgresDriver.api._
-import db.{AssociativeTable, Model, ModelService}
+import db.impl.OrePostgresDriver.api._
 
 /**
   * Represents an association between two models handled by an associative table.

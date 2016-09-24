@@ -5,8 +5,7 @@ import java.util.Date
 
 import db.ModelAction._
 import db.ModelFilter.IdFilter
-import db.meta.BootstrapTypeSetters._
-import db.meta.ModelProcessor
+import db.access.ModelAccess
 import slick.backend.DatabaseConfig
 import slick.driver.{JdbcDriver, JdbcProfile}
 import slick.lifted.ColumnOrdered
@@ -14,7 +13,6 @@ import slick.lifted.ColumnOrdered
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future, Promise}
-import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -25,9 +23,8 @@ trait ModelService {
   /** Used for processing models and determining field bindings */
   val processor: ModelProcessor
 
-  /** All registered models and [[db.meta.TypeSetter]]s */
+  /** All registered models. */
   val registry: ModelRegistry
-  import registry.registerTypeSetter
 
   /** The base JDBC driver */
   val driver: JdbcDriver
@@ -44,16 +41,6 @@ trait ModelService {
     * (e.g. Project stars).
     */
   protected[db] val DB: DatabaseConfig[JdbcProfile]
-
-  // Bootstrap TypeSetters
-  registerTypeSetter(classOf[Int], IntTypeSetter)
-  registerTypeSetter(classOf[String], StringTypeSetter)
-  registerTypeSetter(classOf[Boolean], BooleanTypeSetter)
-  registerTypeSetter(classOf[Timestamp], TimestampTypeSetter)
-  registerTypeSetter(classOf[List[Int]], IntListTypeSetter)
-  registerTypeSetter(classOf[List[String]], StringListTypeSetter)
-  registerTypeSetter(classOf[List[Boolean]], BooleanListTypeSetter)
-  registerTypeSetter(classOf[List[Timestamp]], TimestampListTypeSetter)
 
   /**
     * Returns a current Timestamp.
@@ -78,29 +65,27 @@ trait ModelService {
     * @tparam Q ModelActions
     * @return ModelActions of type
     */
-  def getActions[Q <: ModelActions[_, _]](actionsClass: Class[Q]): Q = this.registry.getActions(actionsClass)
+  def getActions[Q <: ModelSchema[_]](actionsClass: Class[Q]): Q = this.registry.getSchema(actionsClass)
 
   /**
     * Provides the registered ModelActions instance for the specified Model.
     *
     * @param modelClass Model class
-    * @tparam T Table type
     * @tparam M Model type
     * @return ModelActions
     */
-  def getActionsByModel[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M]): ModelActions[T, M]
-  = this.registry.getActionsByModel(modelClass)
+  def getActionsByModel[M <: Model](modelClass: Class[M]): ModelSchema[M]
+  = this.registry.getSchemaByModel(modelClass)
 
   /**
     * Returns the base query for the specified Model class.
     *
     * @param modelClass Model class
-    * @tparam T         Table type
     * @tparam M         Model type
     * @return           Base query for Model
     */
-  def newAction[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M]): Query[T, M, Seq]
-  = this.registry.getActionsByModel(modelClass).baseQuery.asInstanceOf[Query[T, M, Seq]]
+  def newAction[M <: Model](modelClass: Class[_ <: M]): Query[M#T, M, Seq]
+  = this.registry.getSchemaByModel(modelClass).baseQuery.asInstanceOf[Query[M#T, M, Seq]]
 
   /**
     * Runs the specified ModelAction on the DB and processes the resulting
@@ -109,7 +94,7 @@ trait ModelService {
     * @param action   Action to run
     * @return         Processed result
     */
-  def doAction[R: TypeTag](action: AbstractModelAction[R]): Future[R]
+  def doAction[R](action: AbstractModelAction[R]): Future[R]
   = DB.db.run(action).map(r => action.processResult(this, r))
 
   /**
@@ -117,12 +102,11 @@ trait ModelService {
     *
     * @param modelClass Model class
     * @param baseFilter Base filter to apply
-    * @tparam T         Model table
     * @tparam M         Model
     * @return           New ModelAccess
     */
-  def access[T <: ModelTable[M], M <: Model](modelClass: Class[M], baseFilter: ModelFilter[T, M] = ModelFilter[T, M]())
-  = new ModelAccess[T, M](this, modelClass, baseFilter)
+  def access[M <: Model](modelClass: Class[M], baseFilter: ModelFilter[M] = ModelFilter[M]())
+  = new ModelAccess[M](this, modelClass, baseFilter)
 
   /**
     * Returns the specified [[ModelBase]].
@@ -131,7 +115,7 @@ trait ModelService {
     * @tparam B     ModelBase type
     * @return       ModelBase
     */
-  def access[B <: ModelBase[_, _]](clazz: Class[B]): B = this.registry.getModelBase(clazz)
+  def getModelBase[B <: ModelBase[_]](clazz: Class[B]): B = this.registry.getModelBase(clazz)
 
   /**
     * Creates the specified model in it's table.
@@ -139,14 +123,60 @@ trait ModelService {
     * @param model  Model to create
     * @return       Newly created model
     */
-  def insert[T <: ModelTable[M], M <: Model: TypeTag](model: M): Future[M] = {
+  def insert[M <: Model](model: M): Future[M] = {
     val toInsert = model.copyWith(None, Some(theTime)).asInstanceOf[M]
-    val models = newAction[T, M](model.getClass)
+    val models = newAction[M](model.getClass)
     doAction {
       models returning models.map(_.id) into {
         case (m, id) =>
           model.copyWith(Some(id), m.createdAt).asInstanceOf[M]
       } += toInsert
+    }
+  }
+
+  def setType[A <: MappedType[A], M <: Model](model: M, rep: M#T => Rep[A], v: A) = {
+    import v.mapper
+    DB.db.run {
+      (for {
+        row <- newAction[M](model.getClass)
+        if row.id === model.id.get
+      } yield rep(row)).update(v)
+    }
+  }
+
+  def setInt[M <: Model](model: M, rep: M#T => Rep[Int], v: Int) = {
+    DB.db.run {
+      (for {
+        row <- newAction[M](model.getClass)
+        if row.id === model.id.get
+      } yield rep(row)).update(v)
+    }
+  }
+
+  def setString[M <: Model](model: M, rep: M#T => Rep[String], v: String) = {
+    DB.db.run {
+      (for {
+        row <- newAction[M](model.getClass)
+        if row.id === model.id.get
+      } yield rep(row)).update(v)
+    }
+  }
+
+  def setBoolean[M <: Model](model: M, rep: M#T => Rep[Boolean], v: Boolean) = {
+    DB.db.run {
+      (for {
+        row <- newAction[M](model.getClass)
+        if row.id === model.id.get
+      } yield rep(row)).update(v)
+    }
+  }
+
+  def setTimestamp[M <: Model](model: M, rep: M#T => Rep[Timestamp], v: Timestamp) = {
+    DB.db.run {
+      (for {
+        row <- newAction[M](model.getClass)
+        if row.id === model.id.get
+      } yield rep(row)).update(v)
     }
   }
 
@@ -156,10 +186,9 @@ trait ModelService {
     * @param filter  Filter
     * @return        Optional result
     */
-  def find[T <: ModelTable[M], M <: Model: TypeTag](modelClass: Class[_ <: M],
-                                                    filter: T => Rep[Boolean]): Future[Option[M]] = {
+  def find[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean]): Future[Option[M]] = {
     val modelPromise = Promise[Option[M]]
-    val query = newAction[T, M](modelClass).filter(filter).take(1)
+    val query = newAction[M](modelClass).filter(filter).take(1)
     doAction(query.result).andThen {
       case Failure(thrown) => modelPromise.failure(thrown)
       case Success(result) => modelPromise.success(result.headOption)
@@ -172,9 +201,8 @@ trait ModelService {
     *
     * @return Size of model table
     */
-  def count[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M],
-                                            filter: T => Rep[Boolean] = null): Future[Int] = {
-    var query = newAction[T, M](modelClass)
+  def count[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean] = null): Future[Int] = {
+    var query = newAction[M](modelClass)
     if (filter != null) query = query.filter(filter)
     DB.db.run(query.length.result)
   }
@@ -184,19 +212,18 @@ trait ModelService {
     *
     * @param model Model to delete
     */
-  def delete[T <: ModelTable[M], M <: Model](model: M): Future[Int]
-  = DB.db.run(newAction[T, M](model.getClass).filter(IdFilter[T, M](model.id.get)).delete)
+  def delete[M <: Model](model: M): Future[Int]
+  = DB.db.run(newAction[M](model.getClass).filter(IdFilter[M](model.id.get).fn).delete)
 
   /**
     * Deletes all the models meeting the specified filter.
     *
     * @param modelClass Model class
     * @param filter     Filter to use
-    * @tparam T         Table
     * @tparam M         Model
     */
-  def deleteWhere[T <: ModelTable[M], M <: Model](modelClass: Class[_ <: M], filter: T => Rep[Boolean]): Future[Int]
-  = DB.db.run(newAction[T, M](modelClass).filter(filter).delete)
+  def deleteWhere[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean]): Future[Int]
+  = DB.db.run(newAction[M](modelClass).filter(filter).delete)
 
   /**
     * Returns the model with the specified ID, if any.
@@ -204,9 +231,8 @@ trait ModelService {
     * @param id   Model with ID
     * @return     Model if present, None otherwise
     */
-  def get[T <: ModelTable[M], M <: Model: TypeTag](modelClass: Class[_ <: M], id: Int,
-                                                   filter: T => Rep[Boolean] = null): Future[Option[M]]
-  = find[T, M](modelClass, IdFilter[T, M](id) && filter)
+  def get[M <: Model](modelClass: Class[M], id: Int, filter: M#T => Rep[Boolean] = null): Future[Option[M]]
+  = find[M](modelClass, (IdFilter[M](id) && filter).fn)
 
   /**
     * Returns a collection of models with the specified limit and offset.
@@ -215,10 +241,9 @@ trait ModelService {
     * @param offset Offset to drop
     * @return       Collection of models
     */
-  def collect[T <: ModelTable[M], M <: Model: TypeTag](modelClass: Class[_ <: M], filter: T => Rep[Boolean],
-                                                       sort: T => ColumnOrdered[_], limit: Int,
-                                                       offset: Int): Future[Seq[M]] = {
-    var query = newAction[T, M](modelClass)
+  def collect[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean] = null,
+                          sort: M#T => ColumnOrdered[_] = null, limit: Int = -1, offset: Int = -1): Future[Seq[M]] = {
+    var query = newAction[M](modelClass)
     if (filter != null) query = query.filter(filter)
     if (sort != null) query = query.sortBy(sort)
     if (offset > -1) query = query.drop(offset)
@@ -232,12 +257,11 @@ trait ModelService {
     * @param filter Model filter
     * @param limit  Amount to take
     * @param offset Amount to drop
-    * @tparam T     Model table
     * @tparam M     Model
     * @return       Filtered models
     */
-  def filter[T <: ModelTable[M], M <: Model: TypeTag](modelClass: Class[_ <: M], filter: T => Rep[Boolean],
-                                                      limit: Int = -1, offset: Int = -1): Future[Seq[M]]
+  def filter[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean], limit: Int = -1,
+                                  offset: Int = -1): Future[Seq[M]]
   = collect(modelClass, filter, null, limit, offset)
 
   /**
@@ -247,13 +271,11 @@ trait ModelService {
     * @param sort       Ordering
     * @param limit      Amount to take
     * @param offset     Amount to drop
-    * @tparam T         Model table
     * @tparam M         Model
     * @return           Sorted models
     */
-  def sorted[T <: ModelTable[M], M <: Model: TypeTag](modelClass: Class[_ <: M], sort: T => ColumnOrdered[_],
-                                                      filter: T => Rep[Boolean] = null, limit: Int = -1,
-                                                      offset: Int = -1): Future[Seq[M]]
+  def sorted[M <: Model](modelClass: Class[M], sort: M#T => ColumnOrdered[_], filter: M#T => Rep[Boolean] = null, limit: Int = -1,
+                                  offset: Int = -1): Future[Seq[M]]
   = collect(modelClass, filter, sort, limit, offset)
 
 }

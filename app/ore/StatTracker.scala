@@ -88,6 +88,6 @@ object StatTracker {
 }
 
 class OreStatTracker @Inject()(service: ModelService) extends StatTracker {
-  override val users = service.access(classOf[UserBase])
-  override val projects = service.access(classOf[ProjectBase])
+  override val users = service.getModelBase(classOf[UserBase])
+  override val projects = service.getModelBase(classOf[ProjectBase])
 }

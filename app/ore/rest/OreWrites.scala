@@ -17,7 +17,7 @@ import play.api.libs.json._
   */
 final class OreWrites @Inject()(implicit config: OreConfig, service: ModelService) {
 
-  implicit val projects: ProjectBase = this.service.access(classOf[ProjectBase])
+  implicit val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
 
   implicit val channelWrites = new Writes[Channel] {
     def writes(channel: Channel) = obj("name" -> channel.name, "color" -> channel.color.hex)
@@ -63,7 +63,8 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "owner"         ->  project.ownerName,
         "description"   ->  project.description,
         "href"          ->  ('/' + project.ownerName + '/' + project.slug),
-        "members"       ->  project.memberships.members, // TODO: filter out members who have not accepted the invite
+        // TODO: filter out members who have not accepted the invite
+        "members"       ->  project.memberships.members,
         "channels"      ->  toJson(project.channels.toSeq),
         "recommended"   ->  toJson(project.recommendedVersion),
         "category"      ->  obj("title" -> category.title, "icon" -> category.icon),

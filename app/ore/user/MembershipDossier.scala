@@ -1,9 +1,10 @@
 package ore.user
 
+import db.AssociativeTable
+import db.access.ModelAccess
+import db.impl.OreModel
+import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase
-import db.impl.pg.OrePostgresDriver.api._
-import db.impl.{OreModel, UserColumn, UserTable}
-import db.{AssociativeTable, ModelAccess}
 import models.user.User
 import models.user.role.RoleModel
 
@@ -14,7 +15,6 @@ trait MembershipDossier {
 
   type ModelType <: OreModel
   type RoleType <: RoleModel
-  type RoleTable <: UserColumn[RoleType]
   type MemberType <: Member[RoleType]
   type MembersTable <: AssociativeTable
 
@@ -24,12 +24,16 @@ trait MembershipDossier {
 
   implicit def userBase: UserBase = this.model.userBase
 
-  private def association = this.model.actions.getAssociation(this.membersTableClass)
-  private def roles: ModelAccess[RoleTable, RoleType] = this.model.oneToMany[RoleTable, RoleType](this.roleClass)
-  private def addMember(user: User) = this.association.assoc(model, user)
+  implicit def convertModel(model: ModelType): this.model.M = model.asInstanceOf[this.model.M]
+
+  private def association
+  = this.model.actions.getAssociation[MembersTable, User](this.membersTableClass, this.model)
+  private def roles: ModelAccess[RoleType] = this.model.actions.getChildren[RoleType](this.roleClass, this.model)
+  private def addMember(user: User) = this.association.add(user)
 
   private def clearRoles(user: User) = {
-    this.model.oneToMany[RoleTable, RoleType](this.roleClass).removeAll(_.userId === user.id.get)
+    this.model.actions.getChildren[RoleType](this.roleClass, this.model)
+      .removeAll(_.userId === user.id.get)
   }
 
   /**
@@ -47,7 +51,7 @@ trait MembershipDossier {
     * @return All members
     */
   def members: Set[MemberType] = {
-    this.model.manyToMany[MembersTable, UserTable, User](classOf[User], this.membersTableClass).all.map { user =>
+    this.model.actions.getAssociation[MembersTable, User](this.membersTableClass, this.model).all.map { user =>
       newMember(user.id.get)
     }
   }
@@ -92,7 +96,15 @@ trait MembershipDossier {
     */
   def removeMember(user: User) = {
     clearRoles(user)
-    this.association.disassoc(model, user)
+    this.association.remove(user)
   }
+
+}
+
+object MembershipDossier {
+
+  val STATUS_DECLINE = "decline"
+  val STATUS_ACCEPT = "accept"
+  val STATUS_UNACCEPT = "unaccept"
 
 }

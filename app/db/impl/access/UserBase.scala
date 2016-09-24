@@ -2,8 +2,7 @@ package db.impl.access
 
 import java.sql.Timestamp
 
-import db.impl.UserTable
-import db.impl.action.ProjectActions
+import db.impl.schema.ProjectSchema
 import db.{ModelBase, ModelService}
 import forums.DiscourseApi
 import models.user.User
@@ -17,7 +16,7 @@ import util.StringUtils._
 class UserBase(override val service: ModelService,
                forums: DiscourseApi,
                config: OreConfig)
-  extends ModelBase[UserTable, User] {
+  extends ModelBase[User] {
 
   import UserBase._
 
@@ -52,7 +51,7 @@ class UserBase(override val service: ModelService,
 
     // get authors
     var users: Seq[User] = this.service.await {
-      this.service.getActions(classOf[ProjectActions]).distinctAuthors
+      this.service.getActions(classOf[ProjectSchema]).distinctAuthors
     }.get
 
     // sort

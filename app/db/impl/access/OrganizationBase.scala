@@ -1,13 +1,12 @@
 package db.impl.access
 
-import db.impl.OrganizationTable
 import db.{ModelBase, ModelService}
 import forums.DiscourseApi
 import models.user.role.OrganizationRole
 import models.user.{Notification, Organization, User}
 import ore.OreConfig
-import ore.user.notification.NotificationTypes
 import ore.permission.role.RoleTypes
+import ore.user.notification.NotificationTypes
 import org.apache.commons.lang3.RandomStringUtils
 import play.api.i18n.MessagesApi
 import util.{CryptoUtils, StringUtils}
@@ -16,13 +15,13 @@ class OrganizationBase(override val service: ModelService,
                        forums: DiscourseApi,
                        config: OreConfig,
                        messages: MessagesApi)
-                       extends ModelBase[OrganizationTable, Organization] {
+                       extends ModelBase[Organization] {
 
   import service.await
 
   override val modelClass = classOf[Organization]
 
-  implicit val users: UserBase = this.service.access(classOf[UserBase])
+  implicit val users: UserBase = this.service.getModelBase(classOf[UserBase])
 
   /**
     * Creates a new [[Organization]]. This method creates a new user on the
@@ -37,6 +36,7 @@ class OrganizationBase(override val service: ModelService,
     val encryptedPassword = CryptoUtils.encrypt(password, this.config.play.getString("crypto.secret").get)
     val email = name + '@' + this.config.orgs.getString("dummyEmailDomain").get
 
+    // Create on forums
     val userId = await(this.forums.createUser(name, name, email, password)).get
     val groupId = this.config.orgs.getInt("groupId").get
     await(this.forums.addUserGroup(userId, groupId)).recover {
@@ -44,7 +44,8 @@ class OrganizationBase(override val service: ModelService,
         this.forums.sync.scheduleRetry(() => this.forums.addUserGroup(userId, groupId))
     }
 
-    val org = this.service.access[OrganizationTable, Organization](this.modelClass).add(Organization(
+    // Create on Ore
+    val org = this.service.access[Organization](this.modelClass).add(Organization(
       id = Some(userId),
       username = name,
       password = encryptedPassword,

@@ -1,9 +1,7 @@
 package ore.project
 
-import java.sql.Timestamp
-
-import db.impl.ProjectTable
-import db.impl.pg.OrePostgresDriver.api._
+import db.impl.OrePostgresDriver.api._
+import models.project.Project
 import slick.lifted.ColumnOrdered
 
 /**
@@ -33,10 +31,8 @@ object ProjectSortingStrategies {
     * Represents a strategy used to sort [[models.project.Project]]s.
     */
   sealed trait ProjectSortingStrategy {
-    /** Type being sorted. */
-    type A
     /** Sorting function */
-    def fn: ProjectTable => ColumnOrdered[A]
+    def fn: Project#T => ColumnOrdered[_]
     /** Display name */
     def title: String
     /** Unique ID */
@@ -44,35 +40,30 @@ object ProjectSortingStrategies {
   }
 
   case object MostStars extends ProjectSortingStrategy {
-    override type A = Int
     def fn = _.stars.desc
     def title = "Most stars"
     def id = 0
   }
 
   case object MostDownloads extends ProjectSortingStrategy {
-    override type A = Int
     def fn = _.downloads.desc
     def title = "Most downloads"
     def id = 1
   }
 
   case object MostViews extends ProjectSortingStrategy {
-    override type A = Int
     def fn = _.views.desc
     def title = "Most views"
     def id = 2
   }
 
   case object Newest extends ProjectSortingStrategy {
-    override type A = Timestamp
     def fn = _.createdAt.desc
     def title = "Newest"
     def id = 3
   }
 
   case object RecentlyUpdated extends ProjectSortingStrategy {
-    override type A = Timestamp
     def fn = _.lastUpdated.desc
     def title = "Recently Updated"
     def id = 4

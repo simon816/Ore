@@ -1,10 +1,10 @@
-package db.impl.action
+package db.impl.schema
 
 import db.ModelAction.wrapSeq
 import db._
 import db.impl._
 import db.impl.access.UserBase
-import db.impl.pg.OrePostgresDriver.api._
+import OrePostgresDriver.api._
 import models.project._
 import models.statistic.ProjectView
 import models.user.User
@@ -18,20 +18,22 @@ import scala.util.{Failure, Success}
 /**
   * Project related queries
   */
-class ProjectActions(override val service: ModelService)
-  extends ModelActions[ProjectTable, Project](service, classOf[Project], TableQuery[ProjectTable]) {
+class ProjectSchema(override val service: ModelService)
+  extends ModelSchema[Project](service, classOf[Project], TableQuery[ProjectTable]) {
 
-  /** The [[ModelActions]] for [[Flag]]s. */
-  val FlagActions = service.registry.registerActions(
-    new ModelActions[FlagTable, Flag](this.service, classOf[Flag], TableQuery[FlagTable])
+  /** The [[ModelSchema]] for [[Flag]]s. */
+  val FlagActions = service.registry.registerSchema(
+    new ModelSchema[Flag](this.service, classOf[Flag], TableQuery[FlagTable])
   )
 
-  /** The [[ModelActions]] for [[ProjectView]]. */
-  val ViewActions = service.registry.registerActions(
-    new StatActions[ProjectViewsTable, ProjectView](this.service, TableQuery[ProjectViewsTable], classOf[ProjectView])
-  )
+  case object ViewSchema extends ModelSchema[ProjectView](
+    this.service, classOf[ProjectView], TableQuery[ProjectViewsTable])
+    with StatSchema[ProjectView]
 
-  implicit private val users: UserBase = this.service.access(classOf[UserBase])
+  /** The [[ModelSchema]] for [[ProjectView]]. */
+  val ViewActions = service.registry.registerSchema(ViewSchema)
+
+  implicit private val users: UserBase = this.service.getModelBase(classOf[UserBase])
   private val stars = TableQuery[ProjectStarsTable]
 
   /**
@@ -53,9 +55,9 @@ class ProjectActions(override val service: ModelService)
     * @param query String query
     * @return Project's matching query
     */
-  def searchFilter(query: String): ModelFilter[ProjectTable, Project] = {
+  def searchFilter(query: String): ModelFilter[Project] = {
     val q = '%' + query.toLowerCase + '%'
-    ModelFilter { p =>
+    ModelFilter[Project] { p =>
       (p.name.toLowerCase like q) ||
         (p.description.toLowerCase like q) ||
         (p.ownerName.toLowerCase like q) ||
@@ -71,9 +73,9 @@ class ProjectActions(override val service: ModelService)
     * @param offset Result set offset
     * @return Projects matching criteria
     */
-  def collect(filter: Filter, sort: ProjectSortingStrategy,
+  def collect(filter: Project#T => Rep[Boolean], sort: ProjectSortingStrategy,
               limit: Int, offset: Int): Future[Seq[Project]]
-  = collect(filter, Option(sort).map(_.fn).orNull, limit, offset)
+  = this.service.collect[Project](this.modelClass, filter, Option(sort).map(_.fn).orNull, limit, offset)
 
   /**
     * Filters projects based on the given criteria.
@@ -85,7 +87,7 @@ class ProjectActions(override val service: ModelService)
     * @param sort       Ordering
     * @return Filtered projects
     */
-  def collect(filter: Filter, categories: Array[Category],
+  def collect(filter: Project#T => Rep[Boolean], categories: Array[Category],
               limit: Int, offset: Int, sort: ProjectSortingStrategy): Future[Seq[Project]] = {
     val f: ProjectTable => Rep[Boolean] = {
       if (categories != null) {
@@ -152,7 +154,7 @@ class ProjectActions(override val service: ModelService)
   }
 
   override def like(model: Project) = {
-    find(p => p.ownerName.toLowerCase === model.ownerName.toLowerCase
+    this.service.find[Project](this.modelClass, p => p.ownerName.toLowerCase === model.ownerName.toLowerCase
       && p.name.toLowerCase === model.name.toLowerCase)
   }
 

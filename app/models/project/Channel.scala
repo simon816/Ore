@@ -4,13 +4,9 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
 import db.impl.ModelKeys._
-import db.impl.{ModelKeys, OreModel, VersionTable}
-import db.meta.Bind
-import db.meta.relation.OneToMany
+import db.impl.{ChannelTable, ModelKeys, OreModel}
 import ore.Colors._
 import ore.permission.scope.ProjectScope
-
-import scala.annotation.meta.field
 
 /**
   * Represents a release channel for Project Versions. Each project gets it's
@@ -22,15 +18,17 @@ import scala.annotation.meta.field
   * @param _color       Color used to represent this Channel
   * @param projectId    ID of project this channel belongs to
   */
-@OneToMany(Array(classOf[Version]))
 case class Channel(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                    override val projectId: Int,
-                   @(Bind @field) private var _name: String,
-                   @(Bind @field) private var _color: Color)
+                   private var _name: String,
+                   private var _color: Color)
                    extends OreModel(id, createdAt)
                      with Ordered[Channel]
                      with ProjectScope {
+
+  override type T = ChannelTable
+  override type M = Channel
 
   def this(name: String, color: Color, projectId: Int) = this(_name=name, _color=color, projectId=projectId)
 
@@ -75,7 +73,7 @@ case class Channel(override val id: Option[Int] = None,
     *
     * @return All versions
     */
-  def versions = this.oneToMany[VersionTable, Version](classOf[Version])
+  def versions = this.actions.getChildren[Version](classOf[Version], this)
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
   override def compare(that: Channel) = this._name compare that._name

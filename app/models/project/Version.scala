@@ -3,13 +3,11 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions
+import db.access.ModelAccess
 import db.impl.ModelKeys._
-import db.impl.action.VersionActions
-import db.impl.pg.OrePostgresDriver.api._
-import db.impl.{ChannelTable, OreModel, VersionDownloadsTable, VersionTable}
-import db.meta.Bind
-import db.meta.relation.OneToMany
-import db.{ImmutableModelAccess, ModelAccess}
+import db.impl.OrePostgresDriver.api._
+import db.impl.schema.VersionSchema
+import db.impl.{OreModel, VersionTable}
 import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
@@ -17,8 +15,6 @@ import ore.{OreEnv, Visitable}
 import org.apache.commons.io.FileUtils
 import play.twirl.api.Html
 import util.StringUtils
-
-import scala.annotation.meta.field
 
 /**
   * Represents a single version of a Project.
@@ -33,7 +29,6 @@ import scala.annotation.meta.field
   * @param projectId        ID of project this version belongs to
   * @param channelId        ID of channel this version belongs to
   */
-@OneToMany(Array(classOf[VersionDownload]))
 case class Version(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                    override val projectId: Int,
@@ -44,9 +39,9 @@ case class Version(override val id: Option[Int] = None,
                    channelId: Int = -1,
                    fileSize: Long,
                    hash: String,
-                   @(Bind @field) private var _description: Option[String] = None,
-                   @(Bind @field) private var _downloads: Int = 0,
-                   @(Bind @field) private var _isReviewed: Boolean = false,
+                   private var _description: Option[String] = None,
+                   private var _downloads: Int = 0,
+                   private var _isReviewed: Boolean = false,
                    fileName: String)
                    extends OreModel(id, createdAt)
                      with ProjectScope
@@ -54,7 +49,7 @@ case class Version(override val id: Option[Int] = None,
 
   override type M = Version
   override type T = VersionTable
-  override type A = VersionActions
+  override type A = VersionSchema
 
   /**
     * Returns the name of this Channel.
@@ -68,7 +63,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Channel
     */
-  def channel: Channel = this.service.access[ChannelTable, Channel](classOf[Channel]).get(this.channelId).get
+  def channel: Channel = this.service.access[Channel](classOf[Channel]).get(this.channelId).get
 
   /**
     * Returns the channel this version belongs to from the specified collection
@@ -163,8 +158,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Recorded downloads
     */
-  def downloadEntries
-  = ImmutableModelAccess(this.oneToMany[VersionDownloadsTable, VersionDownload](classOf[VersionDownload]))
+  def downloadEntries = this.actions.getChildren[VersionDownload](classOf[VersionDownload], this)
 
   /**
     * Returns a human readable file size for this Version.

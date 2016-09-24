@@ -35,7 +35,10 @@
   border-bottom: 1px solid #ddd;
   margin-bottom: 40px;
 
-  .user-badge { width: 80%; }
+  .user-badge {
+    width: 80%;
+    position: relative;
+  }
   .user-badge > h1 { float: left; }
   .pull-right { @include size(20%, 100%); }
   .user-roles li { display: inline; }
@@ -196,4 +199,21 @@
       right: 35%;
     }
   }
+}
+
+.popover-avatar {
+  @include rounded-corners();
+  z-index: 0;
+  display: block;
+  left: 105px;
+  top: -11px;
+
+  .popover-content { position: relative; }
+
+  .btn-got-it {
+    position: absolute;
+    right: 15px;
+    bottom: 5px;
+  }
+
 }

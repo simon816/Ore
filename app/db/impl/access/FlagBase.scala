@@ -1,10 +1,9 @@
 package db.impl.access
 
-import db.impl.FlagTable
 import db.{ModelBase, ModelService}
 import models.project.Flag
 
-class FlagBase(override val service: ModelService) extends ModelBase[FlagTable, Flag] {
+class FlagBase(override val service: ModelService) extends ModelBase[Flag] {
 
   override val modelClass: Class[Flag] = classOf[Flag]
 
