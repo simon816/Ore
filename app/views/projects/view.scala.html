@@ -126,11 +126,11 @@ Base template for Project overview.
                                                 class="fa fa-star"
                                             } else {
                                                 class="fa fa-star-o" }></i>
-                                            <span class="starred"> @project.stars.size</span>
+                                            <span class="starred"> @project.starCount</span>
                                         </button>
                                     } else {
                                         <span class="minor stars-static">
-                                            <i class="fa fa-star"></i> @project.stars.size
+                                            <i class="fa fa-star"></i> @project.starCount
                                         </span>
                                     }
                                 }

@@ -3,12 +3,13 @@ package models.user
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
+import db.Named
 import db.access.ModelAccess
-import db.impl.ModelKeys._
+import db.impl.table.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.access.{FlagBase, OrganizationBase, UserBase, VersionBase}
-import db.impl.schema.ProjectSchema
+import db.impl.model.OreModel
 import models.project.{Flag, Project}
 import models.user.role.{OrganizationRole, ProjectRole}
 import ore.Visitable
@@ -42,6 +43,7 @@ case class User(override val id: Option[Int] = None,
                 extends OreModel(id, createdAt)
                   with UserOwned
                   with ScopeSubject
+                  with Named
                   with Visitable {
 
   override type M = User
@@ -69,7 +71,7 @@ case class User(override val id: Option[Int] = None,
   def username_=(_username: String) = {
     checkNotNull(_username, "username cannot be null", "")
     this._username = _username
-    if (isDefined) update(Username)
+    if (isDefined) update(Name)
   }
 
   /**
@@ -103,7 +105,7 @@ case class User(override val id: Option[Int] = None,
     */
   def fullName_=(_fullName: String) = {
     this._name = Option(_fullName)
-    if (isDefined) update(Name)
+    if (isDefined) update(FullName)
   }
 
   /**
@@ -238,8 +240,9 @@ case class User(override val id: Option[Int] = None,
   def starred(page: Int = -1): Seq[Project] = Defined {
     val starsPerPage = this.config.users.getInt("stars-per-page").get
     val limit = if (page < 1) -1 else starsPerPage
-    val actions = this.service.getSchema(classOf[ProjectSchema])
-    this.service.await(actions.starredBy(this.id.get, limit, (page - 1) * starsPerPage)).get
+    val offset = (page - 1) * starsPerPage
+    this.schema.getAssociation[ProjectStarsTable, Project](classOf[ProjectStarsTable], this)
+      .sorted(ordering = _.name, limit = limit, offset = offset)
   }
 
   /**

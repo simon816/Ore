@@ -1,4 +1,4 @@
-package db
+package db.table
 
 import slick.jdbc.JdbcType
 

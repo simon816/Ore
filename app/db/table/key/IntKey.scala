@@ -1,4 +1,4 @@
-package db.key
+package db.table.key
 
 import db.Model
 import db.impl.OrePostgresDriver.api._

@@ -231,7 +231,7 @@ trait ProjectFactory {
     if (pendingVersion.exists && this.config.projects.getBoolean("file-validate").get)
       throw new IllegalArgumentException("Version already exists.")
 
-    val newVersion = channel.versions.add(Version(
+    val newVersion = this.service.access[Version](classOf[Version]).add(Version(
       versionString = pendingVersion.versionString,
       mcversion = pendingVersion.mcversion,
       dependencyIds = pendingVersion.dependencyIds,

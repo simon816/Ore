@@ -1,9 +1,13 @@
 # --- !Ups
 
-alter table projects drop column stars;
-alter table projects drop column views;
+alter table users rename name to full_name;
+alter table users rename username to name;
+
+alter table organizations rename username to name;
 
 # --- !Downs
 
-alter table projects add column stars int default 0;
-alter table projects add column views int default 0;
+alter table users rename name to username;
+alter table users rename full_name to name;
+
+alter table organizations rename name to username;

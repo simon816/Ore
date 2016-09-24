@@ -6,8 +6,10 @@ import java.util.Date
 import db.ModelAction._
 import db.ModelFilter.IdFilter
 import db.access.ModelAccess
+import db.table.{MappedType, ModelTable}
 import slick.backend.DatabaseConfig
 import slick.driver.{JdbcDriver, JdbcProfile}
+import slick.jdbc.JdbcType
 import slick.lifted.ColumnOrdered
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -135,6 +137,15 @@ trait ModelService {
     }
   }
 
+  def set[A, M <: Model](model: M, column: M#T => Rep[A], value: A)(implicit mapper: JdbcType[A]) = {
+    DB.db.run {
+      (for {
+        row <- newAction[M](model.getClass)
+        if row.id === model.id.get
+      } yield column(row)).update(value)
+    }
+  }
+
   /**
     * Sets a [[MappedType]] in a [[ModelTable]].
     *
@@ -144,14 +155,9 @@ trait ModelService {
     * @tparam A     MappedType type
     * @tparam M     Model type
     */
-  def setType[A <: MappedType[A], M <: Model](model: M, column: M#T => Rep[A], value: A) = {
+  def setMappedType[A <: MappedType[A], M <: Model](model: M, column: M#T => Rep[A], value: A) = {
     import value.mapper
-    DB.db.run {
-      (for {
-        row <- newAction[M](model.getClass)
-        if row.id === model.id.get
-      } yield column(row)).update(value)
-    }
+    set(model, column, value)
   }
 
   /**

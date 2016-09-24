@@ -4,10 +4,11 @@ import java.sql.Timestamp
 
 import com.google.common.base.Preconditions
 import db.access.ModelAccess
-import db.impl.ModelKeys._
+import db.impl.table.ModelKeys._
 import db.impl.OrePostgresDriver.api._
+import db.impl.model.{Describable, Downloadable, OreModel}
 import db.impl.schema.VersionSchema
-import db.impl.{OreModel, VersionTable}
+import db.impl.VersionTable
 import models.statistic.VersionDownload
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
@@ -45,6 +46,8 @@ case class Version(override val id: Option[Int] = None,
                    fileName: String)
                    extends OreModel(id, createdAt)
                      with ProjectScope
+                     with Describable
+                     with Downloadable
                      with Visitable {
 
   override type M = Version
@@ -81,7 +84,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Version description
     */
-  def description: Option[String] = this._description
+  override def description: Option[String] = this._description
 
   /**
     * Sets this Version's description.
@@ -143,7 +146,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Amount of unique downloads
     */
-  def downloads: Int = this._downloads
+  override def downloadCount: Int = this._downloads
 
   /**
     * Adds a download to the amount of unique downloads this Version has.

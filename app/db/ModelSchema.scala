@@ -2,6 +2,7 @@ package db
 
 import db.access.{ImmutableModelAccess, ModelAccess, ModelAssociationAccess}
 import db.impl.OrePostgresDriver.api._
+import db.table.{AssociativeTable, ModelAssociation, ModelTable}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}

@@ -3,7 +3,8 @@ package db.impl
 import java.sql.Timestamp
 
 import db.impl.OrePostgresDriver.api._
-import db.{AssociativeTable, ModelTable}
+import db.impl.table.{DescriptionColumn, DownloadsColumn, StatTable}
+import db.table.{AssociativeTable, ModelTable, NameColumn}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
@@ -20,28 +21,30 @@ import ore.user.notification.NotificationTypes.NotificationType
  * model.
  */
 
-class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects") {
+class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects")
+  with NameColumn[Project]
+  with DownloadsColumn[Project]
+  with DescriptionColumn[Project] {
 
   def pluginId              =   column[String]("plugin_id")
-  def name                  =   column[String]("name")
   def slug                  =   column[String]("slug")
   def ownerName             =   column[String]("owner_name")
   def userId                =   column[Int]("owner_id")
   def homepage              =   column[String]("homepage")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
   def category              =   column[Category]("category")
-  def downloads             =   column[Int]("downloads", O.Default(0))
+  def stars                 =   column[Int]("stars")
+  def views                 =   column[Int]("views")
   def issues                =   column[String]("issues")
   def source                =   column[String]("source")
-  def description           =   column[String]("description")
   def topicId               =   column[Int]("topic_id")
   def postId                =   column[Int]("post_id")
   def isVisible             =   column[Boolean]("is_visible")
   def lastUpdated           =   column[Timestamp]("last_updated")
 
   override def * = (id.?, createdAt.?, pluginId, ownerName, userId, homepage.?, name, slug, recommendedVersionId.?,
-                    category, downloads, issues.?, source.?, description.?, topicId.?, postId.?, isVisible,
-                    lastUpdated) <> (Project.tupled, Project.unapply)
+                    category, stars, views, downloads, issues.?, source.?, description.?, topicId.?, postId.?,
+                    isVisible, lastUpdated) <> (Project.tupled, Project.unapply)
 
 }
 
@@ -71,10 +74,9 @@ class ProjectStarsTable(tag: Tag) extends AssociativeTable(tag, "project_stars",
 
 }
 
-class PageTable(tag: Tag) extends ModelTable[Page](tag, "pages") {
+class PageTable(tag: Tag) extends ModelTable[Page](tag, "pages") with NameColumn[Page] {
 
   def projectId     =   column[Int]("project_id")
-  def name          =   column[String]("name")
   def slug          =   column[String]("slug")
   def contents      =   column[String]("contents")
   def isDeletable   =   column[Boolean]("is_deletable")
@@ -84,23 +86,22 @@ class PageTable(tag: Tag) extends ModelTable[Page](tag, "pages") {
 
 }
 
-class ChannelTable(tag: Tag) extends ModelTable[Channel](tag, "channels") {
+class ChannelTable(tag: Tag) extends ModelTable[Channel](tag, "channels") with NameColumn[Channel] {
 
-  def name        =   column[String]("name")
   def color       =   column[Color]("color")
   def projectId   =   column[Int]("project_id")
 
   override def * = (id.?, createdAt.?, projectId, name, color) <> ((Channel.apply _).tupled, Channel.unapply)
 }
 
-class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions") {
+class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions")
+  with DownloadsColumn[Version]
+  with DescriptionColumn[Version] {
 
   def versionString   =   column[String]("version_string")
   def mcversion       =   column[String]("mcversion")
   def dependencies    =   column[List[String]]("dependencies")
-  def description     =   column[String]("description")
   def assets          =   column[String]("assets")
-  def downloads       =   column[Int]("downloads")
   def projectId       =   column[Int]("project_id")
   def channelId       =   column[Int]("channel_id")
   def fileSize        =   column[Long]("file_size")
@@ -119,13 +120,12 @@ class VersionDownloadsTable(tag: Tag) extends StatTable[VersionDownload](tag, "v
 
 }
 
-class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
+class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn[User] {
 
   // Override to remove auto increment
   override def id   =   column[Int]("id", O.PrimaryKey)
 
-  def name          =   column[String]("name")
-  def username      =   column[String]("username")
+  def fullName      =   column[String]("full_name")
   def email         =   column[String]("email")
   def tagline       =   column[String]("tagline")
   def globalRoles   =   column[List[RoleType]]("global_roles")
@@ -133,19 +133,18 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") {
   def avatarUrl     =   column[String]("avatar_url")
 //  def readPrompts   =   column[List[Prompt]]("read_prompts")
 
-  override def * = (id.?, createdAt.?, name.?, username, email.?, tagline.?, globalRoles, joinDate.?,
+  override def * = (id.?, createdAt.?, fullName.?, name, email.?, tagline.?, globalRoles, joinDate.?,
                     avatarUrl.?) <> (User.tupled, User.unapply)
 
 }
 
-class OrganizationTable(tag: Tag) extends ModelTable[Organization](tag, "organizations") {
+class OrganizationTable(tag: Tag) extends ModelTable[Organization](tag, "organizations") with NameColumn[Organization] {
 
   override def id   =   column[Int]("id", O.PrimaryKey)
-  def username      =   column[String]("username")
   def password      =   column[String]("password")
   def userId        =   column[Int]("user_id")
 
-  override def * = (id.?, createdAt.?, username, password, userId) <> (Organization.tupled, Organization.unapply)
+  override def * = (id.?, createdAt.?, name, password, userId) <> (Organization.tupled, Organization.unapply)
 
 }
 

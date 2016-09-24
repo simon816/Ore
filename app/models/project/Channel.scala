@@ -3,8 +3,11 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.impl.ModelKeys._
-import db.impl.{ChannelTable, ModelKeys, OreModel}
+import db.Named
+import db.impl.table.ModelKeys._
+import db.impl.model.OreModel
+import db.impl.ChannelTable
+import db.impl.table.ModelKeys
 import ore.Colors._
 import ore.permission.scope.ProjectScope
 
@@ -24,6 +27,7 @@ case class Channel(override val id: Option[Int] = None,
                    private var _name: String,
                    private var _color: Color)
                    extends OreModel(id, createdAt)
+                     with Named
                      with Ordered[Channel]
                      with ProjectScope {
 
@@ -37,7 +41,7 @@ case class Channel(override val id: Option[Int] = None,
     *
     * @return Name of channel
     */
-  def name: String = this._name
+  override def name: String = this._name
 
   /**
     * Sets the name of this channel.

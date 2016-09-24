@@ -83,6 +83,6 @@ class OrganizationBase(override val service: ModelService,
     * @param name Organization name
     * @return     Organization with name if exists, None otherwise
     */
-  def withName(name: String): Option[Organization] = this.find(StringUtils.equalsIgnoreCase(_.username, name))
+  def withName(name: String): Option[Organization] = this.find(StringUtils.equalsIgnoreCase(_.name, name))
 
 }

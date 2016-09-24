@@ -1,4 +1,4 @@
-package db.key
+package db.table.key
 
 import java.sql.Timestamp
 

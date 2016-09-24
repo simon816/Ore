@@ -1,7 +1,7 @@
 package ore.project
 
-import db.MappedType
 import db.impl.OrePostgresDriver
+import db.table.MappedType
 import slick.jdbc.JdbcType
 
 /**

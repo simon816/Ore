@@ -1,5 +1,6 @@
-package db
+package db.table
 
+import db.Model
 import db.impl.OrePostgresDriver.api._
 
 /**

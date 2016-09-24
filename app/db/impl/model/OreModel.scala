@@ -1,4 +1,4 @@
-package db.impl
+package db.impl.model
 
 import java.sql.Timestamp
 

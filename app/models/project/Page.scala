@@ -3,9 +3,11 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.impl.ModelKeys._
+import db.Named
+import db.impl.table.ModelKeys._
 import db.impl.schema.PageSchema
-import db.impl.{OreModel, PageTable}
+import db.impl.PageTable
+import db.impl.model.OreModel
 import ore.permission.scope.ProjectScope
 import ore.{OreConfig, Visitable}
 import org.pegdown.Extensions._
@@ -33,6 +35,7 @@ case class Page(override val id: Option[Int] = None,
                 private var _contents: String)
                 extends OreModel(id, createdAt)
                   with ProjectScope
+                  with Named
                   with Visitable {
 
   override type M = Page

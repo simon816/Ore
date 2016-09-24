@@ -2,9 +2,10 @@ package models.user
 
 import java.sql.Timestamp
 
-import db.Model
+import db.{Model, Named}
 import db.impl.access.UserBase
-import db.impl.{OreModel, OrganizationMembersTable, OrganizationRoleTable, OrganizationTable}
+import db.impl.model.OreModel
+import db.impl.{OrganizationMembersTable, OrganizationRoleTable, OrganizationTable}
 import models.user.role.OrganizationRole
 import ore.organization.OrganizationMember
 import ore.permission.scope.OrganizationScope
@@ -30,6 +31,7 @@ case class Organization(override val id: Option[Int] = None,
                         extends OreModel(id, createdAt)
                           with UserOwned
                           with OrganizationScope
+                          with Named
                           with Visitable
                           with Joinable[OrganizationMember] {
 

@@ -31,7 +31,7 @@ class UserBase(override val service: ModelService,
     * @return User if found, None otherwise
     */
   def withName(username: String): Option[User] = {
-    this.find(equalsIgnoreCase(_.username, username)).orElse {
+    this.find(equalsIgnoreCase(_.name, username)).orElse {
       this.service.await(forums.fetchUser(username)).get.map(getOrCreate)
     }
   }

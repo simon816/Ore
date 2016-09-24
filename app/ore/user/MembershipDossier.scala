@@ -1,10 +1,10 @@
 package ore.user
 
-import db.AssociativeTable
 import db.access.ModelAccess
-import db.impl.OreModel
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase
+import db.impl.model.OreModel
+import db.table.AssociativeTable
 import models.user.User
 import models.user.role.RoleModel
 
@@ -29,12 +29,10 @@ trait MembershipDossier {
   private def association
   = this.model.schema.getAssociation[MembersTable, User](this.membersTableClass, this.model)
   private def roles: ModelAccess[RoleType] = this.model.schema.getChildren[RoleType](this.roleClass, this.model)
+  private def roleAccess: ModelAccess[RoleType] = this.model.service.access[RoleType](roleClass)
   private def addMember(user: User) = this.association.add(user)
 
-  private def clearRoles(user: User) = {
-    this.model.schema.getChildren[RoleType](this.roleClass, this.model)
-      .removeAll(_.userId === user.id.get)
-  }
+  private def clearRoles(user: User) = this.roleAccess.removeAll(_.userId === user.id.get)
 
   /**
     * Constructs a new member object of the MemberType.
@@ -65,7 +63,7 @@ trait MembershipDossier {
     val user = role.user
     if (!this.roles.exists(_.userId === user.id.get))
       addMember(user)
-    this.roles.add(role)
+    this.roleAccess.add(role)
   }
 
   /**
@@ -82,7 +80,7 @@ trait MembershipDossier {
     * @param role Role to remove
     */
   def removeRole(role: RoleType) = {
-    this.roles.remove(role)
+    this.roleAccess.remove(role)
     val user = role.user
     if (!this.roles.exists(_.userId === user.id.get))
       removeMember(user)

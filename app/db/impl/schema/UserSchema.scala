@@ -20,6 +20,6 @@ class UserSchema(override val service: ModelService)
   )
 
   override def like(user: User): Future[Option[User]]
-  = this.service.find[User](this.modelClass, _.username.toLowerCase === user.username.toLowerCase)
+  = this.service.find[User](this.modelClass, _.name.toLowerCase === user.username.toLowerCase)
 
 }

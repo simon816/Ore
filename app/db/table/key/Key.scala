@@ -1,9 +1,10 @@
-package db.key
+package db.table.key
 
 import db.Model
+import db.table.ModelTable
 
 /**
-  * Maps a [[Model]]'s field to the corresponding [[db.ModelTable]] column.
+  * Maps a [[Model]]'s field to the corresponding [[ModelTable]] column.
   *
   * @tparam M Model type
   */

@@ -1,6 +1,7 @@
 package db.impl
 
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
+import db.impl.model.OreModel
 import db.{Model, ModelProcessor, ModelService}
 import forums.DiscourseApi
 import ore.OreConfig

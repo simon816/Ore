@@ -31,7 +31,11 @@ trait StatTracker {
   def projectViewed(f: ProjectRequest[_] => Result)(implicit request: ProjectRequest[_]): Result = {
     val project = request.project
     val statEntry = ProjectView.bindFromRequest
-    project.schema.ViewActions.record(statEntry)
+    project.schema.ViewActions.record(statEntry).andThen {
+      case recorded => if (recorded.get) {
+        project.addView()
+      }
+    }
     f(request).withCookies(Cookie(COOKIE_UID, statEntry.cookie))
   }
 

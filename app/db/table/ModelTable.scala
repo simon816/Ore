@@ -1,7 +1,8 @@
-package db
+package db.table
 
 import java.sql.Timestamp
 
+import db.Model
 import db.impl.OrePostgresDriver.api._
 import slick.lifted.Tag
 

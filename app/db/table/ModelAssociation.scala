@@ -1,7 +1,8 @@
-package db
+package db.table
 
 import com.google.common.base.Preconditions._
 import db.impl.OrePostgresDriver.api._
+import db.{Model, ModelService}
 
 /**
   * Represents an association between two models handled by an associative table.
@@ -21,8 +22,8 @@ class ModelAssociation[AssocTable <: AssociativeTable]
   checkNotNull(this.service, "service null", "")
   checkNotNull(this.ref1, "ref1 null", "")
   checkNotNull(this.ref2, "ref2 null", "")
-  checkNotNull(this.tableClass, "table class null")
-  checkNotNull(this.assocTable, "table null")
+  checkNotNull(this.tableClass, "table class null", "")
+  checkNotNull(this.assocTable, "table null", "")
 
   /**
     * Associates the two models.

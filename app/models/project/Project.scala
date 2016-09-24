@@ -3,10 +3,13 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.impl.ModelKeys._
+import db.Named
+import db.impl.table.ModelKeys._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
+import db.impl.model.{Describable, Downloadable, OreModel}
 import db.impl.schema.ProjectSchema
+import db.impl.table.ModelKeys
 import models.statistic.ProjectView
 import models.user.User
 import models.user.role.ProjectRole
@@ -48,6 +51,8 @@ case class Project(override val id: Option[Int] = None,
                    private var _slug: String,
                    private var recommendedVersionId: Option[Int] = None,
                    private var _category: Category = Categories.Undefined,
+                   private var _stars: Int = 0,
+                   private var _views: Int = 0,
                    private var _downloads: Int = 0,
                    private var _issues: Option[String] = None,
                    private var _source: Option[String] = None,
@@ -58,6 +63,9 @@ case class Project(override val id: Option[Int] = None,
                    private var _lastUpdated: Timestamp = null)
                    extends OreModel(id, createdAt)
                      with ProjectScope
+                     with Downloadable
+                     with Describable
+                     with Named
                      with Visitable
                      with Joinable[ProjectMember] {
 
@@ -177,7 +185,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Project description
     */
-  def description: Option[String] = this._description
+  override def description: Option[String] = this._description
 
   /**
     * Sets this Project's description.
@@ -278,6 +286,38 @@ case class Project(override val id: Option[Int] = None,
   }
 
   /**
+    * Returns [[db.access.ModelAccess]] to [[User]]s who have starred this
+    * project.
+    *
+    * @return Users who have starred this project
+    */
+  def stars = Defined(this.schema.getAssociation[ProjectStarsTable, User](classOf[ProjectStarsTable], this))
+
+  /**
+    * Returns the amount of stars this [[Project]] has.
+    *
+    * @return Amount of stars
+    */
+  def starCount: Int = this._stars
+
+  /**
+    * Sets the "starred" state of this Project for the specified User.
+    *
+    * @param user User to set starred state of
+    * @param starred True if should star
+    */
+  def setStarredBy(user: User, starred: Boolean) = Defined {
+    if (starred) {
+      this.stars.add(user)
+      this._stars += 1
+    } else {
+      this.stars.remove(user)
+      this._stars -= 1
+    }
+    update(Stars)
+  }
+
+  /**
     * Returns the record of unique Project views.
     *
     * @return Unique project views
@@ -285,11 +325,26 @@ case class Project(override val id: Option[Int] = None,
   def views = this.schema.getChildren[ProjectView](classOf[ProjectView], this)
 
   /**
+    * Returns the amount of views this project has.
+    *
+    * @return Amount of views
+    */
+  def viewCount: Int = this._views
+
+  /**
+    * Adds a view to this Project.
+    */
+  def addView() = {
+    this._views += 1
+    if (isDefined) update(Views)
+  }
+
+  /**
     * Returns the amount of unique downloads this Project has.
     *
     * @return Amount of unique downloads
     */
-  def downloads: Int = this._downloads
+  override def downloadCount: Int = this._downloads
 
   /**
     * Increments this Project's downloadc count by one.
@@ -299,27 +354,6 @@ case class Project(override val id: Option[Int] = None,
   def addDownload() = {
     this._downloads += 1
     if (isDefined) update(Downloads)
-  }
-
-  /**
-    * Returns [[db.access.ModelAccess]] to [[User]]s who have starred this
-    * project.
-    *
-    * @return Users who have starred this project
-    */
-  def stars = Defined(this.schema.getAssociation[ProjectStarsTable, User](classOf[ProjectStarsTable], this))
-
-  /**
-    * Sets the "starred" state of this Project for the specified User.
-    *
-    * @param user User to set starred state of
-    * @param starred True if should star
-    */
-  def setStarredBy(user: User, starred: Boolean) = {
-    if (starred)
-      this.stars.add(user)
-    else
-      this.stars.remove(user)
   }
 
   /**

@@ -6,7 +6,8 @@ import javax.inject.{Inject, Singleton}
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.{FlagBase, ProjectBase, UserBase, VersionBase, _}
 import db.impl.schema.{PageSchema, ProjectSchema, UserSchema, VersionSchema}
-import db.{ModelAssociation, ModelRegistry, ModelSchema, ModelService}
+import db.table.ModelAssociation
+import db.{ModelRegistry, ModelSchema, ModelService}
 import forums.DiscourseApi
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}

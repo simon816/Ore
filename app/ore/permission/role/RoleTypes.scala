@@ -1,7 +1,7 @@
 package ore.permission.role
 
-import db.MappedType
 import db.impl.OrePostgresDriver
+import db.table.MappedType
 import models.user.role.{OrganizationRole, ProjectRole}
 import ore.Colors._
 import slick.jdbc.JdbcType

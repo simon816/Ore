@@ -3,7 +3,8 @@ package db
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions.checkNotNull
-import db.key.Key
+import db.table.key.Key
+import db.table.ModelTable
 
 /**
   * Represents a Model that may or may not exist in the database.
@@ -22,7 +23,11 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
 
   private var _isProcessed = false
 
-  implicit def convertKey(key: Key[_]): Key[M] = key.asInstanceOf[Key[M]]
+  implicit def convertKey(key: Key[_]): Key[M] = {
+    if (!key.isInstanceOf[Key[M]])
+      throw new RuntimeException("tried to use key on wrong model")
+    key.asInstanceOf[Key[M]]
+  }
 
   /**
     * Updates the specified key in the model's table.
