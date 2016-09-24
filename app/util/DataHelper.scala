@@ -6,7 +6,9 @@ import java.util.UUID
 import javax.inject.Inject
 
 import db.ModelService
+import db.impl.OrePostgresDriver.api._
 import db.impl.access.{ProjectBase, UserBase}
+import db.impl.{ProjectMembersTable, ProjectRoleTable}
 import forums.{DisabledDiscourseApi, DiscourseApi}
 import models.project.Channel
 import models.user.User
@@ -16,6 +18,8 @@ import ore.project.factory.{PendingProject, PendingVersion, ProjectFactory}
 import org.apache.commons.io.FileUtils
 import play.api.cache.CacheApi
 import play.api.libs.Files.TemporaryFile
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Utility class for performing some bulk actions on the application data.
@@ -127,7 +131,15 @@ final class DataHelper @Inject()(config: OreConfig,
     }
   }
 
-  def migrate() = Unit
+  def migrate() = {
+    val distinctMembersQuery = TableQuery[ProjectRoleTable]
+      .map(r => (r.projectId, r.userId))
+      .distinct
+    this.service.DB.db.run(distinctMembersQuery.result).andThen {
+      case distinctMembers =>
+        this.service.DB.db.run(TableQuery[ProjectMembersTable] ++= distinctMembers.get)
+    }
+  }
 
   private def copyPlugin = {
     val path = this.pluginPath.getParent.resolve("plugin.jar")

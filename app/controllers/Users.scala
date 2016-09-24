@@ -186,6 +186,13 @@ class Users @Inject()(val fakeUser: FakeUser,
     }
   }
 
+  /**
+    * Marks a [[ore.user.Prompts.Prompt]] as read for the authenticated
+    * [[models.user.User]].
+    *
+    * @param id Prompt ID
+    * @return   Ok if successful
+    */
   def markPromptRead(id: Int) = Authenticated { implicit request =>
     Prompts.values.find(_.id == id) match {
       case None =>
