@@ -28,13 +28,19 @@ class Organizations @Inject()(forms: OreForms,
   private def EditOrganizationAction(organization: String)
   = AuthedOrganizationAction(organization) andThen OrganizationPermissionAction(EditSettings)
 
+  val createLimit: Int = this.config.orgs.getInt("createLimit").get
+
   /**
     * Shows the creation panel for Organizations.
     *
     * @return Organization creation panel
     */
   def showCreator() = Authenticated { implicit request =>
-    Ok(views.createOrganization())
+    if (request.user.ownedOrganizations.size >= this.createLimit)
+      Redirect(routes.Application.showHome(None, None, None, None))
+        .flashing("error" -> ("You may only create up to " + this.createLimit + " organizations!"))
+    else
+      Ok(views.createOrganization())
   }
 
   /**
@@ -43,10 +49,15 @@ class Organizations @Inject()(forms: OreForms,
     * @return Redirect to organization page
     */
   def create() = Authenticated { implicit request =>
-    val formData = this.forms.OrganizationCreate.bindFromRequest().get
-    val name = formData.name
-    this.service.getModelBase(classOf[OrganizationBase]).create(name, request.user.id.get, formData.build())
-    Redirect(routes.Users.showProjects(name, None))
+    val user = request.user
+    if (user.ownedOrganizations.size >= this.createLimit)
+      BadRequest
+    else {
+      val formData = this.forms.OrganizationCreate.bindFromRequest().get
+      val name = formData.name
+      this.service.getModelBase(classOf[OrganizationBase]).create(name, request.user.id.get, formData.build())
+      Redirect(routes.Users.showProjects(name, None))
+    }
   }
 
   /**
