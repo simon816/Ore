@@ -4,11 +4,13 @@ import db.Model
 import db.impl.OrePostgresDriver.api._
 import db.table.MappedType
 
-case class MappedTypeKey[M <: Model, A <: MappedType[A]](ref: M#T => Rep[A], getter: M => A) extends Key[M] {
+class MappedTypeKey[M <: Model, A <: MappedType[A]](override val ref: M#T => Rep[A],
+                                                         override val getter: M => A)
+                                                         extends Key[M, A](ref, getter)(mapper = null) {
 
-  def update(model: M) = {
+  override def update(model: M) = {
     val service = model.service
-    service.await(service.setMappedType(model, this.ref, this.getter(model)))
+    service.setMappedType(model, this.ref, this.getter(model))
   }
 
 }

@@ -137,6 +137,16 @@ trait ModelService {
     }
   }
 
+  /**
+    * Sets a column in a [[ModelTable]].
+    *
+    * @param model  Model to update
+    * @param column Column to update
+    * @param value  Value to set
+    * @param mapper JdbcType
+    * @tparam A     Value type
+    * @tparam M     Model type
+    */
   def set[A, M <: Model](model: M, column: M#T => Rep[A], value: A)(implicit mapper: JdbcType[A]) = {
     DB.db.run {
       (for {
@@ -158,74 +168,6 @@ trait ModelService {
   def setMappedType[A <: MappedType[A], M <: Model](model: M, column: M#T => Rep[A], value: A) = {
     import value.mapper
     set(model, column, value)
-  }
-
-  /**
-    * Sets an Int in a [[ModelTable]].
-    *
-    * @param model  Model to update
-    * @param column Reference of column to update
-    * @param value  Value to set
-    * @tparam M     Model type
-    */
-  def setInt[M <: Model](model: M, column: M#T => Rep[Int], value: Int) = {
-    DB.db.run {
-      (for {
-        row <- newAction[M](model.getClass)
-        if row.id === model.id.get
-      } yield column(row)).update(value)
-    }
-  }
-
-  /**
-    * Sets an String in a [[ModelTable]].
-    *
-    * @param model  Model to update
-    * @param column Reference of column to update
-    * @param value  Value to set
-    * @tparam M     Model type
-    */
-  def setString[M <: Model](model: M, column: M#T => Rep[String], value: String) = {
-    DB.db.run {
-      (for {
-        row <- newAction[M](model.getClass)
-        if row.id === model.id.get
-      } yield column(row)).update(value)
-    }
-  }
-
-  /**
-    * Sets an Boolean in a [[ModelTable]].
-    *
-    * @param model  Model to update
-    * @param column Reference of column to update
-    * @param value  Value to set
-    * @tparam M     Model type
-    */
-  def setBoolean[M <: Model](model: M, column: M#T => Rep[Boolean], value: Boolean) = {
-    DB.db.run {
-      (for {
-        row <- newAction[M](model.getClass)
-        if row.id === model.id.get
-      } yield column(row)).update(value)
-    }
-  }
-
-  /**
-    * Sets an Boolean in a [[ModelTable]].
-    *
-    * @param model  Model to update
-    * @param column Reference of column to update
-    * @param value  Value to set
-    * @tparam M     Model type
-    */
-  def setTimestamp[M <: Model](model: M, column: M#T => Rep[Timestamp], value: Timestamp) = {
-    DB.db.run {
-      (for {
-        row <- newAction[M](model.getClass)
-        if row.id === model.id.get
-      } yield column(row)).update(value)
-    }
   }
 
   /**

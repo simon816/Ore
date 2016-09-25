@@ -1,19 +1,19 @@
 package db.table.key
 
 import db.Model
+import db.impl.OrePostgresDriver.api._
+import slick.jdbc.JdbcType
 
 /**
-  * Maps a [[Model]]'s field to the corresponding [[ModelTable]] column.
+  * Maps a [[Model]]'s field to the corresponding [[db.table.ModelTable]] column.
   *
   * @tparam M Model type
   */
-trait Key[M <: Model] {
+class Key[M <: Model, A](val ref: M#T => Rep[A], val getter: M => A)(implicit mapper: JdbcType[A]) {
 
-  /**
-    * Updates the model in the database.
-    *
-    * @param model Model to update
-    */
-  def update(model: M)
+  def update(model: M) = {
+    val service = model.service
+    service.set(model, this.ref, getter(model))
+  }
 
 }

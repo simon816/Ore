@@ -6,6 +6,8 @@ import com.google.common.base.Preconditions.checkNotNull
 import db.table.ModelTable
 import db.table.key.Key
 
+import scala.language.implicitConversions
+
 /**
   * Represents a Model that may or may not exist in the database.
   */
@@ -23,10 +25,10 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
 
   private var _isProcessed = false
 
-  implicit def convertKey(key: Key[_]): Key[M] = {
-    if (!key.isInstanceOf[Key[M]])
+  implicit def convertKey[A](key: Key[_, A]): Key[M, A] = {
+    if (!key.isInstanceOf[Key[M, A]])
       throw new RuntimeException("tried to use key on wrong model")
-    key.asInstanceOf[Key[M]]
+    key.asInstanceOf[Key[M, A]]
   }
 
   /**
@@ -34,7 +36,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
     *
     * @param key Model key to update
     */
-  def update(key: Key[M]) = key.update(this.asInstanceOf[M])
+  def update[A](key: Key[M, A]) = key.update(this.asInstanceOf[M])
 
   /**
     * Removes this model from it's table.

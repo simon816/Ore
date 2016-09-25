@@ -18,47 +18,47 @@ import ore.user.Prompts.Prompt
   */
 object ModelKeys {
 
-  val Name                  =   StringKey[Named](_.name, _.name)
-  val Downloads             =   IntKey[Downloadable](_.downloads, _.downloadCount)
-  val Description           =   StringKey[Describable](_.description, _.description.orNull)
+  val Name                  =   new StringKey[Named](_.name, _.name)
+  val Downloads             =   new IntKey[Downloadable](_.downloads, _.downloadCount)
+  val Description           =   new StringKey[Describable](_.description, _.description.orNull)
 
-  val OwnerId               =   IntKey[Project](_.userId, _.ownerId)
-  val OwnerName             =   StringKey[Project](_.ownerName, _.ownerName)
-  val Slug                  =   StringKey[Project](_.slug, _.slug)
-  val Category              =   MappedTypeKey[Project, Category](_.category, _.category)
-  val Stars                 =   IntKey[Project](_.stars, _.starCount)
-  val Views                 =   IntKey[Project](_.views, _.viewCount)
-  val Issues                =   StringKey[Project](_.issues, _.issues.orNull)
-  val Source                =   StringKey[Project](_.source, _.source.orNull)
-  val TopicId               =   IntKey[Project](_.topicId, _.topicId.getOrElse(-1))
-  val PostId                =   IntKey[Project](_.postId, _.postId.getOrElse(-1))
-  val RecommendedVersionId  =   IntKey[Project](
+  val OwnerId               =   new IntKey[Project](_.userId, _.ownerId)
+  val OwnerName             =   new StringKey[Project](_.ownerName, _.ownerName)
+  val Slug                  =   new StringKey[Project](_.slug, _.slug)
+  val Category              =   new MappedTypeKey[Project, Category](_.category, _.category)
+  val Stars                 =   new IntKey[Project](_.stars, _.starCount)
+  val Views                 =   new IntKey[Project](_.views, _.viewCount)
+  val Issues                =   new StringKey[Project](_.issues, _.issues.orNull)
+  val Source                =   new StringKey[Project](_.source, _.source.orNull)
+  val TopicId               =   new IntKey[Project](_.topicId, _.topicId.getOrElse(-1))
+  val PostId                =   new IntKey[Project](_.postId, _.postId.getOrElse(-1))
+  val RecommendedVersionId  =   new IntKey[Project](
                                   _.recommendedVersionId, _.recommendedVersion.id.getOrElse(-1))
-  val LastUpdated           =   TimestampKey[Project](_.lastUpdated, _.lastUpdated)
-  val IsVisible             =   BooleanKey[Project](_.isVisible, _.isVisible)
+  val LastUpdated           =   new TimestampKey[Project](_.lastUpdated, _.lastUpdated)
+  val IsVisible             =   new BooleanKey[Project](_.isVisible, _.isVisible)
 
-  val FullName              =   StringKey[User](_.fullName, _.fullName.orNull)
-  val Email                 =   StringKey[User](_.email, _.email.orNull)
-  val Tagline               =   StringKey[User](_.tagline, _.tagline.orNull)
-  val GlobalRoles           =   TypeKey[User, List[RoleType]](_.globalRoles, _.globalRoles.toList)
-  val JoinDate              =   TimestampKey[User](_.joinDate, _.joinDate.orNull)
-  val AvatarUrl             =   StringKey[User](_.avatarUrl, _.avatarUrl.orNull)
-  val ReadPrompts           =   TypeKey[User, List[Prompt]](_.readPrompts, _.readPrompts.toList)
+  val FullName              =   new StringKey[User](_.fullName, _.fullName.orNull)
+  val Email                 =   new StringKey[User](_.email, _.email.orNull)
+  val Tagline               =   new StringKey[User](_.tagline, _.tagline.orNull)
+  val GlobalRoles           =   new Key[User, List[RoleType]](_.globalRoles, _.globalRoles.toList)
+  val JoinDate              =   new TimestampKey[User](_.joinDate, _.joinDate.orNull)
+  val AvatarUrl             =   new StringKey[User](_.avatarUrl, _.avatarUrl.orNull)
+  val ReadPrompts           =   new Key[User, List[Prompt]](_.readPrompts, _.readPrompts.toList)
 
-  val IsReviewed            =   BooleanKey[Version](_.isReviewed, _.isReviewed)
-  val ChannelId             =   IntKey[Version](_.channelId, _.channelId)
+  val IsReviewed            =   new BooleanKey[Version](_.isReviewed, _.isReviewed)
+  val ChannelId             =   new IntKey[Version](_.channelId, _.channelId)
 
-  val Color                 =   MappedTypeKey[Channel, Color](_.color, _.color)
+  val Color                 =   new MappedTypeKey[Channel, Color](_.color, _.color)
 
-  val Contents              =   StringKey[Page](_.contents, _.contents)
+  val Contents              =   new StringKey[Page](_.contents, _.contents)
 
-  val RoleType              =   MappedTypeKey[RoleModel, RoleType](_.roleType, _.roleType)
-  val IsAccepted            =   BooleanKey[RoleModel](_.isAccepted, _.isAccepted)
+  val RoleType              =   new MappedTypeKey[RoleModel, RoleType](_.roleType, _.roleType)
+  val IsAccepted            =   new BooleanKey[RoleModel](_.isAccepted, _.isAccepted)
 
-  val IsResolved            =   BooleanKey[Flag](_.isResolved, _.isResolved)
+  val IsResolved            =   new BooleanKey[Flag](_.isResolved, _.isResolved)
 
-  val UserId                =   IntKey[StatEntry[_]](_.userId, _.user.flatMap(_.id).getOrElse(-1))
+  val UserId                =   new IntKey[StatEntry[_]](_.userId, _.user.flatMap(_.id).getOrElse(-1))
 
-  val Read                  =   BooleanKey[Notification](_.read, _.isRead)
+  val Read                  =   new BooleanKey[Notification](_.read, _.isRead)
 
 }
