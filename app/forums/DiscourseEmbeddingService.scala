@@ -60,7 +60,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
     } recover {
       case e: Exception =>
         debug("Failed to create topic, rescheduling: " + e.getMessage, 3)
-        sync.scheduleRetry(() => createTopic(project))
+        //sync.scheduleRetry(() => createTopic(project))
         throw e
     }
   }
@@ -77,7 +77,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
     } recover {
       case e: Exception =>
         debug("Failed to update topic category, rescheduling: " + e.getMessage, 3)
-        sync.scheduleRetry(() => updateTopicCategory(username, topicId, url))
+        //sync.scheduleRetry(() => updateTopicCategory(username, topicId, url))
         throw e
     }
   }
@@ -103,7 +103,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
         } recover {
           case e: Exception =>
             debug("Failed to update topic, rescheduling: " + e.getMessage, 3)
-            sync.scheduleRetry(() => updateTopic(project))
+            //sync.scheduleRetry(() => updateTopic(project))
             throw e
         }
     }
@@ -133,7 +133,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
         } recover {
           case e: Exception =>
             debug("Failed to rename topic, rescheduling: " + e.getMessage)
-            sync.scheduleRetry(() => renameTopic(project))
+            //sync.scheduleRetry(() => renameTopic(project))
             throw e
         }
     }
@@ -158,7 +158,7 @@ class DiscourseEmbeddingService(api: DiscourseApi,
       } recover {
         case e: Exception =>
           debug("Failed to delete topic, rescheduling: " + e.getMessage, 3)
-          sync.scheduleRetry(() => deleteTopic(project))
+          //sync.scheduleRetry(() => deleteTopic(project))
           throw e
       }
     }

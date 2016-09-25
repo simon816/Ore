@@ -41,7 +41,8 @@ class OrganizationBase(override val service: ModelService,
     val groupId = this.config.orgs.getInt("groupId").get
     await(this.forums.addUserGroup(userId, groupId)).recover {
       case e: Exception =>
-        this.forums.sync.scheduleRetry(() => this.forums.addUserGroup(userId, groupId))
+        //this.forums.sync.scheduleRetry(() => this.forums.addUserGroup(userId, groupId))
+        throw e
     }
 
     // Create on Ore

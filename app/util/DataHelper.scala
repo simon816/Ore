@@ -131,15 +131,7 @@ final class DataHelper @Inject()(config: OreConfig,
     }
   }
 
-  def migrate() = {
-    val distinctMembersQuery = TableQuery[ProjectRoleTable]
-      .map(r => (r.projectId, r.userId))
-      .distinct
-    this.service.DB.db.run(distinctMembersQuery.result).andThen {
-      case distinctMembers =>
-        this.service.DB.db.run(TableQuery[ProjectMembersTable] ++= distinctMembers.get)
-    }
-  }
+  def migrate() = Unit
 
   private def copyPlugin = {
     val path = this.pluginPath.getParent.resolve("plugin.jar")

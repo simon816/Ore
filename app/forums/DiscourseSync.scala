@@ -28,7 +28,7 @@ class DiscourseSync(scheduler: Scheduler, delay: FiniteDuration) extends Runnabl
       this.currentTask = this.scheduler.scheduleOnce(delay, this)
   }
 
-  override def run() = {
+  def run() = {
     // Reset this instance and run the queued tasks
     val toRun = this.tasks
     this.tasks = List.empty
