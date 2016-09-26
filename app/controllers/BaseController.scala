@@ -3,7 +3,7 @@ package controllers
 import db.ModelService
 import db.impl.VersionTable
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
-import forums.DiscourseApi
+import discourse.DiscourseApi
 import models.project.{Project, Version}
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.I18nSupport

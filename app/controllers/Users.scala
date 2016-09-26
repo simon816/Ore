@@ -7,7 +7,7 @@ import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase.ORDER_PROJECTS
 import form.OreForms
-import forums.{DiscourseApi, DiscourseSSO}
+import discourse.{DiscourseApi, DiscourseSSO}
 import models.user.role.RoleModel
 import ore.permission.EditSettings
 import ore.user.{FakeUser, Prompts}
@@ -44,7 +44,7 @@ class Users @Inject()(val fakeUser: FakeUser,
       this.users.getOrCreate(this.fakeUser)
       this.redirectBack(returnPath.getOrElse(request.path), this.fakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
-      if (this.forums.isAvailable)
+      if (this.forums.await(this.forums.isAvailable))
         Redirect(this.auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
       else
         Redirect(app.showHome(None, None, None, None))

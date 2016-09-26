@@ -1,8 +1,8 @@
 import com.google.inject.AbstractModule
 import db.ModelService
 import db.impl.OreModelService
-import forums._
-import forums.impl.{SpongeAuth, SpongeForums}
+import discourse._
+import discourse.impl.SpongeForums
 import ore.project.factory.{OreProjectFactory, ProjectFactory}
 import ore.rest.{OreRestfulApi, OreRestfulServer}
 import ore.{OreConfig, _}
@@ -20,12 +20,7 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     bind(classOf[OreRestfulApi]).to(classOf[OreRestfulServer])
     bind(classOf[StatTracker]).to(classOf[OreStatTracker])
 
-    if (this.config.forums.getBoolean("api.enabled").get)
-      bind(classOf[DiscourseApi]).to(classOf[SpongeForums])
-    else
-      bind(classOf[DiscourseApi]).to(classOf[DisabledDiscourseApi])
-
-    bind(classOf[DiscourseSSO]).to(classOf[SpongeAuth])
+    bind(classOf[DiscourseApi]).to(classOf[SpongeForums])
   }
 
 }

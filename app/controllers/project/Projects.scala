@@ -8,10 +8,10 @@ import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
 import db.ModelService
 import form.OreForms
-import forums.DiscourseApi
+import discourse.DiscourseApi
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
-import ore.project.factory.ProjectFactory
+import ore.project.factory.{PendingProject, ProjectFactory}
 import ore.project.io.InvalidPluginFileException
 import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv, StatTracker}
@@ -55,25 +55,21 @@ class Projects @Inject()(val stats: StatTracker,
     */
   def upload() = Authenticated { implicit request =>
     request.body.asMultipartFormData.get.file("pluginFile") match {
-      case None => Redirect(self.showCreator()).flashing("error" -> "No file submitted.")
+      case None =>
+        Redirect(self.showCreator()).flashing("error" -> "No file submitted.")
       case Some(tmpFile) =>
-        // Initialize plugin file
-        val user = request.user
-        this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user) match {
-          case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
-            // PEBKAC
-            thrown.printStackTrace()
-            Redirect(self.showCreator()).flashing("error" -> "Invalid plugin file.")
-          } else {
-            throw thrown
-          }
-          case Success(plugin) =>
-            // Cache pending project for later use
-            val meta = plugin.meta.get
-            val project = this.factory.projectFromMeta(user, meta)
-            this.factory.setProjectPending(project, plugin)
-            Redirect(self.showCreatorWithMeta(project.ownerName, project.slug))
+        // Start a new pending project
+        var project: PendingProject = null
+        try {
+          project = this.factory.startProject(tmpFile.ref, tmpFile.filename, request.user)
+        } catch {
+          case e: InvalidPluginFileException =>
+            Redirect(self.showCreator().flashing("error" -> "Invalid plugin file."))
+          case _ => throw _
         }
+
+        project.cache()
+        Redirect(self.showCreatorWithMeta(project.underlying.ownerName, project.underlying.slug))
     }
   }
 
@@ -105,7 +101,7 @@ class Projects @Inject()(val stats: StatTracker,
       this.factory.getPendingProject(author, slug) match {
         case None => Redirect(self.showCreator())
         case Some(pendingProject) =>
-          this.forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.project)
+          this.forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.underlying)
           Ok(views.invite(pendingProject))
       }
     }
@@ -128,7 +124,7 @@ class Projects @Inject()(val stats: StatTracker,
           pendingProject.roles = this.forms.ProjectMemberRoles.bindFromRequest.get.build()
           val pendingVersion = pendingProject.pendingVersion
           Redirect(routes.Versions.showCreatorWithMeta(
-            author, slug, pendingVersion.version.versionString))
+            author, slug, pendingVersion.underlying.versionString))
       }
     }
   }
@@ -183,12 +179,16 @@ class Projects @Inject()(val stats: StatTracker,
   def postDiscussionReply(author: String, slug: String) = {
     AuthedProjectAction(author, slug) { implicit request =>
       this.forms.ProjectReply.bindFromRequest.fold(
-        hasErrors => Redirect(self.showDiscussion(author, slug)).flashing("error" -> hasErrors.errors.head.message),
+        hasErrors =>
+          Redirect(self.showDiscussion(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         content => {
-          val error = service.await(this.forums.embed.postReply(request.project, request.user, content)).get
+          val errors = this.forums.await(this.forums.createPost(
+            username = request.user.name,
+            topicId = request.project.topicId.get,
+            content = content)).left.toOption.getOrElse(List.empty)
           var result = Redirect(self.showDiscussion(author, slug))
-          if (error.isDefined)
-            result = result.flashing("error" -> error.get.head)
+          if (errors.nonEmpty)
+            result = result.flashing("error" -> errors.head)
           result
         }
       )

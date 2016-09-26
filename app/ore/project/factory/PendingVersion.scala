@@ -16,7 +16,7 @@ import scala.util.Try
   * @param project        Project version belongs to
   * @param channelName    Name of channel this version will be in
   * @param channelColor   Color of channel for this version
-  * @param version        Version that is pending
+  * @param underlying     Version that is pending
   * @param plugin         Uploaded plugin
   */
 case class PendingVersion(projects: ProjectBase,
@@ -24,7 +24,7 @@ case class PendingVersion(projects: ProjectBase,
                           var project: Project,
                           var channelName: String,
                           var channelColor: Color,
-                          version: Version,
+                          underlying: Version,
                           plugin: PluginFile,
                           override val cacheApi: CacheApi)
                           extends PendingAction[Version]
@@ -38,10 +38,10 @@ case class PendingVersion(projects: ProjectBase,
   override def cancel() = {
     free()
     this.plugin.delete()
-    if (this.version.isDefined)
-      this.projects.deleteVersion(this.version)
+    if (this.underlying.isDefined)
+      this.projects.deleteVersion(this.underlying)
   }
 
-  override def key: String = this.project.url + '/' + this.version.versionString
+  override def key: String = this.project.url + '/' + this.underlying.versionString
 
 }

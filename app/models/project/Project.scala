@@ -3,7 +3,7 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.Named
+import db.{ModelService, Named}
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.model.{Describable, Downloadable, OreModel}
@@ -507,5 +507,52 @@ case class Project(override val id: Option[Int] = None,
   = this.copy(id = id, createdAt = theTime, _lastUpdated = theTime.orNull)
   override def hashCode() = this.id.get.hashCode
   override def equals(o: Any) = o.isInstanceOf[Project] && o.asInstanceOf[Project].id.get == this.id.get
+
+}
+
+object Project {
+
+  case class Builder(service: ModelService) {
+
+    private var pluginId: String = _
+    private var ownerName: String = _
+    private var ownerId: Int = -1
+    private var name: String = _
+
+    def pluginId(pluginId: String) = {
+      this.pluginId = pluginId
+      this
+    }
+
+    def ownerName(ownerName: String) = {
+      this.ownerName = ownerName
+      this
+    }
+
+    def ownerId(ownerId: Int) = {
+      this.ownerId = ownerId
+      this
+    }
+
+    def name(name: String) = {
+      this.name = name
+      this
+    }
+
+    def build(): Project = {
+      checkNotNull(this.pluginId, "plugin id null", "")
+      checkNotNull(this.ownerName, "owner name null", "")
+      checkNotNull(this.name, "name null", "")
+      checkArgument(this.ownerId != -1, "invalid owner id", "")
+      this.service.processor.process(Project(
+        pluginId = this.pluginId,
+        _ownerName = this.ownerName,
+        _ownerId = this.ownerId,
+        _name = this.name,
+        _slug = slugify(this.name)
+      ))
+    }
+
+  }
 
 }

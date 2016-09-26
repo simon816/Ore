@@ -8,8 +8,8 @@ import controllers.Requests.ProjectRequest
 import controllers.project.routes.{Versions => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
+import discourse.DiscourseApi
 import form.OreForms
-import forums.DiscourseApi
 import models.project.{Channel, Project, Version}
 import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.factory.{PendingProject, ProjectFactory}
@@ -19,8 +19,6 @@ import play.api.i18n.MessagesApi
 import play.api.mvc.Result
 import util.StringUtils.equalsIgnoreCase
 import views.html.projects.{versions => views}
-
-import scala.util.{Failure, Success}
 
 /**
   * Controller for handling Version related actions.
@@ -166,43 +164,35 @@ class Versions @Inject()(val stats: StatTracker,
     * @return Version create page (with meta)
     */
   def upload(author: String, slug: String) = {
-    // TODO: Cleanup this godforsaken mess
     VersionEditAction(author, slug) { implicit request =>
       request.body.asMultipartFormData.get.file("pluginFile") match {
-        case None => Redirect(self.showCreator(author, slug)).flashing("error" -> "Missing file")
+        case None =>
+          Redirect(self.showCreator(author, slug)).flashing("error" -> "Missing file")
         case Some(tmpFile) =>
-          // Initialize plugin file
-          this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, request.user) match {
-            case Failure(thrown) => if (thrown.isInstanceOf[InvalidPluginFileException]) {
-              // PEBKAC
-              thrown.printStackTrace()
-              Redirect(self.showCreator(author, slug))
-                .flashing("error" -> "Invalid plugin file.")
-            } else {
-              throw thrown
-            }
-            case Success(plugin) =>
-              val project = request.project
-              // Check plugin ID
-              if (!plugin.meta.get.getId.equals(project.pluginId)) {
-                Redirect(self.showCreator(author, slug))
-                  .flashing("error" -> "The uploaded plugin ID must match your project's plugin ID.")
-              } else {
-                // Create version from meta file
-                val version = this.factory.versionFromFile(project, plugin)
-                if (version.exists && this.config.projects.getBoolean("file-validate").get) {
-                  Redirect(self.showCreator(author, slug))
-                    .flashing("error" -> "Found a duplicate file in project. Plugin files may only be uploaded once.")
-                } else {
+          // Process the uploaded file
+          var plugin: PluginFile = null
+          try {
+            plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, request.user)
+          } catch {
+            case e: InvalidPluginFileException =>
+              return Redirect(self.showCreator(author, slug)).flashing("error" -> "Invalid plugin file.")
+            case _ => throw _
+          }
 
-                  // Get first channel for default
-                  val channelName: String = project.channels.all.head.name
+          // Validate
+          val project = request.project
+          if (!plugin.meta.get.getId.equals(project.pluginId))
+            return Redirect(self.showCreator(author, slug))
+              .flashing("error" -> "The uploaded plugin ID must match your project's plugin ID.")
 
-                  // Cache for later use
-                  this.factory.setVersionPending(project, channelName, version, plugin)
-                  Redirect(self.showCreatorWithMeta(author, slug, version.versionString))
-                }
-              }
+          val pendingVersion = this.factory.startVersion(plugin, project)
+          if (pendingVersion.exists && this.config.projects.getBoolean("file-validate").get)
+            Redirect(self.showCreator(author, slug))
+              .flashing("error" -> "Found a duplicate file in project. Plugin files may only be uploaded once.")
+          else {
+            // Cache and redirect
+            pendingVersion.cache()
+            Redirect(self.showCreatorWithMeta(author, slug, pendingVersion.underlying.versionString))
           }
       }
     }
@@ -230,7 +220,7 @@ class Versions @Inject()(val stats: StatTracker,
               Redirect(self.showCreator(author, slug))
             case Some(p) => p match {
               case pending: PendingProject =>
-                Ok(views.create(pending.project, Some(pendingVersion), None, showFileControls = false))
+                Ok(views.create(pending.underlying, Some(pendingVersion), None, showFileControls = false))
               case real: Project =>
                 Ok(views.create(real, Some(pendingVersion), Some(real.channels.toSeq), showFileControls = true))
             }

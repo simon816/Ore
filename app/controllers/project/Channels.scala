@@ -6,7 +6,7 @@ import controllers.BaseController
 import controllers.project.routes.{Channels => self}
 import db.ModelService
 import form.OreForms
-import forums.DiscourseApi
+import discourse.DiscourseApi
 import ore.permission.EditChannels
 import ore.project.factory.ProjectFactory
 import ore.{OreConfig, OreEnv}

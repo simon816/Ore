@@ -3,6 +3,8 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions
+import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
+import db.ModelService
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl.VersionTable
@@ -92,7 +94,7 @@ case class Version(override val id: Option[Int] = None,
     * @param _description Version description
     */
   def description_=(_description: String) = {
-    Preconditions.checkArgument(_description.length <= Page.MaxLength, "content too long", "")
+    checkArgument(_description.length <= Page.MaxLength, "content too long", "")
     this._description = Some(_description)
     if (isDefined) update(Description)
   }
@@ -198,5 +200,75 @@ case class Version(override val id: Option[Int] = None,
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
   override def hashCode() = this.id.hashCode
   override def equals(o: Any) = o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get
+
+}
+
+object Version {
+
+  case class Builder(service: ModelService) {
+
+    private var versionString: String = _
+    private var mcversion: String = _
+    private var dependencyIds: List[String] = List()
+    private var description: String = _
+    private var projectId: Int = -1
+    private var fileSize: Long = -1
+    private var hash: String = _
+    private var fileName: String = _
+
+    def versionString(versionString: String) = {
+      this.versionString = versionString
+      this
+    }
+
+    def mcversion(mcversion: String) = {
+      this.mcversion = mcversion
+      this
+    }
+
+    def dependencyIds(dependencyIds: List[String]) = {
+      this.dependencyIds = dependencyIds
+      this
+    }
+
+    def description(description: String) = {
+      this.description = description
+      this
+    }
+
+    def projectId(projectId: Int) = {
+      this.projectId = projectId
+      this
+    }
+
+    def fileSize(fileSize: Long) = {
+      this.fileSize = fileSize
+      this
+    }
+
+    def hash(hash: String) = {
+      this.hash = hash
+      this
+    }
+
+    def fileName(fileName: String) = {
+      this.fileName = fileName
+      this
+    }
+
+    def build() = {
+      checkArgument(this.fileSize != -1, "invalid file size")
+      this.service.processor.process(Version(
+        versionString = checkNotNull(versionString, "name null", ""),
+        mcversion = Option(this.mcversion),
+        dependencyIds = this.dependencyIds,
+        _description = Option(this.description),
+        projectId = this.projectId,
+        fileSize = this.fileSize,
+        hash = checkNotNull(this.hash, "hash null", ""),
+        fileName = checkNotNull(this.fileName, "file name null", "")))
+    }
+
+  }
 
 }

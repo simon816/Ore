@@ -10,6 +10,7 @@ import db.impl._
 import db.impl.access.{FlagBase, OrganizationBase, UserBase, VersionBase}
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
+import discourse.model.DiscourseUser
 import models.project.{Flag, Project}
 import models.user.role.{OrganizationRole, ProjectRole}
 import ore.Visitable
@@ -264,15 +265,15 @@ case class User(override val id: Option[Int] = None,
     * @param user User to fill with
     * @return     This user
     */
-  def fill(user: User): User = {
-    if (user == null) return this
-    user.fullName.foreach(this.fullName_=)
-    user.email.foreach(this.email_=)
-    user.tagline.foreach(this.tagline_=)
-    user.joinDate.foreach(this.joinDate_=)
-    user._avatarUrl.foreach(this.avatarUrl_=)
+  def fill(user: DiscourseUser): User = {
+    if (user == null)
+      return this
     this.username = user.username
-    this.globalRoles = user.globalRoles
+    user.createdAt.foreach(this.joinDate_=)
+    user.email.foreach(this.email_=)
+    user.fullName.foreach(this.fullName_=)
+    user.avatarTemplate.foreach(this.avatarUrl_=)
+    this.globalRoles = user.groups.flatMap(group => RoleTypes.values.find(_.id == group.id)).toSet[RoleType]
     this
   }
 

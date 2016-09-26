@@ -1,7 +1,7 @@
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import db.impl.access.{ProjectBase, UserBase}
-@import forums.DiscourseApi
+@import discourse.DiscourseApi
 @import models.project.Flag
 @import ore.{OreConfig, OreEnv}
 @(flags: Seq[Flag])(implicit messages: Messages, session: Session, request: RequestHeader,

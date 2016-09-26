@@ -6,9 +6,9 @@ lazy val `ore` = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.11.7"
 
-libraryDependencies ++= Seq( cache , ws   , specs2 % Test )
+libraryDependencies ++= Seq(cache, ws, specs2 % Test)
 
-unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )  
+unmanagedResourceDirectories in Test <+=  baseDirectory (_ /"target/web/public/test")
 
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
@@ -16,7 +16,7 @@ routesGenerator := InjectedRoutesGenerator
 
 // Additional dependencies
 resolvers ++= Seq(
-  //"maven local" at "file://" + Path.userHome.absolutePath + "/.m2/repository"
+//  "maven local" at "file://" + Path.userHome.absolutePath + "/.m2/repository",
   "sponge" at "https://repo.spongepowered.org/maven"
 )
 

@@ -1,7 +1,7 @@
 package db.impl.access
 
 import db.{ModelBase, ModelService}
-import forums.DiscourseApi
+import discourse.DiscourseApi
 import models.user.role.OrganizationRole
 import models.user.{Notification, Organization, User}
 import ore.OreConfig

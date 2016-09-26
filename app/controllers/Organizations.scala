@@ -5,7 +5,7 @@ import javax.inject.Inject
 import db.ModelService
 import db.impl.access.OrganizationBase
 import form.OreForms
-import forums.DiscourseApi
+import discourse.DiscourseApi
 import ore.permission.EditSettings
 import ore.rest.OreWrites
 import ore.user.MembershipDossier._
@@ -55,7 +55,7 @@ class Organizations @Inject()(forms: OreForms,
     else {
       val formData = this.forms.OrganizationCreate.bindFromRequest().get
       val name = formData.name
-      this.service.getModelBase(classOf[OrganizationBase]).create(name, request.user.id.get, formData.build())
+      this.service.getModelBase(classOf[OrganizationBase]).create(name, user.id.get, formData.build())
       Redirect(routes.Users.showProjects(name, None))
     }
   }
@@ -97,17 +97,12 @@ class Organizations @Inject()(forms: OreForms,
     * @return             Json response with errors if any
     */
   def updateAvatar(organization: String) = EditOrganizationAction(organization) { implicit request =>
-
     import writes._
 
-    def respond(errorsOpt: Option[List[String]]) = errorsOpt match {
-      case None =>
-        // send the user object
-        Ok(Json.toJson(request.organization.toUser.refresh()))
-      case Some(errors) =>
-        // send errors
-        Ok(Json.obj("errors" -> errors))
-    }
+    def respond(errors: List[String]) = if (errors.isEmpty)
+      Ok(Json.toJson(request.organization.toUser.refresh()))
+    else
+      Ok(Json.obj("errors" -> errors))
 
     val formData = this.forms.OrganizationUpdateAvatar.bindFromRequest.get
     if (formData.isFileUpload) {
@@ -115,11 +110,10 @@ class Organizations @Inject()(forms: OreForms,
         case None =>
           BadRequest
         case Some(file) =>
-          respond(this.forums.setAvatar(organization, file.filename, file.ref.file))
+          respond(this.forums.await(this.forums.setAvatar(organization, file.filename, file.ref.file.toPath)))
       }
-    } else {
-      respond(this.forums.setAvatar(organization, formData.url.get))
-    }
+    } else
+      respond(this.forums.await(this.forums.setAvatar(organization, formData.url.get)))
   }
 
   /**

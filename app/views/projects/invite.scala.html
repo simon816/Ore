@@ -1,7 +1,7 @@
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import db.impl.access.UserBase
-@import forums.DiscourseApi
+@import discourse.DiscourseApi
 @import models.user.role.ProjectRole
 @import ore.project.factory.PendingProject
 @import ore.{OreConfig, OreEnv}
@@ -32,7 +32,7 @@
             </div>
 
             @users.invite.form(
-                owner = pending.project.owner,
+                owner = pending.underlying.owner,
                 loadedUsers = pending.file.meta.get.getAuthors
                         .filterNot(_.equals(user.username))
                         .flatMap(userBase.withName).toSeq,
@@ -40,11 +40,11 @@
             )
 
             <!-- Submission form -->
-            @form(action = projectRoutes.Projects.showFirstVersionCreator(pending.project.ownerName, pending.project.slug),
+            @form(action = projectRoutes.Projects.showFirstVersionCreator(pending.underlying.ownerName, pending.underlying.slug),
                 'id -> "form-continue") {
 
                 <div class="btn-group pull-right">
-                    <a href="@projectRoutes.Projects.showCreatorWithMeta(pending.project.ownerName, pending.project.slug)"
+                    <a href="@projectRoutes.Projects.showCreatorWithMeta(pending.underlying.ownerName, pending.underlying.slug)"
                        title="Back" class="pull-left btn btn-default">
                         <i class="fa fa-arrow-left"></i>
                     </a>

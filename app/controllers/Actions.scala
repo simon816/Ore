@@ -2,7 +2,7 @@ package controllers
 
 import controllers.Requests.{OrganizationRequest, _}
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
-import forums.DiscourseApi
+import discourse.DiscourseApi
 import models.project.Project
 import models.user.User
 import ore.permission.scope.GlobalScope
@@ -11,6 +11,7 @@ import play.api.mvc.Results._
 import play.api.mvc._
 
 import scala.concurrent.Future
+import scala.language.higherKinds
 
 /**
   * A set of actions used by Ore.
@@ -138,13 +139,10 @@ trait Actions {
   }
 
   private def processProject(project: Project, user: Option[User]): Option[Project] = {
-    if (project.isVisible || (user.isDefined && (user.get can HideProjects in GlobalScope))) {
-      if (project.topicId.isEmpty)
-        this.forums.embed.createTopic(project)
+    if (project.isVisible || (user.isDefined && (user.get can HideProjects in GlobalScope)))
       Some(project)
-    } else {
+    else
       None
-    }
   }
 
   private def authedProjectAction(author: String, slug: String)

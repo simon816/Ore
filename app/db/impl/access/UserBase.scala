@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.impl.schema.ProjectSchema
 import db.{ModelBase, ModelService}
-import forums.DiscourseApi
+import discourse.DiscourseApi
 import models.user.User
 import ore.OreConfig
 import play.api.mvc.Session

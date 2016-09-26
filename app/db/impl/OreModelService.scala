@@ -8,7 +8,7 @@ import db.impl.access.{FlagBase, ProjectBase, UserBase, VersionBase, _}
 import db.impl.schema.{PageSchema, ProjectSchema, UserSchema, VersionSchema}
 import db.table.ModelAssociation
 import db.{ModelRegistry, ModelSchema, ModelService}
-import forums.DiscourseApi
+import discourse.DiscourseApi
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole}

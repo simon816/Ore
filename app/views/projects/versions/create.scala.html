@@ -1,7 +1,7 @@
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import db.impl.access.UserBase
-@import forums.DiscourseApi
+@import discourse.DiscourseApi
 @import models.project.{Channel, Project}
 @import ore.project.factory.PendingVersion
 @import ore.{OreConfig, OreEnv}
@@ -47,7 +47,7 @@
 
                         @if(pending.isDefined) {
                             @* Show plugin meta *@
-                            @defining(pending.get.version) { version =>
+                            @defining(pending.get.underlying) { version =>
                                 <div class="plugin-meta">
                                     <table class="plugin-meta-table">
                                         <tr>
@@ -138,7 +138,7 @@
 
                         @if(pending.isDefined) {
                             @* Ready to go! *@
-                            @defining(pending.get.version) { version =>
+                            @defining(pending.get.underlying) { version =>
                                 @form(action = projectRoutes.Versions.publish(
                                     project.ownerName, project.slug, version.versionString),
                                     'id -> "form-publish", 'class -> "pull-right") {

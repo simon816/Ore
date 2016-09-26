@@ -14,12 +14,12 @@ import scala.util.Try
   * Represents a Project with an uploaded plugin that has not yet been
   * created.
   *
-  * @param project  Pending project
+  * @param underlying  Pending project
   * @param file     Uploaded plugin
   */
 case class PendingProject(projects: ProjectBase,
                           factory: ProjectFactory,
-                          project: Project,
+                          underlying: Project,
                           file: PluginFile,
                           implicit val config: OreConfig,
                           var roles: Set[ProjectRole] = Set(),
@@ -31,9 +31,9 @@ case class PendingProject(projects: ProjectBase,
     * The first [[PendingVersion]] for this PendingProject.
     */
   val pendingVersion: PendingVersion = {
-    val version = this.factory.versionFromFile(this.project, this.file)
-    this.factory.setVersionPending(this.project, this.config.getSuggestedNameForVersion(version.versionString), version,
-      this.file)
+    val version = this.factory.startVersion(this.file, this.underlying)
+    version.cache()
+    version
   }
 
   override def complete: Try[Project] = Try {
@@ -48,10 +48,10 @@ case class PendingProject(projects: ProjectBase,
   override def cancel() = {
     free()
     this.file.delete()
-    if (this.project.isDefined)
-      this.projects.delete(this.project)
+    if (this.underlying.isDefined)
+      this.projects.delete(this.underlying)
   }
 
-  override def key: String = this.project.ownerName + '/' + this.project.slug
+  override def key: String = this.underlying.ownerName + '/' + this.underlying.slug
 
 }

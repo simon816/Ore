@@ -7,7 +7,7 @@ import _root_.util.StringUtils._
 import com.google.common.base.Preconditions._
 import db.impl.OrePostgresDriver.api._
 import db.{ModelBase, ModelService}
-import forums.DiscourseApi
+import discourse.DiscourseApi
 import models.project.{Channel, Project, Version}
 import ore.project.io.ProjectFileManager
 import ore.{OreConfig, OreEnv}

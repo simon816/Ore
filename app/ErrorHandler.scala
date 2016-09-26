@@ -2,7 +2,7 @@ import javax.inject._
 
 import _root_.db.ModelService
 import _root_.db.impl.access.{ProjectBase, UserBase}
-import _root_.forums.DiscourseApi
+import _root_.discourse.DiscourseApi
 import ore.{OreConfig, OreEnv}
 import play.api._
 import play.api.http.DefaultHttpErrorHandler

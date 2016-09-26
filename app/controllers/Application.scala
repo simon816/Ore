@@ -7,7 +7,7 @@ import controllers.routes.{Application => self}
 import db.impl.access.{FlagBase, VersionBase}
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
-import forums.DiscourseApi
+import discourse.DiscourseApi
 import models.project.{Flag, Project}
 import ore.permission._
 import ore.permission.scope.GlobalScope
