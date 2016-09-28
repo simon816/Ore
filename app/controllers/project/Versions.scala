@@ -9,6 +9,7 @@ import controllers.project.routes.{Versions => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import form.OreForms
 import models.project.{Channel, Project, Version}
 import ore.permission.{EditVersions, ReviewProjects}
@@ -29,7 +30,7 @@ class Versions @Inject()(val stats: StatTracker,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
-                         implicit override val forums: DiscourseApi,
+                         implicit override val forums: OreDiscourseApi,
                          implicit override val service: ModelService)
                          extends BaseController {
 
@@ -175,24 +176,24 @@ class Versions @Inject()(val stats: StatTracker,
             plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, request.user)
           } catch {
             case e: InvalidPluginFileException =>
-              return Redirect(self.showCreator(author, slug)).flashing("error" -> "Invalid plugin file.")
-            case _ => throw _
+              Redirect(self.showCreator(author, slug)).flashing("error" -> "Invalid plugin file.")
           }
 
           // Validate
           val project = request.project
           if (!plugin.meta.get.getId.equals(project.pluginId))
-            return Redirect(self.showCreator(author, slug))
-              .flashing("error" -> "The uploaded plugin ID must match your project's plugin ID.")
-
-          val pendingVersion = this.factory.startVersion(plugin, project)
-          if (pendingVersion.exists && this.config.projects.getBoolean("file-validate").get)
             Redirect(self.showCreator(author, slug))
-              .flashing("error" -> "Found a duplicate file in project. Plugin files may only be uploaded once.")
+              .flashing("error" -> "The uploaded plugin ID must match your project's plugin ID.")
           else {
-            // Cache and redirect
-            pendingVersion.cache()
-            Redirect(self.showCreatorWithMeta(author, slug, pendingVersion.underlying.versionString))
+            val pendingVersion = this.factory.startVersion(plugin, project)
+            if (pendingVersion.underlying.exists && this.config.projects.getBoolean("file-validate").get)
+              Redirect(self.showCreator(author, slug))
+                .flashing("error" -> "Found a duplicate file in project. Plugin files may only be uploaded once.")
+            else {
+              // Cache and redirect
+              pendingVersion.cache()
+              Redirect(self.showCreatorWithMeta(author, slug, pendingVersion.underlying.versionString))
+            }
           }
       }
     }
@@ -292,7 +293,7 @@ class Versions @Inject()(val stats: StatTracker,
                           project.recommendedVersion = newVersion
 
                         // Create forum topic reply
-                        this.forums.embed.postReply(project, project.owner.user, newVersion.postContent)
+                        this.forums.postDiscussionReply(project, project.owner.user, newVersion.postContent)
 
                         Redirect(self.show(author, slug, versionString))
                       }

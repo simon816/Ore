@@ -16,8 +16,8 @@ import scala.concurrent.Future
 /**
   * Project related queries
   */
-class ProjectSchema(override val service: ModelService)
-  extends ModelSchema[Project](service, classOf[Project], TableQuery[ProjectTable]) {
+class ProjectSchema(override val service: ModelService, implicit val users: UserBase)
+  extends ModelSchema[Project](service, classOf[Project], TableQuery[ProjectTableMain]) {
 
   /** The [[ModelSchema]] for [[Flag]]s. */
   val FlagActions = service.registry.registerSchema(
@@ -30,8 +30,6 @@ class ProjectSchema(override val service: ModelService)
     with StatSchema[ProjectView]
   val ViewActions = service.registry.registerSchema(ViewSchema)
 
-  implicit private val users: UserBase = this.service.getModelBase(classOf[UserBase])
-
   /**
     * Returns all [[User]]s with at least one [[Project]].
     *
@@ -41,7 +39,7 @@ class ProjectSchema(override val service: ModelService)
     service.DB.db.run {
       (for (project <- this.baseQuery) yield project.userId).distinct.result
     } map { userIds =>
-      userIds.map(this.users.get(_).get)
+      this.users.in(userIds.toSet).toSeq
     }
   }
 

@@ -2,6 +2,7 @@ package db.impl.access
 
 import db.{ModelBase, ModelService}
 import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import models.user.role.OrganizationRole
 import models.user.{Notification, Organization, User}
 import ore.OreConfig
@@ -12,16 +13,15 @@ import play.api.i18n.MessagesApi
 import util.{CryptoUtils, StringUtils}
 
 class OrganizationBase(override val service: ModelService,
-                       forums: DiscourseApi,
+                       forums: OreDiscourseApi,
                        config: OreConfig,
-                       messages: MessagesApi)
+                       messages: MessagesApi,
+                       implicit val users: UserBase)
                        extends ModelBase[Organization] {
 
   import service.await
 
   override val modelClass = classOf[Organization]
-
-  implicit val users: UserBase = this.service.getModelBase(classOf[UserBase])
 
   /**
     * Creates a new [[Organization]]. This method creates a new user on the
@@ -37,7 +37,7 @@ class OrganizationBase(override val service: ModelService,
     val email = name + '@' + this.config.orgs.getString("dummyEmailDomain").get
 
     // Create on forums
-    val userId = await(this.forums.createUser(name, name, email, password)).get
+    val userId = await(this.forums.createUser(name, name, email, password)).get.right.get
     val groupId = this.config.orgs.getInt("groupId").get
     await(this.forums.addUserGroup(userId, groupId)).recover {
       case e: Exception =>

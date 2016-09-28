@@ -7,6 +7,7 @@ import controllers.project.routes.{Pages => self}
 import db.ModelService
 import form.OreForms
 import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import models.project.Page
 import ore.permission.EditPages
 import ore.{OreConfig, OreEnv, StatTracker}
@@ -23,7 +24,7 @@ class Pages @Inject()(val forms: OreForms,
                       implicit override val messagesApi: MessagesApi,
                       implicit override val env: OreEnv,
                       implicit override val config: OreConfig,
-                      implicit override val forums: DiscourseApi,
+                      implicit override val forums: OreDiscourseApi,
                       implicit override val service: ModelService)
                       extends BaseController {
 

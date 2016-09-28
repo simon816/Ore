@@ -20,7 +20,7 @@ import scala.util.{Failure, Success}
   */
 class ModelSchema[M <: Model](val service: ModelService,
                               val modelClass: Class[M],
-                              val baseQuery: TableQuery[M#T]) {
+                              val baseQuery: TableQuery[_ <: M#T]) {
 
   private case class Associate[T <: AssociativeTable, A <: Model](tableClass: Class[T], modelClass: Class[A])
 

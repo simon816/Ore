@@ -273,7 +273,9 @@ case class User(override val id: Option[Int] = None,
     user.email.foreach(this.email_=)
     user.fullName.foreach(this.fullName_=)
     user.avatarTemplate.foreach(this.avatarUrl_=)
-    this.globalRoles = user.groups.flatMap(group => RoleTypes.values.find(_.id == group.id)).toSet[RoleType]
+    this.globalRoles = user.groups
+      .flatMap(group => RoleTypes.values.find(_.id == group.id).map(_.asInstanceOf[RoleType]))
+      .toSet[RoleType]
     this
   }
 

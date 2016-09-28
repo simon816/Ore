@@ -4,7 +4,8 @@ import java.sql.Timestamp
 
 import db.impl.schema.ProjectSchema
 import db.{ModelBase, ModelService}
-import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
+import discourse.model.DiscourseUser
 import models.user.User
 import ore.OreConfig
 import play.api.mvc.Session
@@ -14,7 +15,7 @@ import util.StringUtils._
   * Represents a central location for all Users.
   */
 class UserBase(override val service: ModelService,
-               forums: DiscourseApi,
+               forums: OreDiscourseApi,
                config: OreConfig)
   extends ModelBase[User] {
 
@@ -76,7 +77,10 @@ class UserBase(override val service: ModelService,
     * @param user User to find
     * @return     Found or new User
     */
-  def getOrCreate(user: User): User = this.service.await(user.schema(this.service).getOrInsert(user)).get
+  def getOrCreate(user: DiscourseUser): User = {
+//    this.service.await(user.schema(this.service).getOrInsert(user)).get
+    null
+  }
 
   /**
     * Returns the currently authenticated User.

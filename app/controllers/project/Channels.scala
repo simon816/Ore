@@ -7,6 +7,7 @@ import controllers.project.routes.{Channels => self}
 import db.ModelService
 import form.OreForms
 import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import ore.permission.EditChannels
 import ore.project.factory.ProjectFactory
 import ore.{OreConfig, OreEnv}
@@ -21,7 +22,7 @@ class Channels @Inject()(val forms: OreForms,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
-                         implicit override val forums: DiscourseApi,
+                         implicit override val forums: OreDiscourseApi,
                          implicit override val service: ModelService)
                          extends BaseController {
 

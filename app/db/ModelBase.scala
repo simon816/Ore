@@ -2,6 +2,8 @@ package db
 
 import db.access.ModelAccess
 
+import scala.language.implicitConversions
+
 /**
   * Represents something that provides access to a ModelTable.
   *

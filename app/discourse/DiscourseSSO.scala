@@ -20,7 +20,7 @@ trait DiscourseSSO {
 
   val CharEncoding = "UTF-8"
   val Algo = "HmacSHA256"
-  val Random = new SecureRandom()
+  val Random = new SecureRandom
 
   /**
     * Returns the redirect to the Discourse forum to perform authentication.

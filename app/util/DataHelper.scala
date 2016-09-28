@@ -6,6 +6,7 @@ import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.{ProjectBase, UserBase}
 import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import ore.OreConfig
 import ore.project.factory.ProjectFactory
 import org.apache.commons.io.FileUtils
@@ -18,7 +19,7 @@ import play.api.cache.CacheApi
 final class DataHelper @Inject()(config: OreConfig,
                                  service: ModelService,
                                  factory: ProjectFactory,
-                                 forums: DiscourseApi,
+                                 forums: OreDiscourseApi,
                                  cacheApi: CacheApi) {
 
   implicit private val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])

@@ -3,6 +3,7 @@ package controllers
 import controllers.Requests.{OrganizationRequest, _}
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import models.project.Project
 import models.user.User
 import ore.permission.scope.GlobalScope
@@ -18,7 +19,7 @@ import scala.language.higherKinds
   */
 trait Actions {
 
-  val forums: DiscourseApi
+  val forums: OreDiscourseApi
   val users: UserBase
   val projects: ProjectBase
   val organizations: OrganizationBase

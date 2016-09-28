@@ -3,6 +3,7 @@ package form.project
 import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
 import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import models.project.Project
 import models.user.Notification
 import models.user.role.ProjectRole
@@ -35,12 +36,13 @@ case class ProjectSettings(categoryName: String,
     * @param project Project to save to
     */
   //noinspection ComparingUnrelatedTypes
-  def saveTo(project: Project)(implicit service: ModelService, projects: ProjectBase, forums: DiscourseApi,
+  def saveTo(project: Project)(implicit service: ModelService, projects: ProjectBase, forums: OreDiscourseApi,
                                config: OreConfig, messages: MessagesApi, users: UserBase) = {
     project.category = Categories.withName(this.categoryName)
     project.issues = nullIfEmpty(this.issues)
     project.source = nullIfEmpty(this.source)
     project.description = nullIfEmpty(this.description)
+
 
     this.ownerId.find(_ != project.ownerId).foreach(ownerId => project.owner = users.get(ownerId).get)
 

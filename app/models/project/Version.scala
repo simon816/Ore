@@ -2,7 +2,6 @@ package models.project
 
 import java.sql.Timestamp
 
-import com.google.common.base.Preconditions
 import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
 import db.ModelService
 import db.access.ModelAccess
@@ -207,66 +206,66 @@ object Version {
 
   case class Builder(service: ModelService) {
 
-    private var versionString: String = _
-    private var mcversion: String = _
-    private var dependencyIds: List[String] = List()
-    private var description: String = _
-    private var projectId: Int = -1
-    private var fileSize: Long = -1
-    private var hash: String = _
-    private var fileName: String = _
+    private var _versionString: String = _
+    private var _mcversion: String = _
+    private var _dependencyIds: List[String] = List()
+    private var _description: String = _
+    private var _projectId: Int = -1
+    private var _fileSize: Long = -1
+    private var _hash: String = _
+    private var _fileName: String = _
 
     def versionString(versionString: String) = {
-      this.versionString = versionString
+      this._versionString = versionString
       this
     }
 
     def mcversion(mcversion: String) = {
-      this.mcversion = mcversion
+      this._mcversion = mcversion
       this
     }
 
     def dependencyIds(dependencyIds: List[String]) = {
-      this.dependencyIds = dependencyIds
+      this._dependencyIds = dependencyIds
       this
     }
 
     def description(description: String) = {
-      this.description = description
+      this._description = description
       this
     }
 
     def projectId(projectId: Int) = {
-      this.projectId = projectId
+      this._projectId = projectId
       this
     }
 
     def fileSize(fileSize: Long) = {
-      this.fileSize = fileSize
+      this._fileSize = fileSize
       this
     }
 
     def hash(hash: String) = {
-      this.hash = hash
+      this._hash = hash
       this
     }
 
     def fileName(fileName: String) = {
-      this.fileName = fileName
+      this._fileName = fileName
       this
     }
 
     def build() = {
-      checkArgument(this.fileSize != -1, "invalid file size")
+      checkArgument(this._fileSize != -1, "invalid file size", "")
       this.service.processor.process(Version(
-        versionString = checkNotNull(versionString, "name null", ""),
-        mcversion = Option(this.mcversion),
-        dependencyIds = this.dependencyIds,
-        _description = Option(this.description),
-        projectId = this.projectId,
-        fileSize = this.fileSize,
-        hash = checkNotNull(this.hash, "hash null", ""),
-        fileName = checkNotNull(this.fileName, "file name null", "")))
+        versionString = checkNotNull(this._versionString, "name null", ""),
+        mcversion = Option(this._mcversion),
+        dependencyIds = this._dependencyIds,
+        _description = Option(this._description),
+        projectId = this._projectId,
+        fileSize = this._fileSize,
+        hash = checkNotNull(this._hash, "hash null", ""),
+        fileName = checkNotNull(this._fileName, "file name null", "")))
     }
 
   }

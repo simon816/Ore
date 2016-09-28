@@ -6,6 +6,7 @@ import controllers.routes.{Application => app, Users => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase.ORDER_PROJECTS
+import discourse.impl.OreDiscourseApi
 import form.OreForms
 import discourse.{DiscourseApi, DiscourseSSO}
 import models.user.role.RoleModel
@@ -24,11 +25,10 @@ import views.{html => views}
   */
 class Users @Inject()(val fakeUser: FakeUser,
                       val forms: OreForms,
-                      val auth: DiscourseSSO,
                       implicit override val messagesApi: MessagesApi,
                       implicit override val env: OreEnv,
                       implicit override val config: OreConfig,
-                      implicit override val forums: DiscourseApi,
+                      implicit override val forums: OreDiscourseApi,
                       implicit override val service: ModelService) extends BaseController {
 
   /**
@@ -41,18 +41,17 @@ class Users @Inject()(val fakeUser: FakeUser,
   def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
     val baseUrl = this.config.app.getString("baseUrl").get
     if (this.fakeUser.isEnabled) {
-      this.users.getOrCreate(this.fakeUser)
+//      this.users.getOrCreate(this.fakeUser)
       this.redirectBack(returnPath.getOrElse(request.path), this.fakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
       if (this.forums.await(this.forums.isAvailable))
-        Redirect(this.auth.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
+        Redirect(this.forums.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
       else
         Redirect(app.showHome(None, None, None, None))
           .flashing("error" -> "Login is temporarily unavailable, please try again later.")
     } else {
       // Decode SSO payload received from forums and get Ore user
-      val user = this.auth.authenticate(sso.get, sig.get)
-      this.config.debug(user.username + " has " + user.notifications.size + " notifications.", -1)
+      val user = this.forums.authenticate(sso.get, sig.get)
       this.redirectBack(request.flash.get("url").getOrElse("/"), user.username)
     }
   }

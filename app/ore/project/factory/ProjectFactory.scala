@@ -7,7 +7,7 @@ import akka.actor.ActorSystem
 import com.google.common.base.Preconditions._
 import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
-import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.role.ProjectRole
 import models.user.{Notification, User}
@@ -42,9 +42,17 @@ trait ProjectFactory {
   val actorSystem: ActorSystem
 
   implicit val config: OreConfig
-  implicit val forums: DiscourseApi
+  implicit val forums: OreDiscourseApi
   implicit val env = this.fileManager.env
 
+  /**
+    * Loads a new [[PluginFile]] for further processing.
+    *
+    * @param uploadedFile File to process
+    * @param name         File name
+    * @param owner        User who uploaded the file
+    * @return             Processed PluginFile
+    */
   def processPluginFile(uploadedFile: TemporaryFile, name: String, owner: User): PluginFile = {
     if (!name.endsWith(".zip") && !name.endsWith(".jar"))
       throw InvalidPluginFileException("Plugin file must be either a JAR or ZIP file.")
@@ -76,9 +84,15 @@ trait ProjectFactory {
     plugin
   }
 
-  def startProject(uploadedFile: TemporaryFile, name: String, owner: User): PendingProject = {
-    val plugin = processPluginFile(uploadedFile, name, owner)
+  /**
+    * Starts the construction process of a [[Project]].
+    *
+    * @param plugin First version file
+    * @return       PendingProject instance
+    */
+  def startProject(plugin: PluginFile): PendingProject = {
     val metaData = checkMeta(plugin)
+    val owner = plugin.user
 
     // Start a new pending project
     val project = Project.Builder(this.service)
@@ -95,8 +109,16 @@ trait ProjectFactory {
       file = plugin,
       config = this.config,
       cacheApi = this.cacheApi)
+    pendingProject
   }
 
+  /**
+    * Starts the construction process of a [[Version]].
+    *
+    * @param plugin   Plugin file
+    * @param project  Parent project
+    * @return         PendingVersion instance
+    */
   def startVersion(plugin: PluginFile, project: Project): PendingVersion = {
     val metaData = checkMeta(plugin)
     if (!metaData.getId.equals(project.pluginId))
@@ -182,12 +204,8 @@ trait ProjectFactory {
       ))
     }
 
-    if (this.forums.isEnabled) {
-      this.forums.createTopic(
-        poster = newProject.owner.name,
-        title = newProject.name + newProject.description.map(d => " - " + d).getOrElse(""),
-        content = newProject.topicContent)
-    }
+    if (this.forums.isEnabled)
+      this.forums.createProjectTopic(newProject)
 
     newProject
   }
@@ -249,7 +267,7 @@ trait ProjectFactory {
 
 class OreProjectFactory @Inject()(override val service: ModelService,
                                   override val config: OreConfig,
-                                  override val forums: DiscourseApi,
+                                  override val forums: OreDiscourseApi,
                                   override val cacheApi: CacheApi,
                                   override val messages: MessagesApi,
                                   override val actorSystem: ActorSystem)

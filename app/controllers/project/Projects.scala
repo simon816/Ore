@@ -7,8 +7,8 @@ import controllers.BaseController
 import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
 import db.ModelService
+import discourse.impl.OreDiscourseApi
 import form.OreForms
-import discourse.DiscourseApi
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
 import ore.project.factory.{PendingProject, ProjectFactory}
@@ -21,8 +21,6 @@ import play.api.mvc._
 import util.StringUtils._
 import views.html.{projects => views}
 
-import scala.util.{Failure, Success}
-
 /**
   * Controller for handling Project related actions.
   */
@@ -32,7 +30,7 @@ class Projects @Inject()(val stats: StatTracker,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
-                         implicit override val forums: DiscourseApi,
+                         implicit override val forums: OreDiscourseApi,
                          implicit override val service: ModelService)
                          extends BaseController {
 
@@ -61,11 +59,11 @@ class Projects @Inject()(val stats: StatTracker,
         // Start a new pending project
         var project: PendingProject = null
         try {
-          project = this.factory.startProject(tmpFile.ref, tmpFile.filename, request.user)
+          val plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, request.user)
+          project = this.factory.startProject(plugin)
         } catch {
           case e: InvalidPluginFileException =>
-            Redirect(self.showCreator().flashing("error" -> "Invalid plugin file."))
-          case _ => throw _
+            Redirect(self.showCreator()).flashing("error" -> "Invalid plugin file.")
         }
 
         project.cache()
@@ -182,14 +180,16 @@ class Projects @Inject()(val stats: StatTracker,
         hasErrors =>
           Redirect(self.showDiscussion(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         content => {
-          val errors = this.forums.await(this.forums.createPost(
-            username = request.user.name,
-            topicId = request.project.topicId.get,
-            content = content)).left.toOption.getOrElse(List.empty)
-          var result = Redirect(self.showDiscussion(author, slug))
-          if (errors.nonEmpty)
-            result = result.flashing("error" -> errors.head)
-          result
+          val project = request.project
+          if (project.topicId.isEmpty)
+            BadRequest
+          else {
+            val errors = this.forums.await(this.forums.postDiscussionReply(project, request.user, content))
+            var result = Redirect(self.showDiscussion(author, slug))
+            if (errors.nonEmpty)
+              result = result.flashing("error" -> errors.head)
+            result
+          }
         }
       )
     }

@@ -22,7 +22,7 @@ import ore.user.notification.NotificationTypes.NotificationType
  * model.
  */
 
-class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects")
+trait ProjectTable extends ModelTable[Project]
   with NameColumn[Project]
   with DownloadsColumn[Project]
   with DescriptionColumn[Project] {
@@ -40,14 +40,19 @@ class ProjectTable(tag: Tag) extends ModelTable[Project](tag, "projects")
   def source                =   column[String]("source")
   def topicId               =   column[Int]("topic_id")
   def postId                =   column[Int]("post_id")
+  def isTopicDirty          =   column[Boolean]("is_topic_dirty")
   def isVisible             =   column[Boolean]("is_visible")
   def lastUpdated           =   column[Timestamp]("last_updated")
 
   override def * = (id.?, createdAt.?, pluginId, ownerName, userId, homepage.?, name, slug, recommendedVersionId.?,
-                    category, stars, views, downloads, issues.?, source.?, description.?, topicId.?, postId.?,
-                    isVisible, lastUpdated) <> (Project.tupled, Project.unapply)
+    category, stars, views, downloads, issues.?, source.?, description.?, topicId.?, postId.?,
+    isTopicDirty, isVisible, lastUpdated) <> ((Project.apply _).tupled, Project.unapply)
 
 }
+
+class ProjectTableMain(tag: Tag) extends ModelTable[Project](tag, "projects") with ProjectTable
+
+class ProjectTableDeleted(tag: Tag) extends ModelTable[Project](tag, "projects_deleted") with ProjectTable
 
 class ProjectWatchersTable(tag: Tag)
   extends AssociativeTable(tag, "project_watchers", classOf[Project], classOf[User]) {
@@ -111,7 +116,8 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions")
   def fileName        =   column[String]("file_name")
 
   override def * = (id.?, createdAt.?, projectId, versionString, mcversion.?, dependencies, assets.?, channelId,
-                    fileSize, hash, description.?, downloads, isReviewed, fileName) <> (Version.tupled, Version.unapply)
+                    fileSize, hash, description.?, downloads, isReviewed, fileName) <> ((Version.apply _).tupled,
+                    Version.unapply)
 }
 
 class VersionDownloadsTable(tag: Tag) extends StatTable[VersionDownload](tag, "version_downloads", "version_id") {

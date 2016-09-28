@@ -11,8 +11,8 @@ import scala.collection.JavaConverters._
   */
 trait ModelRegistry {
 
-  private val modelSchemas: BiMap[Class[_ <: Model], ModelSchema[_]] = HashBiMap.create()
-  private var modelBases: Map[Class[_ <: ModelBase[_]], ModelBase[_]] = Map.empty
+  val modelSchemas: BiMap[Class[_ <: Model], ModelSchema[_]] = HashBiMap.create()
+  var modelBases: Map[Class[_ <: ModelBase[_]], ModelBase[_]] = Map.empty
 
   /**
     * Registers a new [[ModelSchema]].
@@ -60,15 +60,11 @@ trait ModelRegistry {
   /**
     * Registers a new [[ModelBase]] with the service.
     *
-    * @param clazz  ModelBase class
-    * @param base   ModelBase
-    * @tparam B     Type
+    * @param base ModelBase
     */
-  def registerModelBase[B <: ModelBase[_]](clazz: Class[B], base: B): B = {
-    checkNotNull(clazz, "model class is null", "")
+  def registerModelBase(base: ModelBase[_ <: Model]) = {
     checkNotNull(base, "model base is null", "")
-    this.modelBases += clazz -> base
-    base
+    this.modelBases += base.getClass -> base
   }
 
   /**

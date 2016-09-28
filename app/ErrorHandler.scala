@@ -3,6 +3,7 @@ import javax.inject._
 import _root_.db.ModelService
 import _root_.db.impl.access.{ProjectBase, UserBase}
 import _root_.discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import ore.{OreConfig, OreEnv}
 import play.api._
 import play.api.http.DefaultHttpErrorHandler
@@ -21,7 +22,7 @@ class ErrorHandler @Inject()(env: Environment,
                              implicit val oreEnv: OreEnv,
                              implicit val config: OreConfig,
                              implicit val service: ModelService,
-                             implicit val forums: DiscourseApi,
+                             implicit val forums: OreDiscourseApi,
                              override val messagesApi: MessagesApi)
                              extends DefaultHttpErrorHandler(env, conf, sourceMapper, router)
                                with I18nSupport {

@@ -59,6 +59,7 @@ case class Project(override val id: Option[Int] = None,
                    private var _description: Option[String] = None,
                    private var _topicId: Option[Int] = None,
                    private var _postId: Option[Int] = None,
+                   private var _isTopicDirty: Boolean = false,
                    private var _isVisible: Boolean = true,
                    private var _lastUpdated: Timestamp = null)
                    extends OreModel(id, createdAt)
@@ -196,8 +197,12 @@ case class Project(override val id: Option[Int] = None,
     checkArgument(_description == null
       || _description.length <= this.config.projects.getInt("max-desc-len").get, "description too long", "")
     this._description = Option(_description)
-    if (this.topicId.isDefined) this.forums.embed.renameTopic(this)
-    if (isDefined) update(Description)
+
+    if (this.topicId.isDefined && this.forums.isEnabled)
+      this.forums.updateProjectTopic(this)
+
+    if (isDefined)
+      update(Description)
   }
 
   /**
@@ -492,6 +497,24 @@ case class Project(override val id: Option[Int] = None,
   }
 
   /**
+    * Returns true if this Project's topic is out of sync with the forums.
+    *
+    * @return True if topic out of sync
+    */
+  def isTopicDirty: Boolean = this._isTopicDirty
+
+  /**
+    * Sets whether this Project's topic is out of sync with the forums and
+    * needs an update.
+    *
+    * @param topicDirty True if topic is dirty
+    */
+  def setTopicDirty(topicDirty: Boolean) = Defined {
+    this._isTopicDirty = topicDirty
+    update(IsTopicDirty)
+  }
+
+  /**
     * Returns the string to fill the specified Project's forum topic content
     * with.
     *
@@ -514,42 +537,42 @@ object Project {
 
   case class Builder(service: ModelService) {
 
-    private var pluginId: String = _
-    private var ownerName: String = _
-    private var ownerId: Int = -1
-    private var name: String = _
+    private var _pluginId: String = _
+    private var _ownerName: String = _
+    private var _ownerId: Int = -1
+    private var _name: String = _
 
     def pluginId(pluginId: String) = {
-      this.pluginId = pluginId
+      this._pluginId = pluginId
       this
     }
 
     def ownerName(ownerName: String) = {
-      this.ownerName = ownerName
+      this._ownerName = ownerName
       this
     }
 
     def ownerId(ownerId: Int) = {
-      this.ownerId = ownerId
+      this._ownerId = ownerId
       this
     }
 
     def name(name: String) = {
-      this.name = name
+      this._name = name
       this
     }
 
     def build(): Project = {
-      checkNotNull(this.pluginId, "plugin id null", "")
-      checkNotNull(this.ownerName, "owner name null", "")
-      checkNotNull(this.name, "name null", "")
-      checkArgument(this.ownerId != -1, "invalid owner id", "")
+      checkNotNull(this._pluginId, "plugin id null", "")
+      checkNotNull(this._ownerName, "owner name null", "")
+      checkNotNull(this._name, "name null", "")
+      checkArgument(this._ownerId != -1, "invalid owner id", "")
       this.service.processor.process(Project(
-        pluginId = this.pluginId,
-        _ownerName = this.ownerName,
-        _ownerId = this.ownerId,
-        _name = this.name,
-        _slug = slugify(this.name)
+        pluginId = this._pluginId,
+        _ownerName = this._ownerName,
+        _ownerId = this._ownerId,
+        _name = this._name,
+        _slug = slugify(this._name)
       ))
     }
 

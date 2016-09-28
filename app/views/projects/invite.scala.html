@@ -14,7 +14,7 @@
         env: OreEnv)
 
 @registeredUsers(users: List[String]) = {
-    @users.count(forums.userExists)
+    @users.count(u => forums.await(forums.userExists(u)))
 }
 
 @projects.utils.panelCreate(messages("project.create"), 3) {

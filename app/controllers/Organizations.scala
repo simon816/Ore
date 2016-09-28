@@ -6,6 +6,7 @@ import db.ModelService
 import db.impl.access.OrganizationBase
 import form.OreForms
 import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import ore.permission.EditSettings
 import ore.rest.OreWrites
 import ore.user.MembershipDossier._
@@ -22,7 +23,7 @@ class Organizations @Inject()(forms: OreForms,
                               implicit override val env: OreEnv,
                               implicit override val config: OreConfig,
                               implicit override val service: ModelService,
-                              implicit override val forums: DiscourseApi,
+                              implicit override val forums: OreDiscourseApi,
                               implicit override val messagesApi: MessagesApi) extends BaseController {
 
   private def EditOrganizationAction(organization: String)

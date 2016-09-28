@@ -23,6 +23,14 @@ class ModelAccess[M <: Model](val service: ModelService,
   def get(id: Int): Option[M] = await(this.service.get[M](this.modelClass, id, this.baseFilter.fn)).get
 
   /**
+    * Returns a set of Models that have an ID that is in the specified Int set.
+    *
+    * @param ids  ID set
+    * @return     Models in ID set
+    */
+  def in(ids: Set[Int]): Set[M] = await(this.service.in[M](this.modelClass, ids, this.baseFilter.fn)).get.toSet
+
+  /**
     * Returns all the [[Model]]s in the set.
     *
     * @return All models in set

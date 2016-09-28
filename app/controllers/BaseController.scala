@@ -4,6 +4,7 @@ import db.ModelService
 import db.impl.VersionTable
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import models.project.{Project, Version}
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.I18nSupport
@@ -16,7 +17,7 @@ import util.StringUtils.equalsIgnoreCase
 abstract class BaseController(implicit val env: OreEnv,
                               val config: OreConfig,
                               val service: ModelService,
-                              override val forums: DiscourseApi)
+                              override val forums: OreDiscourseApi)
                               extends Controller
                                 with Actions
                                 with I18nSupport {

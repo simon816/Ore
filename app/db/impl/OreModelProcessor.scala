@@ -3,7 +3,7 @@ package db.impl
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import db.impl.model.OreModel
 import db.{Model, ModelProcessor, ModelService}
-import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import ore.OreConfig
 
 /**
@@ -17,7 +17,7 @@ class OreModelProcessor(service: ModelService,
                         projects: ProjectBase,
                         organizations: OrganizationBase,
                         config: OreConfig,
-                        forums: DiscourseApi)
+                        forums: OreDiscourseApi)
                         extends ModelProcessor(service) {
 
   override def process[M <: Model](model: M) = {

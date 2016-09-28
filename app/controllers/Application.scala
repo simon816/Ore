@@ -8,6 +8,7 @@ import db.impl.access.{FlagBase, VersionBase}
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
 import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import models.project.{Flag, Project}
 import ore.permission._
 import ore.permission.scope.GlobalScope
@@ -26,7 +27,7 @@ class Application @Inject()(data: DataHelper,
                             implicit override val messagesApi: MessagesApi,
                             implicit override val env: OreEnv,
                             implicit override val config: OreConfig,
-                            implicit override val forums: DiscourseApi,
+                            implicit override val forums: OreDiscourseApi,
                             implicit override val service: ModelService)
                             extends BaseController {
 

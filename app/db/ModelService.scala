@@ -45,6 +45,11 @@ trait ModelService {
   val DB: DatabaseConfig[JdbcProfile]
 
   /**
+    * Performs initialization code for the ModelService.
+    */
+  def start() = {}
+
+  /**
     * Returns a current Timestamp.
     *
     * @return Timestamp of now
@@ -223,6 +228,18 @@ trait ModelService {
     */
   def get[M <: Model](modelClass: Class[M], id: Int, filter: M#T => Rep[Boolean] = null): Future[Option[M]]
   = find[M](modelClass, (IdFilter[M](id) && filter).fn)
+
+  /**
+    * Returns a sequence of Model's that have an ID in the specified Set.
+    *
+    * @param modelClass Model class
+    * @param ids        ID set
+    * @param filter     Additional filter
+    * @tparam M         Model type
+    * @return           Seq of models in ID set
+    */
+  def in[M <: Model](modelClass: Class[M], ids: Set[Int], filter: M#T => Rep[Boolean] = null): Future[Seq[M]]
+  = this.filter[M](modelClass, (ModelFilter[M](_.id inSetBind ids) && filter).fn)
 
   /**
     * Returns a collection of models with the specified limit and offset.

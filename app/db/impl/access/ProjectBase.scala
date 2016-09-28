@@ -7,7 +7,7 @@ import _root_.util.StringUtils._
 import com.google.common.base.Preconditions._
 import db.impl.OrePostgresDriver.api._
 import db.{ModelBase, ModelService}
-import discourse.DiscourseApi
+import discourse.impl.OreDiscourseApi
 import models.project.{Channel, Project, Version}
 import ore.project.io.ProjectFileManager
 import ore.{OreConfig, OreEnv}
@@ -16,7 +16,7 @@ import org.apache.commons.io.FileUtils
 class ProjectBase(override val service: ModelService,
                   env: OreEnv,
                   config: OreConfig,
-                  forums: DiscourseApi)
+                  forums: OreDiscourseApi)
                   extends ModelBase[Project] {
 
   override val modelClass = classOf[Project]
@@ -100,10 +100,8 @@ class ProjectBase(override val service: ModelService,
     project.name = newName
     project.slug = newSlug
 
-    if (project.topicId.isDefined) {
-      this.forums.embed.renameTopic(project)
-      this.forums.embed.updateTopic(project)
-    }
+    if (project.topicId.isDefined && this.forums.isEnabled)
+      this.forums.updateProjectTopic(project)
   }
 
   /**
@@ -156,8 +154,8 @@ class ProjectBase(override val service: ModelService,
     */
   def delete(project: Project) = {
     FileUtils.deleteDirectory(this.fileManager.getProjectDir(project.ownerName, project.name).toFile)
-    if (project.topicId.isDefined)
-      this.forums.embed.deleteTopic(project)
+    if (project.topicId.isDefined && this.forums.isEnabled)
+      this.forums.deleteProjectTopic(project)
     project.remove()
   }
 

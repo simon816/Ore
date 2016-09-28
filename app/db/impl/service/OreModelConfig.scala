@@ -1,58 +1,17 @@
-package db.impl
-
-import java.util.concurrent.TimeUnit
-import javax.inject.{Inject, Singleton}
+package db.impl.service
 
 import db.impl.OrePostgresDriver.api._
-import db.impl.access.{FlagBase, ProjectBase, UserBase, VersionBase, _}
+import db.impl._
 import db.impl.schema.{PageSchema, ProjectSchema, UserSchema, VersionSchema}
 import db.table.ModelAssociation
-import db.{ModelRegistry, ModelSchema, ModelService}
-import discourse.DiscourseApi
+import db.{ModelSchema, ModelService}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole}
 import models.user.{Notification, Organization, User}
-import ore.{OreConfig, OreEnv}
-import play.api.db.slick.DatabaseConfigProvider
-import play.api.i18n.MessagesApi
-import slick.driver.JdbcProfile
 
-import scala.concurrent.duration.Duration
+trait OreModelConfig extends ModelService with OreDBOs {
 
-/**
-  * The Ore ModelService implementation. Contains registration of Ore-specific
-  * types and Models.
-  *
-  * @param db DatabaseConfig
-  */
-@Singleton
-class OreModelService @Inject()(env: OreEnv,
-                                config: OreConfig,
-                                forums: DiscourseApi,
-                                db: DatabaseConfigProvider,
-                                messages: MessagesApi)
-                                extends ModelService {
-
-  override lazy val registry = new ModelRegistry {}
-  override lazy val processor = new OreModelProcessor(
-    this, this.users, this.projects, this.orgs, this.config, this.forums
-  )
-  override lazy val driver = OrePostgresDriver
-  override lazy val DB = db.get[JdbcProfile]
-  override lazy val DefaultTimeout: Duration = Duration(config.app.getInt("db.default-timeout").get, TimeUnit.SECONDS)
-
-  import registry.{registerModelBase, registerSchema}
-
-  val users = registerModelBase(classOf[UserBase], new UserBase(this, forums, config))
-  val projects = registerModelBase(classOf[ProjectBase], new ProjectBase(this, this.env, this.config, this.forums))
-  val versions = registerModelBase(classOf[VersionBase], new VersionBase(this))
-  val flags = registerModelBase(classOf[FlagBase], new FlagBase(this))
-  val orgs = registerModelBase[OrganizationBase](classOf[OrganizationBase], new OrganizationBase(
-    this, this.forums, this.config, this.messages
-  ))
-
-  // Associations
   val projectWatchers = new ModelAssociation[ProjectWatchersTable](
     this, _.projectId, _.userId, classOf[ProjectWatchersTable], TableQuery[ProjectWatchersTable])
 
@@ -65,8 +24,9 @@ class OreModelService @Inject()(env: OreEnv,
   val stars = new ModelAssociation[ProjectStarsTable](
     this, _.userId, _.projectId, classOf[ProjectStarsTable], TableQuery[ProjectStarsTable])
 
-  // User schema
-  registerSchema(new UserSchema(this))
+  // Begin schemas
+
+  val UserSchema = new UserSchema(this)
     .withChildren[Project](classOf[Project], _.userId)
     .withChildren[ProjectRole](classOf[ProjectRole], _.userId)
     .withChildren[OrganizationRole](classOf[OrganizationRole], _.userId)
@@ -94,8 +54,7 @@ class OreModelService @Inject()(env: OreEnv,
       targetClass = classOf[Project],
       targetReference = _.projectId)
 
-  // Project schema
-  registerSchema(new ProjectSchema(this))
+  val ProjectSchema = new ProjectSchema(this, Users)
     .withChildren[Channel](classOf[Channel], _.projectId)
     .withChildren[Version](classOf[Version], _.projectId)
     .withChildren[Page](classOf[Page], _.projectId)
@@ -118,16 +77,16 @@ class OreModelService @Inject()(env: OreEnv,
       targetClass = classOf[User],
       targetReference = _.userId)
 
-  registerSchema(new VersionSchema(this)).withChildren[VersionDownload](classOf[VersionDownload], _.modelId)
+  val VersionSchema = new VersionSchema(this).withChildren[VersionDownload](classOf[VersionDownload], _.modelId)
 
-  registerSchema(new ModelSchema[Channel](this, classOf[Channel], TableQuery[ChannelTable]))
+  val ChannelSchema = new ModelSchema[Channel](this, classOf[Channel], TableQuery[ChannelTable])
     .withChildren[Version](classOf[Version], _.channelId)
 
-  registerSchema(new PageSchema(this))
+  val PageSchema = new PageSchema(this)
 
-  registerSchema(new ModelSchema[Notification](this, classOf[Notification], TableQuery[NotificationTable]))
+  val NotificationSchema = new ModelSchema[Notification](this, classOf[Notification], TableQuery[NotificationTable])
 
-  registerSchema(new ModelSchema[Organization](this, classOf[Organization], TableQuery[OrganizationTable]))
+  val OrganizationSchema = new ModelSchema[Organization](this, classOf[Organization], TableQuery[OrganizationTable])
     .withChildren[Project](classOf[Project], _.userId)
     .withChildren[OrganizationRole](classOf[OrganizationRole], _.organizationId)
     .withAssociation[OrganizationMembersTable, User](
@@ -136,6 +95,7 @@ class OreModelService @Inject()(env: OreEnv,
       targetClass = classOf[User],
       targetReference = _.userId)
 
-  registerSchema(new ModelSchema[OrganizationRole](this, classOf[OrganizationRole], TableQuery[OrganizationRoleTable]))
+  val OrganizationRoleSchema = new ModelSchema[OrganizationRole](
+    this, classOf[OrganizationRole], TableQuery[OrganizationRoleTable])
 
 }

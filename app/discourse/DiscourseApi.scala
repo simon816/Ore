@@ -13,6 +13,8 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.util.Success
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 /**
   * An implementation of the RESTful API for the forum software: "Discourse".
   */
