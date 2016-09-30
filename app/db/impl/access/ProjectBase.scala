@@ -72,6 +72,8 @@ class ProjectBase(override val service: ModelService,
   /**
     * Saves any pending icon that has been uploaded for the specified [[Project]].
     *
+    * FIXME: Weird behavior
+    *
     * @param project Project to save icon for
     */
   def savePendingIcon(project: Project) = {
@@ -100,7 +102,8 @@ class ProjectBase(override val service: ModelService,
     project.name = newName
     project.slug = newSlug
 
-    if (project.topicId.isDefined && this.forums.isEnabled)
+    // Project's name alter's the topic title, update it
+    if (project.topicId != -1 && this.forums.isEnabled)
       this.forums.updateProjectTopic(project)
   }
 
@@ -115,7 +118,8 @@ class ProjectBase(override val service: ModelService,
 
     val channels = proj.channels.all
     checkArgument(channels.size > 1, "only one channel", "")
-    checkArgument(channel.versions.isEmpty || channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
+    checkArgument(channel.versions.isEmpty ||
+      channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
 
     FileUtils.deleteDirectory(this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(channel.name).toFile)
     channel.remove()
@@ -135,9 +139,8 @@ class ProjectBase(override val service: ModelService,
     version.remove()
 
     // Set recommended version to latest version if the deleted version was the rv
-    if (version.equals(rv)) {
+    if (version.equals(rv))
       proj.recommendedVersion = proj.versions.sorted(_.createdAt.desc, limit = 1).head
-    }
 
     // Delete channel if now empty
     val channel: Channel = version.channel
@@ -154,8 +157,9 @@ class ProjectBase(override val service: ModelService,
     */
   def delete(project: Project) = {
     FileUtils.deleteDirectory(this.fileManager.getProjectDir(project.ownerName, project.name).toFile)
-    if (project.topicId.isDefined && this.forums.isEnabled)
+    if (project.topicId != -1 && this.forums.isEnabled)
       this.forums.deleteProjectTopic(project)
+    // TODO: Instead, move to the "projects_deleted" table just in case we couldn't delete the topic
     project.remove()
   }
 

@@ -19,17 +19,6 @@ import scala.concurrent.Future
 class ProjectSchema(override val service: ModelService, implicit val users: UserBase)
   extends ModelSchema[Project](service, classOf[Project], TableQuery[ProjectTableMain]) {
 
-  /** The [[ModelSchema]] for [[Flag]]s. */
-  val FlagActions = service.registry.registerSchema(
-    new ModelSchema[Flag](this.service, classOf[Flag], TableQuery[FlagTable])
-  )
-
-  /** The [[ModelSchema]] for [[ProjectView]]. */
-  case object ViewSchema extends ModelSchema[ProjectView](
-    this.service, classOf[ProjectView], TableQuery[ProjectViewsTable])
-    with StatSchema[ProjectView]
-  val ViewActions = service.registry.registerSchema(ViewSchema)
-
   /**
     * Returns all [[User]]s with at least one [[Project]].
     *

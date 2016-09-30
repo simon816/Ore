@@ -4,7 +4,6 @@ import java.nio.file.Path
 import javax.inject.{Inject, Singleton}
 
 import akka.actor.ActorSystem
-import db.impl.access.ProjectBase
 import ore.{OreConfig, OreEnv}
 import play.api.libs.ws.WSClient
 import util.CryptoUtils
@@ -31,8 +30,9 @@ class SpongeForums @Inject()(env: OreEnv,
 
   override val categorySlug: String = this.conf.getString("embed.categorySlug").get
   override val topicTemplatePath: Path = this.env.conf.resolve("discourse/project_topic.md")
-  override protected val scheduler = this.actorSystem.scheduler
-  override protected val retryRate: FiniteDuration = this.conf.getInt("embed.retryRate").get.millis
+  override val versionReleasePostTemplatePath: Path = this.env.conf.resolve("discourse/version_post.md")
+  override val scheduler = this.actorSystem.scheduler
+  override val retryRate: FiniteDuration = this.conf.getInt("embed.retryRate").get.millis
 
   override def nonce = CryptoUtils.nonce
 

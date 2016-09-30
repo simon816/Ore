@@ -2,7 +2,7 @@ package db.impl.service
 
 import db.impl.OrePostgresDriver.api._
 import db.impl._
-import db.impl.schema.{PageSchema, ProjectSchema, UserSchema, VersionSchema}
+import db.impl.schema._
 import db.table.ModelAssociation
 import db.{ModelSchema, ModelService}
 import models.project._
@@ -54,6 +54,8 @@ trait OreModelConfig extends ModelService with OreDBOs {
       targetClass = classOf[Project],
       targetReference = _.projectId)
 
+  val ProjectRolesSchema = new ModelSchema[ProjectRole](this, classOf[ProjectRole], TableQuery[ProjectRoleTable])
+
   val ProjectSchema = new ProjectSchema(this, Users)
     .withChildren[Channel](classOf[Channel], _.projectId)
     .withChildren[Version](classOf[Version], _.projectId)
@@ -77,7 +79,15 @@ trait OreModelConfig extends ModelService with OreDBOs {
       targetClass = classOf[User],
       targetReference = _.userId)
 
+  val FlagSchema = new ModelSchema[Flag](this, classOf[Flag], TableQuery[FlagTable])
+
+  case object ViewSchema extends ModelSchema[ProjectView](this, classOf[ProjectView], TableQuery[ProjectViewsTable])
+    with StatSchema[ProjectView]
+
   val VersionSchema = new VersionSchema(this).withChildren[VersionDownload](classOf[VersionDownload], _.modelId)
+
+  case object DownloadSchema extends ModelSchema[VersionDownload](
+    this, classOf[VersionDownload], TableQuery[VersionDownloadsTable]) with StatSchema[VersionDownload]
 
   val ChannelSchema = new ModelSchema[Channel](this, classOf[Channel], TableQuery[ChannelTable])
     .withChildren[Version](classOf[Version], _.channelId)

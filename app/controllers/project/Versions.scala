@@ -8,7 +8,6 @@ import controllers.Requests.ProjectRequest
 import controllers.project.routes.{Versions => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import discourse.DiscourseApi
 import discourse.impl.OreDiscourseApi
 import form.OreForms
 import models.project.{Channel, Project, Version}
@@ -185,7 +184,7 @@ class Versions @Inject()(val stats: StatTracker,
             Redirect(self.showCreator(author, slug))
               .flashing("error" -> "The uploaded plugin ID must match your project's plugin ID.")
           else {
-            val pendingVersion = this.factory.startVersion(plugin, project)
+            val pendingVersion = this.factory.startVersion(plugin, project, project.channels.all.head.name)
             if (pendingVersion.underlying.exists && this.config.projects.getBoolean("file-validate").get)
               Redirect(self.showCreator(author, slug))
                 .flashing("error" -> "Found a duplicate file in project. Plugin files may only be uploaded once.")
@@ -293,7 +292,7 @@ class Versions @Inject()(val stats: StatTracker,
                           project.recommendedVersion = newVersion
 
                         // Create forum topic reply
-                        this.forums.postDiscussionReply(project, project.owner.user, newVersion.postContent)
+                        this.forums.postVersionRelease(project, newVersion)
 
                         Redirect(self.show(author, slug, versionString))
                       }

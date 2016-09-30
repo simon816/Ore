@@ -5,16 +5,17 @@ import javax.inject.Inject
 import controllers.routes.{Application => app, Users => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import db.impl.access.UserBase.ORDER_PROJECTS
+import db.impl.access.UserBase.ORDERING_PROJECTS
 import discourse.impl.OreDiscourseApi
+import discourse.model.DiscourseUser
 import form.OreForms
-import discourse.{DiscourseApi, DiscourseSSO}
+import models.user.User
 import models.user.role.RoleModel
 import ore.permission.EditSettings
-import ore.user.{FakeUser, Prompts}
 import ore.user.notification.InviteFilters.InviteFilter
 import ore.user.notification.NotificationFilters.NotificationFilter
 import ore.user.notification.{InviteFilters, NotificationFilters}
+import ore.user.{FakeUser, Prompts}
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import play.api.mvc.{Security, _}
@@ -41,18 +42,26 @@ class Users @Inject()(val fakeUser: FakeUser,
   def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
     val baseUrl = this.config.app.getString("baseUrl").get
     if (this.fakeUser.isEnabled) {
-//      this.users.getOrCreate(this.fakeUser)
+      // Log in as fake user (debug only)
+      this.config.checkDebug()
+      this.users.getOrCreate(this.fakeUser)
       this.redirectBack(returnPath.getOrElse(request.path), this.fakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
+      // Check if forums are available and redirect to login if so
       if (this.forums.await(this.forums.isAvailable))
         Redirect(this.forums.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
       else
         Redirect(app.showHome(None, None, None, None))
           .flashing("error" -> "Login is temporarily unavailable, please try again later.")
     } else {
-      // Decode SSO payload received from forums and get Ore user
-      val user = this.forums.authenticate(sso.get, sig.get)
-      this.redirectBack(request.flash.get("url").getOrElse("/"), user.username)
+      // Redirected from the forums, decode SSO payload received from forums and get Ore user
+      val discourseUser: DiscourseUser = this.forums.authenticate(sso.get, sig.get)
+
+      // Create the user on Ore if they don't exist
+      this.users.getOrCreate(User.fromDiscourse(discourseUser)).refresh()
+
+      // Finish authentication
+      this.redirectBack(request.flash.get("url").getOrElse("/"), discourseUser.username)
     }
   }
 
@@ -115,7 +124,7 @@ class Users @Inject()(val fakeUser: FakeUser,
     * [[models.project.Project]].
     */
   def showAuthors(sort: Option[String], page: Option[Int]) = Action { implicit request =>
-    val ordering = sort.getOrElse(ORDER_PROJECTS)
+    val ordering = sort.getOrElse(ORDERING_PROJECTS)
     val p = page.getOrElse(1)
     Ok(views.users.authors(this.users.getAuthors(ordering, p), ordering, p))
   }
@@ -202,8 +211,7 @@ class Users @Inject()(val fakeUser: FakeUser,
     }
   }
 
-  private def redirectBack(url: String, username: String) = {
-    Redirect(this.config.app.getString("baseUrl").get + url).withSession(Security.username -> username)
-  }
+  private def redirectBack(url: String, username: String)
+  = Redirect(this.config.app.getString("baseUrl").get + url).withSession(Security.username -> username)
 
 }

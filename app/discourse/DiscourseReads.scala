@@ -44,6 +44,7 @@ trait DiscourseReads {
       (JsPath \ "topic_slug").read[String] and
       (JsPath \ "created_at").read[Timestamp] and
       (JsPath \ "updated_at").read[Timestamp] and
+      (JsPath \ "deleted_at").readNullable[Timestamp] and
       (JsPath \ "cooked").read[String] and
       (JsPath \ "reply_count").read[Int] and
       (JsPath \ "post_number").read[Int]

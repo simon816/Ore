@@ -181,9 +181,10 @@ class Projects @Inject()(val stats: StatTracker,
           Redirect(self.showDiscussion(author, slug)).flashing("error" -> hasErrors.errors.head.message),
         content => {
           val project = request.project
-          if (project.topicId.isEmpty)
+          if (project.topicId == -1)
             BadRequest
           else {
+            // Do forum post and display errors to user if any
             val errors = this.forums.await(this.forums.postDiscussionReply(project, request.user, content))
             var result = Redirect(self.showDiscussion(author, slug))
             if (errors.nonEmpty)

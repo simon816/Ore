@@ -21,6 +21,7 @@ case class PendingProject(projects: ProjectBase,
                           factory: ProjectFactory,
                           underlying: Project,
                           file: PluginFile,
+                          channelName: String,
                           implicit val config: OreConfig,
                           var roles: Set[ProjectRole] = Set(),
                           override val cacheApi: CacheApi)
@@ -31,7 +32,7 @@ case class PendingProject(projects: ProjectBase,
     * The first [[PendingVersion]] for this PendingProject.
     */
   val pendingVersion: PendingVersion = {
-    val version = this.factory.startVersion(this.file, this.underlying)
+    val version = this.factory.startVersion(this.file, this.underlying, this.channelName)
     version.cache()
     version
   }

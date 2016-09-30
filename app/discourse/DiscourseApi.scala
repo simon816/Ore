@@ -6,13 +6,12 @@ import akka.stream.scaladsl.{FileIO, Source}
 import discourse.model.{DiscoursePost, DiscourseUser}
 import play.api.http.Status
 import play.api.libs.json.JsObject
-import play.api.libs.ws.{WSClient, WSResponse}
+import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.mvc.MultipartFormData.{DataPart, FilePart}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.util.Success
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
@@ -29,7 +28,10 @@ trait DiscourseApi extends DiscourseReads {
   /** Default timeout */
   val timeout: Duration
 
+  val Logger = play.api.Logger("Discourse")
+
   var isEnabled: Boolean = true
+  var isDebugMode: Boolean = false
 
   protected val ws: WSClient
 
@@ -68,7 +70,7 @@ trait DiscourseApi extends DiscourseReads {
     * @return         User data or none
     */
   def fetchUser(username: String): Future[Option[DiscourseUser]]
-  = this.ws.url(userUrl(username)).get.map(validateRight(_).map(_.as[DiscourseUser]))
+  = this.request(userUrl(username)).get.map(validateRight(_).map(json => (json \ "user").as[DiscourseUser]))
 
   /**
     * Creates a new user on the Discourse instance.
@@ -88,7 +90,7 @@ trait DiscourseApi extends DiscourseReads {
       "email" -> Seq(email),
       "password" -> Seq(password),
       "active" -> Seq(active.toString))
-    this.ws.url(keyedUrl("/users")).post(data).map(validate(_).right.map(json => (json \ "user_id").as[Int]))
+    this.request(keyedUrl("/users")).post(data).map(validate(_).right.map(json => (json \ "user_id").as[Int]))
   }
 
   /**
@@ -100,7 +102,7 @@ trait DiscourseApi extends DiscourseReads {
   def addUserGroup(userId: Int, groupId: Int): Future[List[String]] = {
     val url = keyedUrl(s"/admin/users/$userId/groups")
     val data = Map("group_id" -> Seq(groupId.toString))
-    this.ws.url(url).post(data).map(validateLeft)
+    this.request(url).post(data).map(validateLeft)
   }
 
   /**
@@ -117,7 +119,7 @@ trait DiscourseApi extends DiscourseReads {
       "url" -> Seq(avatarUrl),
       "type" -> Seq("avatar"),
       "synchronous" -> Seq("true"))
-    handleAvatarResponse(this.ws.url(url).post(data), username)
+    handleAvatarResponse(this.request(url).post(data), username)
   }
 
   /**
@@ -137,7 +139,7 @@ trait DiscourseApi extends DiscourseReads {
         :: DataPart("type", "avatar")
         :: DataPart("synchronous", "true")
         :: List())
-    handleAvatarResponse(this.ws.url(url).post(data), username)
+    handleAvatarResponse(this.request(url).post(data), username)
   }
 
   private def handleAvatarResponse(future: Future[WSResponse], username: String): Future[List[String]] = {
@@ -169,7 +171,14 @@ trait DiscourseApi extends DiscourseReads {
       "raw" -> Seq(content))
     if (categorySlug != null)
       params += "category" -> Seq(categorySlug)
-    this.ws.url(this.url + "/posts").post(params).map(validate(_).right.map(_.as[DiscoursePost]))
+
+    // Note: Oddly enough, occasionally, discourse will choose to return a
+    // "deleted" post if the content is the same when created in rapid
+    // succession. Even more, the returned post is missing the "deleted_at"
+    // timestamp so it is currently impossible to discern when this happens as
+    // far as I can tell.
+
+    this.request(this.url + "/posts").post(params).map(validate(_).right.map(_.as[DiscoursePost]))
   }
 
   /**
@@ -184,7 +193,7 @@ trait DiscourseApi extends DiscourseReads {
     val params = ApiParams(username) + (
       "topic_id" -> Seq(topicId.toString),
       "raw" -> Seq(content))
-    this.ws.url(this.url + "/posts").post(params).map(validate(_).right.map(_.as[DiscoursePost]))
+    this.request(this.url + "/posts").post(params).map(validate(_).right.map(_.as[DiscoursePost]))
   }
 
   /**
@@ -204,7 +213,7 @@ trait DiscourseApi extends DiscourseReads {
       params += "title" -> Seq(title)
     if (categoryId != -1)
       params += "category_id" -> Seq(categoryId.toString)
-    this.ws.url(s"${this.url}/t/$topicId").put(params).map(validateLeft)
+    this.request(s"${this.url}/t/$topicId").put(params).map(validateLeft)
   }
 
   /**
@@ -217,7 +226,7 @@ trait DiscourseApi extends DiscourseReads {
     */
   def updatePost(username: String, postId: Int, content: String): Future[List[String]] = {
     val params = ApiParams(username) + ("post[raw]" -> Seq(content))
-    this.ws.url(s"${this.url}/posts/$postId").put(params).map(validateLeft)
+    this.request(s"${this.url}/posts/$postId").put(params).map(validateLeft)
   }
 
   /**
@@ -228,8 +237,15 @@ trait DiscourseApi extends DiscourseReads {
     * @return         List of errors
     */
   def deleteTopic(username: String, topicId: Int): Future[Boolean] = {
-    this.ws.url(keyedUrl(s"/t/$topicId", username)).delete().map(_.status == Status.OK).recover {
-      case e: Exception => false
+    this.request(keyedUrl(s"/t/$topicId", username)).delete().map(s => {
+      if (this.isDebugMode)
+        Logger.info(s"Topic deletion: $s")
+      s.status == Status.OK
+    }).recover {
+      case e: Exception =>
+        if (this.isDebugMode)
+          e.printStackTrace()
+        false
     }
   }
 
@@ -240,6 +256,12 @@ trait DiscourseApi extends DiscourseReads {
     * @return         Return type
     */
   def validate(response: WSResponse): Either[List[String], JsObject] = {
+
+    if (this.isDebugMode)
+      Logger.info("Discourse response:\n" +
+        s"Status: ${response.status}\n" +
+        s"Body: ${response.body}")
+
     var json: JsObject = null
     try {
       json = response.json.as[JsObject]
@@ -270,8 +292,14 @@ trait DiscourseApi extends DiscourseReads {
     */
   def validateRight(response: WSResponse): Option[JsObject] = validate(response).right.toOption
 
+  private def request(url: String): WSRequest = {
+    if (this.isDebugMode)
+      Logger.info(s"Request: $url")
+    this.ws.url(url)
+  }
+
   private def keyedUrl(url: String, username: String = this.admin)
-  = s"${this.url}url?api_key=${this.key}&api_username=$username"
+  = s"${this.url}$url?api_key=${this.key}&api_username=$username"
 
   private def ApiParams(username: String = this.admin) = Map(
     "api_key" -> Seq(this.key),

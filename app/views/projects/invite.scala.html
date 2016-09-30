@@ -1,7 +1,7 @@
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import db.impl.access.UserBase
-@import discourse.DiscourseApi
+@import discourse.impl.OreDiscourseApi
 @import models.user.role.ProjectRole
 @import ore.project.factory.PendingProject
 @import ore.{OreConfig, OreEnv}
@@ -9,12 +9,17 @@
 @import views.html.helper.form
 
 @import scala.collection.JavaConverters._
+@import scala.concurrent.TimeoutException
 @(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, userBase: UserBase,
+        request: RequestHeader, service: ModelService, forums: OreDiscourseApi, config: OreConfig, userBase: UserBase,
         env: OreEnv)
 
-@registeredUsers(users: List[String]) = {
-    @users.count(u => forums.await(forums.userExists(u)))
+@registeredUsers(users: List[String]) = @{
+    try {
+        forums.await(forums.countUsers(users))
+    } catch {
+        case e: TimeoutException => 0
+    }
 }
 
 @projects.utils.panelCreate(messages("project.create"), 3) {

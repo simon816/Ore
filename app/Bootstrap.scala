@@ -4,7 +4,10 @@ import db.ModelService
 import db.impl.access.ProjectBase
 import discourse.impl.OreDiscourseApi
 
-trait OreBootstrap {
+/**
+  * Handles initialization logic for the application.
+  */
+trait Bootstrap {
 
   val modelService: ModelService
   val forums: OreDiscourseApi
@@ -24,5 +27,5 @@ trait OreBootstrap {
 }
 
 @Singleton
-class OreBootstrapImpl @Inject()(override val modelService: ModelService,
-                                 override val forums: OreDiscourseApi) extends OreBootstrap
+class BootstrapImpl @Inject()(override val modelService: ModelService,
+                              override val forums: OreDiscourseApi) extends Bootstrap

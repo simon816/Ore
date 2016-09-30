@@ -57,8 +57,8 @@ case class Project(override val id: Option[Int] = None,
                    private var _issues: Option[String] = None,
                    private var _source: Option[String] = None,
                    private var _description: Option[String] = None,
-                   private var _topicId: Option[Int] = None,
-                   private var _postId: Option[Int] = None,
+                   private var _topicId: Int = -1,
+                   private var _postId: Int = -1,
                    private var _isTopicDirty: Boolean = false,
                    private var _isVisible: Boolean = true,
                    private var _lastUpdated: Timestamp = null)
@@ -198,7 +198,8 @@ case class Project(override val id: Option[Int] = None,
       || _description.length <= this.config.projects.getInt("max-desc-len").get, "description too long", "")
     this._description = Option(_description)
 
-    if (this.topicId.isDefined && this.forums.isEnabled)
+    // Description alter's the Project's topic title, update it
+    if (this.topicId != -1 && this.forums.isEnabled)
       this.forums.updateProjectTopic(this)
 
     if (isDefined)
@@ -467,7 +468,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Forum topic ID
     */
-  def topicId: Option[Int] = this._topicId
+  def topicId: Int = this._topicId
 
   /**
     * Sets the forum topic ID for this Project.
@@ -475,7 +476,7 @@ case class Project(override val id: Option[Int] = None,
     * @param _topicId ID to set
     */
   def topicId_=(_topicId: Int) = Defined {
-    this._topicId = Some(_topicId)
+    this._topicId = _topicId
     update(TopicId)
   }
 
@@ -484,7 +485,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Forum post ID
     */
-  def postId: Option[Int] = this._postId
+  def postId: Int = this._postId
 
   /**
     * Sets the forum post ID for this Project.
@@ -492,7 +493,7 @@ case class Project(override val id: Option[Int] = None,
     * @param _postId Forum post ID
     */
   def postId_=(_postId: Int) = Defined {
-    this._postId = Some(_postId)
+    this._postId = _postId
     update(PostId)
   }
 

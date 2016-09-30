@@ -50,8 +50,12 @@ class OreModelService @Inject()(override val env: OreEnv,
 
     // Register model schemas
     registerSchema(UserSchema)
+    registerSchema(ProjectRolesSchema)
     registerSchema(ProjectSchema)
+    registerSchema(FlagSchema)
+    registerSchema(ViewSchema)
     registerSchema(VersionSchema)
+    registerSchema(DownloadSchema)
     registerSchema(ChannelSchema)
     registerSchema(PageSchema)
     registerSchema(NotificationSchema)
@@ -63,8 +67,7 @@ class OreModelService @Inject()(override val env: OreEnv,
         s"Initialization time: ${System.currentTimeMillis() - time}ms\n" +
         s"Default timeout: ${DefaultTimeout.toString}\n" +
         s"Registered DBOs: ${this.registry.modelBases.size}\n" +
-        s"Registered Schemas: ${this.registry.modelSchemas.size}\n" +
-        "Ready to receive requests.")
+        s"Registered Schemas: ${this.registry.modelSchemas.size}")
   }
 
 }

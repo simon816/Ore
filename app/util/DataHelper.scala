@@ -5,7 +5,6 @@ import javax.inject.Inject
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.{ProjectBase, UserBase}
-import discourse.DiscourseApi
 import discourse.impl.OreDiscourseApi
 import ore.OreConfig
 import ore.project.factory.ProjectFactory

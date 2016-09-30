@@ -29,17 +29,17 @@
                 <thead>
                     <tr>
                         <td></td>
-                        <td @if(isActiveSort(ORDER_USERNAME)) { class="author-sort" } >
+                        <td @if(isActiveSort(ORDERING_USERNAME)) { class="author-sort" } >
                             Username
-                            @if(isActiveSort(ORDER_USERNAME)) { <i class="o @direction"></i> }
+                            @if(isActiveSort(ORDERING_USERNAME)) { <i class="o @direction"></i> }
                         </td>
-                        <td @if(isActiveSort(ORDER_JOINED)) { class="author-sort" } >
+                        <td @if(isActiveSort(ORDERING_JOIN_DATE)) { class="author-sort" } >
                             Joined
-                            @if(isActiveSort(ORDER_JOINED)) { <i class="o @direction"></i> }
+                            @if(isActiveSort(ORDERING_JOIN_DATE)) { <i class="o @direction"></i> }
                         </td>
-                        <td @if(isActiveSort(ORDER_PROJECTS)) { class="author-sort" } >
+                        <td @if(isActiveSort(ORDERING_PROJECTS)) { class="author-sort" } >
                             Projects
-                            @if(isActiveSort(ORDER_PROJECTS)) { <i class="o @direction"></i> }
+                            @if(isActiveSort(ORDERING_PROJECTS)) { <i class="o @direction"></i> }
                         </td>
                     </tr>
                 </thead>

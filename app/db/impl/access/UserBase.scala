@@ -5,11 +5,12 @@ import java.sql.Timestamp
 import db.impl.schema.ProjectSchema
 import db.{ModelBase, ModelService}
 import discourse.impl.OreDiscourseApi
-import discourse.model.DiscourseUser
 import models.user.User
 import ore.OreConfig
 import play.api.mvc.Session
 import util.StringUtils._
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Represents a central location for all Users.
@@ -33,16 +34,21 @@ class UserBase(override val service: ModelService,
     */
   def withName(username: String): Option[User] = {
     this.find(equalsIgnoreCase(_.name, username)).orElse {
-      this.service.await(forums.fetchUser(username)).get.map(getOrCreate)
+      // Try to get user from forums, or return None if can't connect
+      this.forums.await(this.forums.fetchUser(username).recover {
+        case e: Exception => None // ignore
+      }).map(u => getOrCreate(User.fromDiscourse(u)))
     }
   }
 
   /**
     * Returns a page of [[User]]s with at least one [[models.project.Project]].
     *
+    * FIXME: Ordering is messed up
+    *
     * @return Users with at least one project
     */
-  def getAuthors(ordering: String = ORDER_PROJECTS, page: Int = 1): Seq[User] = {
+  def getAuthors(ordering: String = ORDERING_PROJECTS, page: Int = 1): Seq[User] = {
     // determine ordering
     var sort = ordering
     val reverse = if (sort.startsWith("-")) {
@@ -57,9 +63,9 @@ class UserBase(override val service: ModelService,
 
     // sort
     sort match {
-      case ORDER_PROJECTS => users = users.sortBy(u => (u.projects.size, u.username))
-      case ORDER_JOINED => users = users.sortBy(u => (u.joinDate.getOrElse(u.createdAt.get), u.username))
-      case ORDER_USERNAME => users = users.sortBy(_.username)
+      case ORDERING_PROJECTS => users = users.sortBy(u => (u.projects.size, u.username))
+      case ORDERING_JOIN_DATE => users = users.sortBy(u => (u.joinDate.getOrElse(u.createdAt.get), u.username))
+      case ORDERING_USERNAME => users = users.sortBy(_.username)
       case _ => users.sortBy(u => (u.projects.size, u.username))
     }
 
@@ -70,6 +76,10 @@ class UserBase(override val service: ModelService,
     if (reverse) users.reverse else users
   }
 
+  implicit val timestampOrdering: Ordering[Timestamp] = new Ordering[Timestamp] {
+    def compare(x: Timestamp, y: Timestamp) = x compareTo y
+  }
+
   /**
     * Attempts to find the specified User in the database or creates a new User
     * if one does not exist.
@@ -77,10 +87,7 @@ class UserBase(override val service: ModelService,
     * @param user User to find
     * @return     Found or new User
     */
-  def getOrCreate(user: DiscourseUser): User = {
-//    this.service.await(user.schema(this.service).getOrInsert(user)).get
-    null
-  }
+  def getOrCreate(user: User): User = this.service.await(user.schema(this.service).getOrInsert(user)).get
 
   /**
     * Returns the currently authenticated User.
@@ -90,16 +97,12 @@ class UserBase(override val service: ModelService,
     */
   def current(implicit session: Session): Option[User] = session.get("username").map(withName).getOrElse(None)
 
-  implicit val timestampOrdering: Ordering[Timestamp] = new Ordering[Timestamp] {
-    def compare(x: Timestamp, y: Timestamp) = x compareTo y
-  }
-
 }
 
 object UserBase {
 
-  val ORDER_PROJECTS = "projects"
-  val ORDER_USERNAME = "username"
-  val ORDER_JOINED = "joined"
+  val ORDERING_PROJECTS = "projects"
+  val ORDERING_USERNAME = "username"
+  val ORDERING_JOIN_DATE = "joined"
 
 }

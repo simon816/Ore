@@ -17,6 +17,9 @@ trait ModelRegistry {
   /**
     * Registers a new [[ModelSchema]].
     *
+    * TODO: Model's need to be able to have multiple schemas (i.e. "projects"
+    * and "projects_deleted" tables)
+    *
     * @param schema ModelSchema to register
     * @tparam S Schema type
     * @return Registered schema

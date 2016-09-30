@@ -23,6 +23,8 @@ import ore.user.UserOwned
 import play.api.mvc.Session
 import util.StringUtils._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 /**
   * Represents a Sponge user.
   *
@@ -36,7 +38,7 @@ import util.StringUtils._
 case class User(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
                 private var _name: Option[String] = None,
-                private var _username: String,
+                private var _username: String = null,
                 private var _email: Option[String] = None,
                 private var _tagline: Option[String] = None,
                 private var _globalRoles: List[RoleType] = List(),
@@ -285,7 +287,9 @@ case class User(override val id: Option[Int] = None,
     * @return This user
     */
   def refresh(): User = {
-    this.service.await(this.forums.fetchUser(this.name)).get.foreach(fill)
+    this.forums.await(this.forums.fetchUser(this.name).recover {
+      case e: Exception => None // couldn't connect, ignore
+    }).foreach(fill)
     this
   }
 
@@ -440,5 +444,17 @@ case class User(override val id: Option[Int] = None,
   override val scope = GlobalScope
   override def userId = this.id.get
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(createdAt = theTime)
+
+}
+
+object User {
+
+  /**
+    * Creates a new [[User]] from the specified [[DiscourseUser]].
+    *
+    * @param user User to convert
+    * @return     Ore User
+    */
+  def fromDiscourse(user: DiscourseUser) = User().fill(user).copy(id = Some(user.id))
 
 }

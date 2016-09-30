@@ -30,8 +30,8 @@ object ModelKeys {
   val Views                 =   new IntKey[Project](_.views, _.viewCount)
   val Issues                =   new StringKey[Project](_.issues, _.issues.orNull)
   val Source                =   new StringKey[Project](_.source, _.source.orNull)
-  val TopicId               =   new IntKey[Project](_.topicId, _.topicId.getOrElse(-1))
-  val PostId                =   new IntKey[Project](_.postId, _.postId.getOrElse(-1))
+  val TopicId               =   new IntKey[Project](_.topicId, _.topicId)
+  val PostId                =   new IntKey[Project](_.postId, _.postId)
   val IsTopicDirty          =   new BooleanKey[Project](_.isTopicDirty, _.isTopicDirty)
   val RecommendedVersionId  =   new IntKey[Project](
                                   _.recommendedVersionId, _.recommendedVersion.id.getOrElse(-1))

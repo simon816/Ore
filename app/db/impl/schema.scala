@@ -45,8 +45,8 @@ trait ProjectTable extends ModelTable[Project]
   def lastUpdated           =   column[Timestamp]("last_updated")
 
   override def * = (id.?, createdAt.?, pluginId, ownerName, userId, homepage.?, name, slug, recommendedVersionId.?,
-    category, stars, views, downloads, issues.?, source.?, description.?, topicId.?, postId.?,
-    isTopicDirty, isVisible, lastUpdated) <> ((Project.apply _).tupled, Project.unapply)
+                    category, stars, views, downloads, issues.?, source.?, description.?, topicId, postId, isTopicDirty,
+                    isVisible, lastUpdated) <> ((Project.apply _).tupled, Project.unapply)
 
 }
 
@@ -141,7 +141,7 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
   def readPrompts   =   column[List[Prompt]]("read_prompts")
 
   override def * = (id.?, createdAt.?, fullName.?, name, email.?, tagline.?, globalRoles, joinDate.?,
-                    avatarUrl.?, readPrompts) <> (User.tupled, User.unapply)
+                    avatarUrl.?, readPrompts) <> ((User.apply _).tupled, User.unapply)
 
 }
 

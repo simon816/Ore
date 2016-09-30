@@ -183,19 +183,6 @@ case class Version(override val id: Option[Int] = None,
       || this.project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase))
   }
 
-  /**
-    * Returns the raw markdown content for the "update post" on the forums.
-    *
-    * @param env  OreEnv
-    * @return     Raw markdown content
-    */
-  def postContent(implicit env: OreEnv): String = {
-    val templatePath = env.conf.resolve("discourse/version_post.md")
-    val project = this.project
-    StringUtils.readAndFormatFile(templatePath, project.name, project.url, this.url,
-      this.description.getOrElse("*No description given.*"))
-  }
-
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
   override def hashCode() = this.id.hashCode
   override def equals(o: Any) = o.isInstanceOf[Version] && o.asInstanceOf[Version].id.get == this.id.get

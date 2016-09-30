@@ -15,7 +15,7 @@ Discussion page within Project overview.
     <script>
         DiscourseEmbed = {
             discourseUrl: '@config.forums.getString("baseUrl").get/',
-            topicId: @model.topicId.get
+            topicId: @model.topicId
         };
     </script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/projectDiscuss.js")"></script>
@@ -48,7 +48,7 @@ Discussion page within Project overview.
                         }
                     </div>
                     <div class="reply-controls">
-                        <a class="forums" target="_blank" href="https://forums.spongepowered.org/t/@model.topicId.get">
+                        <a class="forums" target="_blank" href="https://forums.spongepowered.org/t/@model.topicId">
                             View on Sponge forums
                         </a>
                     </div>

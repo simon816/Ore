@@ -4,9 +4,8 @@ import javax.inject.Inject
 
 import db.ModelService
 import db.impl.access.OrganizationBase
-import form.OreForms
-import discourse.DiscourseApi
 import discourse.impl.OreDiscourseApi
+import form.OreForms
 import ore.permission.EditSettings
 import ore.rest.OreWrites
 import ore.user.MembershipDossier._
@@ -14,6 +13,9 @@ import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
 import views.{html => views}
+
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Controller for handling Organization based actions.
@@ -39,7 +41,7 @@ class Organizations @Inject()(forms: OreForms,
   def showCreator() = Authenticated { implicit request =>
     if (request.user.ownedOrganizations.size >= this.createLimit)
       Redirect(routes.Application.showHome(None, None, None, None))
-        .flashing("error" -> ("You may only create up to " + this.createLimit + " organizations!"))
+        .flashing("error" -> s"You may only create up to ${this.createLimit} organizations!")
     else
       Ok(views.createOrganization())
   }
@@ -56,8 +58,15 @@ class Organizations @Inject()(forms: OreForms,
     else {
       val formData = this.forms.OrganizationCreate.bindFromRequest().get
       val name = formData.name
-      this.service.getModelBase(classOf[OrganizationBase]).create(name, user.id.get, formData.build())
-      Redirect(routes.Users.showProjects(name, None))
+      try {
+        this.service.getModelBase(classOf[OrganizationBase]).create(name, user.id.get, formData.build())
+        Redirect(routes.Users.showProjects(name, None))
+      } catch {
+        case e: Exception =>
+          // Creation failed
+          Redirect(routes.Organizations.showCreator())
+            .flashing("error" -> "Unable to create an organization at this time.")
+      }
     }
   }
 
@@ -100,10 +109,16 @@ class Organizations @Inject()(forms: OreForms,
   def updateAvatar(organization: String) = EditOrganizationAction(organization) { implicit request =>
     import writes._
 
-    def respond(errors: List[String]) = if (errors.isEmpty)
-      Ok(Json.toJson(request.organization.toUser.refresh()))
-    else
-      Ok(Json.obj("errors" -> errors))
+    def handleUpdate(future: Future[List[String]]) = {
+      val errors = this.forums.await(future.recover {
+        case e: Exception =>
+          List("Unable to update avatar at this time.")
+      })
+      if (errors.isEmpty)
+        Ok(Json.toJson(request.organization.toUser.refresh()))
+      else
+        Ok(Json.obj("errors" -> errors))
+    }
 
     val formData = this.forms.OrganizationUpdateAvatar.bindFromRequest.get
     if (formData.isFileUpload) {
@@ -111,10 +126,10 @@ class Organizations @Inject()(forms: OreForms,
         case None =>
           BadRequest
         case Some(file) =>
-          respond(this.forums.await(this.forums.setAvatar(organization, file.filename, file.ref.file.toPath)))
+          handleUpdate(this.forums.setAvatar(organization, file.filename, file.ref.file.toPath))
       }
     } else
-      respond(this.forums.await(this.forums.setAvatar(organization, formData.url.get)))
+      handleUpdate(this.forums.setAvatar(organization, formData.url.get))
   }
 
   /**

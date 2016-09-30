@@ -3,6 +3,9 @@ package db.impl.access
 import db.{ModelBase, ModelService}
 import models.project.Version
 
+/**
+  * FIXME: This class is unnecessary
+  */
 class VersionBase(override val service: ModelService) extends ModelBase[Version] {
 
   override val modelClass = classOf[Version]

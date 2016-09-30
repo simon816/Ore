@@ -108,6 +108,7 @@ trait ProjectFactory {
       underlying = project,
       file = plugin,
       config = this.config,
+      channelName = this.config.getSuggestedNameForVersion(metaData.getVersion),
       cacheApi = this.cacheApi)
     pendingProject
   }
@@ -119,7 +120,7 @@ trait ProjectFactory {
     * @param project  Parent project
     * @return         PendingVersion instance
     */
-  def startVersion(plugin: PluginFile, project: Project): PendingVersion = {
+  def startVersion(plugin: PluginFile, project: Project, channelName: String): PendingVersion = {
     val metaData = checkMeta(plugin)
     if (!metaData.getId.equals(project.pluginId))
       throw InvalidPluginFileException("invalid plugin ID for new version")
@@ -143,7 +144,7 @@ trait ProjectFactory {
       projects = this.projects,
       factory = this,
       project = project,
-      channelName = project.channels.all.head.name,
+      channelName = channelName,
       channelColor = this.config.defaultChannelColor,
       underlying = version,
       plugin = plugin,
@@ -205,7 +206,7 @@ trait ProjectFactory {
     }
 
     if (this.forums.isEnabled)
-      this.forums.createProjectTopic(newProject)
+      this.forums.await(this.forums.createProjectTopic(newProject))
 
     newProject
   }

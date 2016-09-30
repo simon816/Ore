@@ -60,11 +60,10 @@ Base template for Project overview.
                                     </a>
                                 </li>
 
-                                @project.topicId.map { topicId =>
+                                @if(project.topicId != -1) {
                                     <li id="discussion" class="">
                                         <a href="@projectRoutes.Projects.showDiscussion(
-                                            project.ownerName, project.slug
-                                        )">
+                                            project.ownerName, project.slug)">
                                             <i class="fa fa-users"></i> @messages("project.discuss")
                                         </a>
                                     </li>

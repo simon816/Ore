@@ -14,13 +14,6 @@ import scala.concurrent.Future
 class VersionSchema(override val service: ModelService)
   extends ModelSchema[Version](service, classOf[Version], TableQuery[VersionTable]) {
 
-  case object DownloadSchema extends ModelSchema[VersionDownload](
-    this.service, classOf[VersionDownload], TableQuery[VersionDownloadsTable])
-    with StatSchema[VersionDownload]
-
-  /** The [[StatSchema]] for [[VersionDownload]]s. */
-  val DownloadActions = service.registry.registerSchema(DownloadSchema)
-
   /**
     * Returns true if the specified hash is found in the specified
     * [[models.project.Project]]'s [[Version]]s.
