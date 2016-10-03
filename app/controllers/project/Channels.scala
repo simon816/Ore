@@ -98,14 +98,14 @@ class Channels @Inject()(forms: OreForms,
       val channels = project.channels.all
       if (channels.size == 1) {
         Redirect(self.showList(author, slug))
-          .flashing("error" -> "You cannot delete your only channel.")
+          .flashing("error" -> this.messagesApi("error.channel.last"))
       } else {
         channels.find(c => c.name.equals(channelName)) match {
           case None => NotFound
           case Some(channel) =>
             if (channel.versions.nonEmpty && channels.count(c => c.versions.nonEmpty) == 1) {
               Redirect(self.showList(author, slug))
-                .flashing("error" -> "You cannot delete your only non-empty channel.")
+                .flashing("error" -> this.messagesApi("error.channel.lastNonEmpty"))
             } else {
               this.projects.deleteChannel(channel)
               Redirect(self.showList(author, slug))

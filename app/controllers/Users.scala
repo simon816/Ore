@@ -52,7 +52,7 @@ class Users @Inject()(fakeUser: FakeUser,
         Redirect(this.forums.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
       else
         Redirect(app.showHome(None, None, None, None))
-          .flashing("error" -> "Login is temporarily unavailable, please try again later.")
+          .flashing("error" -> this.messagesApi("error.noLogin"))
     } else {
       // Redirected from the forums, decode SSO payload received from forums and get Ore user
       val discourseUser: DiscourseUser = this.forums.authenticate(sso.get, sig.get)
@@ -108,8 +108,10 @@ class Users @Inject()(fakeUser: FakeUser,
       case Some(user) =>
         if (user.equals(request.user) || (user.isOrganization && (user can EditSettings in user.toOrganization))) {
           val tagline = this.forms.UserTagline.bindFromRequest.get.trim
-          if (tagline.length > this.config.users.getInt("max-tagline-len").get) {
-            Redirect(self.showProjects(user.username, None)).flashing("error" -> "Tagline is too long.")
+          val maxLen = this.config.users.getInt("max-tagline-len").get
+          if (tagline.length > maxLen) {
+            Redirect(self.showProjects(user.username, None))
+              .flashing("error" -> this.messagesApi("error.tagline.tooLong", maxLen))
           } else {
             user.tagline = tagline
             Redirect(self.showProjects(user.username, None))

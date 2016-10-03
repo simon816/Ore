@@ -14,7 +14,7 @@
     @pending.map(_ => "col-md-10").getOrElse("col-md-12")
 }
 
-@bootstrap.layout(messages("version.create.page-title")) {
+@bootstrap.layout(messages("version.create.pageTitle")) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/channelManage.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/pluginUpload.js")"></script>
@@ -36,7 +36,8 @@
 
                         @if(flash.get("error").isDefined) {
                             <div class="alert alert-danger alert-dismissable" role="alert">
-                                <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
+                                <button type="button" class="close" data-dismiss="alert"
+                                        aria-label="@messages("general.close")">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                                 <strong>@messages("project.create.error")</strong> @flash.get("error").get
@@ -58,7 +59,7 @@
                                                 @version.description.map { description =>
                                                   @description
                                                 }.getOrElse {
-                                                  <i class="minor">@messages("version.create.no-description")</i>
+                                                  <i class="minor">@messages("version.create.noDescription")</i>
                                                 }
                                             </td>
                                         </tr>
@@ -127,7 +128,7 @@
                                 'enctype -> "multipart/form-data", 'id -> "form-upload", 'class -> "pull-left") {
                                 <label class="btn btn-default" for="pluginFile">
                                     <input id="pluginFile" name="pluginFile" type="file" style="display: none;">
-                                    @messages("version.create.select-file")
+                                    @messages("version.create.selectFile")
                                 </label>
 
                                 @projects.utils.alertFile()

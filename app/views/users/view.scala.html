@@ -21,17 +21,10 @@
 
     <div class="container" style="margin-top: 90px">
 
-        @if(flash.get("error").isDefined) {
-            <div class="alert alert-danger alert-dismissable" role="alert" style="display: none;">
-                <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                @flash.get("error").get
-            </div>
-        }
+        @alert("error")
 
         <div class="alert alert-success alert-dismissable" role="alert" style="display: none;">
-            <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
+            <button type="button" class="close" data-dismiss="alert" aria-label="@messages("general.close")">
                 <span aria-hidden="true">&times;</span>
             </button>
             <strong>Success!</strong> <span class="success"></span>
@@ -49,7 +42,7 @@
 
                     @if(canEditOrganization) {
                         <div class="edit-avatar" style="display: none;">
-                            <i class="fa fa-edit"></i> Edit avatar
+                            <i class="fa fa-edit"></i> @messages("user.editAvatar")
                         </div>
 
                         @if(!users.current.get.readPrompts.contains(Prompts.ChangeAvatar)) {
@@ -57,31 +50,33 @@
                                 <div class="arrow"></div>
                                 <h3 class="popover-title">Change your avatar!</h3>
                                 <div class="popover-content">
-                                    <p>
-                                        Welcome to your new organization! Start by changing your avatar by clicking on it.
-                                    </p>
-                                    <button class="btn-got-it btn btn-success btn-sm">Got it!</button>
+                                    <p>@messages("org.welcome")</p>
+                                    <button class="btn-got-it btn btn-success btn-sm">
+                                        @messages("org.welcome.confirm")
+                                    </button>
                                 </div>
                             </div>
                         }
 
                         <div class="modal fade" id="modal-avatar" tabindex="-1" role="dialog"
-                        aria-labelledby="modal-avatar-label">
+                             aria-labelledby="modal-avatar-label">
                             <div class="modal-dialog" role="document">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <button type="button" class="close" data-dismiss="modal"
-                                        aria-label="Close">
+                                        aria-label="@messages("general.close")">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
-                                        <h4 class="modal-title" id="modal-avatar-label">Edit avatar</h4>
+                                        <h4 class="modal-title" id="modal-avatar-label">
+                                            @messages("user.editAvatar")
+                                        </h4>
                                     </div>
 
                                     @form(action = routes.Organizations.updateAvatar(user.name),
                                         'id -> "form-avatar", 'enctype -> "multipart/form-data") {
                                         <div class="modal-body">
                                             <div class="alert alert-danger">
-                                                <strong>Whoops!</strong> <span class="error"></span>
+                                                <span class="error"></span>
                                             </div>
 
                                             <div class="setting">
@@ -89,7 +84,7 @@
                                                     <h4>
                                                         <input checked type="radio" name="avatar-method"
                                                         value="by-url" />
-                                                        Update by URL
+                                                        @messages("user.avatar.byUrl")
                                                     </h4>
                                                 </div>
                                                 <input name="avatar-url" type="url" class="form-control" />
@@ -100,7 +95,7 @@
                                                 <div class="setting-description">
                                                     <h4>
                                                         <input type="radio" name="avatar-method" value="by-file" />
-                                                        Update by file
+                                                        @messages("user.avatar.byFile")
                                                     </h4>
                                                 </div>
                                                 <input name="avatar-file" type="file" disabled />
@@ -110,10 +105,11 @@
 
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-default" data-dismiss="modal">
-                                                Cancel
+                                                @messages("general.cancel")
                                             </button>
                                             <button type="submit" class="btn btn-primary">
-                                                <i class="fa fa-spinner fa-spin" style="display: none;"></i> Update
+                                                <i class="fa fa-spinner fa-spin" style="display: none;"></i>
+                                                @messages("general.update")
                                             </button>
                                         </div>
                                     }
@@ -147,7 +143,7 @@
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <button type="button" class="close" data-dismiss="modal"
-                                                aria-label="@messages("aria.cancel")">
+                                                aria-label="@messages("general.cancel")">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                         <h4 class="modal-title">@messages("user.tagline.edit")</h4>
@@ -156,8 +152,8 @@
                                         <div class="modal-body">
                                             <div class="setting setting-no-border">
                                                 <div class="setting-description">
-                                                    <h4>Tagline</h4>
-                                                    <p>Add a short tagline to let people know what you're about!</p>
+                                                    <h4>@messages("user.tagline")</h4>
+                                                    <p>@messages("user.tagline.info")</p>
                                                 </div>
                                                 <input class="form-control" type="text"
                                                         value="@user.tagline.getOrElse("")" id="tagline" name="tagline"
@@ -167,9 +163,10 @@
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-default" data-dismiss="modal">
-                                                @messages("aria.close")
+                                                @messages("general.close")
                                             </button>
-                                            <input type="submit" value="@messages("aria.save")" class="btn btn-primary" />
+                                            <input type="submit" value="@messages("general.save")"
+                                                   class="btn btn-primary" />
                                         </div>
                                     }
                                 </div>
@@ -204,10 +201,12 @@
                           <i class="minor">@size @if(size == 1) { project } else { projects }</i><br/>
                         }
                         <i class="minor">
-                            A member since @user.joinDate.map(prettifyDate).getOrElse(prettifyDate(user.createdAt.get))
+                            @messages(
+                                "user.memberSince",
+                                user.joinDate.map(prettifyDate).getOrElse(prettifyDate(user.createdAt.get)))
                         </i><br/>
                         <a href="https://forums.spongepowered.org/users/@user.username">
-                            View on forums <i class="fa fa-external-link"></i>
+                            @messages("user.viewOnForums") <i class="fa fa-external-link"></i>
                         </a>
                     </div>
                 </div>

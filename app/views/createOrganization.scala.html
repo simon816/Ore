@@ -25,25 +25,22 @@
                         @flash.get("error").map { error =>
                             <div class="alert alert-fade alert-danger alert-dismissable" role="alert" style="display: none;">
                                 <button type="button" class="close" data-dismiss="alert"
-                                aria-label="@messages("aria.close")">
+                                aria-label="@messages("general.close")">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                                 @error
                             </div>
                         }
 
-                        <p class="minor">
-                            Organizations allow you group users provide closer collaboration between them within your
-                            projects on Ore.
-                        </p>
+                        <p class="minor"> @messages("ore.info")</p>
 
                         @form(action = routes.Organizations.create(), 'id -> "form-continue") {
                             <div class="setting">
                                 <div class="setting-description">
-                                    <h4>Organization name</h4>
+                                    <h4>@messages("org.name")</h4>
                                 </div>
-                                <input name="name" type="text" class="input-name form-control" placeholder="SpongePowered"
-                                       maxlength="20" />
+                                <input name="name" type="text" class="input-name form-control"
+                                       placeholder="SpongePowered" maxlength="20" />
                                 <i class="fa fa-spinner fa-spin status-org-name" style="display: none;"></i>
                                 <div class="clearfix"></div>
                             </div>
@@ -52,9 +49,9 @@
                         @users.invite.form(owner = userBase.current.get, roleClass = classOf[OrganizationRole])
 
                         <button title="Continue" type="submit" name="create" form="form-continue"
-                                value="@messages("org.create.continue")"
+                                value="@messages("general.continue")"
                                 class="push-down pull-right continue-btn btn btn-primary" disabled>
-                            Create
+                            @messages("general.create")
                         </button>
                     </div>
                 </div>

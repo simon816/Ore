@@ -1,7 +1,6 @@
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import db.impl.access.{ProjectBase, UserBase}
-@import discourse.DiscourseApi
 @import models.project.Flag
 @import ore.{OreConfig, OreEnv}
 @(flags: Seq[Flag])(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService,
@@ -17,12 +16,12 @@
             <div class="col-md-12 header-flags">
                 <h2>Flags</h2>
                 <h3 class="minor no-flags" @if(flags.nonEmpty) { style="display: none;" }>
-                    <i class="fa fa-thumbs-o-up"></i> There are no flags to review.
+                    <i class="fa fa-thumbs-o-up"></i> @messages("user.flags.none")
                 </h3>
                 
                 @if(flags.nonEmpty) {
                     <button class="btn-resolve-all btn btn-primary pull-right">
-                        <i class="fa fa-check"></i> <strong>Mark all resolved</strong>
+                        <i class="fa fa-check"></i> <strong>@messages("user.flags.markAllResolved")</strong>
                     </button>
                 }
             </div>
@@ -46,14 +45,14 @@
                             </span>
                             <span class="pull-right btn-group-sm">
                                 <a target="_blank" href="https://forums.spongepowered.org/users/@flag.user.username" class="btn btn-default">
-                                    <i class="fa fa-reply"></i> Message user
+                                    <i class="fa fa-reply"></i> @messages("user.flags.messageUser")
                                 </a>
                                 <a target="_blank" href="https://forums.spongepowered.org/users/@flag.project.ownerName" class="btn btn-default">
-                                    <i class="fa fa-reply"></i> Message project owner
+                                    <i class="fa fa-reply"></i> @messages("user.flags.messageOwner")
                                 </a>
                                 @projects.utils.btnHide(flag.project)
                                 <button type="submit" class="btn btn-primary btn-resolve">
-                                    <i class="fa fa-check"></i> <strong>Mark resolved</strong>
+                                    <i class="fa fa-check"></i> <strong>@messages("user.flags.markResolved")</strong>
                                 </button>
                             </span>
                         </li>

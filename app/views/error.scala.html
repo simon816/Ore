@@ -1,6 +1,5 @@
 @import db.ModelService
 @import db.impl.access.UserBase
-@import discourse.DiscourseApi
 @import ore.{OreConfig, OreEnv}
 @(message: String)(implicit messages: Messages, session: Session, request: RequestHeader,
         service: ModelService, config: OreConfig, users: UserBase, env: OreEnv)

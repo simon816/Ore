@@ -2,7 +2,7 @@
 @import models.user.User
 @import ore.permission.role.Role
 @(owner: User, loadedUsers: Seq[User] = Seq(), roleClass: Class[_ <: Role])(implicit userBase: UserBase,
-        session: Session)
+        session: Session, messages: Messages)
 
 <script type="text/javascript" src="@routes.Assets.at("javascripts/userSearch.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/membersConfig.js")"></script>
@@ -27,7 +27,7 @@
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
         <span aria-hidden="true">&times;</span>
     </button>
-    <strong>Whoops!</strong> Could not find user "<span class="error-username"></span>"
+    @messages("user.notFound") "<span class="error-username"></span>"
 </div>
 
 <div class="member-table-container">
@@ -39,7 +39,7 @@
                     <img class="user-avatar" width="32" height="32" src="@owner.avatarUrl(100)" />
                     <strong>@owner.username</strong>
                 </td>
-                <td><i class="minor">Owner</i></td>
+                <td><i class="minor">@messages("project.owner")</i></td>
             </tr>
 
             @loadedUsers.map { user =>

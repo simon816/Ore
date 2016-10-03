@@ -54,7 +54,7 @@ class Projects @Inject()(stats: StatTracker,
   def upload() = Authenticated { implicit request =>
     request.body.asMultipartFormData.get.file("pluginFile") match {
       case None =>
-        Redirect(self.showCreator()).flashing("error" -> "No file submitted.")
+        Redirect(self.showCreator()).flashing("error" -> this.messagesApi("error.noFile"))
       case Some(tmpFile) =>
         // Start a new pending project
         var project: PendingProject = null
@@ -63,7 +63,7 @@ class Projects @Inject()(stats: StatTracker,
           project = this.factory.startProject(plugin)
         } catch {
           case e: InvalidPluginFileException =>
-            Redirect(self.showCreator()).flashing("error" -> "Invalid plugin file.")
+            Redirect(self.showCreator()).flashing("error" -> this.messagesApi("error.project.invalidPluginFile"))
         }
 
         project.cache()
@@ -360,7 +360,7 @@ class Projects @Inject()(stats: StatTracker,
     SettingsEditAction(author, slug) { implicit request =>
       request.body.asMultipartFormData.get.file("icon") match {
         case None =>
-          Redirect(self.showSettings(author, slug)).flashing("error" -> "No file submitted.")
+          Redirect(self.showSettings(author, slug)).flashing("error" -> this.messagesApi("error.noFile"))
         case Some(tmpFile) =>
           val project = request.project
           val pendingDir = this.projects.fileManager.getPendingIconDir(project.ownerName, project.name)
@@ -449,7 +449,7 @@ class Projects @Inject()(stats: StatTracker,
     SettingsEditAction(author, slug) { implicit request =>
       val newName = compact(this.forms.ProjectRename.bindFromRequest.get)
       if (!projects.isNamespaceAvailable(author, slugify(newName))) {
-        Redirect(self.showSettings(author, slug)).flashing("error" -> "That name is not available.")
+        Redirect(self.showSettings(author, slug)).flashing("error" -> this.messagesApi("error.nameUnavailable"))
       } else {
         val project = request.project
         this.projects.rename(project, newName)

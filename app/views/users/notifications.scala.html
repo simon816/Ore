@@ -1,6 +1,5 @@
 @import db.ModelService
 @import db.impl.access.{ProjectBase, UserBase}
-@import discourse.DiscourseApi
 @import models.user.Notification
 @import models.user.role.RoleModel
 @import ore.user.notification.InviteFilters.InviteFilter
@@ -25,7 +24,7 @@
 
 @subjectType(model: RoleModel) = @{ model.subject.getClass.getSimpleName }
 
-@bootstrap.layout("Notifications") {
+@bootstrap.layout(messages("notification.plural")) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/notifications.js")"></script>
 
@@ -34,29 +33,41 @@
             <!-- Notifications header -->
             <div class="col-md-8 header-flags">
                 <div class="pull-left">
-                    <h2>Notifications</h2>
+                    <h2>@messages("notification.plural")</h2>
                 </div>
                 <div class="pull-right form-inline notification-controls">
                     <select class="form-control select-notifications">
-                        <option @notificationFilterOption(NotificationFilters.Unread)>Unread</option>
-                        <option @notificationFilterOption(NotificationFilters.Read)>Read</option>
-                        <option @notificationFilterOption(NotificationFilters.All)>All</option>
+                        <option @notificationFilterOption(NotificationFilters.Unread)>
+                            @messages(NotificationFilters.Unread.title)
+                        </option>
+                        <option @notificationFilterOption(NotificationFilters.Read)>
+                            @messages(NotificationFilters.Read.title)
+                        </option>
+                        <option @notificationFilterOption(NotificationFilters.All)>
+                            @messages(NotificationFilters.All.title)
+                        </option>
                     </select>
 
                     @if(notifications.nonEmpty && notificationFilter.equals(NotificationFilters.Unread)) {
                         <button class="btn-mark-all-read btn btn-primary">
-                            <i class="fa fa-check"></i> <strong>Mark all as read</strong>
+                            <i class="fa fa-check"></i> <strong>@messages("notification.markAllRead")</strong>
                         </button>
                     }
                 </div>
             </div>
             <div class="col-md-4 form-inline">
                 <!-- Invites header -->
-                <h2 class="pull-left">Invites</h2>
+                <h2 class="pull-left">@messages("notification.invites")</h2>
                 <select class="pull-right form-control notification-controls select-invites">
-                    <option @inviteFilterOption(InviteFilters.All)>All</option>
-                    <option @inviteFilterOption(InviteFilters.Projects)>Projects</option>
-                    <option @inviteFilterOption(InviteFilters.Organizations)>Organizations</option>
+                    <option @inviteFilterOption(InviteFilters.All)>
+                        @messages(InviteFilters.All.title)
+                    </option>
+                    <option @inviteFilterOption(InviteFilters.Projects)>
+                        @messages(InviteFilters.Projects.title)
+                    </option>
+                    <option @inviteFilterOption(InviteFilters.Organizations)>
+                        @messages(InviteFilters.Organizations.title)
+                    </option>
                 </select>
             </div>
         </div>
@@ -110,27 +121,34 @@
 
                                 <div class="invite-message invite-choice" style="display: auto;">
                                     <p>
-                                        You have been invited to join the @subjectType(invite).toLowerCase
+                                        @messages("notification.invite", subjectType(invite).toLowerCase)
                                         <a href="@subject.url">@subject.name</a>.
                                     </p>
-                                    <button class="btn btn-invite btn-accept btn-sm btn-success">Accept</button>
-                                    <button class="btn btn-invite btn-decline btn-sm btn-danger">Decline</button>
+                                    <button class="btn btn-invite btn-accept btn-sm btn-success">
+                                        @messages("notification.invite.accept")
+                                    </button>
+                                    <button class="btn btn-invite btn-decline btn-sm btn-danger">
+                                        @messages("notification.invite.decline")
+                                    </button>
                                 </div>
 
                                 <div class="invite-message invite-accepted" style="display: none;">
                                     <i class="minor fa fa-3x fa-birthday-cake"></i>
-                                    <p>You have joined <strong>@subject.name</strong>!</p>
-                                    <a href="@subject.url" class="btn btn-sm btn-primary">Visit now</a>
-                                    <button class="btn btn-undo btn-sm btn-info">Undo</button>
+                                    @messages("notification.invite.joined", subject.name)
+                                    <a href="@subject.url" class="btn btn-sm btn-primary">
+                                        @messages("notification.invite.visit")
+                                    </a>
+                                    <button class="btn btn-undo btn-sm btn-info">
+                                        @messages("notification.invite.undo")
+                                    </button>
                                 </div>
 
                                 <div class="invite-message invite-declined" style="display: none;">
                                     <i class="minor fa fa-3x fa-times"></i>
-                                    <p>You have declined an invite from <strong>@subject.name</strong>.</p>
+                                    <p>@messages("notification.invite.declined", subject.name)</p>
                                 </div>
 
-                                <i class="minor invite-loading fa fa-5x fa-spinner fa-spin"
-                                style="display: none;"></i>
+                                <i class="minor invite-loading fa fa-5x fa-spinner fa-spin" style="display: none;"></i>
                             }
                         </div>
                     </div>

@@ -30,7 +30,8 @@ Discussion page within Project overview.
 
                         @if(flash.get("error").isDefined) {
                             <div class="alert alert-fade alert-danger alert-dismissable" role="alert" style="display: none;">
-                                <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
+                                <button type="button" class="close" data-dismiss="alert"
+                                        aria-label="@messages("general.close")">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                                 <strong>@messages("project.create.error")</strong> @messages(flash.get("error").get)
@@ -44,19 +45,19 @@ Discussion page within Project overview.
                                 enabled = true
                             )
                         } else {
-                            <i class="minor">Sponge Forums are currently unavailable, please try again later.</i>
+                            <i class="minor">@messages("general.forumsUnavailable")</i>
                         }
                     </div>
                     <div class="reply-controls">
                         <a class="forums" target="_blank" href="https://forums.spongepowered.org/t/@model.topicId">
-                            View on Sponge forums
+                            @messages("general.viewOnForums")
                         </a>
                     </div>
                 </div>
             } else {
                 <div class="pull-right">
-                    <a href="@routes.Users.logIn(None, None, Some(request.path))">Log in</a>
-                    <span class="minor"> to reply to this discussion</span>
+                    <a href="@routes.Users.logIn(None, None, Some(request.path))">@messages("general.login")</a>
+                    <span class="minor"> @messages("general.toReply")</span>
                 </div>
             }
         </div>

@@ -21,12 +21,13 @@ The main header displayed on each layout.
         <!-- Left navbar -->
         <ul class="nav navbar-nav navbar-left">
             <li class="dropdown dropdown-sponge">
-                <a href="@routes.Application.showHome(None, None, None, None)" class="drop-down-toggle disabled" data-toggle="dropdown">
+                <a href="@routes.Application.showHome(None, None, None, None)" class="drop-down-toggle disabled"
+                   data-toggle="dropdown">
                     <img class="logo" src="@config.sponge.getString("logo").get" />
                     <span class="fa fa-chevron-down"></span>
                 </a>
 
-                <ul class="dropdown-menu main-dropdown" aria-label="@messages("aria.dropdown.main")">
+                <ul class="dropdown-menu main-dropdown" aria-label="maindropdown">
                     <li>
                         <a href="https://www.spongepowered.org">
                             <i class="fa fa-fw fa-home"></i>@messages("general.home")
@@ -78,11 +79,11 @@ The main header displayed on each layout.
                 </div>
             </li>
 
-            <li class="nav-icon search-icon" @tooltip("Search for projects")>
+            <li class="nav-icon search-icon" @tooltip(messages("project.search"))>
                 <i class="icon fa fa-search"></i>
             </li>
 
-            <li class="nav-icon authors-icon" @tooltip("View project creators")>
+            <li class="nav-icon authors-icon" @tooltip(messages("project.viewAuthors"))>
                 <i class="icon fa fa-users"></i>
             </li>
 
@@ -96,11 +97,11 @@ The main header displayed on each layout.
                     <ul class="user-dropdown dropdown-menu" aria-label="Create new&hellip;">
                         <li>
                             <a href="@projectRoutes.Projects.showCreator()">
-                                <span class="pull-left">New project</span>
+                                <span class="pull-left">@messages("project.create")</span>
                                 <i class="pull-right fa fa-book"></i>
                             </a>
                             <a href="@routes.Organizations.showCreator()">
-                                <span class="pull-left">New organization</span>
+                                <span class="pull-left">@messages("org.create")</span>
                                 <i class="pull-right fa fa-users"></i>
                             </a>
                         </li>
@@ -127,7 +128,7 @@ The main header displayed on each layout.
                         <li>
                             <a href="@routes.Users.showNotifications(None, None)">
                                 <span class="pull-left">
-                                    Notifications
+                                    @messages("notification.plural")
                                     @if(user.notifications.filterNot(_.read).nonEmpty) {
                                         <span class="unread"></span>
                                     }
@@ -140,7 +141,7 @@ The main header displayed on each layout.
                             <li>
                                 <a href="@routes.Application.showFlags()">
                                     <span class="flags pull-left">
-                                        Flags
+                                        @messages("project.flag.plural")
                                         @if(flags.unresolved.nonEmpty) {
                                             <span class="unread"></span>
                                         }
@@ -154,7 +155,7 @@ The main header displayed on each layout.
                             <li>
                                 <a href="@routes.Application.showQueue()">
                                     <span class="pull-left">
-                                        Queue
+                                        @messages("user.queue")
                                         @if(service.getModelBase(classOf[VersionBase]).notReviewed.nonEmpty) {
                                             <span class="unread"></span>
                                         }

@@ -53,23 +53,8 @@ sorted according to different criteria.
         <div class="index-header">
             <div class="row">
                 <div class="col-md-12">
-                    @if(flash.get("success").isDefined) {
-                        <div class="alert alert-fade alert-success alert-dismissable" role="alert" style="display: none;">
-                            <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            @flash.get("success").get
-                        </div>
-                    }
-
-                    @if(flash.get("error").isDefined) {
-                        <div class="alert alert-fade alert-danger alert-dismissable" role="alert" style="display: none;">
-                            <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            @flash.get("error").get
-                        </div>
-                    }
+                    @alert("success")
+                    @alert("error")
                 </div>
             </div>
 
@@ -77,7 +62,7 @@ sorted according to different criteria.
                 <div class="col-md-9"><img height="60" src="@routes.Assets.at("images/ore-desc.png")" /></div>
                 <div class="col-md-3">
                     <div class="sponsor">
-                        <i>Sponsored By</i><br/>
+                        <i>@messages("general.sponsoredBy")</i><br/>
                         @defining(randomSponsor) { sponsor =>
                             <a href="@sponsor._2">
                                 <img class="sponsor-logo" src="@routes.Assets.at("images/sponsors/" + sponsor._1)" />
@@ -150,7 +135,7 @@ sorted according to different criteria.
                 <!-- Featured sponsor -->
                 @config.sponge.getString("sponsors.featured.logo").map { logo =>
                   <div class="sponsor sponsor-featured">
-                      <i>Featured Sponsor</i><br/>
+                      <i>@messages("general.featuredSponsor")</i><br/>
                       <a href="@config.sponge.getString("sponsors.featured.url")">
                           <img class="sponsor-logo" src="@routes.Assets.at("images/sponsors/" + logo)" />
                       </a>

@@ -11,12 +11,13 @@ import scala.language.implicitConversions
   */
 object NotificationFilters extends Enumeration {
 
-  val Unread = NotificationFilter(0, "unread", "notification.empty.unread", !_.read)
-  val Read = NotificationFilter(1, "read", "notification.empty.read", _.read)
-  val All = NotificationFilter(2, "all", "notification.empty.all", _ => true)
+  val Unread = NotificationFilter(0, "unread", "notification.empty.unread", "notification.unread", !_.read)
+  val Read = NotificationFilter(1, "read", "notification.empty.read", "notification.read", _.read)
+  val All = NotificationFilter(2, "all", "notification.empty.all", "notification.all", _ => true)
 
   case class NotificationFilter(i: Int,
                                 name: String,
+                                title: String,
                                 emptyMessage: String,
                                 filter: Notification#T => Rep[Boolean]) extends super.Val(i, name) {
 

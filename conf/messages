@@ -1,11 +1,20 @@
 # Strings localized for en-US locale
 
-general.name                    =   Ore
+general.appName                 =   Ore
+general.organization            =   SpongePowered
+general.terms                   =   Terms
+general.contact                 =   Contact
+general.about                   =   About
+general.issues                  =   Issues
+general.source                  =   Source
+general.api                     =   API
+general.sponsors                =   Sponsors
 general.description             =   A Minecraft Package Repository
 general.title                   =   Ore - A Minecraft Package Repository
 general.signout                 =   Sign out
 general.signup                  =   Sign up
 general.login                   =   Log in
+general.toReply                 =   to reply to this discussion
 general.home                    =   Homepage
 general.forums                  =   Forums
 general.code                    =   Code
@@ -13,123 +22,156 @@ general.docs                    =   Docs
 general.javadocs                =   Javadocs
 general.plugins                 =   Plugins
 general.getsponge               =   Get Sponge
+general.edit                    =   Edit
+general.cancel                  =   Cancel
+general.save                    =   Save
+general.delete                  =   Delete
+general.name                    =   Name
+general.close                   =   Close
+general.continue                =   Continue
+general.download                =   Download
+general.upload                  =   Upload
+general.more                    =   More
+general.sponsoredBy             =   Sponsored By
+general.featuredSponsor         =   Featured Sponsor
+general.create                  =   Create
+general.remove                  =   Remove
+general.update                  =   Update
+general.forumsUnavailable       =   Sponge Forums are currently unavailable, please try again later.
+general.viewOnForums            =   View on Sponge Forums
+
+editor.deleteConfirm    =   Are you sure you want to delete {0}? This cannot be undone.
 
 error.minLength                 =   Content too short.
 error.maxLength                 =   Content too long.
+error.noFile                    =   No file submitted.
+error.nameUnavailable           =   That name is not available.
+error.noLogin                   =   Login is temporarily unavailable, please try again later.
+error.project.invalidPluginFile =   Invalid plugin file.
+error.channel.last              =   You cannot delete your only channel.
+error.channel.lastNonEmpty      =   You cannot delete your only non-empty channel.
+error.tagline.tooLong           =   Tagline is too long (max {0}).
+error.org.createLimit           =   You may only create up to {0} organizations!
+error.org.cannotCreate          =   Unable to create an organization at this time.
+error.org.cannotUpdateAvatar    =   Unable to update avatar at this time.
 
-page.edit                       =   Edit
-page.edit.cancel                =   Cancel
-page.edit.save                  =   Save
-page.edit.delete                =   Delete
-page.edit.title                 =   Edit
-page.edit.cannot-delete-homepage   =   Your project's homepage cannot be deleted
-page.edit.max-pages             =   You have reached the maximum amount of allowed pages.
-
+page.edit.cannotDeleteHomepage  =   Your project's homepage cannot be deleted
+page.edit.maxPages              =   You have reached the maximum amount of allowed pages.
 page.new.title                  =   Create a new page
-page.new.name                   =   Name
-page.new.close                  =   Close
-page.new.continue               =   Continue
-
 page.plural                     =   Pages
 
 project.author                  =   Author
 project.category                =   Category
 project.category.plural         =   Categories
-project.delete                  =   Delete
 project.delete.title            =   Delete project
 project.delete.info             =   Are you sure you want to delete your Project? This action cannot be undone.
-project.download                =   Download
 project.download.recommend      =   Download the latest recommended version
 project.flag                    =   Flag
-project.name                    =   Name
+project.flag.plural             =   Flags
 project.create                  =   New Project
 project.owner                   =   Owner
 project.rename                  =   Rename
 project.rename.title            =   Rename project
 project.rename.info             =   Are you sure you want to rename your Project? This can have unintended side effects as we will not set up any redirects for you.
-
 project.discuss                 =   Discuss
 project.docs                    =   Docs
 project.settings                =   Settings
 project.settings.members        =   Members
 project.versions                =   Versions
-
 project.downloads               =   Downloads
 project.starred                 =   Stars
 project.views                   =   Views
-
 project.top                     =   Top
 project.hot                     =   Hot
 project.new                     =   New
 project.latest                  =   Latest
-
 project.create.title            =   Create a new project
 project.create.uid              =   Unique ID
-project.create.select-file      =   Select file
-project.create.upload           =   Upload
-project.create.continue         =   Continue
-project.create.error            =   Whoops!
-project.create.step             =   Step {0}/{1}
+project.create.selectFile       =   Select file
 project.create.destination      =   Project will be created at {0}
-project.create.info-text.head   =   A project contains your downloads and the documentation for your plugin.
-project.create.info-text.bottom =   Begin by uploading your plugin JAR file with a valid <i>mcmod.info</i> file in the first level or a ZIP file with your valid plugin JAR in the first level. Plugins with missing or incomplete metadata files will not be accepted.
+project.create.infoText.head    =   A project contains your downloads and the documentation for your plugin.
+project.create.infoText.bottom  =   Begin by uploading your plugin JAR file with a valid <i>mcmod.info</i> file in the first level or a ZIP file with your valid plugin JAR in the first level. Plugins with missing or incomplete metadata files will not be accepted.
 project.create.issue-input      =   Issue tracker URL
 project.create.source-input     =   Source code URL
 project.icon                    =   Project icon
-
-project.members.info-text.head   =   Project members are other users of Ore that have special access to your project. Different user "roles" define what a user can and cannot do to your project.
-project.members.info-text.bottom =   Ore was able to find <strong>{0}</strong> users who are registered with Ore in your plugin file.
+project.members.infoText.head   =   Project members are other users of Ore that have special access to your project. Different user "roles" define what a user can and cannot do to your project.
+project.members.infoText.bottom =   Ore was able to find <strong>{0}</strong> users who are registered with Ore in your plugin file.
+project.search                  =   Search for projects.
+project.viewAuthors             =   View project creators.
+project.removeMember            =   Remove member
+project.removeMember.confirm     =   Are you sure you want to remove this user?
 
 org.create          =   New Organization
 org.create.title    =   Create a new Organization
-ore.create.continue =   Continue
+org.info            =   Organizations allow you group users provide closer collaboration between them within your projects on Ore.
+org.name            =   Organization name
+org.welcome         =   Welcome to your new organization! Start by changing your avatar by clicking on it.
+org.welcome.confirm =   Got it!
 
 version                         =   Version
 version.description             =   Description
-version.delete                  =   Delete
-version.delete.cannot-last      =   Every project must have at least one version
-version.download                =   Download
-version.dependency.not-on-ore   =   This plugin is not available for download on Ore
+version.delete.cannotLast       =   Every project must have at least one version
+version.dependency.notOnOre     =   This plugin is not available for download on Ore
 version.dependency.no           =   This release has no dependencies
-
-version.create.page-title       =   Release a new version
+version.create.pageTitle        =   Release a new version
 version.create.title            =   New project release
-version.create.no-description   =   No description given.
+version.create.noDescription    =   No description given.
 version.create.upload           =   Upload
-version.create.select-file      =   Select file
+version.create.selectFile       =   Select file
 version.create.publish          =   Publish
-version.create.step             =   Step {0}/{1}
 version.create.tos              =   By clicking "Publish" you are agreeing to Ore's <a href="#">Terms of Service</a>.
 
 channel.name                    =   Channel name
 channel.edit.title              =   Edit channel
 channel.edit.close              =   Close
 channel.edit.save               =   Save changes
-channel.edit.max-amount-reached   =   You have reached the maximum amount of channels permitted.
-channel.edit.cannot-delete-last-channel   =   You cannot delete your last channel.
-
-channel.list.page-title         =   Channels | {0} / {1}
+channel.edit.maxReached         =   You have reached the maximum amount of channels permitted.
+channel.edit.cannotDeleteLast   =   You cannot delete your last channel.
+channel.list.pageTitle          =   Channels | {0} / {1}
 channel.list.title              =   Release channels
 channel.list.description        =   Release channels represent the state of a plugin release. A project may have up to five release channels.
-channel.list.error              =   Whoops!
-
 channel.delete                  =   Delete channel
 channel.delete.info             =   Are you sure you want to delete this channel?
 channel.delete.info.versions    =   versions will be deleted.
-channel.delete.close            =   Close
 
-table.welcome.description       =   A Minecraft Package Repository
-table.more                      =   More
-
-aria.close                      =   Close
-aria.cancel                     =   Cancel
-aria.save                       =   Save
-aria.dropdown.main              =   maindropdown
 aria.dropdown.menu              =   dropdownMenu{0}
 
-user.tagline.edit   =   Edit tagline
-user.no-stars       =   {0} has not starred any projects. :(
+user.tagline                =   Tagline
+user.tagline.info           =   Add a short tagline to let people know what you're about!
+user.tagline.edit           =   Edit tagline
+user.noStars                =   {0} has not starred any projects. :(
+user.seeAll                 =   See all
+user.editAvatar             =   Edit avatar
+user.avatar.byUrl           =   Update by URL
+user.avatar.byFile          =   Update by file
+user.memberSince            =   A member since {0}
+user.viewOnForums           =   View on forums
+user.notFound               =   Could not find user
+user.flags.none             =   There are no flags to review.
+user.flags.markResolved     =   Mark resolved
+user.flags.markAllResolved  =   Mark all resolved
+user.flags.messageUser      =   Message user
+user.flags.messageOwner     =   Message project owner
+user.queue                  =   Approval queue
+user.queue.none             =   There are no versions to review.
+user.queue.approve          =   Approve
 
+notification.invite                 =   You have been invited to join the {0}
+notification.invites                =   Invites
+notification.invite.all             =   All
+notification.invite.projects        =   Projects
+notification.invite.organizations   =   Organizations
+notification.invite.accept          =   Accept
+notification.invite.decline         =   Decline
+notification.invite.undo            =   Undo
+notification.invite.visit           =   Visit now
+notification.invite.joined          =   You have joined <strong>{0}</strong>!
+notification.invite.declined        =   You have declined an invite from <strong>{0}</strong>.
+notification.plural                 =   Notifications
+notification.markAllRead            =   Mark all as read
+notificiation.unread                =   Unread
+notification.read                   =   Read
+notification.all                    =   All
 notification.project.invite         =   You have been invited to join the group {0} on the project {1}.
 notification.project.newVersion     =   A new version has been released for {0}: {1}.
 notification.organization.invite    =   You have been invited to join the group {0} in the organization {1}.

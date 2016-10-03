@@ -56,7 +56,8 @@
                                             </a>
                                             <a id="channel-delete-@channel.id"
                                               @if(channels.size == 1) {
-                                                  data-toggle="tooltip" data-placement="top" title="@messages("channel.edit.cannot-delete-last-channel")"
+                                                  data-toggle="tooltip" data-placement="top"
+                                                  title="@messages("channel.edit.cannotDeleteLast")"
                                               } else {
                                                 @if(channel.versions.nonEmpty) {
                                                     data-toggle="modal" data-target="#modal-delete"
@@ -89,7 +90,7 @@
                         <a href="#" id="channel-new" class="pull-right btn btn-primary"
                            @if(channels.size >= config.projects.getInt("max-channels").get) {
                                disabled data-toggle="tooltip" data-placement="left"
-                               title="@messages("channel.edit.max-amount-reached")"
+                               title="@messages("channel.edit.maxReached")"
                            } else {
                                data-toggle="modal" data-target="#channel-settings"
                            }
@@ -107,7 +108,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="@messages("aria.close")">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="@messages("general.close")">
                         <span aria-hidden="true">&times;</span>
                     </button>
                     <h4 class="modal-title" id="label-delete">@messages("channel.delete")</h4>

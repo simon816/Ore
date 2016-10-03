@@ -41,7 +41,7 @@ class Organizations @Inject()(forms: OreForms,
   def showCreator() = Authenticated { implicit request =>
     if (request.user.ownedOrganizations.size >= this.createLimit)
       Redirect(routes.Application.showHome(None, None, None, None))
-        .flashing("error" -> s"You may only create up to ${this.createLimit} organizations!")
+        .flashing("error" -> this.messagesApi("error.org.createLimit", this.createLimit))
     else
       Ok(views.createOrganization())
   }
@@ -65,7 +65,7 @@ class Organizations @Inject()(forms: OreForms,
         case e: Exception =>
           // Creation failed
           Redirect(routes.Organizations.showCreator())
-            .flashing("error" -> "Unable to create an organization at this time.")
+            .flashing("error" -> this.messagesApi("error.org.cannotCreate"))
       }
     }
   }
@@ -112,7 +112,7 @@ class Organizations @Inject()(forms: OreForms,
     def handleUpdate(future: Future[List[String]]) = {
       val errors = this.forums.await(future.recover {
         case e: Exception =>
-          List("Unable to update avatar at this time.")
+          List(this.messagesApi("error.org.cannotUpdateAvatar"))
       })
       if (errors.isEmpty)
         Ok(Json.toJson(request.organization.toUser.refresh()))

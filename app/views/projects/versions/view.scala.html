@@ -71,13 +71,13 @@
                                    href="@projectRoutes.Versions.delete(project.ownerName, project.slug, version.versionString)"
                                }
                             >
-                                <i class="fa fa-trash"></i> @messages("version.delete")
+                                <i class="fa fa-trash"></i> @messages("general.delete")
                             </a>
                         }
 
                         <a class="btn btn-primary"
                            href="@projectRoutes.Versions.download(project.ownerName, project.slug, version.versionString)">
-                            <i class="fa fa-download"></i> @messages("version.download")
+                            <i class="fa fa-download"></i> @messages("general.download")
                         </a>
 
                     </div>
@@ -137,7 +137,8 @@
                                     } else {
                                         <div class="minor">
                                             @depend.pluginId
-                                            <i class="fa fa-question-circle" title="@messages("version.dependency.not-on-ore")"
+                                            <i class="fa fa-question-circle"
+                                               title="@messages("version.dependency.notOnOre")"
                                                data-toggle="tooltip" data-placement="right"></i>
                                         </div>
                                     }

@@ -6,17 +6,20 @@
             <div class="col-md-4">
                 <div class="info">
                     <span class="minor copy">&copy;</span>
-                    <span class="minor copyright">2016 SpongePowered</span>
-                    <a href="#">Terms</a>
-                    <a href="mailto:windy@@spongepowered.org">Contact</a>
-                    <a href="https://docs.spongepowered.org/master/en/about/index.html">About</a>
+                    <span class="minor copyright">2016 @messages("general.organization")</span>
+                    <a href="#">@messages("general.terms")</a>
+                    <a href="mailto:windy@@spongepowered.org">@messages("general.contact")</a>
+                    <a href="https://docs.spongepowered.org/master/en/about/index.html">@messages("general.about")</a>
                 </div>
             </div>
+
             <div class="col-md-4 col-spongie">
                 <div>
-                    <img width="50" height="50" id="spongie" class="svg" src="@routes.Assets.at("images/spongie-mark.svg")" />
+                    <img width="50" height="50" id="spongie" class="svg"
+                         src="@routes.Assets.at("images/spongie-mark.svg")" />
                 </div>
             </div>
+
             <div class="col-md-4">
                 <div class="social pull-right">
 
@@ -26,10 +29,12 @@
                         </a>
                     }
 
-                    <a target="_blank" href="https://github.com/SpongePowered/Ore/issues">Issues</a>
-                    <a target="_blank" href="https://github.com/SpongePowered/Ore">Source</a>
-                    <a href="#">API</a>
-                    <a href="https://www.spongepowered.org/sponsors">Sponsors</a>
+                    <a target="_blank" href="https://github.com/SpongePowered/Ore/issues">
+                        @messages("general.issues")
+                    </a>
+                    <a target="_blank" href="https://github.com/SpongePowered/Ore">@messages("general.source")</a>
+                    <a href="#">@messages("general.api")</a>
+                    <a href="https://www.spongepowered.org/sponsors">@messages("general.sponsors")</a>
                     <a class="social-icon" target="_blank" href="https://twitter.com/spongepowered">
                         <i class="fa fa-twitter fa-2x"></i>
                     </a>

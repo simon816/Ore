@@ -31,12 +31,13 @@
                         <tbody>
                         @defining(user.starred(1)) { stars =>
                             @if(stars.isEmpty) {
-                                <tr><td><i class="minor">@messages("user.no-stars", user.username)</i></td></tr>
+                                <tr><td><i class="minor">@messages("user.noStars", user.username)</i></td></tr>
                             } else {
                                 @stars.map { star =>
                                     <tr>
                                         <td>
-                                            <a href="@projectRoutes.Projects.show(star.ownerName, star.name)" class="pull-left">
+                                            <a href="@projectRoutes.Projects.show(star.ownerName, star.name)"
+                                               class="pull-left">
                                                 @star.ownerName/<strong>@star.slug</strong>
                                             </a>
                                             <div class="pull-right">
@@ -52,7 +53,7 @@
                     </table>
 
                     <div class="panel-footer">
-                        <a class="pull-left" href="#">See all</a>
+                        <a class="pull-left" href="#">@messages("user.seeAll")</a>
                         <div class="pull-right">
                             <a class="prev" href="#" style="display: none;">&laquo;</a>
                             <a class="next" href="#" >&raquo;</a>

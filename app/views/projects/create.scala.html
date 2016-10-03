@@ -18,13 +18,14 @@ Page used for uploading and creating new projects.
 
     <div class="panel-body project-body">
         <div class="minor create-blurb">
-            <p>@Html(messages("project.create.info-text.head"))</p>
-            <p>@Html(messages("project.create.info-text.bottom"))</p>
+            <p>@Html(messages("project.create.infoText.head"))</p>
+            <p>@Html(messages("project.create.infoText.bottom"))</p>
         </div>
 
         @if(flash.get("error").isDefined) {
             <div class="alert alert-danger alert-dismissable" role="alert">
-                <button type="button" class="close" data-dismiss="alert" aria-label="@messages("aria.close")">
+                <button type="button" class="close" data-dismiss="alert"
+                        aria-label="@messages("general.close")">
                     <span aria-hidden="true">&times;</span>
                 </button>
                 <strong>@messages("project.create.error")</strong> @flash.get("error").get
@@ -71,7 +72,7 @@ Page used for uploading and creating new projects.
                                             @description.map { value =>
                                             value="@value"
                                             }.getOrElse {
-                                                placeholder="@messages("version.create.no-description")"
+                                                placeholder="@messages("version.create.noDescription")"
                                     }
                                         />
                                     }
@@ -101,7 +102,7 @@ Page used for uploading and creating new projects.
             @form(action = projectRoutes.upload, 'enctype -> "multipart/form-data", 'id -> "form-upload") {
                 <label class="btn btn-default pull-left" for="pluginFile">
                     <input id="pluginFile" name="pluginFile" type="file" style="display: none;">
-                    @messages("project.create.select-file")
+                    @messages("project.create.selectFile")
                 </label>
             }
 
@@ -117,7 +118,7 @@ Page used for uploading and creating new projects.
                             </a>
 
                             @* Disabled until JS determines meta is valid *@
-                            <button title="Continue" type="submit" name="create" value="@messages("project.create.continue")"
+                            <button title="Continue" type="submit" name="create" value="@messages("general.continue")"
                                     class="pull-right continue-btn btn btn-default" disabled>
                                 <i class="fa fa-spinner fa-spin"></i>
                             </button>
