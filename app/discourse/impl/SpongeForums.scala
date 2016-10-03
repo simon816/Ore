@@ -10,6 +10,9 @@ import util.CryptoUtils
 
 import scala.concurrent.duration._
 
+/**
+  * [[OreDiscourseApi]] implementation.
+  */
 @Singleton
 class SpongeForums @Inject()(env: OreEnv,
                              config: OreConfig,

@@ -22,10 +22,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
   */
 class Organizations @Inject()(forms: OreForms,
                               writes: OreWrites,
+                              forums: OreDiscourseApi,
                               implicit override val env: OreEnv,
                               implicit override val config: OreConfig,
                               implicit override val service: ModelService,
-                              implicit override val forums: OreDiscourseApi,
                               implicit override val messagesApi: MessagesApi) extends BaseController {
 
   private def EditOrganizationAction(organization: String)

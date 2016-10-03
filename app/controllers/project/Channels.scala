@@ -17,12 +17,11 @@ import views.html.projects.{channels => views}
 /**
   * Controller for handling Channel related actions.
   */
-class Channels @Inject()(val forms: OreForms,
-                         val factory: ProjectFactory,
+class Channels @Inject()(forms: OreForms,
+                         factory: ProjectFactory,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
-                         implicit override val forums: OreDiscourseApi,
                          implicit override val service: ModelService)
                          extends BaseController {
 

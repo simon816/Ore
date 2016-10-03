@@ -2,7 +2,6 @@ package controllers
 
 import controllers.Requests.{OrganizationRequest, _}
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
-import discourse.impl.OreDiscourseApi
 import models.project.Project
 import models.user.User
 import ore.permission.scope.GlobalScope
@@ -18,7 +17,6 @@ import scala.language.higherKinds
   */
 trait Actions {
 
-  val forums: OreDiscourseApi // TODO: Remove, no longer needed
   val users: UserBase
   val projects: ProjectBase
   val organizations: OrganizationBase

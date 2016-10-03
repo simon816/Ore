@@ -23,13 +23,13 @@ import views.html.projects.{versions => views}
 /**
   * Controller for handling Version related actions.
   */
-class Versions @Inject()(val stats: StatTracker,
-                         val forms: OreForms,
-                         val factory: ProjectFactory,
+class Versions @Inject()(stats: StatTracker,
+                         forms: OreForms,
+                         factory: ProjectFactory,
+                         forums: OreDiscourseApi,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
-                         implicit override val forums: OreDiscourseApi,
                          implicit override val service: ModelService)
                          extends BaseController {
 

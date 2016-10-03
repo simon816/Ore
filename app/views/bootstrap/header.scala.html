@@ -8,8 +8,8 @@ The main header displayed on each layout.
 @import ore.OreConfig
 @import ore.permission.scope.GlobalScope
 @import ore.permission.{ReviewFlags, ReviewProjects}
-@()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService,
-        forums: DiscourseApi, config: OreConfig, users: UserBase)
+@()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService, config: OreConfig,
+        users: UserBase)
 
 @flags = @{ service.getModelBase(classOf[FlagBase]) }
 @tooltip(title: String) = @{

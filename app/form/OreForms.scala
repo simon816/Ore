@@ -8,6 +8,7 @@ import models.project.Channel
 import models.project.Page._
 import models.user.role.ProjectRole
 import ore.OreConfig
+import ore.project.factory.ProjectFactory
 import play.api.data.Form
 import play.api.data.Forms._
 
@@ -15,7 +16,7 @@ import play.api.data.Forms._
   * Collection of forms used in this application.
   */
 //noinspection ConvertibleToMethodValue
-class OreForms @Inject()(implicit config: OreConfig) {
+class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
 
   /**
     * Submits a member to be removed from a Project.

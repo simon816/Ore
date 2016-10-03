@@ -3,6 +3,7 @@ package form.project
 import models.project.{Channel, Project}
 import ore.Colors.Color
 import ore.OreConfig
+import ore.project.factory.ProjectFactory
 
 /**
   * Represents submitted [[Channel]] data.
@@ -10,6 +11,7 @@ import ore.OreConfig
 trait TChannelData {
 
   val config: OreConfig
+  val factory: ProjectFactory
 
   /** The [[Channel]] [[Color]] **/
   val color: Color = Channel.Colors.find(_.hex.equalsIgnoreCase(channelColorHex)).get
@@ -33,10 +35,13 @@ trait TChannelData {
       Left("A project may only have up to five channels.")
     } else {
       channels.find(_.name.equalsIgnoreCase(this.channelName)) match {
-        case Some(channel) => Left("A channel with that name already exists.")
+        case Some(channel) =>
+          Left("A channel with that name already exists.")
         case None => channels.find(_.color.equals(this.color)) match {
-          case Some(channel) => Left("A channel with that color already exists.")
-          case None => Right(project.addChannel(this.channelName, this.color))
+          case Some(channel) =>
+            Left("A channel with that color already exists.")
+          case None =>
+            Right(this.factory.createChannel(project, this.channelName, this.color))
         }
       }
     }

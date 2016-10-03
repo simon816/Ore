@@ -49,14 +49,17 @@ class RecoveryTask(scheduler: Scheduler,
   override def run() = {
     this.Logger.info(s"Running Discourse recovery task:\n$statusString")
 
+    // Create failed topics
     val topicsToCreate = this.failedTopicAttempts
     this.failedTopicAttempts = Set.empty
     this.projects.in(topicsToCreate).filter(_.topicId == -1).foreach(this.api.createProjectTopic)
 
+    // Update failed topics
     val topicsToUpdate = this.failedUpdateAttempts
     this.failedUpdateAttempts = Set.empty
     this.projects.in(topicsToUpdate).filter(_.isTopicDirty).foreach(this.api.updateProjectTopic)
 
+    // Delete failed topics
     val topicsToDelete = this.failedDeleteAttempts
     this.failedDeleteAttempts = Set.empty
     this.projects.in(topicsToDelete).filterNot(_.topicId == -1).foreach(this.api.deleteProjectTopic)

@@ -24,13 +24,13 @@ import views.html.{projects => views}
 /**
   * Controller for handling Project related actions.
   */
-class Projects @Inject()(val stats: StatTracker,
-                         val forms: OreForms,
-                         val factory: ProjectFactory,
+class Projects @Inject()(stats: StatTracker,
+                         forms: OreForms,
+                         factory: ProjectFactory,
+                         implicit val forums: OreDiscourseApi,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
-                         implicit override val forums: OreDiscourseApi,
                          implicit override val service: ModelService)
                          extends BaseController {
 

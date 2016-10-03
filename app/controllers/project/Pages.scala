@@ -19,12 +19,11 @@ import views.html.projects.{pages => views}
 /**
   * Controller for handling Page related actions.
   */
-class Pages @Inject()(val forms: OreForms,
-                      val stats: StatTracker,
+class Pages @Inject()(forms: OreForms,
+                      stats: StatTracker,
                       implicit override val messagesApi: MessagesApi,
                       implicit override val env: OreEnv,
                       implicit override val config: OreConfig,
-                      implicit override val forums: OreDiscourseApi,
                       implicit override val service: ModelService)
                       extends BaseController {
 

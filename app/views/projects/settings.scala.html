@@ -1,15 +1,13 @@
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
 @import db.impl.access.UserBase
-@import discourse.DiscourseApi
 @import models.project.Project
 @import ore.permission.HideProjects
 @import ore.permission.scope.GlobalScope
 @import ore.{OreConfig, OreEnv}
 @import views.html.helper.form
-@(project: Project)(implicit messages: Messages, session: Session, flash: Flash,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, userBase: UserBase,
-        env: OreEnv)
+@(project: Project)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader,
+        service: ModelService, config: OreConfig, userBase: UserBase, env: OreEnv)
 
 @projects.view(project, "#settings") {
 

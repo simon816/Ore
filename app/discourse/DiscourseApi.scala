@@ -35,15 +35,6 @@ trait DiscourseApi extends DiscourseReads {
 
   protected val ws: WSClient
 
-  /**
-    * Returns true if the Discourse instance is available.
-    *
-    * @return True if available
-    */
-  def isAvailable: Future[Boolean] = this.ws.url(this.url).get().map(_.status == Status.OK).recover {
-    case e: Exception => false
-  }
-
   // Users
 
   /**
@@ -249,6 +240,28 @@ trait DiscourseApi extends DiscourseReads {
     }
   }
 
+  // Utils
+
+
+  /**
+    * Awaits the completion of the specified [[Future]] based on the configured
+    * timeout.
+    *
+    * @param future Future to wait for
+    * @tparam A     Result type
+    * @return       Result
+    */
+  def await[A](future: Future[A]): A = Await.result(future, this.timeout)
+
+  /**
+    * Returns true if the Discourse instance is available.
+    *
+    * @return True if available
+    */
+  def isAvailable: Future[Boolean] = this.ws.url(this.url).get().map(_.status == Status.OK).recover {
+    case e: Exception => false
+  }
+
   /**
     * Validates an incoming Discourse API response.
     *
@@ -256,11 +269,11 @@ trait DiscourseApi extends DiscourseReads {
     * @return         Return type
     */
   def validate(response: WSResponse): Either[List[String], JsObject] = {
-
-    if (this.isDebugMode)
+    if (this.isDebugMode) {
       Logger.info("Discourse response:\n" +
         s"Status: ${response.status}\n" +
         s"Body: ${response.body}")
+    }
 
     var json: JsObject = null
     try {
@@ -292,19 +305,37 @@ trait DiscourseApi extends DiscourseReads {
     */
   def validateRight(response: WSResponse): Option[JsObject] = validate(response).right.toOption
 
-  private def request(url: String): WSRequest = {
+  /**
+    * Constructs a new request to the Discourse instance ready to be sent.
+    *
+    * @param url  URL of request
+    * @return     WSRequest
+    */
+  def request(url: String): WSRequest = {
     if (this.isDebugMode)
       Logger.info(s"Request: $url")
     this.ws.url(url)
   }
 
-  private def keyedUrl(url: String, username: String = this.admin)
+  /**
+    * Returns a URL for the Discourse instance with API parameters appended to
+    * the query string.
+    *
+    * @param url      Base URL
+    * @param username Username to authenticate as
+    * @return         URL with API parameters
+    */
+  def keyedUrl(url: String, username: String = this.admin)
   = s"${this.url}$url?api_key=${this.key}&api_username=$username"
 
-  private def ApiParams(username: String = this.admin) = Map(
+  /**
+    * Returns a Map with Discourse API parameters.
+    *
+    * @param username Username to authenticate as
+    * @return         Map with API parameters
+    */
+  def ApiParams(username: String = this.admin) = Map(
     "api_key" -> Seq(this.key),
     "api_username" -> Seq(username))
-
-  def await[A](future: Future[A]): A = Await.result(future, this.timeout)
 
 }

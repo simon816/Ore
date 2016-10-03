@@ -1,6 +1,7 @@
 package form.project
 
 import ore.OreConfig
+import ore.project.factory.ProjectFactory
 
 /**
   * Concrete counterpart to [[TChannelData]].
@@ -10,5 +11,6 @@ import ore.OreConfig
   */
 case class ChannelData(override val channelName: String,
                        override protected val channelColorHex: String)
-                      (implicit override val config: OreConfig)
+                      (implicit override val config: OreConfig,
+                       override val factory: ProjectFactory)
                        extends TChannelData

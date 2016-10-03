@@ -1,7 +1,6 @@
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import db.impl.access.{ProjectBase, UserBase}
-@import discourse.DiscourseApi
 @import models.project.{Channel, Project, Version}
 @import ore.permission.scope.GlobalScope
 @import ore.permission.{EditVersions, ReviewProjects}
@@ -9,8 +8,8 @@
 @import ore.{OreConfig, OreEnv}
 @import util.StringUtils.prettifyDate
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
-        session: Session, request: RequestHeader, flash: Flash, service: ModelService,
-        forums: DiscourseApi, config: OreConfig, users: UserBase, projectBase: ProjectBase, env: OreEnv)
+        session: Session, request: RequestHeader, flash: Flash, service: ModelService, config: OreConfig,
+        users: UserBase, projectBase: ProjectBase, env: OreEnv)
 
 @hasUser = @{ users.current.isDefined }
 @user = @{ users.current.get }

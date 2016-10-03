@@ -9,8 +9,7 @@
 @import ore.{OreConfig, OreEnv}
 @(notifications: Seq[Notification], invites: Seq[RoleModel], notificationFilter: NotificationFilter,
         inviteFilter: InviteFilter)(implicit messages: Messages, session: Session, request: RequestHeader,
-        service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv,
-        projects: ProjectBase)
+        service: ModelService, config: OreConfig, users: UserBase, env: OreEnv, projects: ProjectBase)
 
 @notificationFilterOption(option: NotificationFilter) = @{
     if (option.equals(notificationFilter)) {

@@ -25,12 +25,18 @@ import scala.util.{Failure, Success}
   */
 trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
 
+  /** Initialize before start() */
   var projects: ProjectBase = _
 
+  /** The category where projects are posted to */
   val categorySlug: String
+  /** Path to project topic template */
   val topicTemplatePath: Path
+  /** Path to version release template */
   val versionReleasePostTemplatePath: Path
+  /** Rate at which to retry failed attempts */
   val retryRate: FiniteDuration
+  /** Scheduler for maintaining synchronization when requests fail */
   val scheduler: Scheduler
 
   val templates: Templates = new Templates

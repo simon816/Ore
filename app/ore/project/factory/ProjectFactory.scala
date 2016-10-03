@@ -11,6 +11,7 @@ import discourse.impl.OreDiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.role.ProjectRole
 import models.user.{Notification, User}
+import ore.Colors.Color
 import ore.OreConfig
 import ore.permission.role.RoleTypes
 import ore.project.NotifyWatchersTask
@@ -212,6 +213,24 @@ trait ProjectFactory {
   }
 
   /**
+    * Creates a new release channel for the specified [[Project]].
+    *
+    * @param project  Project to create channel for
+    * @param name     Channel name
+    * @param color    Channel color
+    * @return         New channel
+    */
+  def createChannel(project: Project, name: String, color: Color): Channel = {
+    checkNotNull(project, "null project", "")
+    checkArgument(project.isDefined, "undefined project", "")
+    checkNotNull(name, "null name", "")
+    checkArgument(this.config.isValidChannelName(name), "invalid name", "")
+    checkNotNull(color, "null color", "")
+    checkState(project.channels.size < this.config.projects.getInt("max-channels").get, "channel limit reached", "")
+    this.service.access[Channel](classOf[Channel]).add(new Channel(name, color, project.id.get))
+  }
+
+  /**
     * Creates a new version from the specified PendingVersion.
     *
     * @param pending  PendingVersion
@@ -223,8 +242,10 @@ trait ProjectFactory {
 
     // Create channel if not exists
     project.channels.find(equalsIgnoreCase(_.name, pending.channelName)) match {
-      case None => channel = project.addChannel(pending.channelName, pending.channelColor)
-      case Some(existing) => channel = existing
+      case None =>
+        channel = createChannel(project, pending.channelName, pending.channelColor)
+      case Some(existing) =>
+        channel = existing
     }
 
     // Create version

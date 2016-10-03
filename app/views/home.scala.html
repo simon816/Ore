@@ -15,8 +15,7 @@ sorted according to different criteria.
 @import scala.util.Random
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], query: Option[String], page: Int,
         sort: ProjectSortingStrategy)(implicit messages: Messages, session: Session, flash: Flash,
-        request: RequestHeader, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase,
-        env: OreEnv)
+        request: RequestHeader, service: ModelService, config: OreConfig, users: UserBase, env: OreEnv)
 
 @randomSponsor = @{
     val logos = config.sponge.getStringList("sponsors.logos").get

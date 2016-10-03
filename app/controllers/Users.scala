@@ -9,7 +9,7 @@ import db.impl.access.UserBase.ORDERING_PROJECTS
 import discourse.impl.OreDiscourseApi
 import discourse.model.DiscourseUser
 import form.OreForms
-import models.user.User
+import models.user.{Notification, User}
 import models.user.role.RoleModel
 import ore.permission.EditSettings
 import ore.user.notification.InviteFilters.InviteFilter
@@ -24,12 +24,12 @@ import views.{html => views}
 /**
   * Controller for general user actions.
   */
-class Users @Inject()(val fakeUser: FakeUser,
-                      val forms: OreForms,
+class Users @Inject()(fakeUser: FakeUser,
+                      forms: OreForms,
+                      forums: OreDiscourseApi,
                       implicit override val messagesApi: MessagesApi,
                       implicit override val env: OreEnv,
                       implicit override val config: OreConfig,
-                      implicit override val forums: OreDiscourseApi,
                       implicit override val service: ModelService) extends BaseController {
 
   /**
@@ -136,43 +136,27 @@ class Users @Inject()(val fakeUser: FakeUser,
     */
   def showNotifications(notificationFilter: Option[String], inviteFilter: Option[String]) = {
     Authenticated { implicit request =>
+      val user = request.user
+
+      // Get visible notifications
       val nFilter: NotificationFilter = notificationFilter
         .map(str => NotificationFilters.values
           .find(_.name.equalsIgnoreCase(str))
           .getOrElse(NotificationFilters.Unread))
         .getOrElse(NotificationFilters.Unread)
+      val notifications: Seq[Notification] = nFilter(user.notifications)
 
+      // Get visible invites
       val iFilter: InviteFilter = inviteFilter
         .map(str => InviteFilters.values
           .find(_.name.equalsIgnoreCase(str))
           .getOrElse(InviteFilters.All))
         .getOrElse(InviteFilters.All)
-
-      val user = request.user
-      val notifications = user.notifications
-      val visibleNotifications = nFilter match {
-        case NotificationFilters.Unread =>
-          notifications.filterNot(_.read)
-        case NotificationFilters.Read =>
-          notifications.filter(_.read)
-        case NotificationFilters.All =>
-          notifications.all
-      }
-
-      val projectInvites = user.projectRoles.filterNot(_.isAccepted)
-      val organizationInvites = user.organizationRoles.filterNot(_.isAccepted)
-      val visibleInvites: Seq[RoleModel] = iFilter match {
-        case InviteFilters.All =>
-          projectInvites ++ organizationInvites
-        case InviteFilters.Projects =>
-          projectInvites
-        case InviteFilters.Organizations =>
-          organizationInvites
-      }
+      val invites: Seq[RoleModel] = iFilter(user)
 
       Ok(views.users.notifications(
-        visibleNotifications.toSeq,
-        visibleInvites,
+        notifications,
+        invites,
         nFilter, iFilter
       ))
     }

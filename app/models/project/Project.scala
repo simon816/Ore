@@ -389,20 +389,6 @@ case class Project(override val id: Option[Int] = None,
   def channels = this.schema.getChildren[Channel](classOf[Channel], this)
 
   /**
-    * Creates a new Channel for this project with the specified name.
-    *
-    * TODO: Move elsewhere
-    *
-    * @param name   Name of channel
-    * @return       New channel
-    */
-  def addChannel(name: String, color: Color): Channel = Defined {
-    checkArgument(this.config.isValidChannelName(name), "invalid name", "")
-    checkState(this.channels.size < this.config.projects.getInt("max-channels").get, "channel limit reached", "")
-    this.service.access[Channel](classOf[Channel]).add(new Channel(name, color, this.id.get))
-  }
-
-  /**
     * Returns all versions in this project.
     *
     * @return Versions in project

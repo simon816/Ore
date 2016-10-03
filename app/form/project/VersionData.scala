@@ -1,6 +1,7 @@
 package form.project
 
 import ore.OreConfig
+import ore.project.factory.ProjectFactory
 
 /**
   * Represents submitted [[models.project.Version]] data.
@@ -12,5 +13,6 @@ import ore.OreConfig
 case class VersionData(recommended: Boolean,
                        override val channelName: String,
                        override protected val channelColorHex: String)
-                      (implicit override val config: OreConfig)
+                      (implicit override val config: OreConfig,
+                       override val factory: ProjectFactory)
                        extends TChannelData
