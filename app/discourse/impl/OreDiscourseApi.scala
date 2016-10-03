@@ -38,6 +38,8 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
   val retryRate: FiniteDuration
   /** Scheduler for maintaining synchronization when requests fail */
   val scheduler: Scheduler
+  /** The base URL for this instance */
+  val baseUrl: String
 
   val templates: Templates = new Templates
 
@@ -65,6 +67,7 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
   def createProjectTopic(project: Project): Future[Boolean] = {
     checkArgument(project.id.isDefined, "undefined project", "")
     val content = this.templates.projectTopic(project)
+    println(content)
     val title = this.templates.projectTitle(project)
     val resultPromise: Promise[Boolean] = Promise()
     createTopic(
@@ -294,7 +297,7 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
     def projectTopic(project: Project) = readAndFormatFile(
       OreDiscourseApi.this.topicTemplatePath,
       project.name,
-      project.url,
+      OreDiscourseApi.this.baseUrl + '/' + project.url,
       project.homePage.contents
     )
 
@@ -302,8 +305,8 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
     def versionRelease(project: Project, version: Version) = readAndFormatFile(
       OreDiscourseApi.this.versionReleasePostTemplatePath,
       project.name,
-      project.url,
-      OreDiscourseApi.this.url,
+      OreDiscourseApi.this.baseUrl + '/' + project.url,
+      OreDiscourseApi.this.baseUrl + '/' + version.url,
       version.description.getOrElse("*No description given.*")
     )
 

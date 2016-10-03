@@ -27,6 +27,7 @@ class SpongeForums @Inject()(env: OreEnv,
   override val admin: String = this.conf.getString("api.admin").get
   override val timeout: Duration = this.conf.getInt("api.timeout").get.millis
   override val url: String = this.conf.getString("baseUrl").get
+  override val baseUrl: String = this.config.app.getString("baseUrl").get
 
   override val secret: String = this.conf.getString("sso.secret").get
   override val ssoUrl: String = this.conf.getString("sso.url").get
