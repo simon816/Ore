@@ -136,11 +136,13 @@ class ProjectBase(override val service: ModelService,
     checkArgument(proj.id.get == version.projectId, "invalid context id", "")
 
     val rv = proj.recommendedVersion
-    version.remove()
 
-    // Set recommended version to latest version if the deleted version was the rv
+    // Set recommended version to latest (excluding the version to delete)
+    // version if the deleted version was the rv
     if (version.equals(rv))
-      proj.recommendedVersion = proj.versions.sorted(_.createdAt.desc, limit = 1).head
+      proj.recommendedVersion = proj.versions.sorted(_.createdAt.desc, limit = 1).filterNot(_.equals(version)).head
+
+    version.remove()
 
     // Delete channel if now empty
     val channel: Channel = version.channel
@@ -157,7 +159,7 @@ class ProjectBase(override val service: ModelService,
     */
   def delete(project: Project) = {
     FileUtils.deleteDirectory(this.fileManager.getProjectDir(project.ownerName, project.name).toFile)
-    if (project.topicId != -1 && this.forums.isEnabled)
+    if (project.topicId != -1)
       this.forums.deleteProjectTopic(project)
     // TODO: Instead, move to the "projects_deleted" table just in case we couldn't delete the topic
     project.remove()

@@ -66,9 +66,6 @@ trait ProjectFactory {
       createDirectories(tmpPath.getParent)
     uploadedFile.moveTo(plugin.path.toFile, replace = true)
 
-    if (this.config.projects.getBoolean("tmp-file-save").get)
-      copy(plugin.path, uploadPath) // For testing
-
     // Name the file correctly
     val metaData = plugin.loadMeta()
     val pathStr = plugin.path.toString
@@ -206,8 +203,7 @@ trait ProjectFactory {
       ))
     }
 
-    if (this.forums.isEnabled)
-      this.forums.await(this.forums.createProjectTopic(newProject))
+    this.forums.await(this.forums.createProjectTopic(newProject))
 
     newProject
   }

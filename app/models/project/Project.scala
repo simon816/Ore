@@ -3,17 +3,16 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-import db.{ModelService, Named}
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.model.{Describable, Downloadable, OreModel}
 import db.impl.schema.ProjectSchema
 import db.impl.table.ModelKeys
 import db.impl.table.ModelKeys._
+import db.{ModelService, Named}
 import models.statistic.ProjectView
 import models.user.User
 import models.user.role.ProjectRole
-import ore.Colors.Color
 import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
@@ -199,7 +198,7 @@ case class Project(override val id: Option[Int] = None,
     this._description = Option(_description)
 
     // Description alter's the Project's topic title, update it
-    if (this.topicId != -1 && this.forums.isEnabled)
+    if (this.topicId != -1)
       this.forums.updateProjectTopic(this)
 
     if (isDefined)

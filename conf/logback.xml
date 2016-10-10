@@ -34,5 +34,6 @@
     <logger name="Bootstrap" level="INFO" />
     <logger name="Discourse" level="INFO" />
     <logger name="Database"  level="INFO" />
+    <logger name="DataHelper" level="INFO" />
 
 </configuration>

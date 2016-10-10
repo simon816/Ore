@@ -27,6 +27,7 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
 
   /** Initialize before start() */
   var projects: ProjectBase = _
+  var isEnabled = true
 
   /** The category where projects are posted to */
   val categorySlug: String
@@ -50,7 +51,11 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
   /**
     * Initializes and starts this API instance.
     */
-  def start() = {
+  def start(): Unit = {
+    if (!this.isEnabled) {
+      Logger.info("Discourse API initialized in disabled mode.")
+      return
+    }
     checkNotNull(this.projects, "projects are null", "")
     this.recovery = new RecoveryTask(this.scheduler, this.retryRate, this, this.projects)
     this.recovery.loadUnhealthyData()
@@ -65,6 +70,8 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
     * @return        True if successful
     */
   def createProjectTopic(project: Project): Future[Boolean] = {
+    if (!this.isEnabled)
+      return Future(true)
     checkArgument(project.id.isDefined, "undefined project", "")
     val content = this.templates.projectTopic(project)
     println(content)
@@ -124,6 +131,8 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
     * @return         True if successful
     */
   def updateProjectTopic(project: Project): Future[Boolean] = {
+    if (!this.isEnabled)
+      return Future(true)
     checkArgument(project.id.isDefined, "undefined project", "")
     checkArgument(project.topicId != -1, "undefined topic id", "")
     checkArgument(project.postId != -1, "undefined post id", "")
@@ -203,6 +212,10 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
     * @return         List of errors Discourse returns
     */
   def postDiscussionReply(project: Project, user: User, content: String): Future[List[String]] = {
+    if (!this.isEnabled) {
+      Logger.warn("Tried to post discussion with API disabled?") // Shouldn't be reachable
+      return Future(List.empty)
+    }
     checkArgument(project.topicId != -1, "undefined topic id", "")
     // It's OK if Discourse responds with errors here, we will just show them to the user
     createPost(
@@ -223,6 +236,8 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
     * @return
     */
   def postVersionRelease(project: Project, version: Version): Future[List[String]] = {
+    if (!this.isEnabled)
+      return Future(List.empty)
     checkArgument(project.id.isDefined, "undefined project", "")
     checkArgument(version.id.isDefined, "undefined version", "")
     checkArgument(version.projectId == project.id.get, "invalid version project pair", "")
@@ -241,6 +256,8 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
     * @return         True if deleted
     */
   def deleteProjectTopic(project: Project): Future[Boolean] = {
+    if (!this.isEnabled)
+      return Future(true)
     checkArgument(project.id.isDefined, "undefined project", "")
     checkArgument(project.topicId != -1, "undefined topic id", "")
 
@@ -276,6 +293,8 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
     * @return       Amount on discourse
     */
   def countUsers(users: List[String]): Future[Int] = {
+    if (!this.isEnabled)
+      return Future(0)
     var futures: Seq[Future[Boolean]] = Seq.empty
     for (user <- users) {
       futures :+= userExists(user).recover {

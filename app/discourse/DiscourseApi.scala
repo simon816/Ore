@@ -30,7 +30,6 @@ trait DiscourseApi extends DiscourseReads {
 
   val Logger = play.api.Logger("Discourse")
 
-  var isEnabled: Boolean = true
   var isDebugMode: Boolean = false
 
   protected val ws: WSClient

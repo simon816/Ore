@@ -72,7 +72,7 @@ case class Page(override val id: Option[Int] = None,
     if (isDefined) {
       // Contents were updated, update on forums
       val project = this.project
-      if (this.name.equals(HomeName) && project.topicId != -1 && this.forums.isEnabled)
+      if (this.name.equals(HomeName) && project.topicId != -1)
         this.forums.updateProjectTopic(project)
       update(Contents)
     }

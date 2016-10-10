@@ -10,7 +10,7 @@ trait PendingAction[R] {
   /**
     * Completes the action.
     */
-  def complete: Try[R]
+  def complete(): Try[R]
 
   /**
     * Cancels the action.

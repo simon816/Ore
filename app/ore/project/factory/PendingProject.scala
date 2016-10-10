@@ -37,7 +37,7 @@ case class PendingProject(projects: ProjectBase,
     version
   }
 
-  override def complete: Try[Project] = Try {
+  override def complete(): Try[Project] = Try {
     free()
     val newProject = this.factory.createProject(this).get
     this.pendingVersion.project = newProject

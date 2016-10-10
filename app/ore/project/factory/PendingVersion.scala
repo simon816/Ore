@@ -30,7 +30,7 @@ case class PendingVersion(projects: ProjectBase,
                           extends PendingAction[Version]
                             with Cacheable {
 
-  override def complete: Try[Version] = Try {
+  override def complete(): Try[Version] = Try {
     free()
     return this.factory.createVersion(this)
   }
