@@ -20,6 +20,7 @@ import ore.user.{FakeUser, Prompts}
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import play.api.mvc.{Security, _}
+import security.pgp.PGPPublicKeyInfo
 import views.{html => views}
 
 /**
@@ -169,6 +170,20 @@ class Users @Inject()(fakeUser: FakeUser,
       user.pgpPubKey = null
       user.lastPgpPubKeyUpdate = this.service.theTime
       Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
+    }
+  }
+
+  def savePgpPublicKey(username: String) = Authenticated { implicit request =>
+    this.users.withName(username) match {
+      case None =>
+        NotFound
+      case Some(user) =>
+        if (isThisUserOrOrganizationAdmin(user, request.user)) {
+          val pubKey = this.forms.UserPgpPubKey.bindFromRequest.get
+          println(PGPPublicKeyInfo.decode(pubKey))
+          Ok
+        } else
+          Unauthorized
     }
   }
 
