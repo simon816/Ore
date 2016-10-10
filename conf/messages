@@ -55,6 +55,9 @@ error.tagline.tooLong           =   Tagline is too long (max {0}).
 error.org.createLimit           =   You may only create up to {0} organizations!
 error.org.cannotCreate          =   Unable to create an organization at this time.
 error.org.cannotUpdateAvatar    =   Unable to update avatar at this time.
+error.invalidKey                =   Invalid key.
+error.pgp.noEmail               =   You must have an email associated with your account to upload a PGP public key.
+error.pgp.invalidEmail          =   The email associated with the uploaded key does not match the email associated with your Sponge account.
 
 page.edit.cannotDeleteHomepage  =   Your project's homepage cannot be deleted
 page.edit.maxPages              =   You have reached the maximum amount of allowed pages.
@@ -157,9 +160,9 @@ user.queue                  =   Approval queue
 user.queue.none             =   There are no versions to review.
 user.queue.approve          =   Approve
 user.lockAccount            =   Lock account.
-user.pgp.edit               =   Edit public PGP key.
+user.pgp.edit               =   PGP Public Key
 user.pgp.pubKey             =   PGP Public Key
-user.pgp.pubKey.info        =   Paste your PGP public key in it's entirety to the text box below.
+user.pgp.pubKey.info        =   Paste your PGP public key in it's entirety to the text box below. The submitted key must be associated with the email that is associated with your Sponge account.
 user.pgp.help               =   Need help?
 
 notification.invite                 =   You have been invited to join the {0}

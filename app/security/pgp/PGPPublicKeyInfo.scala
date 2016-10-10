@@ -6,13 +6,29 @@ import java.util.Date
 import org.bouncycastle.openpgp.jcajce.JcaPGPPublicKeyRingCollection
 import org.bouncycastle.openpgp.{PGPSignature, PGPUtil}
 
+/**
+  * Represents data that is decoded from a submitted PGP Public Key and is to
+  * be displayed to the end user.
+  *
+  * @param raw        Raw key
+  * @param userName   Name of individual associated with the key
+  * @param email      Email associated with key
+  * @param id         Key ID
+  * @param createdAt  Date of creation
+  */
 case class PGPPublicKeyInfo(raw: String, userName: String, email: String, id: String, createdAt: Date)
 
 object PGPPublicKeyInfo {
 
   val Logger = play.api.Logger("PGP")
 
-  def decode(raw: String) = {
+  /**
+    * Decodes a raw string into a [[PGPPublicKeyInfo]].
+    *
+    * @param raw Raw key string
+    * @return [[PGPPublicKeyInfo]] instance
+    */
+  def decode(raw: String): PGPPublicKeyInfo = {
     Logger.info(s"Decoding public key:\n$raw\n")
 
     val in = PGPUtil.getDecoderStream(new ByteArrayInputStream(raw.getBytes))
@@ -65,7 +81,7 @@ object PGPPublicKeyInfo {
           Logger.info("\tCertification: " + sig.isCertification)
         }
 
-        if (key.isMasterKey) {
+        if (isMaster) {
           val emailIndexStart = firstUser.indexOf('<')
           val emailIndexEnd = firstUser.indexOf('>')
           if (emailIndexStart == -1 || emailIndexEnd == -1)

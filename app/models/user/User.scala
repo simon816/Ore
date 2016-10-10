@@ -21,6 +21,7 @@ import ore.permission.scope._
 import ore.user.Prompts.Prompt
 import ore.user.UserOwned
 import play.api.mvc.Session
+import security.pgp.PGPPublicKeyInfo
 import util.StringUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -104,6 +105,14 @@ case class User(override val id: Option[Int] = None,
     * @return PGP public key
     */
   def pgpPubKey: Option[String] = this._pgpPubKey
+
+  /**
+    * Decodes this user's raw PGP public key and returns information about the
+    * key.
+    *
+    * @return Public key information
+    */
+  def pgpPubKeyInfo: Option[PGPPublicKeyInfo] = this.pgpPubKey.map(PGPPublicKeyInfo.decode(_))
 
   /**
     * Sets this User's PGP public key. A PGP public key is required for any

@@ -12,14 +12,15 @@ import form.OreForms
 import models.user.{Notification, User}
 import models.user.role.RoleModel
 import ore.permission.EditSettings
+import ore.rest.OreWrites
 import ore.user.notification.InviteFilters.InviteFilter
 import ore.user.notification.NotificationFilters.NotificationFilter
 import ore.user.notification.{InviteFilters, NotificationFilters}
 import ore.user.{FakeUser, Prompts}
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
+import play.api.libs.json.Json
 import play.api.mvc.{Security, _}
-import security.pgp.PGPPublicKeyInfo
 import views.{html => views}
 
 /**
@@ -28,6 +29,7 @@ import views.{html => views}
 class Users @Inject()(fakeUser: FakeUser,
                       forms: OreForms,
                       forums: OreDiscourseApi,
+                      writes: OreWrites,
                       implicit override val messagesApi: MessagesApi,
                       implicit override val env: OreEnv,
                       implicit override val config: OreConfig,
@@ -125,15 +127,43 @@ class Users @Inject()(fakeUser: FakeUser,
     }
   }
 
+  /**
+    * Attempts to save a submitted PGP Public Key to the specified User
+    * profile.
+    *
+    * @param username User to save key to
+    * @return JSON response
+    */
   def savePgpPublicKey(username: String) = Authenticated { implicit request =>
     this.users.withName(username) match {
       case None =>
         NotFound
       case Some(user) =>
         if (isThisUserOrOrganizationAdmin(user, request.user)) {
-          val pubKey = this.forms.UserPgpPubKey.bindFromRequest.get
-          println(PGPPublicKeyInfo.decode(pubKey))
-          Ok
+          this.forms.UserPgpPubKey.bindFromRequest.fold(
+            hasErrors => {
+              Redirect(self.showProjects(username, None))
+                .flashing("error" -> this.messagesApi(hasErrors.errors.head.message))
+            },
+
+            keySubmission => {
+              import this.writes._
+              val keyInfo = keySubmission.info
+              // Validate email
+              user.email match {
+                case None =>
+                  Redirect(self.showProjects(username, None)).flashing("error" -> this.messagesApi("error.pgp.noEmail"))
+                case Some(email) =>
+                  if (!email.equals(keyInfo.email))
+                    Redirect(self.showProjects(username, None))
+                      .flashing("error" -> this.messagesApi("error.pgp.invalidEmail"))
+                  else {
+                    user.pgpPubKey = keyInfo.raw
+                    Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
+                  }
+              }
+            }
+          )
         } else
           Unauthorized
     }

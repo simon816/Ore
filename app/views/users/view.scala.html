@@ -23,6 +23,14 @@
 
         @utils.alert("error")
 
+        @flash.get("pgp-updated").map { updated =>
+          <script>
+              $(function() {
+                  $('#modal-pgp').modal('show');
+              });
+          </script>
+        }
+
         <!-- Updated by JS -->
         <div class="alert alert-success alert-dismissable" role="alert" style="display: none;">
             <button type="button" class="close" data-dismiss="alert" aria-label="@messages("general.close")">
@@ -49,49 +57,6 @@
                         @if(!users.current.get.readPrompts.contains(Prompts.ChangeAvatar)) {
                             @utils.prompt(Prompts.ChangeAvatar, "popover-avatar")
                         }
-
-                        @utils.modal("modal-avatar", "label-avatar", "user.editAvatar") {
-                            @form(action = routes.Organizations.updateAvatar(user.name), 'id -> "form-avatar",
-                                'enctype -> "multipart/form-data") {
-                                <div class="modal-body">
-                                    <div class="alert alert-danger">
-                                        <span class="error"></span>
-                                    </div>
-
-                                    <div class="setting">
-                                        <div class="setting-description">
-                                            <h4>
-                                                <input checked type="radio" name="avatar-method" value="by-url" />
-                                                @messages("user.avatar.byUrl")
-                                            </h4>
-                                        </div>
-                                        <input name="avatar-url" type="url" class="form-control" />
-                                        <div class="clearfix"></div>
-                                    </div>
-
-                                    <div class="setting setting-no-border">
-                                        <div class="setting-description">
-                                            <h4>
-                                                <input type="radio" name="avatar-method" value="by-file" />
-                                                @messages("user.avatar.byFile")
-                                            </h4>
-                                        </div>
-                                        <input name="avatar-file" type="file" disabled />
-                                        <div class="clearfix"></div>
-                                    </div>
-                                </div>
-
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-default" data-dismiss="modal">
-                                    @messages("general.cancel")
-                                    </button>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fa fa-spinner fa-spin" style="display: none;"></i>
-                                        @messages("general.update")
-                                    </button>
-                                </div>
-                            }
-                        }
                     }
 
                     <div class="user-title">
@@ -104,7 +69,7 @@
 
                                 <span data-toggle="modal" data-target="#modal-pgp">
                                     <i class="fa fa-key action-pgp" data-toggle="tooltip" data-placement="top"
-                                       title="@messages("user.pgp.edit")"></i>
+                                       title="@messages("user.pgp.pubKey")"></i>
                                 </span>
 
                                 @if(!users.current.get.readPrompts.contains(Prompts.PGP)) {
@@ -173,24 +138,56 @@
 
     </div>
 
-    @utils.modal("modal-pgp", "label-pgp", "user.pgp.edit") {
-        @form(action = routes.Users.savePgpPublicKey(user.username)) {
+    @utils.modal("modal-pgp", "label-pgp", "user.pgp.pubKey") {
+        @form(action = routes.Users.savePgpPublicKey(user.username), 'id -> "form-pgp") {
             <div class="modal-body">
-                <div class="setting setting-no-border">
+                <div class="alert alert-danger" style="display: none;">
+                    <span class="error"></span>
+                </div>
+
+                <div class="setting setting-no-border setting-pgp">
                     <div class="setting-description">
                         <h4>@messages("user.pgp.pubKey")</h4>
-                        <p>@messages("user.pgp.pubKey.info")</p>
+                        @if(user.pgpPubKey.isEmpty) {
+                            <p>@messages("user.pgp.pubKey.info")</p>
+                        }
                     </div>
-                    <textarea class="form-control" name="pgp-pub-key" rows="10">@user.pgpPubKey</textarea>
-                    <i class="pull-right"><a href="#TODO">@messages("user.pgp.help")</a></i>
+
+                    @user.pgpPubKeyInfo.map { keyInfo =>
+                        <i class="minor pull-right">Created on @prettifyDate(keyInfo.createdAt)</i>
+                        <table width="100%">
+                            <tr>
+                                <td><strong>ID</strong></td>
+                                <td><pre>@keyInfo.id</pre></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Name</strong></td>
+                                <td>@keyInfo.userName</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email</strong></td>
+                                <td><a href="mailto:@keyInfo.email">@keyInfo.email</a></td>
+                            </tr>
+                        </table>
+                    }
+
+                    @if(user.pgpPubKey.isEmpty) {
+                        <textarea class="form-control" name="pgp-pub-key" rows="10"></textarea>
+                        <i class="pull-right"><a href="#TODO">@messages("user.pgp.help")</a></i>
+                    }
                 </div>
                 <div class="clearfix"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">
-                @messages("general.close")
+                    @messages("general.close")
                 </button>
-                <input type="submit" value="@messages("general.save")" class="btn btn-primary" />
+                @if(user.pgpPubKey.isEmpty) {
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-spinner fa-spin" style="display: none;"></i>
+                        @messages("general.save")
+                    </button>
+                }
             </div>
         }
     }
@@ -216,5 +213,49 @@
             </div>
         }
     }
+
+    @utils.modal("modal-avatar", "label-avatar", "user.editAvatar") {
+        @form(action = routes.Organizations.updateAvatar(user.name), 'id -> "form-avatar",
+            'enctype -> "multipart/form-data") {
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <span class="error"></span>
+                </div>
+
+                <div class="setting">
+                    <div class="setting-description">
+                        <h4>
+                            <input checked type="radio" name="avatar-method" value="by-url" />
+                            @messages("user.avatar.byUrl")
+                        </h4>
+                    </div>
+                    <input name="avatar-url" type="url" class="form-control" />
+                    <div class="clearfix"></div>
+                </div>
+
+                <div class="setting setting-no-border">
+                    <div class="setting-description">
+                        <h4>
+                            <input type="radio" name="avatar-method" value="by-file" />
+                            @messages("user.avatar.byFile")
+                        </h4>
+                    </div>
+                    <input name="avatar-file" type="file" disabled />
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">
+                @messages("general.cancel")
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa fa-spinner fa-spin" style="display: none;"></i>
+                    @messages("general.update")
+                </button>
+            </div>
+        }
+    }
+
 
 }

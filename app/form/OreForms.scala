@@ -125,7 +125,9 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
   /**
     * Submits a PGP public key update.
     */
-  lazy val UserPgpPubKey = Form(single("pgp-pub-key" -> text))
+  lazy val UserPgpPubKey = Form(mapping(
+    "pgp-pub-key" -> text
+  )(PGPPublicKeySubmission.apply)(PGPPublicKeySubmission.unapply) verifying("error.invalidKey", _.validateKey()))
 
   /**
     * Submits a new Version.

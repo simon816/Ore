@@ -11,6 +11,7 @@ import ore.OreConfig
 import ore.project.ProjectMember
 import play.api.libs.json.Json.{obj, toJson}
 import play.api.libs.json._
+import security.pgp.PGPPublicKeyInfo
 
 /**
   * Contains implicit JSON [[Writes]] for the Ore API.
@@ -85,6 +86,18 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "starred"         ->  user.starred().map(p => p.pluginId),
         "avatarTemplate"  ->  user.avatarTemplate,
         "projects"        ->  user.projects.all
+      )
+    }
+  }
+
+  implicit val pgpPublicKeyInfoWrites = new Writes[PGPPublicKeyInfo] {
+    def writes(key: PGPPublicKeyInfo) = {
+      obj(
+        "raw" -> key.raw,
+        "userName" -> key.userName,
+        "email" -> key.email,
+        "id" -> key.id,
+        "createdAt" -> key.createdAt
       )
     }
   }
