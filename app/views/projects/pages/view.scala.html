@@ -29,7 +29,7 @@ Documentation page within Project overview.
                 <div class="col-md-9">
                     <div class="row">
                         <div class="col-md-12">
-                            @editor(
+                            @utils.editor(
                                 saveCall = routes.Pages.save(model.ownerName, model.slug, page.name),
                                 deleteCall = routes.Pages.delete(model.ownerName, model.slug, page.name),
                                 deletable = !page.isHome,

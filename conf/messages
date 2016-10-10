@@ -156,6 +156,11 @@ user.flags.messageOwner     =   Message project owner
 user.queue                  =   Approval queue
 user.queue.none             =   There are no versions to review.
 user.queue.approve          =   Approve
+user.lockAccount            =   Lock account.
+user.pgp.edit               =   Edit public PGP key.
+user.pgp.pubKey             =   PGP Public Key
+user.pgp.pubKey.info        =   Paste your PGP public key in it's entirety to the text box below.
+user.pgp.help               =   Need help?
 
 notification.invite                 =   You have been invited to join the {0}
 notification.invites                =   Invites
@@ -179,3 +184,9 @@ notification.organization.invite    =   You have been invited to join the group 
 notification.empty.unread           =   You have no unread notifications.
 notification.empty.read             =   You have no read notifications.
 notification.empty.all              =   You have no notifications.
+
+prompt.confirm = Got it!
+prompt.changeAvatar.title = Change your avatar!
+prompt.changeAvatar.message = Welcome to your new organization! Start by changing your avatar by clicking on it.
+prompt.pgp.title = Upload a PGP public key.
+prompt.pgp.message = Upload your PGP public key to start uploading to Ore!

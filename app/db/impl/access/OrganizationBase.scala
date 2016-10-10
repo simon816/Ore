@@ -9,7 +9,8 @@ import ore.permission.role.RoleTypes
 import ore.user.notification.NotificationTypes
 import org.apache.commons.lang3.RandomStringUtils
 import play.api.i18n.MessagesApi
-import util.{CryptoUtils, StringUtils}
+import security.CryptoUtils
+import util.StringUtils
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

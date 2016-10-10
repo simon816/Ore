@@ -28,5 +28,6 @@ libraryDependencies ++= Seq(
   "com.github.tminglei"   %%  "slick-pg"                %   "0.12.0",
   "org.apache.commons"    %   "commons-io"              %   "1.3.2",
   "org.pegdown"           %   "pegdown"                 %   "1.6.0",
-  "com.getsentry.raven"   %   "raven-logback"           %   "7.2.2"
+  "com.getsentry.raven"   %   "raven-logback"           %   "7.2.2",
+  "org.bouncycastle"      %   "bcpg-jdk15on"            %   "1.55"
 )

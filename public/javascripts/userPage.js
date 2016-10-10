@@ -82,10 +82,10 @@ function loadStars(increment) {
 
 function setupAvatarForm() {
 
-    var popover = $('.popover-avatar');
-    popover.find('.btn').click(function() {
-        $.ajax('prompts/read/' + popover.data('prompt-id'));
-        popover.fadeOut('fast');
+    $('.btn-got-it').click(function() {
+        var prompt = $(this).closest('.prompt');
+        $.ajax('prompts/read/' + prompt.data('prompt-id'));
+        prompt.fadeOut('fast');
     });
 
     $('.organization-avatar').hover(function() {

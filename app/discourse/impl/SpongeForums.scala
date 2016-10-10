@@ -6,7 +6,7 @@ import javax.inject.{Inject, Singleton}
 import akka.actor.ActorSystem
 import ore.{OreConfig, OreEnv}
 import play.api.libs.ws.WSClient
-import util.CryptoUtils
+import security.CryptoUtils
 
 import scala.concurrent.duration._
 

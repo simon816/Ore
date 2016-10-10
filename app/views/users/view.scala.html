@@ -21,8 +21,9 @@
 
     <div class="container" style="margin-top: 90px">
 
-        @alert("error")
+        @utils.alert("error")
 
+        <!-- Updated by JS -->
         <div class="alert alert-success alert-dismissable" role="alert" style="display: none;">
             <button type="button" class="close" data-dismiss="alert" aria-label="@messages("general.close")">
                 <span aria-hidden="true">&times;</span>
@@ -46,80 +47,71 @@
                         </div>
 
                         @if(!users.current.get.readPrompts.contains(Prompts.ChangeAvatar)) {
-                            <div class="popover-avatar popover right" data-prompt-id="@Prompts.ChangeAvatar.id">
-                                <div class="arrow"></div>
-                                <h3 class="popover-title">Change your avatar!</h3>
-                                <div class="popover-content">
-                                    <p>@messages("org.welcome")</p>
-                                    <button class="btn-got-it btn btn-success btn-sm">
-                                        @messages("org.welcome.confirm")
-                                    </button>
-                                </div>
-                            </div>
+                            @utils.prompt(Prompts.ChangeAvatar, "popover-avatar")
                         }
 
-                        <div class="modal fade" id="modal-avatar" tabindex="-1" role="dialog"
-                             aria-labelledby="modal-avatar-label">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal"
-                                        aria-label="@messages("general.close")">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                        <h4 class="modal-title" id="modal-avatar-label">
-                                            @messages("user.editAvatar")
-                                        </h4>
+                        @utils.modal("modal-avatar", "label-avatar", "user.editAvatar") {
+                            @form(action = routes.Organizations.updateAvatar(user.name), 'id -> "form-avatar",
+                                'enctype -> "multipart/form-data") {
+                                <div class="modal-body">
+                                    <div class="alert alert-danger">
+                                        <span class="error"></span>
                                     </div>
 
-                                    @form(action = routes.Organizations.updateAvatar(user.name),
-                                        'id -> "form-avatar", 'enctype -> "multipart/form-data") {
-                                        <div class="modal-body">
-                                            <div class="alert alert-danger">
-                                                <span class="error"></span>
-                                            </div>
-
-                                            <div class="setting">
-                                                <div class="setting-description">
-                                                    <h4>
-                                                        <input checked type="radio" name="avatar-method"
-                                                        value="by-url" />
-                                                        @messages("user.avatar.byUrl")
-                                                    </h4>
-                                                </div>
-                                                <input name="avatar-url" type="url" class="form-control" />
-                                                <div class="clearfix"></div>
-                                            </div>
-
-                                            <div class="setting setting-no-border">
-                                                <div class="setting-description">
-                                                    <h4>
-                                                        <input type="radio" name="avatar-method" value="by-file" />
-                                                        @messages("user.avatar.byFile")
-                                                    </h4>
-                                                </div>
-                                                <input name="avatar-file" type="file" disabled />
-                                                <div class="clearfix"></div>
-                                            </div>
+                                    <div class="setting">
+                                        <div class="setting-description">
+                                            <h4>
+                                                <input checked type="radio" name="avatar-method" value="by-url" />
+                                                @messages("user.avatar.byUrl")
+                                            </h4>
                                         </div>
+                                        <input name="avatar-url" type="url" class="form-control" />
+                                        <div class="clearfix"></div>
+                                    </div>
 
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-default" data-dismiss="modal">
-                                                @messages("general.cancel")
-                                            </button>
-                                            <button type="submit" class="btn btn-primary">
-                                                <i class="fa fa-spinner fa-spin" style="display: none;"></i>
-                                                @messages("general.update")
-                                            </button>
+                                    <div class="setting setting-no-border">
+                                        <div class="setting-description">
+                                            <h4>
+                                                <input type="radio" name="avatar-method" value="by-file" />
+                                                @messages("user.avatar.byFile")
+                                            </h4>
                                         </div>
-                                    }
+                                        <input name="avatar-file" type="file" disabled />
+                                        <div class="clearfix"></div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                                    @messages("general.cancel")
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-spinner fa-spin" style="display: none;"></i>
+                                        @messages("general.update")
+                                    </button>
+                                </div>
+                            }
+                        }
                     }
 
                     <div class="user-title">
-                        <h1>@user.username</h1>
+                        <h1 class="username">
+                            @user.username
+
+                            @if(user.isCurrent) {
+                                <i class="fa fa-unlock-alt action-lock-account" data-toggle="tooltip"
+                                   data-placement="top" title="@messages("user.lockAccount")"></i>
+
+                                <span data-toggle="modal" data-target="#modal-pgp">
+                                    <i class="fa fa-key action-pgp" data-toggle="tooltip" data-placement="top"
+                                       title="@messages("user.pgp.edit")"></i>
+                                </span>
+
+                                @if(!users.current.get.readPrompts.contains(Prompts.PGP)) {
+                                    @utils.prompt(Prompts.PGP, "popover-pgp")
+                                }
+                            }
+                        </h1>
 
                         <div class="user-tag">
                             <i class="minor">
@@ -135,42 +127,6 @@
                                     <i class="fa fa-edit"></i>
                                 </a>
                             }
-                        </div>
-
-                        <div class="modal fade" id="modal-tagline" tabindex="-1" role="dialog"
-                             aria-labelledby="label-tagline">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal"
-                                                aria-label="@messages("general.cancel")">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                        <h4 class="modal-title">@messages("user.tagline.edit")</h4>
-                                    </div>
-                                    @form(action = routes.Users.saveTagline(user.username)) {
-                                        <div class="modal-body">
-                                            <div class="setting setting-no-border">
-                                                <div class="setting-description">
-                                                    <h4>@messages("user.tagline")</h4>
-                                                    <p>@messages("user.tagline.info")</p>
-                                                </div>
-                                                <input class="form-control" type="text"
-                                                        value="@user.tagline.getOrElse("")" id="tagline" name="tagline"
-                                                        maxlength="@config.users.getInt("max-tagline-len").get" />
-                                            </div>
-                                            <div class="clearfix"></div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-default" data-dismiss="modal">
-                                                @messages("general.close")
-                                            </button>
-                                            <input type="submit" value="@messages("general.save")"
-                                                   class="btn btn-primary" />
-                                        </div>
-                                    }
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -216,5 +172,49 @@
         @content
 
     </div>
+
+    @utils.modal("modal-pgp", "label-pgp", "user.pgp.edit") {
+        @form(action = routes.Users.savePgpPublicKey(user.username)) {
+            <div class="modal-body">
+                <div class="setting setting-no-border">
+                    <div class="setting-description">
+                        <h4>@messages("user.pgp.pubKey")</h4>
+                        <p>@messages("user.pgp.pubKey.info")</p>
+                    </div>
+                    <textarea class="form-control" name="pgp-pub-key" rows="10">@user.pgpPubKey</textarea>
+                    <i class="pull-right"><a href="#TODO">@messages("user.pgp.help")</a></i>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">
+                @messages("general.close")
+                </button>
+                <input type="submit" value="@messages("general.save")" class="btn btn-primary" />
+            </div>
+        }
+    }
+
+    @utils.modal("modal-tagline", "label-tagline", "user.tagline.edit") {
+        @form(action = routes.Users.saveTagline(user.username)) {
+            <div class="modal-body">
+                <div class="setting setting-no-border">
+                    <div class="setting-description">
+                        <h4>@messages("user.tagline")</h4>
+                        <p>@messages("user.tagline.info")</p>
+                    </div>
+                    <input class="form-control" type="text" value="@user.tagline.getOrElse("")" id="tagline"
+                           name="tagline" maxlength="@config.users.getInt("max-tagline-len").get" />
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">
+                    @messages("general.close")
+                </button>
+                <input type="submit" value="@messages("general.save")" class="btn btn-primary" />
+            </div>
+        }
+    }
 
 }

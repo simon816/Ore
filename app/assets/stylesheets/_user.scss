@@ -8,6 +8,23 @@
   @include rounded-corners();
 }
 
+.username {
+  i {
+    font-size: 14px;
+    font-weight: normal;
+    padding: 3px;
+  }
+
+  .action-lock-account:hover, .action-pgp:hover {
+    background-color: gray;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -ms-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+  }
+}
+
 .organization-avatar {
   cursor: pointer;
 }
@@ -201,12 +218,10 @@
   }
 }
 
-.popover-avatar {
+.prompt {
   @include rounded-corners();
   z-index: 0;
   display: block;
-  left: 105px;
-  top: -11px;
 
   .popover-content { position: relative; }
 
@@ -215,5 +230,14 @@
     right: 15px;
     bottom: 5px;
   }
+}
 
+.popover-avatar {
+  left: 105px;
+  top: -11px;
+}
+
+.popover-pgp {
+  top: -5px;
+  left: 275px;
 }

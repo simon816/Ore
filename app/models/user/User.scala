@@ -44,7 +44,8 @@ case class User(override val id: Option[Int] = None,
                 private var _globalRoles: List[RoleType] = List(),
                 private var _joinDate: Option[Timestamp] = None,
                 private var _avatarUrl: Option[String] = None,
-                private var _readPrompts: List[Prompt] = List())
+                private var _readPrompts: List[Prompt] = List(),
+                private var _pgpPubKey: Option[String] = None)
                 extends OreModel(id, createdAt)
                   with UserOwned
                   with ScopeSubject
@@ -94,6 +95,25 @@ case class User(override val id: Option[Int] = None,
   def email_=(_email: String) = {
     this._email = Option(_email)
     if (isDefined) update(Email)
+  }
+
+  /**
+    * Returns this User's PGP public key, if any. A PGP public key is required
+    * for any uploads to Ore.
+    *
+    * @return PGP public key
+    */
+  def pgpPubKey: Option[String] = this._pgpPubKey
+
+  /**
+    * Sets this User's PGP public key. A PGP public key is required for any
+    * uploads to Ore.
+    *
+    * @param pgpPubKey PGP public key
+    */
+  def pgpPubKey_=(pgpPubKey: String) = {
+    this._pgpPubKey = Option(pgpPubKey)
+    if (isDefined) update(PGPPubKey)
   }
 
   /**

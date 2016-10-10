@@ -123,6 +123,11 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
   lazy val UserTagline = Form(single("tagline" -> text))
 
   /**
+    * Submits a PGP public key update.
+    */
+  lazy val UserPgpPubKey = Form(single("pgp-pub-key" -> text))
+
+  /**
     * Submits a new Version.
     */
   lazy val VersionCreate = Form(mapping(

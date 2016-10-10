@@ -134,6 +134,7 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
 
   def fullName      =   column[String]("full_name")
   def email         =   column[String]("email")
+  def pgpPubKey     =   column[String]("pgp_pub_key")
   def tagline       =   column[String]("tagline")
   def globalRoles   =   column[List[RoleType]]("global_roles")
   def joinDate      =   column[Timestamp]("join_date")
@@ -141,7 +142,7 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
   def readPrompts   =   column[List[Prompt]]("read_prompts")
 
   override def * = (id.?, createdAt.?, fullName.?, name, email.?, tagline.?, globalRoles, joinDate.?,
-                    avatarUrl.?, readPrompts) <> ((User.apply _).tupled, User.unapply)
+                    avatarUrl.?, readPrompts, pgpPubKey.?) <> ((User.apply _).tupled, User.unapply)
 
 }
 

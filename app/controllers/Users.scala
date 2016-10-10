@@ -19,6 +19,7 @@ import ore.user.{FakeUser, Prompts}
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import play.api.mvc.{Security, _}
+import security.pgp.PGPPublicKeyInfo
 import views.{html => views}
 
 /**
@@ -95,6 +96,9 @@ class Users @Inject()(fakeUser: FakeUser,
     }
   }
 
+  private def isThisUserOrOrganizationAdmin(toCheck: User, user: User)
+  = user.equals(toCheck) || (toCheck.isOrganization && (user can EditSettings in toCheck.toOrganization))
+
   /**
     * Submits a change to the specified user's tagline.
     *
@@ -106,7 +110,7 @@ class Users @Inject()(fakeUser: FakeUser,
       case None =>
         NotFound
       case Some(user) =>
-        if (user.equals(request.user) || (user.isOrganization && (user can EditSettings in user.toOrganization))) {
+        if (isThisUserOrOrganizationAdmin(user, request.user)) {
           val tagline = this.forms.UserTagline.bindFromRequest.get.trim
           val maxLen = this.config.users.getInt("max-tagline-len").get
           if (tagline.length > maxLen) {
@@ -116,6 +120,20 @@ class Users @Inject()(fakeUser: FakeUser,
             user.tagline = tagline
             Redirect(self.showProjects(user.username, None))
           }
+        } else
+          Unauthorized
+    }
+  }
+
+  def savePgpPublicKey(username: String) = Authenticated { implicit request =>
+    this.users.withName(username) match {
+      case None =>
+        NotFound
+      case Some(user) =>
+        if (isThisUserOrOrganizationAdmin(user, request.user)) {
+          val pubKey = this.forms.UserPgpPubKey.bindFromRequest.get
+          println(PGPPublicKeyInfo.decode(pubKey))
+          Ok
         } else
           Unauthorized
     }
