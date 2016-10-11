@@ -173,26 +173,26 @@ class Versions @Inject()(stats: StatTracker,
           var plugin: PluginFile = null
           try {
             plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, request.user)
+
+            // Validate
+            val project = request.project
+            if (!plugin.meta.get.getId.equals(project.pluginId))
+              Redirect(self.showCreator(author, slug))
+                .flashing("error" -> "The uploaded plugin ID must match your project's plugin ID.")
+            else {
+              val pendingVersion = this.factory.startVersion(plugin, project, project.channels.all.head.name)
+              if (pendingVersion.underlying.exists && this.config.projects.getBoolean("file-validate").get)
+                Redirect(self.showCreator(author, slug))
+                  .flashing("error" -> "Found a duplicate file in project. Plugin files may only be uploaded once.")
+              else {
+                // Cache and redirect
+                pendingVersion.cache()
+                Redirect(self.showCreatorWithMeta(author, slug, pendingVersion.underlying.versionString))
+              }
+            }
           } catch {
             case e: InvalidPluginFileException =>
               Redirect(self.showCreator(author, slug)).flashing("error" -> "Invalid plugin file.")
-          }
-
-          // Validate
-          val project = request.project
-          if (!plugin.meta.get.getId.equals(project.pluginId))
-            Redirect(self.showCreator(author, slug))
-              .flashing("error" -> "The uploaded plugin ID must match your project's plugin ID.")
-          else {
-            val pendingVersion = this.factory.startVersion(plugin, project, project.channels.all.head.name)
-            if (pendingVersion.underlying.exists && this.config.projects.getBoolean("file-validate").get)
-              Redirect(self.showCreator(author, slug))
-                .flashing("error" -> "Found a duplicate file in project. Plugin files may only be uploaded once.")
-            else {
-              // Cache and redirect
-              pendingVersion.cache()
-              Redirect(self.showCreatorWithMeta(author, slug, pendingVersion.underlying.versionString))
-            }
           }
       }
     }

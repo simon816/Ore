@@ -5,7 +5,7 @@ import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import models.project.Project
 import models.user.User
 import ore.permission.scope.GlobalScope
-import ore.permission.{HideProjects, Permission}
+import ore.permission.{EditSettings, HideProjects, Permission}
 import play.api.mvc.Results._
 import play.api.mvc._
 
@@ -110,6 +110,27 @@ trait Actions {
     * @return   [[AuthedOrganizationRequest]]
     */
   def OrganizationPermissionAction(p: Permission) = PermissionAction[AuthedOrganizationRequest](p)
+
+  /**
+    * A request that ensures that a user has permission to edit a specified
+    * profile.
+    *
+    * @param username User to check
+    * @return [[AuthRequest]] if has permission
+    */
+  def UserAction(username: String) = Authenticated andThen userAction(username)
+
+  private def userAction(username: String) = new ActionFilter[AuthRequest] {
+    def filter[A](request: AuthRequest[A]): Future[Option[Result]] = Future.successful {
+      Actions.this.users.withName(username).flatMap[User] { toCheck =>
+        val user = request.user
+        if (user.equals(toCheck) || (toCheck.isOrganization && (user can EditSettings in toCheck.toOrganization)))
+          Some(user)
+        else
+          None
+      }.map[Option[Result]](user => None).getOrElse(Some(Unauthorized))
+    }
+  }
 
   private def authAction = new ActionRefiner[Request, AuthRequest] {
     def refine[A](request: Request[A]): Future[Either[Result, AuthRequest[A]]] = Future.successful {

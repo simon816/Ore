@@ -23,7 +23,9 @@ object PGPPublicKeyInfo {
   val Logger = play.api.Logger("PGP")
 
   /**
-    * Decodes a raw string into a [[PGPPublicKeyInfo]].
+    * Decodes a raw string into a [[PGPPublicKeyInfo]]. This method looks for
+    * a "master" key within the block and returns [[PGPPublicKeyInfo]] regarding
+    * that key. The first user in the key will be used.
     *
     * @param raw Raw key string
     * @return [[PGPPublicKeyInfo]] instance
@@ -92,8 +94,6 @@ object PGPPublicKeyInfo {
           Logger.info("User name: " + userName)
           Logger.info("Email: " + email)
 
-          if (!isEncryption)
-            throw new IllegalStateException("Master key is not encryption key?")
           if (isRevoked)
             throw new IllegalStateException("Key is revoked?")
 

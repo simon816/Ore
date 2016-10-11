@@ -9,8 +9,8 @@ import db.impl.access.UserBase.ORDERING_PROJECTS
 import discourse.impl.OreDiscourseApi
 import discourse.model.DiscourseUser
 import form.OreForms
-import models.user.{Notification, User}
 import models.user.role.RoleModel
+import models.user.{Notification, User}
 import ore.permission.EditSettings
 import ore.rest.OreWrites
 import ore.user.notification.InviteFilters.InviteFilter
@@ -19,7 +19,6 @@ import ore.user.notification.{InviteFilters, NotificationFilters}
 import ore.user.{FakeUser, Prompts}
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
-import play.api.libs.json.Json
 import play.api.mvc.{Security, _}
 import views.{html => views}
 
@@ -107,23 +106,16 @@ class Users @Inject()(fakeUser: FakeUser,
     * @param username   User to update
     * @return           View of user page
     */
-  def saveTagline(username: String) = Authenticated { implicit request =>
-    this.users.withName(username) match {
-      case None =>
-        NotFound
-      case Some(user) =>
-        if (isThisUserOrOrganizationAdmin(user, request.user)) {
-          val tagline = this.forms.UserTagline.bindFromRequest.get.trim
-          val maxLen = this.config.users.getInt("max-tagline-len").get
-          if (tagline.length > maxLen) {
-            Redirect(self.showProjects(user.username, None))
-              .flashing("error" -> this.messagesApi("error.tagline.tooLong", maxLen))
-          } else {
-            user.tagline = tagline
-            Redirect(self.showProjects(user.username, None))
-          }
-        } else
-          Unauthorized
+  def saveTagline(username: String) = UserAction(username) { implicit request =>
+    val tagline = this.forms.UserTagline.bindFromRequest.get.trim
+    val maxLen = this.config.users.getInt("max-tagline-len").get
+    val user = request.user
+    if (tagline.length > maxLen) {
+      Redirect(self.showProjects(user.username, None))
+        .flashing("error" -> this.messagesApi("error.tagline.tooLong", maxLen))
+    } else {
+      user.tagline = tagline
+      Redirect(self.showProjects(user.username, None))
     }
   }
 
@@ -134,38 +126,46 @@ class Users @Inject()(fakeUser: FakeUser,
     * @param username User to save key to
     * @return JSON response
     */
-  def savePgpPublicKey(username: String) = Authenticated { implicit request =>
-    this.users.withName(username) match {
-      case None =>
-        NotFound
-      case Some(user) =>
-        if (isThisUserOrOrganizationAdmin(user, request.user)) {
-          this.forms.UserPgpPubKey.bindFromRequest.fold(
-            hasErrors => {
+  def savePgpPublicKey(username: String) = UserAction(username) { implicit request =>
+    this.forms.UserPgpPubKey.bindFromRequest.fold(
+      hasErrors => {
+        Redirect(self.showProjects(username, None))
+          .flashing("error" -> this.messagesApi(hasErrors.errors.head.message))
+      },
+      keySubmission => {
+        import writes._
+        val keyInfo = keySubmission.info
+        val user = request.user
+        // Validate email
+        user.email match {
+          case None =>
+            Redirect(self.showProjects(username, None)).flashing("error" -> this.messagesApi("error.pgp.noEmail"))
+          case Some(email) =>
+            if (!email.equals(keyInfo.email))
               Redirect(self.showProjects(username, None))
-                .flashing("error" -> this.messagesApi(hasErrors.errors.head.message))
-            },
-
-            keySubmission => {
-              import this.writes._
-              val keyInfo = keySubmission.info
-              // Validate email
-              user.email match {
-                case None =>
-                  Redirect(self.showProjects(username, None)).flashing("error" -> this.messagesApi("error.pgp.noEmail"))
-                case Some(email) =>
-                  if (!email.equals(keyInfo.email))
-                    Redirect(self.showProjects(username, None))
-                      .flashing("error" -> this.messagesApi("error.pgp.invalidEmail"))
-                  else {
-                    user.pgpPubKey = keyInfo.raw
-                    Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
-                  }
-              }
+                .flashing("error" -> this.messagesApi("error.pgp.invalidEmail"))
+            else {
+              user.pgpPubKey = keyInfo.raw
+              Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
             }
-          )
-        } else
-          Unauthorized
+        }
+      }
+    )
+  }
+
+  /**
+    * Deletes the specified [[User]]'s PGP public key if it exists.
+    *
+    * @param username Username to delete key for
+    * @return Ok if deleted, bad request if didn't exist
+    */
+  def deletePgpPublicKey(username: String) = UserAction(username) { implicit request =>
+    val user = request.user
+    if (user.pgpPubKey.isEmpty)
+      BadRequest
+    else {
+      user.pgpPubKey = null
+      Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
     }
   }
 

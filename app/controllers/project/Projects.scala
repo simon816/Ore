@@ -61,13 +61,13 @@ class Projects @Inject()(stats: StatTracker,
         try {
           val plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, request.user)
           project = this.factory.startProject(plugin)
+          project.cache()
+          Redirect(self.showCreatorWithMeta(project.underlying.ownerName, project.underlying.slug))
         } catch {
           case e: InvalidPluginFileException =>
+            e.printStackTrace()
             Redirect(self.showCreator()).flashing("error" -> this.messagesApi("error.project.invalidPluginFile"))
         }
-
-        project.cache()
-        Redirect(self.showCreatorWithMeta(project.underlying.ownerName, project.underlying.slug))
     }
   }
 

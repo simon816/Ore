@@ -32,6 +32,8 @@ ore.debug-level =  3
 # Used in /admin/seed route. Run "gradle build" in OreTestPlugin before using that route
 ore.test-plugin = "OreTestPlugin/build/libs/ore-test-plugin-dev-SNAPSHOT.jar"
 
+ore.security.requirePgp = true
+
 ore.channels.max-name-len   =   15
 ore.channels.name-regex     =   "^[a-zA-Z0-9]+$"
 ore.channels.color-default  =    7

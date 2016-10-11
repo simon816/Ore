@@ -21,6 +21,7 @@ import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.cache.CacheApi
 import play.api.i18n.MessagesApi
 import play.api.libs.Files.TemporaryFile
+import security.pgp.PGPVerifier
 import util.StringUtils._
 
 import scala.collection.JavaConverters._
@@ -41,6 +42,7 @@ trait ProjectFactory {
   val cacheApi: CacheApi
   val messages: MessagesApi
   val actorSystem: ActorSystem
+  val pgp: PGPVerifier = new PGPVerifier
 
   implicit val config: OreConfig
   implicit val forums: OreDiscourseApi
@@ -58,13 +60,20 @@ trait ProjectFactory {
     if (!name.endsWith(".zip") && !name.endsWith(".jar"))
       throw InvalidPluginFileException("Plugin file must be either a JAR or ZIP file.")
 
-    // Move file to temporary path
     val uploadPath = uploadedFile.file.toPath
+    if (this.config.security.getBoolean("requirePgp").get) {
+      if (owner.pgpPubKey.isEmpty)
+        throw new IllegalArgumentException("user has no PGP public key and PGP is required")
+      if (!this.pgp.verify(uploadPath, owner.pgpPubKey.get))
+        throw InvalidPluginFileException("could not verify uploaded file against public key")
+    }
+
+    // Move file to temporary path
     val tmpPath = this.env.tmp.resolve(owner.username).resolve(name)
     val plugin = new PluginFile(tmpPath, owner)
     if (notExists(tmpPath.getParent))
       createDirectories(tmpPath.getParent)
-    uploadedFile.moveTo(plugin.path.toFile, replace = true)
+    uploadedFile.moveTo(uploadPath.toFile, replace = true)
 
     // Name the file correctly
     val metaData = plugin.loadMeta()

@@ -107,14 +107,6 @@ case class User(override val id: Option[Int] = None,
   def pgpPubKey: Option[String] = this._pgpPubKey
 
   /**
-    * Decodes this user's raw PGP public key and returns information about the
-    * key.
-    *
-    * @return Public key information
-    */
-  def pgpPubKeyInfo: Option[PGPPublicKeyInfo] = this.pgpPubKey.map(PGPPublicKeyInfo.decode(_))
-
-  /**
     * Sets this User's PGP public key. A PGP public key is required for any
     * uploads to Ore.
     *
@@ -124,6 +116,14 @@ case class User(override val id: Option[Int] = None,
     this._pgpPubKey = Option(pgpPubKey)
     if (isDefined) update(PGPPubKey)
   }
+
+  /**
+    * Decodes this user's raw PGP public key and returns information about the
+    * key.
+    *
+    * @return Public key information
+    */
+  def pgpPubKeyInfo: Option[PGPPublicKeyInfo] = this.pgpPubKey.map(PGPPublicKeyInfo.decode)
 
   /**
     * Returns this User's full name.

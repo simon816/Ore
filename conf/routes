@@ -78,6 +78,7 @@ GET     /prompts/read/:id                                           @controllers
 GET     /:user                                                      @controllers.Users.showProjects(user, page: Option[Int])
 POST    /:user/settings/tagline                                     @controllers.Users.saveTagline(user)
 POST    /:user/settings/pgp                                         @controllers.Users.savePgpPublicKey(user)
+POST    /:user/settings/pgp/delete                                  @controllers.Users.deletePgpPublicKey(user)
 # -------- End Users --------
 
 POST    /:author/:slug                                              @controllers.project.Projects.showFirstVersionCreator(author, slug)
