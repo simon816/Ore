@@ -105,8 +105,6 @@ object PGPPublicKeyInfo {
           Logger.info("User name: " + userName)
           Logger.info("Email: " + email)
 
-          if (!isEncryption)
-            throw new IllegalStateException("Master key is not encryption key?")
           if (isRevoked)
             throw new IllegalStateException("Key is revoked?")
 

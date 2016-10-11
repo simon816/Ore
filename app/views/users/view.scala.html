@@ -20,14 +20,6 @@
       .getOrElse(routes.Users.savePgpPublicKey(user.username))
 }
 
-@pgpFormClass = @{
-    user.pgpPubKey.map(key => "pgp-deleted").getOrElse("")
-}
-
-@lockIcon = @{
-    if (user.isLocked) "fa-lock" else "fa-unlock-alt"
-}
-
 @bootstrap.layout(user.username) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/userPage.js")"></script>
@@ -153,7 +145,7 @@
     </div>
 
     @utils.modal("modal-pgp", "label-pgp", "user.pgp.pubKey") {
-        @form(action = routes.Users.savePgpPublicKey(user.username), 'id -> "form-pgp") {
+        @form(action = pgpAction, 'id -> "form-pgp") {
             <div class="modal-body">
                 <div class="alert alert-danger" style="display: none;">
                     <span class="error"></span>
@@ -198,8 +190,11 @@
                 </button>
                 @if(user.pgpPubKey.isEmpty) {
                     <button type="submit" class="btn btn-primary">
-                        <i class="fa fa-spinner fa-spin" style="display: none;"></i>
                         @messages("general.save")
+                    </button>
+                } else {
+                    <button type="submit" class="btn btn-danger">
+                        @messages("general.delete")
                     </button>
                 }
             </div>

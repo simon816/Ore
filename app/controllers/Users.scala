@@ -19,7 +19,6 @@ import ore.user.notification.{InviteFilters, NotificationFilters}
 import ore.user.{FakeUser, Prompts}
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
-import play.api.libs.json.Json
 import play.api.mvc.{Security, _}
 import views.{html => views}
 
@@ -170,48 +169,6 @@ class Users @Inject()(fakeUser: FakeUser,
       user.pgpPubKey = null
       user.lastPgpPubKeyUpdate = this.service.theTime
       Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
-    }
-  }
-
-  /**
-    * Attempts to save a submitted PGP Public Key to the specified User
-    * profile.
-    *
-    * @param username User to save key to
-    * @return JSON response
-    */
-  def savePgpPublicKey(username: String) = Authenticated { implicit request =>
-    this.users.withName(username) match {
-      case None =>
-        NotFound
-      case Some(user) =>
-        if (isThisUserOrOrganizationAdmin(user, request.user)) {
-          this.forms.UserPgpPubKey.bindFromRequest.fold(
-            hasErrors => {
-              Redirect(self.showProjects(username, None))
-                .flashing("error" -> this.messagesApi(hasErrors.errors.head.message))
-            },
-
-            keySubmission => {
-              import this.writes._
-              val keyInfo = keySubmission.info
-              // Validate email
-              user.email match {
-                case None =>
-                  Redirect(self.showProjects(username, None)).flashing("error" -> this.messagesApi("error.pgp.noEmail"))
-                case Some(email) =>
-                  if (!email.equals(keyInfo.email))
-                    Redirect(self.showProjects(username, None))
-                      .flashing("error" -> this.messagesApi("error.pgp.invalidEmail"))
-                  else {
-                    user.pgpPubKey = keyInfo.raw
-                    Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
-                  }
-              }
-            }
-          )
-        } else
-          Unauthorized
     }
   }
 
