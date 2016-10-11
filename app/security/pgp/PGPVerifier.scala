@@ -46,7 +46,7 @@ class PGPVerifier {
     var data: Array[Byte] = null
     var sigList: PGPSignatureList = null
 
-    var currentObject: Object = factory.nextObject()
+    var currentObject = factory.nextObject()
     while ((sig == null || data == null || sigList == null) && currentObject != null) {
       // Normally the packets will be read in this order
       currentObject match {
@@ -71,9 +71,11 @@ class PGPVerifier {
           sigList = signatureList
         case _ =>
       }
-      Logger.info(currentObject.toString)
+      Logger.info("Processed packet: " + currentObject.toString)
       currentObject = factory.nextObject()
     }
+
+    in.close()
 
     if (sig == null || data == null || sigList == null) {
       Logger.info("Incomplete packet data.")
@@ -85,6 +87,7 @@ class PGPVerifier {
     // Verify against public key
     val keyRings = new JcaPGPPublicKeyRingCollection(keyIn)
     val pubKey = keyRings.getPublicKey(sig.getKeyID)
+    keyIn.close()
     if (pubKey == null)
       return false
 

@@ -3,6 +3,7 @@ package models.statistic
 import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
+import com.google.common.base.Preconditions._
 import controllers.Requests.ProjectRequest
 import db.impl.VersionDownloadsTable
 import db.impl.access.UserBase
@@ -45,6 +46,10 @@ object VersionDownload {
     * @return         New VersionDownload
     */
   def bindFromRequest(version: Version)(implicit request: ProjectRequest[_], users: UserBase): VersionDownload = {
+    checkNotNull(version, "null version", "")
+    checkArgument(version.isDefined, "undefined version", "")
+    checkNotNull(request, "null request", "")
+    checkNotNull(users, "null user base", "")
     val userId = users.current(request.session).flatMap(_.id)
     val dl = VersionDownload(
       modelId = version.id.get,

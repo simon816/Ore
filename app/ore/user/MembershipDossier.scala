@@ -7,6 +7,9 @@ import db.impl.model.OreModel
 import db.table.AssociativeTable
 import models.user.User
 import models.user.role.RoleModel
+import ore.permission.role.Default
+
+import scala.language.implicitConversions
 
 /**
   * Handles and keeps track of [[User]] "memberships" for an [[OreModel]].
@@ -73,6 +76,21 @@ trait MembershipDossier {
     * @return     User roles
     */
   def getRoles(user: User): Set[RoleType] = this.roles.filter(_.userId === user.id.get).toSet
+
+  /**
+    * Returns the highest level of [[ore.permission.role.Trust]] this user has.
+    *
+    * @param user User to get trust of
+    * @return Trust of user
+    */
+  def getTrust(user: User) = {
+    this.members
+      .find(_.user.equals(user))
+      .flatMap(_.roles
+        .filter(_.isAccepted).toList.sorted.lastOption
+        .map(_.roleType.trust))
+      .getOrElse(Default)
+  }
 
   /**
     * Removes a role from the dossier and removes the member if last role.

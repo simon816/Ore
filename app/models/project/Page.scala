@@ -28,7 +28,7 @@ import util.StringUtils._
   */
 case class Page(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
-                override val projectId: Int,
+                override val projectId: Int = -1,
                 override val name: String,
                 slug: String,
                 isDeletable: Boolean = true,
@@ -44,7 +44,9 @@ case class Page(override val id: Option[Int] = None,
 
   import models.project.Page._
 
+  checkNotNull(this.projectId != -1, "invalid project id", "")
   checkNotNull(this.name, "name cannot be null", "")
+  checkNotNull(this.slug, "slug cannot be null", "")
   checkNotNull(this._contents, "contents cannot be null", "")
 
   def this(projectId: Int, name: String, content: String, isDeletable: Boolean) = {
@@ -66,6 +68,7 @@ case class Page(override val id: Option[Int] = None,
     * @param _contents Markdown contents
     */
   def contents_=(_contents: String) = {
+    checkNotNull(_contents, "null contents", "")
     checkArgument(_contents.length <= MaxLength, "contents too long", "")
     checkArgument(_contents.length >= MinLength, "contents not long enough", "")
     this._contents = _contents
@@ -83,7 +86,7 @@ case class Page(override val id: Option[Int] = None,
     *
     * @return HTML representation
     */
-  def html: Html = Html(MarkdownProcessor.markdownToHtml(contents))
+  def html: Html = Html(MarkdownProcessor.markdownToHtml(this.contents))
 
   /**
     * Returns true if this is the home page.

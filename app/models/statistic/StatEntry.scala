@@ -47,8 +47,10 @@ abstract class StatEntry[Subject <: Model](override val id: Option[Int] = None,
     * @param user User of entry
     */
   def user_=(user: User) = {
+    checkNotNull(user, "user is null", "")
+    checkArgument(user.isDefined, "undefined user", "")
     this.userId = user.id
-    update(UserId)
+    if (isDefined) update(UserId)
   }
 
 }

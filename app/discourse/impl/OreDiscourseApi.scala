@@ -73,7 +73,6 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
       return Future(true)
     checkArgument(project.id.isDefined, "undefined project", "")
     val content = this.templates.projectTopic(project)
-    println(content)
     val title = this.templates.projectTitle(project)
     val resultPromise: Promise[Boolean] = Promise()
     createTopic(
@@ -155,7 +154,10 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
         s"Errors: ${errors.toString}"
     )
 
-    def logFailure() = Logger.info(s"Couldn't update project topic for project ${project.url}. Rescheduling...")
+    def fail() = {
+      Logger.info(s"Couldn't update project topic for project ${project.url}. Rescheduling...")
+      resultPromise.success(false)
+    }
 
     // Update title
     updateTopic(
@@ -182,19 +184,16 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
               } else {
                 // Title and content updated!
                 Logger.info(s"Project topic updated for ${project.url}.")
-
                 project.setTopicDirty(false)
                 resultPromise.success(true)
               }
             case Failure(e) =>
-              logFailure()
-              resultPromise.success(false)
+              fail()
           }
         }
       case Failure(e) =>
         // Discourse never received our request!
-        logFailure()
-        resultPromise.success(false)
+        fail()
     }
 
     resultPromise.future

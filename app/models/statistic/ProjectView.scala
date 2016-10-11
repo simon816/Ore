@@ -3,6 +3,7 @@ package models.statistic
 import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
+import com.google.common.base.Preconditions._
 import controllers.Requests.ProjectRequest
 import db.impl.ProjectViewsTable
 import db.impl.access.UserBase
@@ -47,6 +48,8 @@ object ProjectView {
     * @return         New ProjectView
     */
   def bindFromRequest()(implicit request: ProjectRequest[_], users: UserBase): ProjectView = {
+    checkNotNull(request, "null request", "")
+    checkNotNull(users, "null user base", "")
     val userId = users.current(request.session).flatMap(_.id)
     val view = ProjectView(
       modelId = request.project.id.get,

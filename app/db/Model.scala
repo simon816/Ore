@@ -36,7 +36,7 @@ abstract class Model(val id: Option[Int], val createdAt: Option[Timestamp]) { se
     *
     * @param key Model key to update
     */
-  def update[A](key: Key[M, A]) = key.update(this.asInstanceOf[M])
+  def update[A](key: Key[M, A]) = Defined(key.update(this.asInstanceOf[M]))
 
   /**
     * Removes this model from it's table.

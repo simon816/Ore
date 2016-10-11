@@ -2,6 +2,7 @@ package models.user.role
 
 import java.sql.Timestamp
 
+import com.google.common.base.Preconditions._
 import db.impl.RoleTable
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
@@ -44,6 +45,7 @@ abstract class RoleModel(override val id: Option[Int],
     * @param _roleType Role type to set
     */
   def roleType_=(_roleType: RoleType) = {
+    checkNotNull(_roleType, "null role type", "")
     this._roleType = _roleType
     if (isDefined) update(RoleType)
   }

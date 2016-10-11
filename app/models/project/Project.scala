@@ -18,8 +18,7 @@ import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import ore.project.{Categories, ProjectMember}
 import ore.user.MembershipDossier
-import ore.{Joinable, OreEnv, Visitable}
-import util.StringUtils
+import ore.{Joinable, Visitable}
 import util.StringUtils.{compact, slugify}
 
 /**
@@ -124,6 +123,8 @@ case class Project(override val id: Option[Int] = None,
     * @param user User that owns project
     */
   def owner_=(user: User) = {
+    checkNotNull(user, "null user", "")
+    checkArgument(user.isDefined, "undefined user", "")
     this._ownerId = user.id.get
     this._ownerName = user.name
     if (isDefined) {
@@ -151,9 +152,10 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _name New name
     */
-  def name_=(_name: String) = Defined {
+  def name_=(_name: String) = {
+    checkNotNull(_name, "null name", "")
     this._name = _name
-    update(Name)
+    if (isDefined) update(Name)
   }
 
   /**
@@ -168,9 +170,10 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param _slug New slug
     */
-  def slug_=(_slug: String) = Defined {
+  def slug_=(_slug: String) = {
+    checkNotNull(_slug, "null slug", "")
     this._slug = _slug
-    update(Slug)
+    if (isDefined) update(Slug)
   }
 
   /**
@@ -218,6 +221,7 @@ case class Project(override val id: Option[Int] = None,
     * @param _category Category to set
     */
   def category_=(_category: Category) = {
+    checkNotNull(_category, "null category", "")
     this._category = _category
     if (isDefined) update(ModelKeys.Category)
   }
@@ -286,6 +290,7 @@ case class Project(override val id: Option[Int] = None,
     * @param lastUpdated Last time project was updated
     */
   def lastUpdated_=(lastUpdated: Timestamp) = {
+    checkNotNull(lastUpdated, "null timestamp", "")
     this._lastUpdated = lastUpdated
     if (isDefined) update(LastUpdated)
   }
@@ -312,10 +317,15 @@ case class Project(override val id: Option[Int] = None,
     * @param starred True if should star
     */
   def setStarredBy(user: User, starred: Boolean) = Defined {
+    checkNotNull(user, "null user", "")
+    checkArgument(user.isDefined, "undefined user", "")
+    val contains = this.stars.contains(user)
     if (starred) {
-      this.stars.add(user)
-      this._stars += 1
-    } else {
+      if (!contains) {
+        this.stars.add(user)
+        this._stars += 1
+      }
+    } else if (contains) {
       this.stars.remove(user)
       this._stars -= 1
     }
@@ -375,6 +385,9 @@ case class Project(override val id: Option[Int] = None,
     * @param reason Reason for flagging
     */
   def flagFor(user: User, reason: FlagReason) = Defined {
+    checkNotNull(user, "null user", "")
+    checkNotNull(reason, "null reason", "")
+    checkArgument(user.isDefined, "undefined user", "")
     val userId = user.id.get
     checkArgument(userId != this.ownerId, "cannot flag own project", "")
     this.service.access[Flag](classOf[Flag]).add(new Flag(this.id.get, user.id.get, reason))
@@ -408,6 +421,8 @@ case class Project(override val id: Option[Int] = None,
     * @return         Result
     */
   def recommendedVersion_=(_version: Version) = {
+    checkNotNull(_version, "null version", "")
+    checkArgument(_version.isDefined, "undefined version", "")
     this.recommendedVersionId = _version.id
     if (isDefined) update(RecommendedVersionId)
   }
@@ -444,6 +459,7 @@ case class Project(override val id: Option[Int] = None,
     * @return       Page with name or new name if it doesn't exist
     */
   def getOrCreatePage(name: String): Page = Defined {
+    checkNotNull(name, "null name", "")
     val page = new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true)
     this.service.await(page.schema.getOrInsert(page)).get
   }
@@ -500,17 +516,6 @@ case class Project(override val id: Option[Int] = None,
     update(IsTopicDirty)
   }
 
-  /**
-    * Returns the string to fill the specified Project's forum topic content
-    * with.
-    *
-    * @return Topic content string
-    */
-  def topicContent(implicit env: OreEnv): String = {
-    val templatePath = env.conf.resolve("discourse/project_topic.md")
-    StringUtils.readAndFormatFile(templatePath, this.name, this.url, this.homePage.contents)
-  }
-
   override def projectId = Defined(this.id.get)
   override def copyWith(id: Option[Int], theTime: Option[Timestamp])
   = this.copy(id = id, createdAt = theTime, _lastUpdated = theTime.orNull)
@@ -521,6 +526,11 @@ case class Project(override val id: Option[Int] = None,
 
 object Project {
 
+  /**
+    * Helper class for easily building new Projects.
+    *
+    * @param service ModelService to process with
+    */
   case class Builder(service: ModelService) {
 
     private var _pluginId: String = _

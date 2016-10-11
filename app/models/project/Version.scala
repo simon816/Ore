@@ -77,6 +77,8 @@ case class Version(override val id: Option[Int] = None,
     * @return           Channel if present, None otherwise
     */
   def findChannelFrom(channels: Seq[Channel]): Option[Channel] = Defined {
+    if (channels == null)
+      return None
     channels.find(_.id.get == this.channelId)
   }
 
@@ -93,8 +95,8 @@ case class Version(override val id: Option[Int] = None,
     * @param _description Version description
     */
   def description_=(_description: String) = {
-    checkArgument(_description.length <= Page.MaxLength, "content too long", "")
-    this._description = Some(_description)
+    checkArgument(_description == null || _description.length <= Page.MaxLength, "content too long", "")
+    this._description = Option(_description)
     if (isDefined) update(Description)
   }
 
@@ -152,7 +154,7 @@ case class Version(override val id: Option[Int] = None,
   /**
     * Adds a download to the amount of unique downloads this Version has.
     */
-  def addDownload() = {
+  def addDownload() = Defined {
     this._downloads += 1
     update(Downloads)
   }
@@ -179,7 +181,7 @@ case class Version(override val id: Option[Int] = None,
     * @return True if exists
     */
   def exists: Boolean = {
-    this.projectId > -1 && (this.service.await(this.schema.hashExists(this.projectId, this.hash)).get
+    this.projectId != -1 && (this.service.await(this.schema.hashExists(this.projectId, this.hash)).get
       || this.project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase))
   }
 
@@ -191,6 +193,11 @@ case class Version(override val id: Option[Int] = None,
 
 object Version {
 
+  /**
+    * A helper class for easily building new Versions.
+    *
+    * @param service ModelService to process with
+    */
   case class Builder(service: ModelService) {
 
     private var _versionString: String = _

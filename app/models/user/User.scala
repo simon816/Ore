@@ -207,7 +207,7 @@ case class User(override val id: Option[Int] = None,
     * @param _tagline Tagline to display
     */
   def tagline_=(_tagline: String) = {
-    checkArgument(_tagline.length <= config.users.getInt("max-tagline-len").get, "tagline too long", "")
+    checkArgument(_tagline.length <= this.config.users.getInt("max-tagline-len").get, "tagline too long", "")
     this._tagline = Option(nullIfEmpty(_tagline))
     if (isDefined) update(Tagline)
   }
@@ -225,7 +225,10 @@ case class User(override val id: Option[Int] = None,
     * @param _globalRoles Roles to set
     */
   def globalRoles_=(_globalRoles: Set[RoleType]) = {
-    this._globalRoles = _globalRoles.toList
+    var roles = _globalRoles
+    if (roles == null)
+      roles = Set.empty
+    this._globalRoles = roles.toList
     if (isDefined) update(GlobalRoles)
   }
 
@@ -251,16 +254,11 @@ case class User(override val id: Option[Int] = None,
       case GlobalScope =>
         this.globalRoles.map(_.trust).toList.sorted.lastOption.getOrElse(Default)
       case pScope: ProjectScope =>
-        pScope.project.memberships.members
-          .find(_.user.equals(this))
-          .flatMap(_.roles.filter(_.isAccepted).toList.sorted.lastOption.map(_.roleType.trust))
-          .getOrElse(Default)
+        pScope.project.memberships.getTrust(this)
       case oScope: OrganizationScope =>
-        oScope.organization.memberships.members
-          .find(_.user.equals(this))
-          .flatMap(_.roles.filter(_.isAccepted).toList.sorted.lastOption.map(_.roleType.trust))
-          .getOrElse(Default)
-      case _ => throw new RuntimeException("unknown scope: " + scope)
+        oScope.organization.memberships.getTrust(this)
+      case _ =>
+        throw new RuntimeException("unknown scope: " + scope)
     }
   }
 
@@ -284,6 +282,7 @@ case class User(override val id: Option[Int] = None,
     * @return True if currently authenticated user
     */
   def isCurrent(implicit session: Session): Boolean = {
+    checkNotNull(session, "null session", "")
     this.service.getModelBase(classOf[UserBase]).current.exists { user =>
         user.equals(this) || (this.isOrganization && this.toOrganization.owner.user.equals(user))
     }
@@ -356,8 +355,8 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Organizations user belongs to
     */
-  def organizations = this.schema.getAssociation[OrganizationMembersTable, Organization](
-    classOf[OrganizationMembersTable], this)
+  def organizations
+  = this.schema.getAssociation[OrganizationMembersTable, Organization](classOf[OrganizationMembersTable], this)
 
   /**
     * Returns a [[ModelAccess]] of [[OrganizationRole]]s.
@@ -371,14 +370,16 @@ case class User(override val id: Option[Int] = None,
     *
     * @return True if organization
     */
-  def isOrganization: Boolean = this.service.getModelBase(classOf[OrganizationBase]).exists(_.id === this.id.get)
+  def isOrganization: Boolean = Defined {
+    this.service.getModelBase(classOf[OrganizationBase]).exists(_.id === this.id.get)
+  }
 
   /**
     * Converts this User to an [[Organization]].
     *
     * @return Organization
     */
-  def toOrganization: Organization = {
+  def toOrganization: Organization = Defined {
     this.service.getModelBase(classOf[OrganizationBase]).get(this.id.get)
       .getOrElse(throw new IllegalStateException("user is not an organization"))
   }
@@ -397,9 +398,13 @@ case class User(override val id: Option[Int] = None,
     * @param watching True if watching
     */
   def setWatching(project: Project, watching: Boolean) = {
-    if (watching)
-      this.watching.add(project)
-    else
+    checkNotNull(project, "null project", "")
+    checkArgument(project.isDefined, "undefined project", "")
+    val contains = this.watching.contains(project)
+    if (watching) {
+      if (!contains)
+        this.watching.add(project)
+    } else if (contains)
       this.watching.remove(project)
   }
 
@@ -417,8 +422,11 @@ case class User(override val id: Option[Int] = None,
     * @param project  Project to check
     * @return         True if has pending flag on Project
     */
-  def hasUnresolvedFlagFor(project: Project): Boolean
-  = this.flags.exists(f => f.projectId === project.id.get && !f.isResolved)
+  def hasUnresolvedFlagFor(project: Project): Boolean = {
+    checkNotNull(project, "null project", "")
+    checkArgument(project.isDefined, "undefined project", "")
+    this.flags.exists(f => f.projectId === project.id.get && !f.isResolved)
+  }
 
   /**
     * Returns this User's notifications.
@@ -434,9 +442,9 @@ case class User(override val id: Option[Int] = None,
     * @return Future result
     */
   def sendNotification(notification: Notification) = {
+    checkNotNull(notification, "null notification", "")
     this.config.debug("Sending notification: " + notification, -1)
-    this.service.access[Notification](classOf[Notification])
-      .add(notification.copy(userId = this.id.get))
+    this.service.access[Notification](classOf[Notification]).add(notification.copy(userId = this.id.get))
   }
 
   /**
@@ -444,11 +452,13 @@ case class User(override val id: Option[Int] = None,
     *
     * @return True if has unread notifications
     */
-  def hasUnreadNotifications: Boolean = {
-    ((this can ReviewFlags in GlobalScope) && this.service.getModelBase(classOf[FlagBase]).unresolved.nonEmpty) ||
-      ((this can ReviewProjects in GlobalScope) &&
-        this.service.getModelBase(classOf[VersionBase]).notReviewed.nonEmpty) ||
-      this.notifications.filterNot(_.read).nonEmpty
+  def hasUnreadNotifications: Boolean = Defined {
+    val flags = this.service.getModelBase(classOf[FlagBase])
+    val versions = this.service.getModelBase(classOf[VersionBase])
+    val hasFlags = (this can ReviewFlags in GlobalScope) && flags.unresolved.nonEmpty
+    val hasReview = (this can ReviewProjects in GlobalScope) && versions.notReviewed.nonEmpty
+    val hasNotifications = this.notifications.filterNot(_.read).nonEmpty
+    hasFlags || hasReview || hasNotifications
   }
 
   /**
@@ -464,6 +474,7 @@ case class User(override val id: Option[Int] = None,
     * @param prompt Prompt to mark as read
     */
   def markPromptRead(prompt: Prompt) = {
+    checkNotNull(prompt, "null prompt", "")
     this._readPrompts = (this.readPrompts + prompt).toList
     if (isDefined) update(ReadPrompts)
   }
