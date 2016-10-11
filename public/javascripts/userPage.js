@@ -137,6 +137,12 @@ function setupAvatarForm() {
                 .prop('src', json['avatarTemplate'].replace('{size}', '200'));
         }
     });
+
+    // TODO: Delete confirmation with authentication
+    // var pgpDeleteForm = $('.pgp-delete');
+    // pgpDeleteForm.submit(function(e) {
+    //     e.preventDefault();
+    // });
 }
 
 $(function() {

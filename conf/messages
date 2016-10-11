@@ -55,10 +55,13 @@ error.tagline.tooLong           =   Tagline is too long (max {0}).
 error.org.createLimit           =   You may only create up to {0} organizations!
 error.org.cannotCreate          =   Unable to create an organization at this time.
 error.org.cannotUpdateAvatar    =   Unable to update avatar at this time.
+error.version.invalidPluginId   =   The uploaded plugin ID must match your project's plugin ID.
+error.version.duplicate         =   Found a duplicate file in project. Plugin files may only be uploaded once.
 error.invalidKey                =   Invalid key.
 error.pgp.noEmail               =   You must have an email associated with your account to upload a PGP public key.
 error.pgp.invalidEmail          =   The email associated with the uploaded key does not match the email associated with your Sponge account.
 error.pgp.noPubKey              =   You must upload a PGP Public Key to upload files to Ore.
+error.pgp.keyChangeCooldown     =   You must wait a minimum of 3 days after changing your public key to upload files.
 
 page.edit.cannotDeleteHomepage  =   Your project's homepage cannot be deleted
 page.edit.maxPages              =   You have reached the maximum amount of allowed pages.
@@ -165,6 +168,8 @@ user.pgp.edit               =   PGP Public Key
 user.pgp.pubKey             =   PGP Public Key
 user.pgp.pubKey.info        =   Paste your PGP public key in it's entirety to the text box below. The submitted key must be associated with the email that is associated with your Sponge account.
 user.pgp.help               =   Need help?
+user.pgp.delete             =   Delete PGP Public Key
+user.pgp.delete.confirm     =   Are you sure you want to delete your public key? You will not be able to upload new files to Ore. If you upload a new key you will still not be able to upload new files for three days.
 
 notification.invite                 =   You have been invited to join the {0}
 notification.invites                =   Invites

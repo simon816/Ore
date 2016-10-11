@@ -13,7 +13,7 @@ class Key[M <: Model, A](val ref: M#T => Rep[A], val getter: M => A)(implicit ma
 
   def update(model: M) = {
     val service = model.service
-    service.set(model, this.ref, getter(model))
+    service.await(service.set(model, this.ref, getter(model)))
   }
 
 }

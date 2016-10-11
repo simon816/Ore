@@ -10,7 +10,7 @@ class MappedTypeKey[M <: Model, A <: MappedType[A]](override val ref: M#T => Rep
 
   override def update(model: M) = {
     val service = model.service
-    service.setMappedType(model, this.ref, this.getter(model))
+    service.await(service.setMappedType(model, this.ref, this.getter(model)))
   }
 
 }

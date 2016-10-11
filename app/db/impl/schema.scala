@@ -130,19 +130,21 @@ class VersionDownloadsTable(tag: Tag) extends StatTable[VersionDownload](tag, "v
 class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn[User] {
 
   // Override to remove auto increment
-  override def id   =   column[Int]("id", O.PrimaryKey)
+  override def id           =   column[Int]("id", O.PrimaryKey)
 
-  def fullName      =   column[String]("full_name")
-  def email         =   column[String]("email")
-  def pgpPubKey     =   column[String]("pgp_pub_key")
-  def tagline       =   column[String]("tagline")
-  def globalRoles   =   column[List[RoleType]]("global_roles")
-  def joinDate      =   column[Timestamp]("join_date")
-  def avatarUrl     =   column[String]("avatar_url")
-  def readPrompts   =   column[List[Prompt]]("read_prompts")
+  def fullName              =   column[String]("full_name")
+  def email                 =   column[String]("email")
+  def pgpPubKey             =   column[String]("pgp_pub_key")
+  def lastPgpPubKeyUpdate   =   column[Timestamp]("last_pgp_pub_key_update")
+  def tagline               =   column[String]("tagline")
+  def globalRoles           =   column[List[RoleType]]("global_roles")
+  def joinDate              =   column[Timestamp]("join_date")
+  def avatarUrl             =   column[String]("avatar_url")
+  def readPrompts           =   column[List[Prompt]]("read_prompts")
 
   override def * = (id.?, createdAt.?, fullName.?, name, email.?, tagline.?, globalRoles, joinDate.?,
-                    avatarUrl.?, readPrompts, pgpPubKey.?) <> ((User.apply _).tupled, User.unapply)
+                    avatarUrl.?, readPrompts, pgpPubKey.?, lastPgpPubKeyUpdate.?) <> ((User.apply _).tupled,
+                    User.unapply)
 
 }
 

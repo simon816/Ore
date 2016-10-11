@@ -146,6 +146,8 @@ class Users @Inject()(fakeUser: FakeUser,
                 .flashing("error" -> this.messagesApi("error.pgp.invalidEmail"))
             else {
               user.pgpPubKey = keyInfo.raw
+              if (user.lastPgpPubKeyUpdate.isDefined)
+                user.lastPgpPubKeyUpdate = this.service.theTime // Not set the first time
               Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
             }
         }
@@ -165,6 +167,7 @@ class Users @Inject()(fakeUser: FakeUser,
       BadRequest
     else {
       user.pgpPubKey = null
+      user.lastPgpPubKeyUpdate = this.service.theTime
       Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
     }
   }

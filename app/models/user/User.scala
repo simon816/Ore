@@ -46,7 +46,8 @@ case class User(override val id: Option[Int] = None,
                 private var _joinDate: Option[Timestamp] = None,
                 private var _avatarUrl: Option[String] = None,
                 private var _readPrompts: List[Prompt] = List(),
-                private var _pgpPubKey: Option[String] = None)
+                private var _pgpPubKey: Option[String] = None,
+                private var _lastPgpPubKeyUpdate: Option[Timestamp] = None)
                 extends OreModel(id, createdAt)
                   with UserOwned
                   with ScopeSubject
@@ -124,6 +125,36 @@ case class User(override val id: Option[Int] = None,
     * @return Public key information
     */
   def pgpPubKeyInfo: Option[PGPPublicKeyInfo] = this.pgpPubKey.map(PGPPublicKeyInfo.decode)
+
+  /**
+    * Returns the last [[Timestamp]] when this User's PGP Public key was
+    * updated. This is not set for the first time a User sets a public key but
+    * is set for every time after.
+    *
+    * @return Last time this User updated their public key
+    */
+  def lastPgpPubKeyUpdate: Option[Timestamp] = this._lastPgpPubKeyUpdate
+
+  /**
+    * Sets the last [[Timestamp]] when this User's PGP Public key was updated.
+    *
+    * @param _lastPgpPubKeyUpdate Last time this User updated their public key
+    */
+  def lastPgpPubKeyUpdate_=(_lastPgpPubKeyUpdate: Timestamp) = Defined {
+    this._lastPgpPubKeyUpdate = Option(_lastPgpPubKeyUpdate)
+    update(LastPGPPubKeyUpdate)
+  }
+
+  /**
+    * Returns true if this user's PGP Public Key is ready for use.
+    *
+    * @return True if key is ready for use
+    */
+  def isPgpPubKeyReady: Boolean = this.pgpPubKey.isDefined && this.lastPgpPubKeyUpdate.forall { lastUpdate =>
+    val cooldown = this.config.security.getLong("keyChangeCooldown").get
+    val minTime = new Timestamp(lastUpdate.getTime + cooldown)
+    minTime.before(this.service.theTime)
+  }
 
   /**
     * Returns this User's full name.

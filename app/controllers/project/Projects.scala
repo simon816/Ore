@@ -57,21 +57,21 @@ class Projects @Inject()(stats: StatTracker,
         Redirect(self.showCreator()).flashing("error" -> this.messagesApi("error.noFile"))
       case Some(tmpFile) =>
         // Start a new pending project
-        var project: PendingProject = null
-        try {
-          val user = request.user
-          if (this.config.security.getBoolean("requirePgp").get && user.pgpPubKey.isEmpty)
-            Redirect(self.showCreator()).flashing("error" -> this.messagesApi("error.pgp.noPubKey"))
-          else {
-            val plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user)
-            project = this.factory.startProject(plugin)
-            project.cache()
-            Redirect(self.showCreatorWithMeta(project.underlying.ownerName, project.underlying.slug))
-          }
-        } catch {
-          case e: InvalidPluginFileException =>
-            e.printStackTrace()
-            Redirect(self.showCreator()).flashing("error" -> this.messagesApi("error.project.invalidPluginFile"))
+        val user = request.user
+        this.factory.getUploadError(user) match {
+          case None =>
+            try {
+              val plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user)
+              val project = this.factory.startProject(plugin)
+              project.cache()
+              val model = project.underlying
+              Redirect(self.showCreatorWithMeta(model.ownerName, model.slug))
+            } catch {
+              case e: InvalidPluginFileException =>
+                Redirect(self.showCreator()).flashing("error" -> this.messagesApi("error.project.invalidPluginFile"))
+            }
+          case Some(error) =>
+            Redirect(self.showCreator()).flashing("error" -> this.messagesApi(error))
         }
     }
   }

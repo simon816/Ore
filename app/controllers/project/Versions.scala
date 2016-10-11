@@ -167,37 +167,33 @@ class Versions @Inject()(stats: StatTracker,
     VersionEditAction(author, slug) { implicit request =>
       request.body.asMultipartFormData.get.file("pluginFile") match {
         case None =>
-          Redirect(self.showCreator(author, slug)).flashing("error" -> "Missing file")
+          Redirect(self.showCreator(author, slug)).flashing("error" -> this.messagesApi("error.noFile"))
         case Some(tmpFile) =>
-          // Process the uploaded file
-          var plugin: PluginFile = null
-          try {
-            val user = request.user
-            if (this.config.security.getBoolean("requirePgp").get && user.pgpPubKey.isEmpty)
-              Redirect(self.showCreator(author, slug)).flashing("error" -> this.messagesApi("error.pgp.noPubKey"))
-            else {
-              plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user)
-
-              // Validate
-              val project = request.project
-              if (!plugin.meta.get.getId.equals(project.pluginId))
-                Redirect(self.showCreator(author, slug))
-                  .flashing("error" -> "The uploaded plugin ID must match your project's plugin ID.")
-              else {
-                val pendingVersion = this.factory.startVersion(plugin, project, project.channels.all.head.name)
-                if (pendingVersion.underlying.exists && this.config.projects.getBoolean("file-validate").get)
+          val user = request.user
+          this.factory.getUploadError(user) match {
+            case None =>
+              try {
+                val plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user)
+                val project = request.project
+                if (!plugin.meta.get.getId.equals(project.pluginId))
                   Redirect(self.showCreator(author, slug))
-                    .flashing("error" -> "Found a duplicate file in project. Plugin files may only be uploaded once.")
+                    .flashing("error" -> this.messagesApi("error.version.invalidPluginId"))
                 else {
-                  // Cache and redirect
-                  pendingVersion.cache()
-                  Redirect(self.showCreatorWithMeta(author, slug, pendingVersion.underlying.versionString))
+                  val version = this.factory.startVersion(plugin, project, project.channels.all.head.name)
+                  val model = version.underlying
+                  if (model.exists && this.config.projects.getBoolean("file-validate").get)
+                    Redirect(self.showCreator(author, slug))
+                      .flashing("error" -> this.messagesApi("error.version.duplicate"))
+                  else {
+                    version.cache()
+                    Redirect(self.showCreatorWithMeta(author, slug, model.versionString))
+                  }
                 }
+              } catch {
+                case e: InvalidPluginFileException =>
+                  Redirect(self.showCreator(author, slug))
+                    .flashing("error" -> this.messagesApi("error.project.invalidPluginFile"))
               }
-            }
-          } catch {
-            case e: InvalidPluginFileException =>
-              Redirect(self.showCreator(author, slug)).flashing("error" -> "Invalid plugin file.")
           }
       }
     }

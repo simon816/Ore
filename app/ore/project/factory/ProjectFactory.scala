@@ -48,6 +48,8 @@ trait ProjectFactory {
   implicit val forums: OreDiscourseApi
   implicit val env = this.fileManager.env
 
+  val isPgpEnabled = this.config.security.getBoolean("requirePgp").get
+
   /**
     * Loads a new [[PluginFile]] for further processing.
     *
@@ -65,9 +67,12 @@ trait ProjectFactory {
     var decrypted = false
 
     // Perform validation
-    if (this.config.security.getBoolean("requirePgp").get) {
+    if (this.isPgpEnabled) {
       if (owner.pgpPubKey.isEmpty)
         throw new IllegalArgumentException("user has no PGP public key and PGP is required")
+
+      if (!owner.isPgpPubKeyReady)
+        throw new IllegalArgumentException("user cannot yet use their public key")
 
       if (!this.pgp.verifyAndDecrypt(uploadPath, tmpPath, owner.pgpPubKey.get))
         throw InvalidPluginFileException("could not verify uploaded file against public key")
@@ -98,6 +103,25 @@ trait ProjectFactory {
     }
 
     plugin
+  }
+
+  /**
+    * Returns the error ID to display to the User, if any, if they cannot
+    * upload files.
+    *
+    * @return Upload error if any
+    */
+  def getUploadError(user: User): Option[String] = {
+    if (this.isPgpEnabled) {
+      // Make sure user has a key
+      if (user.pgpPubKey.isEmpty)
+        return Some("error.pgp.noPubKey")
+
+      // Make sure the user has waited long enough to use a key
+      if (!user.isPgpPubKeyReady)
+        return Some("error.pgp.keyChangeCooldown")
+    }
+    None
   }
 
   /**

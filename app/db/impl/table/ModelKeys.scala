@@ -41,6 +41,7 @@ object ModelKeys {
   val FullName              =   new StringKey[User](_.fullName, _.fullName.orNull)
   val Email                 =   new StringKey[User](_.email, _.email.orNull)
   val PGPPubKey             =   new StringKey[User](_.pgpPubKey, _.pgpPubKey.orNull)
+  val LastPGPPubKeyUpdate   =   new TimestampKey[User](_.lastPgpPubKeyUpdate, _.lastPgpPubKeyUpdate.orNull)
   val Tagline               =   new StringKey[User](_.tagline, _.tagline.orNull)
   val GlobalRoles           =   new Key[User, List[RoleType]](_.globalRoles, _.globalRoles.toList)
   val JoinDate              =   new TimestampKey[User](_.joinDate, _.joinDate.orNull)
