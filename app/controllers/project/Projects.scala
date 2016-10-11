@@ -59,10 +59,15 @@ class Projects @Inject()(stats: StatTracker,
         // Start a new pending project
         var project: PendingProject = null
         try {
-          val plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, request.user)
-          project = this.factory.startProject(plugin)
-          project.cache()
-          Redirect(self.showCreatorWithMeta(project.underlying.ownerName, project.underlying.slug))
+          val user = request.user
+          if (this.config.security.getBoolean("requirePgp").get && user.pgpPubKey.isEmpty)
+            Redirect(self.showCreator()).flashing("error" -> this.messagesApi("error.pgp.noPubKey"))
+          else {
+            val plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user)
+            project = this.factory.startProject(plugin)
+            project.cache()
+            Redirect(self.showCreatorWithMeta(project.underlying.ownerName, project.underlying.slug))
+          }
         } catch {
           case e: InvalidPluginFileException =>
             e.printStackTrace()

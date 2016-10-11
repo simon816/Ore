@@ -45,7 +45,7 @@ Page used for uploading and creating new projects.
                                 <td>@project.pluginId <i class="id-status fa fa-spinner fa-spin"></i></td>
                             </tr>
                             <tr>
-                                <td colspan="2"><strong>@messages("project.name")</strong></td>
+                                <td colspan="2"><strong>@messages("general.name")</strong></td>
                                 <td>@project.name <i class="name-status fa fa-spinner fa-spin"></i></td>
                             </tr>
                             <tr>
@@ -59,6 +59,8 @@ Page used for uploading and creating new projects.
                                                   <option value="@organization.id.get">@organization.name</option>
                                                 }
                                             </select>
+                                        } else {
+                                            @project.ownerName
                                         }
                                     }
                                 </td>
