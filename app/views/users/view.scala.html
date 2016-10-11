@@ -20,6 +20,10 @@
       .getOrElse(routes.Users.savePgpPublicKey(user.username))
 }
 
+@pgpFormClass = @{
+    user.pgpPubKey.map(key => "pgp-deleted").getOrElse("")
+}
+
 @bootstrap.layout(user.username) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/userPage.js")"></script>
@@ -145,7 +149,7 @@
     </div>
 
     @utils.modal("modal-pgp", "label-pgp", "user.pgp.pubKey") {
-        @form(action = pgpAction, 'id -> "form-pgp") {
+        @form(action = pgpAction, 'id -> "form-pgp", 'class -> pgpFormClass) {
             <div class="modal-body">
                 <div class="alert alert-danger" style="display: none;">
                     <span class="error"></span>
@@ -197,6 +201,19 @@
                         @messages("general.delete")
                     </button>
                 }
+            </div>
+        }
+    }
+
+    @utils.modal("modal-pgp-delete", "label-pgp-delete", "user.pgp.delete") {
+        @form(action = routes.Users.deletePgpPublicKey(user.username)) {
+            <div class="modal-body">
+                <p>@messages("user.pgp.delete.confirm")</p>
+                <div class="setting setting-no-border">
+                    <div class="setting-description">
+                        TODO
+                    </div>
+                </div>
             </div>
         }
     }
