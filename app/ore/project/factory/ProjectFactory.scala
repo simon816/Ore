@@ -63,14 +63,6 @@ trait ProjectFactory {
       throw InvalidPluginFileException("Plugin file must be either a JAR or ZIP file.")
 
     val uploadPath = uploadedFile.file.toPath
-    if (this.config.security.getBoolean("requirePgp").get) {
-      if (owner.pgpPubKey.isEmpty)
-        throw new IllegalArgumentException("user has no PGP public key and PGP is required")
-      if (!this.pgp.verify(uploadPath, owner.pgpPubKey.get))
-        throw InvalidPluginFileException("could not verify uploaded file against public key")
-    }
-
-    // Move file to temporary path
     val tmpPath = this.env.tmp.resolve(owner.username).resolve(name)
     var decrypted = false
 
