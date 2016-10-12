@@ -10,6 +10,8 @@ import org.bouncycastle.openpgp._
 import org.bouncycastle.openpgp.jcajce.{JcaPGPObjectFactory, JcaPGPPublicKeyRingCollection}
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentVerifierBuilderProvider
 
+import scala.util.Try
+
 /**
   * Verifies data within the PGP ecosystem.
   */
@@ -46,7 +48,9 @@ class PGPVerifier {
     var data: Array[Byte] = null
     var sigList: PGPSignatureList = null
 
-    var currentObject = factory.nextObject()
+    def doNextObject() = Try(factory.nextObject()).getOrElse(null)
+
+    var currentObject = doNextObject()
     while ((sig == null || data == null || sigList == null) && currentObject != null) {
       // Normally the packets will be read in this order
       currentObject match {
@@ -72,7 +76,7 @@ class PGPVerifier {
         case _ =>
       }
       Logger.info("Processed packet: " + currentObject.toString)
-      currentObject = factory.nextObject()
+      currentObject = doNextObject()
     }
 
     in.close()

@@ -15,32 +15,45 @@
 
 .version-header {
   position: relative;
+  margin-top: 0;
   margin-bottom: 15px;
   border-bottom: 1px solid $lighter;
   .user {
     position: absolute;
     bottom: 0;
   }
-}
 
-.version-buttons {
-  display: table;
-}
+  .version-actions {
+    .version-icons {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      .fa-check-circle-o {
+        color: green;
+      }
 
-.version-buttons > div {
-  display: table-cell;
-  padding-left: 5px;
-  padding-bottom: 5px;
-  vertical-align: middle;
+      .tooltip-inner {
+        max-width: none;
+        white-space: nowrap;
+      }
+    }
+
+    .version-buttons {
+      display: table;
+    }
+
+    .version-buttons > div {
+      display: table-cell;
+      padding-left: 5px;
+      padding-bottom: 5px;
+      vertical-align: middle;
+    }
+  }
 }
 
 .version-panel tr:hover {
   background-color: $mainBackground;
   cursor: pointer;
-}
-
-.versions-header {
-  margin-top: 0;
 }
 
 .version-string {

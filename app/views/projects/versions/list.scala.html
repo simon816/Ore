@@ -12,6 +12,8 @@ Versions page within Project overview.
   visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session,
         request: RequestHeader, flash: Flash, service: ModelService, config: OreConfig, userBase: UserBase, env: OreEnv)
 
+@pageSize = @{ config.projects.getInt("init-version-load").get }
+
 @projects.view(model, "#versions") {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/versionList.js")"></script>
@@ -83,7 +85,7 @@ Versions page within Project overview.
                             </table>
 
                             @defining(versions.size) { size =>
-                                @if(size > 1) {
+                                @if(size > pageSize) {
                                     <div class="panel-footer">
                                         <span class="pull-left minor">
                                             <strong>
@@ -96,7 +98,7 @@ Versions page within Project overview.
                                                 <i class="fa fa-arrow-left"></i>
                                             </a>
                                             <a class="next" href="#"
-                                                @if(versions.size < config.projects.getInt("init-version-load").get) {
+                                                @if(versions.size < pageSize) {
                                                     style="display: none;"
                                                     }
                                             >

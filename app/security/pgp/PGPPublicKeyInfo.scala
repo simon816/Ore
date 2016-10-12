@@ -16,7 +16,12 @@ import org.bouncycastle.openpgp.{PGPSignature, PGPUtil}
   * @param id         Key ID
   * @param createdAt  Date of creation
   */
-case class PGPPublicKeyInfo(raw: String, userName: String, email: String, id: String, createdAt: Date)
+case class PGPPublicKeyInfo(raw: String,
+                            userName: String,
+                            email: String,
+                            id: String,
+                            createdAt: Date,
+                            expirationDate: Option[Date])
 
 object PGPPublicKeyInfo {
 
@@ -55,6 +60,11 @@ object PGPPublicKeyInfo {
         val isRevoked = key.hasRevocation
         val isEncryption = key.isEncryptionKey
         val isMaster = key.isMasterKey
+        val validSeconds = key.getValidSeconds
+        val expirationDate = if (validSeconds != 0)
+          Some(new Date(new Date().getTime + Math.round(validSeconds / 1000f)))
+        else
+          None
 
         Logger.info("Key: " + keyNum)
         Logger.info("ID: " + hexId)
@@ -62,6 +72,7 @@ object PGPPublicKeyInfo {
         Logger.info("Revoked: " + isRevoked)
         Logger.info("Encryption: " + isEncryption)
         Logger.info("Master: " + isMaster)
+        Logger.info("Expiration: " + expirationDate.getOrElse("None"))
 
         Logger.info("Users:")
         val userIter = key.getUserIDs
@@ -97,7 +108,7 @@ object PGPPublicKeyInfo {
           if (isRevoked)
             throw new IllegalStateException("Key is revoked?")
 
-          masterKey = PGPPublicKeyInfo(raw, userName, email, hexId, createdAt)
+          masterKey = PGPPublicKeyInfo(raw, userName, email, hexId, createdAt, expirationDate)
         }
 
       }

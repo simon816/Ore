@@ -20,6 +20,7 @@ Page used for uploading and creating new projects.
         <div class="minor create-blurb">
             <p>@Html(messages("project.create.infoText.head"))</p>
             <p>@Html(messages("project.create.infoText.bottom"))</p>
+            <p>@Html(messages("project.create.infoText.pgp"))</p>
         </div>
 
         @if(flash.get("error").isDefined) {

@@ -40,6 +40,7 @@ general.remove                  =   Remove
 general.update                  =   Update
 general.forumsUnavailable       =   Sponge Forums are currently unavailable, please try again later.
 general.viewOnForums            =   View on Sponge Forums
+general.learnMore               =   Learn more
 
 editor.deleteConfirm    =   Are you sure you want to delete {0}? This cannot be undone.
 
@@ -100,6 +101,7 @@ project.create.selectFile       =   Select file
 project.create.destination      =   Project will be created at {0}
 project.create.infoText.head    =   A project contains your downloads and the documentation for your plugin.
 project.create.infoText.bottom  =   Begin by uploading your plugin JAR file with a valid <i>mcmod.info</i> file in the first level or a ZIP file with your valid plugin JAR in the first level. Plugins with missing or incomplete metadata files will not be accepted.
+project.create.infoText.pgp     =   To upload files to Ore, you must first add a PGP Public Key to your account and all uploaded files must be signed with the corresponding private key. <a href="#TODO">Learn more</a>
 project.create.issue-input      =   Issue tracker URL
 project.create.source-input     =   Source code URL
 project.icon                    =   Project icon
@@ -129,6 +131,9 @@ version.create.upload           =   Upload
 version.create.selectFile       =   Select file
 version.create.publish          =   Publish
 version.create.tos              =   By clicking "Publish" you are agreeing to Ore's <a href="#">Terms of Service</a>.
+version.create.info             =   Release a new version for <strong>{0}</strong>.
+version.recommended             =   Recommended version
+version.approved                =   Approved
 
 channel.name                    =   Channel name
 channel.edit.title              =   Edit channel
@@ -190,7 +195,7 @@ notification.invite.joined          =   You have joined <strong>{0}</strong>!
 notification.invite.declined        =   You have declined an invite from <strong>{0}</strong>.
 notification.plural                 =   Notifications
 notification.markAllRead            =   Mark all as read
-notificiation.unread                =   Unread
+notification.unread                 =   Unread
 notification.read                   =   Read
 notification.all                    =   All
 notification.project.invite         =   You have been invited to join the group {0} on the project {1}.

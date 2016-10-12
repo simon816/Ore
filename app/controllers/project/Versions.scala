@@ -194,6 +194,8 @@ class Versions @Inject()(stats: StatTracker,
                   Redirect(self.showCreator(author, slug))
                     .flashing("error" -> this.messagesApi("error.project.invalidPluginFile"))
               }
+            case Some(error) =>
+              Redirect(self.showCreator(author, slug)).flashing("error" -> this.messagesApi(error))
           }
       }
     }

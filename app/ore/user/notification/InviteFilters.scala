@@ -14,11 +14,11 @@ object InviteFilters extends Enumeration {
     user.projectRoles.filterNot(_.isAccepted) ++ user.organizationRoles.filterNot(_.isAccepted)
   })
 
-  val Projects = InviteFilter(1, "projects", "notification.projects", user => {
+  val Projects = InviteFilter(1, "projects", "notification.invite.projects", user => {
     user.projectRoles.filterNot(_.isAccepted)
   })
 
-  val Organizations = InviteFilter(2, "organizations", "notification.organizations", user => {
+  val Organizations = InviteFilter(2, "organizations", "notification.invite.organizations", user => {
     user.organizationRoles.filterNot(_.isAccepted)
   })
 

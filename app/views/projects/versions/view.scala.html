@@ -38,48 +38,63 @@
                 </p>
 
                 <!-- Buttons -->
-                <div class="version-buttons pull-right">
-                    <div><span class="date">@version.humanFileSize</span></div>
 
-                    @if(isRecommended) {
-                        <div><i title="Recommended version" class="recommended fa fa-diamond"></i></div>
-                    }
-
-                    <div class="btn-group">
-
-                        @if(!isRecommended && canEdit) {
-                            <a class="btn btn-info"
-                               href="@projectRoutes.Versions.setRecommended(
-                                   project.ownerName, project.slug, version.versionString)">
-                                <i class="fa fa-diamond"></i> Set recommended
-                            </a>
+                <div class="pull-right version-actions">
+                    <div class="version-icons">
+                        @if(isRecommended) {
+                            <div>
+                                <i data-toggle="tooltip" data-placement="left" title="@messages("version.recommended")"
+                                class="recommended fa fa-diamond"></i>
+                            </div>
                         }
 
-                        @if(!version.isReviewed && canApprove) {
-                            <a class="btn btn-success"
-                               href="@projectRoutes.Versions.approve(project.ownerName, project.slug, version.name)">
-                                <i class="fa fa-thumbs-up"></i> Approve
-                            </a>
+                        @if(version.isReviewed) {
+                            <div>
+                                <i data-toggle="tooltip" data-placement="left" title="@messages("version.approved")"
+                                class="fa fa-lg fa-check-circle-o"></i>
+                            </div>
                         }
+                    </div>
 
-                        @if(canEdit) {
-                            <a class="btn btn-danger"
-                               @if(project.versions.size == 1) {
-                                   disabled data-toggle="tooltip" data-placement="top"
-                                   title="@messages("version.delete.cannot-last")"
-                               } else {
-                                   href="@projectRoutes.Versions.delete(project.ownerName, project.slug, version.versionString)"
-                               }
-                            >
-                                <i class="fa fa-trash"></i> @messages("general.delete")
+                    <div class="version-buttons pull-right">
+                        <div><span class="date">@version.humanFileSize</span></div>
+
+                        <div class="btn-group">
+
+                            @if(!isRecommended && canEdit) {
+                                <a class="btn btn-info"
+                                   href="@projectRoutes.Versions.setRecommended(
+                                       project.ownerName, project.slug, version.versionString)">
+                                    <i class="fa fa-diamond"></i> Set recommended
+                                </a>
+                            }
+
+                            @if(!version.isReviewed && canApprove) {
+                                <a class="btn btn-success"
+                                   href="@projectRoutes.Versions.approve(project.ownerName, project.slug, version.name)">
+                                    <i class="fa fa-thumbs-up"></i> Approve
+                                </a>
+                            }
+
+                            @if(canEdit) {
+                                <a class="btn btn-danger"
+                                   @if(project.versions.size == 1) {
+                                       disabled data-toggle="tooltip" data-placement="top"
+                                       title="@messages("version.delete.cannot-last")"
+                                   } else {
+                                       href="@projectRoutes.Versions.delete(project.ownerName, project.slug, version.versionString)"
+                                   }
+                                >
+                                    <i class="fa fa-trash"></i> @messages("general.delete")
+                                </a>
+                            }
+
+                            <a class="btn btn-primary"
+                               href="@projectRoutes.Versions.download(project.ownerName, project.slug, version.versionString)">
+                                <i class="fa fa-download"></i> @messages("general.download")
                             </a>
-                        }
 
-                        <a class="btn btn-primary"
-                           href="@projectRoutes.Versions.download(project.ownerName, project.slug, version.versionString)">
-                            <i class="fa fa-download"></i> @messages("general.download")
-                        </a>
-
+                        </div>
                     </div>
                 </div>
             </div>

@@ -17,8 +17,8 @@ object NotificationFilters extends Enumeration {
 
   case class NotificationFilter(i: Int,
                                 name: String,
-                                title: String,
                                 emptyMessage: String,
+                                title: String,
                                 filter: Notification#T => Rep[Boolean]) extends super.Val(i, name) {
 
     def apply(notifications: ModelAccess[Notification]): Seq[Notification] = notifications.filter(this.filter)
