@@ -55,6 +55,8 @@ class Organizations @Inject()(forms: OreForms,
     val user = request.user
     if (user.ownedOrganizations.size >= this.createLimit)
       BadRequest
+    else if (user.isLocked)
+      Redirect(routes.Organizations.showCreator()).flashing("error" -> this.messagesApi("error.user.locked"))
     else {
       val formData = this.forms.OrganizationCreate.bindFromRequest().get
       val name = formData.name

@@ -121,6 +121,10 @@ trait ProjectFactory {
       if (!user.isPgpPubKeyReady)
         return Some("error.pgp.keyChangeCooldown")
     }
+
+    if (user.isLocked)
+      return Some("error.user.locked")
+
     None
   }
 

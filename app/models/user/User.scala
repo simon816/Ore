@@ -47,7 +47,8 @@ case class User(override val id: Option[Int] = None,
                 private var _avatarUrl: Option[String] = None,
                 private var _readPrompts: List[Prompt] = List(),
                 private var _pgpPubKey: Option[String] = None,
-                private var _lastPgpPubKeyUpdate: Option[Timestamp] = None)
+                private var _lastPgpPubKeyUpdate: Option[Timestamp] = None,
+                private var _isLocked: Boolean = false)
                 extends OreModel(id, createdAt)
                   with UserOwned
                   with ScopeSubject
@@ -154,6 +155,23 @@ case class User(override val id: Option[Int] = None,
     val cooldown = this.config.security.getLong("keyChangeCooldown").get
     val minTime = new Timestamp(lastUpdate.getTime + cooldown)
     minTime.before(this.service.theTime)
+  }
+
+  /**
+    * Returns true if this User's profile is locked.
+    *
+    * @return True if profile is locked
+    */
+  def isLocked: Boolean = this._isLocked
+
+  /**
+    * Sets whether this User's profile is locked.
+    *
+    * @param _isLocked True if profile is locked
+    */
+  def setLocked(_isLocked: Boolean) = {
+    this._isLocked = _isLocked
+    if (isDefined) update(IsLocked)
   }
 
   /**

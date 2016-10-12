@@ -62,6 +62,7 @@ error.pgp.noEmail               =   You must have an email associated with your 
 error.pgp.invalidEmail          =   The email associated with the uploaded key does not match the email associated with your Sponge account.
 error.pgp.noPubKey              =   You must upload a PGP Public Key to upload files to Ore.
 error.pgp.keyChangeCooldown     =   You must wait a minimum of 3 days after changing your public key to upload files.
+error.user.locked               =   Your account is locked.
 
 page.edit.cannotDeleteHomepage  =   Your project's homepage cannot be deleted
 page.edit.maxPages              =   You have reached the maximum amount of allowed pages.
@@ -170,6 +171,11 @@ user.pgp.pubKey.info        =   Paste your PGP public key in it's entirety to th
 user.pgp.help               =   Need help?
 user.pgp.delete             =   Delete PGP Public Key
 user.pgp.delete.confirm     =   Are you sure you want to delete your public key? You will not be able to upload new files to Ore. If you upload a new key you will still not be able to upload new files for three days.
+user.lock                   =   Lock account
+user.lock.confirm           =   Are you sure you want to lock your account? You will not be able to upload files or modify any existing projects.
+user.unlock                 =   Unlock account
+user.unlock.confirm         =   Are you sure you want to unlock your account?
+user.enterPassword          =   Enter your password to continue:
 
 notification.invite                 =   You have been invited to join the {0}
 notification.invites                =   Invites

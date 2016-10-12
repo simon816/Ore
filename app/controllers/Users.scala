@@ -173,6 +173,18 @@ class Users @Inject()(fakeUser: FakeUser,
   }
 
   /**
+    * Sets the "locked" status of a User.
+    *
+    * @param username User to set status of
+    * @param locked   True if user is locked
+    * @return         Redirection to user page
+    */
+  def setLocked(username: String, locked: Boolean) = UserAction(username) { implicit request =>
+    request.user.setLocked(locked)
+    Redirect(self.showProjects(username, None))
+  }
+
+  /**
     * Shows a list of [[models.user.User]]s that have created a
     * [[models.project.Project]].
     */

@@ -24,6 +24,10 @@
     user.pgpPubKey.map(key => "pgp-deleted").getOrElse("")
 }
 
+@lockIcon = @{
+    if (user.isLocked) "fa-lock" else "fa-unlock-alt"
+}
+
 @bootstrap.layout(user.username) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/userPage.js")"></script>
@@ -74,8 +78,10 @@
                             @user.username
 
                             @if(user.isCurrent) {
-                                <i class="fa fa-unlock-alt action-lock-account" data-toggle="tooltip"
-                                   data-placement="top" title="@messages("user.lockAccount")"></i>
+                                <span data-toggle="modal" data-target="#modal-lock">
+                                    <i class="fa @lockIcon action-lock-account" data-toggle="tooltip"
+                                       data-placement="top" title="@messages("user.lockAccount")"></i>
+                                </span>
 
                                 <span data-toggle="modal" data-target="#modal-pgp">
                                     <i class="fa fa-key action-pgp" data-toggle="tooltip" data-placement="top"
@@ -205,10 +211,34 @@
         }
     }
 
+    @utils.modal("modal-lock", "label-lock", if (user.isLocked) "user.unlock" else "user.lock") {
+        @form(action = routes.Users.setLocked(user.username, !user.isLocked)) {
+            <div class="modal-body">
+                <p class="minor">
+                    @if(user.isLocked) {
+                        @messages("user.unlock.confirm")
+                    } else {
+                        @messages("user.lock.confirm")
+                    }
+                </p>
+                <div class="setting setting-no-border">
+                    <div class="setting-description">
+                        <p>@messages("user.enterPassword")</p>
+                    </div>
+                    <input name="password" class="form-control" type="password" placeholder="TODO" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">@messages("general.close")</button>
+                <input type="submit" value="@messages("general.continue")" class="btn btn-primary" />
+            </div>
+        }
+    }
+
     @utils.modal("modal-pgp-delete", "label-pgp-delete", "user.pgp.delete") {
         @form(action = routes.Users.deletePgpPublicKey(user.username)) {
             <div class="modal-body">
-                <p>@messages("user.pgp.delete.confirm")</p>
+                <p class="minor">@messages("user.pgp.delete.confirm")</p>
                 <div class="setting setting-no-border">
                     <div class="setting-description">
                         TODO
