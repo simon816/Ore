@@ -139,10 +139,10 @@ function setupAvatarForm() {
     });
 
     // TODO: Delete confirmation with authentication
-    // var pgpDeleteForm = $('.pgp-delete');
-    // pgpDeleteForm.submit(function(e) {
-    //     e.preventDefault();
-    // });
+    var pgpDeleteForm = $('.pgp-delete');
+    pgpDeleteForm.submit(function(e) {
+        e.preventDefault();
+    });
 }
 
 $(function() {

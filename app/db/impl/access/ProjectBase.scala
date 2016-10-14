@@ -3,7 +3,6 @@ package db.impl.access
 import java.nio.file.Files
 import java.nio.file.Files._
 
-import _root_.util.StringUtils._
 import com.google.common.base.Preconditions._
 import db.impl.OrePostgresDriver.api._
 import db.{ModelBase, ModelService}
@@ -12,6 +11,7 @@ import models.project.{Channel, Project, Version}
 import ore.project.io.ProjectFileManager
 import ore.{OreConfig, OreEnv}
 import org.apache.commons.io.FileUtils
+import util.StringUtils._
 
 class ProjectBase(override val service: ModelService,
                   env: OreEnv,

@@ -6,7 +6,7 @@ import models.project.Channel
 import ore.Colors._
 import org.spongepowered.plugin.meta.version.ComparableVersion
 import play.api.{Configuration, Logger}
-import util.StringUtils.compact
+import util.StringUtils._
 
 /**
   * A helper class for the Ore configuration.

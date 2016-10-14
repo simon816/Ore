@@ -2,7 +2,6 @@ package ore.rest
 
 import javax.inject.Inject
 
-import _root_.util.StringUtils.prettifyDate
 import db.ModelService
 import db.impl.access.ProjectBase
 import models.project.{Channel, Project, Version}
@@ -12,6 +11,7 @@ import ore.project.ProjectMember
 import play.api.libs.json.Json.{obj, toJson}
 import play.api.libs.json._
 import security.pgp.PGPPublicKeyInfo
+import _root_.util.StringUtils._
 
 /**
   * Contains implicit JSON [[Writes]] for the Ore API.

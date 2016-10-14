@@ -13,6 +13,7 @@ import org.apache.commons.codec.binary.Hex
 /**
   * Handles single-sign-on authentication to a Discourse forum.
   */
+@deprecated("moved to SpongeSSO central authentication service")
 trait DiscourseSSO {
 
   val ssoUrl: String

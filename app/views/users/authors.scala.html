@@ -3,7 +3,7 @@
 @import db.impl.access.{ProjectBase, UserBase}
 @import models.user.User
 @import ore.{OreConfig, OreEnv}
-@import util.StringUtils.prettifyDate
+@import util.StringUtils._
 @(authors: Seq[User], ordering: String, page: Int)(implicit messages: Messages, session: Session,
         request: RequestHeader, service: ModelService, config: OreConfig, users: UserBase, projectBase: ProjectBase,
         env: OreEnv)

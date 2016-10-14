@@ -13,8 +13,8 @@ import ore.permission.EditPages
 import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.i18n.MessagesApi
 import play.api.mvc.Action
-import util.StringUtils.equalsIgnoreCase
 import views.html.projects.{pages => views}
+import util.StringUtils._
 
 /**
   * Controller for handling Page related actions.
@@ -84,7 +84,8 @@ class Pages @Inject()(forms: OreForms,
   def save(author: String, slug: String, page: String) = {
     PageEditAction(author, slug) { implicit request =>
       this.forms.PageEdit.bindFromRequest.fold(
-        hasErrors => Redirect(self.show(author, slug, page)).flashing("error" -> hasErrors.errors.head.message),
+        hasErrors =>
+          Redirect(self.show(author, slug, page)).flashing("error" -> hasErrors.errors.head.message),
         pageData => {
           request.project.getOrCreatePage(page).contents = pageData
           Redirect(self.show(author, slug, page))

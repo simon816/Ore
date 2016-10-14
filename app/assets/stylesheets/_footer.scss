@@ -27,6 +27,15 @@
     padding-right: 10px;
     vertical-align: middle;
   }
+
+  .commit {
+    font-size: 10px;
+    color: $mainBackground;
+  }
+
+  .commit:hover {
+    color: $mainBackground;
+  }
 }
 
 .footer > .navbar-default {

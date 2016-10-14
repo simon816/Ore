@@ -12,7 +12,7 @@ import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.libs.json.Json.toJson
 import play.api.libs.json.{JsValue, Json}
-import util.StringUtils.equalsIgnoreCase
+import util.StringUtils._
 
 /**
   * The Ore API

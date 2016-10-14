@@ -6,8 +6,6 @@ import controllers.BaseController
 import controllers.project.routes.{Channels => self}
 import db.ModelService
 import form.OreForms
-import discourse.DiscourseApi
-import discourse.impl.OreDiscourseApi
 import ore.permission.EditChannels
 import ore.project.factory.ProjectFactory
 import ore.{OreConfig, OreEnv}
@@ -52,11 +50,16 @@ class Channels @Inject()(forms: OreForms,
   def create(author: String, slug: String) = {
     ChannelEditAction(author, slug) { implicit request =>
       this.forms.ChannelEdit.bindFromRequest.fold(
-        hasErrors => Redirect(self.showList(author, slug)).flashing("error" -> hasErrors.errors.head.message),
-        channelData => channelData.addTo(request.project).fold(
-          error => Redirect(self.showList(author, slug)).flashing("error" -> error),
-          channel => Redirect(self.showList(author, slug))
-        )
+        hasErrors =>
+          Redirect(self.showList(author, slug)).flashing("error" -> hasErrors.errors.head.message),
+        channelData => {
+          channelData.addTo(request.project).fold(
+            error =>
+              Redirect(self.showList(author, slug)).flashing("error" -> error),
+            channel =>
+              Redirect(self.showList(author, slug))
+          )
+        }
       )
     }
   }
@@ -73,11 +76,14 @@ class Channels @Inject()(forms: OreForms,
     ChannelEditAction(author, slug) { implicit request =>
       implicit val project = request.project
       this.forms.ChannelEdit.bindFromRequest.fold(
-        hasErrors => Redirect(self.showList(author, slug)).flashing("error" -> hasErrors.errors.head.message),
-        channelData => channelData.saveTo(channelName).map { error =>
-          Redirect(self.showList(author, slug)).flashing("error" -> error)
-        } getOrElse {
-          Redirect(self.showList(author, slug))
+        hasErrors =>
+          Redirect(self.showList(author, slug)).flashing("error" -> hasErrors.errors.head.message),
+        channelData => {
+          channelData.saveTo(channelName).map { error =>
+            Redirect(self.showList(author, slug)).flashing("error" -> error)
+          } getOrElse {
+            Redirect(self.showList(author, slug))
+          }
         }
       )
     }
@@ -97,15 +103,14 @@ class Channels @Inject()(forms: OreForms,
       implicit val project = request.project
       val channels = project.channels.all
       if (channels.size == 1) {
-        Redirect(self.showList(author, slug))
-          .flashing("error" -> this.messagesApi("error.channel.last"))
+        Redirect(self.showList(author, slug)).flashing("error" -> "error.channel.last")
       } else {
         channels.find(c => c.name.equals(channelName)) match {
-          case None => NotFound
+          case None =>
+            NotFound
           case Some(channel) =>
             if (channel.versions.nonEmpty && channels.count(c => c.versions.nonEmpty) == 1) {
-              Redirect(self.showList(author, slug))
-                .flashing("error" -> this.messagesApi("error.channel.lastNonEmpty"))
+              Redirect(self.showList(author, slug)).flashing("error" -> "error.channel.lastNonEmpty")
             } else {
               this.projects.deleteChannel(channel)
               Redirect(self.showList(author, slug))

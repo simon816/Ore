@@ -18,8 +18,8 @@ import ore.{OreConfig, OreEnv, StatTracker}
 import org.apache.commons.io.FileUtils
 import play.api.i18n.MessagesApi
 import play.api.mvc._
-import util.StringUtils._
 import views.html.{projects => views}
+import util.StringUtils._
 
 /**
   * Controller for handling Project related actions.
@@ -54,7 +54,7 @@ class Projects @Inject()(stats: StatTracker,
   def upload() = Authenticated { implicit request =>
     request.body.asMultipartFormData.get.file("pluginFile") match {
       case None =>
-        Redirect(self.showCreator()).flashing("error" -> this.messagesApi("error.noFile"))
+        Redirect(self.showCreator()).flashing("error" -> "error.noFile")
       case Some(tmpFile) =>
         // Start a new pending project
         val user = request.user
@@ -68,10 +68,10 @@ class Projects @Inject()(stats: StatTracker,
               Redirect(self.showCreatorWithMeta(model.ownerName, model.slug))
             } catch {
               case e: InvalidPluginFileException =>
-                Redirect(self.showCreator()).flashing("error" -> this.messagesApi("error.project.invalidPluginFile"))
+                Redirect(self.showCreator()).flashing("error" -> "error.project.invalidPluginFile")
             }
           case Some(error) =>
-            Redirect(self.showCreator()).flashing("error" -> this.messagesApi(error))
+            Redirect(self.showCreator()).flashing("error" -> error)
         }
     }
   }
@@ -86,8 +86,10 @@ class Projects @Inject()(stats: StatTracker,
   def showCreatorWithMeta(author: String, slug: String) = {
     Authenticated { implicit request =>
       this.factory.getPendingProject(author, slug) match {
-        case None => Redirect(self.showCreator())
-        case Some(pending) => Ok(views.create(Some(pending)))
+        case None =>
+          Redirect(self.showCreator())
+        case Some(pending) =>
+          Ok(views.create(Some(pending)))
       }
     }
   }
@@ -102,7 +104,8 @@ class Projects @Inject()(stats: StatTracker,
   def showInvitationForm(author: String, slug: String) = {
     Authenticated { implicit request =>
       this.factory.getPendingProject(author, slug) match {
-        case None => Redirect(self.showCreator())
+        case None =>
+          Redirect(self.showCreator())
         case Some(pendingProject) =>
           this.forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.underlying)
           Ok(views.invite(pendingProject))
@@ -126,8 +129,7 @@ class Projects @Inject()(stats: StatTracker,
         case Some(pendingProject) =>
           pendingProject.roles = this.forms.ProjectMemberRoles.bindFromRequest.get.build()
           val pendingVersion = pendingProject.pendingVersion
-          Redirect(routes.Versions.showCreatorWithMeta(
-            author, slug, pendingVersion.underlying.versionString))
+          Redirect(routes.Versions.showCreatorWithMeta(author, slug, pendingVersion.underlying.versionString))
       }
     }
   }
@@ -489,8 +491,8 @@ class Projects @Inject()(stats: StatTracker,
     SettingsEditAction(author, slug) { implicit request =>
       val project = request.project
       this.projects.delete(project)
-      Redirect(app.showHome(None, None, None, None))
-        .flashing("success" -> ("Project \"" + project.name + "\" deleted."))
+      val call = app.showHome(None, None, None, None)
+      Redirect(call).flashing("success" -> this.messagesApi("project.deleted", project.name))
     }
   }
 

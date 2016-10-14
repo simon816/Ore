@@ -19,7 +19,7 @@ import ore.project.FlagReasons.FlagReason
 import ore.project.{Categories, ProjectMember}
 import ore.user.MembershipDossier
 import ore.{Joinable, Visitable}
-import util.StringUtils.{compact, slugify}
+import util.StringUtils._
 
 /**
   * Represents an Ore package.

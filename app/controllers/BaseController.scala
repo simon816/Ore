@@ -7,7 +7,7 @@ import models.project.{Project, Version}
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.I18nSupport
 import play.api.mvc._
-import util.StringUtils.equalsIgnoreCase
+import util.StringUtils._
 
 /**
   * Represents a Secured base Controller for this application.

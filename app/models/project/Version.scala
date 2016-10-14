@@ -16,7 +16,7 @@ import ore.project.Dependency
 import ore.{OreEnv, Visitable}
 import org.apache.commons.io.FileUtils
 import play.twirl.api.Html
-import util.StringUtils
+import util.StringUtils._
 
 /**
   * Represents a single version of a Project.

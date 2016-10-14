@@ -7,7 +7,7 @@ Versions page within Project overview.
 @import models.project.{Channel, Project, Version}
 @import ore.permission.{EditChannels, EditVersions}
 @import ore.{OreConfig, OreEnv}
-@import util.StringUtils.prettifyDate
+@import util.StringUtils._
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
   visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session,
         request: RequestHeader, flash: Flash, service: ModelService, config: OreConfig, userBase: UserBase, env: OreEnv)

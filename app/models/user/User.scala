@@ -22,6 +22,7 @@ import ore.user.Prompts.Prompt
 import ore.user.UserOwned
 import play.api.mvc.Session
 import security.pgp.PGPPublicKeyInfo
+import security.sso.SpongeUser
 import util.StringUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -344,6 +345,7 @@ case class User(override val id: Option[Int] = None,
     * @param user User to fill with
     * @return     This user
     */
+  @deprecated("fill with sponge user instead")
   def fill(user: DiscourseUser): User = {
     if (user == null)
       return this
@@ -355,6 +357,20 @@ case class User(override val id: Option[Int] = None,
     this.globalRoles = user.groups
       .flatMap(group => RoleTypes.values.find(_.roleId == group.id).map(_.asInstanceOf[RoleType]))
       .toSet[RoleType]
+    this
+  }
+
+  /**
+    * Fills this User with the information SpongeUser provides.
+    *
+    * @param user SpongeUser
+    * @return     This user
+    */
+  def fill(user: SpongeUser): User = {
+    if (user == null)
+      return this
+    this.username = user.username
+    this.email = user.email
     this
   }
 
@@ -544,6 +560,15 @@ object User {
     * @param user User to convert
     * @return     Ore User
     */
+  @deprecated("use fromSponge instead")
   def fromDiscourse(user: DiscourseUser) = User().fill(user).copy(id = Some(user.id))
+
+  /**
+    * Create a new [[User]] from the specified [[SpongeUser]].
+    *
+    * @param user User to convert
+    * @return     Ore user
+    */
+  def fromSponge(user: SpongeUser) = User().fill(user).copy(id = Some(user.id))
 
 }

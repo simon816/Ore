@@ -6,7 +6,7 @@
 @import ore.permission.{EditVersions, ReviewProjects}
 @import ore.project.Dependency.SpongeApiId
 @import ore.{OreConfig, OreEnv}
-@import util.StringUtils.prettifyDate
+@import util.StringUtils._
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
         session: Session, request: RequestHeader, flash: Flash, service: ModelService, config: OreConfig,
         users: UserBase, projectBase: ProjectBase, env: OreEnv)

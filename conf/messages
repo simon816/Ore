@@ -49,6 +49,7 @@ error.maxLength                 =   Content too long.
 error.noFile                    =   No file submitted.
 error.nameUnavailable           =   That name is not available.
 error.noLogin                   =   Login is temporarily unavailable, please try again later.
+error.loginFailed               =   Authentication failed.
 error.project.invalidPluginFile =   Invalid plugin file.
 error.channel.last              =   You cannot delete your only channel.
 error.channel.lastNonEmpty      =   You cannot delete your only non-empty channel.
@@ -110,7 +111,8 @@ project.members.infoText.bottom =   Ore was able to find <strong>{0}</strong> us
 project.search                  =   Search for projects.
 project.viewAuthors             =   View project creators.
 project.removeMember            =   Remove member
-project.removeMember.confirm     =   Are you sure you want to remove this user?
+project.removeMember.confirm    =   Are you sure you want to remove this user?
+project.deleted                 =   Project "{0}" deleted.
 
 org.create          =   New Organization
 org.create.title    =   Create a new Organization

@@ -29,7 +29,8 @@ class SpongeForums @Inject()(env: OreEnv,
   override val url: String = this.conf.getString("baseUrl").get
   override val baseUrl: String = this.config.app.getString("baseUrl").get
 
-  override val secret: String = this.conf.getString("sso.secret").get
+//  override val secret: String = this.conf.getString("sso.secret").get
+  override val secret: String = "changeme"
   override val ssoUrl: String = this.conf.getString("sso.url").get
 
   override val categorySlug: String = this.conf.getString("embed.categorySlug").get

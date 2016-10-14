@@ -8,7 +8,7 @@ import db.impl.access.ProjectBase
 import discourse.{DiscourseApi, DiscourseSSO}
 import models.project.{Project, Version}
 import models.user.User
-import util.StringUtils.readAndFormatFile
+import util.StringUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.FiniteDuration

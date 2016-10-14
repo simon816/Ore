@@ -17,8 +17,8 @@ import ore.project.io.{InvalidPluginFileException, PluginFile}
 import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.i18n.MessagesApi
 import play.api.mvc.Result
-import util.StringUtils.equalsIgnoreCase
 import views.html.projects.{versions => views}
+import util.StringUtils._
 
 /**
   * Controller for handling Version related actions.
@@ -165,9 +165,10 @@ class Versions @Inject()(stats: StatTracker,
     */
   def upload(author: String, slug: String) = {
     VersionEditAction(author, slug) { implicit request =>
+      val call = self.showCreator(author, slug)
       request.body.asMultipartFormData.get.file("pluginFile") match {
         case None =>
-          Redirect(self.showCreator(author, slug)).flashing("error" -> this.messagesApi("error.noFile"))
+          Redirect(call).flashing("error" -> "error.noFile")
         case Some(tmpFile) =>
           val user = request.user
           this.factory.getUploadError(user) match {
@@ -176,14 +177,12 @@ class Versions @Inject()(stats: StatTracker,
                 val plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user)
                 val project = request.project
                 if (!plugin.meta.get.getId.equals(project.pluginId))
-                  Redirect(self.showCreator(author, slug))
-                    .flashing("error" -> this.messagesApi("error.version.invalidPluginId"))
+                  Redirect(call).flashing("error" -> "error.version.invalidPluginId")
                 else {
                   val version = this.factory.startVersion(plugin, project, project.channels.all.head.name)
                   val model = version.underlying
                   if (model.exists && this.config.projects.getBoolean("file-validate").get)
-                    Redirect(self.showCreator(author, slug))
-                      .flashing("error" -> this.messagesApi("error.version.duplicate"))
+                    Redirect(call).flashing("error" -> "error.version.duplicate")
                   else {
                     version.cache()
                     Redirect(self.showCreatorWithMeta(author, slug, model.versionString))
@@ -191,11 +190,10 @@ class Versions @Inject()(stats: StatTracker,
                 }
               } catch {
                 case e: InvalidPluginFileException =>
-                  Redirect(self.showCreator(author, slug))
-                    .flashing("error" -> this.messagesApi("error.project.invalidPluginFile"))
+                  Redirect(call).flashing("error" -> "error.project.invalidPluginFile")
               }
             case Some(error) =>
-              Redirect(self.showCreator(author, slug)).flashing("error" -> this.messagesApi(error))
+              Redirect(call).flashing("error" -> error)
           }
       }
     }
@@ -262,8 +260,8 @@ class Versions @Inject()(stats: StatTracker,
           this.forms.VersionCreate.bindFromRequest.fold(
             hasErrors => {
               // Invalid channel
-              Redirect(self.showCreatorWithMeta(author, slug, versionString))
-                .flashing("error" -> hasErrors.errors.head.message)
+              val call = self.showCreatorWithMeta(author, slug, versionString)
+              Redirect(call).flashing("error" -> hasErrors.errors.head.message)
             },
 
             versionData => {
@@ -286,11 +284,10 @@ class Versions @Inject()(stats: StatTracker,
 
                     channelResult.fold(
                       error => {
-                        Redirect(self.showCreatorWithMeta(author, slug, versionString))
-                          .flashing("error" -> error)
+                        Redirect(self.showCreatorWithMeta(author, slug, versionString)).flashing("error" -> error)
                       },
                       channel => {
-                        val newVersion = pendingVersion.complete.get
+                        val newVersion = pendingVersion.complete().get
                         if (versionData.recommended)
                           project.recommendedVersion = newVersion
 
@@ -304,7 +301,7 @@ class Versions @Inject()(stats: StatTracker,
                   }
                 case Some(pendingProject) =>
                   // Found a pending project, create it with first version
-                  pendingProject.complete.get
+                  pendingProject.complete().get
                   Redirect(routes.Projects.show(author, slug))
               }
             }
