@@ -38,14 +38,6 @@ class Application @Inject()(data: DataHelper,
     */
   def showHome(categories: Option[String], query: Option[String], sort: Option[Int], page: Option[Int]) = {
     Action { implicit request =>
-
-      Logger.info(
-        "showHome()\n" +
-          s"\tCategories: $categories\n" +
-          s"\tQuery: $query\n" +
-          s"\tOrdering: $sort\n" +
-          s"\tPage: $page")
-
       // Get categories and sorting strategy
       var categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
       val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
@@ -67,10 +59,8 @@ class Application @Inject()(data: DataHelper,
       val pageSize = this.config.projects.getInt("init-load").get
       val p = page.getOrElse(1)
       val offset = (p - 1) * pageSize
-      Logger.info("Getting projects...")
       val future = actions.collect(filter.fn, categoryArray, pageSize, offset, ordering)
       val projects = this.service.await(future).get
-      Logger.info("Projects: " + projects.size)
 
       if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet))
         categoryArray = null
