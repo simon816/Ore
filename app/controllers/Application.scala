@@ -7,13 +7,13 @@ import controllers.routes.{Application => self}
 import db.impl.access.{FlagBase, VersionBase}
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
-import discourse.impl.OreDiscourseApi
 import models.project.{Flag, Project}
 import ore.permission._
 import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import ore.{OreConfig, OreEnv}
+import play.api.Logger
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.DataHelper
@@ -38,6 +38,14 @@ class Application @Inject()(data: DataHelper,
     */
   def showHome(categories: Option[String], query: Option[String], sort: Option[Int], page: Option[Int]) = {
     Action { implicit request =>
+
+      Logger.info(
+        "showHome()\n" +
+          s"\tCategories: $categories\n" +
+          s"\tQuery: $query\n" +
+          s"\tOrdering: $sort\n" +
+          s"\tPage: $page")
+
       // Get categories and sorting strategy
       var categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
       val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
@@ -59,8 +67,10 @@ class Application @Inject()(data: DataHelper,
       val pageSize = this.config.projects.getInt("init-load").get
       val p = page.getOrElse(1)
       val offset = (p - 1) * pageSize
+      Logger.info("Getting projects...")
       val future = actions.collect(filter.fn, categoryArray, pageSize, offset, ordering)
       val projects = this.service.await(future).get
+      Logger.info("Projects: " + projects.size)
 
       if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet))
         categoryArray = null
