@@ -89,6 +89,10 @@ case class ModelFilter[M <: Model](fn: M#T => Rep[Boolean] = null) {
 
 object ModelFilter {
 
+  def Empty[M <: Model]: ModelFilter[M] = ModelFilter[M](_ => true)
+
+  def All[M <: Model] = ModelFilter[M](_ => false)
+
   /** Filters models by ID */
   def IdFilter[M <: Model](id: Int): ModelFilter[M] = ModelFilter[M](_.id === id)
 

@@ -2,7 +2,7 @@ package ore.rest
 
 import javax.inject.Inject
 
-import db.ModelService
+import db.{ModelFilter, ModelService}
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.{ProjectBase, UserBase}
 import db.impl.schema.{ProjectSchema, VersionSchema}
@@ -43,7 +43,7 @@ trait OreRestfulApi {
     val queries = this.service.getSchema(classOf[ProjectSchema])
     val categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
     val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
-    val filter = q.map(queries.searchFilter).orNull
+    val filter = q.map(queries.searchFilter).getOrElse(ModelFilter.Empty)
     val maxLoad = this.config.projects.getInt("init-load").get
     val lim = Math.max(limit.getOrElse(maxLoad), maxLoad)
     val future = queries.collect(filter.fn, categoryArray, lim, offset.getOrElse(-1), ordering)

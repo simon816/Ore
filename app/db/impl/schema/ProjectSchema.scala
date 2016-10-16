@@ -5,7 +5,6 @@ import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.access.UserBase
 import models.project._
-import models.statistic.ProjectView
 import models.user.User
 import ore.project.Categories.Category
 import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
