@@ -5,7 +5,7 @@ import org.spongepowered.api.plugin.Plugin;
 
 @Plugin(id = "ore-test",
         name = "Ore Test Plugin",
-        version = "1.0.0",
+        version = "1.0.1",
         dependencies = {
             @Dependency(id = "bookotd", version = "1.0.0"),
             @Dependency(id = "spongeapi", version = "5.0.0")

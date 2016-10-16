@@ -140,7 +140,7 @@ class ProjectBase(override val service: ModelService,
     // Set recommended version to latest (excluding the version to delete)
     // version if the deleted version was the rv
     if (version.equals(rv))
-      proj.recommendedVersion = proj.versions.sorted(_.createdAt.desc, limit = 1).filterNot(_.equals(version)).head
+      proj.recommendedVersion = proj.versions.sorted(_.createdAt.desc).filterNot(_.equals(version)).head
 
     version.remove()
 

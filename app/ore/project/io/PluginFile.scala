@@ -63,6 +63,8 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
   /**
     * Reads the temporary file's plugin meta file and returns the result.
     *
+    * TODO: More validation on PluginMetadata results (null checks, etc)
+    *
     * @return Result of parse
     */
   def loadMeta(): PluginMetadata = {
