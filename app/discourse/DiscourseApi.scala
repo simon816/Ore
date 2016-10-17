@@ -10,8 +10,8 @@ import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.mvc.MultipartFormData.{DataPart, FilePart}
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
-import scala.util.Success
+import scala.concurrent.{Await, Future, TimeoutException}
+import scala.util.{Failure, Success, Try}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
@@ -257,8 +257,18 @@ trait DiscourseApi extends DiscourseReads {
     *
     * @return True if available
     */
-  def isAvailable: Future[Boolean] = this.ws.url(this.url).get().map(_.status == Status.OK).recover {
-    case e: Exception => false
+  def isAvailable: Boolean = {
+    val result = Try(await(this.ws.url(this.url).get().map(_.status == Status.OK).recover {
+      case e: Exception => false
+    }))
+    result match {
+      case Success(r) =>
+        r
+      case Failure(e) =>
+        if (e.isInstanceOf[TimeoutException])
+          return false
+        throw e;
+    }
   }
 
   /**
