@@ -99,8 +99,8 @@ class ProjectBase(override val service: ModelService,
     checkArgument(this.isNamespaceAvailable(project.ownerName, newSlug), "slug not available", "")
 
     this.fileManager.renameProject(project.ownerName, project.name, newName)
-    project.name = newName
-    project.slug = newSlug
+    this.service.await(project.name = newName)
+    this.service.await(project.slug = newSlug)
 
     // Project's name alter's the topic title, update it
     if (project.topicId != -1 && this.forums.isEnabled)
