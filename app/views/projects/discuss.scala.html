@@ -38,7 +38,7 @@ Discussion page within Project overview.
                             </div>
                         }
 
-                        @if(forums.await(forums.isAvailable)) {
+                        @if(forums.isAvailable) {
                             @editor(
                                 saveCall = projectRoutes.Projects.postDiscussionReply(model.ownerName, model.slug),
                                 cancellable = false,

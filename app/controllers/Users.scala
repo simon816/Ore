@@ -48,7 +48,7 @@ class Users @Inject()(fakeUser: FakeUser,
       this.redirectBack(returnPath.getOrElse(request.path), this.fakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
       // Check if forums are available and redirect to login if so
-      if (this.forums.await(this.forums.isAvailable))
+      if (this.forums.isAvailable)
         Redirect(this.forums.toForums(baseUrl + "/login")).flashing("url" -> returnPath.getOrElse(request.path))
       else
         Redirect(app.showHome(None, None, None, None))
