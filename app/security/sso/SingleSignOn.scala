@@ -13,8 +13,9 @@ import org.apache.commons.codec.binary.Hex
 import play.api.http.Status
 import play.api.libs.ws.WSClient
 
-import scala.concurrent.Future
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 /**
   * Manages authentication to Sponge services.
@@ -24,6 +25,7 @@ trait SingleSignOn {
   val ws: WSClient
   val url: String
   val secret: String
+  val timeout: Duration
 
   val CharEncoding = "UTF-8"
   val Algo = "HmacSHA256"
@@ -34,9 +36,9 @@ trait SingleSignOn {
     *
     * @return True if available
     */
-  def isAvailable: Future[Boolean] = this.ws.url(this.url).get().map(_.status == Status.OK).recover {
+  def isAvailable: Boolean = Await.result(this.ws.url(this.url).get().map(_.status == Status.OK).recover {
     case e: Exception => false
-  }
+  }, this.timeout)
 
   /**
     * Returns the URL with a generated SSO payload to the SSO instance.
@@ -103,6 +105,9 @@ trait SingleSignOn {
 }
 
 class SpongeSingleSignOn @Inject()(override val ws: WSClient, config: OreConfig) extends SingleSignOn {
+
   override val url = this.config.security.getString("sso.url").get
   override val secret = this.config.security.getString("sso.secret").get
+  override val timeout = this.config.security.getLong("sso.timeout").get.millis
+
 }

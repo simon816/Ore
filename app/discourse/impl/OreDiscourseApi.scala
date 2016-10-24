@@ -5,7 +5,7 @@ import java.nio.file.Path
 import akka.actor.Scheduler
 import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
 import db.impl.access.ProjectBase
-import discourse.{DiscourseApi, DiscourseSSO}
+import discourse.DiscourseApi
 import models.project.{Project, Version}
 import models.user.User
 import util.StringUtils._
@@ -16,14 +16,13 @@ import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 
 /**
-  * An implementation of [[DiscourseApi]] and [[DiscourseSSO]] suited to Ore's
-  * needs.
+  * An implementation of [[DiscourseApi]] suited to Ore's needs.
   *
   * Note: It is very important that the implementor of this trait is a
   * singleton, otherwise countless threads will be spawned from this object's
   * [[RecoveryTask]].
   */
-trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
+trait OreDiscourseApi extends DiscourseApi {
 
   /** Initialize before start() */
   var projects: ProjectBase = _
