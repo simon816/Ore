@@ -292,7 +292,7 @@ class Versions @Inject()(stats: StatTracker,
                           project.recommendedVersion = newVersion
 
                         // Create forum topic reply
-                        if (project.topicId.isDefined)
+                        if (project.topicId != -1)
                           this.forums.postVersionRelease(project, newVersion)
 
                         Redirect(self.show(author, slug, versionString))
