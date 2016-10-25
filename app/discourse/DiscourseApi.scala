@@ -156,7 +156,7 @@ trait DiscourseApi extends DiscourseReads {
     */
   def createTopic(poster: String, title: String, content: String,
                   categorySlug: String = null): Future[Either[List[String], DiscoursePost]] = {
-    var params = ApiParams() + (
+    var params = ApiParams(poster) + (
       "title" -> Seq(title),
       "raw" -> Seq(content))
     if (categorySlug != null)
@@ -180,7 +180,7 @@ trait DiscourseApi extends DiscourseReads {
     * @return         New post or list of errors
     */
   def createPost(username: String, topicId: Int, content: String): Future[Either[List[String], DiscoursePost]] = {
-    val params = ApiParams() + (
+    val params = ApiParams(username) + (
       "topic_id" -> Seq(topicId.toString),
       "raw" -> Seq(content))
     this.request(this.url + "/posts").post(params).map(validate(_).right.map(_.as[DiscoursePost]))
@@ -198,7 +198,7 @@ trait DiscourseApi extends DiscourseReads {
   def updateTopic(username: String, topicId: Int, title: String = null, categoryId: Int = -1): Future[List[String]] = {
     if (title == null && categoryId == -1)
       return Future(List.empty)
-    var params = ApiParams() + ("topic_id" -> Seq(topicId.toString))
+    var params = ApiParams(username) + ("topic_id" -> Seq(topicId.toString))
     if (title != null)
       params += "title" -> Seq(title)
     if (categoryId != -1)
@@ -215,7 +215,7 @@ trait DiscourseApi extends DiscourseReads {
     * @return         List of errors
     */
   def updatePost(username: String, postId: Int, content: String): Future[List[String]] = {
-    val params = ApiParams() + ("post[raw]" -> Seq(content))
+    val params = ApiParams(username) + ("post[raw]" -> Seq(content))
     this.request(s"${this.url}/posts/$postId").put(params).map(validateLeft)
   }
 
@@ -227,7 +227,7 @@ trait DiscourseApi extends DiscourseReads {
     * @return         List of errors
     */
   def deleteTopic(username: String, topicId: Int): Future[Boolean] = {
-    this.request(keyedUrl(s"/t/$topicId")).delete().map(s => {
+    this.request(keyedUrl(s"/t/$topicId", username)).delete().map(s => {
       if (this.isDebugMode)
         Logger.info(s"Topic deletion: $s")
       s.status == Status.OK
