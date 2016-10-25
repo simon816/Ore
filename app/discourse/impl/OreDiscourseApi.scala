@@ -58,7 +58,6 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
     }
     checkNotNull(this.projects, "projects are null", "")
     this.recovery = new RecoveryTask(this.scheduler, this.retryRate, this, this.projects)
-    this.recovery.loadUnhealthyData()
     this.recovery.start()
     Logger.info("Discourse API initialized.")
   }
@@ -117,7 +116,6 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
       case Failure(e) =>
         // Discourse never received our request! Try again later.
         Logger.info(s"Could not create project topic for project ${project.url}. Rescheduling...")
-        this.recovery.failedTopicAttempts += project.id.get
         resultPromise.success(false)
     }
 
@@ -189,14 +187,12 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
               }
             case Failure(e) =>
               logFailure()
-              this.recovery.failedUpdateAttempts += project.id.get
               resultPromise.success(false)
           }
         }
       case Failure(e) =>
         // Discourse never received our request!
         logFailure()
-        this.recovery.failedUpdateAttempts += project.id.get
         resultPromise.success(false)
     }
 
@@ -268,7 +264,6 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
       case Success(result) =>
         if(!result) {
           logFailure()
-          this.recovery.failedDeleteAttempts += project.id.get
           resultPromise.success(false)
         } else {
           project.topicId = -1
@@ -278,7 +273,6 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
         }
       case Failure(e) =>
         logFailure()
-        this.recovery.failedDeleteAttempts += project.id.get
         resultPromise.success(false)
     }
 
