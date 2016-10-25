@@ -168,6 +168,9 @@ trait DiscourseApi extends DiscourseReads {
     // timestamp so it is currently impossible to discern when this happens as
     // far as I can tell.
 
+    if (isDebugMode)
+      Logger.info("Creating topic with parameters: " + params)
+
     this.request(this.url + "/posts").post(params).map(validate(_).right.map(_.as[DiscoursePost]))
   }
 
@@ -183,6 +186,10 @@ trait DiscourseApi extends DiscourseReads {
     val params = ApiParams(username) + (
       "topic_id" -> Seq(topicId.toString),
       "raw" -> Seq(content))
+
+    if (isDebugMode)
+      Logger.info("Creating post with parameters: " + params)
+
     this.request(this.url + "/posts").post(params).map(validate(_).right.map(_.as[DiscoursePost]))
   }
 
