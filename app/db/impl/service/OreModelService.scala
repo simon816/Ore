@@ -44,8 +44,6 @@ class OreModelService @Inject()(override val env: OreEnv,
     // Initialize database access objects
     registerModelBase(Users)
     registerModelBase(Projects)
-    registerModelBase(Versions)
-    registerModelBase(Flags)
     registerModelBase(Organizations)
 
     // Register model schemas

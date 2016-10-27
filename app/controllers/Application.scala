@@ -4,16 +4,14 @@ import javax.inject.Inject
 
 import controllers.Requests.AuthRequest
 import controllers.routes.{Application => self}
-import db.impl.access.{FlagBase, VersionBase}
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
-import models.project.{Flag, Project}
+import models.project.{Flag, Project, Version}
 import ore.permission._
 import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import ore.{OreConfig, OreEnv}
-import play.api.Logger
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.DataHelper
@@ -76,7 +74,8 @@ class Application @Inject()(data: DataHelper,
     */
   def showQueue() = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) { implicit request =>
-      Ok(views.users.admin.queue(this.service.getModelBase(classOf[VersionBase]).notReviewed.map(v => (v.project, v))))
+      val queue = this.service.access[Version](classOf[Version]).filterNot(_.isReviewed).map(v => (v.project, v))
+      Ok(views.users.admin.queue(queue))
     }
   }
 
@@ -86,7 +85,8 @@ class Application @Inject()(data: DataHelper,
     * @return Flag overview
     */
   def showFlags() = FlagAction { implicit request =>
-    Ok(views.users.admin.flags(this.service.getModelBase(classOf[FlagBase]).unresolved))
+    val flags = this.service.access[Flag](classOf[Flag]).filterNot(_.isResolved)
+    Ok(views.users.admin.flags(flags))
   }
 
   /**

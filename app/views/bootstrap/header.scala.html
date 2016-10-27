@@ -3,17 +3,23 @@ The main header displayed on each layout.
 *@
 @import controllers.project.{routes => projectRoutes}
 @import db.ModelService
-@import db.impl.access.{FlagBase, UserBase, VersionBase}
-@import discourse.DiscourseApi
+@import db.impl.access.UserBase
 @import ore.OreConfig
 @import ore.permission.scope.GlobalScope
 @import ore.permission.{ReviewFlags, ReviewProjects}
+@import models.project.Version
+@import models.project.Flag
 @()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService, config: OreConfig,
         users: UserBase)
 
-@flags = @{ service.getModelBase(classOf[FlagBase]) }
+@flags = @{ service.access[Flag](classOf[Flag]) }
+
 @tooltip(title: String) = @{
     Html("data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"" + title + "\"")
+}
+
+@queue = @{
+    service.access[Version](classOf[Version]).filterNot(_.isReviewed)
 }
 
 <nav id="topbar" class="navbar-main navbar-inverse">
@@ -127,7 +133,7 @@ The main header displayed on each layout.
                                 <a href="@routes.Application.showFlags()">
                                     <span class="flags pull-left">
                                         @messages("project.flag.plural")
-                                        @if(flags.unresolved.nonEmpty) {
+                                        @if(flags.filterNot(_.isResolved).nonEmpty) {
                                             <span class="unread"></span>
                                         }
                                     </span>
@@ -141,7 +147,7 @@ The main header displayed on each layout.
                                 <a href="@routes.Application.showQueue()">
                                     <span class="pull-left">
                                         @messages("user.queue")
-                                        @if(service.getModelBase(classOf[VersionBase]).notReviewed.nonEmpty) {
+                                        @if(queue.nonEmpty) {
                                             <span class="unread"></span>
                                         }
                                     </span>

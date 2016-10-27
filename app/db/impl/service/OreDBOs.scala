@@ -15,8 +15,6 @@ trait OreDBOs extends ModelService {
 
   val Users = new UserBase(this, this.forums, this.config)
   val Projects = new ProjectBase(this, this.env, this.config, this.forums)
-  val Versions = new VersionBase(this)
-  val Flags = new FlagBase(this)
   val Organizations = new OrganizationBase(this, this.forums, this.config, this.messages, Users)
 
 }

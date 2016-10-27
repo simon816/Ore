@@ -7,11 +7,11 @@ import db.Named
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl._
-import db.impl.access.{FlagBase, OrganizationBase, UserBase, VersionBase}
+import db.impl.access.{OrganizationBase, UserBase}
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
 import discourse.model.DiscourseUser
-import models.project.{Flag, Project}
+import models.project.{Flag, Project, Version}
 import models.user.role.{OrganizationRole, ProjectRole}
 import ore.Visitable
 import ore.permission._
@@ -518,10 +518,10 @@ case class User(override val id: Option[Int] = None,
     * @return True if has unread notifications
     */
   def hasUnreadNotifications: Boolean = Defined {
-    val flags = this.service.getModelBase(classOf[FlagBase])
-    val versions = this.service.getModelBase(classOf[VersionBase])
-    val hasFlags = (this can ReviewFlags in GlobalScope) && flags.unresolved.nonEmpty
-    val hasReview = (this can ReviewProjects in GlobalScope) && versions.notReviewed.nonEmpty
+    val flags = this.service.access[Flag](classOf[Flag])
+    val versions = this.service.access[Version](classOf[Version])
+    val hasFlags = (this can ReviewFlags in GlobalScope) && flags.filterNot(_.isResolved).nonEmpty
+    val hasReview = (this can ReviewProjects in GlobalScope) && versions.filterNot(_.isReviewed).nonEmpty
     val hasNotifications = this.notifications.filterNot(_.read).nonEmpty
     hasFlags || hasReview || hasNotifications
   }
