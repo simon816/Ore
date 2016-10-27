@@ -1,23 +1,55 @@
 @import 'utils';
 
 // left nav
-@import 'topbar';
 
-#topbar {
-  font-size: 15px;
+.navbar-nav {
+  margin-top: 0;
+}
 
-  .container {
-    max-width: 1110px;
-  }
+.main-dropdown:hover {
+  display: block;
+}
 
-  a.logo {
-    color: $sponge_yellow;
-    outline: 0;
+.main-dropdown {
+  width: 100%;
+  li.active:hover > a { background-color: #d2af08; }
+  i { margin-right: 1em; }
+}
 
-    &:hover, &:focus, &:active, &.active {
-      color: $sponge_yellow;
-      outline: 0;
-    }
+.navbar-main {
+  @include box-shadow5(0, 2px, 4px, -1px, rgba(0, 0, 0, 0.25));
+  background-color: #333;
+  padding-top: 1px;
+  height: 63px;
+  min-height: 63px;
+  li.dropdown:hover > ul.dropdown-menu { display: block; }
+  .navbar-left li > a { @include padding-vert(10px, 12px); }
+}
+
+.dropdown-sponge:hover {
+  background-color: #222;
+}
+
+.navbar-nav > li > .main-dropdown, .user-dropdown {
+  @include no-box-shadow();
+  border-radius: 0 0 4px 4px;
+  border: 1px solid #e4e4e4;
+}
+
+.navbar-nav > li > .main-dropdown {
+  padding: 10px 0 4px;
+  border-top: none;
+}
+
+.navbar-nav > li > .user-dropdown {
+  width: 200px;
+}
+
+.user-dropdown > li {
+  position: relative;
+  .unread {
+    bottom: 6px;
+    margin-left: 5px;
   }
 }
 
