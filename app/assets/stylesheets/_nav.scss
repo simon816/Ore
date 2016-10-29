@@ -23,6 +23,35 @@
 
 // right nav
 
+.navbar-inverse .navbar-nav > .open > a {
+   &, &:hover, &:focus, &:active {
+     background: transparent;
+  }
+}
+
+.navbar-nav > li > .main-dropdown, .user-dropdown {
+  @include no-box-shadow();
+  border-radius: 0 0 4px 4px;
+  border: 1px solid #e4e4e4;
+}
+
+.navbar-nav > li > .main-dropdown {
+  padding: 10px 0 4px;
+  border-top: none;
+}
+
+.navbar-nav > li > .user-dropdown {
+  width: 200px;
+}
+
+.user-dropdown > li {
+  position: relative;
+  .unread {
+    bottom: 6px;
+    margin-left: 5px;
+  }
+}
+
 .navbar-main {
   .navbar-right > li > a { padding: 0; }
   .navbar-right {
@@ -67,11 +96,11 @@
 }
 
 .user-controls {
-  @include padding-vert(5px, 16px);
+  @include padding-vert(5px, 17px);
 }
 
 .new-controls {
-  @include padding-vert(10px, 17px);
+  @include padding-vert(10px, 19px);
 }
 
 .user-avatar:hover {
