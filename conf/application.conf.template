@@ -89,7 +89,7 @@ discourse.embed.retryRate   =   60000
 discourse.embed.categorySlug = ore
 
 # Sponge stuff
-sponge.logo = "https://forums-cdn.spongepowered.org/uploads/default/original/2X/7/77fa5f82289385db14561fac384ddea2a84a0070.png"
+sponge.logo = "https://www.spongepowered.org/assets/img/icons/spongie-mark.svg"
 sponge.icon = "https://forums-cdn.spongepowered.org/uploads/default/original/2X/9/9ba706a80e45cf427617525ee2a19fad7bb6b109.png"
 sponge.sponsors.urls = [  "https://billing.creeperhost.net/link.php?id=8", "https://www.enjin.com/", "http://www.multiplaygameservers.com", "https://www.beastnode.com/", "https://serverminer.com/", "https://mcprohosting.com/?promo=Sponge" ]
 sponge.sponsors.logos = [ "creeperhost.svg", "enjin.png", "multiplay.png", "beastnode.png", "serverminer.png", "mcprohosting.png" ]
