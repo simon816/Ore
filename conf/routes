@@ -39,8 +39,10 @@ GET     /api/:version/users/:user                                   @controllers
 # ---------- Application ----------
 
 GET     /                                                           @controllers.Application.showHome(categories: Option[String], q: Option[String], sort: Option[Int], page: Option[Int])
+GET     /signup                                                     @controllers.Users.signUp()
 GET     /login                                                      @controllers.Users.logIn(sso: Option[String], sig: Option[String], returnUrl: Option[String])
 GET     /logout                                                     @controllers.Users.logOut(returnUrl: Option[String])
+GET     /verify                                                     @controllers.Users.verify(returnPath: Option[String])
 
 # ---------- Projects ----------
 
@@ -79,7 +81,7 @@ GET     /:user                                                      @controllers
 POST    /:user/settings/tagline                                     @controllers.Users.saveTagline(user)
 POST    /:user/settings/lock                                        @controllers.Users.setLocked(user, locked: Boolean)
 POST    /:user/settings/pgp                                         @controllers.Users.savePgpPublicKey(user)
-POST    /:user/settings/pgp/delete                                  @controllers.Users.deletePgpPublicKey(user)
+GET     /:user/settings/pgp/delete                                  @controllers.Users.deletePgpPublicKey(user, sso: Option[String], sig: Option[String])
 # -------- End Users --------
 
 POST    /:author/:slug                                              @controllers.project.Projects.showFirstVersionCreator(author, slug)

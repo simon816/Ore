@@ -138,10 +138,10 @@ function setupAvatarForm() {
         }
     });
 
-    // TODO: Delete confirmation with authentication
     var pgpDeleteForm = $('.pgp-delete');
     pgpDeleteForm.submit(function(e) {
         e.preventDefault();
+        window.location = "/verify?returnPath=/" + USERNAME + "/settings/pgp/delete";
     });
 }
 

@@ -8,6 +8,7 @@ import ore.permission.scope.GlobalScope
 import ore.permission.{EditSettings, HideProjects, Permission}
 import play.api.mvc.Results._
 import play.api.mvc._
+import security.sso.SingleSignOn
 
 import scala.concurrent.Future
 import scala.language.higherKinds
@@ -20,6 +21,7 @@ trait Actions {
   val users: UserBase
   val projects: ProjectBase
   val organizations: OrganizationBase
+  val sso: SingleSignOn
 
   /** Ensures a request is authenticated */
   def Authenticated = Action andThen authAction
@@ -119,6 +121,35 @@ trait Actions {
     * @return [[AuthRequest]] if has permission
     */
   def UserAction(username: String) = Authenticated andThen userAction(username)
+
+  /**
+    * Represents an action that requires a user to reenter their password.
+    *
+    * @param username Username to verify
+    * @param sso      Incoming SSO payload
+    * @param sig      Incoming SSO signature
+    * @return         None if verified, Unauthorized otherwise
+    */
+  def VerifiedAction(username: String, sso: Option[String], sig: Option[String])
+  = UserAction(username) andThen verifiedAction(sso, sig)
+
+  private def verifiedAction(sso: Option[String], sig: Option[String]) = new ActionFilter[AuthRequest] {
+    def filter[A](request: AuthRequest[A]): Future[Option[Result]] = Future.successful {
+      if (sso.isEmpty || sig.isEmpty)
+        Some(Unauthorized)
+      else {
+        Actions.this.sso.authenticate(sso.get, sig.get) match {
+          case None =>
+            Some(Unauthorized)
+          case Some(spongeUser) =>
+            if (spongeUser.username.equals(request.user.username))
+              None
+            else
+              Some(Unauthorized)
+        }
+      }
+    }
+  }
 
   private def userAction(username: String) = new ActionFilter[AuthRequest] {
     def filter[A](request: AuthRequest[A]): Future[Option[Result]] = Future.successful {

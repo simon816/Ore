@@ -28,7 +28,7 @@ class Users @Inject()(fakeUser: FakeUser,
                       forms: OreForms,
                       forums: OreDiscourseApi,
                       writes: OreWrites,
-                      sso: SingleSignOn,
+                      implicit override val sso: SingleSignOn,
                       implicit override val messagesApi: MessagesApi,
                       implicit override val env: OreEnv,
                       implicit override val config: OreConfig,
@@ -37,10 +37,19 @@ class Users @Inject()(fakeUser: FakeUser,
   private val baseUrl = this.config.app.getString("baseUrl").get
 
   /**
-    * Redirect to forums for SSO authentication and then back here again.
+    * Redirect to auth page for SSO authentication.
     *
-    * @param sso  Incoming payload from forums
-    * @param sig  Incoming signature from forums
+    * @return Logged in page
+    */
+  def signUp() = Action { implicit request =>
+    redirectToSso(this.sso.getSignupUrl(this.baseUrl + "/login"))
+  }
+
+  /**
+    * Redirect to auth page for SSO authentication and then back here again.
+    *
+    * @param sso  Incoming payload from auth
+    * @param sig  Incoming signature from auth
     * @return     Logged in home
     */
   def logIn(sso: Option[String], sig: Option[String], returnPath: Option[String]) = Action { implicit request =>
@@ -51,10 +60,7 @@ class Users @Inject()(fakeUser: FakeUser,
       this.redirectBack(returnPath.getOrElse(request.path), this.fakeUser.username)
     } else if (sso.isEmpty || sig.isEmpty) {
       // Check if forums are available and redirect to login if so
-      if (this.sso.isAvailable)
-        Redirect(this.sso.getUrl(this.baseUrl + "/login"))
-      else
-        Redirect(app.showHome(None, None, None, None)).flashing("error" -> "error.noLogin")
+      redirectToSso(this.sso.getLoginUrl(this.baseUrl + "/login"))
     } else {
       // Redirected from SpongeSSO, decode SSO payload and convert to Ore user
       this.sso.authenticate(sso.get, sig.get) match {
@@ -67,6 +73,27 @@ class Users @Inject()(fakeUser: FakeUser,
       }
     }
   }
+
+  /**
+    * Redirects the user to the auth verification page to re-enter their
+    * password and then perform some action.
+    *
+    * @param returnPath Verified action to perform
+    * @return           Redirect to verification
+    */
+  def verify(returnPath: Option[String]) = Authenticated { implicit request =>
+    redirectToSso(this.sso.getVerifyUrl(this.baseUrl + returnPath.getOrElse("/")))
+  }
+
+  private def redirectToSso(url: String): Result = {
+    if (this.sso.isAvailable)
+      Redirect(url)
+    else
+      Redirect(app.showHome(None, None, None, None)).flashing("error" -> "error.noLogin")
+  }
+
+  private def redirectBack(url: String, username: String)
+  = Redirect(this.baseUrl + url).withSession(Security.username -> username)
 
   /**
     * Clears the current session.
@@ -155,14 +182,18 @@ class Users @Inject()(fakeUser: FakeUser,
     * @param username Username to delete key for
     * @return Ok if deleted, bad request if didn't exist
     */
-  def deletePgpPublicKey(username: String) = UserAction(username) { implicit request =>
-    val user = request.user
-    if (user.pgpPubKey.isEmpty)
-      BadRequest
-    else {
-      user.pgpPubKey = null
-      user.lastPgpPubKeyUpdate = this.service.theTime
-      Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
+  def deletePgpPublicKey(username: String, sso: Option[String], sig: Option[String]) = {
+    VerifiedAction(username, sso, sig) { implicit request =>
+      println(sso)
+      println(sig)
+      val user = request.user
+      if (user.pgpPubKey.isEmpty)
+        BadRequest
+      else {
+        user.pgpPubKey = null
+        user.lastPgpPubKeyUpdate = this.service.theTime
+        Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
+      }
     }
   }
 
@@ -253,8 +284,5 @@ class Users @Inject()(fakeUser: FakeUser,
         Ok
     }
   }
-
-  private def redirectBack(url: String, username: String)
-  = Redirect(this.baseUrl + url).withSession(Security.username -> username)
 
 }

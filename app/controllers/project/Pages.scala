@@ -13,6 +13,7 @@ import ore.permission.EditPages
 import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.i18n.MessagesApi
 import play.api.mvc.Action
+import security.sso.SingleSignOn
 import views.html.projects.{pages => views}
 import util.StringUtils._
 
@@ -21,6 +22,7 @@ import util.StringUtils._
   */
 class Pages @Inject()(forms: OreForms,
                       stats: StatTracker,
+                      implicit override val sso: SingleSignOn,
                       implicit override val messagesApi: MessagesApi,
                       implicit override val env: OreEnv,
                       implicit override val config: OreConfig,

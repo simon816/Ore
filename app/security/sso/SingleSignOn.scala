@@ -23,7 +23,9 @@ import scala.concurrent.duration._
 trait SingleSignOn {
 
   val ws: WSClient
-  val url: String
+  val loginUrl: String
+  val signupUrl: String
+  val verifyUrl: String
   val secret: String
   val timeout: Duration
 
@@ -36,22 +38,40 @@ trait SingleSignOn {
     *
     * @return True if available
     */
-  def isAvailable: Boolean = Await.result(this.ws.url(this.url).get().map(_.status == Status.OK).recover {
+  def isAvailable: Boolean = Await.result(this.ws.url(this.loginUrl).get().map(_.status == Status.OK).recover {
     case e: Exception => false
   }, this.timeout)
 
   /**
-    * Returns the URL with a generated SSO payload to the SSO instance.
+    * Returns the login URL with a generated SSO payload to the SSO instance.
     *
     * @param returnUrl  URL to return to after authentication
     * @return           URL to SSO
     */
-  def getUrl(returnUrl: String): String = {
+  def getLoginUrl(returnUrl: String): String = getUrl(returnUrl, this.loginUrl)
+
+  /**
+    * Returns the signup URL with a generated SSO payload to the SSO instance.
+    *
+    * @param returnUrl  URL to return to after authentication
+    * @return           URL to SSO
+    */
+  def getSignupUrl(returnUrl: String): String = getUrl(returnUrl, this.signupUrl)
+
+  /**
+    * Returns the verify URL with a generated SSO payload to the SSO instance.
+    *
+    * @param returnUrl  URL to return to after authentication
+    * @return           URL to SSO
+    */
+  def getVerifyUrl(returnUrl: String): String = getUrl(returnUrl, this.verifyUrl)
+
+  private def getUrl(returnUrl: String, baseUrl: String) = {
     val payload = "return_sso_url=" + returnUrl + "&nonce=" + nonce
     val encoded = new String(Base64.getEncoder.encode(payload.getBytes(this.CharEncoding)))
     val urlEncoded = URLEncoder.encode(encoded, this.CharEncoding)
     val hmac = hmac_sha256(encoded.getBytes(this.CharEncoding))
-    this.url + "?sso=" + urlEncoded + "&sig=" + hmac
+    baseUrl + "?sso=" + urlEncoded + "&sig=" + hmac
   }
 
   /**
@@ -106,7 +126,9 @@ trait SingleSignOn {
 
 class SpongeSingleSignOn @Inject()(override val ws: WSClient, config: OreConfig) extends SingleSignOn {
 
-  override val url = this.config.security.getString("sso.url").get
+  override val loginUrl = this.config.security.getString("sso.loginUrl").get
+  override val signupUrl = this.config.security.getString("sso.signupUrl").get
+  override val verifyUrl = this.config.security.getString("sso.verifyUrl").get
   override val secret = this.config.security.getString("sso.secret").get
   override val timeout = this.config.security.getLong("sso.timeout").get.millis
 

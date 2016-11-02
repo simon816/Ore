@@ -12,6 +12,7 @@ import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
+import security.sso.SingleSignOn
 import views.{html => views}
 
 import scala.concurrent.Future
@@ -23,6 +24,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class Organizations @Inject()(forms: OreForms,
                               writes: OreWrites,
                               forums: OreDiscourseApi,
+                              implicit override val sso: SingleSignOn,
                               implicit override val env: OreEnv,
                               implicit override val config: OreConfig,
                               implicit override val service: ModelService,

@@ -7,6 +7,7 @@ import models.project.{Project, Version}
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.I18nSupport
 import play.api.mvc._
+import security.sso.SingleSignOn
 import util.StringUtils._
 
 /**
@@ -14,7 +15,8 @@ import util.StringUtils._
   */
 abstract class BaseController(implicit val env: OreEnv,
                               val config: OreConfig,
-                              val service: ModelService)
+                              val service: ModelService,
+                              override val sso: SingleSignOn)
                               extends Controller
                                 with Actions
                                 with I18nSupport {

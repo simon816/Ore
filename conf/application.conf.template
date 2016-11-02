@@ -34,7 +34,9 @@ ore.test-plugin = "OreTestPlugin/build/libs/ore-test-plugin-dev-SNAPSHOT.jar"
 
 ore.security.requirePgp         =   true
 ore.security.keyChangeCooldown  =   259200000
-ore.security.sso.url            =   ${SPONGE_SSO_URL}
+ore.security.sso.loginUrl       =   ${SPONGE_SSO_LOGIN_URL}
+ore.security.sso.signupUrl      =   ${SPONGE_SSO_SIGNUP_URL}
+ore.security.sso.verifyUrl      =   ${SPONGE_SSO_VERIFY_URL}
 ore.security.sso.secret         =   ${SPONGE_SSO_SECRET}
 
 ore.channels.max-name-len   =   15

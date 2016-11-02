@@ -14,6 +14,7 @@ import ore.project.{Categories, ProjectSortingStrategies}
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import play.api.mvc._
+import security.sso.SingleSignOn
 import util.DataHelper
 import views.{html => views}
 
@@ -21,6 +22,7 @@ import views.{html => views}
   * Main entry point for application.
   */
 class Application @Inject()(data: DataHelper,
+                            implicit override val sso: SingleSignOn,
                             implicit override val messagesApi: MessagesApi,
                             implicit override val env: OreEnv,
                             implicit override val config: OreConfig,

@@ -10,6 +10,7 @@ import ore.permission.EditChannels
 import ore.project.factory.ProjectFactory
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
+import security.sso.SingleSignOn
 import views.html.projects.{channels => views}
 
 /**
@@ -17,6 +18,7 @@ import views.html.projects.{channels => views}
   */
 class Channels @Inject()(forms: OreForms,
                          factory: ProjectFactory,
+                         implicit override val sso: SingleSignOn,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
