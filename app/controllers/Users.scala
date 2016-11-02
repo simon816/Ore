@@ -204,9 +204,11 @@ class Users @Inject()(fakeUser: FakeUser,
     * @param locked   True if user is locked
     * @return         Redirection to user page
     */
-  def setLocked(username: String, locked: Boolean) = UserAction(username) { implicit request =>
-    request.user.setLocked(locked)
-    Redirect(self.showProjects(username, None))
+  def setLocked(username: String, locked: Boolean, sso: Option[String], sig: Option[String]) = {
+    VerifiedAction(username, sso, sig) { implicit request =>
+      request.user.setLocked(locked)
+      Redirect(self.showProjects(username, None))
+    }
   }
 
   /**

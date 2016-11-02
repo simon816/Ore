@@ -79,7 +79,7 @@ GET     /prompts/read/:id                                           @controllers
 
 GET     /:user                                                      @controllers.Users.showProjects(user, page: Option[Int])
 POST    /:user/settings/tagline                                     @controllers.Users.saveTagline(user)
-POST    /:user/settings/lock                                        @controllers.Users.setLocked(user, locked: Boolean)
+GET     /:user/settings/lock/:locked                                @controllers.Users.setLocked(user, locked: Boolean, sso: Option[String], sig: Option[String])
 POST    /:user/settings/pgp                                         @controllers.Users.savePgpPublicKey(user)
 GET     /:user/settings/pgp/delete                                  @controllers.Users.deletePgpPublicKey(user, sso: Option[String], sig: Option[String])
 # -------- End Users --------

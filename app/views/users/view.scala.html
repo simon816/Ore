@@ -237,29 +237,28 @@
     </div>
 
     @utils.modal("modal-lock", "label-lock", if (user.isLocked) "user.unlock" else "user.lock") {
-        @form(action = routes.Users.setLocked(user.username, !user.isLocked)) {
-            <div class="modal-body">
-                <p class="minor">
-                    @if(user.isLocked) {
-                        @messages("user.unlock.confirm")
-                    } else {
-                        @messages("user.lock.confirm")
-                    }
-                </p>
+        <div class="modal-body">
+            <p class="minor">
+                @if(user.isLocked) {
+                    @messages("user.unlock.confirm")
+                } else {
+                    @messages("user.lock.confirm")
+                }
+            </p>
+        </div>
 
-                <div class="setting setting-no-border">
-                    <div class="setting-description">
-                        <p>@messages("user.enterPassword")</p>
-                    </div>
-                    <input name="password" class="form-control" type="password" placeholder="TODO" />
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">@messages("general.close")</button>
-                <input type="submit" value="@messages("general.continue")" class="btn btn-primary" />
-            </div>
-        }
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">@messages("general.close")</button>
+            <a href="@routes.Users.verify(Some(routes.Users.setLocked(
+                user = user.username,
+                locked = !user.isLocked,
+                sso = None,
+                sig = None
+            ).path()))"
+               type="submit" class="btn btn-primary">
+                @messages("general.continue")
+            </a>
+        </div>
     }
 
     @utils.modal("modal-tagline", "label-tagline", "user.tagline.edit") {
