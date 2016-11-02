@@ -1,6 +1,8 @@
 package controllers
 
 import controllers.Requests.{OrganizationRequest, _}
+import controllers.project.routes.Projects
+import controllers.routes.Users
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import models.project.Project
 import models.user.User
@@ -26,10 +28,13 @@ trait Actions {
   /** Ensures a request is authenticated */
   def Authenticated = Action andThen authAction
 
+  /** Ensures a user's account is unlocked */
+  def UserLock(redirect: Call) = Authenticated andThen userLock(redirect)
+
   /** Called when a [[User]] tries to make a request they do not have permission for */
   def onUnauthorized(request: RequestHeader) = {
     if (request.flash.get("noRedirect").isEmpty && this.users.current(request.session).isEmpty)
-      Redirect(routes.Users.logIn(None, None, Some(request.path)))
+      Redirect(Users.logIn(None, None, Some(request.path)))
     else
       Redirect(routes.Application.showHome(None, None, None, None))
   }
@@ -76,7 +81,10 @@ trait Actions {
     * @param slug Project slug
     * @return Authenticated request with a project if found, NotFound otherwise.
     */
-  def AuthedProjectAction(author: String, slug: String) = Authenticated andThen authedProjectAction(author, slug)
+  def AuthedProjectAction(author: String, slug: String, requireUnlock: Boolean = false) = {
+    val first = if (requireUnlock) UserLock(Projects.show(author, slug)) else Authenticated
+    first andThen authedProjectAction(author, slug)
+  }
 
   /**
     * A PermissionAction that uses an AuthedProjectRequest for the
@@ -102,7 +110,10 @@ trait Actions {
     * @param organization Organization to retrieve
     * @return             Authenticated request with Organization if found, NotFound otherwise
     */
-  def AuthedOrganizationAction(organization: String) = Authenticated andThen authedOrganizationAction(organization)
+  def AuthedOrganizationAction(organization: String, requireUnlock: Boolean = false) = {
+    val first = if (requireUnlock) UserLock(Users.showProjects(organization, None)) else Authenticated
+    first andThen authedOrganizationAction(organization)
+  }
 
   /**
     * A PermissionAction that uses an AuthedOrganizationRequest for the
@@ -132,6 +143,15 @@ trait Actions {
     */
   def VerifiedAction(username: String, sso: Option[String], sig: Option[String])
   = UserAction(username) andThen verifiedAction(sso, sig)
+
+  private def userLock(redirect: Call) = new ActionFilter[AuthRequest] {
+    def filter[A](request: AuthRequest[A]): Future[Option[Result]] = Future.successful {
+      if (request.user.isLocked)
+        Some(Redirect(redirect).flashing("error" -> "error.user.locked"))
+      else
+        None
+    }
+  }
 
   private def verifiedAction(sso: Option[String], sig: Option[String]) = new ActionFilter[AuthRequest] {
     def filter[A](request: AuthRequest[A]): Future[Option[Result]] = Future.successful {

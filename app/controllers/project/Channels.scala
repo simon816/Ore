@@ -26,7 +26,7 @@ class Channels @Inject()(forms: OreForms,
                          extends BaseController {
 
   private def ChannelEditAction(author: String, slug: String)
-  = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditChannels)
+  = AuthedProjectAction(author, slug, requireUnlock = true) andThen ProjectPermissionAction(EditChannels)
 
   /**
     * Displays a view of the specified Project's Channels.

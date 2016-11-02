@@ -37,14 +37,14 @@ class Projects @Inject()(stats: StatTracker,
                          extends BaseController {
 
   private def SettingsEditAction(author: String, slug: String)
-  = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditSettings)
+  = AuthedProjectAction(author, slug, requireUnlock = true) andThen ProjectPermissionAction(EditSettings)
 
   /**
     * Displays the "create project" page.
     *
     * @return Create project view
     */
-  def showCreator() = Authenticated { implicit request =>
+  def showCreator() = UserLock(app.showHome(None, None, None, None)) { implicit request =>
     Ok(views.create(None))
   }
 
@@ -53,7 +53,7 @@ class Projects @Inject()(stats: StatTracker,
     *
     * @return Result
     */
-  def upload() = Authenticated { implicit request =>
+  def upload() = UserLock(app.showHome(None, None, None, None)) { implicit request =>
     request.body.asMultipartFormData.get.file("pluginFile") match {
       case None =>
         Redirect(self.showCreator()).flashing("error" -> "error.noFile")
@@ -86,7 +86,7 @@ class Projects @Inject()(stats: StatTracker,
     * @return Create project view
     */
   def showCreatorWithMeta(author: String, slug: String) = {
-    Authenticated { implicit request =>
+    UserLock(app.showHome(None, None, None, None)) { implicit request =>
       this.factory.getPendingProject(author, slug) match {
         case None =>
           Redirect(self.showCreator())
@@ -104,7 +104,7 @@ class Projects @Inject()(stats: StatTracker,
     * @return         View of members config
     */
   def showInvitationForm(author: String, slug: String) = {
-    Authenticated { implicit request =>
+    UserLock(app.showHome(None, None, None, None)) { implicit request =>
       this.factory.getPendingProject(author, slug) match {
         case None =>
           Redirect(self.showCreator())
@@ -124,7 +124,7 @@ class Projects @Inject()(stats: StatTracker,
     * @return Redirection to project page if successful
     */
   def showFirstVersionCreator(author: String, slug: String) = {
-    Authenticated { implicit request =>
+    UserLock(app.showHome(None, None, None, None)) { implicit request =>
       this.factory.getPendingProject(request.user.name, slug) match {
         case None =>
           Redirect(self.showCreator())
@@ -476,7 +476,8 @@ class Projects @Inject()(stats: StatTracker,
     * @return         Ok
     */
   def setVisible(author: String, slug: String, visible: Boolean) = {
-    (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(HideProjects)) { implicit request =>
+    (AuthedProjectAction(author, slug, requireUnlock = true)
+      andThen ProjectPermissionAction(HideProjects)) { implicit request =>
       request.project.setVisible(visible)
       Ok
     }

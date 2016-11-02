@@ -5,7 +5,7 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.Requests.ProjectRequest
-import controllers.project.routes.{Versions => self}
+import controllers.project.routes.{Projects, Versions => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import discourse.impl.OreDiscourseApi
@@ -38,7 +38,7 @@ class Versions @Inject()(stats: StatTracker,
   private val fileManager = this.projects.fileManager
 
   private def VersionEditAction(author: String, slug: String)
-  = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditVersions)
+  = AuthedProjectAction(author, slug, requireUnlock = true) andThen ProjectPermissionAction(EditVersions)
 
   /**
     * Shows the specified version view page.
@@ -104,7 +104,8 @@ class Versions @Inject()(stats: StatTracker,
     * @return               View of version
     */
   def approve(author: String, slug: String, versionString: String) = {
-    (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(ReviewProjects)) { implicit request =>
+    (AuthedProjectAction(author, slug, requireUnlock = true)
+      andThen ProjectPermissionAction(ReviewProjects)) { implicit request =>
       implicit val project = request.project
       withVersion(versionString) { version =>
         version.setReviewed(reviewed = true)
@@ -210,7 +211,7 @@ class Versions @Inject()(stats: StatTracker,
     * @return Version create view
     */
   def showCreatorWithMeta(author: String, slug: String, versionString: String) = {
-    Authenticated { implicit request =>
+    UserLock(Projects.show(author, slug)) { implicit request =>
       // Get pending version
       val username = request.user.name
       this.factory.getPendingVersion(username, slug, versionString) match {
@@ -250,7 +251,7 @@ class Versions @Inject()(stats: StatTracker,
     * @return New version view
     */
   def publish(author: String, slug: String, versionString: String) = {
-    Authenticated { implicit request =>
+    UserLock(Projects.show(author, slug)) { implicit request =>
       // First get the pending Version
       val username = request.user.name
       this.factory.getPendingVersion(username, slug, versionString) match {
@@ -304,7 +305,7 @@ class Versions @Inject()(stats: StatTracker,
                 case Some(pendingProject) =>
                   // Found a pending project, create it with first version
                   pendingProject.complete().get
-                  Redirect(routes.Projects.show(author, slug))
+                  Redirect(Projects.show(author, slug))
               }
             }
           )

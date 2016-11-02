@@ -2,6 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
+import controllers.routes.Application
 import db.ModelService
 import db.impl.access.OrganizationBase
 import discourse.impl.OreDiscourseApi
@@ -31,7 +32,7 @@ class Organizations @Inject()(forms: OreForms,
                               implicit override val messagesApi: MessagesApi) extends BaseController {
 
   private def EditOrganizationAction(organization: String)
-  = AuthedOrganizationAction(organization) andThen OrganizationPermissionAction(EditSettings)
+  = AuthedOrganizationAction(organization, requireUnlock = true) andThen OrganizationPermissionAction(EditSettings)
 
   val createLimit: Int = this.config.orgs.getInt("createLimit").get
 
@@ -40,9 +41,9 @@ class Organizations @Inject()(forms: OreForms,
     *
     * @return Organization creation panel
     */
-  def showCreator() = Authenticated { implicit request =>
+  def showCreator() = UserLock(Application.showHome(None, None, None, None)) { implicit request =>
     if (request.user.ownedOrganizations.size >= this.createLimit)
-      Redirect(routes.Application.showHome(None, None, None, None))
+      Redirect(Application.showHome(None, None, None, None))
         .flashing("error" -> this.messagesApi("error.org.createLimit", this.createLimit))
     else
       Ok(views.createOrganization())
@@ -53,7 +54,7 @@ class Organizations @Inject()(forms: OreForms,
     *
     * @return Redirect to organization page
     */
-  def create() = Authenticated { implicit request =>
+  def create() = UserLock(Application.showHome(None, None, None, None)) { implicit request =>
     val user = request.user
     if (user.ownedOrganizations.size >= this.createLimit)
       BadRequest

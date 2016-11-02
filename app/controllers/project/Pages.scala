@@ -30,7 +30,7 @@ class Pages @Inject()(forms: OreForms,
                       extends BaseController {
 
   private def PageEditAction(author: String, slug: String)
-  = AuthedProjectAction(author, slug) andThen ProjectPermissionAction(EditPages)
+  = AuthedProjectAction(author, slug, requireUnlock = true) andThen ProjectPermissionAction(EditPages)
 
   /**
     * Displays the specified page.
