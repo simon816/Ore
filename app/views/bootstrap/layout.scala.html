@@ -7,7 +7,7 @@ this.
 @import discourse.DiscourseApi
 @import ore.{OreConfig, OreEnv}
 @import play.twirl.api.Html
-@(title: String)(content: Html)(implicit messages: Messages, session: Session, request: RequestHeader,
+@(title: String)(content: Html)(implicit messages: Messages, session: Session, request: Request[_],
         service: ModelService, config: OreConfig, users: UserBase, env: OreEnv)
 
 <!DOCTYPE html>

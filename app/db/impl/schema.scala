@@ -8,7 +8,7 @@ import db.table.{AssociativeTable, ModelTable, NameColumn}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
-import models.user.{Notification, Organization, User}
+import models.user.{Notification, Organization, User, Session => DbSession}
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
@@ -146,6 +146,16 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
   override def * = (id.?, createdAt.?, fullName.?, name, email.?, tagline.?, globalRoles, joinDate.?,
                     avatarUrl.?, readPrompts, pgpPubKey.?, lastPgpPubKeyUpdate.?, isLocked) <> ((User.apply _).tupled,
                     User.unapply)
+
+}
+
+class SessionTable(tag: Tag) extends ModelTable[DbSession](tag, "sessions") {
+
+  def expiration = column[Timestamp]("expiration")
+  def username = column[String]("username")
+  def token = column[String]("token")
+
+  def * = (id.?, createdAt.?, expiration, username, token) <> (DbSession.tupled, DbSession.unapply)
 
 }
 

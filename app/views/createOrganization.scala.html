@@ -4,7 +4,7 @@
 @import models.user.role.OrganizationRole
 @import ore.{OreConfig, OreEnv}
 @import views.html.helper.form
-@()(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader, service: ModelService,
+@()(implicit messages: Messages, session: Session, flash: Flash, request: Request[_], service: ModelService,
         config: OreConfig, userBase: UserBase, env: OreEnv)
 
 @bootstrap.layout(messages("org.create")) {

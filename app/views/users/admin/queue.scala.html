@@ -4,7 +4,7 @@
 @import models.project.{Project, Version}
 @import ore.{OreConfig, OreEnv}
 @import util.StringUtils._
-@(versions: Seq[(Project, Version)])(implicit messages: Messages, session: Session, request: RequestHeader,
+@(versions: Seq[(Project, Version)])(implicit messages: Messages, session: Session, request: Request[_],
         service: ModelService, config: OreConfig, users: UserBase, env: OreEnv)
 
 @bootstrap.layout(messages("user.queue")) {

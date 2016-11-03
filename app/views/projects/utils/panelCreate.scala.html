@@ -2,7 +2,7 @@
 @import db.impl.access.UserBase
 @import ore.{OreConfig, OreEnv}
 @import play.twirl.api.Html
-@(title: String, step: Int)(content: Html)(implicit messages: Messages, session: Session, request: RequestHeader,
+@(title: String, step: Int)(content: Html)(implicit messages: Messages, session: Session, request: Request[_],
         service: ModelService, config: OreConfig, users: UserBase, env: OreEnv)
 
 @bootstrap.layout(title) {

@@ -6,7 +6,7 @@
 @import ore.permission.scope.GlobalScope
 @import ore.{OreConfig, OreEnv}
 @import views.html.helper.form
-@(project: Project)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader,
+@(project: Project)(implicit messages: Messages, session: Session, flash: Flash, request: Request[_],
         service: ModelService, config: OreConfig, userBase: UserBase, env: OreEnv)
 
 @projects.view(project, "#settings") {

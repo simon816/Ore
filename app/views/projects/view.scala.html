@@ -12,7 +12,7 @@ Base template for Project overview.
 @import ore.{OreConfig, OreEnv}
 @import views.html.helper.form
 @(project: Project, active: String, noButtons: Boolean = false)(content: Html)(implicit messages: Messages,
-        session: Session, request: RequestHeader, flash: Flash, service: ModelService, config: OreConfig,
+        session: Session, request: Request[_], flash: Flash, service: ModelService, config: OreConfig,
         users: UserBase, env: OreEnv)
 
 @hasUser = @{ users.current.isDefined }

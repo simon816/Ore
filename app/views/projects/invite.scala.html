@@ -11,7 +11,7 @@
 @import scala.collection.JavaConverters._
 @import scala.concurrent.TimeoutException
 @(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash,
-        request: RequestHeader, service: ModelService, forums: OreDiscourseApi, config: OreConfig, userBase: UserBase,
+        request: Request[_], service: ModelService, forums: OreDiscourseApi, config: OreConfig, userBase: UserBase,
         env: OreEnv)
 
 @registeredUsers(users: List[String]) = @{

@@ -7,7 +7,7 @@
 @import views.html.helper.form
 @import ore.user.Prompts
 @import util.StringUtils._
-@(user: User)(content: Html)(implicit messages: Messages, session: Session, flash: Flash, request: RequestHeader,
+@(user: User)(content: Html)(implicit messages: Messages, session: Session, flash: Flash, request: Request[_],
         service: ModelService, config: OreConfig, users: UserBase, env: OreEnv)
 
 @canEditOrganization = @{

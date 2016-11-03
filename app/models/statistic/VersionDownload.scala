@@ -50,7 +50,7 @@ object VersionDownload {
     checkArgument(version.isDefined, "undefined version", "")
     checkNotNull(request, "null request", "")
     checkNotNull(users, "null user base", "")
-    val userId = users.current(request.session).flatMap(_.id)
+    val userId = users.current.flatMap(_.id)
     val dl = VersionDownload(
       modelId = version.id.get,
       address = InetString(remoteAddress),

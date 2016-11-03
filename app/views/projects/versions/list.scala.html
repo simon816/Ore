@@ -10,7 +10,7 @@ Versions page within Project overview.
 @import util.StringUtils._
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
   visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session,
-        request: RequestHeader, flash: Flash, service: ModelService, config: OreConfig, userBase: UserBase, env: OreEnv)
+        request: Request[_], flash: Flash, service: ModelService, config: OreConfig, userBase: UserBase, env: OreEnv)
 
 @pageSize = @{ config.projects.getInt("init-version-load").get }
 

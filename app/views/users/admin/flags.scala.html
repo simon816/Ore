@@ -3,7 +3,7 @@
 @import db.impl.access.{ProjectBase, UserBase}
 @import models.project.Flag
 @import ore.{OreConfig, OreEnv}
-@(flags: Seq[Flag])(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService,
+@(flags: Seq[Flag])(implicit messages: Messages, session: Session, request: Request[_], service: ModelService,
         config: OreConfig, users: UserBase, projectBase: ProjectBase, env: OreEnv)
 
 @bootstrap.layout("Flags") {

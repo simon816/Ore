@@ -20,7 +20,7 @@ import ore.permission.role._
 import ore.permission.scope._
 import ore.user.Prompts.Prompt
 import ore.user.UserOwned
-import play.api.mvc.Session
+import play.api.mvc.Request
 import security.pgp.PGPPublicKeyInfo
 import security.sso.SpongeUser
 import util.StringUtils._
@@ -331,8 +331,8 @@ case class User(override val id: Option[Int] = None,
     *
     * @return True if currently authenticated user
     */
-  def isCurrent(implicit session: Session): Boolean = {
-    checkNotNull(session, "null session", "")
+  def isCurrent(implicit request: Request[_]): Boolean = {
+    checkNotNull(request, "null request", "")
     this.service.getModelBase(classOf[UserBase]).current.exists { user =>
         user.equals(this) || (this.isOrganization && this.toOrganization.owner.user.equals(user))
     }

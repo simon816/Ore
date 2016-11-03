@@ -11,7 +11,7 @@ Documentation page within Project overview.
 @import ore.{OreConfig, OreEnv}
 @import util.StringUtils._
 @(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages, session: Session,
-        request: RequestHeader, flash: Flash, service: ModelService, config: OreConfig, userBase: UserBase, env: OreEnv)
+        request: Request[_], flash: Flash, service: ModelService, config: OreConfig, userBase: UserBase, env: OreEnv)
 
 @canEditPages = @{
     userBase.current.isDefined && (userBase.current.get can EditPages in model)

@@ -8,6 +8,7 @@ import models.project.Project
 import models.user.User
 import ore.permission.scope.GlobalScope
 import ore.permission.{EditSettings, HideProjects, Permission}
+import org.spongepowered.play.ActionHelpers
 import play.api.mvc.Results._
 import play.api.mvc._
 import security.sso.SingleSignOn
@@ -18,7 +19,7 @@ import scala.language.higherKinds
 /**
   * A set of actions used by Ore.
   */
-trait Actions {
+trait Actions extends ActionHelpers {
 
   val users: UserBase
   val projects: ProjectBase
@@ -32,8 +33,8 @@ trait Actions {
   def UserLock(redirect: Call) = Authenticated andThen userLock(redirect)
 
   /** Called when a [[User]] tries to make a request they do not have permission for */
-  def onUnauthorized(request: RequestHeader) = {
-    if (request.flash.get("noRedirect").isEmpty && this.users.current(request.session).isEmpty)
+  def onUnauthorized(request: Request[_]) = {
+    if (request.flash.get("noRedirect").isEmpty && this.users.current(request).isEmpty)
       Redirect(Users.logIn(None, None, Some(request.path)))
     else
       Redirect(routes.Application.showHome(None, None, None, None))
@@ -144,6 +145,25 @@ trait Actions {
   def VerifiedAction(username: String, sso: Option[String], sig: Option[String])
   = UserAction(username) andThen verifiedAction(sso, sig)
 
+  implicit final class ResultWrapper(result: Result) {
+
+    /**
+      * Adds a new session cookie to the result for the specified [[User]].
+      *
+      * @param user   User to create session for
+      * @param maxAge Maximum session age
+      * @return       Result with token
+      */
+    def authenticatedAs(user: User, maxAge: Int = -1) = {
+      val session = Actions.this.users.createSession(user)
+      val age = if (maxAge == -1) None else Some(maxAge)
+      result.withCookies(Cookie("_token", session.token, age))
+    }
+
+    def clearingSession() = result.discardingCookies(DiscardingCookie("_token"))
+
+  }
+
   private def userLock(redirect: Call) = new ActionFilter[AuthRequest] {
     def filter[A](request: AuthRequest[A]): Future[Option[Result]] = Future.successful {
       if (request.user.isLocked)
@@ -185,7 +205,7 @@ trait Actions {
 
   private def authAction = new ActionRefiner[Request, AuthRequest] {
     def refine[A](request: Request[A]): Future[Either[Result, AuthRequest[A]]] = Future.successful {
-      users.current(request.session)
+      users.current(request)
         .map(AuthRequest(_, request))
         .toRight(onUnauthorized(request))
     }
@@ -203,7 +223,7 @@ trait Actions {
 
   private def maybeProjectRequest[A](request: Request[A], project: Option[Project]) = {
     project
-      .flatMap(processProject(_, this.users.current(request.session)))
+      .flatMap(processProject(_, this.users.current(request)))
       .map(new ProjectRequest[A](_, request))
       .toRight(NotFound)
   }

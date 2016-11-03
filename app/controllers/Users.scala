@@ -57,7 +57,7 @@ class Users @Inject()(fakeUser: FakeUser,
       // Log in as fake user (debug only)
       this.config.checkDebug()
       this.users.getOrCreate(this.fakeUser)
-      this.redirectBack(returnPath.getOrElse(request.path), this.fakeUser.username)
+      this.redirectBack(returnPath.getOrElse(request.path), this.fakeUser)
     } else if (sso.isEmpty || sig.isEmpty) {
       // Check if forums are available and redirect to login if so
       redirectToSso(this.sso.getLoginUrl(this.baseUrl + "/login"))
@@ -65,11 +65,11 @@ class Users @Inject()(fakeUser: FakeUser,
       // Redirected from SpongeSSO, decode SSO payload and convert to Ore user
       this.sso.authenticate(sso.get, sig.get) match {
         case None =>
-          Redirect(app.showHome(None, None, None, None)).flashing("error" -> "error.loginFailed")
+          Redirect(app.showHome(None, None, None, None)).withError("error.loginFailed")
         case Some(spongeUser) =>
           // Complete authentication
-          this.users.getOrCreate(User.fromSponge(spongeUser)).refresh()
-          this.redirectBack(request.flash.get("url").getOrElse("/"), spongeUser.username)
+          val user = this.users.getOrCreate(User.fromSponge(spongeUser)).refresh()
+          this.redirectBack(request.flash.get("url").getOrElse("/"), user)
       }
     }
   }
@@ -89,11 +89,11 @@ class Users @Inject()(fakeUser: FakeUser,
     if (this.sso.isAvailable)
       Redirect(url)
     else
-      Redirect(app.showHome(None, None, None, None)).flashing("error" -> "error.noLogin")
+      Redirect(app.showHome(None, None, None, None)).withError("error.noLogin")
   }
 
-  private def redirectBack(url: String, username: String)
-  = Redirect(this.baseUrl + url).withSession(Security.username -> username)
+  private def redirectBack(url: String, user: User)
+  = Redirect(this.baseUrl + url).authenticatedAs(user, this.config.play.getInt("http.session.maxAge").get)
 
   /**
     * Clears the current session.
@@ -101,7 +101,7 @@ class Users @Inject()(fakeUser: FakeUser,
     * @return Home page
     */
   def logOut(returnPath: Option[String]) = Action { implicit request =>
-    Redirect(this.baseUrl + returnPath.getOrElse(request.path)).withNewSession.flashing("noRedirect" -> "true")
+    Redirect(this.baseUrl + returnPath.getOrElse(request.path)).clearingSession().flashing("noRedirect" -> "true")
   }
 
   /**
@@ -153,7 +153,7 @@ class Users @Inject()(fakeUser: FakeUser,
   def savePgpPublicKey(username: String) = UserAction(username) { implicit request =>
     this.forms.UserPgpPubKey.bindFromRequest.fold(
       hasErrors =>
-        Redirect(self.showProjects(username, None)).flashing("error" -> hasErrors.errors.head.message),
+        Redirect(self.showProjects(username, None)).withError(hasErrors.errors.head.message),
       keySubmission => {
         import writes._
         val keyInfo = keySubmission.info
@@ -161,10 +161,10 @@ class Users @Inject()(fakeUser: FakeUser,
         // Validate email
         user.email match {
           case None =>
-            Redirect(self.showProjects(username, None)).flashing("error" -> "error.pgp.noEmail")
+            Redirect(self.showProjects(username, None)).withError("error.pgp.noEmail")
           case Some(email) =>
             if (!email.equals(keyInfo.email))
-              Redirect(self.showProjects(username, None)).flashing("error" -> "error.pgp.invalidEmail")
+              Redirect(self.showProjects(username, None)).withError("error.pgp.invalidEmail")
             else {
               user.pgpPubKey = keyInfo.raw
               if (user.lastPgpPubKeyUpdate.isDefined)

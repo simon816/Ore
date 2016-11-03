@@ -29,7 +29,7 @@ class ErrorHandler @Inject()(env: Environment,
   override def onProdServerError(request: RequestHeader, exception: UsefulException) = {
     implicit val users: UserBase = service.getModelBase(classOf[UserBase])
     implicit val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
-    implicit val req = request
+    implicit val req = request.asInstanceOf[Request[_]]
     implicit val session = request.session
     Future.successful(InternalServerError(views.html.error(exception.getMessage)))
   }

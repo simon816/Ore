@@ -1,13 +1,15 @@
 package db.impl.access
 
 import java.sql.Timestamp
+import java.util.{Date, UUID}
 
+import db.impl.OrePostgresDriver.api._
 import db.impl.schema.ProjectSchema
 import db.{ModelBase, ModelService}
 import discourse.impl.OreDiscourseApi
-import models.user.User
+import models.user.{Session, User}
 import ore.OreConfig
-import play.api.mvc.Session
+import play.api.mvc.Request
 import util.StringUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -23,6 +25,8 @@ class UserBase(override val service: ModelService,
   import UserBase._
 
   override val modelClass = classOf[User]
+
+  implicit val self = this
 
   /**
     * Returns the user with the specified username. If the specified username
@@ -90,12 +94,45 @@ class UserBase(override val service: ModelService,
   def getOrCreate(user: User): User = this.service.await(user.schema(this.service).getOrInsert(user)).get
 
   /**
+    * Creates a new [[Session]] for the specified [[User]].
+    *
+    * @param user User to create session for
+    * @return     Newly created session
+    */
+  def createSession(user: User): Session = {
+    val maxAge = this.config.play.getInt("http.session.maxAge").get
+    val expiration = new Timestamp(new Date().getTime + maxAge * 1000L)
+    val token = UUID.randomUUID().toString
+    val session = Session(None, None, expiration, user.username, token)
+    this.service.access[Session](classOf[Session]).add(session)
+  }
+
+  /**
+    * Returns the [[Session]] of the specified token ID. If the session has
+    * expired it will be deleted immediately and None will be returned.
+    *
+    * @param token  Token of session
+    * @return       Session if found and has not expired
+    */
+  def getSession(token: String): Option[Session] = {
+    this.service.access[Session](classOf[Session]).find(_.token === token).flatMap { session =>
+      if (session.hasExpired) {
+        session.remove()
+        None
+      } else
+        Some(session)
+    }
+  }
+
+  /**
     * Returns the currently authenticated User.
     *
     * @param session  Current session
     * @return         Authenticated user, if any, None otherwise
     */
-  def current(implicit session: Session): Option[User] = session.get("username").map(withName).getOrElse(None)
+  def current(implicit session: Request[_]): Option[User] = session.cookies.get("_token").flatMap { token =>
+    getSession(token.value).map(_.user)
+  }
 
 }
 

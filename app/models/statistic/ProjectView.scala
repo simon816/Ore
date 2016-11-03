@@ -50,7 +50,7 @@ object ProjectView {
   def bindFromRequest()(implicit request: ProjectRequest[_], users: UserBase): ProjectView = {
     checkNotNull(request, "null request", "")
     checkNotNull(users, "null user base", "")
-    val userId = users.current(request.session).flatMap(_.id)
+    val userId = users.current.flatMap(_.id)
     val view = ProjectView(
       modelId = request.project.id.get,
       address = InetString(remoteAddress),

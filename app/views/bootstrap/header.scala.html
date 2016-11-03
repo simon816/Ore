@@ -9,7 +9,7 @@ The main header displayed on each layout.
 @import ore.permission.{ReviewFlags, ReviewProjects}
 @import models.project.Version
 @import models.project.Flag
-@()(implicit messages: Messages, session: Session, request: RequestHeader, service: ModelService, config: OreConfig,
+@()(implicit messages: Messages, session: Session, request: Request[_], service: ModelService, config: OreConfig,
         users: UserBase)
 
 @flags = @{ service.access[Flag](classOf[Flag]) }

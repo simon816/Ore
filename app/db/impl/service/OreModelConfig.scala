@@ -54,6 +54,8 @@ trait OreModelConfig extends ModelService with OreDBOs {
       targetClass = classOf[Project],
       targetReference = _.projectId)
 
+  val SessionSchema = new ModelSchema[models.user.Session](this, classOf[models.user.Session], TableQuery[SessionTable])
+
   val ProjectRolesSchema = new ModelSchema[ProjectRole](this, classOf[ProjectRole], TableQuery[ProjectRoleTable])
 
   val ProjectSchema = new ProjectSchema(this, Users)
