@@ -121,24 +121,8 @@ trait OreRestfulApi {
     */
   def getUser(username: String): Option[JsValue] = this.users.withName(username).map(toJson(_))
 
-  /**
-    * Returns the Sponge "statusz" endpoint for Ore.
-    *
-    * @return statusz json
-    */
-  def getStatusZ: JsValue = Json.obj(
-    "BUILD_NUMBER"  ->  sys.env("BUILD_NUMBER"),
-    "GIT_BRANCH"    ->  sys.env("GIT_BRANCH"),
-    "GIT_COMMIT"    ->  sys.env("GIT_COMMIT"),
-    "JOB_NAME"      ->  sys.env("JOB_NAME"),
-    "BUILD_TAG"     ->  sys.env("BUILD_TAG"),
-    "SPONGE_ENV"    ->  sys.env("SPONGE_ENV"),
-    "SERVICE"       ->  "Ore"
-  )
-
 }
 
 class OreRestfulServer @Inject()(override val writes: OreWrites,
                                  override val service: ModelService,
-                                 override val config: OreConfig)
-                           extends OreRestfulApi
+                                 override val config: OreConfig) extends OreRestfulApi

@@ -16,11 +16,11 @@ routesGenerator := InjectedRoutesGenerator
 
 // Additional dependencies
 resolvers ++= Seq(
-//  "maven local" at "file://" + Path.userHome.absolutePath + "/.m2/repository",
   "sponge" at "https://repo.spongepowered.org/maven"
 )
 
 libraryDependencies ++= Seq(
+  "org.spongepowered"     %%  "sponge-play"             %   "1.0.0-SNAPSHOT",
   "org.spongepowered"     %   "plugin-meta"             %   "0.2",
   "com.typesafe.play"     %%  "play-slick"              %   "2.0.0",
   "com.typesafe.play"     %%  "play-slick-evolutions"   %   "2.0.0",

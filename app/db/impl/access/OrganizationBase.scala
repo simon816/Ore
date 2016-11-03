@@ -8,8 +8,8 @@ import ore.OreConfig
 import ore.permission.role.RoleTypes
 import ore.user.notification.NotificationTypes
 import org.apache.commons.lang3.RandomStringUtils
+import org.spongepowered.play.CryptoUtils
 import play.api.i18n.MessagesApi
-import security.CryptoUtils
 import util.StringUtils
 
 import scala.concurrent.ExecutionContext.Implicits.global

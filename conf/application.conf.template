@@ -23,6 +23,7 @@ play.evolutions.db.default.autoApply    =   true
 play.http.session.maxAge                =   2419200 # 4 weeks
 play.http.parser.maxDiskBuffer          =   20MB
 play.ws.timeout.connection              =   10000
+play.modules.enabled                    +=  "org.spongepowered.play.SpongeModule"
 
 
 # Ore configuration

@@ -3,13 +3,14 @@ package controllers
 import javax.inject.Inject
 
 import ore.rest.OreRestfulApi
+import org.spongepowered.play.StatusZ
 import play.api.libs.json._
 import play.api.mvc._
 
 /**
   * Ore API (v1)
   */
-class ApiController @Inject()(val api: OreRestfulApi) extends Controller {
+class ApiController @Inject()(api: OreRestfulApi, status: StatusZ) extends Controller {
 
   private def ApiResult(json: Option[JsValue]): Result = json.map(Ok(_)).getOrElse(NotFound)
 
@@ -108,6 +109,6 @@ class ApiController @Inject()(val api: OreRestfulApi) extends Controller {
     *
     * @return statusz json
     */
-  def showStatusZ = Action(Ok(this.api.getStatusZ))
+  def showStatusZ = Action(Ok(this.status.json))
 
 }

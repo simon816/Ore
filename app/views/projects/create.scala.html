@@ -23,15 +23,7 @@ Page used for uploading and creating new projects.
             <p>@Html(messages("project.create.infoText.pgp"))</p>
         </div>
 
-        @if(flash.get("error").isDefined) {
-            <div class="alert alert-danger alert-dismissable" role="alert">
-                <button type="button" class="close" data-dismiss="alert"
-                        aria-label="@messages("general.close")">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                @flash.get("error").get
-            </div>
-        }
+        @utils.alert("error")
 
         @if(pending.isDefined) {
             @* Display plugin metadata *@
