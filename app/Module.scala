@@ -1,7 +1,7 @@
 import com.google.inject.AbstractModule
 import db.ModelService
 import db.impl.service.OreModelService
-import discourse.impl.{OreDiscourseApi, SpongeForums}
+import discourse.{OreDiscourseApi, SpongeForums}
 import ore._
 import ore.project.factory.{OreProjectFactory, ProjectFactory}
 import ore.rest.{OreRestfulApi, OreRestfulServer}

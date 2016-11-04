@@ -2,7 +2,7 @@ package form.project
 
 import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
-import discourse.impl.OreDiscourseApi
+import discourse.OreDiscourseApi
 import models.project.Project
 import models.user.Notification
 import models.user.role.ProjectRole

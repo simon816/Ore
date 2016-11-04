@@ -5,7 +5,7 @@ import javax.inject.Inject
 import controllers.routes.Application
 import db.ModelService
 import db.impl.access.OrganizationBase
-import discourse.impl.OreDiscourseApi
+import discourse.OreDiscourseApi
 import form.OreForms
 import ore.permission.EditSettings
 import ore.rest.OreWrites

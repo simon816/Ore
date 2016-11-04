@@ -8,7 +8,7 @@ import com.google.common.base.Preconditions.checkArgument
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.{ProjectBase, UserBase}
-import discourse.impl.OreDiscourseApi
+import discourse.OreDiscourseApi
 import models.project.Channel
 import models.user.User
 import ore.OreConfig

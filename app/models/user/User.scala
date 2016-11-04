@@ -10,7 +10,6 @@ import db.impl._
 import db.impl.access.{OrganizationBase, UserBase}
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
-import discourse.model.DiscourseUser
 import models.project.{Flag, Project, Version}
 import models.user.role.{OrganizationRole, ProjectRole}
 import ore.Visitable
@@ -20,6 +19,7 @@ import ore.permission.role._
 import ore.permission.scope._
 import ore.user.Prompts.Prompt
 import ore.user.UserOwned
+import org.spongepowered.play.discourse.model.DiscourseUser
 import play.api.mvc.Request
 import security.pgp.PGPPublicKeyInfo
 import security.sso.SpongeUser

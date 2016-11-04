@@ -1,4 +1,4 @@
-package discourse.impl
+package discourse
 
 import java.nio.file.Path
 import javax.inject.{Inject, Singleton}

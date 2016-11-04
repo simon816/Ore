@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.Model
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
-import discourse.impl.OreDiscourseApi
+import discourse.OreDiscourseApi
 import ore.OreConfig
 
 /** An Ore Model */

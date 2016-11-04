@@ -1,13 +1,13 @@
-package discourse.impl
+package discourse
 
 import java.nio.file.Path
 
 import akka.actor.Scheduler
 import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
 import db.impl.access.ProjectBase
-import discourse.DiscourseApi
 import models.project.{Project, Version}
 import models.user.User
+import org.spongepowered.play.discourse.DiscourseApi
 import util.StringUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global

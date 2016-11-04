@@ -5,9 +5,8 @@ import javax.inject.Inject
 import controllers.BaseController
 import controllers.project.routes.{Pages => self}
 import db.ModelService
+import discourse.OreDiscourseApi
 import form.OreForms
-import discourse.DiscourseApi
-import discourse.impl.OreDiscourseApi
 import models.project.Page
 import ore.permission.EditPages
 import ore.{OreConfig, OreEnv, StatTracker}

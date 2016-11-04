@@ -2,7 +2,7 @@ package db.impl.service
 
 import db.ModelService
 import db.impl.access._
-import discourse.impl.OreDiscourseApi
+import discourse.OreDiscourseApi
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 

@@ -6,7 +6,7 @@ import controllers.routes.{Application => app, Users => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase.ORDERING_PROJECTS
-import discourse.impl.OreDiscourseApi
+import discourse.OreDiscourseApi
 import form.OreForms
 import models.user.role.RoleModel
 import models.user.{Notification, User}

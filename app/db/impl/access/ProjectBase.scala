@@ -6,7 +6,7 @@ import java.nio.file.Files._
 import com.google.common.base.Preconditions._
 import db.impl.OrePostgresDriver.api._
 import db.{ModelBase, ModelService}
-import discourse.impl.OreDiscourseApi
+import discourse.OreDiscourseApi
 import models.project.{Channel, Project, Version}
 import ore.project.io.ProjectFileManager
 import ore.{OreConfig, OreEnv}

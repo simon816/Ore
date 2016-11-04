@@ -7,7 +7,7 @@ import controllers.BaseController
 import controllers.project.routes.{Projects => self}
 import controllers.routes.{Application => app}
 import db.ModelService
-import discourse.impl.OreDiscourseApi
+import discourse.OreDiscourseApi
 import form.OreForms
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons

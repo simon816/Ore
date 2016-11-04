@@ -1,4 +1,4 @@
-package discourse.impl
+package discourse
 
 import akka.actor.Scheduler
 import db.impl.OrePostgresDriver.api._

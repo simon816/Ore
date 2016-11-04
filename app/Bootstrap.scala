@@ -3,7 +3,7 @@ import javax.inject.{Inject, Singleton}
 
 import db.ModelService
 import db.impl.access.ProjectBase
-import discourse.impl.OreDiscourseApi
+import discourse.OreDiscourseApi
 import ore.OreConfig
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 

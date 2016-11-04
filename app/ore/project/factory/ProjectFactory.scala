@@ -7,7 +7,7 @@ import akka.actor.ActorSystem
 import com.google.common.base.Preconditions._
 import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
-import discourse.impl.OreDiscourseApi
+import discourse.OreDiscourseApi
 import models.project.{Channel, Project, Version}
 import models.user.role.ProjectRole
 import models.user.{Notification, User}

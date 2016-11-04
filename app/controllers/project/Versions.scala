@@ -8,7 +8,7 @@ import controllers.Requests.ProjectRequest
 import controllers.project.routes.{Projects, Versions => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import discourse.impl.OreDiscourseApi
+import discourse.OreDiscourseApi
 import form.OreForms
 import models.project.{Channel, Project, Version}
 import ore.permission.{EditVersions, ReviewProjects}

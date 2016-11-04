@@ -3,7 +3,7 @@ package db.impl
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import db.impl.model.OreModel
 import db.{Model, ModelProcessor, ModelService}
-import discourse.impl.OreDiscourseApi
+import discourse.OreDiscourseApi
 import ore.OreConfig
 
 /**
