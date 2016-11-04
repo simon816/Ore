@@ -36,5 +36,6 @@
     <logger name="Database"  level="INFO" />
     <logger name="DataHelper" level="INFO" />
     <logger name="PGP" level="INFO" />
+    <logger name="Mailer" level="INFO" />
 
 </configuration>

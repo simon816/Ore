@@ -3,104 +3,118 @@
 
 # Application configuration
 # Enable fakeUser to bypass standard authentication in a development environment
-application.baseUrl             =   "http://localhost:9000"
-application.baseUrl             =   ${?BASE_URL}
-application.fakeUser.enabled    =   false
-application.fakeUser.enabled    =   ${?FAKE_USER}
-application.fakeUser.id         =   -1
-application.fakeUser.name       =   "Spongie"
-application.fakeUser.username   =   "Spongie"
-application.fakeUser.email      =   "spongie@spongepowered.org"
-application.db.default-timeout  =   10
+application {
+    baseUrl             =   "http://localhost:9000"
+    baseUrl             =   ${?BASE_URL}
+    fakeUser.enabled    =   false
+    fakeUser.enabled    =   ${?FAKE_USER}
+    fakeUser.id         =   -1
+    fakeUser.name       =   "Spongie"
+    fakeUser.username   =   "Spongie"
+    fakeUser.email      =   "spongie@spongepowered.org"
+    db.default-timeout  =   10
+}
 
 
 # Play configuration
-play.crypto.secret                      =   "changeme"
-play.crypto.secret                      =   ${?APPLICATION_SECRET}
-play.i18n.langs                         =   [ "en", "en-US" ]
-play.evolutions.autocommit              =   false
-play.evolutions.db.default.autoApply    =   true
-play.http.session.maxAge                =   2419200 # 4 weeks
-play.http.parser.maxDiskBuffer          =   20MB
-play.ws.timeout.connection              =   10000
-play.modules.enabled                    +=  "org.spongepowered.play.SpongeModule"
+play {
+    crypto.secret                      =   "changeme"
+    crypto.secret                      =   ${?APPLICATION_SECRET}
+    i18n.langs                         =   [ "en", "en-US" ]
+    evolutions.autocommit              =   false
+    evolutions.db.default.autoApply    =   true
+    http.session.maxAge                =   2419200 # 4 weeks
+    http.parser.maxDiskBuffer          =   20MB
+    ws.timeout.connection              =   10000
+    modules.enabled                    +=  "org.spongepowered.play.SpongeModule"
+}
 
 
 # Ore configuration
-ore.date-format =  "MMM dd, yyyy"
-ore.debug       =  true
-ore.debug-level =  3
-# Used in /admin/seed route. Run "gradle build" in OreTestPlugin before using that route
-ore.test-plugin = "OreTestPlugin/build/libs/ore-test-plugin-dev-SNAPSHOT.jar"
-
-ore.security.requirePgp         =   true
-ore.security.keyChangeCooldown  =   259200000
-ore.security.sso.loginUrl       =   ${SPONGE_SSO_LOGIN_URL}
-ore.security.sso.signupUrl      =   ${SPONGE_SSO_SIGNUP_URL}
-ore.security.sso.verifyUrl      =   ${SPONGE_SSO_VERIFY_URL}
-ore.security.sso.secret         =   ${SPONGE_SSO_SECRET}
-
-ore.channels.max-name-len   =   15
-ore.channels.name-regex     =   "^[a-zA-Z0-9]+$"
-ore.channels.color-default  =    7
-ore.channels.name-default   =   "Release"
-
-ore.pages.home.name     =   "Home"
-ore.pages.home.message  =   "Welcome to your new project!"
-ore.pages.min-len       =   15
-ore.pages.max-len       =   32000
-ore.pages.name.max-len  =   255
-
-ore.projects.max-name-len       =   25
-ore.projects.max-pages          =   10
-ore.projects.max-channels       =   5
-ore.projects.init-load          =   25
-ore.projects.init-version-load  =   10
-ore.projects.max-desc-len       =   120
-ore.projects.file-validate      =   true
-ore.projects.tmp-file-save      =   false
-ore.projects.icon-size          =   200
-
-ore.users.stars-per-page    =   5
-ore.users.max-tagline-len   =   100
-ore.users.author-page-size  =   25
-ore.users.project-page-size =   5
-
-ore.orgs.passwordLength     =   60
-ore.orgs.dummyEmailDomain   =   "ore.spongepowered.org"
-ore.orgs.groupId            =   64
-ore.orgs.createLimit        =   5
+ore {
+    date-format =  "MMM dd, yyyy"
+    debug       =  true
+    debug-level =  3
+    # Used in /admin/seed route. Run "gradle build" in OreTestPlugin before using that route
+    test-plugin = "OreTestPlugin/build/libs/ore-test-plugin-dev-SNAPSHOT.jar"
+    
+    security {
+        requirePgp         =   true
+        keyChangeCooldown  =   259200000
+        sso.loginUrl       =   ${SPONGE_SSO_LOGIN_URL}
+        sso.signupUrl      =   ${SPONGE_SSO_SIGNUP_URL}
+        sso.verifyUrl      =   ${SPONGE_SSO_VERIFY_URL}
+        sso.secret         =   ${SPONGE_SSO_SECRET}
+    }
+    
+    channels.max-name-len   =   15
+    channels.name-regex     =   "^[a-zA-Z0-9]+$"
+    channels.color-default  =    7
+    channels.name-default   =   "Release"
+    
+    pages.home.name     =   "Home"
+    pages.home.message  =   "Welcome to your new project!"
+    pages.min-len       =   15
+    pages.max-len       =   32000
+    pages.name.max-len  =   255
+    
+    projects.max-name-len       =   25
+    projects.max-pages          =   10
+    projects.max-channels       =   5
+    projects.init-load          =   25
+    projects.init-version-load  =   10
+    projects.max-desc-len       =   120
+    projects.file-validate      =   true
+    projects.tmp-file-save      =   false
+    projects.icon-size          =   200
+    
+    users.stars-per-page    =   5
+    users.max-tagline-len   =   100
+    users.author-page-size  =   25
+    users.project-page-size =   5
+    
+    orgs.passwordLength     =   60
+    orgs.dummyEmailDomain   =   "spongepowered.org"
+    orgs.groupId            =   64
+    orgs.createLimit        =   5
+}
 
 
 # Slick configuration
-slick.dbs.default.driver        =   "slick.driver.PostgresDriver$"
-slick.dbs.default.db.driver     =   "org.postgresql.Driver"
-slick.dbs.default.db.url        =   "jdbc:postgresql://localhost/ore"
-slick.dbs.default.db.url        =   ${?JDBC_DATABASE_URL}
-slick.dbs.default.db.user       =   "root"
-slick.dbs.default.db.user       =   ${?JDBC_DATABASE_USERNAME}
-slick.dbs.default.db.password   =   ""
-slick.dbs.default.db.password   =   ${?JDBC_DATABASE_PASSWORD}
+slick.dbs.default {
+    driver        =   "driver.PostgresDriver$"
+    db.driver     =   "org.postgresql.Driver"
+    db.url        =   "jdbc:postgresql://localhost/ore"
+    db.url        =   ${?JDBC_DATABASE_URL}
+    db.user       =   "root"
+    db.user       =   ${?JDBC_DATABASE_USERNAME}
+    db.password   =   ""
+    db.password   =   ${?JDBC_DATABASE_PASSWORD}
+}
 
 
 # Discourse SSO
-discourse.sso.secret        =   ${?DISCOURSE_SSO_SECRET}
-discourse.sso.url           =   ${?DISCOURSE_SSO_URL}
-discourse.baseUrl           =   "https://forums.spongepowered.org"
-discourse.api.enabled       =   true
-discourse.api.key           =   ${?DISCOURSE_API_KEY}
-discourse.api.admin         =   windy
-discourse.api.timeout       =   10000
-discourse.embed.categoryId  =   32
-discourse.embed.disabled    =   false
-discourse.embed.retryRate   =   60000
-discourse.embed.categorySlug = ore
+discourse {
+    sso.secret        =   ${?DISCOURSE_SSO_SECRET}
+    sso.url           =   ${?DISCOURSE_SSO_URL}
+    baseUrl           =   "https://forums.spongepowered.org"
+    api.enabled       =   true
+    api.key           =   ${?DISCOURSE_API_KEY}
+    api.admin         =   windy
+    api.timeout       =   10000
+    embed.categoryId  =   32
+    embed.disabled    =   false
+    embed.retryRate   =   60000
+    embed.categorySlug = ore
+}
 
 # Sponge stuff
-sponge.logo = "https://www.spongepowered.org/assets/img/icons/spongie-mark.svg"
-sponge.icon = "https://forums-cdn.spongepowered.org/uploads/default/original/2X/9/9ba706a80e45cf427617525ee2a19fad7bb6b109.png"
-sponge.sponsors.urls = [  "https://billing.creeperhost.net/link.php?id=8", "https://www.enjin.com/", "http://www.multiplaygameservers.com", "https://www.beastnode.com/", "https://serverminer.com/", "https://mcprohosting.com/?promo=Sponge" ]
-sponge.sponsors.logos = [ "creeperhost.svg", "enjin.png", "multiplay.png", "beastnode.png", "serverminer.png", "mcprohosting.png" ]
-sponge.sponsors.featured.logo = "creeperhost.svg"
-sponge.sponsors.featured.url = "https://billing.creeperhost.net/link.php?id=8"
-sponge.service = "Ore"
+sponge {
+    logo = "https://www.spongepowered.org/assets/img/icons/spongie-mark.svg"
+    icon = "https://forums-cdn.spongepowered.org/uploads/default/original/2X/9/9ba706a80e45cf427617525ee2a19fad7bb6b109.png"
+    sponsors.urls = [  "https://billing.creeperhost.net/link.php?id=8", "https://www.enjin.com/", "http://www.multiplaygameservers.com", "https://www.beastnode.com/", "https://serverminer.com/", "https://mcprohosting.com/?promo=Sponge" ]
+    sponsors.logos = [ "creeperhost.svg", "enjin.png", "multiplay.png", "beastnode.png", "serverminer.png", "mcprohosting.png" ]
+    sponsors.featured.logo = "creeperhost.svg"
+    sponsors.featured.url = "https://billing.creeperhost.net/link.php?id=8"
+    service = "Ore"
+}
