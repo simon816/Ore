@@ -171,7 +171,7 @@ class Versions @Inject()(stats: StatTracker,
       val call = self.showCreator(author, slug)
       request.body.asMultipartFormData.get.file("pluginFile") match {
         case None =>
-          Redirect(call).flashing("error" -> "error.noFile")
+          Redirect(call).withError("error.noFile")
         case Some(tmpFile) =>
           val user = request.user
           this.factory.getUploadError(user) match {
@@ -180,12 +180,12 @@ class Versions @Inject()(stats: StatTracker,
                 val plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user)
                 val project = request.project
                 if (!plugin.meta.get.getId.equals(project.pluginId))
-                  Redirect(call).flashing("error" -> "error.version.invalidPluginId")
+                  Redirect(call).withError("error.version.invalidPluginId")
                 else {
                   val version = this.factory.startVersion(plugin, project, project.channels.all.head.name)
                   val model = version.underlying
                   if (model.exists && this.config.projects.getBoolean("file-validate").get)
-                    Redirect(call).flashing("error" -> "error.version.duplicate")
+                    Redirect(call).withError("error.version.duplicate")
                   else {
                     version.cache()
                     Redirect(self.showCreatorWithMeta(author, slug, model.versionString))
@@ -193,10 +193,10 @@ class Versions @Inject()(stats: StatTracker,
                 }
               } catch {
                 case e: InvalidPluginFileException =>
-                  Redirect(call).flashing("error" -> "error.project.invalidPluginFile")
+                  Redirect(call).withError("error.project.invalidPluginFile")
               }
             case Some(error) =>
-              Redirect(call).flashing("error" -> error)
+              Redirect(call).withError(error)
           }
       }
     }
@@ -264,7 +264,7 @@ class Versions @Inject()(stats: StatTracker,
             hasErrors => {
               // Invalid channel
               val call = self.showCreatorWithMeta(author, slug, versionString)
-              Redirect(call).flashing("error" -> hasErrors.errors.head.message)
+              Redirect(call).withError(hasErrors.errors.head.message)
             },
 
             versionData => {
@@ -287,7 +287,7 @@ class Versions @Inject()(stats: StatTracker,
 
                     channelResult.fold(
                       error => {
-                        Redirect(self.showCreatorWithMeta(author, slug, versionString)).flashing("error" -> error)
+                        Redirect(self.showCreatorWithMeta(author, slug, versionString)).withError(error)
                       },
                       channel => {
                         val newVersion = pendingVersion.complete().get

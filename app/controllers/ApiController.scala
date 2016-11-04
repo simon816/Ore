@@ -10,7 +10,7 @@ import play.api.mvc._
 /**
   * Ore API (v1)
   */
-class ApiController @Inject()(api: OreRestfulApi, status: StatusZ) extends Controller {
+final class ApiController @Inject()(api: OreRestfulApi, status: StatusZ) extends Controller {
 
   private def ApiResult(json: Option[JsValue]): Result = json.map(Ok(_)).getOrElse(NotFound)
 

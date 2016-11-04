@@ -21,13 +21,13 @@ import views.{html => views}
 /**
   * Main entry point for application.
   */
-class Application @Inject()(data: DataHelper,
-                            implicit override val sso: SingleSignOn,
-                            implicit override val messagesApi: MessagesApi,
-                            implicit override val env: OreEnv,
-                            implicit override val config: OreConfig,
-                            implicit override val service: ModelService)
-                            extends BaseController {
+final class Application @Inject()(data: DataHelper,
+                                  implicit override val sso: SingleSignOn,
+                                  implicit override val messagesApi: MessagesApi,
+                                  implicit override val env: OreEnv,
+                                  implicit override val config: OreConfig,
+                                  implicit override val service: ModelService)
+                                  extends BaseController {
 
   private def FlagAction = Authenticated andThen PermissionAction[AuthRequest](ReviewFlags)
 
@@ -100,7 +100,8 @@ class Application @Inject()(data: DataHelper,
     */
   def setFlagResolved(flagId: Int, resolved: Boolean) = FlagAction { implicit request =>
     this.service.access[Flag](classOf[Flag]).get(flagId) match {
-      case None => NotFound
+      case None =>
+        NotFound
       case Some(flag) =>
         flag.setResolved(resolved)
         Ok

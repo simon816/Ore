@@ -59,7 +59,7 @@ class Organizations @Inject()(forms: OreForms,
     if (user.ownedOrganizations.size >= this.createLimit)
       BadRequest
     else if (user.isLocked)
-      Redirect(routes.Organizations.showCreator()).flashing("error" -> "error.user.locked")
+      Redirect(routes.Organizations.showCreator()).withError("error.user.locked")
     else {
       val formData = this.forms.OrganizationCreate.bindFromRequest().get
       val name = formData.name
@@ -69,7 +69,7 @@ class Organizations @Inject()(forms: OreForms,
       } catch {
         case e: Exception =>
           // Creation failed
-          Redirect(routes.Organizations.showCreator()).flashing("error" -> "error.org.cannotCreate")
+          Redirect(routes.Organizations.showCreator()).withError("error.org.cannotCreate")
       }
     }
   }

@@ -56,7 +56,7 @@ class Projects @Inject()(stats: StatTracker,
   def upload() = UserLock(app.showHome(None, None, None, None)) { implicit request =>
     request.body.asMultipartFormData.get.file("pluginFile") match {
       case None =>
-        Redirect(self.showCreator()).flashing("error" -> "error.noFile")
+        Redirect(self.showCreator()).withError("error.noFile")
       case Some(tmpFile) =>
         // Start a new pending project
         val user = request.user
@@ -70,10 +70,10 @@ class Projects @Inject()(stats: StatTracker,
               Redirect(self.showCreatorWithMeta(model.ownerName, model.slug))
             } catch {
               case e: InvalidPluginFileException =>
-                Redirect(self.showCreator()).flashing("error" -> "error.project.invalidPluginFile")
+                Redirect(self.showCreator()).withError("error.project.invalidPluginFile")
             }
           case Some(error) =>
-            Redirect(self.showCreator()).flashing("error" -> error)
+            Redirect(self.showCreator()).withError(error)
         }
     }
   }
@@ -187,7 +187,7 @@ class Projects @Inject()(stats: StatTracker,
     AuthedProjectAction(author, slug) { implicit request =>
       this.forms.ProjectReply.bindFromRequest.fold(
         hasErrors =>
-          Redirect(self.showDiscussion(author, slug)).flashing("error" -> hasErrors.errors.head.message),
+          Redirect(self.showDiscussion(author, slug)).withError(hasErrors.errors.head.message),
         content => {
           val project = request.project
           if (project.topicId == -1)
@@ -197,7 +197,7 @@ class Projects @Inject()(stats: StatTracker,
             val errors = this.forums.await(this.forums.postDiscussionReply(project, request.user, content))
             var result = Redirect(self.showDiscussion(author, slug))
             if (errors.nonEmpty)
-              result = result.flashing("error" -> errors.head)
+              result = result.withError(errors.head)
             result
           }
         }
@@ -369,7 +369,7 @@ class Projects @Inject()(stats: StatTracker,
     SettingsEditAction(author, slug) { implicit request =>
       request.body.asMultipartFormData.get.file("icon") match {
         case None =>
-          Redirect(self.showSettings(author, slug)).flashing("error" -> this.messagesApi("error.noFile"))
+          Redirect(self.showSettings(author, slug)).withError("error.noFile")
         case Some(tmpFile) =>
           val project = request.project
           val pendingDir = this.projects.fileManager.getPendingIconDir(project.ownerName, project.name)
@@ -458,7 +458,7 @@ class Projects @Inject()(stats: StatTracker,
     SettingsEditAction(author, slug) { implicit request =>
       val newName = compact(this.forms.ProjectRename.bindFromRequest.get)
       if (!projects.isNamespaceAvailable(author, slugify(newName))) {
-        Redirect(self.showSettings(author, slug)).flashing("error" -> this.messagesApi("error.nameUnavailable"))
+        Redirect(self.showSettings(author, slug)).withError("error.nameUnavailable")
       } else {
         val project = request.project
         this.projects.rename(project, newName)
@@ -495,7 +495,7 @@ class Projects @Inject()(stats: StatTracker,
       val project = request.project
       this.projects.delete(project)
       val call = app.showHome(None, None, None, None)
-      Redirect(call).flashing("success" -> this.messagesApi("project.deleted", project.name))
+      Redirect(call).withSuccess(this.messagesApi("project.deleted", project.name))
     }
   }
 

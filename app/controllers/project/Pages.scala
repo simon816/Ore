@@ -87,7 +87,7 @@ class Pages @Inject()(forms: OreForms,
     PageEditAction(author, slug) { implicit request =>
       this.forms.PageEdit.bindFromRequest.fold(
         hasErrors =>
-          Redirect(self.show(author, slug, page)).flashing("error" -> hasErrors.errors.head.message),
+          Redirect(self.show(author, slug, page)).withError(hasErrors.errors.head.message),
         pageData => {
           request.project.getOrCreatePage(page).contents = pageData
           Redirect(self.show(author, slug, page))
