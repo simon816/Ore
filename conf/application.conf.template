@@ -103,3 +103,4 @@ sponge.sponsors.urls = [  "https://billing.creeperhost.net/link.php?id=8", "http
 sponge.sponsors.logos = [ "creeperhost.svg", "enjin.png", "multiplay.png", "beastnode.png", "serverminer.png", "mcprohosting.png" ]
 sponge.sponsors.featured.logo = "creeperhost.svg"
 sponge.sponsors.featured.url = "https://billing.creeperhost.net/link.php?id=8"
+sponge.service = "Ore"
