@@ -8,14 +8,13 @@ import ore.OreConfig
 import ore.permission.role.RoleTypes
 import ore.user.notification.NotificationTypes
 import org.apache.commons.lang3.RandomStringUtils
-import org.spongepowered.play.CryptoUtils
 import play.api.i18n.MessagesApi
+import security.sso.SpongeAuthApi
 import util.StringUtils
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class OrganizationBase(override val service: ModelService,
                        forums: OreDiscourseApi,
+                       auth: SpongeAuthApi,
                        config: OreConfig,
                        messages: MessagesApi,
                        implicit val users: UserBase)
@@ -31,33 +30,51 @@ class OrganizationBase(override val service: ModelService,
     * @param ownerId  User ID of the organization owner
     * @return         New organization if successful, None otherwise
     */
-  def create(name: String, ownerId: Int, members: Set[OrganizationRole]): Organization = {
-    // Generate the organizations forum parameters
-    val password = RandomStringUtils.randomAlphanumeric(60)
-    val encryptedPassword = CryptoUtils.encrypt(password, this.config.play.getString("crypto.secret").get)
-    val email = name + '@' + this.config.orgs.getString("dummyEmailDomain").get
+  def create(name: String, ownerId: Int, members: Set[OrganizationRole]): Either[String, Organization] = {
+    // Create the organization as a User on SpongeAuth. This will reserve the
+    // name so that no new users or organizations can create an account with
+    // that name. We will give the organization a dummy email for continuity.
+    // By default we use "<org>@ore.spongepowered.org".
+    val dummyEmail = name + '@' + this.config.orgs.getString("dummyEmailDomain").get
+    val spongeResult = this.auth.createDummyUser(name, dummyEmail, verified = true)
+    // Check for error
+    if (spongeResult.isLeft)
+      return Left(spongeResult.left.get)
+    val spongeUser = spongeResult.right.get
 
-    // Create on forums
-    // Let this throw an exception if the user creation fails
-    val userId = this.forums.await(this.forums.createUser(name, name, email, password).map(_.right.get))
+    // Next we'll create a forum user for the organization. This requires a
+    // password but we'll just make up a random one and not keep it. Since
+    // users can't log into organization accounts the way they can with
+    // user accounts, we don't need to (and shouldn't) keep the password.
+    val dummyPassword = RandomStringUtils.randomAlphanumeric(60)
+    val userResult = this.forums.await(this.forums.createUser(name, name, dummyEmail, dummyPassword))
+    // Check for error
+    if (userResult.isLeft)
+      return Left(userResult.left.get.head)
+    val forumUserId = userResult.right.get
 
-    // Add group ID
-    // TODO: Handle the case where this fails
+    // Assign the organization group to the forum user. Note: This is not
+    // really critical that this succeeds since the group will be added Ore
+    // side anyways. For this reason, we won't bother checking for failure and
+    // just assume it has succeeded.
     val groupId = this.config.orgs.getInt("groupId").get
-    this.forums.addUserGroup(userId, groupId)
+    this.forums.addUserGroup(forumUserId, groupId)
 
-    // Create on Ore
+    // Next we will create the Organization on Ore itself. This contains a
+    // reference to the Sponge user ID, the organization's username and a
+    // reference to the User owner of the organization.
     val org = this.add(Organization(
-      id = Some(userId),
+      id = Some(spongeUser.id),
       username = name,
-      password = encryptedPassword,
       ownerId = ownerId))
 
-    // Initialize user companion
-    val userOrg = org.toUser
+    // Every organization model has a regular User companion. Organizations
+    // are just normal users with additional information. Adding the
+    // Organization global role signifies that this User is an Organization
+    // and should be treated as such.
+    val userOrg = org.toUser.refreshForumData()
     userOrg.globalRoles = userOrg.globalRoles + RoleTypes.Organization
 
-    // Invite members
     // Add the owner
     val owner: User = org.owner
     val dossier = org.memberships
@@ -67,7 +84,7 @@ class OrganizationBase(override val service: ModelService,
       _roleType = RoleTypes.OrganizationOwner,
       _isAccepted = true))
 
-    // Invite the others
+    // Invite the User members that the owner selected during creation.
     for (role <- members) {
       dossier.addRole(role.copy(organizationId = org.id.get))
       role.user.sendNotification(Notification(
@@ -77,7 +94,7 @@ class OrganizationBase(override val service: ModelService,
       ))
     }
 
-    userOrg.toOrganization
+    Right(userOrg.toOrganization)
   }
 
   /**

@@ -9,6 +9,7 @@ import discourse.OreDiscourseApi
 import ore.{OreConfig, OreEnv}
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.i18n.MessagesApi
+import security.sso.SpongeAuthApi
 import slick.driver.JdbcProfile
 
 import scala.concurrent.duration._
@@ -23,6 +24,7 @@ import scala.concurrent.duration._
 class OreModelService @Inject()(override val env: OreEnv,
                                 override val config: OreConfig,
                                 override val forums: OreDiscourseApi,
+                                override val auth: SpongeAuthApi,
                                 override val messages: MessagesApi,
                                 db: DatabaseConfigProvider)
                                 extends ModelService with OreModelConfig {

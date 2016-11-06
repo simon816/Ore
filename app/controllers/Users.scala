@@ -72,7 +72,7 @@ class Users @Inject()(fakeUser: FakeUser,
           Redirect(app.showHome(None, None, None, None)).withError("error.loginFailed")
         case Some(spongeUser) =>
           // Complete authentication
-          val user = this.users.getOrCreate(User.fromSponge(spongeUser)).refresh()
+          val user = this.users.getOrCreate(User.fromSponge(spongeUser)).refreshForumData()
           this.redirectBack(request.flash.get("url").getOrElse("/"), user)
       }
     }

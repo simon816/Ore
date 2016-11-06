@@ -10,15 +10,14 @@ import discourse.OreDiscourseApi
 import models.user.{Session, User}
 import ore.OreConfig
 import play.api.mvc.Request
+import security.sso.SpongeAuthApi
 import util.StringUtils._
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Represents a central location for all Users.
   */
 class UserBase(override val service: ModelService,
-               forums: OreDiscourseApi,
+               auth: SpongeAuthApi,
                config: OreConfig)
   extends ModelBase[User] {
 
@@ -38,10 +37,7 @@ class UserBase(override val service: ModelService,
     */
   def withName(username: String): Option[User] = {
     this.find(equalsIgnoreCase(_.name, username)).orElse {
-      // Try to get user from forums, or return None if can't connect
-      this.forums.await(this.forums.fetchUser(username).recover {
-        case e: Exception => None // ignore
-      }).map(u => getOrCreate(User.fromDiscourse(u)))
+      this.auth.getUser(username).map(u => getOrCreate(User.fromSponge(u)))
     }
   }
 

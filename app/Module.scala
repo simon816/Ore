@@ -6,7 +6,7 @@ import ore._
 import ore.project.factory.{OreProjectFactory, ProjectFactory}
 import ore.rest.{OreRestfulApi, OreRestfulServer}
 import play.api.{Configuration, Environment}
-import security.sso.{SingleSignOn, SpongeSingleSignOn}
+import security.sso.{SingleSignOn, SpongeAuth, SpongeAuthApi, SpongeSingleSignOn}
 
 /** The Ore Module */
 class Module(environment: Environment, configuration: Configuration) extends AbstractModule {
@@ -17,6 +17,7 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     bind(classOf[ProjectFactory]).to(classOf[OreProjectFactory])
     bind(classOf[OreDiscourseApi]).to(classOf[SpongeForums])
     bind(classOf[SingleSignOn]).to(classOf[SpongeSingleSignOn])
+    bind(classOf[SpongeAuthApi]).to(classOf[SpongeAuth])
     bind(classOf[ModelService]).to(classOf[OreModelService])
     bind(classOf[Bootstrap]).to(classOf[BootstrapImpl]).asEagerSingleton()
   }

@@ -2,9 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
-import controllers.routes.Application
 import db.ModelService
-import db.impl.access.OrganizationBase
 import discourse.OreDiscourseApi
 import form.OreForms
 import ore.permission.EditSettings
@@ -16,8 +14,8 @@ import play.api.libs.json.Json
 import security.sso.SingleSignOn
 import views.{html => views}
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 /**
   * Controller for handling Organization based actions.
@@ -41,9 +39,9 @@ class Organizations @Inject()(forms: OreForms,
     *
     * @return Organization creation panel
     */
-  def showCreator() = UserLock(Application.showHome(None, None, None, None)) { implicit request =>
+  def showCreator() = UserLock(routes.Application.showHome(None, None, None, None)) { implicit request =>
     if (request.user.ownedOrganizations.size >= this.createLimit)
-      Redirect(Application.showHome(None, None, None, None))
+      Redirect(routes.Application.showHome(None, None, None, None))
         .flashing("error" -> this.messagesApi("error.org.createLimit", this.createLimit))
     else
       Ok(views.createOrganization())
@@ -54,23 +52,26 @@ class Organizations @Inject()(forms: OreForms,
     *
     * @return Redirect to organization page
     */
-  def create() = UserLock(Application.showHome(None, None, None, None)) { implicit request =>
+  def create() = UserLock(routes.Application.showHome(None, None, None, None)) { implicit request =>
     val user = request.user
+    val failCall = routes.Organizations.showCreator()
     if (user.ownedOrganizations.size >= this.createLimit)
       BadRequest
     else if (user.isLocked)
-      Redirect(routes.Organizations.showCreator()).withError("error.user.locked")
+      Redirect(failCall).withError("error.user.locked")
     else {
-      val formData = this.forms.OrganizationCreate.bindFromRequest().get
-      val name = formData.name
-      try {
-        this.service.getModelBase(classOf[OrganizationBase]).create(name, user.id.get, formData.build())
-        Redirect(routes.Users.showProjects(name, None))
-      } catch {
-        case e: Exception =>
-          // Creation failed
-          Redirect(routes.Organizations.showCreator()).withError("error.org.cannotCreate")
-      }
+      this.forms.OrganizationCreate.bindFromRequest().fold(
+        hasErrors =>
+          FormError(failCall, hasErrors),
+        formData => {
+          this.organizations.create(formData.name, user.id.get, formData.build()) match {
+            case Left(error) =>
+              Redirect(failCall).withError(error)
+            case Right(organization) =>
+              Redirect(routes.Users.showProjects(organization.name, None))
+          }
+        }
+      )
     }
   }
 
@@ -119,7 +120,7 @@ class Organizations @Inject()(forms: OreForms,
           List(this.messagesApi("error.org.cannotUpdateAvatar"))
       })
       if (errors.isEmpty)
-        Ok(Json.toJson(request.organization.toUser.refresh()))
+        Ok(Json.toJson(request.organization.toUser.refreshForumData()))
       else
         Ok(Json.obj("errors" -> errors))
     }

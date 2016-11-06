@@ -42,7 +42,7 @@ $sp_logo_width: 200px;
 #topbar {
   position: fixed;
   top: $sp_logo_offset_x;
-  z-index: 9999;
+  z-index: 1000;
 
   width: 100%;
   max-width: 1920px;

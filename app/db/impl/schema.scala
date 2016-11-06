@@ -162,10 +162,9 @@ class SessionTable(tag: Tag) extends ModelTable[DbSession](tag, "sessions") {
 class OrganizationTable(tag: Tag) extends ModelTable[Organization](tag, "organizations") with NameColumn[Organization] {
 
   override def id   =   column[Int]("id", O.PrimaryKey)
-  def password      =   column[String]("password")
   def userId        =   column[Int]("user_id")
 
-  override def * = (id.?, createdAt.?, name, password, userId) <> (Organization.tupled, Organization.unapply)
+  override def * = (id.?, createdAt.?, name, userId) <> (Organization.tupled, Organization.unapply)
 
 }
 

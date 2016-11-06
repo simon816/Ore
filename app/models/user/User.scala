@@ -379,7 +379,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return This user
     */
-  def refresh(): User = {
+  def refreshForumData(): User = {
     this.forums.await(this.forums.fetchUser(this.name).recover {
       case e: Exception => None // couldn't connect, ignore
     }).foreach(fill)

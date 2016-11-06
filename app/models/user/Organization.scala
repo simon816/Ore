@@ -20,13 +20,11 @@ import ore.{Joinable, Visitable}
   *
   * @param id             Unique ID
   * @param createdAt      Date of creation
-  * @param password       Sponge forums password (encrypted)
   * @param ownerId        The ID of the [[User]] that owns this organization
   */
 case class Organization(override val id: Option[Int] = None,
                         override val createdAt: Option[Timestamp] = None,
                         username: String,
-                        password: String,
                         ownerId: Int)
                         extends OreModel(id, createdAt)
                           with UserOwned

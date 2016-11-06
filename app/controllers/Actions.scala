@@ -8,7 +8,7 @@ import models.project.Project
 import models.user.User
 import ore.permission.scope.GlobalScope
 import ore.permission.{EditSettings, HideProjects, Permission}
-import org.spongepowered.play.ActionHelpers
+import org.spongepowered.play.util.ActionHelpers
 import play.api.mvc.Results._
 import play.api.mvc._
 import security.sso.SingleSignOn
