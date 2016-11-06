@@ -1,7 +1,7 @@
-package db.impl.table
+package db.impl.table.common
 
 import db.impl.OrePostgresDriver.api._
-import db.impl.model.Downloadable
+import db.impl.model.common.Downloadable
 import db.table.ModelTable
 
 /**

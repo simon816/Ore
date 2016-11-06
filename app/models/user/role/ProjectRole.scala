@@ -23,16 +23,23 @@ case class ProjectRole(override val id: Option[Int] = None,
                        override val userId: Int,
                        override val projectId: Int,
                        private val _roleType: RoleType,
-                       private val _isAccepted: Boolean = false)
-                       extends RoleModel(id, createdAt, userId, _roleType, _isAccepted)
+                       private val _isAccepted: Boolean = false,
+                       private val _isVisible: Boolean = true)
+                       extends RoleModel(id, createdAt, userId, _roleType, _isAccepted, _isVisible)
                          with ProjectScope {
 
   override type M = ProjectRole
   override type T = ProjectRoleTable
 
-  def this(userId: Int, roleType: RoleType, projectId: Int, accepted: Boolean) = {
-    this(id=None, createdAt=None, userId=userId, _roleType=roleType, projectId=projectId, _isAccepted=accepted)
-  }
+  def this(userId: Int, roleType: RoleType, projectId: Int, accepted: Boolean, visible: Boolean) = this(
+    id = None,
+    createdAt = None,
+    userId = userId,
+    _roleType = roleType,
+    projectId = projectId,
+    _isAccepted = accepted,
+    _isVisible = visible
+  )
 
   override def subject: Visitable = this.project
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)

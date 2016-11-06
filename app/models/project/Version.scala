@@ -7,7 +7,8 @@ import db.ModelService
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl.VersionTable
-import db.impl.model.{Describable, Downloadable, OreModel}
+import db.impl.model.common.{Describable, Downloadable}
+import db.impl.model.OreModel
 import db.impl.schema.VersionSchema
 import db.impl.table.ModelKeys._
 import models.statistic.VersionDownload

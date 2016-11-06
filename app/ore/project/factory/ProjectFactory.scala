@@ -89,19 +89,7 @@ trait ProjectFactory {
       uploadedFile.moveTo(uploadPath.toFile, replace = true)
     }
 
-    // Name the file correctly
-    val metaData = plugin.loadMeta()
-    val pathStr = plugin.path.toString
-    val stopIndex = pathStr.lastIndexOf('.')
-    if (stopIndex == -1)
-      throw new IllegalStateException("file has no extension?")
-    val extension = pathStr.substring(stopIndex)
-    val namedPath = plugin.path.getParent.resolve(metaData.getName + "-" + metaData.getVersion + extension)
-    if (!plugin.path.equals(namedPath)) {
-      deleteIfExists(namedPath)
-      plugin.move(namedPath)
-    }
-
+    plugin.loadMeta()
     plugin
   }
 
@@ -236,14 +224,26 @@ trait ProjectFactory {
 
     // Invite members
     val dossier = newProject.memberships
-    val owner = pending.file.user
-    dossier.addRole(new ProjectRole(owner.id.get, RoleTypes.ProjectOwner, newProject.id.get, accepted = true))
+    val owner = newProject.owner
+    val ownerId = owner.id.get
+    val projectId = newProject.id.get
+
+    dossier.addRole(new ProjectRole(ownerId, RoleTypes.ProjectOwner, projectId, accepted = true, visible = true))
+    if (owner.isOrganization) {
+      val organization = owner.toOrganization
+      dossier.addRole(new ProjectRole(
+        userId = organization.ownerId,
+        roleType = RoleTypes.ProjectOwner,
+        projectId = projectId,
+        accepted = true,
+        visible = false))
+    }
 
     for (role <- pending.roles) {
       val user = role.user
-      dossier.addRole(role.copy(projectId = newProject.id.get))
+      dossier.addRole(role.copy(projectId = projectId))
       user.sendNotification(Notification(
-        originId = owner.id.get,
+        originId = ownerId,
         notificationType = NotificationTypes.ProjectInvite,
         message = messages("notification.project.invite", role.roleType.title, project.name)
       ))
@@ -321,6 +321,8 @@ trait ProjectFactory {
     val meta = plugin.meta.get
     val oldPath = plugin.path
     val newPath = this.fileManager.getProjectDir(plugin.user.username, meta.getName).resolve(plugin.path.getFileName)
+    if (exists(newPath))
+      throw InvalidPluginFileException("Filename already in use. Please rename your file and try again.")
     if (!exists(newPath.getParent))
       createDirectories(newPath.getParent)
     move(oldPath, newPath)

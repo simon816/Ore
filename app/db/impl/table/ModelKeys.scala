@@ -2,7 +2,7 @@ package db.impl.table
 
 import db.Named
 import db.impl.OrePostgresDriver.api._
-import db.impl.model.{Describable, Downloadable}
+import db.impl.model.common.{Describable, Downloadable, Hideable}
 import db.table.key._
 import models.project._
 import models.statistic.StatEntry
@@ -21,6 +21,7 @@ object ModelKeys {
   val Name                  =   new StringKey[Named](_.name, _.name)
   val Downloads             =   new IntKey[Downloadable](_.downloads, _.downloadCount)
   val Description           =   new StringKey[Describable](_.description, _.description.orNull)
+  val IsVisible             =   new BooleanKey[Hideable](_.isVisible, _.isVisible)
 
   val OwnerId               =   new IntKey[Project](_.userId, _.ownerId)
   val OwnerName             =   new StringKey[Project](_.ownerName, _.ownerName)
@@ -36,7 +37,6 @@ object ModelKeys {
   val RecommendedVersionId  =   new IntKey[Project](
                                   _.recommendedVersionId, _.recommendedVersion.id.getOrElse(-1))
   val LastUpdated           =   new TimestampKey[Project](_.lastUpdated, _.lastUpdated)
-  val IsVisible             =   new BooleanKey[Project](_.isVisible, _.isVisible)
 
   val FullName              =   new StringKey[User](_.fullName, _.fullName.orNull)
   val Email                 =   new StringKey[User](_.email, _.email.orNull)

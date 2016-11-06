@@ -1,7 +1,7 @@
-package db.impl.model
+package db.impl.model.common
 
 import db.Model
-import db.impl.table.DownloadsColumn
+import db.impl.table.common.DownloadsColumn
 
 /**
   * Represents a [[Model]] that keeps track of downloads.

@@ -5,7 +5,8 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
-import db.impl.model.{Describable, Downloadable, OreModel}
+import db.impl.model.common.{Describable, Downloadable, Hideable}
+import db.impl.model.OreModel
 import db.impl.schema.ProjectSchema
 import db.impl.table.ModelKeys
 import db.impl.table.ModelKeys._
@@ -66,6 +67,7 @@ case class Project(override val id: Option[Int] = None,
                      with Describable
                      with Named
                      with Visitable
+                     with Hideable
                      with Joinable[ProjectMember] {
 
   override type M = Project
@@ -231,7 +233,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return True if visible
     */
-  def isVisible: Boolean = this._isVisible
+  override def isVisible: Boolean = this._isVisible
 
   /**
     * Sets whether this project is visible.

@@ -1,7 +1,7 @@
-package db.impl.model
+package db.impl.model.common
 
 import db.Model
-import db.impl.table.DescriptionColumn
+import db.impl.table.common.DescriptionColumn
 
 /**
   * Represents a [[Model]] with a description.

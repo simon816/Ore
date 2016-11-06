@@ -5,6 +5,7 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions._
 import db.impl.RoleTable
 import db.impl.model.OreModel
+import db.impl.model.common.Hideable
 import db.impl.table.ModelKeys._
 import models.user.User
 import ore.Visitable
@@ -25,9 +26,10 @@ abstract class RoleModel(override val id: Option[Int],
                          override val createdAt: Option[Timestamp],
                          override val userId: Int,
                          private var _roleType: RoleType,
-                         private var _isAccepted: Boolean = false)
+                         private var _isAccepted: Boolean = false,
+                         private var _isVisible: Boolean = true)
                          extends OreModel(id, createdAt)
-                           with Role { self =>
+                           with Role with Hideable { self =>
 
   override type M <: RoleModel { type M = self.M }
   override type T <: RoleTable[M]
@@ -66,6 +68,23 @@ abstract class RoleModel(override val id: Option[Int],
     * @return True if accepted by user
     */
   def isAccepted: Boolean = this._isAccepted
+
+  /**
+    * Sets whether this role should be displayed to the end user.
+    *
+    * @param visible True if visible
+    */
+  def setVisible(visible: Boolean) = Defined {
+    this._isVisible = visible
+    update(IsVisible)
+  }
+
+  /**
+    * Returns true if this role should be displayed to the end user.
+    *
+    * @return True if model is visible
+    */
+  def isVisible: Boolean = this._isVisible
 
   override def roleType = this._roleType
 

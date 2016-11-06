@@ -3,7 +3,8 @@ package db.impl
 import java.sql.Timestamp
 
 import db.impl.OrePostgresDriver.api._
-import db.impl.table.{DescriptionColumn, DownloadsColumn, StatTable}
+import db.impl.table.common.{DescriptionColumn, DownloadsColumn, VisibilityColumn}
+import db.impl.table.StatTable
 import db.table.{AssociativeTable, ModelTable, NameColumn}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
@@ -25,7 +26,8 @@ import ore.user.notification.NotificationTypes.NotificationType
 trait ProjectTable extends ModelTable[Project]
   with NameColumn[Project]
   with DownloadsColumn[Project]
-  with DescriptionColumn[Project] {
+  with DescriptionColumn[Project]
+  with VisibilityColumn[Project] {
 
   def pluginId              =   column[String]("plugin_id")
   def slug                  =   column[String]("slug")
@@ -41,7 +43,6 @@ trait ProjectTable extends ModelTable[Project]
   def topicId               =   column[Int]("topic_id")
   def postId                =   column[Int]("post_id")
   def isTopicDirty          =   column[Boolean]("is_topic_dirty")
-  def isVisible             =   column[Boolean]("is_visible")
   def lastUpdated           =   column[Timestamp]("last_updated")
 
   override def * = (id.?, createdAt.?, pluginId, ownerName, userId, homepage.?, name, slug, recommendedVersionId.?,
@@ -178,7 +179,7 @@ class OrganizationMembersTable(tag: Tag) extends AssociativeTable(tag, "organiza
 
 }
 
-trait RoleTable[R <: RoleModel] extends ModelTable[R] {
+trait RoleTable[R <: RoleModel] extends ModelTable[R] with VisibilityColumn[R] {
 
   def userId      =   column[Int]("user_id")
   def roleType    =   column[RoleType]("role_type")
@@ -192,8 +193,8 @@ class OrganizationRoleTable(tag: Tag)
 
   def organizationId = column[Int]("organization_id")
 
-  override def * = (id.?, createdAt.?, userId, organizationId, roleType, isAccepted) <> (OrganizationRole.tupled,
-                    OrganizationRole.unapply)
+  override def * = (id.?, createdAt.?, userId, organizationId, roleType, isAccepted,
+                    isVisible) <> (OrganizationRole.tupled, OrganizationRole.unapply)
 
 }
 
@@ -203,7 +204,7 @@ class ProjectRoleTable(tag: Tag)
 
   def projectId = column[Int]("project_id")
 
-  override def * = (id.?, createdAt.?, userId, projectId, roleType, isAccepted) <> (ProjectRole.tupled,
+  override def * = (id.?, createdAt.?, userId, projectId, roleType, isAccepted, isVisible) <> (ProjectRole.tupled,
                     ProjectRole.unapply)
 
 }

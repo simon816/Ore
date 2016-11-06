@@ -5,6 +5,8 @@ import models.user.User
 import models.user.role.RoleModel
 import ore.permission.scope.ScopeSubject
 
+import scala.language.implicitConversions
+
 /**
   * Represents a [[User]] member of some entity.
   */
