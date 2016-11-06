@@ -96,7 +96,7 @@ trait OreDiscourseApi extends DiscourseApi {
           // Catch some unexpected cases (should never happen)
           if (!topic.isTopic)
             throw new RuntimeException("project post isn't topic?")
-          if (topic.userId != project.ownerId)
+          if (topic.username != project.ownerName)
             throw new RuntimeException("project post user isn't owner?")
 
           // Update the post and topic id in the project
