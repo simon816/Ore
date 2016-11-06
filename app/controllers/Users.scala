@@ -16,9 +16,11 @@ import ore.user.notification.NotificationFilters.NotificationFilter
 import ore.user.notification.{InviteFilters, NotificationFilters}
 import ore.user.{FakeUser, Prompts}
 import ore.{OreConfig, OreEnv}
+import org.spongepowered.play.mail.Mailer
 import play.api.i18n.MessagesApi
-import play.api.mvc.{Security, _}
+import play.api.mvc._
 import security.sso.SingleSignOn
+import util.EmailFactory
 import views.{html => views}
 
 /**
@@ -28,6 +30,8 @@ class Users @Inject()(fakeUser: FakeUser,
                       forms: OreForms,
                       forums: OreDiscourseApi,
                       writes: OreWrites,
+                      mailer: Mailer,
+                      emails: EmailFactory,
                       implicit override val sso: SingleSignOn,
                       implicit override val messagesApi: MessagesApi,
                       implicit override val env: OreEnv,
@@ -169,6 +173,9 @@ class Users @Inject()(fakeUser: FakeUser,
               user.pgpPubKey = keyInfo.raw
               if (user.lastPgpPubKeyUpdate.isDefined)
                 user.lastPgpPubKeyUpdate = this.service.theTime // Not set the first time
+
+              this.mailer.push(this.emails.create(user, this.emails.PgpUpdated))
+
               Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
             }
         }
@@ -206,7 +213,10 @@ class Users @Inject()(fakeUser: FakeUser,
     */
   def setLocked(username: String, locked: Boolean, sso: Option[String], sig: Option[String]) = {
     VerifiedAction(username, sso, sig) { implicit request =>
-      request.user.setLocked(locked)
+      val user = request.user
+      user.setLocked(locked)
+      if (!locked)
+        this.mailer.push(this.emails.create(user, this.emails.AccountUnlocked))
       Redirect(self.showProjects(username, None))
     }
   }

@@ -71,7 +71,7 @@
                         <h1 class="username">
                             @user.username
 
-                            @if(user.isCurrent) {
+                            @if(user.isCurrent && !user.isOrganization) {
                                 <span data-toggle="modal" data-target="#modal-lock">
                                     <i class="fa @lockIcon action-lock-account" data-toggle="tooltip"
                                        data-placement="top" title="@messages("user.lockAccount")"></i>

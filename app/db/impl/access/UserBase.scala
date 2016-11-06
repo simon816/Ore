@@ -130,7 +130,7 @@ class UserBase(override val service: ModelService,
     * @param session  Current session
     * @return         Authenticated user, if any, None otherwise
     */
-  def current(implicit session: Request[_]): Option[User] = session.cookies.get("_token").flatMap { token =>
+  def current(implicit session: Request[_]): Option[User] = session.cookies.get("_oretoken").flatMap { token =>
     getSession(token.value).map(_.user)
   }
 

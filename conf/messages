@@ -62,7 +62,7 @@ error.version.duplicate         =   Found a duplicate file in project. Plugin fi
 error.invalidKey                =   Invalid key.
 error.pgp.noEmail               =   You must have an email associated with your account to upload a PGP public key.
 error.pgp.invalidEmail          =   The email associated with the uploaded key does not match the email associated with your Sponge account.
-error.pgp.noPubKey              =   You must upload a PGP Public Key to upload files to Ore.
+error.pgp.noPubKey              =   You must upload a PGP Public Key to upload files to Ore. <a href="#TODO">Learn more</a>
 error.pgp.keyChangeCooldown     =   You must wait a minimum of 3 days after changing your public key to upload files.
 error.user.locked               =   Your account is locked.
 
@@ -212,3 +212,9 @@ prompt.changeAvatar.title = Change your avatar!
 prompt.changeAvatar.message = Welcome to your new organization! Start by changing your avatar by clicking on it.
 prompt.pgp.title = Upload a PGP public key.
 prompt.pgp.message = Upload your PGP public key to start uploading to Ore!
+
+email.signature = Best regards,<br/>The team at SpongePowered
+email.pgpUpdate.subject = New PGP key uploaded
+email.pgpUpdate.body = We have detected that you've recently uploaded a new PGP public key to your Ore profile. If you did not make this change, please change your password immediately and take the necessary precautions to secure your account, such as enabling two-factor authentication. Thank you.
+email.accountUnlock.subject = User account unlocked
+email.accountUnlock.body = We have detected that you've recently unlocked your account with us on Ore. If you did not make this change, please change your password immediately and take the necessary precautions to secure your account, such as enabling two-factor authentication. Thank you.

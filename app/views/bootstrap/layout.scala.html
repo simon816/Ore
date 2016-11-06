@@ -6,8 +6,9 @@ this.
 @import db.impl.access.UserBase
 @import ore.{OreConfig, OreEnv}
 @import play.twirl.api.Html
-@(title: String)(content: Html)(implicit messages: Messages, session: Session, request: Request[_],
-        service: ModelService, config: OreConfig, users: UserBase, env: OreEnv)
+@(title: String, scripts: Boolean = true, header: Boolean = true,
+        footer: Boolean = true)(content: Html)(implicit messages: Messages, request: Request[_], service: ModelService,
+        config: OreConfig, users: UserBase)
 
 <!DOCTYPE html>
 <html>
@@ -26,27 +27,38 @@ this.
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("bootstrap/css/bootstrap.min.css")" />
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/main.css")" />
 
-        <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-2.2.1.min.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.at("bootstrap/js/bootstrap.min.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.at("javascripts/filesize.min.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.at("highlight/highlight.pack.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.at("javascripts/svg.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.at("javascripts/main.js")"></script>
-        <script>hljs.initHighlightingOnLoad();</script>
+        @if(scripts) {
+            <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-2.2.1.min.js")"></script>
+            <script type="text/javascript" src="@routes.Assets.at("bootstrap/js/bootstrap.min.js")"></script>
+            <script type="text/javascript" src="@routes.Assets.at("javascripts/filesize.min.js")"></script>
+            <script type="text/javascript" src="@routes.Assets.at("highlight/highlight.pack.js")"></script>
+            <script type="text/javascript" src="@routes.Assets.at("javascripts/svg.js")"></script>
+            <script type="text/javascript" src="@routes.Assets.at("javascripts/main.js")"></script>
+            <script>hljs.initHighlightingOnLoad();</script>
+        }
     </head>
     <body>
-        @bootstrap.header()
+        @if(header) {
+            @bootstrap.header()
+        }
+
         @content
-        @bootstrap.footer()
 
-        <script>
-            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-                        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-                    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+        @if(footer) {
+            @bootstrap.footer()
+        }
 
-            ga('create', 'UA-59476017-3', 'auto');
-            ga('send', 'pageview');
-        </script>
+        @if(scripts) {
+            <script>
+                    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+                    ga('create', 'UA-59476017-3', 'auto');
+                    ga('send', 'pageview');
+            </script>
+        }
+
     </body>
 </html>

@@ -79,6 +79,30 @@ ore {
     orgs.createLimit        =   5
 }
 
+mail {
+    username           =   ${ORE_EMAIL_USER}
+    email              =   ${ORE_EMAIL}
+    password           =   ${ORE_EMAIL_PASSWORD}
+    smtp.host          =   ${ORE_SMTP_HOST}
+    smtp.port          =   ${ORE_SMTP_PORT}
+    confirm.maxAge     =   600000                      // 10 minutes (millis)
+    transport.protocol =   "smtps"                     // The outgoing transport protocol
+    interval           =   30000                       // 30 seconds (millis)
+
+    // Custom properties to be added to the Properties object that is passed to
+    // the JavaMail session. These might vary from SMTP server to server. This
+    // configuration is set up for GMail with "allow less secure apps" enabled in
+    // the user settings.
+    properties = {
+        "mail.smtps.host"=${SPONGE_SSO_SMTP_HOST}
+        "mail.smtp.port"=${SPONGE_SSO_SMTP_PORT}
+        "mail.smtp.socketFactory.class"="javax.net.ssl.SSLSocketFactory"
+        "mail.smtp.socketFactory.fallback"=false
+        "mail.smtp.socketFactory.port"=${SPONGE_SSO_SMTP_PORT}
+        "mail.smtp.smtps.auth"=true
+        "mail.smtps.quitwait"=false
+    }
+}
 
 # Slick configuration
 slick.dbs.default {

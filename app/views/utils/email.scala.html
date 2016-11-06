@@ -1,0 +1,15 @@
+@import db.ModelService
+@import db.impl.access.UserBase
+@import ore.OreConfig
+@(title: String, recipient: String, body: String)(implicit messages: Messages, request: Request[_],
+        service: ModelService, config: OreConfig, users: UserBase)
+
+@bootstrap.layout(messages(title), scripts = false, header = false, footer = false) {
+
+    <div class="container">
+        <p>@recipient,</p>
+        <p>@messages(body)</p>
+        <p>@Html(messages("email.signature"))</p>
+    </div>
+
+}

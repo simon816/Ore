@@ -157,10 +157,10 @@ trait Actions extends ActionHelpers {
     def authenticatedAs(user: User, maxAge: Int = -1) = {
       val session = Actions.this.users.createSession(user)
       val age = if (maxAge == -1) None else Some(maxAge)
-      result.withCookies(Cookie("_token", session.token, age))
+      result.withCookies(Cookie("_oretoken", session.token, age))
     }
 
-    def clearingSession() = result.discardingCookies(DiscardingCookie("_token"))
+    def clearingSession() = result.discardingCookies(DiscardingCookie("_oretoken"))
 
   }
 
