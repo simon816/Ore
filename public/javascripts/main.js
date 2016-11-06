@@ -56,7 +56,7 @@ $(function() {
             input.fadeOut(100);
         } else {
             var startPos = searchBar.position();
-            var dropdown = $('.dropdown-sponge');
+            var dropdown = $('#sp-logo-container');
             var endPos = dropdown.position();
             var a = startPos.left - (endPos.left + dropdown.width());
             var b = startPos.top - endPos.top;
