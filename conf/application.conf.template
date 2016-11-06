@@ -41,10 +41,13 @@ ore {
     security {
         requirePgp         =   true
         keyChangeCooldown  =   259200000
-        sso.loginUrl       =   ${SPONGE_SSO_LOGIN_URL}
-        sso.signupUrl      =   ${SPONGE_SSO_SIGNUP_URL}
-        sso.verifyUrl      =   ${SPONGE_SSO_VERIFY_URL}
-        sso.secret         =   ${SPONGE_SSO_SECRET}
+        sso.loginUrl       =   ${SPONGE_AUTH_LOGIN_URL}
+        sso.signupUrl      =   ${SPONGE_AUTH_SIGNUP_URL}
+        sso.verifyUrl      =   ${SPONGE_AUTH_VERIFY_URL}
+        sso.secret         =   ${SPONGE_AUTH_SECRET}
+        api.url            =   ${SPONGE_AUTH_URL}
+        api.key            =   ${SPONGE_AUTH_API_KEY}
+        api.timeout        =   10000
     }
     
     channels.max-name-len   =   15

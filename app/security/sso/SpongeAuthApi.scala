@@ -14,9 +14,14 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
+/**
+  * Interfaces with the SpongeAuth Web API
+  */
 trait SpongeAuthApi {
 
+  /** The base URL of the instance */
   val url: String
+  /** Secret API key */
   val apiKey: String
   val ws: WSClient
   val timeout: Duration = 10.seconds
@@ -29,12 +34,29 @@ trait SpongeAuthApi {
     (JsPath \ "email").read[String]
   )(SpongeUser.apply _)
 
+  /**
+    * Creates a new user with the specified credentials.
+    *
+    * @param username Username
+    * @param email    Email
+    * @param password Password
+    * @param verified True if should bypass email verification
+    * @return         Newly created user
+    */
   def createUser(username: String,
                  email: String,
                  password: String,
                  verified: Boolean = false): Either[String, SpongeUser]
   = doCreateUser(username, email, password, verified, dummy = false)
 
+  /**
+    * Creates a "dummy" user that cannot log in and has no password.
+    *
+    * @param username Username
+    * @param email    Email
+    * @param verified True if should bypass email verification
+    * @return         Newly created user
+    */
   def createDummyUser(username: String, email: String, verified: Boolean = false): Either[String, SpongeUser]
   = doCreateUser(username, email, null, verified, dummy = true)
 
@@ -54,17 +76,29 @@ trait SpongeAuthApi {
     readUser(this.ws.url(route("/api/users")).post(params))
   }
 
+  /**
+    * Returns the user with the specified username.
+    *
+    * @param username Username to lookup
+    * @return         User with username
+    */
   def getUser(username: String): Option[SpongeUser] = {
     val url = route("/api/users/" + username) + s"?apiKey=$apiKey"
     readUser(this.ws.url(url).get()).right.toOption
   }
 
+  /**
+    * Deletes the user with the specified username.
+    *
+    * @param username Username to lookup
+    * @return         Deleted user
+    */
   def deleteUser(username: String): Either[String, SpongeUser] = {
     val url = route("/api/users") + s"?username=$username&apiKey=$apiKey"
     readUser(this.ws.url(url).delete())
   }
 
-  def readUser(response: Future[WSResponse], nullable: Boolean = false): Either[String, SpongeUser] = {
+  private def readUser(response: Future[WSResponse], nullable: Boolean = false): Either[String, SpongeUser] = {
     await(response.map(parseJson(_, Logger)).map(_.map { json =>
       val obj = json.as[JsObject]
       if (obj.keys.contains("error"))
