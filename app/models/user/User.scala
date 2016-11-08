@@ -20,9 +20,9 @@ import ore.permission.scope._
 import ore.user.Prompts.Prompt
 import ore.user.UserOwned
 import org.spongepowered.play.discourse.model.DiscourseUser
+import org.spongepowered.play.security.SpongeUser
 import play.api.mvc.Request
 import security.pgp.PGPPublicKeyInfo
-import security.sso.SpongeUser
 import util.StringUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global

@@ -5,7 +5,7 @@ import db.impl.access._
 import discourse.OreDiscourseApi
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
-import security.sso.SpongeAuthApi
+import security.SpongeAuthApi
 
 trait OreDBOs extends ModelService {
 

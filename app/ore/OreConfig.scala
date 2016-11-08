@@ -27,7 +27,7 @@ final class OreConfig @Inject()(config: Configuration) {
   lazy val orgs = this.ore.getConfig("orgs").get
   lazy val forums = this.root.getConfig("discourse").get
   lazy val sponge = this.root.getConfig("sponge").get
-  lazy val security = this.ore.getConfig("security").get
+  lazy val security = this.root.getConfig("security").get
 
   /**
     * The default color used for Channels.

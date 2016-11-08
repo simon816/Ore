@@ -5,9 +5,9 @@ import db.impl.VersionTable
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import models.project.{Project, Version}
 import ore.{OreConfig, OreEnv}
+import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.I18nSupport
 import play.api.mvc._
-import security.sso.SingleSignOn
 import util.StringUtils._
 
 /**
@@ -16,7 +16,7 @@ import util.StringUtils._
 abstract class BaseController(implicit val env: OreEnv,
                               val config: OreConfig,
                               val service: ModelService,
-                              override val sso: SingleSignOn)
+                              override val sso: SingleSignOnConsumer)
                               extends Controller
                                 with Actions
                                 with I18nSupport {

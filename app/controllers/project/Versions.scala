@@ -15,9 +15,9 @@ import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.factory.{PendingProject, ProjectFactory}
 import ore.project.io.{InvalidPluginFileException, PluginFile}
 import ore.{OreConfig, OreEnv, StatTracker}
+import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.MessagesApi
 import play.api.mvc.Result
-import security.sso.SingleSignOn
 import views.html.projects.{versions => views}
 import util.StringUtils._
 
@@ -28,7 +28,7 @@ class Versions @Inject()(stats: StatTracker,
                          forms: OreForms,
                          factory: ProjectFactory,
                          forums: OreDiscourseApi,
-                         implicit override val sso: SingleSignOn,
+                         implicit override val sso: SingleSignOnConsumer,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,

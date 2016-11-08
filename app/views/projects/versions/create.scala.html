@@ -4,8 +4,8 @@
 @import models.project.{Channel, Project}
 @import ore.project.factory.PendingVersion
 @import ore.{OreConfig, OreEnv}
-@import views.html.helper.form
 @import util.StringUtils
+@import views.html.helper.form
 @(project: Project, pending: Option[PendingVersion],
   channels: Option[Seq[Channel]], showFileControls: Boolean)(implicit messages: Messages, session: Session,
         flash: Flash, request: Request[_], service: ModelService, config: OreConfig, users: UserBase, env: OreEnv)

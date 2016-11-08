@@ -8,10 +8,10 @@ import models.project.Project
 import models.user.User
 import ore.permission.scope.GlobalScope
 import ore.permission.{EditSettings, HideProjects, Permission}
+import org.spongepowered.play.security.SingleSignOnConsumer
 import org.spongepowered.play.util.ActionHelpers
 import play.api.mvc.Results._
 import play.api.mvc._
-import security.sso.SingleSignOn
 
 import scala.concurrent.Future
 import scala.language.higherKinds
@@ -24,7 +24,7 @@ trait Actions extends ActionHelpers {
   val users: UserBase
   val projects: ProjectBase
   val organizations: OrganizationBase
-  val sso: SingleSignOn
+  val sso: SingleSignOnConsumer
 
   /** Ensures a request is authenticated */
   def Authenticated = Action andThen authAction

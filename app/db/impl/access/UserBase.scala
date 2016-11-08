@@ -10,7 +10,7 @@ import discourse.OreDiscourseApi
 import models.user.{Session, User}
 import ore.OreConfig
 import play.api.mvc.Request
-import security.sso.SpongeAuthApi
+import security.SpongeAuthApi
 import util.StringUtils._
 
 /**

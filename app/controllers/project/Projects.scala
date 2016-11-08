@@ -16,9 +16,9 @@ import ore.project.io.InvalidPluginFileException
 import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv, StatTracker}
 import org.apache.commons.io.FileUtils
+import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.MessagesApi
 import play.api.mvc._
-import security.sso.SingleSignOn
 import views.html.{projects => views}
 import util.StringUtils._
 
@@ -28,7 +28,7 @@ import util.StringUtils._
 class Projects @Inject()(stats: StatTracker,
                          forms: OreForms,
                          factory: ProjectFactory,
-                         implicit override val sso: SingleSignOn,
+                         implicit override val sso: SingleSignOnConsumer,
                          implicit val forums: OreDiscourseApi,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,

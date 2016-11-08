@@ -12,9 +12,9 @@ import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import ore.{OreConfig, OreEnv}
+import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.MessagesApi
 import play.api.mvc._
-import security.sso.SingleSignOn
 import util.DataHelper
 import views.{html => views}
 
@@ -22,7 +22,7 @@ import views.{html => views}
   * Main entry point for application.
   */
 final class Application @Inject()(data: DataHelper,
-                                  implicit override val sso: SingleSignOn,
+                                  implicit override val sso: SingleSignOnConsumer,
                                   implicit override val messagesApi: MessagesApi,
                                   implicit override val env: OreEnv,
                                   implicit override val config: OreConfig,

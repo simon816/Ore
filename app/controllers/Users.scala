@@ -17,9 +17,9 @@ import ore.user.notification.{InviteFilters, NotificationFilters}
 import ore.user.{FakeUser, Prompts}
 import ore.{OreConfig, OreEnv}
 import org.spongepowered.play.mail.Mailer
+import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.MessagesApi
 import play.api.mvc._
-import security.sso.SingleSignOn
 import util.EmailFactory
 import views.{html => views}
 
@@ -32,7 +32,7 @@ class Users @Inject()(fakeUser: FakeUser,
                       writes: OreWrites,
                       mailer: Mailer,
                       emails: EmailFactory,
-                      implicit override val sso: SingleSignOn,
+                      implicit override val sso: SingleSignOnConsumer,
                       implicit override val messagesApi: MessagesApi,
                       implicit override val env: OreEnv,
                       implicit override val config: OreConfig,

@@ -9,7 +9,7 @@ import ore.permission.role.RoleTypes
 import ore.user.notification.NotificationTypes
 import org.apache.commons.lang3.RandomStringUtils
 import play.api.i18n.MessagesApi
-import security.sso.SpongeAuthApi
+import security.SpongeAuthApi
 import util.StringUtils
 
 class OrganizationBase(override val service: ModelService,

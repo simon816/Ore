@@ -1,18 +1,19 @@
-package security.sso
+package security
 
 import java.util.concurrent.TimeoutException
 import javax.inject.Inject
 
 import ore.OreConfig
+import org.spongepowered.play.security.SpongeUser
 import org.spongepowered.play.util.WSUtils.parseJson
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Interfaces with the SpongeAuth Web API
