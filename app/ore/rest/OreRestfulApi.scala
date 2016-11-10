@@ -1,17 +1,18 @@
 package ore.rest
 
+import java.lang.Math._
 import javax.inject.Inject
 
-import db.{ModelFilter, ModelService}
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.{ProjectBase, UserBase}
 import db.impl.schema.{ProjectSchema, VersionSchema}
+import db.{ModelFilter, ModelService}
 import models.user.User
 import ore.OreConfig
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
+import play.api.libs.json.JsValue
 import play.api.libs.json.Json.toJson
-import play.api.libs.json.{JsValue, Json}
 import util.StringUtils._
 
 /**
@@ -45,7 +46,7 @@ trait OreRestfulApi {
     val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
     val filter = q.map(queries.searchFilter).getOrElse(ModelFilter.Empty)
     val maxLoad = this.config.projects.getInt("init-load").get
-    val lim = Math.max(limit.getOrElse(maxLoad), maxLoad)
+    val lim = max(min(limit.getOrElse(maxLoad), maxLoad), 0)
     val future = queries.collect(filter.fn, categoryArray, lim, offset.getOrElse(-1), ordering)
     val projects = this.service.await(future).get
     toJson(projects)
@@ -79,7 +80,7 @@ trait OreRestfulApi {
       // Only allow versions in the specified channels
       val filter = channelIds.map(service.getSchema(classOf[VersionSchema]).channelFilter).getOrElse(ModelFilter.Empty)
       val maxLoad = this.config.projects.getInt("init-version-load").get
-      val lim = Math.max(limit.getOrElse(maxLoad), maxLoad)
+      val lim = max(min(limit.getOrElse(maxLoad), maxLoad), 0)
 
       toJson(project.versions.sorted(_.createdAt.desc, filter.fn, lim, offset.getOrElse(-1)))
     }

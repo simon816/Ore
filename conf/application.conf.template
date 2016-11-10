@@ -97,8 +97,8 @@ mail {
     // configuration is set up for GMail with "allow less secure apps" enabled in
     // the user settings.
     properties = {
-        "mail.smtps.host"=${SPONGE_SSO_SMTP_HOST}
-        "mail.smtp.port"=${SPONGE_SSO_SMTP_PORT}
+        "mail.smtps.host"=${ORE_SMTP_HOST}
+        "mail.smtp.port"=${ORE_SMTP_PORT}
         "mail.smtp.socketFactory.class"="javax.net.ssl.SSLSocketFactory"
         "mail.smtp.socketFactory.fallback"=false
         "mail.smtp.socketFactory.port"=${SPONGE_SSO_SMTP_PORT}
