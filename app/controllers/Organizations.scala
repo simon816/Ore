@@ -120,7 +120,7 @@ class Organizations @Inject()(forms: OreForms,
           List(this.messagesApi("error.org.cannotUpdateAvatar"))
       })
       if (errors.isEmpty)
-        Ok(Json.toJson(request.organization.toUser.refreshForumData()))
+        Ok(Json.toJson(request.organization.toUser.pullForumData()))
       else
         Ok(Json.obj("errors" -> errors))
     }

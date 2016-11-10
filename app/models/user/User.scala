@@ -211,23 +211,6 @@ case class User(override val id: Option[Int] = None,
   }
 
   /**
-    * Returns a template string for constructing an avatar URL.
-    *
-    * @return Avatar template
-    */
-  def avatarTemplate: Option[String] = this._avatarUrl.map(this.config.forums.getString("baseUrl").get + _)
-
-  /**
-    * Returns a URL to this user's avatar for the specified size
-    *
-    * @param size avatar size
-    * @return     avatar url
-    */
-  def avatarUrl(size: Int = 100): String = this.avatarTemplate.map { s =>
-    s.replace("{size}", size.toString)
-  }.getOrElse("")
-
-  /**
     * Returns this User's avatar url.
     *
     * @return Avatar url
@@ -345,7 +328,6 @@ case class User(override val id: Option[Int] = None,
     * @param user User to fill with
     * @return     This user
     */
-  @deprecated("fill with sponge user instead")
   def fill(user: DiscourseUser): User = {
     if (user == null)
       return this
@@ -371,6 +353,12 @@ case class User(override val id: Option[Int] = None,
       return this
     this.username = user.username
     this.email = user.email
+    user.avatarUrl.map { url =>
+      if (!url.startsWith("http"))
+        this.config.security.getString("api.url").get + url
+      else
+        url
+    }.foreach(this.avatarUrl = _)
     this
   }
 
@@ -379,11 +367,20 @@ case class User(override val id: Option[Int] = None,
     *
     * @return This user
     */
-  def refreshForumData(): User = {
+  def pullForumData(): User = {
     this.forums.await(this.forums.fetchUser(this.name).recover {
       case e: Exception => None // couldn't connect, ignore
     }).foreach(fill)
     this
+  }
+
+  /**
+    * Pulls information from the forums and updates this User.
+    *
+    * @return This user
+    */
+  def pullSpongeData(): User = this.auth.getUser(this.name).map(fill).getOrElse {
+    throw new Exception("user doesn't exist on SpongeAuth?")
   }
 
   /**

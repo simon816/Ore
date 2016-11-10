@@ -55,7 +55,7 @@
                     <img title="@user.username" alt="@user.username" height="100" width="100"
                          class="user-avatar @if(canEditOrganization) { organization-avatar }"
                          @if(canEditOrganization) { data-toggle="modal" data-target="#modal-avatar" }
-                         src="@user.avatarUrl(200)" />
+                         src="@user.avatarUrl" />
 
                     @if(canEditOrganization) {
                         <div class="edit-avatar" style="display: none;">
@@ -114,7 +114,7 @@
                             <li class="organization-role" data-toggle="tooltip" data-placement="top"
                                 data-title="@organization.name">
                                 <a href="@organization.url">
-                                    <img class="user-avatar" src="@organization.toUser.avatarUrl(50)" width="26"
+                                    <img class="user-avatar" src="@organization.toUser.avatarUrl" width="26"
                                          height="26" />
                                 </a>
                             </li>

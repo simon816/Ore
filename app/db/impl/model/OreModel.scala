@@ -6,6 +6,7 @@ import db.Model
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import discourse.OreDiscourseApi
 import ore.OreConfig
+import security.SpongeAuthApi
 
 /** An Ore Model */
 abstract class OreModel(override val id: Option[Int],
@@ -14,5 +15,6 @@ abstract class OreModel(override val id: Option[Int],
                         var projectBase: ProjectBase = null,
                         var organizationBase: OrganizationBase = null,
                         var config: OreConfig = null,
-                        var forums: OreDiscourseApi = null)
+                        var forums: OreDiscourseApi = null,
+                        var auth: SpongeAuthApi = null)
                         extends Model(id, createdAt)

@@ -250,7 +250,7 @@ class Projects @Inject()(stats: StatTracker,
       val project = request.project
       this.projects.fileManager.getIconPath(project) match {
         case None =>
-          Redirect(project.owner.user.avatarUrl(this.config.projects.getInt("icon-size").get))
+          project.owner.user.avatarUrl.map(Redirect(_)).getOrElse(NotFound)
         case Some(iconPath) =>
           showImage(iconPath)
       }

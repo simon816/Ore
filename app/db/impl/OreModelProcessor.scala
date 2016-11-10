@@ -5,6 +5,7 @@ import db.impl.model.OreModel
 import db.{Model, ModelProcessor, ModelService}
 import discourse.OreDiscourseApi
 import ore.OreConfig
+import security.SpongeAuthApi
 
 /**
   * A ModelProcessor that performs Ore specific model processing.
@@ -17,7 +18,8 @@ class OreModelProcessor(service: ModelService,
                         projects: ProjectBase,
                         organizations: OrganizationBase,
                         config: OreConfig,
-                        forums: OreDiscourseApi)
+                        forums: OreDiscourseApi,
+                        auth: SpongeAuthApi)
                         extends ModelProcessor(service) {
 
   override def process[M <: Model](model: M) = {
@@ -28,8 +30,10 @@ class OreModelProcessor(service: ModelService,
         oreModel.organizationBase = this.organizations
         oreModel.config = this.config
         oreModel.forums = this.forums
+        oreModel.auth = this.auth
       case _ =>
     }
     model
   }
+
 }

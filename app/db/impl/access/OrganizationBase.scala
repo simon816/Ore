@@ -72,7 +72,7 @@ class OrganizationBase(override val service: ModelService,
     // are just normal users with additional information. Adding the
     // Organization global role signifies that this User is an Organization
     // and should be treated as such.
-    val userOrg = org.toUser.refreshForumData()
+    val userOrg = org.toUser.pullForumData().pullSpongeData()
     userOrg.globalRoles = userOrg.globalRoles + RoleTypes.Organization
 
     // Add the owner

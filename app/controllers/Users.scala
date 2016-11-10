@@ -72,7 +72,7 @@ class Users @Inject()(fakeUser: FakeUser,
           Redirect(app.showHome(None, None, None, None)).withError("error.loginFailed")
         case Some(spongeUser) =>
           // Complete authentication
-          val user = this.users.getOrCreate(User.fromSponge(spongeUser)).refreshForumData()
+          val user = this.users.getOrCreate(User.fromSponge(spongeUser)).pullForumData().pullSpongeData()
           this.redirectBack(request.flash.get("url").getOrElse("/"), user)
       }
     }
@@ -191,8 +191,6 @@ class Users @Inject()(fakeUser: FakeUser,
     */
   def deletePgpPublicKey(username: String, sso: Option[String], sig: Option[String]) = {
     VerifiedAction(username, sso, sig) { implicit request =>
-      println(sso)
-      println(sig)
       val user = request.user
       if (user.pgpPubKey.isEmpty)
         BadRequest

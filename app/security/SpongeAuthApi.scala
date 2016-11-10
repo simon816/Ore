@@ -32,7 +32,8 @@ trait SpongeAuthApi {
   implicit private val spongeUserReads: Reads[SpongeUser] = (
     (JsPath \ "id").read[Int] and
     (JsPath \ "username").read[String] and
-    (JsPath \ "email").read[String]
+    (JsPath \ "email").read[String] and
+    (JsPath \ "avatar_url").readNullable[String]
   )(SpongeUser.apply _)
 
   /**

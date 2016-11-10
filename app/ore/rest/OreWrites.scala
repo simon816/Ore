@@ -44,7 +44,7 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
 
       obj(
         "id"            ->  version.id.get,
-        "createdAt"     ->  prettifyDate(version.createdAt.get),
+        "createdAt"     ->  version.createdAt.get.toString,
         "name"          ->  version.versionString,
         "dependencies"  ->  dependencies,
         "pluginId"      ->  project.pluginId,
@@ -59,7 +59,7 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
       val category = project.category
       obj(
         "pluginId"      ->  project.pluginId,
-        "createdAt"     ->  prettifyDate(project.createdAt.get),
+        "createdAt"     ->  project.createdAt.get.toString,
         "name"          ->  project.name,
         "owner"         ->  project.ownerName,
         "description"   ->  project.description,
@@ -80,11 +80,11 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
     def writes(user: User) = {
       obj(
         "id"              ->  user.id,
-        "createdAt"       ->  prettifyDate(user.createdAt.get),
+        "createdAt"       ->  user.createdAt.get.toString,
         "username"        ->  user.username,
         "roles"           ->  user.globalRoles.map(_.title),
         "starred"         ->  user.starred().map(p => p.pluginId),
-        "avatarTemplate"  ->  user.avatarTemplate,
+        "avatarUrl"       ->  user.avatarUrl,
         "projects"        ->  user.projects.all
       )
     }
@@ -97,7 +97,7 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "userName" -> key.userName,
         "email" -> key.email,
         "id" -> key.id,
-        "createdAt" -> key.createdAt
+        "createdAt" -> key.createdAt.toString
       )
     }
   }

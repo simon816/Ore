@@ -37,5 +37,6 @@
     <logger name="DataHelper" level="INFO" />
     <logger name="PGP" level="INFO" />
     <logger name="Mailer" level="INFO" />
+    <logger name="SpongeAuth" level="INFO" />
 
 </configuration>

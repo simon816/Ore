@@ -36,7 +36,7 @@
             <!-- Owner (not submitted) -->
             <tr>
                 <td>
-                    <img class="user-avatar" width="32" height="32" src="@owner.avatarUrl(100)" />
+                    <img class="user-avatar" width="32" height="32" src="@owner.avatarUrl" />
                     <strong>@owner.username</strong>
                 </td>
                 <td><i class="minor">@messages("project.owner")</i></td>
@@ -46,7 +46,7 @@
                 <tr>
                     <td>
                         <input form="form-continue" type="hidden" value="@user.id.get" />
-                        <img class="user-avatar" width="32" height="32" src="@user.avatarUrl(100)" />
+                        <img class="user-avatar" width="32" height="32" src="@user.avatarUrl" />
                         <a target="_blank" href="@routes.Users.showProjects(user.username, None)">
                         @user.username
                         </a>
