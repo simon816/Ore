@@ -39,5 +39,6 @@
     <logger name="Mailer" level="INFO" />
     <logger name="SpongeAuth" level="INFO" />
     <logger name="Permissions" level="INFO" />
+    <logger name="UserSync" level="INFO" />
 
 </configuration>

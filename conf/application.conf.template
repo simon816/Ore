@@ -75,6 +75,7 @@ ore {
     users.max-tagline-len   =   100
     users.author-page-size  =   25
     users.project-page-size =   5
+    users.syncRate          =   10800000
     
     orgs.passwordLength     =   60
     orgs.dummyEmailDomain   =   "spongepowered.org"
