@@ -48,7 +48,7 @@ trait ProjectFactory {
   implicit val forums: OreDiscourseApi
   implicit val env = this.fileManager.env
 
-  val isPgpEnabled = this.config.security.getBoolean("requirePgp").get
+  var isPgpEnabled = this.config.security.getBoolean("requirePgp").get
 
   /**
     * Loads a new [[PluginFile]] for further processing.

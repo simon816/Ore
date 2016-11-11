@@ -64,8 +64,7 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "owner"         ->  project.ownerName,
         "description"   ->  project.description,
         "href"          ->  ('/' + project.ownerName + '/' + project.slug),
-        // TODO: filter out members who have not accepted the invite
-        "members"       ->  project.memberships.members,
+        "members"       ->  project.memberships.members.filter(_.roles.exists(_.isAccepted)),
         "channels"      ->  toJson(project.channels.toSeq),
         "recommended"   ->  toJson(project.recommendedVersion),
         "category"      ->  obj("title" -> category.title, "icon" -> category.icon),

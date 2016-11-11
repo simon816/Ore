@@ -38,5 +38,6 @@
     <logger name="PGP" level="INFO" />
     <logger name="Mailer" level="INFO" />
     <logger name="SpongeAuth" level="INFO" />
+    <logger name="Permissions" level="INFO" />
 
 </configuration>

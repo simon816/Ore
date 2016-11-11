@@ -18,8 +18,6 @@ import org.apache.commons.io.FileUtils
 import play.api.cache.CacheApi
 import play.api.libs.Files.TemporaryFile
 
-import scala.util.Random
-
 /**
   * Utility class for performing some bulk actions on the application data.
   * Typically for testing.
@@ -55,6 +53,7 @@ final class DataHelper @Inject()(config: OreConfig,
 
     checkArgument(channels <= Channel.Colors.size,
       "cannot make more channels than there are colors", "")
+    this.factory.isPgpEnabled = false
 
     Logger.info("Resetting Ore")
     this.reset()
@@ -63,7 +62,6 @@ final class DataHelper @Inject()(config: OreConfig,
     val pluginPath = Paths.get(this.config.ore.getString("test-plugin").get)
     val tmpDir = createDirectories(pluginPath.getParent.resolve("tmp"))
     val filePath = tmpDir.resolve(pluginPath.getFileName)
-    val random = new Random
 
     Logger.info(s"Test plugin path: $pluginPath.")
 

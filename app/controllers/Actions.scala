@@ -1,8 +1,6 @@
 package controllers
 
 import controllers.Requests.{OrganizationRequest, _}
-import controllers.project.routes.Projects
-import controllers.routes.Users
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import models.project.Project
 import models.user.User
@@ -26,6 +24,8 @@ trait Actions extends ActionHelpers {
   val organizations: OrganizationBase
   val sso: SingleSignOnConsumer
 
+  val PermsLogger = play.api.Logger("Permissions")
+
   /** Ensures a request is authenticated */
   def Authenticated = Action andThen authAction
 
@@ -35,7 +35,7 @@ trait Actions extends ActionHelpers {
   /** Called when a [[User]] tries to make a request they do not have permission for */
   def onUnauthorized(request: Request[_]) = {
     if (request.flash.get("noRedirect").isEmpty && this.users.current(request).isEmpty)
-      Redirect(Users.logIn(None, None, Some(request.path)))
+      Redirect(routes.Users.logIn(None, None, Some(request.path)))
     else
       Redirect(routes.Application.showHome(None, None, None, None))
   }
@@ -49,11 +49,20 @@ trait Actions extends ActionHelpers {
     * @return   The ScopedRequest as an instance of R
     */
   def PermissionAction[R[_] <: ScopedRequest[_]](p: Permission) = new ActionRefiner[ScopedRequest, R] {
+
+    private def log(success: Boolean, request: ScopedRequest[_]) = {
+      val lang = if (success) "GRANTED" else "DENIED"
+      PermsLogger.info(s"<PERMISSION $lang> ${request.user.name}@${request.path.substring(1)}")
+    }
+
     def refine[A](request: ScopedRequest[A]) = Future.successful {
-      if (!(request.user can p in request.subject))
+      if (!(request.user can p in request.subject)) {
+        log(success = false, request)
         Left(onUnauthorized(request))
-      else
+      } else {
+        log(success = true, request)
         Right(request.asInstanceOf[R[A]])
+      }
     }
   }
 
@@ -83,7 +92,7 @@ trait Actions extends ActionHelpers {
     * @return Authenticated request with a project if found, NotFound otherwise.
     */
   def AuthedProjectAction(author: String, slug: String, requireUnlock: Boolean = false) = {
-    val first = if (requireUnlock) UserLock(Projects.show(author, slug)) else Authenticated
+    val first = if (requireUnlock) UserLock(project.routes.Projects.show(author, slug)) else Authenticated
     first andThen authedProjectAction(author, slug)
   }
 
@@ -112,7 +121,7 @@ trait Actions extends ActionHelpers {
     * @return             Authenticated request with Organization if found, NotFound otherwise
     */
   def AuthedOrganizationAction(organization: String, requireUnlock: Boolean = false) = {
-    val first = if (requireUnlock) UserLock(Users.showProjects(organization, None)) else Authenticated
+    val first = if (requireUnlock) UserLock(routes.Users.showProjects(organization, None)) else Authenticated
     first andThen authedOrganizationAction(organization)
   }
 

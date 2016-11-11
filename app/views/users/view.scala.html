@@ -72,6 +72,10 @@
                             @user.username
 
                             @if(user.isCurrent && !user.isOrganization) {
+                                <a class="user-settings" href="@config.security.getString("api.url").get/settings">
+                                    <i class="fa fa-cog"></i>
+                                </a>
+
                                 <span data-toggle="modal" data-target="#modal-lock">
                                     <i class="fa @lockIcon action-lock-account" data-toggle="tooltip"
                                        data-placement="top" title="@messages("user.lockAccount")"></i>
@@ -158,8 +162,8 @@
 
                     <h4 class="modal-title">
                         @messages("user.pgp.pubKey")
-                        <a href="#TODO" data-toggle="tooltip" data-placement="right"
-                           title="@messages("general.learnMore")">
+                        <a href="https://docs.spongepowered.org/ore/publish" data-toggle="tooltip"
+                           data-placement="right" title="@messages("general.learnMore")">
                             <i class="fa fa-question-circle"></i>
                         </a>
                     </h4>
