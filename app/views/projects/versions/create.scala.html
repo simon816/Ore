@@ -18,6 +18,7 @@
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/channelManage.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/pluginUpload.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/projectDetail.js")"></script>
 
     <div class="container" style="margin-top: 90px">
         <div class="row">
@@ -61,7 +62,8 @@
                                             <td class="form-inline">
                                                 @* Show channel selector if old project, editor if new project *@
                                                 @if(showFileControls) {
-                                                    <select id="select-channel" form="form-publish" name="channel-input" class="form-control">
+                                                    <select id="select-channel" form="form-publish" name="channel-input"
+                                                            class="form-control">
                                                         @channels.get.map { channel =>
                                                           <option value="@channel.name" data-color="@channel.color.hex"
                                                             @if(pending.isDefined && channel.name.equals(pending.get.channelName)) {
@@ -73,7 +75,8 @@
                                                         }
                                                     </select>
                                                     <a href="#">
-                                                        <i id="channel-new" class="fa fa-plus" data-toggle="modal" data-target="#channel-settings"></i>
+                                                        <i id="channel-new" class="fa fa-plus" data-toggle="modal"
+                                                           data-target="#channel-settings"></i>
                                                     </a>
                                                     <script type="text/javascript"
                                                             src="@routes.Assets.at("javascripts/versionCreateChannelNew.js")"></script>
@@ -113,6 +116,22 @@
                                         }
                                     </table>
                                 </div>
+
+                                <div class="release-bulletin">
+                                    <div>
+                                        <h3>@messages("version.releaseBulletin")</h3>
+                                        <p>@messages("version.releaseBulletin.info")</p>
+
+                                        @utils.editor(
+                                            savable = false,
+                                            enabled = true,
+                                            raw = version.description.getOrElse(""),
+                                            cancellable = false,
+                                            targetForm = "form-publish"
+                                        )
+                                    </div>
+                                </div>
+                                <script>$(function() { $('.btn-edit').click() });</script>
                             }
                         }
 

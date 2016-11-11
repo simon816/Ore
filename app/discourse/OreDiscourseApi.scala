@@ -230,7 +230,7 @@ trait OreDiscourseApi extends DiscourseApi {
     * @param version Version of project
     * @return
     */
-  def postVersionRelease(project: Project, version: Version): Future[List[String]] = {
+  def postVersionRelease(project: Project, version: Version, content: String): Future[List[String]] = {
     if (!this.isEnabled)
       return Future(List.empty)
     checkArgument(project.id.isDefined, "undefined project", "")
@@ -238,10 +238,11 @@ trait OreDiscourseApi extends DiscourseApi {
     checkArgument(version.projectId == project.id.get, "invalid version project pair", "")
     // TODO: Handle failure
     // TODO: Need to be able to edit description before release so you can change the post content
+    val cont = if (content.isEmpty) None else Some(content)
     postDiscussionReply(
       project = project,
       user = project.owner,
-      content = this.templates.versionRelease(project, version))
+      content = this.templates.versionRelease(project, version, cont))
   }
 
   /**
@@ -314,12 +315,12 @@ trait OreDiscourseApi extends DiscourseApi {
     )
 
     /** Generates the content for a version release post. */
-    def versionRelease(project: Project, version: Version) = readAndFormatFile(
+    def versionRelease(project: Project, version: Version, content: Option[String]) = readAndFormatFile(
       OreDiscourseApi.this.versionReleasePostTemplatePath,
       project.name,
       OreDiscourseApi.this.baseUrl + '/' + project.url,
       OreDiscourseApi.this.baseUrl + '/' + version.url,
-      version.description.getOrElse("*No description given.*")
+      content.getOrElse("*No description given.*")
     )
 
   }

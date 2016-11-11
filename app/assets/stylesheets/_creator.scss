@@ -132,3 +132,12 @@
   vertical-align: middle;
   position: relative;
 }
+
+.release-bulletin {
+  border-bottom: 1px solid #ddd;
+  > div {
+    width: 90%;
+    margin: 10px auto 0;
+    > h3, > p { color: gray; }
+  }
+}

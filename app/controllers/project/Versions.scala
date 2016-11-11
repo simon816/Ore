@@ -296,7 +296,7 @@ class Versions @Inject()(stats: StatTracker,
 
                         // Create forum topic reply
                         if (project.topicId != -1)
-                          this.forums.postVersionRelease(project, newVersion)
+                          this.forums.postVersionRelease(project, newVersion, versionData.content.trim)
 
                         Redirect(self.show(author, slug, versionString))
                       }

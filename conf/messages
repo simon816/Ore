@@ -136,6 +136,8 @@ version.create.tos              =   By clicking "Publish" you are agreeing to Or
 version.create.info             =   Release a new version for <strong>{0}</strong>.
 version.recommended             =   Recommended version
 version.approved                =   Approved
+version.releaseBulletin         =   Release Bulletin
+version.releaseBulletin.info    =   What''s new in this release?
 
 channel.name                    =   Channel name
 channel.edit.title              =   Edit channel

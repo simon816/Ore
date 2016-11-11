@@ -12,7 +12,8 @@ import ore.project.factory.ProjectFactory
   */
 case class VersionData(recommended: Boolean,
                        override val channelName: String,
-                       override protected val channelColorHex: String)
+                       override protected val channelColorHex: String,
+                       content: String)
                       (implicit override val config: OreConfig,
                        override val factory: ProjectFactory)
                        extends TChannelData

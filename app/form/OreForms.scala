@@ -134,14 +134,11 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
     */
   lazy val VersionCreate = Form(mapping(
     "recommended" -> boolean,
-
     "channel-input" -> text.verifying(
-      "Invalid channel name.", config.isValidChannelName(_)
-    ),
-
+      "Invalid channel name.", config.isValidChannelName(_)),
     "channel-color-input" -> text.verifying(
-      "Invalid channel color.", c => Channel.Colors.exists(_.hex.equalsIgnoreCase(c))
-    )
+      "Invalid channel color.", c => Channel.Colors.exists(_.hex.equalsIgnoreCase(c))),
+    "content" -> text
   )(VersionData.apply)(VersionData.unapply))
 
 
