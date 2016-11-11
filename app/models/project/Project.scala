@@ -5,19 +5,17 @@ import java.sql.Timestamp
 import com.google.common.base.Preconditions._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
-import db.impl.model.common.{Describable, Downloadable, Hideable}
 import db.impl.model.OreModel
+import db.impl.model.common.{Downloadable, Hideable}
 import db.impl.schema.ProjectSchema
-import db.impl.table.ModelKeys
 import db.impl.table.ModelKeys._
 import db.{ModelService, Named}
 import models.statistic.ProjectView
 import models.user.User
 import models.user.role.ProjectRole
 import ore.permission.scope.ProjectScope
-import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
-import ore.project.{Categories, ProjectMember}
+import ore.project.ProjectMember
 import ore.user.MembershipDossier
 import ore.{Joinable, Visitable}
 import util.StringUtils._
@@ -30,32 +28,31 @@ import util.StringUtils._
   * @param id                     Unique identifier
   * @param createdAt              Instant of creation
   * @param pluginId               Plugin ID
-  * @param _name                  Name of plugin
   * @param _ownerName             The owner Author for this project
-  * @param homepage               The external project URL
+  * @param _ownerId               User ID of Project owner
+  * @param _name                  Name of plugin
+  * @param _slug                  URL slug
   * @param recommendedVersionId   The ID of this project's recommended version
-  * @param _category              The project's Category
+  * @param _stars                 Star count
+  * @param _views                 View count
   * @param _downloads             How many times this project has been downloaded in total
-  * @param _issues                External link to issue tracker
-  * @param _source                External link to source code
-  * @param _description           Short description of Project
+  * @param _topicId               ID of forum topic
+  * @param _postId                ID of forum topic post ID
+  * @param _isTopicDirty          Whether this project's forum topic needs to be updated
+  * @param _isVisible             Whether this project is visible to the default user
+  * @param _lastUpdated           Instant of last version release
   */
 case class Project(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                    pluginId: String,
                    private var _ownerName: String,
                    private var _ownerId: Int,
-                   homepage: Option[String] = None,
                    private var _name: String,
                    private var _slug: String,
                    private var recommendedVersionId: Option[Int] = None,
-                   private var _category: Category = Categories.Undefined,
                    private var _stars: Int = 0,
                    private var _views: Int = 0,
                    private var _downloads: Int = 0,
-                   private var _issues: Option[String] = None,
-                   private var _source: Option[String] = None,
-                   private var _description: Option[String] = None,
                    private var _topicId: Int = -1,
                    private var _postId: Int = -1,
                    private var _isTopicDirty: Boolean = false,
@@ -64,7 +61,6 @@ case class Project(override val id: Option[Int] = None,
                    extends OreModel(id, createdAt)
                      with ProjectScope
                      with Downloadable
-                     with Describable
                      with Named
                      with Visitable
                      with Hideable
@@ -93,9 +89,8 @@ case class Project(override val id: Option[Int] = None,
 
   }
 
-  def this(pluginId: String, name: String, owner: String, ownerId: Int, homepage: String) = {
-    this(pluginId=pluginId, _name=compact(name), _slug=slugify(name),
-         _ownerName=owner, _ownerId=ownerId, homepage=Option(homepage))
+  def this(pluginId: String, name: String, owner: String, ownerId: Int) = {
+    this(pluginId=pluginId, _name=compact(name), _slug=slugify(name), _ownerName=owner, _ownerId=ownerId)
   }
 
   /**
@@ -186,46 +181,28 @@ case class Project(override val id: Option[Int] = None,
   override def url: String = this.ownerName + '/' + this.slug
 
   /**
-    * Returns this Project's description.
+    * Returns this [[Project]]'s [[ProjectSettings]].
     *
-    * @return Project description
+    * @return Project settings
     */
-  override def description: Option[String] = this._description
+  def settings: ProjectSettings
+  = this.service.access[ProjectSettings](classOf[ProjectSettings]).find(_.projectId === this.id.get).get
 
   /**
-    * Sets this Project's description.
+    * Sets this [[Project]]'s [[ProjectSettings]].
     *
-    * @param _description Description to set
+    * @param settings Project settings
+    * @return         Newly created settings instance
     */
-  def description_=(_description: String) = {
-    checkArgument(_description == null
-      || _description.length <= this.config.projects.getInt("max-desc-len").get, "description too long", "")
-    this._description = Option(_description)
-
-    // Description alter's the Project's topic title, update it
-    if (this.topicId != -1)
-      this.forums.updateProjectTopic(this)
-
-    if (isDefined)
-      update(Description)
-  }
-
-  /**
-    * Returns this Project's category.
-    *
-    * @return Project category
-    */
-  def category: Category = this._category
-
-  /**
-    * Sets this Project's category.
-    *
-    * @param _category Category to set
-    */
-  def category_=(_category: Category) = {
-    checkNotNull(_category, "null category", "")
-    this._category = _category
-    if (isDefined) update(ModelKeys.Category)
+  def settings_=(settings: ProjectSettings): ProjectSettings = Defined {
+    checkNotNull(settings, "null settings", "")
+    val access = this.service.access[ProjectSettings](classOf[ProjectSettings])
+    // Delete previous settings
+    val id = this.id.get
+    access.removeAll(_.projectId === id)
+    // Add new settings
+    val newSettings = access.add(settings.copy(projectId = id))
+    newSettings
   }
 
   /**
@@ -243,40 +220,6 @@ case class Project(override val id: Option[Int] = None,
   def setVisible(visible: Boolean) = {
     this._isVisible = visible
     if (isDefined) update(IsVisible)
-  }
-
-  /**
-    * Returns the link to this Project's issue tracker, if any.
-    *
-    * @return Link to issue tracker
-    */
-  def issues: Option[String] = this._issues
-
-  /**
-    * Sets the link to this Project's issue tracker.
-    *
-    * @param _issues Issue tracker link
-    */
-  def issues_=(_issues: String) = {
-    this._issues = Option(_issues)
-    if (isDefined) update(Issues)
-  }
-
-  /**
-    * Returns the link to this Project's source code, if any.
-    *
-    * @return Link to source
-    */
-  def source: Option[String] = this._source
-
-  /**
-    * Sets the link to this Project's source code.
-    *
-    * @param _source Source code link
-    */
-  def source_=(_source: String) = {
-    this._source = Option(_source)
-    if (isDefined) update(Source)
   }
 
   /**

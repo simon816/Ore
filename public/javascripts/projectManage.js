@@ -15,4 +15,19 @@ $(function() {
             $('#btn-rename').click();
         }
     });
+
+    $('.dropdown-license').find('a').click(function() {
+        var btn = $('.btn-license');
+        var text = $(this).text();
+        btn.find('.license').text(text);
+        var name = $('input[name="license-name"]');
+        if ($(this).hasClass('license-custom')) {
+            name.val('');
+            name.show().focus();
+        } else {
+            name.hide();
+            name.val(text);
+        }
+    });
+
 });

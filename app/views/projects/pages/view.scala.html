@@ -46,6 +46,13 @@ Documentation page within Project overview.
                         <p>Published on @prettifyDate(model.createdAt.get)</p>
                         <p>@model.viewCount views</p>
                         <p>@NumberFormat.getInstance.format(model.downloadCount) total downloads</p>
+                        @defining(model.settings) { settings =>
+                            @settings.licenseName.map { licenseName =>
+                                <p>
+                                    @Html(messages("project.license.link", settings.licenseUrl.get, licenseName))
+                                </p>
+                            }
+                        }
                     </div>
 
                     <div class="panel panel-default">

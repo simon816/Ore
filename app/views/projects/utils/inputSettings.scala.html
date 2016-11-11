@@ -1,7 +1,11 @@
 @import ore.project.Categories
 @import ore.project.Categories._
-@(form: String, issues: Option[String] = None, source: Option[String] = None,
-        selected: Option[Category] = None)(implicit messages: Messages)
+@(form: String,
+  issues: Option[String] = None,
+  source: Option[String] = None,
+  licenseName: Option[String] = None,
+  licenseUrl: Option[String] = None,
+  selected: Option[Category] = None)(implicit messages: Messages)
 
 <div class="setting">
     <div class="setting-description">
@@ -47,4 +51,33 @@
     </div>
     <input @if(source.isDefined) { value="@source.get" } form="@form" type="url" class="form-control" id="source"
            name="source" placeholder="https://github.com/SpongePowered/SpongeAPI" />
+</div>
+
+<div class="setting">
+    <div class="setting-description">
+        <h4>@messages("project.settings.license") <i>(@messages("general.optional"))</i></h4>
+        <p>@messages("project.settings.license.info")</p>
+    </div>
+    <div class="input-group pull-left">
+        <div class="input-group-btn">
+            <button type="button" class="btn btn-default btn-license dropdown-toggle" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                <span class="license">@licenseName.getOrElse(messages("licenses.mit"))</span>
+                <span class="caret"></span>
+            </button>
+            <input type="text" class="form-control" style="display: none;" name="license-name" form="@form"
+                   value="@licenseName.getOrElse(messages("licenses.mit"))" />
+            <ul class="dropdown-menu dropdown-license">
+                <li><a>@messages("licenses.mit")</a></li>
+                <li><a>@messages("licenses.apache2.0")</a></li>
+                <li><a>@messages("licenses.gpl")</a></li>
+                <li><a>@messages("licenses.lgpl")</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a class="license-custom">@messages("licenses.custom")&hellip;</a></li>
+            </ul>
+        </div>
+        <input type="text" name="license-url" class="form-control" form="@form"
+               placeholder="https://github.com/SpongePowered/SpongeAPI/LICENSE.md" value="@licenseUrl">
+    </div>
+    <div class="clearfix"></div>
 </div>

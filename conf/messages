@@ -41,6 +41,7 @@ general.update                  =   Update
 general.forumsUnavailable       =   Sponge Forums are currently unavailable, please try again later.
 general.viewOnForums            =   View on Sponge Forums
 general.learnMore               =   Learn more
+general.optional                =   optional
 
 editor.deleteConfirm    =   Are you sure you want to delete {0}? This cannot be undone.
 
@@ -88,6 +89,8 @@ project.discuss                 =   Discuss
 project.docs                    =   Docs
 project.settings                =   Settings
 project.settings.members        =   Members
+project.settings.license        =   License
+project.settings.license.info   =   What can people do (and not do) with your project?
 project.versions                =   Versions
 project.downloads               =   Downloads
 project.starred                 =   Stars
@@ -113,6 +116,7 @@ project.viewAuthors             =   View project creators.
 project.removeMember            =   Remove member
 project.removeMember.confirm    =   Are you sure you want to remove this user?
 project.deleted                 =   Project "{0}" deleted.
+project.license.link            =   Licensed under <a target="_blank" href="{0}">{1}</a>
 
 org.create          =   New Organization
 org.create.title    =   Create a new Organization
@@ -220,3 +224,9 @@ email.pgpUpdate.subject = New PGP key uploaded
 email.pgpUpdate.body = We have detected that you've recently uploaded a new PGP public key to your Ore profile. If you did not make this change, please change your password immediately and take the necessary precautions to secure your account, such as enabling two-factor authentication. Thank you.
 email.accountUnlock.subject = User account unlocked
 email.accountUnlock.body = We have detected that you've recently unlocked your account with us on Ore. If you did not make this change, please change your password immediately and take the necessary precautions to secure your account, such as enabling two-factor authentication. Thank you.
+
+licenses.mit = MIT
+licenses.apache2.0 = Apache 2.0
+licenses.gpl = GNU General Public License (GPL)
+licenses.lgpl = GNU Lesser General Public License (LGPL)
+licenses.custom = Custom

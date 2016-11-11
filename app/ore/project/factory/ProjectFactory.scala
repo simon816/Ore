@@ -8,7 +8,7 @@ import com.google.common.base.Preconditions._
 import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
 import discourse.OreDiscourseApi
-import models.project.{Channel, Project, Version}
+import models.project.{Channel, Project, ProjectSettings, Version}
 import models.user.role.ProjectRole
 import models.user.{Notification, User}
 import ore.Colors.Color
@@ -220,7 +220,10 @@ trait ProjectFactory {
     checkArgument(!this.projects.exists(project), "project already exists", "")
     checkArgument(this.projects.isNamespaceAvailable(project.ownerName, project.slug), "slug not available", "")
     checkArgument(this.config.isValidProjectName(pending.underlying.name), "invalid name", "")
+
+    // Create the project and it's settings
     val newProject = this.projects.add(pending.underlying)
+    newProject.settings = pending.settings
 
     // Invite members
     val dossier = newProject.memberships
@@ -230,6 +233,7 @@ trait ProjectFactory {
 
     dossier.addRole(new ProjectRole(ownerId, RoleTypes.ProjectOwner, projectId, accepted = true, visible = true))
     if (owner.isOrganization) {
+      // "Secretly" add the organization owner as a project owner
       val organization = owner.toOrganization
       dossier.addRole(new ProjectRole(
         userId = organization.ownerId,

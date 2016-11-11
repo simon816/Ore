@@ -1,7 +1,7 @@
 package ore.project.factory
 
 import db.impl.access.ProjectBase
-import models.project.Project
+import models.project.{Project, ProjectSettings}
 import models.user.role.ProjectRole
 import ore.project.io.PluginFile
 import ore.{Cacheable, OreConfig}
@@ -27,6 +27,11 @@ case class PendingProject(projects: ProjectBase,
                           override val cacheApi: CacheApi)
                           extends PendingAction[Project]
                             with Cacheable {
+
+  /**
+    * The [[Project]]'s internal settings.
+    */
+  val settings = ProjectSettings()
 
   /**
     * The first [[PendingVersion]] for this PendingProject.

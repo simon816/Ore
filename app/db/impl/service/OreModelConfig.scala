@@ -81,6 +81,9 @@ trait OreModelConfig extends ModelService with OreDBOs {
       targetClass = classOf[User],
       targetReference = _.userId)
 
+  val ProjectSettingsSchema = new ModelSchema[ProjectSettings](this, classOf[ProjectSettings],
+    TableQuery[ProjectSettingsTable])
+
   val FlagSchema = new ModelSchema[Flag](this, classOf[Flag], TableQuery[FlagTable])
 
   case object ViewSchema extends ModelSchema[ProjectView](this, classOf[ProjectView], TableQuery[ProjectViewsTable])

@@ -304,7 +304,7 @@ trait OreDiscourseApi extends DiscourseApi {
   class Templates {
 
     /** Creates a new title for a project topic. */
-    def projectTitle(project: Project) = project.name + project.description.map(d => s" - $d").getOrElse("")
+    def projectTitle(project: Project) = project.name + project.settings.description.map(d => s" - $d").getOrElse("")
 
     /** Generates the content for a project topic. */
     def projectTopic(project: Project) = readAndFormatFile(

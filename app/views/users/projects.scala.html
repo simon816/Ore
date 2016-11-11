@@ -42,7 +42,9 @@
                                             </a>
                                             <div class="pull-right">
                                                 <span class="minor">@star.recommendedVersion.versionString</span>
-                                                <i title="@star.category.title" class="fa @star.category.icon"></i>
+                                                @defining(star.settings.category) { category =>
+                                                    <i title="@category.title" class="fa @category.icon"></i>
+                                                }
                                             </div>
                                         </td>
                                     </tr>

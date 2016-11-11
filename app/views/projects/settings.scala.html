@@ -35,7 +35,16 @@
                     </div>
 
                     <div class="panel-body">
-                        @projects.utils.inputSettings("save", project.issues, project.source, Some(project.category))
+                        @defining(project.settings) { settings =>
+                            @projects.utils.inputSettings(
+                                form = "save",
+                                issues = settings.issues,
+                                source = settings.source,
+                                licenseName = settings.licenseName,
+                                licenseUrl = settings.licenseUrl,
+                                selected = Some(settings.category)
+                            )
+                        }
 
                         <!-- Description -->
                         @defining(config.projects.getInt("max-desc-len").get) { maxLength =>
@@ -45,12 +54,12 @@
                                     <p>A short description of your project (max @maxLength).</p>
                                 </div>
                                 <input form="save" class="form-control" type="text" id="description"
-                                name="description" maxlength="@maxLength"
-                                    @project.description.map { description =>
-                                    value="@description"
+                                       name="description" maxlength="@maxLength"
+                                    @project.settings.description.map { description =>
+                                        value="@description"
                                     }.getOrElse {
                                         placeholder="@messages("version.create.noDescription")"
-                                }
+                                    }
                                 />
                                 <div class="clearfix"></div>
                             </div>

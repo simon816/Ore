@@ -3,7 +3,7 @@ package form
 import javax.inject.Inject
 
 import form.organization.{OrganizationAvatarUpdate, OrganizationMembersUpdate, OrganizationRoleSetBuilder}
-import form.project.{ChannelData, ProjectRoleSetBuilder, ProjectSettings, VersionData}
+import form.project.{ChannelData, ProjectRoleSetBuilder, ProjectSettingsForm, VersionData}
 import models.project.Channel
 import models.project.Page._
 import models.user.role.ProjectRole
@@ -44,6 +44,8 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
     "category" -> text,
     "issues" -> text,
     "source" -> text,
+    "license-name" -> text,
+    "license-url" -> text,
     "description" -> text,
     "users" -> list(number),
     "roles" -> list(text),
@@ -51,7 +53,7 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
     "roleUps" -> list(text),
     "update-icon" -> boolean,
     "owner" -> optional(number)
-  )(ProjectSettings.apply)(ProjectSettings.unapply))
+  )(ProjectSettingsForm.apply)(ProjectSettingsForm.unapply))
 
   /**
     * Submits a name change for a project.

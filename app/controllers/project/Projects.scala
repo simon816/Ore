@@ -109,7 +109,8 @@ class Projects @Inject()(stats: StatTracker,
         case None =>
           Redirect(self.showCreator())
         case Some(pendingProject) =>
-          this.forms.ProjectSave.bindFromRequest.get.saveTo(pendingProject.underlying)
+          println(request.body.asFormUrlEncoded.toString)
+          pendingProject.settings.save(pendingProject.underlying, this.forms.ProjectSave.bindFromRequest().get)
           Ok(views.invite(pendingProject))
       }
     }
@@ -214,7 +215,7 @@ class Projects @Inject()(stats: StatTracker,
     */
   def showIssues(author: String, slug: String) = {
     ProjectAction(author, slug) { implicit request =>
-      request.project.issues match {
+      request.project.settings.issues match {
         case None => NotFound
         case Some(link) => Redirect(link)
       }
@@ -230,7 +231,7 @@ class Projects @Inject()(stats: StatTracker,
     */
   def showSource(author: String, slug: String) = {
     ProjectAction(author, slug) { implicit request =>
-      request.project.source match {
+      request.project.settings.source match {
         case None => NotFound
         case Some(link) => Redirect(link)
       }
@@ -442,7 +443,8 @@ class Projects @Inject()(stats: StatTracker,
   def save(author: String, slug: String) = {
     // TODO: Validation!
     SettingsEditAction(author, slug) { implicit request =>
-      this.forms.ProjectSave.bindFromRequest.get.saveTo(request.project)
+      val project = request.project
+      project.settings.save(project, this.forms.ProjectSave.bindFromRequest().get)
       Redirect(self.show(author, slug))
     }
   }
