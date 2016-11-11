@@ -138,6 +138,7 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
     val topicId = project.topicId
     val postId = project.postId
     val title = this.templates.projectTitle(project)
+    val content = this.templates.projectTopic(project)
     val ownerName = project.ownerName
 
     // Set flag so that if we are interrupted we will remember to do it later
@@ -172,7 +173,7 @@ trait OreDiscourseApi extends DiscourseApi with DiscourseSSO {
           updatePost(
             username = ownerName,
             postId = postId,
-            content = project.homePage.contents
+            content = content
           ).andThen {
             case Success(updateErrors) =>
               if (updateErrors.nonEmpty) {
