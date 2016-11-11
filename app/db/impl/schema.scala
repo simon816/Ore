@@ -81,7 +81,7 @@ class ProjectStarsTable(tag: Tag) extends AssociativeTable(tag, "project_stars",
 
 }
 
-class PageTable(tag: Tag) extends ModelTable[Page](tag, "pages") with NameColumn[Page] {
+class PageTable(tag: Tag) extends ModelTable[Page](tag, "project_pages") with NameColumn[Page] {
 
   def projectId     =   column[Int]("project_id")
   def slug          =   column[String]("slug")
@@ -93,7 +93,7 @@ class PageTable(tag: Tag) extends ModelTable[Page](tag, "pages") with NameColumn
 
 }
 
-class ChannelTable(tag: Tag) extends ModelTable[Channel](tag, "channels") with NameColumn[Channel] {
+class ChannelTable(tag: Tag) extends ModelTable[Channel](tag, "project_channels") with NameColumn[Channel] {
 
   def color       =   column[Color]("color")
   def projectId   =   column[Int]("project_id")
@@ -101,7 +101,7 @@ class ChannelTable(tag: Tag) extends ModelTable[Channel](tag, "channels") with N
   override def * = (id.?, createdAt.?, projectId, name, color) <> ((Channel.apply _).tupled, Channel.unapply)
 }
 
-class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions")
+class VersionTable(tag: Tag) extends ModelTable[Version](tag, "project_versions")
   with DownloadsColumn[Version]
   with DescriptionColumn[Version] {
 
@@ -121,7 +121,8 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "versions")
                     Version.unapply)
 }
 
-class VersionDownloadsTable(tag: Tag) extends StatTable[VersionDownload](tag, "version_downloads", "version_id") {
+class VersionDownloadsTable(tag: Tag)
+  extends StatTable[VersionDownload](tag, "project_version_downloads", "version_id") {
 
   override def * = (id.?, createdAt.?, modelId, address, cookie, userId.?) <> ((VersionDownload.apply _).tupled,
                     VersionDownload.unapply)
@@ -150,7 +151,7 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
 
 }
 
-class SessionTable(tag: Tag) extends ModelTable[DbSession](tag, "sessions") {
+class SessionTable(tag: Tag) extends ModelTable[DbSession](tag, "user_sessions") {
 
   def expiration = column[Timestamp]("expiration")
   def username = column[String]("username")
@@ -232,7 +233,7 @@ class NotificationTable(tag: Tag) extends ModelTable[Notification](tag, "notific
 
 }
 
-class FlagTable(tag: Tag) extends ModelTable[Flag](tag, "flags") {
+class FlagTable(tag: Tag) extends ModelTable[Flag](tag, "project_flags") {
 
   def projectId   =   column[Int]("project_id")
   def userId      =   column[Int]("user_id")
