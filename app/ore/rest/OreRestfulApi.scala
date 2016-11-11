@@ -77,7 +77,7 @@ trait OreRestfulApi {
       })
 
       // Only allow versions in the specified channels
-      val filter = channelIds.map(service.getSchema(classOf[VersionSchema]).channelFilter).orNull
+      val filter = channelIds.map(service.getSchema(classOf[VersionSchema]).channelFilter).getOrElse(ModelFilter.Empty)
       val maxLoad = this.config.projects.getInt("init-version-load").get
       val lim = Math.max(limit.getOrElse(maxLoad), maxLoad)
 
