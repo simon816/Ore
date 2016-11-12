@@ -203,7 +203,7 @@ trait ProjectFactory {
       ))
     }
 
-    this.forums.await(this.forums.createProjectTopic(newProject))
+    Try(this.forums.await(this.forums.createProjectTopic(newProject)))
 
     newProject
   }
