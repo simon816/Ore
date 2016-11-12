@@ -40,9 +40,8 @@ class ProjectSchema(override val service: ModelService, implicit val users: User
   def searchFilter(query: String): ModelFilter[Project] = {
     val q = '%' + query.toLowerCase + '%'
     ModelFilter[Project] { p =>
-      val settings = this.service.access[ProjectSettings](classOf[ProjectSettings]).find(_.projectId === p.id).get
       (p.name.toLowerCase like q) ||
-        settings.description.getOrElse("").toLowerCase.contains(q) ||
+        (p.description.toLowerCase like q) ||
         (p.ownerName.toLowerCase like q) ||
         (p.pluginId.toLowerCase like q)
     }
@@ -75,13 +74,7 @@ class ProjectSchema(override val service: ModelService, implicit val users: User
     // TODO: Cleanup
     val f: ProjectTable => Rep[Boolean] = {
       if (categories != null) {
-        val cf: ProjectTable => Rep[Boolean] = p => {
-          val settings = this.service.access[ProjectSettings](classOf[ProjectSettings]).find { settings =>
-            settings.projectId === p.id
-          }.get
-          categories.contains(settings.category)
-        }
-
+        val cf: ProjectTable => Rep[Boolean] = p => p.category inSetBind categories
         if (filter != null)
           p => cf(p) && filter(p)
         else

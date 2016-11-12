@@ -34,7 +34,7 @@ Base template for Project overview.
                             <a href="@projectRoutes.Projects.show(project.ownerName, project.slug)">@project.name</a>
                         </strong>
                         </h1>
-                        @defining(project.settings.description.getOrElse("")) { description =>
+                        @defining(project.description.getOrElse("")) { description =>
                             <i class="minor" title="@description">@description</i>
                         }
                     </div>

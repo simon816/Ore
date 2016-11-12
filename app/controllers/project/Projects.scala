@@ -109,7 +109,6 @@ class Projects @Inject()(stats: StatTracker,
         case None =>
           Redirect(self.showCreator())
         case Some(pendingProject) =>
-          println(request.body.asFormUrlEncoded.toString)
           pendingProject.settings.save(pendingProject.underlying, this.forms.ProjectSave.bindFromRequest().get)
           Ok(views.invite(pendingProject))
       }

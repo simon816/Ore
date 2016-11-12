@@ -28,6 +28,7 @@ object ModelKeys {
   val OwnerId               =   new IntKey[Project](_.userId, _.ownerId)
   val OwnerName             =   new StringKey[Project](_.ownerName, _.ownerName)
   val Slug                  =   new StringKey[Project](_.slug, _.slug)
+  val Category              =   new MappedTypeKey[Project, Category](_.category, _.category)
   val Stars                 =   new IntKey[Project](_.stars, _.starCount)
   val Views                 =   new IntKey[Project](_.views, _.viewCount)
   val TopicId               =   new IntKey[Project](_.topicId, _.topicId)
@@ -38,7 +39,6 @@ object ModelKeys {
   val LastUpdated           =   new TimestampKey[Project](_.lastUpdated, _.lastUpdated)
 
   // ProjectSettings
-  val Category              =   new MappedTypeKey[ProjectSettings, Category](_.category, _.category)
   val Issues                =   new StringKey[ProjectSettings](_.issues, _.issues.orNull)
   val Source                =   new StringKey[ProjectSettings](_.source, _.source.orNull)
   val LicenseName           =   new StringKey[ProjectSettings](_.licenseName, _.licenseName.orNull)

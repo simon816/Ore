@@ -26,13 +26,15 @@ import ore.user.notification.NotificationTypes.NotificationType
 trait ProjectTable extends ModelTable[Project]
   with NameColumn[Project]
   with DownloadsColumn[Project]
-  with VisibilityColumn[Project] {
+  with VisibilityColumn[Project]
+  with DescriptionColumn[Project] {
 
   def pluginId              =   column[String]("plugin_id")
   def ownerName             =   column[String]("owner_name")
   def userId                =   column[Int]("owner_id")
   def slug                  =   column[String]("slug")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
+  def category              =   column[Category]("category")
   def stars                 =   column[Int]("stars")
   def views                 =   column[Int]("views")
   def topicId               =   column[Int]("topic_id")
@@ -40,9 +42,9 @@ trait ProjectTable extends ModelTable[Project]
   def isTopicDirty          =   column[Boolean]("is_topic_dirty")
   def lastUpdated           =   column[Timestamp]("last_updated")
 
-  override def * = (id.?, createdAt.?, pluginId, ownerName, userId, name, slug, recommendedVersionId.?, stars, views,
-                    downloads, topicId, postId, isTopicDirty, isVisible, lastUpdated) <> ((Project.apply _).tupled,
-                    Project.unapply)
+  override def * = (id.?, createdAt.?, pluginId, ownerName, userId, name, slug, recommendedVersionId.?, category,
+                    description.?, stars, views, downloads, topicId, postId, isTopicDirty, isVisible,
+                    lastUpdated) <> ((Project.apply _).tupled, Project.unapply)
 
 }
 
@@ -50,19 +52,17 @@ class ProjectTableMain(tag: Tag) extends ModelTable[Project](tag, "projects") wi
 
 //class ProjectTableDeleted(tag: Tag) extends ModelTable[Project](tag, "projects_deleted") with ProjectTable
 
-class ProjectSettingsTable(tag: Tag) extends ModelTable[ProjectSettings](tag, "project_settings")
-  with DescriptionColumn[ProjectSettings] {
+class ProjectSettingsTable(tag: Tag) extends ModelTable[ProjectSettings](tag, "project_settings") {
 
   def projectId             =   column[Int]("project_id")
   def homepage              =   column[String]("homepage")
-  def category              =   column[Category]("category")
   def issues                =   column[String]("issues")
   def source                =   column[String]("source")
   def licenseName           =   column[String]("license_name")
   def licenseUrl            =   column[String]("license_url")
 
-  override def * = (id.?, createdAt.?, projectId, homepage.?, category, issues.?, source.?, licenseName.?, licenseUrl.?,
-                    description.?) <> (ProjectSettings.tupled, ProjectSettings.unapply)
+  override def * = (id.?, createdAt.?, projectId, homepage.?, issues.?, source.?, licenseName.?,
+                    licenseUrl.?) <> (ProjectSettings.tupled, ProjectSettings.unapply)
 
 }
 

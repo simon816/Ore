@@ -42,7 +42,7 @@
                                 source = settings.source,
                                 licenseName = settings.licenseName,
                                 licenseUrl = settings.licenseUrl,
-                                selected = Some(settings.category)
+                                selected = Some(project.category)
                             )
                         }
 
@@ -55,7 +55,7 @@
                                 </div>
                                 <input form="save" class="form-control" type="text" id="description"
                                        name="description" maxlength="@maxLength"
-                                    @project.settings.description.map { description =>
+                                    @project.description.map { description =>
                                         value="@description"
                                     }.getOrElse {
                                         placeholder="@messages("version.create.noDescription")"

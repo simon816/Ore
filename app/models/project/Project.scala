@@ -6,16 +6,18 @@ import com.google.common.base.Preconditions._
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.model.OreModel
-import db.impl.model.common.{Downloadable, Hideable}
+import db.impl.model.common.{Describable, Downloadable, Hideable}
 import db.impl.schema.ProjectSchema
+import db.impl.table.ModelKeys
 import db.impl.table.ModelKeys._
 import db.{ModelService, Named}
 import models.statistic.ProjectView
 import models.user.User
 import models.user.role.ProjectRole
 import ore.permission.scope.ProjectScope
+import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
-import ore.project.ProjectMember
+import ore.project.{Categories, ProjectMember}
 import ore.user.MembershipDossier
 import ore.{Joinable, Visitable}
 import util.StringUtils._
@@ -50,6 +52,8 @@ case class Project(override val id: Option[Int] = None,
                    private var _name: String,
                    private var _slug: String,
                    private var recommendedVersionId: Option[Int] = None,
+                   private var _category: Category = Categories.Undefined,
+                   private var _description: Option[String] = None,
                    private var _stars: Int = 0,
                    private var _views: Int = 0,
                    private var _downloads: Int = 0,
@@ -62,6 +66,7 @@ case class Project(override val id: Option[Int] = None,
                      with ProjectScope
                      with Downloadable
                      with Named
+                     with Describable
                      with Visitable
                      with Hideable
                      with Joinable[ProjectMember] {
@@ -179,6 +184,41 @@ case class Project(override val id: Option[Int] = None,
     * @return Base URL for project
     */
   override def url: String = this.ownerName + '/' + this.slug
+
+  /**
+    * Returns this Project's [[Category]].
+    *
+    * @return Project category
+    */
+  def category: Category = this._category
+
+  /**
+    * Sets this Project's [[Category]].
+    *
+    * @param category Project category
+    */
+  def category_=(category: Category) = {
+    checkNotNull(category, "null category", "")
+    this._category = category
+    if (isDefined) update(ModelKeys.Category)
+  }
+
+  /**
+    * Returns this Project's description.
+    *
+    * @return Project description
+    */
+  override def description: Option[String] = this._description
+
+  /**
+    * Sets this Project's description.
+    *
+    * @param description Project description.
+    */
+  def description_=(description: String) = {
+    this._description = Option(description)
+    if (isDefined) update(Description)
+  }
 
   /**
     * Returns this [[Project]]'s [[ProjectSettings]].

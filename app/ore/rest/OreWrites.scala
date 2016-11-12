@@ -56,14 +56,13 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
 
   implicit val projectWrites = new Writes[Project] {
     def writes(project: Project) = {
-      val settings = project.settings
-      val category = settings.category
+      val category = project.category
       obj(
         "pluginId"      ->  project.pluginId,
         "createdAt"     ->  project.createdAt.get.toString,
         "name"          ->  project.name,
         "owner"         ->  project.ownerName,
-        "description"   ->  settings.description,
+        "description"   ->  project.description,
         "href"          ->  ('/' + project.ownerName + '/' + project.slug),
         "members"       ->  project.memberships.members.filter(_.roles.exists(_.isAccepted)),
         "channels"      ->  toJson(project.channels.toSeq),
