@@ -6,13 +6,15 @@
 application {
     baseUrl             =   "http://localhost:9000"
     baseUrl             =   ${?BASE_URL}
-    fakeUser.enabled    =   false
-    fakeUser.enabled    =   ${?FAKE_USER}
-    fakeUser.id         =   -1
-    fakeUser.name       =   "Spongie"
-    fakeUser.username   =   "Spongie"
-    fakeUser.email      =   "spongie@spongepowered.org"
     db.default-timeout  =   10
+    
+    fakeUser {
+        enabled    =   false
+        id         =   -1
+        name       =   "Spongie"
+        username   =   "Spongie"
+        email      =   "spongie@spongepowered.org"
+    }
 }
 
 
@@ -29,6 +31,27 @@ play {
     modules.enabled                    +=  "org.spongepowered.play.SpongeModule"
 }
 
+security {
+    requirePgp         =   true
+    keyChangeCooldown  =   259200000
+
+    api {
+        url = "http://localhost:8000"
+        url = ${?SPONGE_AUTH_URL}
+        key = "changeme"
+        key = ${?SPONGE_AUTH_API_KEY}
+        timeout = 10000
+    }
+
+    sso {
+        loginUrl = ${SPONGE_AUTH_URL}"/login"
+        signupUrl = ${SPONGE_AUTH_URL}"/signup"
+        verifyUrl = ${SPONGE_AUTH_URL}"/verify"
+        secret = "changeme"
+        secret = ${SPONGE_AUTH_SSO_SECRET}
+        timeout = 10000
+    }
+}
 
 # Ore configuration
 ore {
@@ -38,49 +61,47 @@ ore {
     # Used in /admin/seed route. Run "gradle build" in OreTestPlugin before using that route
     test-plugin = "OreTestPlugin/build/libs/ore-test-plugin-dev-SNAPSHOT.jar"
     
-    security {
-        requirePgp         =   true
-        keyChangeCooldown  =   259200000
-        sso.loginUrl       =   ${SPONGE_AUTH_LOGIN_URL}
-        sso.signupUrl      =   ${SPONGE_AUTH_SIGNUP_URL}
-        sso.verifyUrl      =   ${SPONGE_AUTH_VERIFY_URL}
-        sso.secret         =   ${SPONGE_AUTH_SECRET}
-        api.url            =   ${SPONGE_AUTH_URL}
-        api.key            =   ${SPONGE_AUTH_API_KEY}
-        api.timeout        =   10000
+    channels {
+        max-name-len = 15
+        name-regex = "^[a-zA-Z0-9]+$"
+        color-default = 7
+        name-default = "Release"
     }
     
-    channels.max-name-len   =   15
-    channels.name-regex     =   "^[a-zA-Z0-9]+$"
-    channels.color-default  =    7
-    channels.name-default   =   "Release"
+    pages {
+        home.name = "Home"
+        home.message = "Welcome to your new project!"
+        min-len = 15
+        max-len = 32000
+        name.max-len = 255
+    }
     
-    pages.home.name     =   "Home"
-    pages.home.message  =   "Welcome to your new project!"
-    pages.min-len       =   15
-    pages.max-len       =   32000
-    pages.name.max-len  =   255
+    projects {
+        max-name-len = 25
+        max-pages = 10
+        max-channels = 5
+        init-load = 25
+        init-version-load = 10
+        max-desc-len = 120
+        file-validate = true
+        tmp-file-save = false
+        icon-size = 200
+    }
     
-    projects.max-name-len       =   25
-    projects.max-pages          =   10
-    projects.max-channels       =   5
-    projects.init-load          =   25
-    projects.init-version-load  =   10
-    projects.max-desc-len       =   120
-    projects.file-validate      =   true
-    projects.tmp-file-save      =   false
-    projects.icon-size          =   200
+    users {
+        stars-per-page = 5
+        max-tagline-len = 100
+        author-page-size = 25
+        project-page-size = 5
+        syncRate = 10800000
+    }
     
-    users.stars-per-page    =   5
-    users.max-tagline-len   =   100
-    users.author-page-size  =   25
-    users.project-page-size =   5
-    users.syncRate          =   10800000
-    
-    orgs.passwordLength     =   60
-    orgs.dummyEmailDomain   =   "spongepowered.org"
-    orgs.groupId            =   64
-    orgs.createLimit        =   5
+    orgs {
+        passwordLength = 60
+        dummyEmailDomain = "spongepowered.org"
+        groupId = 64
+        createLimit = 5
+    }
 }
 
 mail {
@@ -111,38 +132,42 @@ mail {
 # Slick configuration
 slick.dbs.default {
     driver        =   "driver.PostgresDriver$"
-    db.driver     =   "org.postgresql.Driver"
-    db.url        =   "jdbc:postgresql://localhost/ore"
-    db.url        =   ${?JDBC_DATABASE_URL}
-    db.user       =   "root"
-    db.user       =   ${?JDBC_DATABASE_USERNAME}
-    db.password   =   ""
-    db.password   =   ${?JDBC_DATABASE_PASSWORD}
+    db {
+        driver = "org.postgresql.Driver"
+        url = "jdbc:postgresql://localhost/ore"
+        url = ${?JDBC_DATABASE_URL}
+        user = "root"
+        user = ${?JDBC_DATABASE_USERNAME}
+        password = ""
+        password = ${?JDBC_DATABASE_PASSWORD}
+    }
 }
 
 
 # Discourse SSO
 discourse {
-    sso.secret        =   ${?DISCOURSE_SSO_SECRET}
-    sso.url           =   ${?DISCOURSE_SSO_URL}
     baseUrl           =   "https://forums.spongepowered.org"
-    api.enabled       =   true
-    api.key           =   ${?DISCOURSE_API_KEY}
-    api.admin         =   windy
-    api.timeout       =   10000
-    embed.categoryId  =   32
-    embed.disabled    =   false
     embed.retryRate   =   60000
     embed.categorySlug = ore
+    
+    api {
+        enabled       =   true
+        key           =   ${?DISCOURSE_API_KEY}
+        admin         =   windy
+        timeout       =   10000
+    }
 }
 
 # Sponge stuff
 sponge {
     logo = "https://www.spongepowered.org/assets/img/icons/spongie-mark.svg"
     icon = "https://forums-cdn.spongepowered.org/uploads/default/original/2X/9/9ba706a80e45cf427617525ee2a19fad7bb6b109.png"
-    sponsors.urls = [  "https://billing.creeperhost.net/link.php?id=8", "https://www.enjin.com/", "http://www.multiplaygameservers.com", "https://www.beastnode.com/", "https://serverminer.com/", "https://mcprohosting.com/?promo=Sponge" ]
-    sponsors.logos = [ "creeperhost.svg", "enjin.png", "multiplay.png", "beastnode.png", "serverminer.png", "mcprohosting.png" ]
-    sponsors.featured.logo = "creeperhost.svg"
-    sponsors.featured.url = "https://billing.creeperhost.net/link.php?id=8"
     service = "Ore"
+    
+    sponsors {
+        urls = [  "https://billing.creeperhost.net/link.php?id=8", "https://www.enjin.com/", "http://www.multiplaygameservers.com", "https://www.beastnode.com/", "https://serverminer.com/", "https://mcprohosting.com/?promo=Sponge" ]
+        logos = [ "creeperhost.svg", "enjin.png", "multiplay.png", "beastnode.png", "serverminer.png", "mcprohosting.png" ]
+        featured.logo = "creeperhost.svg"
+        featured.url = "https://billing.creeperhost.net/link.php?id=8"
+    }
 }
