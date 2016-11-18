@@ -54,12 +54,15 @@ class UserBase(override val service: ModelService,
     val reverse = if (sort.startsWith("-")) {
       sort = sort.substring(1)
       false
-    } else true
+    } else
+      true
 
     // get authors
     var users: Seq[User] = this.service.await {
       this.service.getSchema(classOf[ProjectSchema]).distinctAuthors
     }.get
+
+    println(users.size)
 
     // sort
     sort match {
@@ -72,8 +75,8 @@ class UserBase(override val service: ModelService,
     // get page slice
     val pageSize = this.config.users.getInt("author-page-size").get
     val offset = (page - 1) * pageSize
-    users = users.slice(offset, offset + pageSize)
-    if (reverse) users.reverse else users
+    users = if (reverse) users.reverse else users
+    users.slice(offset, offset + pageSize)
   }
 
   implicit val timestampOrdering: Ordering[Timestamp] = new Ordering[Timestamp] {
