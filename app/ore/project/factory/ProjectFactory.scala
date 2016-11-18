@@ -1,5 +1,6 @@
 package ore.project.factory
 
+import java.nio.file.{Files, StandardCopyOption}
 import java.nio.file.Files._
 import javax.inject.Inject
 
@@ -83,10 +84,10 @@ trait ProjectFactory {
     // Process uploaded file
     val plugin = new PluginFile(tmpPath, owner)
     if (!decrypted) {
-      // Otherwise the file has already been decrypted and copied to the path
+      // otherwise the plugin has been moved to the proper location via verifyAndDecrypt
       if (notExists(tmpPath.getParent))
         createDirectories(tmpPath.getParent)
-      uploadedFile.moveTo(uploadPath.toFile, replace = true)
+      copy(uploadedFile.file.toPath, tmpPath, StandardCopyOption.REPLACE_EXISTING)
     }
 
     plugin.loadMeta()

@@ -1,6 +1,6 @@
 package ore.project.io
 
-import java.io.InputStream
+import java.io.{IOException, InputStream}
 import java.nio.file.{Files, Path}
 import java.util.jar.{JarEntry, JarInputStream}
 import java.util.zip.{ZipEntry, ZipFile}
@@ -68,9 +68,11 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
     * @return Result of parse
     */
   def loadMeta(): PluginMetadata = {
+    var jarIn: JarInputStream = null
+
     try {
       // Find plugin JAR
-      val jarIn: JarInputStream = new JarInputStream(newJarStream)
+      jarIn = new JarInputStream(newJarStream)
 
       // Find plugin meta file
       var entry: JarEntry = null
@@ -89,7 +91,6 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
 
       // Read the meta file
       val metaList = McModInfo.DEFAULT.read(jarIn).asScala.toList
-      jarIn.close()
       if (metaList.isEmpty)
         throw InvalidPluginFileException("No plugin meta entries found.")
 
@@ -100,6 +101,11 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
     } catch {
       case e: Exception =>
         throw InvalidPluginFileException(cause = e)
+    } finally {
+      if (jarIn != null)
+        jarIn.close()
+      else
+        throw InvalidPluginFileException("could not obtain input stream")
     }
   }
 
@@ -108,6 +114,7 @@ class PluginFile(private var _path: Path, val user: User) extends UserOwned {
     *
     * @return InputStream of JAR
     */
+  @throws[IOException]
   def newJarStream: InputStream = {
     if (this.path.toString.endsWith(".jar"))
       Files.newInputStream(this.path)

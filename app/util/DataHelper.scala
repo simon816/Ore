@@ -1,22 +1,18 @@
 package util
 
-import java.nio.file.Files._
-import java.nio.file.{Paths, StandardCopyOption}
 import javax.inject.Inject
 
 import com.google.common.base.Preconditions.checkArgument
 import db.ModelService
-import db.impl.OrePostgresDriver.api._
+import db.access.ModelAccess
 import db.impl.access.{ProjectBase, UserBase}
 import discourse.OreDiscourseApi
-import models.project.Channel
+import models.project.{Channel, Project, ProjectSettings, Version}
 import models.user.User
 import ore.OreConfig
 import ore.project.factory.ProjectFactory
-import ore.project.io.PluginFile
 import org.apache.commons.io.FileUtils
 import play.api.cache.CacheApi
-import play.api.libs.Files.TemporaryFile
 
 /**
   * Utility class for performing some bulk actions on the application data.
@@ -29,6 +25,8 @@ final class DataHelper @Inject()(config: OreConfig,
                                  cacheApi: CacheApi) {
 
   implicit private val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
+  private val channels: ModelAccess[Channel] = this.service.access[Channel](classOf[Channel])
+  private val versions: ModelAccess[Version] = this.service.access[Version](classOf[Version])
   private val users: UserBase = this.service.getModelBase(classOf[UserBase])
 
   val Logger = play.api.Logger("DataHelper")
@@ -37,9 +35,15 @@ final class DataHelper @Inject()(config: OreConfig,
     * Resets the application to factory defaults.
     */
   def reset() = {
+    Logger.info("Resetting Ore...")
+    val projects = this.projects.all
+    Logger.info(s"Deleting ${projects.size} projects...")
     for (project <- this.projects.all) this.projects.delete(project)
+    Logger.info(s"Deleting ${this.users.size} users...")
     this.users.removeAll()
+    Logger.info("Clearing disk...")
     FileUtils.deleteDirectory(this.factory.env.uploads.toFile)
+    Logger.info("Done.")
   }
 
   /**
@@ -58,65 +62,40 @@ final class DataHelper @Inject()(config: OreConfig,
     Logger.info("Resetting Ore")
     this.reset()
 
-    Logger.info("Initializing test plugin")
-    val pluginPath = Paths.get(this.config.ore.getString("test-plugin").get)
-    val tmpDir = createDirectories(pluginPath.getParent.resolve("tmp"))
-    val filePath = tmpDir.resolve(pluginPath.getFileName)
-
-    Logger.info(s"Test plugin path: $pluginPath.")
-
-    def copyPluginFile() = {
-      // Copy the original test plugin to a temporary working directory
-      while (notExists(filePath))
-        createFile(filePath)
-      copy(pluginPath, filePath, StandardCopyOption.REPLACE_EXISTING)
-    }
-
-    copyPluginFile()
-
     // Create some users.
     Logger.info("Seeding...")
+    var projectNum = 0
     for (i <- 0 until users) {
       Logger.info(Math.ceil(i / users.asInstanceOf[Float] * 100).asInstanceOf[Int].toString + "%")
       val user = this.users.add(User(id = Some(i), _username = s"User-$i"))
-
-      // Processes the file at the 'tmp' working directory
-      def doProcessPluginFile(index: Int): PluginFile = {
-        val pluginFile = this.factory.processPluginFile(
-          uploadedFile = TemporaryFile(filePath.toFile),
-          name = filePath.getFileName.toString,
-          owner = user
-        )
-        // Ensure the uniqueness of the metadata ID
-        val meta = pluginFile.meta.get
-        meta.setId(meta.getId + s"-$index")
-        pluginFile
-      }
-
       // Create some projects
       for (j <- 0 until projects) {
-        val index = (i + 1) * (j + 1)
-        val pluginFile = doProcessPluginFile(index)
-        val project = this.factory.startProject(pluginFile).complete().get
-        copyPluginFile()
-
+        val pluginId = s"plugin$projectNum"
+        val project = this.projects.add(Project.Builder(this.service)
+          .pluginId(pluginId)
+          .ownerName(user.name)
+          .ownerId(user.id.get)
+          .name(s"Project$projectNum")
+          .build())
+        project.settings = ProjectSettings()
         // Now create some additional versions for this project
+        var versionNum = 0
         for (k <- 0 until channels) {
-          val channelName = s"Channel$k"
-          val channelColor = Channel.Colors(k)
-          this.factory.createChannel(project, channelName, channelColor)
-
+          val channel = this.channels.add(new Channel(s"channel$k", Channel.Colors(k), project.id.get))
           for (l <- 0 until versions) {
-            val versionFile = doProcessPluginFile(index)
-
-            // Ensure the uniqueness of the metadata version
-            val meta = pluginFile.meta.get
-            meta.setVersion(meta.getVersion + s".$l")
-
-            this.factory.startVersion(versionFile, project, channelName).complete()
-            copyPluginFile()
+            val version = this.versions.add(Version(
+              projectId = project.id.get,
+              versionString = versionNum.toString,
+              channelId = channel.id.get,
+              fileSize = 1,
+              hash = "none",
+              fileName = "none"))
+            if (l == 0)
+              project.recommendedVersion = version
+            versionNum += 1
           }
         }
+        projectNum += 1
       }
     }
 

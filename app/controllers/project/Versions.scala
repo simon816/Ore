@@ -1,5 +1,6 @@
 package controllers.project
 
+import java.io.InputStream
 import java.nio.file.{Files, StandardCopyOption}
 import javax.inject.Inject
 
@@ -16,6 +17,7 @@ import ore.project.factory.{PendingProject, ProjectFactory}
 import ore.project.io.{InvalidPluginFileException, PluginFile}
 import ore.{OreConfig, OreEnv, StatTracker}
 import org.spongepowered.play.security.SingleSignOnConsumer
+import play.api.Logger
 import play.api.i18n.MessagesApi
 import play.api.mvc.Result
 import views.html.projects.{versions => views}
@@ -437,9 +439,21 @@ class Versions @Inject()(stats: StatTracker,
         val pluginFile = new PluginFile(path, project.owner.user)
         val jarName = fileName.substring(0, fileName.lastIndexOf('.')) + ".jar"
         val jarPath = this.fileManager.env.tmp.resolve(project.ownerName).resolve(jarName)
-        val jarIn = pluginFile.newJarStream
-        Files.copy(jarIn, jarPath, StandardCopyOption.REPLACE_EXISTING)
-        jarIn.close()
+
+        var jarIn: InputStream = null
+        try {
+          jarIn = pluginFile.newJarStream
+          Files.copy(jarIn, jarPath, StandardCopyOption.REPLACE_EXISTING)
+        } catch {
+          case e: Exception =>
+            Logger.error("an error occurred while trying to send a plugin", e)
+        } finally {
+          if (jarIn != null)
+            jarIn.close()
+          else
+            Logger.error("could not obtain input stream for download request")
+        }
+
         Ok.sendFile(jarPath.toFile, onClose = () => Files.delete(jarPath))
       }
     }
