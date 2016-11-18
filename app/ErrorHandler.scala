@@ -32,7 +32,7 @@ class ErrorHandler @Inject()(env: Environment,
     implicit val session = request.session
     Future.successful {
       if (exception.cause.isInstanceOf[TimeoutException])
-        InternalServerError(views.html.errors.timeout())
+        GatewayTimeout(views.html.errors.timeout())
       else
         InternalServerError(views.html.errors.error(exception.getMessage))
     }
