@@ -1,10 +1,10 @@
 @import db.ModelService
 @import db.impl.access.UserBase
 @import ore.{OreConfig, OreEnv}
-@(message: String)(implicit messages: Messages, session: Session, request: Request[_],
+@(message: String)(implicit messages: Messages, session: Session, request: Request[_] = null,
         service: ModelService, config: OreConfig, users: UserBase, env: OreEnv)
 
-@bootstrap.layout("Error") {
+@bootstrap.layout("Error", user = false) {
 
     <div class="container-error container">
         <img src="@routes.Assets.at("images/ore-dark.png")" />

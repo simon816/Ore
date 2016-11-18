@@ -38,6 +38,7 @@ final class Application @Inject()(data: DataHelper,
     */
   def showHome(categories: Option[String], query: Option[String], sort: Option[Int], page: Option[Int]) = {
     Action { implicit request =>
+
       // Get categories and sorting strategy
       var categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
       val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)

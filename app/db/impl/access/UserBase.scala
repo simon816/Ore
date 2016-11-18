@@ -6,7 +6,6 @@ import java.util.{Date, UUID}
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema.ProjectSchema
 import db.{ModelBase, ModelService}
-import discourse.OreDiscourseApi
 import models.user.{Session, User}
 import ore.OreConfig
 import play.api.mvc.Request
@@ -61,8 +60,6 @@ class UserBase(override val service: ModelService,
     var users: Seq[User] = this.service.await {
       this.service.getSchema(classOf[ProjectSchema]).distinctAuthors
     }.get
-
-    println(users.size)
 
     // sort
     sort match {

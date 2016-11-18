@@ -9,7 +9,7 @@ The main header displayed on each layout.
 @import ore.permission.{ReviewFlags, ReviewProjects}
 @import models.project.Version
 @import models.project.Flag
-@()(implicit messages: Messages, request: Request[_], service: ModelService, config: OreConfig,
+@(user: Boolean = true)(implicit messages: Messages, request: Request[_], service: ModelService, config: OreConfig,
         users: UserBase)
 
 @flags = @{ service.access[Flag](classOf[Flag]) }
@@ -59,26 +59,27 @@ The main header displayed on each layout.
         </div>
 
         <!-- Right navbar -->
-        <ul class="nav navbar-nav navbar-collapse collapse navbar-right">
+        @if(user) {
+            <ul class="nav navbar-nav navbar-collapse collapse navbar-right">
 
-            <li class="project-search">
-                <div class="input-group" style="display: none;">
-                    <input type="text" class="form-control" placeholder="Search projects&hellip;" />
-                    <div class="input-group-btn">
-                        <button class="btn btn-default"><i class="fa fa-arrow-right"></i></button>
+                <li class="project-search">
+                    <div class="input-group" style="display: none;">
+                        <input type="text" class="form-control" placeholder="Search projects&hellip;" />
+                        <div class="input-group-btn">
+                            <button class="btn btn-default"><i class="fa fa-arrow-right"></i></button>
+                        </div>
                     </div>
-                </div>
-            </li>
+                </li>
 
-            <li class="nav-icon search-icon" @tooltip(messages("project.search"))>
-                <i class="icon fa fa-search"></i>
-            </li>
+                <li class="nav-icon search-icon" @tooltip(messages("project.search"))>
+                    <i class="icon fa fa-search"></i>
+                </li>
 
-            <li class="nav-icon authors-icon" @tooltip(messages("project.viewAuthors"))>
-                <i class="icon fa fa-users"></i>
-            </li>
+                <li class="nav-icon authors-icon" @tooltip(messages("project.viewAuthors"))>
+                    <i class="icon fa fa-users"></i>
+                </li>
 
-            @users.current.map { user =>
+                @users.current.map { user =>
 
                 <li class="dropdown nav-icon new-icon new-controls">
                     <a href="#" class="drop-down-toggle" data-toggle="dropdown">
@@ -98,15 +99,14 @@ The main header displayed on each layout.
                         </li>
                     </ul>
                 </li>
-
-                @* Show user controls *@
+                    @* Show user controls *@
                 <li class="dropdown user-controls">
                     <a href="#" class="drop-down-toggle user-toggle" data-toggle="dropdown">
                         @if(user.hasUnreadNotifications) {
                             <span class="unread"></span>
                         }
-                        <img height="32" width="32" class="user-avatar" src="@user.avatarUrl" />
-                        <span class="caret"></span>
+                    <img height="32" width="32" class="user-avatar" src="@user.avatarUrl" />
+                    <span class="caret"></span>
                     </a>
                     <ul class="user-dropdown dropdown-menu" aria-label="@messages("aria.dropdown.menu", 1)">
                         <li>
@@ -165,17 +165,18 @@ The main header displayed on each layout.
                         </li>
                     </ul>
                 </li>
-            }.getOrElse {
-                <li>
-                    <div class="btn-group-login">
-                        <a href="@routes.Users.signUp()"
-                           class="btn btn-primary navbar-btn">@messages("general.signup")</a>
-                        <a href="@routes.Users.logIn(None, None, Some(request.path))"
-                        class="btn btn-primary navbar-btn">@messages("general.login")</a>
-                    </div>
-                </li>
-            }
+                }.getOrElse {
+                    <li>
+                        <div class="btn-group-login">
+                            <a href="@routes.Users.signUp()"
+                            class="btn btn-primary navbar-btn">@messages("general.signup")</a>
+                            <a href="@routes.Users.logIn(None, None, Some(request.path))"
+                            class="btn btn-primary navbar-btn">@messages("general.login")</a>
+                        </div>
+                    </li>
+                }
 
-        </ul>
+            </ul>
+        }
     </div>
 </nav>

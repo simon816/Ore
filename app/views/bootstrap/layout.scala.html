@@ -6,7 +6,7 @@ this.
 @import db.impl.access.UserBase
 @import ore.{OreConfig, OreEnv}
 @import play.twirl.api.Html
-@(title: String, scripts: Boolean = true, header: Boolean = true,
+@(title: String, scripts: Boolean = true, header: Boolean = true, user: Boolean = true,
         footer: Boolean = true)(content: Html)(implicit messages: Messages, request: Request[_], service: ModelService,
         config: OreConfig, users: UserBase)
 
@@ -39,7 +39,7 @@ this.
     </head>
     <body>
         @if(header) {
-            @bootstrap.header()
+            @bootstrap.header(user)
         }
 
         @content
