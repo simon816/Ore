@@ -94,7 +94,7 @@ $(function() {
     var body = $('body');
     body.keydown(function(event) {
         var target = $(event.target);
-        var searchIcon = $('.icon-project-search');
+        var searchIcon = $('.search-icon');
         if (shouldExecuteHotkey(event)) {
             if (target.is('body')) {
                 switch (event.keyCode) {
