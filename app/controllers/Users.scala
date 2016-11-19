@@ -2,7 +2,6 @@ package controllers
 
 import javax.inject.Inject
 
-import controllers.routes.{Application => app, Users => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase.ORDERING_PROJECTS
@@ -69,7 +68,7 @@ class Users @Inject()(fakeUser: FakeUser,
       // Redirected from SpongeSSO, decode SSO payload and convert to Ore user
       this.sso.authenticate(sso.get, sig.get) match {
         case None =>
-          Redirect(app.showHome(None, None, None, None)).withError("error.loginFailed")
+          Redirect(ShowHome).withError("error.loginFailed")
         case Some(spongeUser) =>
           // Complete authentication
           val user = this.users.getOrCreate(User.fromSponge(spongeUser)).pullForumData().pullSpongeData()
@@ -93,7 +92,7 @@ class Users @Inject()(fakeUser: FakeUser,
     if (this.sso.isAvailable)
       Redirect(url)
     else
-      Redirect(app.showHome(None, None, None, None)).withError("error.noLogin")
+      Redirect(ShowHome).withError("error.noLogin")
   }
 
   private def redirectBack(url: String, user: User)
@@ -138,12 +137,11 @@ class Users @Inject()(fakeUser: FakeUser,
     val tagline = this.forms.UserTagline.bindFromRequest.get.trim
     val maxLen = this.config.users.getInt("max-tagline-len").get
     val user = request.user
-    val call = self.showProjects(user.username, None)
     if (tagline.length > maxLen) {
-      Redirect(call).flashing("error" -> this.messagesApi("error.tagline.tooLong", maxLen))
+      Redirect(ShowUser(user)).flashing("error" -> this.messagesApi("error.tagline.tooLong", maxLen))
     } else {
       user.tagline = tagline
-      Redirect(call)
+      Redirect(ShowUser(user))
     }
   }
 
@@ -157,7 +155,7 @@ class Users @Inject()(fakeUser: FakeUser,
   def savePgpPublicKey(username: String) = UserAction(username) { implicit request =>
     this.forms.UserPgpPubKey.bindFromRequest.fold(
       hasErrors =>
-        Redirect(self.showProjects(username, None)).withError(hasErrors.errors.head.message),
+        Redirect(ShowUser(username)).withError(hasErrors.errors.head.message),
       keySubmission => {
         import writes._
         val keyInfo = keySubmission.info
@@ -165,18 +163,19 @@ class Users @Inject()(fakeUser: FakeUser,
         // Validate email
         user.email match {
           case None =>
-            Redirect(self.showProjects(username, None)).withError("error.pgp.noEmail")
+            Redirect(ShowUser(username)).withError("error.pgp.noEmail")
           case Some(email) =>
             if (!email.equals(keyInfo.email))
-              Redirect(self.showProjects(username, None)).withError("error.pgp.invalidEmail")
+              Redirect(ShowUser(username)).withError("error.pgp.invalidEmail")
             else {
               user.pgpPubKey = keyInfo.raw
               if (user.lastPgpPubKeyUpdate.isDefined)
                 user.lastPgpPubKeyUpdate = this.service.theTime // Not set the first time
 
+              // Send email notification
               this.mailer.push(this.emails.create(user, this.emails.PgpUpdated))
 
-              Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
+              Redirect(ShowUser(username)).flashing("pgp-updated" -> "true")
             }
         }
       }
@@ -197,7 +196,7 @@ class Users @Inject()(fakeUser: FakeUser,
       else {
         user.pgpPubKey = null
         user.lastPgpPubKeyUpdate = this.service.theTime
-        Redirect(self.showProjects(username, None)).flashing("pgp-updated" -> "true")
+        Redirect(ShowUser(username)).flashing("pgp-updated" -> "true")
       }
     }
   }
@@ -215,7 +214,7 @@ class Users @Inject()(fakeUser: FakeUser,
       user.setLocked(locked)
       if (!locked)
         this.mailer.push(this.emails.create(user, this.emails.AccountUnlocked))
-      Redirect(self.showProjects(username, None))
+      Redirect(ShowUser(username))
     }
   }
 
@@ -257,8 +256,7 @@ class Users @Inject()(fakeUser: FakeUser,
       Ok(views.users.notifications(
         notifications,
         invites,
-        nFilter, iFilter
-      ))
+        nFilter, iFilter))
     }
   }
 

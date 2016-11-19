@@ -3,7 +3,6 @@ package controllers
 import javax.inject.Inject
 
 import controllers.Requests.AuthRequest
-import controllers.routes.{Application => self}
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
 import models.project.{Flag, Project, Version}
@@ -123,7 +122,7 @@ final class Application @Inject()(data: DataHelper,
   def reset() = (Authenticated andThen PermissionAction[AuthRequest](ResetOre)) { implicit request =>
     this.config.checkDebug()
     this.data.reset()
-    Redirect(self.showHome(None, None, None, None)).withNewSession
+    Redirect(ShowHome).withNewSession
   }
 
   /**
@@ -135,7 +134,7 @@ final class Application @Inject()(data: DataHelper,
     (Authenticated andThen PermissionAction[AuthRequest](SeedOre)) { implicit request =>
       this.config.checkDebug()
       this.data.seed(users, projects, versions, channels)
-      Redirect(self.showHome(None, None, None, None)).withNewSession
+      Redirect(ShowHome).withNewSession
     }
   }
 
@@ -146,7 +145,7 @@ final class Application @Inject()(data: DataHelper,
     */
   def migrate() = (Authenticated andThen PermissionAction[AuthRequest](MigrateOre)) { implicit request =>
     this.data.migrate()
-    Redirect(self.showHome(None, None, None, None))
+    Redirect(ShowHome)
   }
 
 }

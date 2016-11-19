@@ -3,7 +3,6 @@ package controllers.project
 import javax.inject.Inject
 
 import controllers.BaseController
-import controllers.project.routes.{Channels => self}
 import db.ModelService
 import form.OreForms
 import ore.permission.EditChannels
@@ -25,6 +24,8 @@ class Channels @Inject()(forms: OreForms,
                          implicit override val service: ModelService)
                          extends BaseController {
 
+  private val self = controllers.project.routes.Channels
+
   private def ChannelEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug, requireUnlock = true) andThen ProjectPermissionAction(EditChannels)
 
@@ -35,11 +36,9 @@ class Channels @Inject()(forms: OreForms,
     * @param slug   Project slug
     * @return View of channels
     */
-  def showList(author: String, slug: String) = {
-    ChannelEditAction(author, slug) { implicit request =>
-      val project = request.project
-      Ok(views.list(project, project.channels.toSeq))
-    }
+  def showList(author: String, slug: String) = ChannelEditAction(author, slug) { implicit request =>
+    val project = request.project
+    Ok(views.list(project, project.channels.toSeq))
   }
 
   /**
@@ -49,21 +48,19 @@ class Channels @Inject()(forms: OreForms,
     * @param slug   Project slug
     * @return Redirect to view of channels
     */
-  def create(author: String, slug: String) = {
-    ChannelEditAction(author, slug) { implicit request =>
-      this.forms.ChannelEdit.bindFromRequest.fold(
-        hasErrors =>
-          Redirect(self.showList(author, slug)).withError(hasErrors.errors.head.message),
-        channelData => {
-          channelData.addTo(request.project).fold(
-            error =>
-              Redirect(self.showList(author, slug)).withError(error),
-            channel =>
-              Redirect(self.showList(author, slug))
-          )
-        }
-      )
-    }
+  def create(author: String, slug: String) = ChannelEditAction(author, slug) { implicit request =>
+    this.forms.ChannelEdit.bindFromRequest.fold(
+      hasErrors =>
+        Redirect(self.showList(author, slug)).withError(hasErrors.errors.head.message),
+      channelData => {
+        channelData.addTo(request.project).fold(
+          error =>
+            Redirect(self.showList(author, slug)).withError(error),
+          channel =>
+            Redirect(self.showList(author, slug))
+        )
+      }
+    )
   }
 
   /**
@@ -74,21 +71,19 @@ class Channels @Inject()(forms: OreForms,
     * @param channelName Channel name
     * @return View of channels
     */
-  def save(author: String, slug: String, channelName: String) = {
-    ChannelEditAction(author, slug) { implicit request =>
-      implicit val project = request.project
-      this.forms.ChannelEdit.bindFromRequest.fold(
-        hasErrors =>
-          Redirect(self.showList(author, slug)).withError(hasErrors.errors.head.message),
-        channelData => {
-          channelData.saveTo(channelName).map { error =>
-            Redirect(self.showList(author, slug)).withError(error)
-          } getOrElse {
-            Redirect(self.showList(author, slug))
-          }
+  def save(author: String, slug: String, channelName: String) = ChannelEditAction(author, slug) { implicit request =>
+    implicit val project = request.project
+    this.forms.ChannelEdit.bindFromRequest.fold(
+      hasErrors =>
+        Redirect(self.showList(author, slug)).withError(hasErrors.errors.head.message),
+      channelData => {
+        channelData.saveTo(channelName).map { error =>
+          Redirect(self.showList(author, slug)).withError(error)
+        } getOrElse {
+          Redirect(self.showList(author, slug))
         }
-      )
-    }
+      }
+    )
   }
 
   /**
@@ -100,24 +95,22 @@ class Channels @Inject()(forms: OreForms,
     * @param channelName Channel name
     * @return View of channels
     */
-  def delete(author: String, slug: String, channelName: String) = {
-    ChannelEditAction(author, slug) { implicit request =>
-      implicit val project = request.project
-      val channels = project.channels.all
-      if (channels.size == 1) {
-        Redirect(self.showList(author, slug)).withError("error.channel.last")
-      } else {
-        channels.find(c => c.name.equals(channelName)) match {
-          case None =>
-            NotFound
-          case Some(channel) =>
-            if (channel.versions.nonEmpty && channels.count(c => c.versions.nonEmpty) == 1) {
-              Redirect(self.showList(author, slug)).withError("error.channel.lastNonEmpty")
-            } else {
-              this.projects.deleteChannel(channel)
-              Redirect(self.showList(author, slug))
-            }
-        }
+  def delete(author: String, slug: String, channelName: String) = ChannelEditAction(author, slug) { implicit request =>
+    implicit val project = request.project
+    val channels = project.channels.all
+    if (channels.size == 1) {
+      Redirect(self.showList(author, slug)).withError("error.channel.last")
+    } else {
+      channels.find(c => c.name.equals(channelName)) match {
+        case None =>
+          NotFound
+        case Some(channel) =>
+          if (channel.versions.nonEmpty && channels.count(c => c.versions.nonEmpty) == 1) {
+            Redirect(self.showList(author, slug)).withError("error.channel.lastNonEmpty")
+          } else {
+            this.projects.deleteChannel(channel)
+            Redirect(self.showList(author, slug))
+          }
       }
     }
   }

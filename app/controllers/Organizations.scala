@@ -32,18 +32,17 @@ class Organizations @Inject()(forms: OreForms,
   private def EditOrganizationAction(organization: String)
   = AuthedOrganizationAction(organization, requireUnlock = true) andThen OrganizationPermissionAction(EditSettings)
 
-  val createLimit: Int = this.config.orgs.getInt("createLimit").get
+  private val createLimit: Int = this.config.orgs.getInt("createLimit").get
 
   /**
     * Shows the creation panel for Organizations.
     *
     * @return Organization creation panel
     */
-  def showCreator() = UserLock(routes.Application.showHome(None, None, None, None)) { implicit request =>
-    if (request.user.ownedOrganizations.size >= this.createLimit)
-      Redirect(routes.Application.showHome(None, None, None, None))
-        .flashing("error" -> this.messagesApi("error.org.createLimit", this.createLimit))
-    else
+  def showCreator() = UserLock() { implicit request =>
+    if (request.user.ownedOrganizations.size >= this.createLimit) {
+      Redirect(ShowHome).withError(this.messagesApi("error.org.createLimit", this.createLimit))
+    } else
       Ok(views.createOrganization())
   }
 
@@ -52,7 +51,7 @@ class Organizations @Inject()(forms: OreForms,
     *
     * @return Redirect to organization page
     */
-  def create() = UserLock(routes.Application.showHome(None, None, None, None)) { implicit request =>
+  def create() = UserLock() { implicit request =>
     val user = request.user
     val failCall = routes.Organizations.showCreator()
     if (user.ownedOrganizations.size >= this.createLimit)
@@ -144,13 +143,12 @@ class Organizations @Inject()(forms: OreForms,
     * @return             Redirect to Organization page
     */
   def removeMember(organization: String) = EditOrganizationAction(organization) { implicit request =>
-    // TODO: Validation!
     this.users.withName(this.forms.OrganizationMemberRemove.bindFromRequest.get.trim) match {
       case None =>
         BadRequest
       case Some(user) =>
         request.organization.memberships.removeMember(user)
-        Redirect(routes.Users.showProjects(organization, None))
+        Redirect(ShowUser(organization))
     }
   }
 
@@ -161,9 +159,8 @@ class Organizations @Inject()(forms: OreForms,
     * @return             Redirect to Organization page
     */
   def updateMembers(organization: String) = EditOrganizationAction(organization) { implicit request =>
-    // TODO: Validation!
     this.forms.OrganizationUpdateMembers.bindFromRequest.get.saveTo(request.organization)
-    Redirect(routes.Users.showProjects(organization, None))
+    Redirect(ShowUser(organization))
   }
 
 }

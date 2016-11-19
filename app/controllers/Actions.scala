@@ -1,6 +1,6 @@
 package controllers
 
-import controllers.Requests.{OrganizationRequest, _}
+import controllers.Requests._
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import models.project.Project
 import models.user.User
@@ -17,7 +17,7 @@ import scala.language.higherKinds
 /**
   * A set of actions used by Ore.
   */
-trait Actions extends ActionHelpers {
+trait Actions extends Calls with ActionHelpers {
 
   val users: UserBase
   val projects: ProjectBase
@@ -26,18 +26,20 @@ trait Actions extends ActionHelpers {
 
   val PermsLogger = play.api.Logger("Permissions")
 
+  val AuthTokenName = "_oretoken"
+
   /** Ensures a request is authenticated */
   def Authenticated = Action andThen authAction
 
   /** Ensures a user's account is unlocked */
-  def UserLock(redirect: Call) = Authenticated andThen userLock(redirect)
+  def UserLock(redirect: Call = ShowHome) = Authenticated andThen userLock(redirect)
 
   /** Called when a [[User]] tries to make a request they do not have permission for */
   def onUnauthorized(request: Request[_]) = {
     if (request.flash.get("noRedirect").isEmpty && this.users.current(request).isEmpty)
       Redirect(routes.Users.logIn(None, None, Some(request.path)))
     else
-      Redirect(routes.Application.showHome(None, None, None, None))
+      Redirect(ShowHome)
   }
 
   /**
@@ -92,7 +94,7 @@ trait Actions extends ActionHelpers {
     * @return Authenticated request with a project if found, NotFound otherwise.
     */
   def AuthedProjectAction(author: String, slug: String, requireUnlock: Boolean = false) = {
-    val first = if (requireUnlock) UserLock(project.routes.Projects.show(author, slug)) else Authenticated
+    val first = if (requireUnlock) UserLock(ShowProject(author, slug)) else Authenticated
     first andThen authedProjectAction(author, slug)
   }
 
@@ -121,7 +123,7 @@ trait Actions extends ActionHelpers {
     * @return             Authenticated request with Organization if found, NotFound otherwise
     */
   def AuthedOrganizationAction(organization: String, requireUnlock: Boolean = false) = {
-    val first = if (requireUnlock) UserLock(routes.Users.showProjects(organization, None)) else Authenticated
+    val first = if (requireUnlock) UserLock(ShowUser(organization)) else Authenticated
     first andThen authedOrganizationAction(organization)
   }
 
@@ -166,12 +168,19 @@ trait Actions extends ActionHelpers {
     def authenticatedAs(user: User, maxAge: Int = -1) = {
       val session = Actions.this.users.createSession(user)
       val age = if (maxAge == -1) None else Some(maxAge)
-      result.withCookies(Cookie("_oretoken", session.token, age))
+      result.withCookies(Cookie(AuthTokenName, session.token, age))
     }
 
-    def clearingSession() = result.discardingCookies(DiscardingCookie("_oretoken"))
+    /**
+      * Indicates that the client's session cookie should be cleared.
+      *
+      * @return
+      */
+    def clearingSession() = result.discardingCookies(DiscardingCookie(AuthTokenName))
 
   }
+
+  // Implementation
 
   private def userLock(redirect: Call) = new ActionFilter[AuthRequest] {
     def filter[A](request: AuthRequest[A]): Future[Option[Result]] = Future.successful {

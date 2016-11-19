@@ -6,7 +6,6 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.Requests.ProjectRequest
-import controllers.project.routes.{Projects, Versions => self}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import discourse.OreDiscourseApi
@@ -38,6 +37,7 @@ class Versions @Inject()(stats: StatTracker,
                          extends BaseController {
 
   private val fileManager = this.projects.fileManager
+  private val self = controllers.project.routes.Versions
 
   private def VersionEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug, requireUnlock = true) andThen ProjectPermissionAction(EditVersions)
@@ -50,13 +50,11 @@ class Versions @Inject()(stats: StatTracker,
     * @param versionString Version name
     * @return Version view
     */
-  def show(author: String, slug: String, versionString: String) = {
-    ProjectAction(author, slug) { implicit request =>
-      implicit val project = request.project
-      withVersion(versionString) { version =>
-        this.stats.projectViewed { implicit request =>
-          Ok(views.view(project, version.channel, version))
-        }
+  def show(author: String, slug: String, versionString: String) = ProjectAction(author, slug) { implicit request =>
+    implicit val project = request.project
+    withVersion(versionString) { version =>
+      this.stats.projectViewed { implicit request =>
+        Ok(views.view(project, version.channel, version))
       }
     }
   }
@@ -154,11 +152,9 @@ class Versions @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return Version creation view
     */
-  def showCreator(author: String, slug: String) = {
-    VersionEditAction(author, slug) { implicit request =>
-      val project = request.project
-      Ok(views.create(project, None, Some(project.channels.all.toSeq), showFileControls = true))
-    }
+  def showCreator(author: String, slug: String) = VersionEditAction(author, slug) { implicit request =>
+    val project = request.project
+    Ok(views.create(project, None, Some(project.channels.all.toSeq), showFileControls = true))
   }
 
   /**
@@ -168,39 +164,37 @@ class Versions @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return Version create page (with meta)
     */
-  def upload(author: String, slug: String) = {
-    VersionEditAction(author, slug) { implicit request =>
-      val call = self.showCreator(author, slug)
-      request.body.asMultipartFormData.get.file("pluginFile") match {
-        case None =>
-          Redirect(call).withError("error.noFile")
-        case Some(tmpFile) =>
-          val user = request.user
-          this.factory.getUploadError(user) match {
-            case None =>
-              try {
-                val plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user)
-                val project = request.project
-                if (!plugin.meta.get.getId.equals(project.pluginId))
-                  Redirect(call).withError("error.version.invalidPluginId")
+  def upload(author: String, slug: String) = VersionEditAction(author, slug) { implicit request =>
+    val call = self.showCreator(author, slug)
+    request.body.asMultipartFormData.get.file("pluginFile") match {
+      case None =>
+        Redirect(call).withError("error.noFile")
+      case Some(tmpFile) =>
+        val user = request.user
+        this.factory.getUploadError(user) match {
+          case None =>
+            try {
+              val plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user)
+              val project = request.project
+              if (!plugin.meta.get.getId.equals(project.pluginId))
+                Redirect(call).withError("error.version.invalidPluginId")
+              else {
+                val version = this.factory.startVersion(plugin, project, project.channels.all.head.name)
+                val model = version.underlying
+                if (model.exists && this.config.projects.getBoolean("file-validate").get)
+                  Redirect(call).withError("error.version.duplicate")
                 else {
-                  val version = this.factory.startVersion(plugin, project, project.channels.all.head.name)
-                  val model = version.underlying
-                  if (model.exists && this.config.projects.getBoolean("file-validate").get)
-                    Redirect(call).withError("error.version.duplicate")
-                  else {
-                    version.cache()
-                    Redirect(self.showCreatorWithMeta(author, slug, model.versionString))
-                  }
+                  version.cache()
+                  Redirect(self.showCreatorWithMeta(author, slug, model.versionString))
                 }
-              } catch {
-                case e: InvalidPluginFileException =>
-                  Redirect(call).withError("error.project.invalidPluginFile")
               }
-            case Some(error) =>
-              Redirect(call).withError(error)
-          }
-      }
+            } catch {
+              case e: InvalidPluginFileException =>
+                Redirect(call).withError("error.project.invalidPluginFile")
+            }
+          case Some(error) =>
+            Redirect(call).withError(error)
+        }
     }
   }
 
@@ -213,7 +207,7 @@ class Versions @Inject()(stats: StatTracker,
     * @return Version create view
     */
   def showCreatorWithMeta(author: String, slug: String, versionString: String) = {
-    UserLock(Projects.show(author, slug)) { implicit request =>
+    UserLock(ShowProject(author, slug)) { implicit request =>
       // Get pending version
       val username = request.user.name
       this.factory.getPendingVersion(username, slug, versionString) match {
@@ -237,7 +231,7 @@ class Versions @Inject()(stats: StatTracker,
 
   private def pendingOrReal(author: String, slug: String): Option[Any] = {
     // Returns either a PendingProject or existing Project
-    projects.withSlug(author, slug) match {
+    this.projects.withSlug(author, slug) match {
       case None => this.factory.getPendingProject(author, slug)
       case Some(project) => Some(project)
     }
@@ -253,7 +247,7 @@ class Versions @Inject()(stats: StatTracker,
     * @return New version view
     */
   def publish(author: String, slug: String, versionString: String) = {
-    UserLock(Projects.show(author, slug)) { implicit request =>
+    UserLock(ShowProject(author, slug)) { implicit request =>
       // First get the pending Version
       val username = request.user.name
       this.factory.getPendingVersion(username, slug, versionString) match {
@@ -307,7 +301,7 @@ class Versions @Inject()(stats: StatTracker,
                 case Some(pendingProject) =>
                   // Found a pending project, create it with first version
                   pendingProject.complete().get
-                  Redirect(Projects.show(author, slug))
+                  Redirect(ShowProject(author, slug))
               }
             }
           )
@@ -341,13 +335,11 @@ class Versions @Inject()(stats: StatTracker,
     * @param versionString Version string
     * @return Sent file
     */
-  def download(author: String, slug: String, versionString: String) = {
-    ProjectAction(author, slug) { implicit request =>
-      implicit val project = request.project
-      withVersion(versionString) { version =>
-        this.stats.versionDownloaded(version) { implicit request =>
-          Ok.sendFile(this.fileManager.getProjectDir(author, project.name).resolve(version.fileName).toFile)
-        }
+  def download(author: String, slug: String, versionString: String) = ProjectAction(author, slug) { implicit request =>
+    implicit val project = request.project
+    withVersion(versionString) { version =>
+      this.stats.versionDownloaded(version) { implicit request =>
+        Ok.sendFile(this.fileManager.getProjectDir(author, project.name).resolve(version.fileName).toFile)
       }
     }
   }
@@ -359,13 +351,11 @@ class Versions @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return Sent file
     */
-  def downloadRecommended(author: String, slug: String) = {
-    ProjectAction(author, slug) { implicit request =>
-      val project = request.project
-      val rv = project.recommendedVersion
-      this.stats.versionDownloaded(rv) { implicit request =>
-        Ok.sendFile(this.fileManager.getProjectDir(author, project.name).resolve(rv.fileName).toFile)
-      }
+  def downloadRecommended(author: String, slug: String) = ProjectAction(author, slug) { implicit request =>
+    val project = request.project
+    val rv = project.recommendedVersion
+    this.stats.versionDownloaded(rv) { implicit request =>
+      Ok.sendFile(this.fileManager.getProjectDir(author, project.name).resolve(rv.fileName).toFile)
     }
   }
 
@@ -393,11 +383,9 @@ class Versions @Inject()(stats: StatTracker,
     * @param versionString  Version name
     * @return               Sent file
     */
-  def downloadJarById(pluginId: String, versionString: String) = {
-    ProjectAction(pluginId) { implicit request =>
-      implicit val project = request.project
-      withVersion(versionString)(version => sendJar(project, version))
-    }
+  def downloadJarById(pluginId: String, versionString: String) = ProjectAction(pluginId) { implicit request =>
+    implicit val project = request.project
+    withVersion(versionString)(version => sendJar(project, version))
   }
 
   /**
@@ -408,11 +396,9 @@ class Versions @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return       Sent file
     */
-  def downloadRecommendedJar(author: String, slug: String) = {
-    ProjectAction(author, slug) { implicit request =>
-      val project = request.project
-      sendJar(project, project.recommendedVersion)
-    }
+  def downloadRecommendedJar(author: String, slug: String) = ProjectAction(author, slug) { implicit request =>
+    val project = request.project
+    sendJar(project, project.recommendedVersion)
   }
 
   /**
@@ -422,11 +408,9 @@ class Versions @Inject()(stats: StatTracker,
     * @param pluginId Project unique plugin ID
     * @return         Sent file
     */
-  def downloadRecommendedJarById(pluginId: String) = {
-    ProjectAction(pluginId) { implicit request =>
-      val project = request.project
-      sendJar(project, project.recommendedVersion)
-    }
+  def downloadRecommendedJarById(pluginId: String) = ProjectAction(pluginId) { implicit request =>
+    val project = request.project
+    sendJar(project, project.recommendedVersion)
   }
 
   private def sendJar(project: Project, version: Version)(implicit request: ProjectRequest[_]): Result = {

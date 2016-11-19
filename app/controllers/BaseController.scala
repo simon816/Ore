@@ -23,7 +23,7 @@ abstract class BaseController(implicit val env: OreEnv,
 
   implicit override val users: UserBase = this.service.getModelBase(classOf[UserBase])
   implicit override val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
-  implicit val organizations: OrganizationBase = this.service.getModelBase(classOf[OrganizationBase])
+  implicit override val organizations: OrganizationBase = this.service.getModelBase(classOf[OrganizationBase])
 
   /**
     * Executes the given function with the specified result or returns a
