@@ -3,11 +3,10 @@
 @import db.impl.access.UserBase
 @import models.project.Project
 @import models.user.User
-@import ore.{OreConfig, OreEnv}
+@import ore.OreConfig
 @import views.html.projects.{list => projectList}
-@(user: User, models: Seq[Project], page: Int)(implicit messages: Messages,
-        session: Session, flash: Flash, request: Request[_], service: ModelService, config: OreConfig,
-        userBase: UserBase, env: OreEnv)
+@(user: User, models: Seq[Project], page: Int)(implicit messages: Messages, flash: Flash, request: Request[_],
+        service: ModelService, config: OreConfig, userBase: UserBase)
 
 @users.view(user) {
 

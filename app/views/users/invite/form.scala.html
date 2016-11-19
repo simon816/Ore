@@ -2,7 +2,7 @@
 @import models.user.User
 @import ore.permission.role.Role
 @(owner: User, loadedUsers: Seq[User] = Seq(), roleClass: Class[_ <: Role])(implicit userBase: UserBase,
-        session: Session, messages: Messages)
+        messages: Messages)
 
 <script type="text/javascript" src="@routes.Assets.at("javascripts/userSearch.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/membersConfig.js")"></script>

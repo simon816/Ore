@@ -6,13 +6,12 @@ Base template for Project overview.
 @import db.impl.access.UserBase
 @import models.project.Project
 @import models.user.User
+@import ore.OreConfig
 @import ore.permission.EditSettings
 @import ore.project.FlagReasons
-@import ore.{OreConfig, OreEnv}
 @import views.html.helper.form
 @(project: Project, active: String, noButtons: Boolean = false)(content: Html)(implicit messages: Messages,
-        session: Session, request: Request[_], flash: Flash, service: ModelService, config: OreConfig,
-        users: UserBase, env: OreEnv)
+        request: Request[_], flash: Flash, service: ModelService, config: OreConfig, users: UserBase)
 
 @hasUser = @{ users.current.isDefined }
 @user = @{ users.current.get }
@@ -145,7 +144,8 @@ Base template for Project overview.
                             }
 
                             <!-- Flag button -->
-                            @if(hasUser && !user.username.equals(project.ownerName) && !user.hasUnresolvedFlagFor(project)) {
+                            @if(hasUser && !user.username.equals(project.ownerName)
+                                    && !user.hasUnresolvedFlagFor(project)) {
                                 <button data-toggle="modal" data-target="#modal-flag" class="btn btn-default">
                                     <i class="fa fa-flag"></i> @messages("project.flag")
                                 </button>

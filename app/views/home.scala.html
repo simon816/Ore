@@ -6,15 +6,15 @@ sorted according to different criteria.
 @import db.ModelService
 @import db.impl.access.UserBase
 @import models.project.Project
+@import ore.OreConfig
 @import ore.project.Categories._
 @import ore.project.ProjectSortingStrategies.{values, _}
 @import ore.project.{Categories, ProjectSortingStrategies}
-@import ore.{OreConfig, OreEnv}
 
 @import scala.util.Random
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], query: Option[String], page: Int,
-        sort: ProjectSortingStrategy)(implicit messages: Messages, session: Session, flash: Flash,
-        request: Request[_], service: ModelService, config: OreConfig, users: UserBase, env: OreEnv)
+        sort: ProjectSortingStrategy)(implicit messages: Messages, flash: Flash, request: Request[_],
+        service: ModelService, config: OreConfig, users: UserBase)
 
 @randomSponsor = @{
     val logos = config.sponge.getStringList("sponsors.logos").get
@@ -23,7 +23,10 @@ sorted according to different criteria.
     (logos.get(index), urls.get(index))
 }
 
-@categoryString = @{ visibleCategories.map(_.map(_.id.toString).mkString(",")) }
+@categoryString = @{
+    visibleCategories.map(_.map(_.id.toString).mkString(","))
+}
+
 @orderingOption = @{
     sort match {
         case ProjectSortingStrategies.Default => None

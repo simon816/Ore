@@ -4,11 +4,11 @@
 @import ore.permission.EditSettings
 @import ore.permission.role.{Absolute, Role}
 @import ore.user.Member
-@import ore.{Joinable, OreConfig, OreEnv}
+@import ore.{Joinable, OreConfig}
 @import views.html.helper.form
 @(model: Joinable[_ <: Member[_]], editable: Boolean = false, removeCall: Call = null,
-        settingsCall: Call = null, saveCall: Call = null)(implicit messages: Messages, session: Session,
-        service: ModelService, config: OreConfig, userBase: UserBase, env: OreEnv, request: Request[_])
+        settingsCall: Call = null, saveCall: Call = null)(implicit messages: Messages, service: ModelService,
+        config: OreConfig, userBase: UserBase, request: Request[_])
 
 @canEdit = @{
     editable && userBase.current.isDefined && (userBase.current.get can EditSettings in model)

@@ -4,12 +4,12 @@ Page used for uploading and creating new projects.
 @import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
 @import db.impl.access.UserBase
+@import ore.OreConfig
 @import ore.project.factory.PendingProject
-@import ore.{OreConfig, OreEnv}
 @import play.twirl.api.Html
 @import views.html.helper.form
-@(pending: Option[PendingProject])(implicit messages: Messages, session: Session, flash: Flash, request: Request[_],
-        service: ModelService, config: OreConfig, users: UserBase, env: OreEnv)
+@(pending: Option[PendingProject])(implicit messages: Messages, flash: Flash, request: Request[_],
+        service: ModelService, config: OreConfig, users: UserBase)
 
 @projects.utils.panelCreate(messages("project.create"), if (pending.isEmpty) 1 else 2) {
 

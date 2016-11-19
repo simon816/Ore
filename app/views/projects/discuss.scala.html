@@ -5,10 +5,10 @@ Discussion page within Project overview.
 @import db.ModelService
 @import db.impl.access.UserBase
 @import models.project.Project
-@import ore.{OreConfig, OreEnv}
+@import ore.OreConfig
 @import org.spongepowered.play.discourse.DiscourseApi
-@(model: Project)(implicit messages: Messages, session: Session, request: Request[_],
-        flash: Flash, service: ModelService, forums: DiscourseApi, config: OreConfig, users: UserBase, env: OreEnv)
+@(model: Project)(implicit messages: Messages, request: Request[_], flash: Flash, service: ModelService,
+        forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 @projects.view(model, "#discussion") {
 

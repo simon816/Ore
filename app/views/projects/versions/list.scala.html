@@ -5,12 +5,12 @@ Versions page within Project overview.
 @import db.ModelService
 @import db.impl.access.UserBase
 @import models.project.{Channel, Project, Version}
+@import ore.OreConfig
 @import ore.permission.{EditChannels, EditVersions}
-@import ore.{OreConfig, OreEnv}
 @import util.StringUtils._
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
-  visibleChannels: Option[Array[String]])(implicit messages: Messages, session: Session,
-        request: Request[_], flash: Flash, service: ModelService, config: OreConfig, userBase: UserBase, env: OreEnv)
+        visibleChannels: Option[Array[String]])(implicit messages: Messages, request: Request[_], flash: Flash,
+        service: ModelService, config: OreConfig, userBase: UserBase)
 
 @pageSize = @{ config.projects.getInt("init-version-load").get }
 
@@ -62,7 +62,8 @@ Versions page within Project overview.
                                         @defining(version.findChannelFrom(channels).get) { channel =>
                                             <tr>
                                                 <td>
-                                                    <i title="@channel.name" class="fa fa-circle channel-id" style="color: @channel.color.hex"></i>
+                                                    <i title="@channel.name" class="fa fa-circle channel-id"
+                                                       style="color: @channel.color.hex"></i>
                                                     <a href="@projectRoutes.Versions.show(
                                                         model.ownerName, model.slug, version.versionString)">
                                                         <strong>@version.versionString</strong>

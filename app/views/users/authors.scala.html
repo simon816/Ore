@@ -2,11 +2,10 @@
 @import db.impl.access.UserBase._
 @import db.impl.access.{ProjectBase, UserBase}
 @import models.user.User
-@import ore.{OreConfig, OreEnv}
+@import ore.OreConfig
 @import util.StringUtils._
-@(authors: Seq[User], ordering: String, page: Int)(implicit messages: Messages, session: Session,
-        request: Request[_], service: ModelService, config: OreConfig, users: UserBase, projectBase: ProjectBase,
-        env: OreEnv)
+@(authors: Seq[User], ordering: String, page: Int)(implicit messages: Messages, request: Request[_],
+        service: ModelService, config: OreConfig, users: UserBase, projectBase: ProjectBase)
 
 @pageSize = @{ config.users.getInt("author-page-size").get }
 @direction = @{ if (ordering.startsWith("-")) "o-chevron-down" else "o-chevron-up" }

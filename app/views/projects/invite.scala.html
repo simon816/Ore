@@ -3,16 +3,15 @@
 @import db.impl.access.UserBase
 @import discourse.OreDiscourseApi
 @import models.user.role.ProjectRole
+@import ore.OreConfig
 @import ore.project.factory.PendingProject
-@import ore.{OreConfig, OreEnv}
 @import play.twirl.api.Html
 @import views.html.helper.form
 
 @import scala.collection.JavaConverters._
 @import scala.concurrent.TimeoutException
-@(pending: PendingProject)(implicit messages: Messages, session: Session, flash: Flash,
-        request: Request[_], service: ModelService, forums: OreDiscourseApi, config: OreConfig, userBase: UserBase,
-        env: OreEnv)
+@(pending: PendingProject)(implicit messages: Messages, flash: Flash, request: Request[_], service: ModelService,
+        forums: OreDiscourseApi, config: OreConfig, userBase: UserBase)
 
 @registeredUsers(users: List[String]) = @{
     try {

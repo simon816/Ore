@@ -2,12 +2,12 @@
 @import db.ModelService
 @import db.impl.access.UserBase
 @import models.project.Project
+@import ore.OreConfig
 @import ore.permission.HideProjects
 @import ore.permission.scope.GlobalScope
-@import ore.{OreConfig, OreEnv}
 @import views.html.helper.form
-@(project: Project)(implicit messages: Messages, session: Session, flash: Flash, request: Request[_],
-        service: ModelService, config: OreConfig, userBase: UserBase, env: OreEnv)
+@(project: Project)(implicit messages: Messages, flash: Flash, request: Request[_], service: ModelService,
+        config: OreConfig, userBase: UserBase)
 
 @projects.view(project, "#settings") {
 
@@ -100,7 +100,7 @@
                             </div>
                             <div class="setting-content">
                                 <input form="rename" id="name" name="name" class="form-control" type="text"
-                                       value="@project.name" type="button"
+                                       value="@project.name"
                                        maxlength="@config.projects.getInt("max-name-len").get">
                                 <button id="btn-rename" data-toggle="modal" data-target="#modal-rename"
                                         class="btn btn-warning" disabled>
@@ -108,33 +108,6 @@
                                 </button>
                             </div>
                             <div class="clearfix"></div>
-                        </div>
-
-                        <div class="modal fade" id="modal-rename" tabindex="-1" role="dialog" aria-labelledby="label-rename">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal"
-                                                aria-label="@messages("general.cancel")">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                        <h4 class="modal-title" id="label-rename">@messages("project.rename.title")</h4>
-                                    </div>
-                                    <div class="modal-body">
-                                    @messages("project.rename.info")
-                                    </div>
-                                    <div class="modal-footer">
-                                        <div class="form-inline">
-                                        @form(action = projectRoutes.rename(project.ownerName, project.slug), 'id -> "rename") {
-                                            <button type="button" class="btn btn-default" data-dismiss="modal">
-                                            @messages("channel.edit.close")
-                                            </button>
-                                            <input type="submit" name="rename" value="@messages("project.rename")" class="btn btn-warning">
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- Delete -->
@@ -150,33 +123,6 @@
                                 </button>
                             </div>
                             <div class="clearfix"></div>
-                        </div>
-
-                        <div class="modal fade" id="modal-delete" tabindex="-1" role="dialog" aria-labelledby="label-delete">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                        <h4 class="modal-title" id="label-delete">@messages("project.delete.title")</h4>
-                                    </div>
-                                    <div class="modal-body">
-                                        @messages("project.delete.info")
-                                    </div>
-                                    <div class="modal-footer">
-                                        <div class="form-inline">
-                                            @form(action = projectRoutes.delete(project.ownerName, project.slug)) {
-                                                <button type="button" class="btn btn-default" data-dismiss="modal">
-                                                    @messages("channel.edit.close")
-                                                </button>
-                                                <input type="submit" name="delete"
-                                                       value="@messages("general.delete")" class="btn btn-danger">
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         @form(action = projectRoutes.save(project.ownerName, project.slug), 'id -> "save",
@@ -201,6 +147,60 @@
                     removeCall = projectRoutes.removeMember(project.ownerName, project.slug),
                     settingsCall = projectRoutes.showSettings(project.ownerName, project.slug)
                 )
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-rename" tabindex="-1" role="dialog" aria-labelledby="label-rename">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                    aria-label="@messages("general.cancel")">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="label-rename">@messages("project.rename.title")</h4>
+                </div>
+                <div class="modal-body">
+                @messages("project.rename.info")
+                </div>
+                <div class="modal-footer">
+                    <div class="form-inline">
+                    @form(action = projectRoutes.rename(project.ownerName, project.slug), 'id -> "rename") {
+                        <button type="button" class="btn btn-default" data-dismiss="modal">
+                        @messages("channel.edit.close")
+                        </button>
+                        <input type="submit" name="rename" value="@messages("project.rename")" class="btn btn-warning">
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-delete" tabindex="-1" role="dialog" aria-labelledby="label-delete">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="label-delete">@messages("project.delete.title")</h4>
+                </div>
+                <div class="modal-body">
+                @messages("project.delete.info")
+                </div>
+                <div class="modal-footer">
+                    <div class="form-inline">
+                    @form(action = projectRoutes.delete(project.ownerName, project.slug)) {
+                        <button type="button" class="btn btn-default" data-dismiss="modal">
+                        @messages("channel.edit.close")
+                        </button>
+                        <input type="submit" name="delete"
+                        value="@messages("general.delete")" class="btn btn-danger">
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     </div>

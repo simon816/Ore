@@ -2,14 +2,13 @@
 @import db.ModelService
 @import db.impl.access.{ProjectBase, UserBase}
 @import models.project.{Channel, Project, Version}
+@import ore.OreConfig
 @import ore.permission.scope.GlobalScope
 @import ore.permission.{EditVersions, ReviewProjects}
 @import ore.project.Dependency.SpongeApiId
-@import ore.{OreConfig, OreEnv}
 @import util.StringUtils._
-@(project: Project, channel: Channel, version: Version)(implicit messages: Messages,
-        session: Session, request: Request[_], flash: Flash, service: ModelService, config: OreConfig,
-        users: UserBase, projectBase: ProjectBase, env: OreEnv)
+@(project: Project, channel: Channel, version: Version)(implicit messages: Messages, request: Request[_], flash: Flash,
+        service: ModelService, config: OreConfig, users: UserBase, projectBase: ProjectBase)
 
 @hasUser = @{ users.current.isDefined }
 @user = @{ users.current.get }
@@ -71,7 +70,8 @@
 
                             @if(!version.isReviewed && canApprove) {
                                 <a class="btn btn-success"
-                                   href="@projectRoutes.Versions.approve(project.ownerName, project.slug, version.name)">
+                                   href="@projectRoutes.Versions.approve(
+                                       project.ownerName, project.slug, version.name)">
                                     <i class="fa fa-thumbs-up"></i> Approve
                                 </a>
                             }
@@ -82,7 +82,8 @@
                                        disabled data-toggle="tooltip" data-placement="top"
                                        title="@messages("version.delete.cannot-last")"
                                    } else {
-                                       href="@projectRoutes.Versions.delete(project.ownerName, project.slug, version.versionString)"
+                                       href="@projectRoutes.Versions.delete(
+                                           project.ownerName, project.slug, version.versionString)"
                                    }
                                 >
                                     <i class="fa fa-trash"></i> @messages("general.delete")
@@ -90,7 +91,8 @@
                             }
 
                             <a class="btn btn-primary"
-                               href="@projectRoutes.Versions.download(project.ownerName, project.slug, version.versionString)">
+                               href="@projectRoutes.Versions.download(
+                                   project.ownerName, project.slug, version.versionString)">
                                 <i class="fa fa-download"></i> @messages("general.download")
                             </a>
 
