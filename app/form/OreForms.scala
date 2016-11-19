@@ -140,7 +140,7 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
       "Invalid channel name.", config.isValidChannelName(_)),
     "channel-color-input" -> text.verifying(
       "Invalid channel color.", c => Channel.Colors.exists(_.hex.equalsIgnoreCase(c))),
-    "content" -> text
+    "content" -> optional(text)
   )(VersionData.apply)(VersionData.unapply))
 
 

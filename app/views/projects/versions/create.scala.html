@@ -117,21 +117,23 @@
                                     </table>
                                 </div>
 
-                                <div class="release-bulletin">
-                                    <div>
-                                        <h3>@messages("version.releaseBulletin")</h3>
-                                        <p>@messages("version.releaseBulletin.info")</p>
+                                @if(showFileControls) {
+                                    <div class="release-bulletin">
+                                        <div>
+                                            <h3>@messages("version.releaseBulletin")</h3>
+                                            <p>@messages("version.releaseBulletin.info")</p>
 
-                                        @utils.editor(
-                                            savable = false,
-                                            enabled = true,
-                                            raw = version.description.getOrElse(""),
-                                            cancellable = false,
-                                            targetForm = "form-publish"
-                                        )
+                                            @utils.editor(
+                                                savable = false,
+                                                enabled = true,
+                                                raw = version.description.getOrElse(""),
+                                                cancellable = false,
+                                                targetForm = "form-publish"
+                                            )
+                                        </div>
                                     </div>
-                                </div>
-                                <script>$(function() { $('.btn-edit').click() });</script>
+                                    <script>$(function () { $('.btn-edit').click() });</script>
+                                }
                             }
                         }
 
