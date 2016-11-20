@@ -42,12 +42,14 @@ trait OreRestfulApi {
   def getProjectList(categories: Option[String], sort: Option[Int], q: Option[String],
                      limit: Option[Int], offset: Option[Int]): JsValue = {
     val queries = this.service.getSchema(classOf[ProjectSchema])
-    val categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
+    val categoryArray: Option[Array[Category]] = categories.map(Categories.fromString)
     val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
-    val filter = q.map(queries.searchFilter).getOrElse(ModelFilter.Empty)
+    val searchFilter = q.map(queries.searchFilter).getOrElse(ModelFilter.Empty)
+    val categoryFilter = categoryArray.map(queries.categoryFilter).getOrElse(ModelFilter.Empty)
+    val filter = categoryFilter +&& searchFilter
     val maxLoad = this.config.projects.getInt("init-load").get
     val lim = max(min(limit.getOrElse(maxLoad), maxLoad), 0)
-    val future = queries.collect(filter.fn, categoryArray, lim, offset.getOrElse(-1), ordering)
+    val future = queries.collect(filter.fn, ordering, lim, offset.getOrElse(-1))
     val projects = this.service.await(future).get
     toJson(projects)
   }

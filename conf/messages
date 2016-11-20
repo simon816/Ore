@@ -48,6 +48,8 @@ general.spongePlugin            =   Sponge Plugin
 general.spongePlugin.tooltip    =   To mark your project as a Sponge plugin, add spongeapi as a dependency.
 general.forgeMod                =   Forge Mod
 general.forgeMod.tooltip        =   To mark your project as a Forge mod, add forge as a dependency.
+general.any                     =   Any
+general.platform                =   Platform
 
 editor.deleteConfirm    =   Are you sure you want to delete {0}? This cannot be undone.
 

@@ -12,9 +12,11 @@ sorted according to different criteria.
 @import ore.project.{Categories, ProjectSortingStrategies}
 
 @import scala.util.Random
+@import ore.Platforms
+@import ore.Platforms.Platform
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], query: Option[String], page: Int,
-        sort: ProjectSortingStrategy)(implicit messages: Messages, flash: Flash, request: Request[_],
-        service: ModelService, config: OreConfig, users: UserBase)
+        sort: ProjectSortingStrategy, platform: Option[Platform])(implicit messages: Messages, flash: Flash,
+        request: Request[_], service: ModelService, config: OreConfig, users: UserBase)
 
 @randomSponsor = @{
     val logos = config.sponge.getStringList("sponsors.logos").get
@@ -31,6 +33,19 @@ sorted according to different criteria.
     sort match {
         case ProjectSortingStrategies.Default => None
         case _ => Some(sort.id)
+    }
+}
+
+@platformOption = @{
+    platform.map(_.name)
+}
+
+@maybeActive(pform: Platform) = @{
+    platform.map { p =>
+      if (p.equals(pform))
+        "active"
+      else
+        ""
     }
 }
 
@@ -91,7 +106,8 @@ sorted according to different criteria.
                     models = models,
                     page = page,
                     pageSize = config.projects.getInt("init-load").get,
-                    call = page => routes.Application.showHome(categoryString, query, orderingOption, Some(page))
+                    call = page => routes.Application.showHome(
+                        categoryString, query, orderingOption, Some(page), platformOption)
                 )
             </div>
 
@@ -110,7 +126,7 @@ sorted according to different criteria.
                     <div class="panel-heading">
                         <h3 class="panel-title">@messages("project.category.plural")</h3>
                         @if(visibleCategories.isDefined) {
-                            <a href="@routes.Application.showHome(None, None, None, None)">
+                            <a href="@routes.Application.showHome(None, None, None, None, None)">
                                 <i class="pull-right category-reset fa fa-times"></i>
                             </a>
                         }
@@ -132,6 +148,38 @@ sorted according to different criteria.
                             }
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Platform list -->
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">@messages("general.platform")</h3>
+                    </div>
+
+                    <ul class="list-group">
+
+                        <a href="@routes.Application.showHome(
+                            categoryString,
+                            query,
+                            orderingOption,
+                            Some(page),
+                            None)"
+                           class="list-group-item @if(platform.isEmpty) { active }">
+                            <strong>@messages("general.any")</strong>
+                        </a>
+
+                        @for(pform <- Platforms.values) {
+                            <a href="@routes.Application.showHome(
+                                categoryString,
+                                query,
+                                orderingOption,
+                                Some(page),
+                                Some(pform.name))"
+                               class="list-group-item @maybeActive(pform)">
+                                <strong>@pform.name</strong>
+                            </a>
+                        }
+                    </ul>
                 </div>
 
                 <!-- Featured sponsor -->

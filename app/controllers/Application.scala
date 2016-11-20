@@ -6,11 +6,12 @@ import controllers.Requests.AuthRequest
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
 import models.project.{Flag, Project, Version}
+import ore.Platforms.Platform
 import ore.permission._
 import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
-import ore.{OreConfig, OreEnv}
+import ore.{OreConfig, OreEnv, Platforms}
 import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.MessagesApi
 import play.api.mvc._
@@ -35,37 +36,46 @@ final class Application @Inject()(data: DataHelper,
     *
     * @return Home page
     */
-  def showHome(categories: Option[String], query: Option[String], sort: Option[Int], page: Option[Int]) = {
+  def showHome(categories: Option[String],
+               query: Option[String],
+               sort: Option[Int],
+               page: Option[Int],
+               platform: Option[String]) = {
     Action { implicit request =>
-
       // Get categories and sorting strategy
-      var categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
       val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
-
-      // Determine filter
       val actions = this.service.getSchema(classOf[ProjectSchema])
-      val canHideProjects = this.users.current.isDefined && (this.users.current.get can HideProjects in GlobalScope)
 
-      val filter: ModelFilter[Project] = query.map { q =>
-        var baseFilter = actions.searchFilter(q)
-        if (!canHideProjects)
-          baseFilter = baseFilter && (_.isVisible)
-        baseFilter
-      } getOrElse {
+      val canHideProjects = this.users.current.isDefined && (this.users.current.get can HideProjects in GlobalScope)
+      val visibleFilter: ModelFilter[Project] = if (!canHideProjects)
         ModelFilter[Project](_.isVisible)
-      }
+      else
+        ModelFilter.Empty
+
+      val pform = platform.flatMap(p => Platforms.values.find(_.name.equalsIgnoreCase(p)).map(_.asInstanceOf[Platform]))
+      val platformFilter = pform.map(actions.platformFilter).getOrElse(ModelFilter.Empty)
+
+      var categoryArray: Array[Category] = categories.map(Categories.fromString).orNull
+      val categoryFilter: ModelFilter[Project] = if (categoryArray != null)
+        actions.categoryFilter(categoryArray)
+      else
+        ModelFilter.Empty
+
+      val searchFilter: ModelFilter[Project] = query.map(actions.searchFilter).getOrElse(ModelFilter.Empty)
+
+      val filter = visibleFilter +&& platformFilter +&& categoryFilter +&& searchFilter
 
       // Get projects
       val pageSize = this.config.projects.getInt("init-load").get
       val p = page.getOrElse(1)
       val offset = (p - 1) * pageSize
-      val future = actions.collect(filter.fn, categoryArray, pageSize, offset, ordering)
+      val future = actions.collect(filter.fn, ordering, pageSize, offset)
       val projects = this.service.await(future).get
 
       if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet))
         categoryArray = null
 
-      Ok(views.home(projects, Option(categoryArray), query.find(_.nonEmpty), p, ordering))
+      Ok(views.home(projects, Option(categoryArray), query.find(_.nonEmpty), p, ordering, pform))
     }
   }
 

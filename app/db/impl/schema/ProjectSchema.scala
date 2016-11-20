@@ -6,6 +6,8 @@ import db.impl._
 import db.impl.access.UserBase
 import models.project._
 import models.user.User
+import ore.Platforms
+import ore.Platforms.Platform
 import ore.project.Categories.Category
 import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
 
@@ -48,6 +50,27 @@ class ProjectSchema(override val service: ModelService, implicit val users: User
   }
 
   /**
+    * Filters projects by platform.
+    *
+    * @param platform Platform to filter
+    * @return Model filter
+    */
+  def platformFilter(platform: Platform): ModelFilter[Project] = ModelFilter[Project] { project =>
+    (project.isSpongePlugin && platform.equals(Platforms.Sponge)) ||
+    (project.isForgeMod && platform.equals(Platforms.Forge))
+  }
+
+  /**
+    * Filters projects by category.
+    *
+    * @param categories Category array
+    * @return Filter for projects with at least one of the categories
+    */
+  def categoryFilter(categories: Array[Category]): ModelFilter[Project] = ModelFilter[Project] { project =>
+    project.category inSetBind categories
+  }
+
+  /**
     * Filters projects based on the given criteria.
     *
     * @param filter Filter to match Projects on
@@ -58,32 +81,6 @@ class ProjectSchema(override val service: ModelService, implicit val users: User
   def collect(filter: Project#T => Rep[Boolean], sort: ProjectSortingStrategy,
               limit: Int, offset: Int): Future[Seq[Project]]
   = this.service.collect[Project](this.modelClass, filter, Option(sort).map(_.fn).orNull, limit, offset)
-
-  /**
-    * Filters projects based on the given criteria.
-    *
-    * @param filter     Model filter
-    * @param categories Project categories
-    * @param limit      Amount to take
-    * @param offset     Amount to drop
-    * @param sort       Ordering
-    * @return Filtered projects
-    */
-  def collect(filter: Project#T => Rep[Boolean], categories: Array[Category],
-              limit: Int, offset: Int, sort: ProjectSortingStrategy): Future[Seq[Project]] = {
-    // TODO: Cleanup
-    val f: ProjectTable => Rep[Boolean] = {
-      if (categories != null) {
-        val cf: ProjectTable => Rep[Boolean] = p => p.category inSetBind categories
-        if (filter != null)
-          p => cf(p) && filter(p)
-        else
-          cf
-      } else
-        filter
-    }
-    collect(f, sort, limit, offset)
-  }
 
   override def like(model: Project) = {
     this.service.find[Project](this.modelClass, p => p.ownerName.toLowerCase === model.ownerName.toLowerCase
