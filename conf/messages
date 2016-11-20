@@ -42,6 +42,10 @@ general.forumsUnavailable       =   Sponge Forums are currently unavailable, ple
 general.viewOnForums            =   View on Sponge Forums
 general.learnMore               =   Learn more
 general.optional                =   optional
+general.spongeApi               =   Sponge API
+general.forge                   =   Forge
+general.spongePlugin            =   Sponge Plugin
+general.forgeMod                =   Forge Mod
 
 editor.deleteConfirm    =   Are you sure you want to delete {0}? This cannot be undone.
 

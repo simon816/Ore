@@ -7,6 +7,8 @@
 @import ore.permission.{EditVersions, ReviewProjects}
 @import ore.project.Dependency.SpongeApiId
 @import util.StringUtils._
+@import ore.project.Dependency
+@import ore.project.Dependency._
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages, request: Request[_], flash: Flash,
         service: ModelService, config: OreConfig, users: UserBase, projectBase: ProjectBase)
 
@@ -26,6 +28,15 @@
                 <div class="clearfix">
                     <h1 class="pull-left">@version.versionString</h1>
                     <span class="channel channel-head" style="background-color: @channel.color.hex;">@channel.name</span>
+
+                    @version.dependencies.find(_.pluginId.equals(SpongeApiId)).map { spongeApi =>
+                      <span class="channel channel-head spongeapi">@messages("general.spongePlugin")</span>
+                    }
+
+                    @version.dependencies.find(_.pluginId.equals(ForgeId)).map { forge =>
+                      <span class="channel channel-head forgemod">@messages("general.forgeMod")</span>
+                    }
+
                 </div>
 
                 <!-- User info -->
@@ -135,34 +146,48 @@
                 <div class="col-md-4">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 class="pull-left panel-title">Dependencies</h3>
-                            @version.dependencies.find(_.pluginId.equals(SpongeApiId)).map { spongeApi =>
-                                <span class="pull-right channel channel-sm spongeapi">
-                                    <a href="https://www.spongepowered.org/#downloads">SpongeAPI @spongeApi.version</a>
-                                </span>
-                                <div class="clearfix"></div>
-                            }
+                            <h3 class="panel-title">Dependencies</h3>
                         </div>
                         <ul class="list-group">
-                        @version.dependencies.filterNot(_.pluginId.equals(SpongeApiId)).map { depend =>
-                            <li class="list-group-item">
-                                @defining(depend.project) { project =>
-                                    @if(project.isDefined) {
-                                        <a href="@projectRoutes.Projects.show(project.get.ownerName, project.get.slug)">
-                                            <strong>@project.get.name</strong>
-                                        </a>
-                                    } else {
-                                        <div class="minor">
-                                            @depend.pluginId
-                                            <i class="fa fa-question-circle"
-                                               title="@messages("version.dependency.notOnOre")"
-                                               data-toggle="tooltip" data-placement="right"></i>
-                                        </div>
+
+                            @version.dependencies.find(_.pluginId.equals(SpongeApiId)).map { spongeApi =>
+                                <li class="list-group-item">
+                                    <a href="https://spongepowered.org#downloads">
+                                        <strong>@messages("general.spongeApi")</strong>
+                                    </a>
+                                    <p class="version-string">@spongeApi.version</p>
+                                </li>
+                            }
+
+                            @version.dependencies.find(_.pluginId.equals(ForgeId)).map { forge =>
+                                <li class="list-group-item">
+                                    <a href="https://spongepowered.org#downloads">
+                                        <strong>@messages("general.forge")</strong>
+                                    </a>
+                                    <p class="version-string">@forge.version</p>
+                                </li>
+                            }
+
+                            @version.dependencies.filterNot(_.pluginId.equals(SpongeApiId)).filterNot(_.pluginId.equals(ForgeId)).map { depend =>
+                                <li class="list-group-item">
+                                    @defining(depend.project) { project =>
+                                        @if(project.isDefined) {
+                                            <a href="@projectRoutes.Projects.show(
+                                                project.get.ownerName, project.get.slug)">
+                                                <strong>@project.get.name</strong>
+                                            </a>
+                                        } else {
+                                            <div class="minor">
+                                                @depend.pluginId
+                                                <i class="fa fa-question-circle"
+                                                   title="@messages("version.dependency.notOnOre")"
+                                                   data-toggle="tooltip" data-placement="right"></i>
+                                            </div>
+                                        }
+                                        <p class="version-string">@depend.version</p>
                                     }
-                                    <p class="version-string">@depend.version</p>
-                                }
-                            </li>
-                        }
+                                </li>
+                            }
                         </ul>
                     </div>
                 </div>

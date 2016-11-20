@@ -27,4 +27,9 @@ object Dependency {
     */
   val SpongeApiId: String = "spongeapi"
 
+  /**
+    * The Forge dependency ID
+    */
+  val ForgeId: String = "Forge"
+
 }
