@@ -35,6 +35,8 @@ trait ProjectTable extends ModelTable[Project]
   def slug                  =   column[String]("slug")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
   def category              =   column[Category]("category")
+  def isSpongePlugin        =   column[Boolean]("is_sponge_plugin")
+  def isForgeMod            =   column[Boolean]("is_forge_mod")
   def stars                 =   column[Int]("stars")
   def views                 =   column[Int]("views")
   def topicId               =   column[Int]("topic_id")
@@ -43,8 +45,8 @@ trait ProjectTable extends ModelTable[Project]
   def lastUpdated           =   column[Timestamp]("last_updated")
 
   override def * = (id.?, createdAt.?, pluginId, ownerName, userId, name, slug, recommendedVersionId.?, category,
-                    description.?, stars, views, downloads, topicId, postId, isTopicDirty, isVisible,
-                    lastUpdated) <> ((Project.apply _).tupled, Project.unapply)
+                    isSpongePlugin, isForgeMod, description.?, stars, views, downloads, topicId, postId, isTopicDirty,
+                    isVisible, lastUpdated) <> ((Project.apply _).tupled, Project.unapply)
 
 }
 

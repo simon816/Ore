@@ -45,7 +45,9 @@ general.optional                =   optional
 general.spongeApi               =   Sponge API
 general.forge                   =   Forge
 general.spongePlugin            =   Sponge Plugin
+general.spongePlugin.tooltip    =   To mark your project as a Sponge plugin, add spongeapi as a dependency.
 general.forgeMod                =   Forge Mod
+general.forgeMod.tooltip        =   To mark your project as a Forge mod, add forge as a dependency.
 
 editor.deleteConfirm    =   Are you sure you want to delete {0}? This cannot be undone.
 
@@ -64,6 +66,8 @@ error.org.cannotCreate          =   Unable to create an organization at this tim
 error.org.cannotUpdateAvatar    =   Unable to update avatar at this time.
 error.version.invalidPluginId   =   The uploaded plugin ID must match your project's plugin ID.
 error.version.duplicate         =   Found a duplicate file in project. Plugin files may only be uploaded once.
+error.version.noDependency.sponge = This project is marked as a Sponge plugin but your uploaded file contains no dependency to Sponge. Please add a dependency to spongeapi and re-upload.
+error.version.noDependency.forge = This project is marked as a Forge mod but your uploaded file contains no dependency to Forge. Please add a dependency to forge and re-upload.
 error.invalidKey                =   Invalid key.
 error.pgp.noEmail               =   You must have an email associated with your account to upload a PGP public key.
 error.pgp.invalidEmail          =   The email associated with the uploaded key does not match the email associated with your Sponge account.

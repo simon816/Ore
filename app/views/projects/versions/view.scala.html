@@ -28,15 +28,6 @@
                 <div class="clearfix">
                     <h1 class="pull-left">@version.versionString</h1>
                     <span class="channel channel-head" style="background-color: @channel.color.hex;">@channel.name</span>
-
-                    @version.dependencies.find(_.pluginId.equals(SpongeApiId)).map { spongeApi =>
-                      <span class="channel channel-head spongeapi">@messages("general.spongePlugin")</span>
-                    }
-
-                    @version.dependencies.find(_.pluginId.equals(ForgeId)).map { forge =>
-                      <span class="channel channel-head forgemod">@messages("general.forgeMod")</span>
-                    }
-
                 </div>
 
                 <!-- User info -->

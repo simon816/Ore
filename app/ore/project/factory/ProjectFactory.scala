@@ -1,7 +1,7 @@
 package ore.project.factory
 
-import java.nio.file.{Files, StandardCopyOption}
 import java.nio.file.Files._
+import java.nio.file.StandardCopyOption
 import javax.inject.Inject
 
 import akka.actor.ActorSystem
@@ -9,13 +9,13 @@ import com.google.common.base.Preconditions._
 import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
 import discourse.OreDiscourseApi
-import models.project.{Channel, Project, ProjectSettings, Version}
+import models.project.{Channel, Project, Version}
 import models.user.role.ProjectRole
 import models.user.{Notification, User}
 import ore.Colors.Color
 import ore.OreConfig
 import ore.permission.role.RoleTypes
-import ore.project.NotifyWatchersTask
+import ore.project.{Dependency, NotifyWatchersTask}
 import ore.project.io.{InvalidPluginFileException, PluginFile, ProjectFileManager}
 import ore.user.notification.NotificationTypes
 import org.spongepowered.plugin.meta.PluginMetadata
@@ -299,6 +299,17 @@ trait ProjectFactory {
     val pendingVersion = pending.underlying
     if (pendingVersion.exists && this.config.projects.getBoolean("file-validate").get)
       throw new IllegalArgumentException("Version already exists.")
+
+    // Check to make sure that the required dependencies are there
+    if (project.isSpongePlugin && !pendingVersion.hasDependency(Dependency.SpongeApiId)) {
+      throw InvalidPluginFileException(
+        "Project is marked as a Sponge Plugin and new version contains no dependency to Sponge.")
+    }
+
+    if (project.isForgeMod && !pendingVersion.hasDependency(Dependency.ForgeId)) {
+      throw InvalidPluginFileException(
+        "Project is marked as a Forge Mod and new version contains no dependency to Forge.")
+    }
 
     val newVersion = this.service.access[Version](classOf[Version]).add(Version(
       versionString = pendingVersion.versionString,

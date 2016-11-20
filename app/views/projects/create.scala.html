@@ -8,6 +8,8 @@ Page used for uploading and creating new projects.
 @import ore.project.factory.PendingProject
 @import play.twirl.api.Html
 @import views.html.helper.form
+@import ore.project.Dependency
+@import ore.project.Dependency._
 @(pending: Option[PendingProject])(implicit messages: Messages, flash: Flash, request: Request[_],
         service: ModelService, config: OreConfig, users: UserBase)
 
@@ -55,6 +57,28 @@ Page used for uploading and creating new projects.
                                         } else {
                                             @project.ownerName
                                         }
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"><strong>@messages("general.spongePlugin")</strong></td>
+                                <td>
+                                    @if(project.isSpongePlugin) {
+                                        <i class="fa fa-check-circle"></i>
+                                    } else {
+                                        <i class="fa fa-time-circle" data-toggle="tooltip"
+                                           title="@messages("general.spongePlugin.tooltip")"></i>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"><strong>@messages("general.forgeMod")</strong></td>
+                                <td>
+                                    @if(project.isForgeMod) {
+                                        <i class="fa fa-check-circle"></i>
+                                    } else {
+                                        <i class="fa fa-times-circle" data-toggle="tooltip"
+                                           title="@messages("general.forgeMod.tooltip")"></i>
                                     }
                                 </td>
                             </tr>

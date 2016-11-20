@@ -12,6 +12,7 @@ import discourse.OreDiscourseApi
 import form.OreForms
 import models.project.{Channel, Project, Version}
 import ore.permission.{EditVersions, ReviewProjects}
+import ore.project.Dependency
 import ore.project.factory.{PendingProject, ProjectFactory}
 import ore.project.io.{InvalidPluginFileException, PluginFile}
 import ore.{OreConfig, OreEnv, StatTracker}
@@ -164,6 +165,7 @@ class Versions @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return Version create page (with meta)
     */
+  //noinspection ComparingUnrelatedTypes
   def upload(author: String, slug: String) = VersionEditAction(author, slug) { implicit request =>
     val call = self.showCreator(author, slug)
     request.body.asMultipartFormData.get.file("pluginFile") match {
@@ -183,6 +185,10 @@ class Versions @Inject()(stats: StatTracker,
                 val model = version.underlying
                 if (model.exists && this.config.projects.getBoolean("file-validate").get)
                   Redirect(call).withError("error.version.duplicate")
+                else if (project.isSpongePlugin && !model.hasDependency(Dependency.SpongeApiId))
+                  Redirect(call).withError("error.version.noDependency.sponge")
+                else if (project.isForgeMod && !model.hasDependency(Dependency.ForgeId))
+                  Redirect(call).withError("error.version.noDependency.forge")
                 else {
                   version.cache()
                   Redirect(self.showCreatorWithMeta(author, slug, model.versionString))

@@ -29,6 +29,8 @@ object ModelKeys {
   val OwnerName             =   new StringKey[Project](_.ownerName, _.ownerName)
   val Slug                  =   new StringKey[Project](_.slug, _.slug)
   val Category              =   new MappedTypeKey[Project, Category](_.category, _.category)
+  val IsSpongePlugin        =   new BooleanKey[Project](_.isSpongePlugin, _.isSpongePlugin)
+  val IsForgeMod            =   new BooleanKey[Project](_.isForgeMod, _.isForgeMod)
   val Stars                 =   new IntKey[Project](_.stars, _.starCount)
   val Views                 =   new IntKey[Project](_.views, _.viewCount)
   val TopicId               =   new IntKey[Project](_.topicId, _.topicId)

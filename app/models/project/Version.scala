@@ -146,6 +146,15 @@ case class Version(override val id: Option[Int] = None,
   }
 
   /**
+    * Returns true if this version has a dependency on the specified plugin ID.
+    *
+    * @param pluginId Id to check for
+    * @return         True if has dependency on ID
+    */
+  //noinspection ComparingUnrelatedTypes
+  def hasDependency(pluginId: String) = this.dependencies.exists(_.pluginId.equals(pluginId))
+
+  /**
     * Returns the amount of unique downloads this Version has.
     *
     * @return Amount of unique downloads

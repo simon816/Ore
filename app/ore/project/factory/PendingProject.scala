@@ -3,6 +3,7 @@ package ore.project.factory
 import db.impl.access.ProjectBase
 import models.project.{Project, ProjectSettings}
 import models.user.role.ProjectRole
+import ore.project.Dependency._
 import ore.project.io.PluginFile
 import ore.{Cacheable, OreConfig}
 import play.api.cache.CacheApi
@@ -38,6 +39,9 @@ case class PendingProject(projects: ProjectBase,
     */
   val pendingVersion: PendingVersion = {
     val version = this.factory.startVersion(this.file, this.underlying, this.channelName)
+    val model = version.underlying
+    this.underlying.setSpongePlugin(model.hasDependency(SpongeApiId))
+    this.underlying.setForgeMod(model.hasDependency(ForgeId))
     version.cache()
     version
   }

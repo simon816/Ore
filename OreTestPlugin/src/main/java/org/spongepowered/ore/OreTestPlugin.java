@@ -8,8 +8,7 @@ import org.spongepowered.api.plugin.Plugin;
         version = "1.0.0",
         dependencies = {
             @Dependency(id = "bookotd", version = "1.0.0"),
-            @Dependency(id = "spongeapi", version = "4.0.0"),
-            @Dependency(id = "Forge", version = "12.18.2.2151")
+//            @Dependency(id = "Forge", version = "12.18.2.2151")
         },
         description = "Plugin for testing Ore functionality.",
         url = "https://ore-staging.spongepowered.org",
