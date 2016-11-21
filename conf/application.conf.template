@@ -104,6 +104,8 @@ ore {
         groupId = 64
         createLimit = 5
     }
+
+    competitions.name.maxLen = 20
 }
 
 mail {
