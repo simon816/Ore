@@ -30,9 +30,8 @@ $(function() {
     $('.alert-fade').fadeIn('slow');
 
     $('[data-toggle="tooltip"]').tooltip({
-        delay: {
-            "show": 500
-        }
+        container: "body",
+        delay: { "show": 500 }
     });
 
     $('.authors-icon').click(function() { window.location = '/authors'; });

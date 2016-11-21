@@ -1,5 +1,6 @@
 @import 'pallette';
 @import 'utils';
+@import 'sponge_variables';
 
 .alert-review {
   margin-bottom: 10px;
@@ -157,7 +158,8 @@
 }
 
 .spongeapi {
-  background-color: #F6CF17;
+  background-color: $sponge_yellow;
+  color: black;
 }
 
 .forgemod {

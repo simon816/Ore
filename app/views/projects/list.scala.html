@@ -6,8 +6,17 @@ Collection of all projects.
 @import db.impl.access.UserBase
 @import models.project.Project
 @import ore.OreConfig
+@import ore.project.Dependency
 @(models: Seq[Project], page: Int, pageSize: Int, call: Int => Call)(implicit messages: Messages, flash: Flash,
         service: ModelService, config: OreConfig, users: UserBase)
+
+@spongeVersion(project: Project) = @{
+    project.recommendedVersion.dependencies.find(_.pluginId.equals(Dependency.SpongeApiId)).get.version
+}
+
+@forgeVersion(project: Project) = @{
+    project.recommendedVersion.dependencies.find(_.pluginId.equals(Dependency.ForgeId)).get.version
+}
 
 <ul class="list-group project-list">
     @models.map { project =>
@@ -45,12 +54,27 @@ Collection of all projects.
                         </span>
                     }
                 }
+
                 <span class="stat" title="Views"><i class="fa fa-eye"></i> @project.viewCount</span>
                 <span class="stat" title="Download"><i class="fa fa-download"></i> @project.downloadCount</span>
                 <span class="stat" title="Stars"><i class="fa fa-star"></i> @project.starCount</span>
+
                 @defining(project.category) { category =>
                     <span class="stat fa @category.icon" title="@category.title"></span>
                 }
+
+                @if(project.isSpongePlugin) {
+                    <span class="stat channel channel-sm spongeapi" data-toggle="tooltip" title="@spongeVersion(project)">
+                    @messages("general.sponge")
+                    </span>
+                }
+
+                @if(project.isForgeMod) {
+                    <span class="stat channel channel-sm forgemod" data-toggle="tooltip" title="@forgeVersion(project)">
+                    @messages("general.forge")
+                    </span>
+                }
+
             </div>
             <div class="clearfix"></div>
         </li>

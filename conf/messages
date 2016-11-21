@@ -44,6 +44,7 @@ general.learnMore               =   Learn more
 general.optional                =   optional
 general.spongeApi               =   Sponge API
 general.forge                   =   Forge
+general.sponge                  =   Sponge
 general.spongePlugin            =   Sponge Plugin
 general.spongePlugin.tooltip    =   To mark your project as a Sponge plugin, add spongeapi as a dependency.
 general.forgeMod                =   Forge Mod
