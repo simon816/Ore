@@ -105,8 +105,10 @@ ore {
         createLimit = 5
     }
 
-    competitions.name.maxLen = 20
-}
+    competitions {
+        name.maxLen = 20
+        date.format = "yyyy-MM-dd'T'HH:mm"
+    }
 
 mail {
     username           =   "example"
