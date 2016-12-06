@@ -123,7 +123,7 @@ mail {
         "mail.smtp.port"=${ORE_SMTP_PORT}
         "mail.smtp.socketFactory.class"="javax.net.ssl.SSLSocketFactory"
         "mail.smtp.socketFactory.fallback"=false
-        "mail.smtp.socketFactory.port"=${SPONGE_SSO_SMTP_PORT}
+        "mail.smtp.socketFactory.port"=${ORE_SMTP_PORT}
         "mail.smtp.smtps.auth"=true
         "mail.smtps.quitwait"=false
     }
@@ -131,7 +131,7 @@ mail {
 
 # Slick configuration
 slick.dbs.default {
-    driver        =   "driver.PostgresDriver$"
+    driver        =   "slick.driver.PostgresDriver$"
     db {
         driver = "org.postgresql.Driver"
         url = "jdbc:postgresql://localhost/ore"
