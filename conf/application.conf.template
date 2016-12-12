@@ -44,11 +44,11 @@ security {
     }
 
     sso {
-        loginUrl = ${SPONGE_AUTH_URL}"/login"
-        signupUrl = ${SPONGE_AUTH_URL}"/signup"
-        verifyUrl = ${SPONGE_AUTH_URL}"/verify"
+        loginUrl = ${security.api.url}"/login"
+        signupUrl = ${security.api.url}"/signup"
+        verifyUrl = ${security.api.url}"/verify"
         secret = "changeme"
-        secret = ${SPONGE_AUTH_SSO_SECRET}
+        secret = ${?SPONGE_AUTH_SSO_SECRET}
         timeout = 10000
     }
 }
@@ -105,11 +105,11 @@ ore {
 }
 
 mail {
-    username           =   ${ORE_EMAIL_USER}
-    email              =   ${ORE_EMAIL}
-    password           =   ${ORE_EMAIL_PASSWORD}
-    smtp.host          =   ${ORE_SMTP_HOST}
-    smtp.port          =   ${ORE_SMTP_PORT}
+    username           =   ${?ORE_EMAIL_USER}
+    email              =   ${?ORE_EMAIL}
+    password           =   ${?ORE_EMAIL_PASSWORD}
+    smtp.host          =   ${?ORE_SMTP_HOST}
+    smtp.port          =   ${?ORE_SMTP_PORT}
     confirm.maxAge     =   600000                      // 10 minutes (millis)
     transport.protocol =   "smtps"                     // The outgoing transport protocol
     interval           =   30000                       // 30 seconds (millis)
@@ -119,11 +119,11 @@ mail {
     // configuration is set up for GMail with "allow less secure apps" enabled in
     // the user settings.
     properties = {
-        "mail.smtps.host"=${ORE_SMTP_HOST}
-        "mail.smtp.port"=${ORE_SMTP_PORT}
+        "mail.smtps.host"=${?ORE_SMTP_HOST}
+        "mail.smtp.port"=${?ORE_SMTP_PORT}
         "mail.smtp.socketFactory.class"="javax.net.ssl.SSLSocketFactory"
         "mail.smtp.socketFactory.fallback"=false
-        "mail.smtp.socketFactory.port"=${ORE_SMTP_PORT}
+        "mail.smtp.socketFactory.port"=${?ORE_SMTP_PORT}
         "mail.smtp.smtps.auth"=true
         "mail.smtps.quitwait"=false
     }
