@@ -105,10 +105,15 @@ ore {
 }
 
 mail {
+    username           =   "example"
     username           =   ${?ORE_EMAIL_USER}
+    email              =   "example@example.com"
     email              =   ${?ORE_EMAIL}
+    password           =   "password"
     password           =   ${?ORE_EMAIL_PASSWORD}
+    smtp.host          =   "smtp.gmail.com"
     smtp.host          =   ${?ORE_SMTP_HOST}
+    smtp.port          =   465
     smtp.port          =   ${?ORE_SMTP_PORT}
     confirm.maxAge     =   600000                      // 10 minutes (millis)
     transport.protocol =   "smtps"                     // The outgoing transport protocol
@@ -119,11 +124,11 @@ mail {
     // configuration is set up for GMail with "allow less secure apps" enabled in
     // the user settings.
     properties = {
-        "mail.smtps.host"=${?ORE_SMTP_HOST}
-        "mail.smtp.port"=${?ORE_SMTP_PORT}
+        "mail.smtps.host"=${mail.smtp.host}
+        "mail.smtp.port"=${mail.smtp.port}
         "mail.smtp.socketFactory.class"="javax.net.ssl.SSLSocketFactory"
         "mail.smtp.socketFactory.fallback"=false
-        "mail.smtp.socketFactory.port"=${?ORE_SMTP_PORT}
+        "mail.smtp.socketFactory.port"=${mail.smtp.port}
         "mail.smtp.smtps.auth"=true
         "mail.smtps.quitwait"=false
     }
