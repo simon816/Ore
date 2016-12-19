@@ -138,8 +138,20 @@ trait Actions extends Calls with ActionHelpers {
     */
   def OrganizationPermissionAction(p: Permission) = PermissionAction[AuthedOrganizationRequest](p)
 
+  /**
+    * Retrieves a [[Competition]] and adds it to the request.
+    *
+    * @param id Competition ID
+    * @return   Request with competition
+    */
   def CompetitionAction(id: Int) = Action andThen competitionAction(id)
 
+  /**
+    * Authenticates and then adds a [[Competition]] to the request.
+    *
+    * @param id Competition ID
+    * @return   Authenticated request with competition
+    */
   def AuthedCompetitionAction(id: Int) = Authenticated andThen authedCompetitionAction(id)
 
   /**

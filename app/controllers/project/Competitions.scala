@@ -14,6 +14,9 @@ import play.api.i18n.MessagesApi
 import util.StringUtils
 import views.{html => views}
 
+/**
+  * Handles competition based actions.
+  */
 class Competitions @Inject()(implicit override val messagesApi: MessagesApi,
                              override val config: OreConfig,
                              override val service: ModelService,
@@ -23,16 +26,31 @@ class Competitions @Inject()(implicit override val messagesApi: MessagesApi,
 
   private val self = routes.Competitions
 
-  def EditCompetitionsAction = Authenticated andThen PermissionAction[AuthRequest](EditCompetitions)
+  private def EditCompetitionsAction = Authenticated andThen PermissionAction[AuthRequest](EditCompetitions)
 
+  /**
+    * Shows the competition administrative panel.
+    *
+    * @return Competition manager
+    */
   def showManager() = EditCompetitionsAction { implicit request =>
     Ok(views.projects.competitions.manage())
   }
 
+  /**
+    * Shows the competition creator.
+    *
+    * @return Competition creator
+    */
   def showCreator() = EditCompetitionsAction { implicit request =>
     Ok(views.projects.competitions.create())
   }
 
+  /**
+    * Creates a new competition.
+    *
+    * @return Redirect to manager or creator with errors.
+    */
   def create() = EditCompetitionsAction { implicit request =>
     this.forms.CompetitionCreate.bindFromRequest().fold(
       hasErrors =>
@@ -50,6 +68,12 @@ class Competitions @Inject()(implicit override val messagesApi: MessagesApi,
     )
   }
 
+  /**
+    * Saves the competition with the specified ID.
+    *
+    * @param id Competition ID
+    * @return   Redirect to manager
+    */
   def save(id: Int) = (EditCompetitionsAction andThen AuthedCompetitionAction(id)) { implicit request =>
     println(request.body.asFormUrlEncoded)
     this.forms.CompetitionSave.bindFromRequest().fold(
@@ -66,6 +90,12 @@ class Competitions @Inject()(implicit override val messagesApi: MessagesApi,
     )
   }
 
+  /**
+    * Deletes the competition with the specified ID.
+    *
+    * @param id Competition ID
+    * @return   Redirect to manager
+    */
   def delete(id: Int) = (EditCompetitionsAction andThen AuthedCompetitionAction(id)) { implicit request =>
     this.competitions.remove(request.competition)
     Redirect(self.showManager()).withSuccess("success.deleted.competition")

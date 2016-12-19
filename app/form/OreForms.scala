@@ -146,6 +146,9 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
 
   private val dateFormat = this.config.competitions.getString("date.format").get
 
+  /**
+    * Submits a new [[models.project.Competition]].
+    */
   lazy val CompetitionCreate = Form(mapping(
     "name" -> nonEmptyText(0, this.config.ore.getInt("competitions.name.maxLen").get),
     "description" -> optional(nonEmptyText),
@@ -163,6 +166,9 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
     "max-entries-total" -> default(number(-1), -1)
   )(CompetitionCreateForm.apply)(CompetitionCreateForm.unapply))
 
+  /**
+    * Saves a Competition.
+    */
   lazy val CompetitionSave = Form(mapping(
     "start-date" -> localDateTime(this.dateFormat),
     "end-date" -> localDateTime(this.dateFormat),

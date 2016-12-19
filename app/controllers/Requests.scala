@@ -68,8 +68,20 @@ object Requests {
     override val subject: ScopeSubject = this.organization
   }
 
+  /**
+    * A request with a [[Competition]].
+    *
+    * @param competition  Competition
+    * @param request      Wrapped request
+    */
   class CompetitionRequest[A](val competition: Competition, request: Request[A]) extends WrappedRequest[A](request)
 
+  /**
+    * An authenticated request with a [[Competition]].
+    *
+    * @param competition  Competition
+    * @param request      Wrapped request
+    */
   case class AuthedCompetitionRequest[A](override val competition: Competition,  request: AuthRequest[A])
     extends CompetitionRequest[A](competition, request) {
     def user: User = request.user
