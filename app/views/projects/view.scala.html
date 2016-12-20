@@ -10,8 +10,10 @@ Base template for Project overview.
 @import ore.permission.EditSettings
 @import ore.project.FlagReasons
 @import views.html.helper.form
+@import db.impl.access.CompetitionBase
 @(project: Project, active: String, noButtons: Boolean = false)(content: Html)(implicit messages: Messages,
-        request: Request[_], flash: Flash, service: ModelService, config: OreConfig, users: UserBase)
+        request: Request[_], flash: Flash, service: ModelService, config: OreConfig, users: UserBase,
+        competitions: CompetitionBase)
 
 @hasUser = @{ users.current.isDefined }
 @user = @{ users.current.get }

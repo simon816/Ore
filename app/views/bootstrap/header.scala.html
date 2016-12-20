@@ -8,8 +8,9 @@ The main header displayed on each layout.
 @import ore.OreConfig
 @import ore.permission.scope.GlobalScope
 @import ore.permission.{ReviewFlags, ReviewProjects}
+@import db.impl.access.CompetitionBase
 @(user: Boolean = true)(implicit messages: Messages, request: Request[_], service: ModelService, config: OreConfig,
-        userBase: UserBase)
+        userBase: UserBase, competitions: CompetitionBase)
 
 @flags = @{ service.access[Flag](classOf[Flag]) }
 
@@ -80,6 +81,16 @@ The main header displayed on each layout.
                 <li class="nav-icon authors-icon" @tooltip(messages("project.viewAuthors"))>
                     <i class="icon fa fa-users"></i>
                 </li>
+
+                @defining(competitions.active) { active =>
+                  @if(active.size == 1) {
+                      <li class="nav-icon competition-icon" @tooltip(messages("project.competitions"))>
+                          <a href="@controllers.project.routes.Competitions.showProjects(active.all.head.id.get, None)">
+                              <i class="icon fa fa-trophy"></i>
+                          </a>
+                      </li>
+                  }
+                }
 
                 @userBase.current.map { user =>
                     <li class="dropdown nav-icon new-icon new-controls">

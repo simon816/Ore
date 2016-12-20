@@ -5,8 +5,9 @@
 @import models.user.User
 @import ore.OreConfig
 @import views.html.projects.{list => projectList}
+@import db.impl.access.CompetitionBase
 @(user: User, models: Seq[Project], page: Int)(implicit messages: Messages, flash: Flash, request: Request[_],
-        service: ModelService, config: OreConfig, userBase: UserBase)
+        service: ModelService, config: OreConfig, userBase: UserBase, competitions: CompetitionBase)
 
 @users.view(user) {
 

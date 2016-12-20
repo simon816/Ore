@@ -48,6 +48,7 @@ class OreModelService @Inject()(override val env: OreEnv,
     registerModelBase(Users)
     registerModelBase(Projects)
     registerModelBase(Organizations)
+    registerModelBase(Competitions)
 
     // Register model schemas
     registerSchema(UserSchema)

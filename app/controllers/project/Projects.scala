@@ -411,8 +411,12 @@ class Projects @Inject()(stats: StatTracker,
     */
   def save(author: String, slug: String) = SettingsEditAction(author, slug) { implicit request =>
     val project = request.project
-    project.settings.save(project, this.forms.ProjectSave.bindFromRequest().get)
-    Redirect(self.show(author, slug))
+    project.settings.save(project, this.forms.ProjectSave.bindFromRequest().get) match {
+      case None =>
+        Redirect(self.show(author, slug))
+      case Some(error) =>
+        Redirect(self.show(author, slug)).withError(error)
+    }
   }
 
   /**

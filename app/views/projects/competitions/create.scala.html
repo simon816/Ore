@@ -5,8 +5,9 @@
 @import java.util.Date
 @import java.time.ZoneId
 @import scala.collection.JavaConverters._
+@import db.impl.access.CompetitionBase
 @()(implicit messages: Messages, request: Request[_], service: ModelService, config: OreConfig, users: UserBase,
-        flash: Flash)
+        flash: Flash, competitions: CompetitionBase)
 
 @bootstrap.layout(messages("project.competition.create.title")) {
 

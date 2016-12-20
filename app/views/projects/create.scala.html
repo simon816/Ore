@@ -10,8 +10,9 @@ Page used for uploading and creating new projects.
 @import views.html.helper.form
 @import ore.project.Dependency
 @import ore.project.Dependency._
+@import db.impl.access.CompetitionBase
 @(pending: Option[PendingProject])(implicit messages: Messages, flash: Flash, request: Request[_],
-        service: ModelService, config: OreConfig, users: UserBase)
+        service: ModelService, config: OreConfig, users: UserBase, competitions: CompetitionBase)
 
 @projects.utils.panelCreate(messages("project.create"), if (pending.isEmpty) 1 else 2) {
 

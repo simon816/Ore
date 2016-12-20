@@ -8,9 +8,10 @@ Versions page within Project overview.
 @import ore.OreConfig
 @import ore.permission.{EditChannels, EditVersions}
 @import util.StringUtils._
+@import db.impl.access.CompetitionBase
 @(model: Project, channels: Seq[Channel], versions: Seq[Version],
         visibleChannels: Option[Array[String]])(implicit messages: Messages, request: Request[_], flash: Flash,
-        service: ModelService, config: OreConfig, userBase: UserBase)
+        service: ModelService, config: OreConfig, userBase: UserBase, competitions: CompetitionBase)
 
 @pageSize = @{ config.projects.getInt("init-version-load").get }
 

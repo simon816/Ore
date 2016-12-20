@@ -1,7 +1,7 @@
 import javax.inject._
 
 import _root_.db.ModelService
-import _root_.db.impl.access.{ProjectBase, UserBase}
+import _root_.db.impl.access.{ProjectBase, UserBase, CompetitionBase}
 import discourse.OreDiscourseApi
 import ore.{OreConfig, OreEnv}
 import play.api._
@@ -29,6 +29,7 @@ class ErrorHandler @Inject()(env: Environment,
   override def onProdServerError(request: RequestHeader, exception: UsefulException) = {
     implicit val users: UserBase = service.getModelBase(classOf[UserBase])
     implicit val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
+    implicit val competitions: CompetitionBase = service.getModelBase(classOf[CompetitionBase])
     implicit val session = request.session
     Future.successful {
       if (exception.cause.isInstanceOf[TimeoutException])

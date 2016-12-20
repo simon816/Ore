@@ -116,7 +116,7 @@ case class ProjectSettings(override val id: Option[Int] = None,
     * @param messages MessagesApi instance
     */
   //noinspection ComparingUnrelatedTypes
-  def save(project: Project, formData: ProjectSettingsForm)(implicit messages: MessagesApi) = {
+  def save(project: Project, formData: ProjectSettingsForm)(implicit messages: MessagesApi): Option[String] = {
     project.category = Categories.withName(formData.categoryName)
     project.description = nullIfEmpty(formData.description)
 
@@ -153,11 +153,27 @@ case class ProjectSettings(override val id: Option[Int] = None,
     }
 
     // Check if the project is being submitted to a competition
-    println("competitionId = " + formData.competitionId)
     if (formData.competitionId > -1) {
-      this.service.access[Competition](classOf[Competition]).get(formData.competitionId).foreach { competition =>
-        val previousEntry = competition.entries.filter(_.projectId === this.projectId)
+      val competitions = this.service.access[Competition](classOf[Competition])
+      competitions.get(formData.competitionId).foreach { competition =>
+        val userId = this.project.ownerId
+        val entries = competition.entries
+        val previousEntry = entries.filter(_.projectId === this.projectId)
         if (previousEntry.isEmpty) {
+          // check requirements
+          val otherEntriesByUser = entries.filter(_.userId === userId)
+          if (otherEntriesByUser.size >= competition.allowedEntries)
+            return Some("error.project.competition.entryLimit")
+          if (entries.size >= competition.maxEntryTotal)
+            return Some("error.project.competition.capacity")
+          if (competition.timeRemaining.toSeconds <= 0)
+            return Some("error.project.competition.over")
+          if (competition.isSpongeOnly && !project.isSpongePlugin)
+            return Some("error.project.competition.spongeOnly")
+          if (competition.isSourceRequired && this.source.isEmpty)
+            return Some("error.project.competition.sourceRequired")
+
+          // create and add entry
           this.service.access[CompetitionEntry](classOf[CompetitionEntry]).add(CompetitionEntry(
             projectId = this.projectId,
             userId = this.project.ownerId,
@@ -165,6 +181,7 @@ case class ProjectSettings(override val id: Option[Int] = None,
         }
       }
     }
+    None
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)

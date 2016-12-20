@@ -7,8 +7,9 @@
 @import ore.user.Prompts
 @import util.StringUtils._
 @import views.html.helper.form
+@import db.impl.access.CompetitionBase
 @(user: User)(content: Html)(implicit messages: Messages, flash: Flash, request: Request[_], service: ModelService,
-        config: OreConfig, users: UserBase)
+        config: OreConfig, users: UserBase, competitions: CompetitionBase)
 
 @canEditOrganization = @{
     user.isOrganization && users.current.isDefined && (users.current.get can EditSettings in user.toOrganization)

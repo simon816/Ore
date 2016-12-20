@@ -35,7 +35,7 @@ $(function() {
     });
 
     $('.authors-icon').click(function() { window.location = '/authors'; });
-    
+
     $('.btn-spinner').click(function() {
         var iconClass = $(this).data('icon');
         $(this).find('.' + iconClass).removeClass(iconClass).addClass('fa-spinner fa-spin');

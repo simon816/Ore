@@ -7,8 +7,9 @@ Discussion page within Project overview.
 @import models.project.Project
 @import ore.OreConfig
 @import org.spongepowered.play.discourse.DiscourseApi
+@import db.impl.access.CompetitionBase
 @(model: Project)(implicit messages: Messages, request: Request[_], flash: Flash, service: ModelService,
-        forums: DiscourseApi, config: OreConfig, users: UserBase)
+        forums: DiscourseApi, config: OreConfig, users: UserBase, competitions: CompetitionBase)
 
 @projects.view(model, "#discussion") {
 

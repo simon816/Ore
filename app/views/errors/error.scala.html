@@ -1,8 +1,9 @@
 @import db.ModelService
 @import db.impl.access.UserBase
 @import ore.{OreConfig, OreEnv}
+@import db.impl.access.CompetitionBase
 @(message: String)(implicit messages: Messages, session: Session, request: Request[_] = null,
-        service: ModelService, config: OreConfig, users: UserBase, env: OreEnv)
+        service: ModelService, config: OreConfig, users: UserBase, env: OreEnv, competitions: CompetitionBase)
 
 @bootstrap.layout("Error", user = false) {
 

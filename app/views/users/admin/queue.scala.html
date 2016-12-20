@@ -4,8 +4,9 @@
 @import models.project.{Project, Version}
 @import ore.OreConfig
 @import util.StringUtils._
+@import db.impl.access.CompetitionBase
 @(versions: Seq[(Project, Version)])(implicit messages: Messages, request: Request[_], service: ModelService,
-        config: OreConfig, users: UserBase)
+        config: OreConfig, users: UserBase, competitions: CompetitionBase)
 
 @bootstrap.layout(messages("user.queue")) {
 

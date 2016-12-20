@@ -3,8 +3,9 @@
 @import models.user.role.OrganizationRole
 @import ore.OreConfig
 @import views.html.helper.form
+@import db.impl.access.CompetitionBase
 @()(implicit messages: Messages, flash: Flash, request: Request[_], service: ModelService, config: OreConfig,
-        userBase: UserBase)
+        userBase: UserBase, competitions: CompetitionBase)
 
 @bootstrap.layout(messages("org.create")) {
 

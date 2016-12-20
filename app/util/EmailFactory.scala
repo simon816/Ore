@@ -3,7 +3,7 @@ package util
 import javax.inject.Inject
 
 import db.ModelService
-import db.impl.access.UserBase
+import db.impl.access.{CompetitionBase, UserBase}
 import models.user.User
 import ore.OreConfig
 import org.spongepowered.play.mail.Email
@@ -18,6 +18,7 @@ final class EmailFactory @Inject()(override val messagesApi: MessagesApi,
   val AccountUnlocked = "email.accountUnlock"
 
   implicit val users = this.service.getModelBase(classOf[UserBase])
+  implicit val competitions = this.service.getModelBase(classOf[CompetitionBase])
 
   def create(user: User, id: String)(implicit request: Request[_]): Email = Email(
     recipient = user.email.get,

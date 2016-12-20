@@ -3,7 +3,7 @@ package controllers
 import db.ModelService
 import db.access.ModelAccess
 import db.impl.VersionTable
-import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
+import db.impl.access.{CompetitionBase, OrganizationBase, ProjectBase, UserBase}
 import models.competition.Competition
 import models.project.{Project, Version}
 import ore.{OreConfig, OreEnv}
@@ -25,7 +25,7 @@ abstract class BaseController(implicit val config: OreConfig,
   implicit override val users: UserBase = this.service.getModelBase(classOf[UserBase])
   implicit override val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
   implicit override val organizations: OrganizationBase = this.service.getModelBase(classOf[OrganizationBase])
-  implicit override val competitions: ModelAccess[Competition] = this.service.access[Competition](classOf[Competition])
+  implicit override val competitions: CompetitionBase = this.service.getModelBase(classOf[CompetitionBase])
 
   /**
     * Executes the given function with the specified result or returns a

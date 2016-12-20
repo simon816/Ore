@@ -14,9 +14,10 @@ sorted according to different criteria.
 @import scala.util.Random
 @import ore.Platforms
 @import ore.Platforms.Platform
+@import db.impl.access.CompetitionBase
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], query: Option[String], page: Int,
         sort: ProjectSortingStrategy, platform: Option[Platform])(implicit messages: Messages, flash: Flash,
-        request: Request[_], service: ModelService, config: OreConfig, users: UserBase)
+        request: Request[_], service: ModelService, config: OreConfig, users: UserBase, competitions: CompetitionBase)
 
 @randomSponsor = @{
     val logos = config.sponge.getStringList("sponsors.logos").get

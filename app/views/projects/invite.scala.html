@@ -10,8 +10,9 @@
 
 @import scala.collection.JavaConverters._
 @import scala.concurrent.TimeoutException
+@import db.impl.access.CompetitionBase
 @(pending: PendingProject)(implicit messages: Messages, flash: Flash, request: Request[_], service: ModelService,
-        forums: OreDiscourseApi, config: OreConfig, userBase: UserBase)
+        forums: OreDiscourseApi, config: OreConfig, userBase: UserBase, competitions: CompetitionBase)
 
 @registeredUsers(users: List[String]) = @{
     try {

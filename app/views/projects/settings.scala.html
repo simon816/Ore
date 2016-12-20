@@ -6,10 +6,9 @@
 @import ore.permission.HideProjects
 @import ore.permission.scope.GlobalScope
 @import views.html.helper.form
-@import models.competition.Competition
-@import db.access.ModelAccess
+@import db.impl.access.CompetitionBase
 @(project: Project)(implicit messages: Messages, flash: Flash, request: Request[_], service: ModelService,
-        config: OreConfig, userBase: UserBase, competitions: ModelAccess[Competition])
+        config: OreConfig, userBase: UserBase, competitions: CompetitionBase)
 
 @projects.view(project, "#settings") {
 

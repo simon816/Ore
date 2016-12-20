@@ -3,8 +3,9 @@
 @import db.impl.access.{ProjectBase, UserBase}
 @import models.project.Flag
 @import ore.OreConfig
+@import db.impl.access.CompetitionBase
 @(flags: Seq[Flag])(implicit messages: Messages, request: Request[_], service: ModelService, config: OreConfig,
-        users: UserBase, projectBase: ProjectBase)
+        users: UserBase, projectBase: ProjectBase, competitions: CompetitionBase)
 
 @bootstrap.layout("Flags") {
 

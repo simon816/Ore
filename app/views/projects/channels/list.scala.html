@@ -3,8 +3,9 @@
 @import db.impl.access.UserBase
 @import models.project.{Channel, Project}
 @import ore.OreConfig
+@import db.impl.access.CompetitionBase
 @(project: Project, channels: Seq[Channel])(implicit messages: Messages, flash: Flash, request: Request[_],
-        service: ModelService, config: OreConfig, users: UserBase)
+        service: ModelService, config: OreConfig, users: UserBase, competitions: CompetitionBase)
 
 @bootstrap.layout(messages("channel.list.page-title", project.ownerName, project.slug)) {
 

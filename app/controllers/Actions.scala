@@ -2,7 +2,7 @@ package controllers
 
 import controllers.Requests._
 import db.access.ModelAccess
-import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
+import db.impl.access.{CompetitionBase, OrganizationBase, ProjectBase, UserBase}
 import models.competition.Competition
 import models.project.Project
 import models.user.User
@@ -24,7 +24,7 @@ trait Actions extends Calls with ActionHelpers {
   val users: UserBase
   val projects: ProjectBase
   val organizations: OrganizationBase
-  val competitions: ModelAccess[Competition]
+  val competitions: CompetitionBase
   val sso: SingleSignOnConsumer
 
   val PermsLogger = play.api.Logger("Permissions")

@@ -11,12 +11,9 @@
 
 @import scala.collection.JavaConverters._
 @import views.html.helper.form
+@import db.impl.access.CompetitionBase
 @()(implicit messages: Messages, request: Request[_], service: ModelService, config: OreConfig, users: UserBase,
-        flash: Flash)
-
-@competitions = @{
-    service.access[Competition](classOf[Competition])
-}
+        flash: Flash, competitions: CompetitionBase)
 
 @formatTime(competition: Competition) = @{
     val seconds = competition.timeRemaining.toSeconds

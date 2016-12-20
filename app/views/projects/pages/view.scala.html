@@ -10,8 +10,9 @@ Documentation page within Project overview.
 @import ore.OreConfig
 @import ore.permission.EditPages
 @import util.StringUtils._
+@import db.impl.access.CompetitionBase
 @(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages, request: Request[_],
-        flash: Flash, service: ModelService, config: OreConfig, userBase: UserBase)
+        flash: Flash, service: ModelService, config: OreConfig, userBase: UserBase, competitions: CompetitionBase)
 
 @canEditPages = @{
     userBase.current.isDefined && (userBase.current.get can EditPages in model)

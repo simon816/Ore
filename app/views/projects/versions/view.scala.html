@@ -9,8 +9,10 @@
 @import util.StringUtils._
 @import ore.project.Dependency
 @import ore.project.Dependency._
+@import db.impl.access.CompetitionBase
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages, request: Request[_], flash: Flash,
-        service: ModelService, config: OreConfig, users: UserBase, projectBase: ProjectBase)
+        service: ModelService, config: OreConfig, users: UserBase, projectBase: ProjectBase,
+        competitions: CompetitionBase)
 
 @hasUser = @{ users.current.isDefined }
 @user = @{ users.current.get }

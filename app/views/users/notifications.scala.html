@@ -6,9 +6,10 @@
 @import ore.user.notification.InviteFilters.InviteFilter
 @import ore.user.notification.NotificationFilters.NotificationFilter
 @import ore.user.notification.{InviteFilters, NotificationFilters}
+@import db.impl.access.CompetitionBase
 @(notifications: Seq[Notification], invites: Seq[RoleModel], notificationFilter: NotificationFilter,
         inviteFilter: InviteFilter)(implicit messages: Messages, request: Request[_], service: ModelService,
-        config: OreConfig, users: UserBase, projects: ProjectBase)
+        config: OreConfig, users: UserBase, projects: ProjectBase, competitions: CompetitionBase)
 
 @notificationFilterOption(option: NotificationFilter) = @{
     if (option.equals(notificationFilter)) {

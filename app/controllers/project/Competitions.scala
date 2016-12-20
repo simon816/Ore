@@ -101,4 +101,14 @@ class Competitions @Inject()(implicit override val messagesApi: MessagesApi,
     Redirect(self.showManager()).withSuccess("success.deleted.competition")
   }
 
+  /**
+    * Displays the project entries in the specified competition.
+    *
+    * @param id Competition ID
+    * @return   List of project entries
+    */
+  def showProjects(id: Int, page: Option[Int]) = CompetitionAction(id) { implicit request =>
+    Ok(views.projects.competitions.projects(request.competition, page.getOrElse(1), 25))
+  }
+
 }

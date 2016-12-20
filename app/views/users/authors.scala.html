@@ -4,8 +4,10 @@
 @import models.user.User
 @import ore.OreConfig
 @import util.StringUtils._
+@import db.impl.access.CompetitionBase
 @(authors: Seq[User], ordering: String, page: Int)(implicit messages: Messages, request: Request[_],
-        service: ModelService, config: OreConfig, users: UserBase, projectBase: ProjectBase)
+        service: ModelService, config: OreConfig, users: UserBase, projectBase: ProjectBase,
+        competitions: CompetitionBase)
 
 @pageSize = @{ config.users.getInt("author-page-size").get }
 @direction = @{ if (ordering.startsWith("-")) "o-chevron-down" else "o-chevron-up" }

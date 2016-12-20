@@ -1,0 +1,22 @@
+@import db.impl.access.CompetitionBase
+@import db.impl.access.UserBase
+@import ore.OreConfig
+@import db.ModelService
+@import models.competition.Competition
+@import _root_.views.html.projects.{list => projectList}
+@import db.impl.access.ProjectBase
+@(competition: Competition, page: Int = 1, pageSize: Int)(implicit messages: Messages, request: Request[_],
+        service: ModelService, config: OreConfig, users: UserBase, competitions: CompetitionBase,
+        projectBase: ProjectBase, flash: Flash)
+
+@bootstrap.layout(messages("competition.title")) {
+
+    <div class="container" style="margin-top: 90px;">
+        @projectList(
+            models = competition.entries.all.map(_.project).toSeq,
+            page = page,
+            pageSize = pageSize,
+            call = i => controllers.project.routes.Competitions.showProjects(competition.id.get, Some(i)))
+    </div>
+
+}
