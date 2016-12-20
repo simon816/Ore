@@ -1,12 +1,14 @@
 @import db.ModelService
 @import db.impl.access.UserBase
 @import db.impl.OrePostgresDriver.api._
-@import models.project.Competition
 @import ore.OreConfig
 @import java.sql.Timestamp
 @import java.time.ZoneId
 @import java.time.format.DateTimeFormatter
 @import java.time.ZonedDateTime
+
+@import models.competition.Competition
+
 @import scala.collection.JavaConverters._
 @import views.html.helper.form
 @()(implicit messages: Messages, request: Request[_], service: ModelService, config: OreConfig, users: UserBase,

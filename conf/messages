@@ -155,6 +155,9 @@ project.removeMember            =   Remove member
 project.removeMember.confirm    =   Are you sure you want to remove this user?
 project.deleted                 =   Project "{0}" deleted.
 project.license.link            =   Licensed under <a target="_blank" href="{0}">{1}</a>
+project.competitions            =   Competitions
+project.competitions.info       =   Enter your project to a competition.
+project.competitions.select     =   Select a competition&hellip;
 
 org.create          =   New Organization
 org.create.title    =   Create a new Organization

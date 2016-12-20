@@ -5,6 +5,7 @@ import javax.inject.Inject
 import form.organization.{OrganizationAvatarUpdate, OrganizationMembersUpdate, OrganizationRoleSetBuilder}
 import form.project._
 import form.project.competition.{CompetitionCreateForm, CompetitionSaveForm}
+import models.competition.Competition
 import models.project.Channel
 import models.project.Page._
 import models.user.role.ProjectRole
@@ -53,7 +54,8 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
     "userUps" -> list(text),
     "roleUps" -> list(text),
     "update-icon" -> boolean,
-    "owner" -> optional(number)
+    "owner" -> optional(number),
+    "competition" -> number(min = -1)
   )(ProjectSettingsForm.apply)(ProjectSettingsForm.unapply))
 
   /**
@@ -147,7 +149,7 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
   private val dateFormat = this.config.competitions.getString("date.format").get
 
   /**
-    * Submits a new [[models.project.Competition]].
+    * Submits a new [[Competition]].
     */
   lazy val CompetitionCreate = Form(mapping(
     "name" -> nonEmptyText(0, this.config.ore.getInt("competitions.name.maxLen").get),

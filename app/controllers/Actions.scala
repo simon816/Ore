@@ -3,7 +3,8 @@ package controllers
 import controllers.Requests._
 import db.access.ModelAccess
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
-import models.project.{Competition, Project}
+import models.competition.Competition
+import models.project.Project
 import models.user.User
 import ore.permission.scope.GlobalScope
 import ore.permission.{EditSettings, HideProjects, Permission}

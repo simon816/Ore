@@ -4,7 +4,8 @@ import db.ModelService
 import db.access.ModelAccess
 import db.impl.VersionTable
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
-import models.project.{Competition, Project, Version}
+import models.competition.Competition
+import models.project.{Project, Version}
 import ore.{OreConfig, OreEnv}
 import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.I18nSupport

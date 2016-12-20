@@ -5,6 +5,7 @@ import db.impl._
 import db.impl.schema._
 import db.table.ModelAssociation
 import db.{ModelSchema, ModelService}
+import models.competition.{Competition, CompetitionEntry}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole}
@@ -23,6 +24,9 @@ trait OreModelConfig extends ModelService with OreDBOs {
 
   val stars = new ModelAssociation[ProjectStarsTable](
     this, _.userId, _.projectId, classOf[ProjectStarsTable], TableQuery[ProjectStarsTable])
+
+  val votes = new ModelAssociation[CompetitionEntryUserVotesTable](
+    this, _.userId, _.entryId, classOf[CompetitionEntryUserVotesTable], TableQuery[CompetitionEntryUserVotesTable])
 
   // Begin schemas
 
@@ -53,6 +57,11 @@ trait OreModelConfig extends ModelService with OreDBOs {
       selfReference = _.userId,
       targetClass = classOf[Project],
       targetReference = _.projectId)
+    .withAssociation[CompetitionEntryUserVotesTable, CompetitionEntry](
+      association = this.votes,
+      selfReference = _.userId,
+      targetClass = classOf[CompetitionEntry],
+      targetReference = _.entryId)
 
   val SessionSchema = new ModelSchema[models.user.Session](this, classOf[models.user.Session], TableQuery[SessionTable])
 
@@ -98,6 +107,15 @@ trait OreModelConfig extends ModelService with OreDBOs {
     .withChildren[Version](classOf[Version], _.channelId)
 
   val CompetitionSchema = new ModelSchema[Competition](this, classOf[Competition], TableQuery[CompetitionTable])
+    .withChildren[CompetitionEntry](classOf[CompetitionEntry], _.competitionId)
+
+  val CompetitionEntrySchema = new ModelSchema[CompetitionEntry](
+    this, classOf[CompetitionEntry], TableQuery[CompetitionEntryTable])
+    .withAssociation[CompetitionEntryUserVotesTable, User](
+      association = this.votes,
+      selfReference = _.entryId,
+      targetClass = classOf[User],
+      targetReference = _.userId)
 
   val PageSchema = new PageSchema(this)
 

@@ -6,6 +6,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.table.common.{DescriptionColumn, DownloadsColumn, VisibilityColumn}
 import db.impl.table.StatTable
 import db.table.{AssociativeTable, ModelTable, NameColumn}
+import models.competition.{Competition, CompetitionEntry}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
@@ -115,6 +116,27 @@ class CompetitionTable(tag: Tag) extends ModelTable[Competition](tag, "project_c
   override def * = (id.?, createdAt.?, userId, name, description.?, startDate, endDate, timeZone, isVotingEnabled,
                     isStaffVotingOnly, shouldShowVoteCount, isSpongeOnly, isSourceRequired, defaultVotes, staffVotes,
                     allowedEntries, maxEntryTotal) <> (Competition.tupled, Competition.unapply)
+
+}
+
+class CompetitionEntryTable(tag: Tag) extends ModelTable[CompetitionEntry](tag, "project_competition_entries") {
+
+  def projectId = column[Int]("project_id")
+  def userId = column[Int]("user_id")
+  def competitionId = column[Int]("competition_id")
+
+  override def * = (id.?, createdAt.?, projectId, userId, competitionId) <> (CompetitionEntry.tupled,
+                    CompetitionEntry.unapply)
+
+}
+
+class CompetitionEntryUserVotesTable(tag: Tag)
+  extends AssociativeTable(tag, "project_competition_entry_votes", classOf[User], classOf[CompetitionEntry]) {
+
+  def userId = column[Int]("user_id")
+  def entryId = column[Int]("entry_id")
+
+  override def * = (userId, entryId)
 
 }
 

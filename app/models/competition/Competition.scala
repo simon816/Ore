@@ -1,9 +1,10 @@
-package models.project
+package models.competition
 
 import java.sql.Timestamp
 import java.util.Date
 
 import db.Named
+import db.access.ModelAccess
 import db.impl.CompetitionTable
 import db.impl.model.OreModel
 import db.impl.model.common.Describable
@@ -16,7 +17,7 @@ import util.StringUtils.{localDateTime2timestamp, nullIfEmpty}
 import scala.concurrent.duration._
 
 /**
-  * Represents a [[Project]] competition.
+  * Represents a [[models.project.Project]] competition.
   *
   * @param id                   Unique ID
   * @param createdAt            Instant of creation
@@ -75,6 +76,14 @@ case class Competition(override val id: Option[Int] = None,
     _allowedEntries = formData.allowedEntries,
     _maxEntryTotal = formData.maxEntryTotal
   )
+
+  /**
+    * Returns this competition's [[CompetitionEntry]]s.
+    *
+    * @return Competition entries
+    */
+  def entries: ModelAccess[CompetitionEntry]
+  = this.schema.getChildren[CompetitionEntry](classOf[CompetitionEntry], this)
 
   /**
     * Saves this competition from the submitted form data.

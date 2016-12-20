@@ -6,8 +6,10 @@
 @import ore.permission.HideProjects
 @import ore.permission.scope.GlobalScope
 @import views.html.helper.form
+@import models.competition.Competition
+@import db.access.ModelAccess
 @(project: Project)(implicit messages: Messages, flash: Flash, request: Request[_], service: ModelService,
-        config: OreConfig, userBase: UserBase)
+        config: OreConfig, userBase: UserBase, competitions: ModelAccess[Competition])
 
 @projects.view(project, "#settings") {
 
@@ -87,6 +89,21 @@
                                 </div>
                                 <div class="clearfix"></div>
                             </form>
+                        </div>
+
+                        <!-- Competition entry -->
+                        <div class="setting">
+                            <div class="setting-description">
+                                <h4>@messages("project.competitions")</h4>
+                                <p>@messages("project.competitions.info")</p>
+                            </div>
+                            <select class="form-control" form="save" name="competition">
+                                <option selected value="-1">@Html(messages("project.competitions.select"))</option>
+                                @competitions.all.map { competition =>
+                                  <option value="@competition.id">@competition.name</option>
+                                }
+                            </select>
+                            <div class="clearfix"></div>
                         </div>
 
                         <!-- Rename -->

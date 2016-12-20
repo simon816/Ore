@@ -1,6 +1,7 @@
 package controllers
 
-import models.project.{Competition, Project}
+import models.competition.Competition
+import models.project.Project
 import models.user.{Organization, User}
 import ore.permission.scope.ScopeSubject
 import play.api.mvc.{Request, WrappedRequest}

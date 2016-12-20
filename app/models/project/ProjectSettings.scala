@@ -2,10 +2,12 @@ package models.project
 
 import java.sql.Timestamp
 
+import db.impl.OrePostgresDriver.api._
 import db.impl.ProjectSettingsTable
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
 import form.project.ProjectSettingsForm
+import models.competition.{Competition, CompetitionEntry}
 import models.user.Notification
 import models.user.role.ProjectRole
 import ore.permission.role.RoleTypes
@@ -146,6 +148,20 @@ case class ProjectSettings(override val id: Option[Int] = None,
         project.memberships.members.find(_.username.equalsIgnoreCase(user)).foreach { user =>
           user.headRole.roleType = projectRoleTypes.find(_.title.equals(formData.roleUps(i)))
             .getOrElse(throw new RuntimeException("supplied invalid role type"))
+        }
+      }
+    }
+
+    // Check if the project is being submitted to a competition
+    println("competitionId = " + formData.competitionId)
+    if (formData.competitionId > -1) {
+      this.service.access[Competition](classOf[Competition]).get(formData.competitionId).foreach { competition =>
+        val previousEntry = competition.entries.filter(_.projectId === this.projectId)
+        if (previousEntry.isEmpty) {
+          this.service.access[CompetitionEntry](classOf[CompetitionEntry]).add(CompetitionEntry(
+            projectId = this.projectId,
+            userId = this.project.ownerId,
+            competitionId = competition.id.get))
         }
       }
     }

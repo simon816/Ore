@@ -6,7 +6,7 @@ import controllers.BaseController
 import controllers.Requests.AuthRequest
 import db.ModelService
 import form.OreForms
-import models.project.Competition
+import models.competition.Competition
 import ore.OreConfig
 import ore.permission.EditCompetitions
 import org.spongepowered.play.security.SingleSignOnConsumer

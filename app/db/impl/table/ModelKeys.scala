@@ -4,6 +4,7 @@ import db.Named
 import db.impl.OrePostgresDriver.api._
 import db.impl.model.common.{Describable, Downloadable, Hideable}
 import db.table.key._
+import models.competition.Competition
 import models.project._
 import models.statistic.StatEntry
 import models.user.role.RoleModel
