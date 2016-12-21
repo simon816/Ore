@@ -19,12 +19,19 @@
     competitions.getBannerPath(competition).isDefined
 }
 
+@entries = @{
+    competition.entries.all
+}
+
 @bootstrap.layout(messages("competition.title")) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/competition.js")"></script>
     <script>competitionId = '@competition.id.get';</script>
 
-    <div class="container" style="margin-top: 90px;">
+    <div class="container comp-container" style="margin-top: 90px;">
+        <div class="row">
+            @utils.alert("error")
+        </div>
         <div class="row">
             <div class="comp-header">
                 @if(users.current.isDefined && (users.current.get can EditCompetitions in GlobalScope)) {
@@ -59,11 +66,35 @@
             </div>
         </div>
         <div class="row">
-            @projectList(
-                models = competition.entries.all.map(_.project).toSeq,
-                page = page,
-                pageSize = pageSize,
-                call = i => compRoutes.showProjects(competition.id.get, Some(i)))
+            <div class="pull-right form-inline">
+                @helper.form(action = compRoutes.submitProject(competition.id.get)) {
+                    @if(users.current.isDefined && users.current.get.projects.nonEmpty) {
+                        <select class="form-control" name="project">
+                            <option selected value="-1">@Html(messages("competition.submit.selectProject"))</option>
+                            @users.current.get.projects.all.map { project =>
+                                <option value="@project.id.get">@project.name</option>
+                            }
+                        </select>
+                    }
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-plus"></i> @messages("competition.submit")
+                    </button>
+                }
+            </div>
+        </div>
+        <div class="row">
+            @if(entries.nonEmpty) {
+                @projectList(
+                    models = entries.map(_.project).toSeq,
+                    page = page,
+                    pageSize = pageSize,
+                    call = i => compRoutes.showProjects(competition.id.get, Some(i)))
+            } else {
+                <div class="list-group-item">
+                    <p>@messages("competition.entries.empty")</p>
+                    <a href="#">@messages("competition.entries.empty.new")</a>
+                </div>
+            }
         </div>
     </div>
 

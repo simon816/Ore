@@ -1,6 +1,6 @@
 package db.impl
 
-import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
+import db.impl.access.{CompetitionBase, OrganizationBase, ProjectBase, UserBase}
 import db.impl.model.OreModel
 import db.{Model, ModelProcessor, ModelService}
 import discourse.OreDiscourseApi
@@ -17,6 +17,7 @@ class OreModelProcessor(service: ModelService,
                         users: UserBase,
                         projects: ProjectBase,
                         organizations: OrganizationBase,
+                        competitions: CompetitionBase,
                         config: OreConfig,
                         forums: OreDiscourseApi,
                         auth: SpongeAuthApi)
@@ -28,6 +29,7 @@ class OreModelProcessor(service: ModelService,
         oreModel.userBase = this.users
         oreModel.projectBase = this.projects
         oreModel.organizationBase = this.organizations
+        oreModel.competitionBase = this.competitions
         oreModel.config = this.config
         oreModel.forums = this.forums
         oreModel.auth = this.auth

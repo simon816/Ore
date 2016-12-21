@@ -7,7 +7,8 @@ import java.nio.file.{Files, Path, Paths, StandardCopyOption}
 import db.access.{ImmutableModelAccess, ModelAccess}
 import db.impl.OrePostgresDriver.api._
 import db.{ModelBase, ModelFilter, ModelService}
-import models.competition.Competition
+import models.competition.{Competition, CompetitionEntry}
+import models.project.Project
 import ore.OreConfig
 
 import scala.collection.JavaConverters._
@@ -71,6 +72,41 @@ class CompetitionBase(override val service: ModelService, config: OreConfig) ext
       Option(list(dir).findAny().orElse(null))
     else
       None
+  }
+
+  /**
+    * Submits the specified Project to the specified Competition.
+    *
+    * @param project      Project to submit
+    * @param competition  Competition to submit project to
+    * @return             Error string if any, none otherwise
+    */
+  def submitProject(project: Project, competition: Competition): Option[String] = {
+    // check requirements
+    val userId = project.ownerId
+    val projectId = project.id.get
+    val entries = competition.entries
+    val previousEntry = entries.filter(_.projectId === projectId)
+    if (previousEntry.nonEmpty)
+      return Some("error.project.competition.alreadySubmitted")
+    val otherEntriesByUser = entries.filter(_.userId === userId)
+    if (otherEntriesByUser.size >= competition.allowedEntries)
+      return Some("error.project.competition.entryLimit")
+    if (entries.size >= competition.maxEntryTotal)
+      return Some("error.project.competition.capacity")
+    if (competition.timeRemaining.toSeconds <= 0)
+      return Some("error.project.competition.over")
+    if (competition.isSpongeOnly && !project.isSpongePlugin)
+      return Some("error.project.competition.spongeOnly")
+    if (competition.isSourceRequired && project.settings.source.isEmpty)
+      return Some("error.project.competition.sourceRequired")
+
+    // create and add entry
+    this.service.access[CompetitionEntry](classOf[CompetitionEntry]).add(CompetitionEntry(
+      projectId = projectId,
+      userId = userId,
+      competitionId = competition.id.get))
+    None
   }
 
 }

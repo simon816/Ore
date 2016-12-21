@@ -66,6 +66,7 @@ POST    /pages/preview                                              @controllers
 
 # ---------- Competitions  ----------
 
+POST    /competitions/:id                                           @controllers.project.Competitions.submitProject(id: Int)
 GET     /competitions/:id                                           @controllers.project.Competitions.showProjects(id: Int, page: Option[Int])
 POST    /competitions/:id/banner                                    @controllers.project.Competitions.setBanner(id: Int)
 GET     /competitions/:id/banner                                    @controllers.project.Competitions.showBanner(id: Int)

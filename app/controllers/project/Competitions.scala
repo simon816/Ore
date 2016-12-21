@@ -136,7 +136,33 @@ class Competitions @Inject()(implicit override val messagesApi: MessagesApi,
     * @return   List of project entries
     */
   def showProjects(id: Int, page: Option[Int]) = CompetitionAction(id) { implicit request =>
-    Ok(views.projects.competitions.projects(request.competition, page.getOrElse(1), 25))
+    val pageSize = this.config.projects.getInt("init-load").get
+    Ok(views.projects.competitions.projects(request.competition, page.getOrElse(1), pageSize))
+  }
+
+  /**
+    * Submits a project to the specified competition.
+    *
+    * @param id Competition ID
+    * @return   Redirect to project list
+    */
+  def submitProject(id: Int) = AuthedCompetitionAction(id) { implicit request =>
+    this.forms.CompetitionSubmitProject.bindFromRequest().fold(
+      hasErrors =>
+        FormError(self.showProjects(id, None), hasErrors),
+      projectId =>
+        request.user.projects.get(projectId) match {
+          case None =>
+            Redirect(self.showProjects(id, None)).withError("error.competition.submit.invalidProject")
+          case Some(project) =>
+            this.competitions.submitProject(project, request.competition) match {
+              case None =>
+                Redirect(self.showProjects(id, None))
+              case Some(error) =>
+                Redirect(self.showProjects(id, None)).withError(error)
+            }
+        }
+    )
   }
 
 }

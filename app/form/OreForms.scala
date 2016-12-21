@@ -186,6 +186,11 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
   )(CompetitionSaveForm.apply)(CompetitionSaveForm.unapply))
 
   /**
+    * Submits a project to a competition.
+    */
+  lazy val CompetitionSubmitProject = Form(single("project" -> number(min = -1)))
+
+  /**
     * Submits a change to a Version's description.
     */
   lazy val VersionDescription = Form(single("content" -> text))
