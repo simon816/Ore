@@ -10,6 +10,7 @@ GET     /admin/migrate                                              @controllers
 GET     /admin/queue                                                @controllers.Application.showQueue()
 GET     /admin/flags                                                @controllers.Application.showFlags()
 GET     /admin/flags/:id/resolve/:resolved                          @controllers.Application.setFlagResolved(id: Int, resolved: Boolean)
+
 GET     /admin/competitions                                         @controllers.project.Competitions.showManager()
 GET     /admin/competitions/new                                     @controllers.project.Competitions.showCreator()
 POST    /admin/competitions/new                                     @controllers.project.Competitions.create()
@@ -66,6 +67,8 @@ POST    /pages/preview                                              @controllers
 # ---------- Competitions  ----------
 
 GET     /competitions/:id                                           @controllers.project.Competitions.showProjects(id: Int, page: Option[Int])
+POST    /competitions/:id/banner                                    @controllers.project.Competitions.setBanner(id: Int)
+GET     /competitions/:id/banner                                    @controllers.project.Competitions.showBanner(id: Int)
 
 # ---------- Organizations ----------
 

@@ -11,6 +11,7 @@ import ore.OreConfig
 import ore.permission.EditCompetitions
 import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.MessagesApi
+import play.api.libs.json.Json
 import util.StringUtils
 import views.{html => views}
 
@@ -99,6 +100,33 @@ class Competitions @Inject()(implicit override val messagesApi: MessagesApi,
   def delete(id: Int) = (EditCompetitionsAction andThen AuthedCompetitionAction(id)) { implicit request =>
     this.competitions.remove(request.competition)
     Redirect(self.showManager()).withSuccess("success.deleted.competition")
+  }
+
+  /**
+    * Sets the specified competition's banner image.
+    *
+    * @param id Competition ID
+    * @return   Json response
+    */
+  def setBanner(id: Int) = (EditCompetitionsAction andThen AuthedCompetitionAction(id)) { implicit request =>
+    request.body.asMultipartFormData.get.file("banner") match {
+      case None =>
+        Ok(Json.obj("error" -> this.messagesApi("error.noFile")))
+      case Some(file) =>
+        this.competitions.saveBanner(request.competition, file.ref.file, file.filename)
+        Ok(Json.obj("bannerUrl" -> self.showBanner(id).path()))
+    }
+  }
+
+  /**
+    * Displays the specified competition's banner image, if any, NotFound
+    * otherwise.
+    *
+    * @param id Competition ID
+    * @return   Banner image
+    */
+  def showBanner(id: Int) = CompetitionAction(id) { implicit request =>
+    this.competitions.getBannerPath(request.competition).map(showImage).getOrElse(NotFound)
   }
 
   /**

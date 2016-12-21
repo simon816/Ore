@@ -18,6 +18,6 @@ trait OreDBOs extends ModelService {
   val Users = new UserBase(this, this.auth, this.config)
   val Projects = new ProjectBase(this, this.env, this.config, this.forums)
   val Organizations = new OrganizationBase(this, this.forums, this.auth, this.config, this.messages, Users)
-  val Competitions = new CompetitionBase(this)
+  val Competitions = new CompetitionBase(this, this.config)
 
 }

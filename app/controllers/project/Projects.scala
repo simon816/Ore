@@ -238,8 +238,6 @@ class Projects @Inject()(stats: StatTracker,
     }
   }
 
-  private def showImage(path: Path) = Ok(FileUtils.readFileToByteArray(path.toFile)).as("image/jpeg")
-
   /**
     * Submits a flag on the specified project for further review.
     *

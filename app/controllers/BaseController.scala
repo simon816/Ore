@@ -1,12 +1,13 @@
 package controllers
 
+import java.nio.file.Path
+
 import db.ModelService
-import db.access.ModelAccess
 import db.impl.VersionTable
 import db.impl.access.{CompetitionBase, OrganizationBase, ProjectBase, UserBase}
-import models.competition.Competition
 import models.project.{Project, Version}
-import ore.{OreConfig, OreEnv}
+import ore.OreConfig
+import org.apache.commons.io.FileUtils
 import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.I18nSupport
 import play.api.mvc._
@@ -53,5 +54,7 @@ abstract class BaseController(implicit val config: OreConfig,
   def withVersion(versionString: String)(fn: Version => Result)
                  (implicit request: RequestHeader, project: Project): Result
   = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).map(fn).getOrElse(NotFound)
+
+  def showImage(path: Path) = Ok(FileUtils.readFileToByteArray(path.toFile)).as("image/jpeg")
 
 }
