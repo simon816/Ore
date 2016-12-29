@@ -17,7 +17,7 @@ import util.StringUtils._
   */
 class UserBase(override val service: ModelService,
                auth: SpongeAuthApi,
-               config: OreConfig)
+               implicit val config: OreConfig)
   extends ModelBase[User] {
 
   import UserBase._

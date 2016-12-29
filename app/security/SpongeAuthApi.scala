@@ -49,7 +49,7 @@ trait SpongeAuthApi {
                  email: String,
                  password: String,
                  verified: Boolean = false): Either[String, SpongeUser]
-  = doCreateUser(username, email, password, verified, dummy = false)
+  = doCreateUser(username, email, password, verified)
 
   /**
     * Creates a "dummy" user that cannot log in and has no password.
@@ -63,10 +63,10 @@ trait SpongeAuthApi {
   = doCreateUser(username, email, null, verified, dummy = true)
 
   private def doCreateUser(username: String,
-                         email: String,
-                         password: String,
-                         verified: Boolean = false,
-                         dummy: Boolean = false): Either[String, SpongeUser] = {
+                           email: String,
+                           password: String,
+                           verified: Boolean = false,
+                           dummy: Boolean = false): Either[String, SpongeUser] = {
     var params = Map(
       "api-key" -> Seq(this.apiKey),
       "username" -> Seq(username),

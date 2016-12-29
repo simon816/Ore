@@ -12,7 +12,7 @@ import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
 import models.project.{Flag, Project, Version}
 import models.user.role.{OrganizationRole, ProjectRole}
-import ore.Visitable
+import ore.{OreConfig, Visitable}
 import ore.permission._
 import ore.permission.role.RoleTypes.{DonorType, RoleType}
 import ore.permission.role._
@@ -348,15 +348,16 @@ case class User(override val id: Option[Int] = None,
     * @param user SpongeUser
     * @return     This user
     */
-  def fill(user: SpongeUser): User = {
+  def fill(user: SpongeUser)(implicit config: OreConfig): User = {
     if (user == null)
       return this
     this.username = user.username
     this.email = user.email
     user.avatarUrl.map { url =>
-      if (!url.startsWith("http"))
-        this.config.security.getString("api.url").get + url
-      else
+      if (!url.startsWith("http")) {
+        val baseUrl = config.security.getString("api.url").get
+        baseUrl + url
+      } else
         url
     }.foreach(this.avatarUrl = _)
     this
@@ -566,6 +567,6 @@ object User {
     * @param user User to convert
     * @return     Ore user
     */
-  def fromSponge(user: SpongeUser) = User().fill(user).copy(id = Some(user.id))
+  def fromSponge(user: SpongeUser)(implicit config: OreConfig) = User().fill(user).copy(id = Some(user.id))
 
 }

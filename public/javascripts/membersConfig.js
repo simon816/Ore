@@ -33,11 +33,9 @@ $(function() {
         newRow.find('select').attr('form', 'form-continue');
         newRow.find('a').attr('href', '/' + user.username).text(user.username);
 
-
         var avatarImg = newRow.find('img');
-        if (user.hasOwnProperty('avatarTemplate')) {
-            var avatarUrl = user.avatarTemplate.replace('{size}', '100');
-            avatarImg.attr('src', avatarUrl);
+        if (user.hasOwnProperty('avatarUrl')) {
+            avatarImg.attr('src', user['avatarUrl']);
         } else {
             avatarImg.remove();
         }
