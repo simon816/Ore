@@ -1,18 +1,18 @@
-group 'org.spongepowered'
-version 'dev-SNAPSHOT'
+plugins {
+    id 'org.spongepowered.plugin' version '0.7'
+}
 
-apply plugin: 'java'
+group = 'se.walkercrou'
+version = '1.0.1'
+description = 'Ore test plugin'
 
-sourceCompatibility = 1.8
-
-repositories {
-    mavenCentral()
-    maven {
-        name 'sponge'
-        url 'http://repo.spongepowered.org/maven'
+sponge.plugin {
+    id = 'oretest'
+    meta {
+        name = "Ore Test Plugin"
     }
 }
 
 dependencies {
-    compile 'org.spongepowered:spongeapi:5.0.0-SNAPSHOT'
+    compile 'org.spongepowered:spongeapi:6.0.0-SNAPSHOT'
 }
