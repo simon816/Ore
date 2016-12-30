@@ -1,3 +1,26 @@
+/*
+ * ==================================================
+ *  _____             _
+ * |     |___ ___    |_|___
+ * |  |  |  _| -_|_  | |_ -|
+ * |_____|_| |___|_|_| |___|
+ *                 |___|
+ *
+ * By Walker Crouse (windy) and contributors
+ * (C) SpongePowered 2016-2017 MIT License
+ * https://github.com/SpongePowered/Ore
+ *
+ * Handles invitations to organizations or projects through a member list.
+ *
+ * ==================================================
+ */
+
+/*
+ * ==================================================
+ * =                Helper functions                =
+ * ==================================================
+ */
+
 function updateIndices() {
     // Set the input fields to their proper indices so the server can read
     // them as a list.
@@ -9,6 +32,12 @@ function updateIndices() {
         $(this).find('select').attr('name', 'roles[' + index + ']');
     });
 }
+
+/*
+ * ==================================================
+ * =                   Doc ready                    =
+ * ==================================================
+ */
 
 $(function() {
     initUserSearch(function(result) {

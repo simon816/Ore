@@ -1,6 +1,35 @@
-var projectName = null;
+/*
+ * ==================================================
+ *  _____             _
+ * |     |___ ___    |_|___
+ * |  |  |  _| -_|_  | |_ -|
+ * |_____|_| |___|_|_| |___|
+ *                 |___|
+ *
+ * By Walker Crouse (windy) and contributors
+ * (C) SpongePowered 2016-2017 MIT License
+ * https://github.com/SpongePowered/Ore
+ *
+ * Powers the project settings page.
+ *
+ * ==================================================
+ */
 
 var KEY_RETURN = 13;
+
+/*
+ * ==================================================
+ * =               External constants               =
+ * ==================================================
+ */
+
+var projectName = null;
+
+/*
+ * ==================================================
+ * =                   Doc ready                    =
+ * ==================================================
+ */
 
 $(function() {
     var name = $('#name');

@@ -1,5 +1,34 @@
+/*
+ * ==================================================
+ *  _____             _
+ * |     |___ ___    |_|___
+ * |  |  |  _| -_|_  | |_ -|
+ * |_____|_| |___|_|_| |___|
+ *                 |___|
+ *
+ * By Walker Crouse (windy) and contributors
+ * (C) SpongePowered 2016-2017 MIT License
+ * https://github.com/SpongePowered/Ore
+ *
+ * Handles project channel management
+ *
+ * ==================================================
+ */
+
+/*
+ * ==================================================
+ * =               External constants               =
+ * ==================================================
+ */
+
 var PROJECT_OWNER = null;
 var PROJECT_SLUG = null;
+
+/*
+ * ==================================================
+ * =                Helper functions                =
+ * ==================================================
+ */
 
 function rgbToHex(rgb) {
     var parts = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
@@ -17,16 +46,6 @@ function getModal() {
     return $('#channel-settings');
 }
 
-var onCustomSubmit = function(toggle, channelName, channelHex, title, submit) {
-    // Called when a channel is being edited before project creation
-    var publishForm = $('#form-publish');
-    $('#channel-name').text(channelName).css('background-color', channelHex);
-    publishForm.find('.channel-input').val(channelName);
-    publishForm.find('.channel-color-input').val(channelHex);
-    getModal().modal('hide');
-    initChannelManager(toggle, channelName, channelHex, title, null, null, submit);
-};
-
 function initChannelDelete(toggle, channelName, versionCount) {
     $(toggle).off('click');
     $(toggle).click(function() {
@@ -36,6 +55,16 @@ function initChannelDelete(toggle, channelName, versionCount) {
         modal.find('.version-count').text(versionCount);
     });
 }
+
+var onCustomSubmit = function(toggle, channelName, channelHex, title, submit) {
+    // Called when a channel is being edited before project creation
+    var publishForm = $('#form-publish');
+    $('#channel-name').text(channelName).css('background-color', channelHex);
+    publishForm.find('.channel-input').val(channelName);
+    publishForm.find('.channel-color-input').val(channelHex);
+    getModal().modal('hide');
+    initChannelManager(toggle, channelName, channelHex, title, null, null, submit);
+};
 
 function initChannelManager(toggle, channelName, channelHex, title, call, method, submit) {
     $(toggle).off('click'); // Unbind previous click handlers
@@ -132,6 +161,12 @@ function initColorPicker() {
         modal.find('.preview').css('background-color', color);
     });
 }
+
+/*
+ * ==================================================
+ * =                   Doc ready                    =
+ * ==================================================
+ */
 
 $(function() {
     initModal();

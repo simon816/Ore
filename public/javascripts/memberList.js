@@ -1,3 +1,27 @@
+/*
+ * ==================================================
+ *  _____             _
+ * |     |___ ___    |_|___
+ * |  |  |  _| -_|_  | |_ -|
+ * |_____|_| |___|_|_| |___|
+ *                 |___|
+ *
+ * By Walker Crouse (windy) and contributors
+ * (C) SpongePowered 2016-2017 MIT License
+ * https://github.com/SpongePowered/Ore
+ *
+ * Powers the member list seen on the project creation page, project settings
+ * and organization page.
+ *
+ * ==================================================
+ */
+
+/*
+ * ==================================================
+ * =                Helper functions                =
+ * ==================================================
+ */
+
 function updateIndices() {
     var memberList = $('.list-members');
     memberList.find('.user-new').each(function(i) {
@@ -44,6 +68,12 @@ function initMember(memberRow) {
         $('#modal-user-delete').find('input').val(getItemContainer($(this)).find('.username').text());
     });
 }
+
+/*
+ * ==================================================
+ * =                   Doc ready                    =
+ * ==================================================
+ */
 
 $(function() {
     initMember($('.list-members').find('.list-group-item'));

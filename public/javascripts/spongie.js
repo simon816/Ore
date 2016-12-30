@@ -10,7 +10,7 @@
  * (C) SpongePowered 2016-2017 MIT License
  * https://github.com/SpongePowered/Ore
  *
- * Initializes the discussion tab and embeds the Discourse topic in an iFrame.
+ * Powers the Spongie icon on the bottom of the page (requires svg.js).
  *
  * ==================================================
  */
@@ -21,8 +21,10 @@
  * ==================================================
  */
 
-(function() {
-    var d = document.createElement('script'); d.type = 'text/javascript'; d.async = true;
-    d.src = DiscourseEmbed.discourseUrl + 'javascripts/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(d);
-})();
+$(function() {
+    var spongie = $('.col-spongie').find('div');
+    spongie.click(function() { window.location = 'https://spongepowered.org' });
+    spongie
+        .mouseenter(function() { $('#spongie').find('path').css('fill', '#F7CF0D'); })
+        .mouseleave(function() { $('#spongie').find('path').css('fill', 'gray'); });
+});

@@ -1,4 +1,34 @@
+/*
+ * ==================================================
+ *  _____             _
+ * |     |___ ___    |_|___
+ * |  |  |  _| -_|_  | |_ -|
+ * |_____|_| |___|_|_| |___|
+ *                 |___|
+ *
+ * By Walker Crouse (windy) and contributors
+ * (C) SpongePowered 2016-2017 MIT License
+ * https://github.com/SpongePowered/Ore
+ *
+ * Handles channel creation that occurs during version creation (separate from
+ * the normal channel manager).
+ *
+ * ==================================================
+ */
+
+/*
+ * ==================================================
+ * =               External constants               =
+ * ==================================================
+ */
+
 var DEFAULT_COLOR = null;
+
+/*
+ * ==================================================
+ * =                Helper functions                =
+ * ==================================================
+ */
 
 function initChannelNew(color) {
     initChannelManager(
@@ -18,6 +48,12 @@ function getSelect() {
 function setColorInput(val) {
     getForm().find('.channel-color-input').val(val);
 }
+
+/*
+ * ==================================================
+ * =                   Doc ready                    =
+ * ==================================================
+ */
 
 $(function() {
     initChannelNew(DEFAULT_COLOR);

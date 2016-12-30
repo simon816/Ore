@@ -88,21 +88,18 @@
 .alert-file {
   min-width: 248px;
   min-height: 42px;
+
   .file-name { margin-right: 50px; }
-}
+  .file-upload {
+    @include size(48px, 42px);
+    > .btn { height: 100%; }
+  }
 
-.alert-file > .alert {
-  padding: 10px;
-  min-width: 200px;
-  margin: 0;
-}
-
-.alert-file > .file-upload {
-  @include size(48px, 42px);
-}
-
-.alert-file > .file-upload > .btn {
-  height: 100%;
+  > .alert {
+    padding: 10px;
+    min-width: 200px;
+    margin: 0;
+  }
 }
 
 #continue {

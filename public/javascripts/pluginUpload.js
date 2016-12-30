@@ -1,4 +1,27 @@
+/*
+ * ==================================================
+ *  _____             _
+ * |     |___ ___    |_|___
+ * |  |  |  _| -_|_  | |_ -|
+ * |_____|_| |___|_|_| |___|
+ *                 |___|
+ *
+ * By Walker Crouse (windy) and contributors
+ * (C) SpongePowered 2016-2017 MIT License
+ * https://github.com/SpongePowered/Ore
+ *
+ * Validates and handles new plugin uploads.
+ *
+ * ==================================================
+ */
+
 var MAX_FILE_SIZE = 20971520;
+
+/*
+ * ==================================================
+ * =                Helper functions                =
+ * ==================================================
+ */
 
 function getAlert() {
     return $('.alert-file');
@@ -31,6 +54,12 @@ function reset() {
     return alert;
 }
 
+/*
+ * ==================================================
+ * =                   Doc ready                    =
+ * ==================================================
+ */
+
 $(function() {
     $('#pluginFile').on('change', function() {
         var alert = reset();
@@ -53,7 +82,32 @@ $(function() {
         alert.fadeIn('slow');
     });
 
-    $('.file-upload').find('button').click(function() {
-        $(this).find('i').removeClass('fa-upload').addClass('fa-spinner fa-spin');
+    // $('.file-upload').find('button').click(function() {
+    //     $(this).find('i').removeClass('fa-upload').addClass('fa-spinner fa-spin');
+    // });
+
+    $('.btn-sign').click(function(e) {
+        e.preventDefault();
+        $('#pluginSig').click();
+    });
+
+    $('#pluginSig').on('change', function() {
+        var fileName = $(this).val().trim();
+        var alert = getAlert();
+        var alertInner = alert.find('.alert');
+        var button = alert.find('button');
+        var icon = button.find('i');
+        icon.removeClass('fa-pencil').addClass('fa-spinner fa-spin');
+        setTimeout(function() {
+            if (!fileName)
+                return;
+            if (!fileName.endsWith('.sig')) {
+                failure('Please sign your plugin with a .sig detached PGP signature.');
+                return;
+            }
+            alertInner.removeClass('alert-info').addClass('alert-success');
+            button.removeClass('btn-info btn-sign').addClass('btn-success');
+            icon.removeClass('fa-spinner fa-spin').addClass('fa-upload').prop('title', 'Upload plugin');
+        }, 3000);
     });
 });

@@ -1,9 +1,39 @@
+/*
+ * ==================================================
+ *  _____             _
+ * |     |___ ___    |_|___
+ * |  |  |  _| -_|_  | |_ -|
+ * |_____|_| |___|_|_| |___|
+ *                 |___|
+ *
+ * By Walker Crouse (windy) and contributors
+ * (C) SpongePowered 2016-2017 MIT License
+ * https://github.com/SpongePowered/Ore
+ *
+ * Powers the main project landing. Also implements the content editor seen on
+ * project pages, version pages, and discussion tab.
+ *
+ * ==================================================
+ */
+
+var KEY_PLUS = 61;
+var KEY_MINUS = 173;
+
+/*
+ * ==================================================
+ * =               External constants               =
+ * ==================================================
+ */
+
 var projectOwner = null;
 var projectSlug = null;
 var alreadyStarred = false;
 
-var KEY_PLUS = 61;
-var KEY_MINUS = 173;
+/*
+ * ==================================================
+ * =                Helper functions                =
+ * ==================================================
+ */
 
 function getActiveTab() {
     return $('.project-navbar').find('li.active');
@@ -176,6 +206,12 @@ function initBtnEdit() {
         }
     });
 }
+
+/*
+ * ==================================================
+ * =                   Doc ready                    =
+ * ==================================================
+ */
 
 $(function() {
     initFlagList();

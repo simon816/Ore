@@ -1,10 +1,39 @@
+/*
+ * ==================================================
+ *  _____             _
+ * |     |___ ___    |_|___
+ * |  |  |  _| -_|_  | |_ -|
+ * |_____|_| |___|_|_| |___|
+ *                 |___|
+ *
+ * By Walker Crouse (windy) and contributors
+ * (C) SpongePowered 2016-2017 MIT License
+ * https://github.com/SpongePowered/Ore
+ *
+ * Validates and handles organization creation.
+ *
+ * ==================================================
+ */
+
 var MIN_NAME_LENGTH = 3;
+
+/*
+ * ==================================================
+ * =                Helper functions                =
+ * ==================================================
+ */
 
 function resetStatus(status) {
     return status.removeClass('fa-spinner fa-spin')
         .removeClass('fa-check-circle')
         .removeClass('fa-times-circle');
 }
+
+/*
+ * ==================================================
+ * =                   Doc ready                    =
+ * ==================================================
+ */
 
 $(function() {
     var events = 0;

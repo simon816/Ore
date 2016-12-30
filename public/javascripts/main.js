@@ -1,12 +1,49 @@
-var KEY_S = 83;
-var KEY_H = 72;
-var KEY_C = 67;
-var KEY_ESC = 27;
+/*
+ * ==================================================
+ *  _____             _
+ * |     |___ ___    |_|___
+ * |  |  |  _| -_|_  | |_ -|
+ * |_____|_| |___|_|_| |___|
+ *                 |___|
+ *
+ * By Walker Crouse (windy) and contributors
+ * (C) SpongePowered 2016-2017 MIT License
+ * https://github.com/SpongePowered/Ore
+ *
+ * Main application file
+ *
+ * ==================================================
+ */
+
 var KEY_ENTER = 13;
 var KEY_PLUS = 61;
 var KEY_MINUS = 173;
+
+/*
+ * ==================================================
+ * =               External constants               =
+ * ==================================================
+ */
+
 var CATEGORY_STRING = null;
 var SORT_STRING = null;
+
+/*
+ * ==================================================
+ * =                  Key bindings                  =
+ * ==================================================
+ */
+
+var KEY_S = 83;                             // Search
+var KEY_H = 72;                             // Home
+var KEY_C = 67;                             // Create project
+var KEY_ESC = 27;                           // De-focus
+
+/*
+ * ==================================================
+ * =                Helper functions                =
+ * ==================================================
+ */
 
 function shouldExecuteHotkey(event) {
     return !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey;
@@ -26,13 +63,23 @@ function clearUnread(e) {
     if (!$('.user-dropdown .unread').length) $('.unread').remove();
 }
 
-$(function() {
-    $('.alert-fade').fadeIn('slow');
-
+function initTooltips() {
     $('[data-toggle="tooltip"]').tooltip({
         container: "body",
         delay: { "show": 500 }
     });
+}
+
+/*
+ * ==================================================
+ * =                   Doc ready                    =
+ * ==================================================
+ */
+
+$(function() {
+    $('.alert-fade').fadeIn('slow');
+
+    initTooltips();
 
     $('.authors-icon').click(function() { window.location = '/authors'; });
     
@@ -40,12 +87,6 @@ $(function() {
         var iconClass = $(this).data('icon');
         $(this).find('.' + iconClass).removeClass(iconClass).addClass('fa-spinner fa-spin');
     });
-
-    var spongie = $('.col-spongie').find('div');
-    spongie.click(function() { window.location = 'https://spongepowered.org' });
-    spongie
-        .mouseenter(function() { $('#spongie').find('path').css('fill', '#F7CF0D'); })
-        .mouseleave(function() { $('#spongie').find('path').css('fill', 'gray'); });
 
     $('.search-icon').click(function() {
         var searchBar = $('.project-search');
@@ -82,14 +123,6 @@ $(function() {
         go(url);
     });
 
-    /*
-     * Ore hotkeys:
-     *
-     * s    Open search
-     * esc  Close search
-     * h    Go home
-     * c    Create new project
-     */
     var body = $('body');
     body.keydown(function(event) {
         var target = $(event.target);

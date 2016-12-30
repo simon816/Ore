@@ -1,3 +1,26 @@
+/*
+ * ==================================================
+ *  _____             _
+ * |     |___ ___    |_|___
+ * |  |  |  _| -_|_  | |_ -|
+ * |_____|_| |___|_|_| |___|
+ *                 |___|
+ *
+ * By Walker Crouse (windy) and contributors
+ * (C) SpongePowered 2016-2017 MIT License
+ * https://github.com/SpongePowered/Ore
+ *
+ * Home page specific script
+ *
+ * ==================================================
+ */
+
+/*
+ * ==================================================
+ * =               External constants               =
+ * ==================================================
+ */
+
 var PROJECTS_PER_CLICK = 50;
 var CATEGORY_STRING = null;
 var SORT_STRING = null;
@@ -6,6 +29,12 @@ var QUERY_STRING = null;
 var NUM_SUFFIXES = ["", "k", "m"];
 var currentlyLoaded = 0;
 
+/*
+ * ==================================================
+ * =                Helper functions                =
+ * ==================================================
+ */
+
 function abbreviateStat(stat) {
     stat = stat.toString().trim();
     if (parseInt(stat) < 1000) return stat;
@@ -13,8 +42,13 @@ function abbreviateStat(stat) {
     return stat[0] + '.' + stat[1] + suffix;
 }
 
-$(function() {
+/*
+ * ==================================================
+ * =                   Doc ready                    =
+ * ==================================================
+ */
 
+$(function() {
     $('.project-table').find('tbody').find('.stat').each(function() {
         $(this).text(abbreviateStat($(this).text()));
     });

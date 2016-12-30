@@ -35,6 +35,5 @@ $(function() {
             $img.replaceWith($svg);
 
         }, 'xml');
-
     });
 });

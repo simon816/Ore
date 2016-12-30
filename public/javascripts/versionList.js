@@ -1,3 +1,26 @@
+/*
+ * ==================================================
+ *  _____             _
+ * |     |___ ___    |_|___
+ * |  |  |  _| -_|_  | |_ -|
+ * |_____|_| |___|_|_| |___|
+ *                 |___|
+ *
+ * By Walker Crouse (windy) and contributors
+ * (C) SpongePowered 2016-2017 MIT License
+ * https://github.com/SpongePowered/Ore
+ *
+ * Handles async loading and display of the version list.
+ *
+ * ==================================================
+ */
+
+/*
+ * ==================================================
+ * =               External constants               =
+ * ==================================================
+ */
+
 var PLUGIN_ID = null;
 var CHANNEL_STRING = '';
 var VERSIONS_PER_PAGE = 10;
@@ -5,6 +28,12 @@ var PROJECT_OWNER = null;
 var PROJECT_SLUG = null;
 
 var page = 1;
+
+/*
+ * ==================================================
+ * =                Helper functions                =
+ * ==================================================
+ */
 
 function loadVersions(increment) {
     var versionPanel = $('.version-panel');
@@ -64,6 +93,12 @@ function loadVersions(increment) {
     });
 }
 
+/*
+ * ==================================================
+ * =                   Doc ready                    =
+ * ==================================================
+ */
+
 $(function() {
     var versionPanel = $('.version-panel');
     versionPanel.find('.next').click(function() { loadVersions(1) });
@@ -107,10 +142,8 @@ $(function() {
 
         go(url);
     });
-});
 
-$(function() {
-    $('.version-panel').find('tr').click(function(e) {
+    versionPanel.find('tr').click(function(e) {
         window.location.href = $(this).find('td:first-child').find('a').prop('href');
     });
 });
