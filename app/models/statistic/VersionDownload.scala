@@ -54,7 +54,7 @@ object VersionDownload {
     val dl = VersionDownload(
       modelId = version.id.get,
       address = InetString(remoteAddress),
-      cookie = getStatCookie,
+      cookie = currentCookie,
       userId = userId
     )
     dl.userBase = users

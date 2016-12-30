@@ -9,7 +9,7 @@ import db.impl.access.{ProjectBase, UserBase}
 import db.impl.schema.StatSchema
 import models.project.Version
 import models.statistic.{ProjectView, VersionDownload}
-import ore.StatTracker.COOKIE_UID
+import ore.StatTracker.COOKIE_NAME
 import play.api.mvc.{Cookie, RequestHeader, Result}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -40,7 +40,7 @@ trait StatTracker {
         project.addView()
       }
     }
-    f(request).withCookies(Cookie(COOKIE_UID, statEntry.cookie))
+    f(request).withCookies(Cookie(COOKIE_NAME, statEntry.cookie))
   }
 
   /**
@@ -59,14 +59,14 @@ trait StatTracker {
         request.project.addDownload()
       }
     }
-    f(request).withCookies(Cookie(COOKIE_UID, statEntry.cookie))
+    f(request).withCookies(Cookie(COOKIE_NAME, statEntry.cookie))
   }
 
 }
 
 object StatTracker {
 
-  val COOKIE_UID = "uid"
+  val COOKIE_NAME = "_stat"
 
   /**
     * Gets or creates a unique ID for tracking statistics based on the browser.
@@ -74,8 +74,8 @@ object StatTracker {
     * @param request  Request with cookie
     * @return         New or existing cookie
     */
-  def getStatCookie(implicit request: RequestHeader)
-  = request.cookies.get(COOKIE_UID).map(_.value).getOrElse(UUID.randomUUID.toString)
+  def currentCookie(implicit request: RequestHeader)
+  = request.cookies.get(COOKIE_NAME).map(_.value).getOrElse(UUID.randomUUID.toString)
 
   /**
     * Returns either the original client address from a X-Forwarded-For header

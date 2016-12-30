@@ -26,6 +26,10 @@ this.
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/fontawesome/font-awesome.css")">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("bootstrap/css/bootstrap.min.css")" />
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/main.css")" />
+
+        @if(scripts) {
+            <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-2.2.1.min.js")"></script>
+        }
     </head>
     <body>
         @if(header) {
@@ -39,7 +43,6 @@ this.
         }
 
         @if(scripts) {
-            <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-2.2.1.min.js")"></script>
             <script type="text/javascript" src="@routes.Assets.at("bootstrap/js/bootstrap.min.js")"></script>
             <script type="text/javascript" src="@routes.Assets.at("javascripts/filesize.min.js")"></script>
             <script type="text/javascript" src="@routes.Assets.at("highlight/highlight.pack.js")"></script>

@@ -54,7 +54,7 @@ object ProjectView {
     val view = ProjectView(
       modelId = request.project.id.get,
       address = InetString(remoteAddress),
-      cookie = getStatCookie,
+      cookie = currentCookie,
       userId = userId
     )
     view.userBase = users

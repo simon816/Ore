@@ -16,12 +16,13 @@ import ore.Colors.Color
 import ore.OreConfig
 import ore.permission.role.RoleTypes
 import ore.project.{Dependency, NotifyWatchersTask}
-import ore.project.io.{InvalidPluginFileException, PluginFile, ProjectFileManager}
+import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload, ProjectFileManager}
 import ore.user.notification.NotificationTypes
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.cache.CacheApi
 import play.api.i18n.MessagesApi
 import play.api.libs.Files.TemporaryFile
+import play.api.mvc.Request
 import security.pgp.PGPVerifier
 import util.StringUtils._
 
@@ -52,6 +53,45 @@ trait ProjectFactory {
   var isPgpEnabled = this.config.security.getBoolean("requirePgp").get
 
   /**
+    * Processes incoming [[PluginUpload]] data, verifies it, and loads a new
+    * [[PluginFile]] for further processing.
+    *
+    * @param uploadData Upload data of request
+    * @param owner      Upload owner
+    * @return           Loaded PluginFile
+    */
+  def processPluginUpload(uploadData: PluginUpload, owner: User): PluginFile = {
+    val pluginFileName = uploadData.pluginFileName
+    val signatureFileName = uploadData.signatureFileName
+
+    if (!pluginFileName.endsWith(".zip") && !pluginFileName.endsWith(".jar"))
+      throw InvalidPluginFileException("Plugin file must be either a JAR or ZIP file.")
+    if (!signatureFileName.endsWith(".sig"))
+      throw InvalidPluginFileException("Signature file must be a SIG file.")
+    if (owner.pgpPubKey.isEmpty)
+      throw new IllegalArgumentException("user has no PGP public key and PGP is required")
+    if (!owner.isPgpPubKeyReady)
+      throw new IllegalArgumentException("user cannot yet use their public key")
+
+    var pluginPath = uploadData.pluginFile.file.toPath
+    var sigPath = uploadData.signatureFile.file.toPath
+
+    if (!this.pgp.verifyDetachedSignature(pluginPath, sigPath, owner.pgpPubKey.get))
+      throw InvalidPluginFileException("could not verify uploaded file against public key")
+
+    val tmpDir = this.env.tmp.resolve(owner.username)
+    if (notExists(tmpDir))
+      createDirectories(tmpDir)
+
+    pluginPath = copy(pluginPath, tmpDir.resolve(pluginFileName), StandardCopyOption.REPLACE_EXISTING)
+    sigPath = copy(sigPath, tmpDir.resolve(pluginFileName + ".sig"), StandardCopyOption.REPLACE_EXISTING)
+
+    val plugin = new PluginFile(pluginPath, owner)
+    plugin.loadMeta()
+    plugin
+  }
+
+  /**
     * Loads a new [[PluginFile]] for further processing.
     *
     * @param uploadedFile File to process
@@ -59,6 +99,7 @@ trait ProjectFactory {
     * @param owner        User who uploaded the file
     * @return             Processed PluginFile
     */
+  @deprecated("use processPluginUpload instead", since = "1.0.2")
   def processPluginFile(uploadedFile: TemporaryFile, name: String, owner: User): PluginFile = {
     if (!name.endsWith(".zip") && !name.endsWith(".jar"))
       throw InvalidPluginFileException("Plugin file must be either a JAR or ZIP file.")

@@ -10,7 +10,7 @@ import form.OreForms
 import ore.permission.{EditSettings, HideProjects}
 import ore.project.FlagReasons
 import ore.project.factory.ProjectFactory
-import ore.project.io.InvalidPluginFileException
+import ore.project.io.{InvalidPluginFileException, PluginUpload}
 import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv, StatTracker}
 import org.apache.commons.io.FileUtils
@@ -54,16 +54,17 @@ class Projects @Inject()(stats: StatTracker,
     * @return Result
     */
   def upload() = UserLock() { implicit request =>
-    request.body.asMultipartFormData.get.file("pluginFile") match {
+    val user = request.user
+    this.factory.getUploadError(user) match {
+      case Some(error) =>
+        Redirect(self.showCreator()).withError(error)
       case None =>
-        Redirect(self.showCreator()).withError("error.noFile")
-      case Some(tmpFile) =>
-        // Start a new pending project
-        val user = request.user
-        this.factory.getUploadError(user) match {
+        PluginUpload.bindFromRequest() match {
           case None =>
+            Redirect(self.showCreator()).withError("error.noFile")
+          case Some(uploadData) =>
             try {
-              val plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user)
+              val plugin = this.factory.processPluginUpload(uploadData, user)
               val project = this.factory.startProject(plugin)
               project.cache()
               val model = project.underlying
@@ -72,8 +73,6 @@ class Projects @Inject()(stats: StatTracker,
               case e: InvalidPluginFileException =>
                 Redirect(self.showCreator()).withError("error.project.invalidPluginFile")
             }
-          case Some(error) =>
-            Redirect(self.showCreator()).withError(error)
         }
     }
   }

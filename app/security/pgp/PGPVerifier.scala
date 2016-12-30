@@ -20,6 +20,79 @@ class PGPVerifier {
   val Logger = PGPPublicKeyInfo.Logger
 
   /**
+    * Verifies the specified document [[InputStream]] against the specified
+    * signature [[InputStream]] and public key [[InputStream]].
+    *
+    * @param docIn Document input stream
+    * @param sigIn Signature input stream
+    * @param keyIn Public key input stream
+    * @return True if verified, false otherwise
+    */
+  def verifyDetachedSignature(docIn: InputStream, sigIn: InputStream, keyIn: InputStream): Boolean = {
+    val in = PGPUtil.getDecoderStream(sigIn)
+    val factory = new JcaPGPObjectFactory(in)
+    var sigList: PGPSignatureList = null
+
+    def doNextObject() = Try(factory.nextObject()).getOrElse(null)
+
+    var currentObject = doNextObject()
+    while (currentObject != null) {
+      currentObject match {
+        case signatureList: PGPSignatureList =>
+          if (signatureList.isEmpty) {
+            Logger.info("Empty signature list.")
+            return false
+          }
+          sigList = signatureList
+        case _ =>
+      }
+      Logger.info("Processed packet: " + currentObject.toString)
+      currentObject = doNextObject()
+    }
+
+    if (sigList == null) {
+      Logger.info("Invalid signature.")
+      return false
+    }
+
+    in.close()
+
+    val sig = sigList.get(0)
+    val keyRings = new JcaPGPPublicKeyRingCollection(keyIn)
+    val pubKey = keyRings.getPublicKey(sig.getKeyID)
+    keyIn.close()
+    if (pubKey == null) {
+      Logger.info("No matching public key found for signature.")
+      return false
+    }
+
+    sig.init(new JcaPGPContentVerifierBuilderProvider().setProvider("BC"), pubKey)
+    sig.update(IOUtils.toByteArray(docIn))
+    val result = sig.verify()
+    Logger.info("Verified: " + result)
+
+    result
+  }
+
+  /**
+    * Verifies the specified document [[Path]] against the specified
+    * signature [[Path]] and public key string.
+    *
+    * @param docPath  Document path
+    * @param sigPath  Signature path
+    * @param key      Public key content
+    * @return         True if verified, false otherwise
+    */
+  def verifyDetachedSignature(docPath: Path, sigPath: Path, key: String): Boolean = {
+    checkNotNull(docPath, "docPath is null", "")
+    checkNotNull(key, "key is null", "")
+    checkArgument(exists(docPath), "doc does not exist", "")
+    checkArgument(exists(sigPath), "sig does not exist", "")
+    val keyStream = PGPUtil.getDecoderStream(new ByteArrayInputStream(key.getBytes))
+    verifyDetachedSignature(newInputStream(docPath), newInputStream(sigPath), keyStream)
+  }
+
+  /**
     * Verifies the specified [[InputStream]] against the specified public key
     * [[InputStream]]. Only the first signature will be checked.
     *
@@ -36,6 +109,7 @@ class PGPVerifier {
     * @param keyIn    Public key InputStream
     * @return         True if verified
     */
+  @deprecated("use verifyDetachedSignature() instead", "1.0.2")
   def verifyAndDecrypt(verifyIn: InputStream, out: OutputStream, keyIn: InputStream): Boolean = {
     checkNotNull(verifyIn, "input is null", "")
     checkNotNull(out, "output is null", "")
@@ -106,6 +180,7 @@ class PGPVerifier {
     result
   }
 
+  @deprecated("use verifyDetachedSignature() instead", "1.0.2")
   def verifyAndDecrypt(in: Path, out: Path, key: String): Boolean = {
     checkNotNull(in, "input is null", "")
     checkNotNull(out, "output is null", "")

@@ -14,7 +14,7 @@ import models.project.{Channel, Project, Version}
 import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.Dependency
 import ore.project.factory.{PendingProject, ProjectFactory}
-import ore.project.io.{InvalidPluginFileException, PluginFile}
+import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload}
 import ore.{OreConfig, OreEnv, StatTracker}
 import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.Logger
@@ -168,15 +168,17 @@ class Versions @Inject()(stats: StatTracker,
   //noinspection ComparingUnrelatedTypes
   def upload(author: String, slug: String) = VersionEditAction(author, slug) { implicit request =>
     val call = self.showCreator(author, slug)
-    request.body.asMultipartFormData.get.file("pluginFile") match {
+    val user = request.user
+    this.factory.getUploadError(user) match {
+      case Some(error) =>
+        Redirect(call).withError(error)
       case None =>
-        Redirect(call).withError("error.noFile")
-      case Some(tmpFile) =>
-        val user = request.user
-        this.factory.getUploadError(user) match {
+        PluginUpload.bindFromRequest() match {
           case None =>
+            Redirect(call).withError("error.noFile")
+          case Some(uploadData) =>
             try {
-              val plugin = this.factory.processPluginFile(tmpFile.ref, tmpFile.filename, user)
+              val plugin = this.factory.processPluginUpload(uploadData, user)
               val project = request.project
               if (!plugin.meta.get.getId.equals(project.pluginId))
                 Redirect(call).withError("error.version.invalidPluginId")
@@ -195,11 +197,9 @@ class Versions @Inject()(stats: StatTracker,
                 }
               }
             } catch {
-              case e: InvalidPluginFileException =>
+              case _: InvalidPluginFileException =>
                 Redirect(call).withError("error.project.invalidPluginFile")
             }
-          case Some(error) =>
-            Redirect(call).withError(error)
         }
     }
   }
