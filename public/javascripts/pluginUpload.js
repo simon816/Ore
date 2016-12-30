@@ -138,10 +138,6 @@ $(function() {
         setTimeout(function() {
             if (!fileName)
                 return;
-            if (!fileName.endsWith('.sig')) {
-                failureSig('Please sign your plugin with a .sig detached PGP signature.');
-                return;
-            }
             alertInner.removeClass('alert-info alert-danger').addClass('alert-success');
             button.removeClass('btn-info').addClass('btn-success').off('click', addSig);
 

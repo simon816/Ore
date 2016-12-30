@@ -44,7 +44,8 @@ class PGPVerifier {
             return false
           }
           sigList = signatureList
-        case _ =>
+        case e =>
+          Logger.info("Unknown packet : " + e.getClass)
       }
       Logger.info("Processed packet: " + currentObject.toString)
       currentObject = doNextObject()

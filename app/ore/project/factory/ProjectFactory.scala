@@ -66,8 +66,6 @@ trait ProjectFactory {
 
     if (!pluginFileName.endsWith(".zip") && !pluginFileName.endsWith(".jar"))
       throw InvalidPluginFileException("Plugin file must be either a JAR or ZIP file.")
-    if (!signatureFileName.endsWith(".sig"))
-      throw InvalidPluginFileException("Signature file must be a SIG file.")
     if (owner.pgpPubKey.isEmpty)
       throw new IllegalArgumentException("user has no PGP public key and PGP is required")
     if (!owner.isPgpPubKeyReady)
