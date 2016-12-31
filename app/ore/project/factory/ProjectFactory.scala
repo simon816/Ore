@@ -329,17 +329,17 @@ trait ProjectFactory {
 
     project.lastUpdated = this.service.theTime
 
-    uploadPlugin(channel, pending.plugin)
+    uploadPlugin(project, channel, pending.plugin)
     newVersion
   }
 
-  private def uploadPlugin(channel: Channel, plugin: PluginFile): Try[Unit] = Try {
+  private def uploadPlugin(project: Project, channel: Channel, plugin: PluginFile): Try[Unit] = Try {
     val meta = plugin.meta.get
 
     val oldPath = plugin.path
     val oldSigPath = plugin.signaturePath
 
-    val projectDir = this.fileManager.getProjectDir(plugin.user.username, meta.getName)
+    val projectDir = this.fileManager.getProjectDir(project.ownerName, meta.getName)
     val newPath = projectDir.resolve(oldPath.getFileName)
     val newSigPath = projectDir.resolve(oldSigPath.getFileName)
 
