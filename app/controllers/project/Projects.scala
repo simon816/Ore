@@ -34,6 +34,8 @@ class Projects @Inject()(stats: StatTracker,
                          implicit override val service: ModelService)
                          extends BaseController {
 
+  implicit val fileManager = factory.fileManager
+
   private val self = controllers.project.routes.Projects
 
   private def SettingsEditAction(author: String, slug: String)

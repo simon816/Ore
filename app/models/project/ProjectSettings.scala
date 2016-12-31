@@ -1,5 +1,7 @@
 package models.project
 
+import java.nio.file.Files
+import java.nio.file.Files._
 import java.sql.Timestamp
 
 import db.impl.ProjectSettingsTable
@@ -9,11 +11,14 @@ import form.project.ProjectSettingsForm
 import models.user.Notification
 import models.user.role.ProjectRole
 import ore.permission.role.RoleTypes
+import ore.project.io.ProjectFileManager
 import ore.project.{Categories, ProjectOwned}
 import ore.user.notification.NotificationTypes
 import play.api.Logger
 import play.api.i18n.MessagesApi
 import util.StringUtils._
+
+import scala.collection.JavaConverters._
 
 /**
   * Represents a [[Project]]'s settings.
@@ -115,7 +120,8 @@ case class ProjectSettings(override val id: Option[Int] = None,
     * @param messages MessagesApi instance
     */
   //noinspection ComparingUnrelatedTypes
-  def save(project: Project, formData: ProjectSettingsForm)(implicit messages: MessagesApi) = {
+  def save(project: Project, formData: ProjectSettingsForm)(implicit messages: MessagesApi,
+                                                            fileManager: ProjectFileManager) = {
     Logger.info("Saving project settings")
     Logger.info(formData.toString)
 
@@ -129,6 +135,17 @@ case class ProjectSettings(override val id: Option[Int] = None,
 
     // Update the owner if needed
     formData.ownerId.find(_ != project.ownerId).foreach(ownerId => project.owner = this.userBase.get(ownerId).get)
+
+    // Update icon
+    if (formData.updateIcon) {
+      fileManager.getPendingIconPath(project).foreach { pendingPath =>
+        val iconDir = fileManager.getIconDir(project.ownerName, project.name)
+        if (notExists(iconDir))
+          createDirectories(iconDir)
+        list(iconDir).iterator().asScala.foreach(delete)
+        move(pendingPath, iconDir.resolve(pendingPath.getFileName))
+      }
+    }
 
     // Handle member changes
     if (project.isDefined) {
