@@ -1,5 +1,6 @@
 package ore.project.factory
 
+import db.ModelService
 import db.impl.access.ProjectBase
 import models.project.{Project, ProjectSettings}
 import models.user.role.ProjectRole
@@ -26,13 +27,14 @@ case class PendingProject(projects: ProjectBase,
                           implicit val config: OreConfig,
                           var roles: Set[ProjectRole] = Set(),
                           override val cacheApi: CacheApi)
+                         (implicit service: ModelService)
                           extends PendingAction[Project]
                             with Cacheable {
 
   /**
     * The [[Project]]'s internal settings.
     */
-  val settings = ProjectSettings()
+  val settings: ProjectSettings = this.service.processor.process(ProjectSettings())
 
   /**
     * The first [[PendingVersion]] for this PendingProject.

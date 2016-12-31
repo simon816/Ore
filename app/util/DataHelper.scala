@@ -77,7 +77,7 @@ final class DataHelper @Inject()(config: OreConfig,
           .ownerId(user.id.get)
           .name(s"Project$projectNum")
           .build())
-        project.settings = ProjectSettings()
+        project.settings = this.service.processor.process(ProjectSettings())
         // Now create some additional versions for this project
         var versionNum = 0
         for (k <- 0 until channels) {

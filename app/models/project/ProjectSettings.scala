@@ -11,6 +11,7 @@ import models.user.role.ProjectRole
 import ore.permission.role.RoleTypes
 import ore.project.{Categories, ProjectOwned}
 import ore.user.notification.NotificationTypes
+import play.api.Logger
 import play.api.i18n.MessagesApi
 import util.StringUtils._
 
@@ -115,6 +116,9 @@ case class ProjectSettings(override val id: Option[Int] = None,
     */
   //noinspection ComparingUnrelatedTypes
   def save(project: Project, formData: ProjectSettingsForm)(implicit messages: MessagesApi) = {
+    Logger.info("Saving project settings")
+    Logger.info(formData.toString)
+
     project.category = Categories.withName(formData.categoryName)
     project.description = nullIfEmpty(formData.description)
 
