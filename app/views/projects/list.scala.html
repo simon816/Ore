@@ -28,14 +28,14 @@ Collection of all projects.
                     alt="@project.ownerName" src="@projectRoutes.showIcon(project.ownerName, project.slug)" />
                 </a>
                 <!-- Title -->
-                <div class="project-title">
+                <span class="project-title">
                     <strong>
                         <a class="" href="@projectRoutes.show(project.ownerName, project.slug)">
                             @project.name
                         </a>
                     </strong>
                     <div class="project-description minor">@project.description</div>
-                </div>
+                </span>
             </div>
 
             <!-- Stats -->
