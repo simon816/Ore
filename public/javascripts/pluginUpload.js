@@ -138,6 +138,10 @@ $(function() {
         setTimeout(function() {
             if (!fileName)
                 return;
+            if (!fileName.endsWith('.sig') && !fileName.endsWith('.asc')) {
+                failureSig('Only SIG and ASC files are accepted for signatures.');
+                return;
+            }
             alertInner.removeClass('alert-info alert-danger').addClass('alert-success');
             button.removeClass('btn-info').addClass('btn-success').off('click', addSig);
 

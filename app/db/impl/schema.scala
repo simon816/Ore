@@ -118,20 +118,21 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "project_versions"
   with DownloadsColumn[Version]
   with DescriptionColumn[Version] {
 
-  def versionString   =   column[String]("version_string")
-  def mcversion       =   column[String]("mcversion")
-  def dependencies    =   column[List[String]]("dependencies")
-  def assets          =   column[String]("assets")
-  def projectId       =   column[Int]("project_id")
-  def channelId       =   column[Int]("channel_id")
-  def fileSize        =   column[Long]("file_size")
-  def hash            =   column[String]("hash")
-  def isReviewed      =   column[Boolean]("is_reviewed")
-  def fileName        =   column[String]("file_name")
+  def versionString     =   column[String]("version_string")
+  def mcversion         =   column[String]("mcversion")
+  def dependencies      =   column[List[String]]("dependencies")
+  def assets            =   column[String]("assets")
+  def projectId         =   column[Int]("project_id")
+  def channelId         =   column[Int]("channel_id")
+  def fileSize          =   column[Long]("file_size")
+  def hash              =   column[String]("hash")
+  def isReviewed        =   column[Boolean]("is_reviewed")
+  def fileName          =   column[String]("file_name")
+  def signatureFileName =   column[String]("signature_file_name")
 
   override def * = (id.?, createdAt.?, projectId, versionString, mcversion.?, dependencies, assets.?, channelId,
-                    fileSize, hash, description.?, downloads, isReviewed, fileName) <> ((Version.apply _).tupled,
-                    Version.unapply)
+                    fileSize, hash, description.?, downloads, isReviewed, fileName,
+                    signatureFileName) <> ((Version.apply _).tupled, Version.unapply)
 }
 
 class VersionDownloadsTable(tag: Tag)

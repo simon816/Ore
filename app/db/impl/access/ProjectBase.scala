@@ -149,7 +149,9 @@ class ProjectBase(override val service: ModelService,
     if (channel.versions.isEmpty)
       this.deleteChannel(channel)
 
-    Files.delete(this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(version.fileName))
+    val projectDir = this.fileManager.getProjectDir(proj.ownerName, project.name)
+    Files.delete(projectDir.resolve(version.fileName))
+    Files.delete(projectDir.resolve(version.signatureFileName))
   }
 
   /**

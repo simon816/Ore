@@ -15,14 +15,12 @@ import models.user.{Notification, User}
 import ore.Colors.Color
 import ore.OreConfig
 import ore.permission.role.RoleTypes
-import ore.project.{Dependency, NotifyWatchersTask}
 import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload, ProjectFileManager}
+import ore.project.{Dependency, NotifyWatchersTask}
 import ore.user.notification.NotificationTypes
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.cache.CacheApi
 import play.api.i18n.MessagesApi
-import play.api.libs.Files.TemporaryFile
-import play.api.mvc.Request
 import security.pgp.PGPVerifier
 import util.StringUtils._
 
@@ -62,10 +60,12 @@ trait ProjectFactory {
     */
   def processPluginUpload(uploadData: PluginUpload, owner: User): PluginFile = {
     val pluginFileName = uploadData.pluginFileName
-    val signatureFileName = uploadData.signatureFileName
+    var signatureFileName = uploadData.signatureFileName
 
     if (!pluginFileName.endsWith(".zip") && !pluginFileName.endsWith(".jar"))
       throw InvalidPluginFileException("Plugin file must be either a JAR or ZIP file.")
+    if (!signatureFileName.endsWith(".sig") && !signatureFileName.endsWith(".asc"))
+      throw InvalidPluginFileException("Signature file must be either a SIG or ASC file.")
     if (owner.pgpPubKey.isEmpty)
       throw new IllegalArgumentException("user has no PGP public key and PGP is required")
     if (!owner.isPgpPubKeyReady)
@@ -81,54 +81,13 @@ trait ProjectFactory {
     if (notExists(tmpDir))
       createDirectories(tmpDir)
 
+    val signatureFileExtension = signatureFileName.substring(signatureFileName.lastIndexOf("."))
+    signatureFileName = pluginFileName + signatureFileExtension
+
     pluginPath = copy(pluginPath, tmpDir.resolve(pluginFileName), StandardCopyOption.REPLACE_EXISTING)
-    sigPath = copy(sigPath, tmpDir.resolve(pluginFileName + ".sig"), StandardCopyOption.REPLACE_EXISTING)
+    sigPath = copy(sigPath, tmpDir.resolve(signatureFileName), StandardCopyOption.REPLACE_EXISTING)
 
-    val plugin = new PluginFile(pluginPath, owner)
-    plugin.loadMeta()
-    plugin
-  }
-
-  /**
-    * Loads a new [[PluginFile]] for further processing.
-    *
-    * @param uploadedFile File to process
-    * @param name         File name
-    * @param owner        User who uploaded the file
-    * @return             Processed PluginFile
-    */
-  @deprecated("use processPluginUpload instead", since = "1.0.2")
-  def processPluginFile(uploadedFile: TemporaryFile, name: String, owner: User): PluginFile = {
-    if (!name.endsWith(".zip") && !name.endsWith(".jar"))
-      throw InvalidPluginFileException("Plugin file must be either a JAR or ZIP file.")
-
-    val uploadPath = uploadedFile.file.toPath
-    val tmpPath = this.env.tmp.resolve(owner.username).resolve(name)
-    var decrypted = false
-
-    // Perform validation
-    if (this.isPgpEnabled) {
-      if (owner.pgpPubKey.isEmpty)
-        throw new IllegalArgumentException("user has no PGP public key and PGP is required")
-
-      if (!owner.isPgpPubKeyReady)
-        throw new IllegalArgumentException("user cannot yet use their public key")
-
-      if (!this.pgp.verifyAndDecrypt(uploadPath, tmpPath, owner.pgpPubKey.get))
-        throw InvalidPluginFileException("could not verify uploaded file against public key")
-      else
-        decrypted = true
-    }
-
-    // Process uploaded file
-    val plugin = new PluginFile(tmpPath, owner)
-    if (!decrypted) {
-      // otherwise the plugin has been moved to the proper location via verifyAndDecrypt
-      if (notExists(tmpPath.getParent))
-        createDirectories(tmpPath.getParent)
-      copy(uploadedFile.file.toPath, tmpPath, StandardCopyOption.REPLACE_EXISTING)
-    }
-
+    val plugin = new PluginFile(pluginPath, sigPath, owner)
     plugin.loadMeta()
     plugin
   }
@@ -210,6 +169,7 @@ trait ProjectFactory {
       .fileSize(path.toFile.length)
       .hash(plugin.md5)
       .fileName(path.getFileName.toString)
+      .signatureFileName(plugin.signaturePath.getFileName.toString)
       .build()
 
     PendingVersion(
@@ -360,7 +320,8 @@ trait ProjectFactory {
       channelId = channel.id.get,
       fileSize = pendingVersion.fileSize,
       hash = pendingVersion.hash,
-      fileName = pendingVersion.fileName
+      fileName = pendingVersion.fileName,
+      signatureFileName = pendingVersion.signatureFileName
     ))
 
     // Notify watchers
@@ -374,14 +335,23 @@ trait ProjectFactory {
 
   private def uploadPlugin(channel: Channel, plugin: PluginFile): Try[Unit] = Try {
     val meta = plugin.meta.get
+
     val oldPath = plugin.path
-    val newPath = this.fileManager.getProjectDir(plugin.user.username, meta.getName).resolve(plugin.path.getFileName)
-    if (exists(newPath))
+    val oldSigPath = plugin.signaturePath
+
+    val projectDir = this.fileManager.getProjectDir(plugin.user.username, meta.getName)
+    val newPath = projectDir.resolve(oldPath.getFileName)
+    val newSigPath = projectDir.resolve(oldSigPath.getFileName)
+
+    if (exists(newPath) || exists(newSigPath))
       throw InvalidPluginFileException("Filename already in use. Please rename your file and try again.")
     if (!exists(newPath.getParent))
       createDirectories(newPath.getParent)
+
     move(oldPath, newPath)
+    move(oldSigPath, newSigPath)
     delete(oldPath)
+    delete(oldSigPath)
   }
 
 }

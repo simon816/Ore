@@ -1,6 +1,7 @@
 package controllers.project
 
 import java.io.InputStream
+import java.nio.file.Files._
 import java.nio.file.{Files, StandardCopyOption}
 import javax.inject.Inject
 
@@ -20,8 +21,8 @@ import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.Logger
 import play.api.i18n.MessagesApi
 import play.api.mvc.Result
-import views.html.projects.{versions => views}
 import util.StringUtils._
+import views.html.projects.{versions => views}
 
 /**
   * Controller for handling Version related actions.
@@ -382,6 +383,21 @@ class Versions @Inject()(stats: StatTracker,
   }
 
   /**
+    * Sends the specified Project Version signature file to the client.
+    *
+    * @param author         Project owner
+    * @param slug           Project slug
+    * @param versionString  Version string
+    * @return               Sent file
+    */
+  def downloadSignature(author: String, slug: String, versionString: String) = {
+    ProjectAction(author, slug) { implicit request =>
+      implicit val project = request.project
+      withVersion(versionString)(sendSignatureFile)
+    }
+  }
+
+  /**
     * Downloads the specified version as a JAR regardless of the original
     * uploaded file type.
     *
@@ -392,6 +408,18 @@ class Versions @Inject()(stats: StatTracker,
   def downloadJarById(pluginId: String, versionString: String) = ProjectAction(pluginId) { implicit request =>
     implicit val project = request.project
     withVersion(versionString)(version => sendJar(project, version))
+  }
+
+  /**
+    * Downloads the signature file for the specified version.
+    *
+    * @param pluginId       Project unique plugin ID
+    * @param versionString  Version name
+    * @return               Sent file
+    */
+  def downloadSignatureById(pluginId: String, versionString: String) = ProjectAction(pluginId) { implicit request =>
+    implicit val project = request.project
+    withVersion(versionString)(sendSignatureFile)
   }
 
   /**
@@ -408,6 +436,17 @@ class Versions @Inject()(stats: StatTracker,
   }
 
   /**
+    * Downloads the signature file for the Project's recommended version.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return       Sent file
+    */
+  def downloadRecommendedSignature(author: String, slug: String) = ProjectAction(author, slug) { implicit request =>
+    sendSignatureFile(request.project.recommendedVersion)
+  }
+
+  /**
     * Downloads the Project's recommended version as a JAR regardless of the
     * original uploaded file type.
     *
@@ -419,6 +458,16 @@ class Versions @Inject()(stats: StatTracker,
     sendJar(project, project.recommendedVersion)
   }
 
+  /**
+    * Downloads the signature file for the Project's recommended version.
+    *
+    * @param pluginId Project unique plugin ID
+    * @return         Sent file
+    */
+  def downloadRecommendedSignatureById(pluginId: String) = ProjectAction(pluginId) { implicit request =>
+    sendSignatureFile(request.project.recommendedVersion)
+  }
+
   private def sendJar(project: Project, version: Version)(implicit request: ProjectRequest[_]): Result = {
     val fileName = version.fileName
     val path = this.fileManager.getProjectDir(project.ownerName, project.name).resolve(fileName)
@@ -426,14 +475,14 @@ class Versions @Inject()(stats: StatTracker,
       if (fileName.endsWith(".jar"))
         Ok.sendFile(path.toFile)
       else {
-        val pluginFile = new PluginFile(path, project.owner.user)
+        val pluginFile = new PluginFile(path, signaturePath = null, project.owner.user)
         val jarName = fileName.substring(0, fileName.lastIndexOf('.')) + ".jar"
         val jarPath = this.fileManager.env.tmp.resolve(project.ownerName).resolve(jarName)
 
         var jarIn: InputStream = null
         try {
           jarIn = pluginFile.newJarStream
-          Files.copy(jarIn, jarPath, StandardCopyOption.REPLACE_EXISTING)
+          copy(jarIn, jarPath, StandardCopyOption.REPLACE_EXISTING)
         } catch {
           case e: Exception =>
             Logger.error("an error occurred while trying to send a plugin", e)
@@ -447,6 +496,16 @@ class Versions @Inject()(stats: StatTracker,
         Ok.sendFile(jarPath.toFile, onClose = () => Files.delete(jarPath))
       }
     }
+  }
+
+  private def sendSignatureFile(version: Version): Result = {
+    val project = version.project
+    val path = this.fileManager.getProjectDir(project.ownerName, project.name).resolve(version.signatureFileName)
+    if (notExists(path)) {
+      Logger.warn("project version missing signature file")
+      NotFound
+    } else
+      Ok.sendFile(path.toFile)
   }
 
 }

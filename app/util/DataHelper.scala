@@ -89,7 +89,8 @@ final class DataHelper @Inject()(config: OreConfig,
               channelId = channel.id.get,
               fileSize = 1,
               hash = "none",
-              fileName = "none"))
+              fileName = "none",
+              signatureFileName = "none"))
             if (l == 0)
               project.recommendedVersion = version
             versionNum += 1

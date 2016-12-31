@@ -7,17 +7,16 @@ import db.ModelService
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl.VersionTable
-import db.impl.model.common.{Describable, Downloadable}
 import db.impl.model.OreModel
+import db.impl.model.common.{Describable, Downloadable}
 import db.impl.schema.VersionSchema
 import db.impl.table.ModelKeys._
 import models.statistic.VersionDownload
+import ore.Visitable
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
-import ore.{OreEnv, Visitable}
 import org.apache.commons.io.FileUtils
 import play.twirl.api.Html
-import util.StringUtils._
 
 /**
   * Represents a single version of a Project.
@@ -45,7 +44,8 @@ case class Version(override val id: Option[Int] = None,
                    private var _description: Option[String] = None,
                    private var _downloads: Int = 0,
                    private var _isReviewed: Boolean = false,
-                   fileName: String)
+                   fileName: String,
+                   signatureFileName: String)
                    extends OreModel(id, createdAt)
                      with ProjectScope
                      with Describable
@@ -218,6 +218,7 @@ object Version {
     private var _fileSize: Long = -1
     private var _hash: String = _
     private var _fileName: String = _
+    private var _signatureFileName: String = _
 
     def versionString(versionString: String) = {
       this._versionString = versionString
@@ -259,6 +260,11 @@ object Version {
       this
     }
 
+    def signatureFileName(signatureFileName: String) = {
+      this._signatureFileName = signatureFileName
+      this
+    }
+
     def build() = {
       checkArgument(this._fileSize != -1, "invalid file size", "")
       this.service.processor.process(Version(
@@ -269,7 +275,8 @@ object Version {
         projectId = this._projectId,
         fileSize = this._fileSize,
         hash = checkNotNull(this._hash, "hash null", ""),
-        fileName = checkNotNull(this._fileName, "file name null", "")))
+        fileName = checkNotNull(this._fileName, "file name null", ""),
+        signatureFileName = checkNotNull(this._signatureFileName, "signature file name null", "")))
     }
 
   }

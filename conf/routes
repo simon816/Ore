@@ -21,7 +21,9 @@ GET     /api/projects/:pluginId/versions                            @controllers
 GET     /api/projects/:pluginId/versions/:name                      @controllers.ApiController.showVersion(version = "v1", pluginId, name)
 
 GET     /api/projects/:pluginId/versions/recommended/download       @controllers.project.Versions.downloadRecommendedJarById(pluginId)
+GET     /api/projects/:pluginId/versions/recommended/signature      @controllers.project.Versions.downloadRecommendedSignatureById(pluginId)
 GET     /api/projects/:pluginId/versions/:name/download             @controllers.project.Versions.downloadJarById(pluginId, name)
+GET     /api/projects/:pluginId/versions/:name/signature            @controllers.project.Versions.downloadSignatureById(pluginId, name)
 
 GET     /api/users                                                  @controllers.ApiController.listUsers(version = "v1", limit: Option[Int], offset: Option[Int])
 GET     /api/users/:user                                            @controllers.ApiController.showUser(version = "v1", user)
@@ -134,7 +136,9 @@ GET     /:author/:slug/versions/:version/approve                    @controllers
 GET     /:author/:slug/versions/:version/delete                     @controllers.project.Versions.delete(author, slug, version)
 
 GET     /:author/:slug/versions/recommended/download                @controllers.project.Versions.downloadRecommended(author, slug)
+GET     /:author/:slug/versions/recommended/signature               @controllers.project.Versions.downloadRecommendedSignature(author, slug)
 GET     /:author/:slug/versions/:version/download                   @controllers.project.Versions.download(author, slug, version)
+GET     /:author/:slug/versions/:version/signature                  @controllers.project.Versions.downloadSignature(author, slug, version)
 
 GET     /:author/:slug/versions/recommended/jar                     @controllers.project.Versions.downloadRecommendedJar(author, slug)
 GET     /:author/:slug/versions/:version/jar                        @controllers.project.Versions.downloadJar(author, slug, version)
