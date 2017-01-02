@@ -60,11 +60,11 @@ $(function() {
         var newRow = $('#result-row').clone().removeAttr('id');
         newRow.find('input').attr('form', 'form-continue').val(user.id);
         newRow.find('select').attr('form', 'form-continue');
-        newRow.find('a').attr('href', '/' + user.username).text(user.username);
+        newRow.find('.username').attr('href', '/' + user.username).text(user.username);
 
-        var avatarImg = newRow.find('img');
+        var avatarImg = newRow.find('.user-avatar');
         if (user.hasOwnProperty('avatarUrl')) {
-            avatarImg.attr('src', user['avatarUrl']);
+            avatarImg.css('background-image', 'url(' + user['avatarUrl'] + ')');
         } else {
             avatarImg.remove();
         }

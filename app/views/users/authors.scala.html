@@ -44,12 +44,7 @@
                 <tbody>
                     @authors.map { user =>
                       <tr>
-                          <td>
-                              <a href="@routes.Users.showProjects(user.username, None)">
-                                  <img alt="@user.username" title="@user.username"
-                                       src="@user.avatarUrl" width="32" height="32" class="user-avatar" />
-                              </a>
-                          </td>
+                          <td>@utils.userAvatar(user, clazz = "user-avatar-xs")</td>
                           <td>
                               <a href="@routes.Users.showProjects(user.username, None)">@user.username</a>
                               @defining(user.donorType) { donorType =>

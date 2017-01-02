@@ -26,9 +26,7 @@
                     @versions.map { tuple =>
                         <li class="list-group-item"
                             data-version="@tuple._1.ownerName/@tuple._1.slug/versions/@tuple._2.name">
-                            <a href="@routes.Users.showProjects(tuple._1.ownerName, None)">
-                                <img class="user-avatar" width="32" height="32" src="@tuple._1.owner.user.avatarUrl" />
-                            </a>
+                            @utils.userAvatar(tuple._1.owner.user, clazz = "user-avatar-xs")
                             <a href="@projectRoutes.Versions.show(tuple._1.ownerName, tuple._1.slug, tuple._2.name)">
                                 @tuple._1.ownerName/<strong>@tuple._1.name</strong>
                             </a>

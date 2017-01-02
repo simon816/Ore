@@ -20,6 +20,8 @@ import play.api.mvc._
 import util.StringUtils._
 import views.html.{projects => views}
 
+import scala.collection.JavaConverters._
+
 /**
   * Controller for handling Project related actions.
   */
@@ -353,7 +355,7 @@ class Projects @Inject()(stats: StatTracker,
         val pendingDir = this.projects.fileManager.getPendingIconDir(project.ownerName, project.name)
         if (Files.notExists(pendingDir))
           Files.createDirectories(pendingDir)
-        FileUtils.cleanDirectory(pendingDir.toFile)
+        Files.list(pendingDir).iterator().asScala.foreach(Files.delete)
         tmpFile.ref.moveTo(pendingDir.resolve(tmpFile.filename).toFile, replace = true)
         Ok
     }
@@ -368,7 +370,10 @@ class Projects @Inject()(stats: StatTracker,
     */
   def resetIcon(author: String, slug: String) = SettingsEditAction(author, slug) { implicit request =>
     val project = request.project
-    FileUtils.deleteDirectory(this.projects.fileManager.getIconsDir(project.ownerName, project.name).toFile)
+    val fileManager = this.projects.fileManager
+    fileManager.getIconPath(project).foreach(Files.delete)
+    fileManager.getPendingIconPath(project).foreach(Files.delete)
+    Files.delete(fileManager.getPendingIconDir(project.ownerName, project.name))
     Ok
   }
 
