@@ -86,11 +86,7 @@
                       <li class="list-group-item notification" data-action="@notification.action.getOrElse("none")"
                           data-id="@notification.id.get">
 
-                          @defining(notification.origin) { origin =>
-                              <img src="@origin.avatarUrl" class="user-avatar" width="40" height="40"
-                                   alt="@origin.username" title="@origin.username"/>
-                          }
-
+                          @utils.userAvatar(notification.origin, clazz = "user-avatar-s")
                           @notification.message
 
                           @if(!notification.isRead) {

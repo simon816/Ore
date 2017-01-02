@@ -6,6 +6,43 @@
 
 .user-avatar {
   @include rounded-corners();
+  display: inline-block;
+  -webkit-background-size: cover;
+  background-size: cover;
+  background-position: center;
+}
+
+.user-avatar-xxs {
+  width: 26px;
+  height: 26px;
+}
+
+.user-avatar-xs {
+  width: 32px;
+  height: 32px;
+}
+
+.user-avatar-s {
+  width: 40px;
+  height: 40px;
+}
+
+.user-avatar-sm {
+  width: 50px;
+  height: 50px;
+}
+
+.user-avatar-md {
+  width: 100px;
+  height: 100px;
+}
+
+.list-members .list-group-item, .table-members td {
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  .user-avatar { margin-right: 5px; }
+  span, select { margin-left: auto; }
 }
 
 .username {
@@ -127,7 +164,12 @@ textarea[name="pgp-pub-key"] {
   .user-badge {
     width: 80%;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    .user-avatar { margin-right: 20px; }
   }
+
   .user-badge > h1 { float: left; }
   .pull-right { @include size(20%, 100%); }
   .user-roles li { display: inline; }

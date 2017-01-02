@@ -32,9 +32,9 @@ var PROJECT_SLUG = null;
 
 $(function() {
     var form = $('#form-icon');
-    var btn = form.find('button');
+    var btn = form.find('.btn-upload');
     var url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/icon';
-    var preview = form.find('img');
+    var preview = form.find('.user-avatar');
     var input = form.find('input');
 
     function updateButton() {
@@ -55,7 +55,7 @@ $(function() {
             contentType: false,
             processData: false,
             complete: function() {
-                preview.attr('src', url + '/pending');
+                preview.css('background-image', 'url(' + url + '/pending' + ')');
                 icon.removeClass('fa-spinner fa-spin').addClass('fa-upload');
             },
             success: function() {
@@ -68,7 +68,8 @@ $(function() {
 
     // Reset button
     var reset = form.find('.btn-reset');
-    reset.click(function() {
+    reset.click(function(e) {
+        e.preventDefault();
         $(this).text('').append('<i class="fa fa-spinner fa-spin"></i>');
         $.ajax({
             url: url + '/reset',
@@ -77,7 +78,7 @@ $(function() {
                 reset.empty().text('Reset');
             },
             success: function() {
-                preview.attr('src', url);
+                preview.css('background-image', 'url(' + url + ')');
                 input.val('');
                 updateButton();
             }

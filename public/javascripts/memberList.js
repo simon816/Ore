@@ -100,7 +100,7 @@ $(function() {
 
         // Build result row
         var resultRow = $('#row-user').clone().removeAttr('id').addClass('user-new');
-        resultRow.find('a').attr('href', '/' + user.username).text(user.username);
+        resultRow.find('.username').attr('href', '/' + user.username).text(user.username);
         resultRow.find('input').attr('form', 'save').val(user.id);
         resultRow.find('select').attr('form', 'save');
         resultRow.find('i').click(function() {
@@ -109,13 +109,12 @@ $(function() {
         });
 
 
-        var avatarImg = resultRow.find('img');
-        if (user.hasOwnProperty('avatarTemplate')) {
-            var avatarUrl = user.avatarTemplate.replace('{size}', '100');
-            avatarImg.attr('src', avatarUrl);
-        } else {
+        var avatarImg = resultRow.find('.user-avatar');
+        if (user.hasOwnProperty('avatarUrl')) {
+            var avatarUrl = user['avatarUrl'];
+            avatarImg.css('background-image', 'url(' + avatarUrl + ')');
+        } else
             avatarImg.remove();
-        }
 
         // Add result to list
         $('.user-search').parent().before(resultRow);

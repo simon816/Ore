@@ -48,14 +48,17 @@
         </div>
 
         <!-- Header -->
-        <div class="user-header">
+        <div class="row user-header">
             <div class="header-body">
                 <!-- Title -->
-                <div class="pull-left user-badge">
-                    <img title="@user.username" alt="@user.username" height="100" width="100"
-                         class="user-avatar @if(canEditOrganization) { organization-avatar }"
-                         @if(canEditOrganization) { data-toggle="modal" data-target="#modal-avatar" }
-                         src="@user.avatarUrl" />
+                <span class="user-badge">
+                    @utils.userAvatar(
+                        user = user,
+                        clazz = "user-avatar-md" + (if (canEditOrganization) " organization-avatar" else ""),
+                        href = "#",
+                        attr = if (canEditOrganization) Map(
+                            "data-toggle" -> "modal",
+                            "data-target" -> "#modal-avatar") else Map())
 
                     @if(canEditOrganization) {
                         <div class="edit-avatar" style="display: none;">
@@ -67,7 +70,7 @@
                         }
                     }
 
-                    <div class="user-title">
+                    <span class="user-title">
                         <h1 class="username">
                             @user.username
 
@@ -107,43 +110,37 @@
                                 </a>
                             }
                         </div>
-                    </div>
-                </div>
+                    </span>
+                </span>
 
-                <!-- Right side -->
-                <div class="pull-right">
-                    <!-- Roles -->
-                    <ul class="user-roles">
-                        @user.organizations.all.map { organization =>
-                            <li class="organization-role" data-toggle="tooltip" data-placement="top"
-                                data-title="@organization.name">
-                                <a href="@organization.url">
-                                    <img class="user-avatar" src="@organization.toUser.avatarUrl" width="26"
-                                         height="26" />
-                                </a>
-                            </li>
-                        }
+                <!-- Roles -->
+                <ul class="user-roles">
+                    @user.organizations.all.map { organization =>
+                        <li class="organization-role" data-toggle="tooltip" data-placement="top"
+                            data-title="@organization.name">
+                            @utils.userAvatar(organization.toUser, clazz = "user-avatar-xxs")
+                        </li>
+                    }
 
-                        @defining(user.globalRoles.toList.sortBy(_.trust).lastOption) { roleOpt =>
-                          @roleOpt.map { role =>
+                    @defining(user.globalRoles.toList.sortBy(_.trust).lastOption) { roleOpt =>
+                        @roleOpt.map { role =>
                             <li class="user-role channel" style="background-color: @role.color.hex">@role.title</li>
-                          }
                         }
-                    </ul>
+                    }
+                </ul>
 
-                    <div class="user-info">
-                        @defining(user.projects.size) { size =>
-                          <i class="minor">@size @if(size == 1) { project } else { projects }</i><br/>
-                        }
-                        <i class="minor">
-                            @messages(
-                                "user.memberSince",
-                                user.joinDate.map(prettifyDate).getOrElse(prettifyDate(user.createdAt.get)))
-                        </i><br/>
-                        <a href="https://forums.spongepowered.org/users/@user.username">
-                            @messages("user.viewOnForums") <i class="fa fa-external-link"></i>
-                        </a>
-                    </div>
+                <div class="user-info">
+                    @defining(user.projects.size) { size =>
+                        <i class="minor">@size @if(size == 1) { project } else { projects }</i><br/>
+                    }
+                    <i class="minor">
+                    @messages(
+                        "user.memberSince",
+                        user.joinDate.map(prettifyDate).getOrElse(prettifyDate(user.createdAt.get)))
+                    </i><br/>
+                    <a href="https://forums.spongepowered.org/users/@user.username">
+                        @messages("user.viewOnForums") <i class="fa fa-external-link"></i>
+                    </a>
                 </div>
             </div>
         </div>
