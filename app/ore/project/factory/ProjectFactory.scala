@@ -63,19 +63,19 @@ trait ProjectFactory {
     var signatureFileName = uploadData.signatureFileName
 
     if (!pluginFileName.endsWith(".zip") && !pluginFileName.endsWith(".jar"))
-      throw InvalidPluginFileException("Plugin file must be either a JAR or ZIP file.")
+      throw InvalidPluginFileException("error.plugin.fileExtension")
     if (!signatureFileName.endsWith(".sig") && !signatureFileName.endsWith(".asc"))
-      throw InvalidPluginFileException("Signature file must be either a SIG or ASC file.")
+      throw InvalidPluginFileException("error.plugin.sig.fileExtension")
     if (owner.pgpPubKey.isEmpty)
-      throw new IllegalArgumentException("user has no PGP public key and PGP is required")
+      throw new IllegalArgumentException("error.plugin.noPubKey")
     if (!owner.isPgpPubKeyReady)
-      throw new IllegalArgumentException("user cannot yet use their public key")
+      throw new IllegalArgumentException("error.plugin.pubKey.cooldown")
 
     var pluginPath = uploadData.pluginFile.file.toPath
     var sigPath = uploadData.signatureFile.file.toPath
 
     if (!this.pgp.verifyDetachedSignature(pluginPath, sigPath, owner.pgpPubKey.get))
-      throw InvalidPluginFileException("could not verify uploaded file against public key")
+      throw InvalidPluginFileException("error.plugin.sig.failed")
 
     val tmpDir = this.env.tmp.resolve(owner.username)
     if (notExists(tmpDir))
@@ -154,7 +154,7 @@ trait ProjectFactory {
   def startVersion(plugin: PluginFile, project: Project, channelName: String): PendingVersion = {
     val metaData = checkMeta(plugin)
     if (!metaData.getId.equals(project.pluginId))
-      throw InvalidPluginFileException("invalid plugin ID for new version")
+      throw InvalidPluginFileException("error.plugin.invalidPluginId")
 
     // Create new pending version
     val depends = for (depend <- metaData.getRequiredDependencies.asScala) yield
@@ -300,14 +300,11 @@ trait ProjectFactory {
       throw new IllegalArgumentException("Version already exists.")
 
     // Check to make sure that the required dependencies are there
-    if (project.isSpongePlugin && !pendingVersion.hasDependency(Dependency.SpongeApiId)) {
-      throw InvalidPluginFileException(
-        "Project is marked as a Sponge Plugin and new version contains no dependency to Sponge.")
-    }
+    if (project.isSpongePlugin && !pendingVersion.hasDependency(Dependency.SpongeApiId))
+      throw InvalidPluginFileException("error.plugin.notSponge")
 
     if (project.isForgeMod && !pendingVersion.hasDependency(Dependency.ForgeId)) {
-      throw InvalidPluginFileException(
-        "Project is marked as a Forge Mod and new version contains no dependency to Forge.")
+      throw InvalidPluginFileException("error.plugin.notForge")
     }
 
     val newVersion = this.service.access[Version](classOf[Version]).add(Version(
@@ -344,7 +341,7 @@ trait ProjectFactory {
     val newSigPath = projectDir.resolve(oldSigPath.getFileName)
 
     if (exists(newPath) || exists(newSigPath))
-      throw InvalidPluginFileException("Filename already in use. Please rename your file and try again.")
+      throw InvalidPluginFileException("error.plugin.fileName")
     if (!exists(newPath.getParent))
       createDirectories(newPath.getParent)
 

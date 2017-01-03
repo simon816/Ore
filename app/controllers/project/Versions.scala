@@ -198,8 +198,8 @@ class Versions @Inject()(stats: StatTracker,
                 }
               }
             } catch {
-              case _: InvalidPluginFileException =>
-                Redirect(call).withError("error.project.invalidPluginFile")
+              case e: InvalidPluginFileException =>
+                Redirect(call).withError(e.getMessage)
             }
         }
     }
