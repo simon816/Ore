@@ -99,7 +99,7 @@ class Pages @Inject()(forms: OreForms,
     */
   def delete(author: String, slug: String, page: String) = PageEditAction(author, slug) { implicit request =>
     val project = request.project
-    project.pages.remove(project.pages.find(equalsIgnoreCase(_.name, page)).get)
+    this.service.access[Page](classOf[Page]).remove(project.pages.find(equalsIgnoreCase(_.name, page)).get)
     Redirect(routes.Projects.show(author, slug))
   }
 
