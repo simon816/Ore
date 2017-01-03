@@ -131,7 +131,7 @@ project.viewAuthors             =   View project creators.
 project.removeMember            =   Remove member
 project.removeMember.confirm    =   Are you sure you want to remove this user?
 project.deleted                 =   Project "{0}" deleted.
-project.license.link            =   Licensed under <a target="_blank" href="{0}">{1}</a>
+project.license.link            =   Licensed under
 
 org.create          =   New Organization
 org.create.title    =   Create a new Organization
