@@ -124,13 +124,13 @@
                                         @messages("notification.invite.accept")
                                     </button>
                                     <button class="btn btn-invite btn-decline btn-sm btn-danger">
-                                        @messages("notification.invite.decline")
+                                        @Html(messages("notification.invite.decline"))
                                     </button>
                                 </div>
 
                                 <div class="invite-message invite-accepted" style="display: none;">
-                                    <i class="minor fa fa-3x fa-birthday-cake"></i>
-                                    @messages("notification.invite.joined", subject.name)
+                                    <i class="minor fa fa-3x fa-birthday-cake"></i><br/>
+                                    @Html(messages("notification.invite.joined", subject.name))<br/>
                                     <a href="@subject.url" class="btn btn-sm btn-primary">
                                         @messages("notification.invite.visit")
                                     </a>
@@ -141,7 +141,7 @@
 
                                 <div class="invite-message invite-declined" style="display: none;">
                                     <i class="minor fa fa-3x fa-times"></i>
-                                    <p>@messages("notification.invite.declined", subject.name)</p>
+                                    <p>@Html(messages("notification.invite.declined", subject.name))</p>
                                 </div>
 
                                 <i class="minor invite-loading fa fa-5x fa-spinner fa-spin" style="display: none;"></i>

@@ -40,5 +40,6 @@
     <logger name="SpongeAuth" level="INFO" />
     <logger name="Permissions" level="INFO" />
     <logger name="UserSync" level="INFO" />
+    <logger name="Organizations" level="INFO" />
 
 </configuration>

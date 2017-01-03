@@ -52,30 +52,25 @@ class Organizations @Inject()(forms: OreForms,
     * @return Redirect to organization page
     */
   def create() = UserLock() { implicit request =>
-    if (true) {
-      Redirect(routes.Application.showHome(None, None, None, None, None))
-        .withError("Creation of new Organizations is temporarily disabled.")
-    } else {
-      val user = request.user
-      val failCall = routes.Organizations.showCreator()
-      if (user.ownedOrganizations.size >= this.createLimit)
-        BadRequest
-      else if (user.isLocked)
-        Redirect(failCall).withError("error.user.locked")
-      else {
-        this.forms.OrganizationCreate.bindFromRequest().fold(
-          hasErrors =>
-            FormError(failCall, hasErrors),
-          formData => {
-            this.organizations.create(formData.name, user.id.get, formData.build()) match {
-              case Left(error) =>
-                Redirect(failCall).withError(error)
-              case Right(organization) =>
-                Redirect(routes.Users.showProjects(organization.name, None))
-            }
+    val user = request.user
+    val failCall = routes.Organizations.showCreator()
+    if (user.ownedOrganizations.size >= this.createLimit)
+      BadRequest
+    else if (user.isLocked)
+      Redirect(failCall).withError("error.user.locked")
+    else {
+      this.forms.OrganizationCreate.bindFromRequest().fold(
+        hasErrors =>
+          FormError(failCall, hasErrors),
+        formData => {
+          this.organizations.create(formData.name, user.id.get, formData.build()) match {
+            case Left(error) =>
+              Redirect(failCall).withError(error)
+            case Right(organization) =>
+              Redirect(routes.Users.showProjects(organization.name, None))
           }
-        )
-      }
+        }
+      )
     }
   }
 

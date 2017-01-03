@@ -12,6 +12,9 @@ import play.api.i18n.MessagesApi
 import security.SpongeAuthApi
 import util.StringUtils
 
+import scala.concurrent.TimeoutException
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class OrganizationBase(override val service: ModelService,
                        forums: OreDiscourseApi,
                        auth: SpongeAuthApi,
@@ -22,6 +25,8 @@ class OrganizationBase(override val service: ModelService,
 
   override val modelClass = classOf[Organization]
 
+  val Logger = play.api.Logger("Organizations")
+
   /**
     * Creates a new [[Organization]]. This method creates a new user on the
     * forums to represent the Organization.
@@ -31,27 +36,52 @@ class OrganizationBase(override val service: ModelService,
     * @return         New organization if successful, None otherwise
     */
   def create(name: String, ownerId: Int, members: Set[OrganizationRole]): Either[String, Organization] = {
+    Logger.info("Creating Organization...")
+    Logger.info("Name     : " + name)
+    Logger.info("Owner ID : " + ownerId)
+    Logger.info("Members  : " + members.size)
+
     // Create the organization as a User on SpongeAuth. This will reserve the
     // name so that no new users or organizations can create an account with
     // that name. We will give the organization a dummy email for continuity.
     // By default we use "<org>@ore.spongepowered.org".
+    Logger.info("Creating on SpongeAuth...")
     val dummyEmail = name + '@' + this.config.orgs.getString("dummyEmailDomain").get
     val spongeResult = this.auth.createDummyUser(name, dummyEmail, verified = true)
     // Check for error
-    if (spongeResult.isLeft)
-      return Left(spongeResult.left.get)
+    if (spongeResult.isLeft) {
+      val error = spongeResult.left.get
+      Logger.info("<FAILURE> " + error)
+      return Left(error)
+    }
     val spongeUser = spongeResult.right.get
+    Logger.info("<SUCCESS> " + spongeUser)
 
     // Next we'll create a forum user for the organization. This requires a
     // password but we'll just make up a random one and not keep it. Since
     // users can't log into organization accounts the way they can with
     // user accounts, we don't need to (and shouldn't) keep the password.
+    Logger.info("Creating on Discourse...")
     val dummyPassword = RandomStringUtils.randomAlphanumeric(60)
-    val userResult = this.forums.await(this.forums.createUser(name, name, dummyEmail, dummyPassword))
+    val userResult = this.forums.await(this.forums.createUser(name, name, dummyEmail, dummyPassword).recover {
+      case toe: TimeoutException =>
+        Left(List("error.discourse.connect"))
+      case e: Exception =>
+        Left(List("error.discourse.unexpected"))
+    })
+
     // Check for error
-    if (userResult.isLeft)
-      return Left(userResult.left.get.head)
+    if (userResult.isLeft) {
+      val error = userResult.left.get.head
+      Logger.info("<FAILURE> " + error)
+      Logger.info("Deleting user on SpongeAuth...")
+      val deleteResult = this.auth.deleteUser(spongeUser.username)
+      if (deleteResult.isLeft)
+        Logger.warn("Failed to delete user from SpongeAuth (id " + spongeUser.id + ")")
+      return Left(error)
+    }
     val forumUserId = userResult.right.get
+    Logger.info("<SUCCESS> New user ID : " + forumUserId)
 
     // Assign the organization group to the forum user. Note: This is not
     // really critical that this succeeds since the group will be added Ore
@@ -63,6 +93,7 @@ class OrganizationBase(override val service: ModelService,
     // Next we will create the Organization on Ore itself. This contains a
     // reference to the Sponge user ID, the organization's username and a
     // reference to the User owner of the organization.
+    Logger.info("Creating on Ore...")
     val org = this.add(Organization(
       id = Some(spongeUser.id),
       username = name,
@@ -85,6 +116,7 @@ class OrganizationBase(override val service: ModelService,
       _isAccepted = true))
 
     // Invite the User members that the owner selected during creation.
+    Logger.info("Inviting members...")
     for (role <- members) {
       dossier.addRole(role.copy(organizationId = org.id.get))
       role.user.sendNotification(Notification(
@@ -94,6 +126,8 @@ class OrganizationBase(override val service: ModelService,
       ))
     }
 
+    val result = userOrg.toOrganization
+    Logger.info("<SUCCESS> " + result)
     Right(userOrg.toOrganization)
   }
 
