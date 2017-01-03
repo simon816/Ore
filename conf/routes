@@ -4,9 +4,9 @@
 
 GET     /*path/                                                     @controllers.Application.removeTrail(path)
 
-GET     /admin/reset                                                @controllers.Application.reset()
-GET     /admin/seed                                                 @controllers.Application.seed(users: Int ?= 200, projects: Int ?= 1, versions: Int ?= 2, channels: Int ?= 2)
-GET     /admin/migrate                                              @controllers.Application.migrate()
+#GET     /admin/reset                                                @controllers.Application.reset()
+#GET     /admin/seed                                                 @controllers.Application.seed(users: Int ?= 200, projects: Int ?= 1, versions: Int ?= 2, channels: Int ?= 2)
+#GET     /admin/migrate                                              @controllers.Application.migrate()
 GET     /admin/queue                                                @controllers.Application.showQueue()
 GET     /admin/flags                                                @controllers.Application.showFlags()
 GET     /admin/flags/:id/resolve/:resolved                          @controllers.Application.setFlagResolved(id: Int, resolved: Boolean)
@@ -56,7 +56,7 @@ POST    /new/upload                                                 @controllers
 GET     /new/:author/:slug                                          @controllers.project.Projects.showCreatorWithMeta(author, slug)
 POST    /new/:author/:slug/members                                  @controllers.project.Projects.showInvitationForm(author, slug)
 
-GET     /invite/:id/:status                                         @controllers.project.Projects.setInviteStatus(id: Int, status)
+POST    /invite/:id/:status                                         @controllers.project.Projects.setInviteStatus(id: Int, status)
 
 POST    /pages/preview                                              @controllers.project.Pages.showPreview()
 
@@ -65,7 +65,7 @@ POST    /pages/preview                                              @controllers
 GET     /organizations/new                                          @controllers.Organizations.showCreator()
 POST    /organizations/new                                          @controllers.Organizations.create()
 
-GET     /organizations/invite/:id/:status                           @controllers.Organizations.setInviteStatus(id: Int, status)
+POST    /organizations/invite/:id/:status                           @controllers.Organizations.setInviteStatus(id: Int, status)
 
 POST    /organizations/:organization/settings/avatar                @controllers.Organizations.updateAvatar(organization)
 POST    /organizations/:organization/settings/members               @controllers.Organizations.updateMembers(organization)
@@ -75,23 +75,23 @@ POST    /organizations/:organization/settings/members/remove        @controllers
 GET     /authors                                                    @controllers.Users.showAuthors(sort: Option[String], page: Option[Int])
 
 GET     /notifications                                              @controllers.Users.showNotifications(notificationFilter: Option[String], inviteFilter: Option[String])
-GET     /notifications/read/:id                                     @controllers.Users.markNotificationRead(id: Int)
+POST    /notifications/read/:id                                     @controllers.Users.markNotificationRead(id: Int)
 
-GET     /prompts/read/:id                                           @controllers.Users.markPromptRead(id: Int)
+POST    /prompts/read/:id                                           @controllers.Users.markPromptRead(id: Int)
 
 GET     /:user                                                      @controllers.Users.showProjects(user, page: Option[Int])
 POST    /:user/settings/tagline                                     @controllers.Users.saveTagline(user)
-GET     /:user/settings/lock/:locked                                @controllers.Users.setLocked(user, locked: Boolean, sso: Option[String], sig: Option[String])
+POST    /:user/settings/lock/:locked                                @controllers.Users.setLocked(user, locked: Boolean, sso: Option[String], sig: Option[String])
 POST    /:user/settings/pgp                                         @controllers.Users.savePgpPublicKey(user)
-GET     /:user/settings/pgp/delete                                  @controllers.Users.deletePgpPublicKey(user, sso: Option[String], sig: Option[String])
+POST    /:user/settings/pgp/delete                                  @controllers.Users.deletePgpPublicKey(user, sso: Option[String], sig: Option[String])
 # -------- End Users --------
 
 POST    /:author/:slug                                              @controllers.project.Projects.showFirstVersionCreator(author, slug)
 GET     /:author/:slug                                              @controllers.project.Projects.show(author, slug)
-GET     /:author/:slug/star/:starred                                @controllers.project.Projects.setStarred(author, slug, starred: Boolean)
+POST    /:author/:slug/star/:starred                                @controllers.project.Projects.setStarred(author, slug, starred: Boolean)
 POST    /:author/:slug/flag                                         @controllers.project.Projects.flag(author, slug)
-GET     /:author/:slug/visible/:visible                             @controllers.project.Projects.setVisible(author, slug, visible: Boolean)
-GET     /:author/:slug/watch/:watching                              @controllers.project.Projects.setWatching(author, slug, watching: Boolean)
+POST    /:author/:slug/visible/:visible                             @controllers.project.Projects.setVisible(author, slug, visible: Boolean)
+POST    /:author/:slug/watch/:watching                              @controllers.project.Projects.setWatching(author, slug, watching: Boolean)
 
 GET     /:author/:slug/discuss                                      @controllers.project.Projects.showDiscussion(author, slug)
 POST    /:author/:slug/discuss/reply                                @controllers.project.Projects.postDiscussionReply(author, slug)
@@ -116,7 +116,7 @@ GET     /:author/:slug/icon/pending                                 @controllers
 
 GET     /:author/:slug/pages/:page/edit                             @controllers.project.Pages.showEditor(author, slug, page)
 POST    /:author/:slug/pages/:page/edit                             @controllers.project.Pages.save(author, slug, page)
-GET     /:author/:slug/pages/:page/delete                           @controllers.project.Pages.delete(author, slug, page)
+POST    /:author/:slug/pages/:page/delete                           @controllers.project.Pages.delete(author, slug, page)
 GET     /:author/:slug/pages/:page                                  @controllers.project.Pages.show(author, slug, page)
 
 
@@ -125,15 +125,15 @@ GET     /:author/:slug/pages/:page                                  @controllers
 GET     /:author/:slug/channels                                     @controllers.project.Channels.showList(author, slug)
 POST    /:author/:slug/channels                                     @controllers.project.Channels.create(author, slug)
 POST    /:author/:slug/channels/:channel                            @controllers.project.Channels.save(author, slug, channel)
-GET     /:author/:slug/channels/:channel/delete                     @controllers.project.Channels.delete(author, slug, channel)
+POST    /:author/:slug/channels/:channel/delete                     @controllers.project.Channels.delete(author, slug, channel)
 
 
 # ---------- Versions ----------
 
 GET     /:author/:slug/versions                                     @controllers.project.Versions.showList(author, slug, channels: Option[String])
 
-GET     /:author/:slug/versions/:version/approve                    @controllers.project.Versions.approve(author, slug, version)
-GET     /:author/:slug/versions/:version/delete                     @controllers.project.Versions.delete(author, slug, version)
+POST    /:author/:slug/versions/:version/approve                    @controllers.project.Versions.approve(author, slug, version)
+POST    /:author/:slug/versions/:version/delete                     @controllers.project.Versions.delete(author, slug, version)
 
 GET     /:author/:slug/versions/recommended/download                @controllers.project.Versions.downloadRecommended(author, slug)
 GET     /:author/:slug/versions/recommended/signature               @controllers.project.Versions.downloadRecommendedSignature(author, slug)
@@ -150,7 +150,7 @@ GET     /:author/:slug/versions/new/:version                        @controllers
 POST    /:author/:slug/versions/:version                            @controllers.project.Versions.publish(author, slug, version)
 GET     /:author/:slug/versions/:version                            @controllers.project.Versions.show(author, slug, version)
 POST    /:author/:slug/versions/:version/save                       @controllers.project.Versions.saveDescription(author, slug, version)
-GET     /:author/:slug/versions/:version/recommended                @controllers.project.Versions.setRecommended(author, slug, version)
+POST    /:author/:slug/versions/:version/recommended                @controllers.project.Versions.setRecommended(author, slug, version)
 
 
 # ---------- Other ----------

@@ -1,4 +1,3 @@
-@import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import db.impl.access.{ProjectBase, UserBase}
 @import models.project.{Channel, Project, Version}
@@ -7,8 +6,9 @@
 @import ore.permission.{EditVersions, ReviewProjects}
 @import ore.project.Dependency.SpongeApiId
 @import util.StringUtils._
-@import ore.project.Dependency
 @import ore.project.Dependency._
+@import views.html.helper.form
+@import views.html.helper.CSRF
 @(project: Project, channel: Channel, version: Version)(implicit messages: Messages, request: Request[_], flash: Flash,
         service: ModelService, config: OreConfig, users: UserBase, projectBase: ProjectBase)
 
@@ -17,6 +17,14 @@
 @canEdit = @{ hasUser && (user can EditVersions in project) }
 @canApprove = @{ hasUser && (user can ReviewProjects in GlobalScope) }
 @isRecommended = @{ project.recommendedVersion.equals(version) }
+
+@projectRoutes = @{
+    controllers.project.routes.Projects
+}
+
+@versionRoutes = @{
+    controllers.project.routes.Versions
+}
 
 @projects.view(project, "#versions", noButtons = true) {
 
@@ -63,37 +71,45 @@
                         <div class="btn-group">
 
                             @if(!isRecommended && canEdit) {
-                                <a class="btn btn-info"
-                                   href="@projectRoutes.Versions.setRecommended(
-                                       project.ownerName, project.slug, version.versionString)">
-                                    <i class="fa fa-diamond"></i> Set recommended
-                                </a>
+                                @form(action = versionRoutes.setRecommended(
+                                    project.ownerName, project.slug, version.versionString), 'class -> "form-inline") {
+                                    @CSRF.formField
+                                    <button type="submit" class="btn btn-info">
+                                        <i class="fa fa-diamond"></i> Set recommended
+                                    </button>
+                                }
                             }
 
                             @if(!version.isReviewed && canApprove) {
-                                <a class="btn btn-success"
-                                   href="@projectRoutes.Versions.approve(
-                                       project.ownerName, project.slug, version.name)">
-                                    <i class="fa fa-thumbs-up"></i> Approve
-                                </a>
+                                @form(action = versionRoutes.approve(
+                                    project.ownerName, project.slug, version.name), 'class -> "form-inline") {
+                                    @CSRF.formField
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fa fa-thumps-up"></i> Approve
+                                    </button>
+                                }
                             }
 
                             @if(canEdit) {
-                                <a class="btn btn-danger"
-                                   @if(project.versions.size == 1) {
-                                       disabled data-toggle="tooltip" data-placement="top"
-                                       title="@messages("version.delete.cannot-last")"
-                                   } else {
-                                       href="@projectRoutes.Versions.delete(
-                                           project.ownerName, project.slug, version.versionString)"
-                                   }
-                                >
-                                    <i class="fa fa-trash"></i> @messages("general.delete")
-                                </a>
+                                @if(project.versions.size == 1) {
+                                    <a class="btn btn-danger" disabled data-toggle="tooltip" data-placement="top"
+                                       title="@messages("version.delete.cannot-last")">
+                                        <i class="fa fa-trash"></i> @messages("general.delete")
+                                    </a>
+                                } else {
+                                    @form(action = versionRoutes.delete(
+                                        project.ownerName, project.slug, version.versionString),
+                                        'class -> "form-inline") {
+                                        @CSRF.formField
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fa fa-trash"></i> @messages("general.delete")
+                                        </button>
+                                    }
+                                }
                             }
 
                             <a class="btn btn-primary"
-                               href="@projectRoutes.Versions.download(
+                               href="@versionRoutes.download(
                                    project.ownerName, project.slug, version.versionString)">
                                 <i class="fa fa-download"></i> @messages("general.download")
                             </a>
@@ -119,7 +135,7 @@
                     }
                     <div class="col-md-12">
                         @utils.editor(
-                            saveCall = projectRoutes.Versions.saveDescription(
+                            saveCall = versionRoutes.saveDescription(
                                 project.ownerName, project.slug, version.versionString
                             ),
                             enabled = canEdit,
@@ -163,7 +179,7 @@
                                 <li class="list-group-item">
                                     @defining(depend.project) { project =>
                                         @if(project.isDefined) {
-                                            <a href="@projectRoutes.Projects.show(
+                                            <a href="@projectRoutes.show(
                                                 project.get.ownerName, project.get.slug)">
                                                 <strong>@project.get.name</strong>
                                             </a>

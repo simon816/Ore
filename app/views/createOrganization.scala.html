@@ -3,6 +3,7 @@
 @import models.user.role.OrganizationRole
 @import ore.OreConfig
 @import views.html.helper.form
+@import views.html.helper.CSRF
 @()(implicit messages: Messages, flash: Flash, request: Request[_], service: ModelService, config: OreConfig,
         userBase: UserBase)
 
@@ -26,6 +27,7 @@
                         <p class="minor"> @messages("org.info")</p>
 
                         @form(action = routes.Organizations.create(), 'id -> "form-continue") {
+                            @CSRF.formField
                             <div class="setting">
                                 <div class="setting-description">
                                     <h4>@messages("org.name")</h4>

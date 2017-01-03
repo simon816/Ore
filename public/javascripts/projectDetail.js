@@ -235,7 +235,11 @@ $(function() {
             $(this).addClass('watching');
         }
 
-        $.ajax(decodeHtml('/' + projectOwner + '/' + projectSlug) + '/watch/' + !watching);
+        $.ajax({
+            type: 'post',
+            url: decodeHtml('/' + projectOwner + '/' + projectSlug) + '/watch/' + !watching,
+            data: { csrfToken: csrf }
+        });
     });
 
     // setup star button
@@ -243,7 +247,11 @@ $(function() {
     $('.btn-star').click(function() {
         var starred = $(this).find('.starred');
         starred.html(' ' + (parseInt(starred.text()) + increment).toString());
-        $.ajax(decodeHtml('/' + projectOwner + '/' + projectSlug) + '/star/' + (increment > 0));
+        $.ajax({
+            type: 'post',
+            url: decodeHtml('/' + projectOwner + '/' + projectSlug) + '/star/' + (increment > 0),
+            data: { csrfToken: csrf }
+        });
 
         var icon = $('#icon-star');
         if (increment > 0) {

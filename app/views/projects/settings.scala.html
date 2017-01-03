@@ -5,6 +5,7 @@
 @import ore.permission.HideProjects
 @import ore.permission.scope.GlobalScope
 @import views.html.helper.form
+@import views.html.helper.CSRF
 @(project: Project)(implicit messages: Messages, flash: Flash, request: Request[_], service: ModelService,
         config: OreConfig, userBase: UserBase)
 
@@ -70,6 +71,7 @@
                         <!-- Project icon -->
                         <div class="setting">
                             <form id="form-icon" enctype="multipart/form-data">
+                                @CSRF.formField
                                 <div class="setting-description">
                                     <h4>Icon</h4>
 
@@ -133,6 +135,7 @@
 
                         @form(action = projectRoutes.save(project.ownerName, project.slug), 'id -> "save",
                             'class -> "pull-right") {
+                            @CSRF.formField
                             <input type="hidden" id="update-icon" name="update-icon" value="false" />
                             <button type="submit" name="save" class="btn btn-success btn-spinner" data-icon="fa-check">
                                 <i class="fa fa-check"></i> Save changes
@@ -173,6 +176,7 @@
                 <div class="modal-footer">
                     <div class="form-inline">
                     @form(action = projectRoutes.rename(project.ownerName, project.slug), 'id -> "rename") {
+                        @CSRF.formField
                         <button type="button" class="btn btn-default" data-dismiss="modal">
                         @messages("channel.edit.close")
                         </button>
@@ -199,6 +203,7 @@
                 <div class="modal-footer">
                     <div class="form-inline">
                     @form(action = projectRoutes.delete(project.ownerName, project.slug)) {
+                        @CSRF.formField
                         <button type="button" class="btn btn-default" data-dismiss="modal">
                         @messages("channel.edit.close")
                         </button>

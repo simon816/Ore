@@ -133,7 +133,11 @@ function setupAvatarForm() {
 
     $('.btn-got-it').click(function() {
         var prompt = $(this).closest('.prompt');
-        $.ajax('prompts/read/' + prompt.data('prompt-id'));
+        $.ajax({
+            type: 'post',
+            url: 'prompts/read/' + prompt.data('prompt-id'),
+            data: { csrfToken: csrf }
+        });
         prompt.fadeOut('fast');
     });
 
@@ -164,12 +168,6 @@ function setupAvatarForm() {
             $('.user-avatar[title="' + USERNAME + '"]')
                 .prop('src', json['avatarTemplate'].replace('{size}', '200'));
         }
-    });
-
-    var pgpDeleteForm = $('.pgp-delete');
-    pgpDeleteForm.submit(function(e) {
-        e.preventDefault();
-        window.location = "/verify?returnPath=/" + USERNAME + "/settings/pgp/delete";
     });
 }
 

@@ -25,6 +25,7 @@ function markRead(notification) {
     var btn = notification.find('.btn-mark-read');
     btn.removeClass('btn-mark-read fa-check').addClass('fa-spinner fa-spin');
     $.ajax({
+        type: 'post',
         url: '/notifications/read/' + notification.data('id'),
         complete: function() {
             btn.removeClass('fa-spinner fa-spin').addClass('btn-mark-read fa-check');
@@ -43,6 +44,7 @@ function replyToInvite(invite, reply, success, error) {
     var url = invite.data('type') === 'project' ? '' : 'organizations';
     url += '/invite/' + invite.data('id') + '/' + reply;
     $.ajax({
+        type: 'post',
         url: url,
         success: success,
         error: error

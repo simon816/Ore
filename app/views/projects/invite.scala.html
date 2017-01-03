@@ -10,6 +10,7 @@
 
 @import scala.collection.JavaConverters._
 @import scala.concurrent.TimeoutException
+@import views.html.helper.CSRF
 @(pending: PendingProject)(implicit messages: Messages, flash: Flash, request: Request[_], service: ModelService,
         forums: OreDiscourseApi, config: OreConfig, userBase: UserBase)
 
@@ -48,6 +49,8 @@
                 pending.underlying.ownerName,
                 pending.underlying.slug),
                 'id -> "form-continue") {
+
+                @CSRF.formField
 
                 <div class="btn-group pull-right">
                     <a href="@projectRoutes.Projects.showCreatorWithMeta(

@@ -109,8 +109,14 @@ class Projects @Inject()(stats: StatTracker,
       case None =>
         Redirect(self.showCreator())
       case Some(pendingProject) =>
-        pendingProject.settings.save(pendingProject.underlying, this.forms.ProjectSave.bindFromRequest().get)
-        Ok(views.invite(pendingProject))
+        this.forms.ProjectSave.bindFromRequest().fold(
+          hasErrors =>
+            FormError(self.showCreator(), hasErrors),
+          formData => {
+            pendingProject.settings.save(pendingProject.underlying, formData)
+            Ok(views.invite(pendingProject))
+          }
+        )
     }
   }
 
@@ -418,8 +424,14 @@ class Projects @Inject()(stats: StatTracker,
     */
   def save(author: String, slug: String) = SettingsEditAction(author, slug) { implicit request =>
     val project = request.project
-    project.settings.save(project, this.forms.ProjectSave.bindFromRequest().get)
-    Redirect(self.show(author, slug))
+    this.forms.ProjectSave.bindFromRequest().fold(
+      hasErrors =>
+        FormError(self.showSettings(author, slug), hasErrors),
+      formData => {
+        project.settings.save(project, formData)
+        Redirect(self.show(author, slug))
+      }
+    )
   }
 
   /**

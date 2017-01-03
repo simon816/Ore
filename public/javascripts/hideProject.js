@@ -33,6 +33,7 @@ $(function() {
         var project = $(this).data('project');
         var spinner = icon.removeClass(iconClass).addClass('fa-spinner fa-spin');
         $.ajax({
+            type: 'post',
             url: '/' + project + '/visible/' + !visible,
             fail: function () {
                 spinner.addClass(iconClass).removeClass('fa-spinner fa-spin');

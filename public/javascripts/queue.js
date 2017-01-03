@@ -27,6 +27,7 @@ $(function() {
         var versionPath = listItem.data('version');
         var icon = $(this).find('i').removeClass('fa-thumbs-up').addClass('fa-spinner fa-spin');
         $.ajax({
+            type: 'post',
             url: '/' + versionPath + '/approve',
             complete: function() { icon.removeClass('fa-spinner fa-spin').addClass('fa-thumbs-up'); },
             success: function() {

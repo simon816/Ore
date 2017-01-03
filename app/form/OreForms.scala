@@ -1,5 +1,6 @@
 package form
 
+import java.net.{MalformedURLException, URL}
 import javax.inject.Inject
 
 import form.organization.{OrganizationAvatarUpdate, OrganizationMembersUpdate, OrganizationRoleSetBuilder}
@@ -17,6 +18,20 @@ import play.api.data.Forms._
   */
 //noinspection ConvertibleToMethodValue
 class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
+
+  val url = text verifying("error.url.invalid", text => {
+    if (text.isEmpty)
+      true
+    else {
+      try {
+        new URL(text)
+        true
+      } catch {
+        case _: MalformedURLException =>
+          false
+      }
+    }
+  })
 
   /**
     * Submits a member to be removed from a Project.
@@ -42,10 +57,10 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
     */
   lazy val ProjectSave = Form(mapping(
     "category" -> text,
-    "issues" -> text,
-    "source" -> text,
+    "issues" -> url,
+    "source" -> url,
     "license-name" -> text,
-    "license-url" -> text,
+    "license-url" -> url,
     "description" -> text,
     "users" -> list(number),
     "roles" -> list(text),
@@ -79,7 +94,7 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
     */
   lazy val OrganizationUpdateAvatar = Form(mapping(
     "avatar-method" -> nonEmptyText,
-    "avatar-url" -> optional(nonEmptyText)
+    "avatar-url" -> optional(url)
   )(OrganizationAvatarUpdate.apply)(OrganizationAvatarUpdate.unapply))
 
   /**

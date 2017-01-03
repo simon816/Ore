@@ -7,6 +7,7 @@
 @import ore.user.Prompts
 @import util.StringUtils._
 @import views.html.helper.form
+@import views.html.helper.CSRF
 @(user: User)(content: Html)(implicit messages: Messages, flash: Flash, request: Request[_], service: ModelService,
         config: OreConfig, users: UserBase)
 
@@ -16,6 +17,14 @@
 
 @pgpFormClass = @{
     user.pgpPubKey.map(key => "pgp-delete").getOrElse("")
+}
+
+@pgpFormCall = @{
+    user.pgpPubKey.map { key =>
+        routes.Users.verify(Some(routes.Users.deletePgpPublicKey(user.name, None, None).path()))
+    } getOrElse {
+        routes.Users.savePgpPublicKey(user.name)
+    }
 }
 
 @lockIcon = @{
@@ -166,9 +175,8 @@
                     </h4>
                 </div>
 
-                @form(action = routes.Users.savePgpPublicKey(user.username),
-                    'id -> "form-pgp",
-                    'class -> pgpFormClass) {
+                @form(action = pgpFormCall, 'id -> "form-pgp", 'class -> pgpFormClass) {
+                    @CSRF.formField
                     <div class="modal-body">
                         <div class="alert alert-danger" style="display: none;">
                             <span class="error"></span>
@@ -250,20 +258,21 @@
 
         <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">@messages("general.close")</button>
-            <a href="@routes.Users.verify(Some(routes.Users.setLocked(
+            @form(action = routes.Users.verify(Some(routes.Users.setLocked(
                 user = user.username,
                 locked = !user.isLocked,
                 sso = None,
                 sig = None
-            ).path()))"
-               type="submit" class="btn btn-primary">
-                @messages("general.continue")
-            </a>
+            ).path())), 'class -> "form-inline") {
+                @CSRF.formField
+                <button type="submit" class="btn btn-primary">@messages("general.continue")</button>
+            }
         </div>
     }
 
     @utils.modal("modal-tagline", "label-tagline", "user.tagline.edit") {
         @form(action = routes.Users.saveTagline(user.username)) {
+            @CSRF.formField
             <div class="modal-body">
                 <div class="setting setting-no-border">
                     <div class="setting-description">
@@ -287,6 +296,7 @@
     @utils.modal("modal-avatar", "label-avatar", "user.editAvatar") {
         @form(action = routes.Organizations.updateAvatar(user.name), 'id -> "form-avatar",
             'enctype -> "multipart/form-data") {
+            @CSRF.formField
             <div class="modal-body">
                 <div class="alert alert-danger">
                     <span class="error"></span>

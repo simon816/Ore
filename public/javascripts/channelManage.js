@@ -51,8 +51,15 @@ function initChannelDelete(toggle, channelName, versionCount) {
     $(toggle).click(function() {
         var url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/channels/' + channelName + '/delete';
         var modal = $('#modal-delete');
-        modal.find('.modal-footer').find('a').attr('href', url);
+        modal.find('.modal-footer').find('form').attr('action', url);
         modal.find('.version-count').text(versionCount);
+    });
+    $('.safe-delete').click(function(e) {
+        console.log('clicked');
+        e.preventDefault();
+        var id = $(this).data('channel-id');
+        console.log(id);
+        $('#form-delete-' + id)[0].submit();
     });
 }
 

@@ -10,6 +10,7 @@ Page used for uploading and creating new projects.
 @import views.html.helper.form
 @import ore.project.Dependency
 @import ore.project.Dependency._
+@import views.html.helper.CSRF
 @(pending: Option[PendingProject])(implicit messages: Messages, flash: Flash, request: Request[_],
         service: ModelService, config: OreConfig, users: UserBase)
 
@@ -119,6 +120,7 @@ Page used for uploading and creating new projects.
         <div class="create-buttons">
             @* File controls *@
             @form(action = projectRoutes.upload, 'enctype -> "multipart/form-data", 'id -> "form-upload") {
+                @CSRF.formField
                 <label class="btn btn-default pull-left" for="pluginFile">
                     <input id="pluginFile" name="pluginFile" type="file" style="display: none;">
                     <input id="pluginSig" name="pluginSig" type="file" style="display: none;">
@@ -131,7 +133,7 @@ Page used for uploading and creating new projects.
                 @defining(pending.get.underlying) { project =>
                     @form(action = projectRoutes.showInvitationForm(project.ownerName, project.slug),
                         'id -> "continue", 'class -> "pull-right") {
-
+                        @CSRF.formField
                         <div class="btn-group">
                             <a href="@projectRoutes.showCreator" title="Back" class="pull-left btn btn-default">
                                 <i class="fa fa-arrow-left"></i>

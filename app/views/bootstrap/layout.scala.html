@@ -50,6 +50,7 @@ this.
             <script type="text/javascript" src="@routes.Assets.at("javascripts/spongie.js")"></script>
             <script type="text/javascript" src="@routes.Assets.at("javascripts/main.js")"></script>
             <script>hljs.initHighlightingOnLoad();</script>
+            <script>csrf = '@play.filters.csrf.CSRF.getToken.get.value'</script>
             <script>
                     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
                                 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

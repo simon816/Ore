@@ -6,6 +6,7 @@
 @import ore.user.Member
 @import ore.{Joinable, OreConfig}
 @import views.html.helper.form
+@import views.html.helper.CSRF
 @(model: Joinable[_ <: Member[_]], editable: Boolean = false, removeCall: Call = null,
         settingsCall: Call = null, saveCall: Call = null)(implicit messages: Messages, service: ModelService,
         config: OreConfig, userBase: UserBase, request: Request[_])
@@ -64,6 +65,7 @@
                     <div class="modal-body">@messages("project.removeMember.confirm")</div>
                     <div class="modal-footer">
                         @form(action = removeCall, 'class -> "form-inline") {
+                            @CSRF.formField
                             <input type="hidden" name="username" />
                             <button type="button" class="btn btn-default" data-dismiss="modal">
                                 @messages("general.close")
@@ -91,6 +93,7 @@
 
                     @if(saveCall != null) {
                         @form(action = saveCall, 'id -> "save") {
+                            @CSRF.formField
                             <button class="btn-members-save btn btn-default btn-panel btn-xs" data-toggle="tooltip"
                                     data-placement="top" data-title="Send updates" style="display: none;">
                                 <i class="fa fa-paper-plane"></i>
