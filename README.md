@@ -1,7 +1,7 @@
 Ore
 ===
 
-Repository software for Sponge plugins and Forge mods https://ore-staging.spongepowered.org/
+Repository software for Sponge plugins and Forge mods https://ore.spongepowered.org/
  
 Ore is written in Scala using the [Play](https://www.playframework.com/) framework.
 
