@@ -160,24 +160,14 @@ class Users @Inject()(fakeUser: FakeUser,
         import writes._
         val keyInfo = keySubmission.info
         val user = request.user
-        // Validate email
-        user.email match {
-          case None =>
-            Redirect(ShowUser(username)).withError("error.pgp.noEmail")
-          case Some(email) =>
-            if (!email.equals(keyInfo.email))
-              Redirect(ShowUser(username)).withError("error.pgp.invalidEmail")
-            else {
-              user.pgpPubKey = keyInfo.raw
-              if (user.lastPgpPubKeyUpdate.isDefined)
-                user.lastPgpPubKeyUpdate = this.service.theTime // Not set the first time
+        user.pgpPubKey = keyInfo.raw
+        if (user.lastPgpPubKeyUpdate.isDefined)
+          user.lastPgpPubKeyUpdate = this.service.theTime // Not set the first time
 
-              // Send email notification
-              this.mailer.push(this.emails.create(user, this.emails.PgpUpdated))
+        // Send email notification
+        this.mailer.push(this.emails.create(user, this.emails.PgpUpdated))
 
-              Redirect(ShowUser(username)).flashing("pgp-updated" -> "true")
-            }
-        }
+        Redirect(ShowUser(username)).flashing("pgp-updated" -> "true")
       }
     )
   }
