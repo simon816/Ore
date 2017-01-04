@@ -52,6 +52,7 @@ general.forgeMod                =   Forge Mod
 general.forgeMod.tooltip        =   To mark your project as a Forge mod, add forge as a dependency.
 general.any                     =   Any
 general.platform                =   Platform
+general.notice                  =   Notice
 
 editor.deleteConfirm    =   Are you sure you want to delete {0}? This cannot be undone.
 
@@ -106,6 +107,8 @@ project.category.plural         =   Categories
 project.delete.title            =   Delete project
 project.delete.info             =   Are you sure you want to delete your Project? This action cannot be undone.
 project.download.recommend      =   Download the latest recommended version
+project.download.recommend.warn =   This project's recommended version has not been reviewed by our moderation staff and may not be safe for download.
+project.download.warn           =   This version has not been reviewed by our moderation staff and may not be safe for download.
 project.flag                    =   Flag
 project.flag.plural             =   Flags
 project.create                  =   New Project

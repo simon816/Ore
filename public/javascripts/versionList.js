@@ -38,21 +38,15 @@ var page = 1;
 function loadVersions(increment) {
     var versionPanel = $('.version-panel');
 
-    // Calculate offset
-    var currOffset = (page - 1) * VERSIONS_PER_PAGE;
-    var step = VERSIONS_PER_PAGE * (increment / Math.abs(increment));
-    var offset = Math.max(0, currOffset + step);
-
-    // Build url
+    var offset = (page + increment - 1) * VERSIONS_PER_PAGE;
     var url = '/api/projects/' + PLUGIN_ID + '/versions?offset=' + offset;
     if (CHANNEL_STRING) url += '&channels=' + CHANNEL_STRING;
 
-    // Request more versions
     var spinner = versionPanel.find('.fa-spinner').show();
     $.ajax({
         url: url,
         dataType: 'json',
-        complete: function() { spinner.hide() },
+        complete: function() { spinner.hide(); },
         success: function(versions) {
             var content = '';
             var count = 0;
@@ -60,12 +54,12 @@ function loadVersions(increment) {
                 if (!versions.hasOwnProperty(i)) continue;
                 var version = versions[i];
                 var channel = version.channel;
-                var slug = channel.name + '/' + version.name;
+                var slug = 'versions/' + version.name;
 
                 // Build result row
                 var row = $('#row-version').clone().removeAttr('id');
                 row.find('.channel-id').css('color', channel.color);
-                row.find('.version-str').text(version.name);
+                row.find('.version-str').html('<strong>' + version.name + '</strong>').attr('href', slug);
                 row.find('.created').text(version.createdAt);
                 row.find('.size').text(filesize(version.fileSize));
                 row.find('.info').attr('href', window.location + '/versions/' + decodeHtml(slug));
@@ -144,6 +138,7 @@ $(function() {
     });
 
     versionPanel.find('tr').click(function(e) {
-        window.location.href = $(this).find('td:first-child').find('a').prop('href');
+        if (e.target == this)
+            window.location.href = $(this).find('td:first-child').find('a').prop('href');
     });
 });

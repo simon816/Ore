@@ -124,7 +124,7 @@ class Versions @Inject()(stats: StatTracker,
     * @param channels Visible channels
     * @return View of project
     */
-  def showList(author: String, slug: String, channels: Option[String]) = {
+  def showList(author: String, slug: String, channels: Option[String], page: Option[Int]) = {
     ProjectAction(author, slug) { implicit request =>
       val project = request.project
       val allChannels = project.channels.toSeq
@@ -133,16 +133,23 @@ class Versions @Inject()(stats: StatTracker,
       val visible: Option[Array[Channel]] = visibleNames.map(_.map { name =>
         allChannels.find(_.name.equalsIgnoreCase(name)).get
       })
+
       val visibleIds: Array[Int] = visible.map(_.map(_.id.get)).getOrElse(allChannels.map(_.id.get).toArray)
 
-      val load = this.config.projects.getInt("init-version-load").get
-      val versions = project.versions.sorted(_.createdAt.desc, _.channelId inSetBind visibleIds, load)
+      val pageSize = this.config.projects.getInt("init-version-load").get
+      val p = page.getOrElse(1)
+      val versions = project.versions.sorted(
+        ordering = _.createdAt.desc,
+        filter = _.channelId inSetBind visibleIds,
+        offset = pageSize * (p - 1),
+        limit = pageSize)
+
       if (visibleNames.isDefined && visibleNames.get.toSet.equals(allChannels.map(_.name.toLowerCase).toSet)) {
         visibleNames = None
       }
 
       this.stats.projectViewed { implicit request =>
-        Ok(views.list(project, allChannels, versions, visibleNames))
+        Ok(views.list(project, allChannels, versions, visibleNames, p))
       }
     }
   }
@@ -329,7 +336,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val project = request.project
       withVersion(versionString) { version =>
         this.projects.deleteVersion(version)
-        Redirect(self.showList(author, slug, None))
+        Redirect(self.showList(author, slug, None, None))
       }
     }
   }

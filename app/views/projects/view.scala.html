@@ -17,6 +17,8 @@ Base template for Project overview.
 @hasUser = @{ users.current.isDefined }
 @user = @{ users.current.get }
 @isOwner(user: User) = @{ user.id.get == project.ownerId }
+@projectRoutes = @{ controllers.project.routes.Projects }
+@versionRoutes = @{ controllers.project.routes.Versions }
 
 @bootstrap.layout(project.ownerName + " / " + project.name) {
 
@@ -31,7 +33,7 @@ Base template for Project overview.
                         <h1>
                             <a href="@routes.Users.showProjects(project.ownerName, None)">@project.ownerName</a>
                             / <strong>
-                            <a href="@projectRoutes.Projects.show(project.ownerName, project.slug)">@project.name</a>
+                            <a href="@projectRoutes.show(project.ownerName, project.slug)">@project.name</a>
                         </strong>
                         </h1>
                         @defining(project.description.getOrElse("")) { description =>
@@ -49,19 +51,20 @@ Base template for Project overview.
                             <ul class="nav navbar-nav">
                                 <!-- Tabs -->
                                 <li id="docs" class="">
-                                    <a href="@projectRoutes.Projects.show(project.ownerName, project.slug)">
+                                    <a href="@projectRoutes.show(project.ownerName, project.slug)">
                                         <i class="fa fa-book"></i> @messages("project.docs")</a>
                                 </li>
 
                                 <li id="versions" class="">
-                                    <a href="@projectRoutes.Versions.showList(project.ownerName, project.slug, None)">
+                                    <a href="@versionRoutes.showList(
+                                        project.ownerName, project.slug, None, None)">
                                         <i class="fa fa-download"></i> @messages("project.versions")
                                     </a>
                                 </li>
 
                                 @if(project.topicId != -1) {
                                     <li id="discussion" class="">
-                                        <a href="@projectRoutes.Projects.showDiscussion(
+                                        <a href="@projectRoutes.showDiscussion(
                                             project.ownerName, project.slug)">
                                             <i class="fa fa-users"></i> @messages("project.discuss")
                                         </a>
@@ -71,7 +74,7 @@ Base template for Project overview.
                                 @if(hasUser && (user can EditSettings in project)) {
                                     @* Show manager if permitted *@
                                     <li id="settings" class="">
-                                        <a href="@projectRoutes.Projects.showSettings(project.ownerName, project.slug)">
+                                        <a href="@projectRoutes.showSettings(project.ownerName, project.slug)">
                                             <i class="fa fa-cog"></i> @messages("project.settings")
                                         </a>
                                     </li>
@@ -81,7 +84,7 @@ Base template for Project overview.
                                     @settings.issues.map { issues =>
                                         <li id="issues">
                                             <a title="@issues" target="_blank"
-                                                href="@projectRoutes.Projects.showIssues(
+                                                href="@projectRoutes.showIssues(
                                                     project.ownerName, project.slug)">
                                                 <i class="fa fa-bug"></i> Issues <i class="fa fa-external-link"></i></a>
                                         </li>
@@ -90,7 +93,7 @@ Base template for Project overview.
                                     @settings.source.map { source =>
                                         <li id="source">
                                             <a title="@source" target="_blank"
-                                            href="@projectRoutes.Projects.showSource(project.ownerName, project.slug)">
+                                            href="@projectRoutes.showSource(project.ownerName, project.slug)">
                                                 <i class="fa fa-code"></i> Source <i class="fa fa-external-link"></i>
                                             </a>
                                         </li>
@@ -161,7 +164,7 @@ Base template for Project overview.
                                                 </button>
                                                 <h4 class="modal-title" id="label-flag">Flag project</h4>
                                             </div>
-                                            @form(action = projectRoutes.Projects.flag(
+                                            @form(action = projectRoutes.flag(
                                                 project.ownerName, project.slug)) {
                                                 @CSRF.formField
                                                 <div class="modal-body">
@@ -191,7 +194,7 @@ Base template for Project overview.
 
                             <!-- Download button -->
                             @if(project.recommendedVersion.isReviewed) {
-                                <a href="@projectRoutes.Versions.downloadRecommended(project.ownerName, project.slug)"
+                                <a href="@versionRoutes.downloadRecommended(project.ownerName, project.slug)"
                                    title="@messages("project.download.recommend")"
                                    data-toggle="tooltip"
                                    data-placement="bottom"
@@ -203,31 +206,9 @@ Base template for Project overview.
                                     <i class="fa fa-download"></i> @messages("general.download")
                                 </button>
 
-                                <div class="modal fade" id="modal-download" tabindex="-1" role="dialog"
-                                     aria-labelledby="label-download">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <button type="button" class="close" data-dismiss="modal"
-                                                        aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                                <h4 class="modal-title" id="label-download">Notice</h4>
-                                            </div>
-                                            <div class="modal-body">
-                                                This project's recommended version has not been reviewed by our
-                                                moderation staff and may not be safe for download.
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button class="btn btn-default" data-dismiss="modal">Cancel</button>
-                                                <a href="@projectRoutes.Versions.downloadRecommended(
-                                                    project.ownerName, project.slug)" class="btn btn-primary">
-                                                    Continue
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                @projects.utils.modalDownload(
+                                    call = versionRoutes.downloadRecommended(project.ownerName, project.slug),
+                                    message = "project.download.recommend.warn")
 
                             }
                         </div>

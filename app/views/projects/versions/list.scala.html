@@ -1,18 +1,23 @@
 @*
 Versions page within Project overview.
 *@
-@import controllers.project.{routes => projectRoutes}
 @import db.ModelService
 @import db.impl.access.UserBase
 @import models.project.{Channel, Project, Version}
 @import ore.OreConfig
 @import ore.permission.{EditChannels, EditVersions}
 @import util.StringUtils._
-@(model: Project, channels: Seq[Channel], versions: Seq[Version],
-        visibleChannels: Option[Array[String]])(implicit messages: Messages, request: Request[_], flash: Flash,
+@(model: Project,
+  channels: Seq[Channel],
+  versions: Seq[Version],
+  visibleChannels: Option[Array[String]],
+  page: Int)(implicit messages: Messages, request: Request[_], flash: Flash,
         service: ModelService, config: OreConfig, userBase: UserBase)
 
 @pageSize = @{ config.projects.getInt("init-version-load").get }
+@projectRoutes = @{ controllers.project.routes.Projects }
+@versionRoutes = @{ controllers.project.routes.Versions }
+@channelRoutes = @{ controllers.project.routes.Channels }
 
 @projects.view(model, "#versions") {
 
@@ -32,7 +37,7 @@ Versions page within Project overview.
             <tr id="row-version">
                 <td>
                     <i class="fa fa-circle channel-id"></i>
-                    <span class="version-str"></span>
+                    <a href="#" class="version-str"></a>
                 </td>
                 <td>
                     <div class="pull-right">
@@ -64,7 +69,7 @@ Versions page within Project overview.
                                                 <td>
                                                     <i title="@channel.name" class="fa fa-circle channel-id"
                                                        style="color: @channel.color.hex"></i>
-                                                    <a href="@projectRoutes.Versions.show(
+                                                    <a href="@versionRoutes.show(
                                                         model.ownerName, model.slug, version.versionString)">
                                                         <strong>@version.versionString</strong>
                                                     </a>
@@ -73,10 +78,23 @@ Versions page within Project overview.
                                                     <div class="pull-right">
                                                         <span class="date">@prettifyDate(version.createdAt.get)</span>
                                                         <span class="date">@version.humanFileSize</span>
-                                                        <a href="@projectRoutes.Versions.download(
-                                                            model.ownerName, model.slug, version.versionString)">
-                                                            <i title="Download" class="fa fa-download"></i>
-                                                        </a>
+                                                        @if(version.isReviewed) {
+                                                            <a href="@versionRoutes.download(
+                                                                model.ownerName, model.slug, version.versionString)">
+                                                                <i title="Download" class="fa fa-download"></i>
+                                                            </a>
+                                                        } else {
+                                                            <a href="#" data-toggle="modal"
+                                                               data-target="#modal-download-@version.id.get">
+                                                                <i title="Download" class="fa fa-download"></i>
+                                                            </a>
+                                                        }
+
+                                                        @projects.utils.modalDownload(
+                                                            id = "modal-download-" + version.id.get,
+                                                            call = versionRoutes.download(
+                                                                model.ownerName, model.slug, version.versionString),
+                                                            message = "project.download.warn")
                                                     </div>
                                                 </td>
                                             </tr>
@@ -85,37 +103,32 @@ Versions page within Project overview.
                                 </tbody>
                             </table>
 
-                            @defining(versions.size) { size =>
-                                @if(size > pageSize) {
-                                    <div class="panel-footer">
-                                        <span class="pull-left minor">
-                                            <strong>
-                                                <span class="offset">@versions.size</span>/@model.versions.size
-                                            </strong>
-                                        </span>
+                            @defining(model.versions.size) { totalVersions =>
+                              @if(page * pageSize < totalVersions) {
+                                  <div class="panel-footer">
+                                      <span class="pull-left minor">
+                                          <strong>
+                                              <span class="offset">@versions.size</span>/@model.versions.size
+                                          </strong>
+                                          <i class="fa fa-spinner" style="display: none;"></i>
+                                      </span>
 
-                                        <div class="pull-right">
-                                            <a class="prev" href="#" style="display: none;">
-                                                <i class="fa fa-arrow-left"></i>
-                                            </a>
-                                            <a class="next" href="#"
-                                                @if(versions.size < pageSize) {
-                                                    style="display: none;"
-                                                    }
-                                            >
-                                                <i class="fa fa-arrow-right"></i>
-                                            </a>
-                                        </div>
-                                        <div class="clearfix"></div>
-                                    </div>
-                                }
+                                      <div class="pull-right">
+                                          <a class="prev" href="#" @if(page == 1) { style="display: none;" }>
+                                              <i class="fa fa-arrow-left"></i>
+                                          </a>
+                                          <a class="next" href="#"><i class="fa fa-arrow-right"></i></a>
+                                      </div>
+                                      <div class="clearfix"></div>
+                                  </div>
+                              }
                             }
                         </div>
 
                     </div>
                     <div class="col-md-3">
                         @if(userBase.current.isDefined && (userBase.current.get can EditVersions in model)) {
-                            <a href="@projectRoutes.Versions.showCreator(model.ownerName, model.slug)"
+                            <a href="@versionRoutes.showCreator(model.ownerName, model.slug)"
                             class="btn btn-block btn-primary btn-version">
                                 <i class="fa fa-plus"></i> New version
                             </a>
@@ -147,7 +160,7 @@ Versions page within Project overview.
 
                                 @if(userBase.current.isDefined && (userBase.current.get can EditChannels in model)) {
                                     <li class="list-group-item text-right">
-                                        <a href="@projectRoutes.Channels.showList(model.ownerName, model.slug)">
+                                        <a href="@channelRoutes.showList(model.ownerName, model.slug)">
                                             <i class="fa fa-cog"></i> Edit
                                         </a>
                                     </li>
@@ -156,7 +169,7 @@ Versions page within Project overview.
                         </div>
                         @users.memberList(
                             model = model,
-                            settingsCall = projectRoutes.Projects.showSettings(model.ownerName, model.slug)
+                            settingsCall = projectRoutes.showSettings(model.ownerName, model.slug)
                         )
                     </div>
                 </div>
