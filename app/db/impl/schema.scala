@@ -9,7 +9,7 @@ import db.table.{AssociativeTable, ModelTable, NameColumn}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
-import models.user.{Notification, Organization, User, Session => DbSession}
+import models.user.{Notification, Organization, SignOn, User, Session => DbSession}
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
@@ -172,6 +172,15 @@ class SessionTable(tag: Tag) extends ModelTable[DbSession](tag, "user_sessions")
   def token = column[String]("token")
 
   def * = (id.?, createdAt.?, expiration, username, token) <> (DbSession.tupled, DbSession.unapply)
+
+}
+
+class SignOnTable(tag: Tag) extends ModelTable[SignOn](tag, "sign_ons") {
+
+  def nonce = column[String]("nonce")
+  def isCompleted = column[Boolean]("is_completed")
+
+  def * = (id.?, createdAt.?, nonce, isCompleted) <> (SignOn.tupled, SignOn.unapply)
 
 }
 

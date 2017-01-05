@@ -52,6 +52,7 @@ class OreModelService @Inject()(override val env: OreEnv,
     // Register model schemas
     registerSchema(UserSchema)
     registerSchema(SessionSchema)
+    registerSchema(SignOnSchema)
     registerSchema(ProjectRolesSchema)
     registerSchema(ProjectSchema)
     registerSchema(ProjectSettingsSchema)

@@ -7,7 +7,7 @@ import db.table.key._
 import models.project._
 import models.statistic.StatEntry
 import models.user.role.RoleModel
-import models.user.{Notification, User}
+import models.user.{Notification, SignOn, User}
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
@@ -57,6 +57,9 @@ object ModelKeys {
   val JoinDate              =   new TimestampKey[User](_.joinDate, _.joinDate.orNull)
   val AvatarUrl             =   new StringKey[User](_.avatarUrl, _.avatarUrl.orNull)
   val ReadPrompts           =   new Key[User, List[Prompt]](_.readPrompts, _.readPrompts.toList)
+
+  // SignOn
+  val IsCompleted           =   new BooleanKey[SignOn](_.isCompleted, _.isCompleted)
 
   // Version
   val IsReviewed            =   new BooleanKey[Version](_.isReviewed, _.isReviewed)

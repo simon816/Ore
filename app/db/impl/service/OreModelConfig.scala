@@ -8,7 +8,7 @@ import db.{ModelSchema, ModelService}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole}
-import models.user.{Notification, Organization, User}
+import models.user.{Notification, Organization, SignOn, User}
 
 trait OreModelConfig extends ModelService with OreDBOs {
 
@@ -55,6 +55,8 @@ trait OreModelConfig extends ModelService with OreDBOs {
       targetReference = _.projectId)
 
   val SessionSchema = new ModelSchema[models.user.Session](this, classOf[models.user.Session], TableQuery[SessionTable])
+
+  val SignOnSchema = new ModelSchema[SignOn](this, classOf[SignOn], TableQuery[SignOnTable])
 
   val ProjectRolesSchema = new ModelSchema[ProjectRole](this, classOf[ProjectRole], TableQuery[ProjectRoleTable])
 

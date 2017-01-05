@@ -1,5 +1,6 @@
 package controllers
 
+import java.util.Date
 import javax.inject.Inject
 
 import db.ModelService
@@ -8,7 +9,7 @@ import db.impl.access.UserBase.ORDERING_PROJECTS
 import discourse.OreDiscourseApi
 import form.OreForms
 import models.user.role.RoleModel
-import models.user.{Notification, User}
+import models.user.{Notification, SignOn, User}
 import ore.rest.OreWrites
 import ore.user.notification.InviteFilters.InviteFilter
 import ore.user.notification.NotificationFilters.NotificationFilter
@@ -45,7 +46,9 @@ class Users @Inject()(fakeUser: FakeUser,
     * @return Logged in page
     */
   def signUp() = Action { implicit request =>
-    redirectToSso(this.sso.getSignupUrl(this.baseUrl + "/login"))
+    val nonce = SingleSignOnConsumer.nonce
+    this.signOns.add(SignOn(nonce = nonce))
+    redirectToSso(this.sso.getSignupUrl(this.baseUrl + "/login", nonce))
   }
 
   /**
@@ -62,11 +65,12 @@ class Users @Inject()(fakeUser: FakeUser,
       this.users.getOrCreate(this.fakeUser)
       this.redirectBack(returnPath.getOrElse(request.path), this.fakeUser)
     } else if (sso.isEmpty || sig.isEmpty) {
-      // Check if forums are available and redirect to login if so
-      redirectToSso(this.sso.getLoginUrl(this.baseUrl + "/login"))
+      val nonce = SingleSignOnConsumer.nonce
+      this.signOns.add(SignOn(nonce = nonce))
+      redirectToSso(this.sso.getLoginUrl(this.baseUrl + "/login", nonce))
     } else {
       // Redirected from SpongeSSO, decode SSO payload and convert to Ore user
-      this.sso.authenticate(sso.get, sig.get) match {
+      this.sso.authenticate(sso.get, sig.get)(isNonceValid) match {
         case None =>
           Redirect(ShowHome).withError("error.loginFailed")
         case Some(spongeUser) =>
@@ -85,7 +89,9 @@ class Users @Inject()(fakeUser: FakeUser,
     * @return           Redirect to verification
     */
   def verify(returnPath: Option[String]) = Authenticated { implicit request =>
-    redirectToSso(this.sso.getVerifyUrl(this.baseUrl + returnPath.getOrElse("/")))
+    val nonce = SingleSignOnConsumer.nonce
+    this.signOns.add(SignOn(nonce = nonce))
+    redirectToSso(this.sso.getVerifyUrl(this.baseUrl + returnPath.getOrElse("/"), nonce))
   }
 
   private def redirectToSso(url: String): Result = {

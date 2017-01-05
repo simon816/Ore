@@ -1,9 +1,13 @@
 package controllers
 
+import java.util.Date
+
 import controllers.Requests._
+import db.impl.OrePostgresDriver.api._
+import db.access.ModelAccess
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import models.project.Project
-import models.user.User
+import models.user.{SignOn, User}
 import ore.permission.scope.GlobalScope
 import ore.permission.{EditSettings, HideProjects, Permission}
 import org.spongepowered.play.security.SingleSignOnConsumer
@@ -23,6 +27,7 @@ trait Actions extends Calls with ActionHelpers {
   val projects: ProjectBase
   val organizations: OrganizationBase
   val sso: SingleSignOnConsumer
+  val signOns: ModelAccess[SignOn]
 
   val PermsLogger = play.api.Logger("Permissions")
 
@@ -180,6 +185,22 @@ trait Actions extends Calls with ActionHelpers {
 
   }
 
+  /**
+    * Returns true and marks the nonce as used if the specified nonce has not
+    * been used, has not exired.
+    *
+    * @param nonce  Nonce to check
+    * @return       True if valid
+    */
+  def isNonceValid(nonce: String): Boolean = this.signOns.find(_.nonce === nonce).exists { signOn =>
+    if (signOn.isCompleted || new Date().getTime - signOn.createdAt.get.getTime > 600000)
+      false
+    else {
+      signOn.setCompleted()
+      true
+    }
+  }
+
   // Implementation
 
   private def userLock(redirect: Call) = new ActionFilter[AuthRequest] {
@@ -196,11 +217,11 @@ trait Actions extends Calls with ActionHelpers {
       if (sso.isEmpty || sig.isEmpty)
         Some(Unauthorized)
       else {
-        Actions.this.sso.authenticate(sso.get, sig.get) match {
+        Actions.this.sso.authenticate(sso.get, sig.get)(isNonceValid) match {
           case None =>
             Some(Unauthorized)
           case Some(spongeUser) =>
-            if (spongeUser.username.equals(request.user.username))
+            if (spongeUser.id == request.user.id.get)
               None
             else
               Some(Unauthorized)
