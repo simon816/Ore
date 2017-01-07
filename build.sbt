@@ -1,6 +1,6 @@
 name := "ore"
 
-version := "1.1.10"
+version := "1.1.11"
 
 lazy val `ore` = (project in file(".")).enablePlugins(PlayScala)
 

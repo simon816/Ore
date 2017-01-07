@@ -35,6 +35,7 @@ $(function() {
         $.ajax({
             type: 'post',
             url: '/' + project + '/visible/' + !visible,
+            data: { csrfToken: csrf },
             fail: function () {
                 spinner.addClass(iconClass).removeClass('fa-spinner fa-spin');
             },

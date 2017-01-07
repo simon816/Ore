@@ -35,13 +35,16 @@ $(function() {
     var btn = form.find('.btn-upload');
     var url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/icon';
     var preview = form.find('.user-avatar');
-    var input = form.find('input');
+    var input = form.find('input[type="file"]');
 
     function updateButton() {
         btn.prop('disabled', input[0].files.length == 0);
     }
 
     input.on('change', function() { updateButton(); });
+
+    var formData = new FormData(form[0]);
+    formData.append('csrfToken', csrf);
 
     // Upload button
     btn.click(function(e) {
