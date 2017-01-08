@@ -36,7 +36,9 @@ class PGPVerifier {
       val factory = new JcaPGPObjectFactory(in)
       var sigList: PGPSignatureList = null
 
-      var currentObject = factory.nextObject()
+      def getNextObject = Try(factory.nextObject()).toOption.orNull
+
+      var currentObject = getNextObject
       if (currentObject == null) {
         Logger.info("<VERIFICATION FAILED> No PGP data found.")
         return false
@@ -54,7 +56,7 @@ class PGPVerifier {
             Logger.info("Unknown packet : " + e.getClass)
         }
         Logger.info("Processed packet : " + currentObject.toString)
-        currentObject = factory.nextObject()
+        currentObject = getNextObject
       }
 
       if (sigList == null) {

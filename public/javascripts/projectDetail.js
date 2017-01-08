@@ -136,8 +136,9 @@ function initBtnEdit() {
             preview.show();
             var icon = $(this).find('i').removeClass('fa-eye').addClass('fa-spinner fa-spin');
 
-            $.post({
-                url: '/pages/preview',
+            $.ajax({
+                type: 'post',
+                url: '/pages/preview?csrfToken=' + csrf,
                 data: JSON.stringify({ raw: raw }),
                 contentType: 'application/json',
                 dataType: 'html',
