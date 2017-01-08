@@ -15,7 +15,7 @@ object ProjectSortingStrategies {
   )
 
   /** The default strategy. */
-  val Default = Newest
+  val Default = RecentlyUpdated
 
   /**
     * Returns the strategy with the specified ID.
@@ -65,7 +65,7 @@ object ProjectSortingStrategies {
 
   case object RecentlyUpdated extends ProjectSortingStrategy {
     def fn = _.lastUpdated.desc
-    def title = "Recently Updated"
+    def title = "Recently updated"
     def id = 4
   }
 
