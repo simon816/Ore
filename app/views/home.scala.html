@@ -78,7 +78,7 @@ sorted according to different criteria.
             <div class="row">
                 <div class="col-md-9"><img height="60" src="@routes.Assets.at("images/ore-desc.png")" /></div>
                 <div class="col-md-3">
-                    <div class="sponsor">
+                    <div class="sponsor sponsor-block">
                         <i>@messages("general.sponsoredBy")</i><br/>
                         @defining(randomSponsor) { sponsor =>
                             <a href="@sponsor._2">
@@ -184,7 +184,7 @@ sorted according to different criteria.
 
                 <!-- Featured sponsor -->
                 @config.sponge.getString("sponsors.featured.logo").map { logo =>
-                  <div class="sponsor sponsor-featured">
+                  <div class="sponsor sponsor-block sponsor-featured">
                       <i>@messages("general.featuredSponsor")</i><br/>
                       <a href="@config.sponge.getString("sponsors.featured.url")">
                           <img class="sponsor-logo" src="@routes.Assets.at("images/sponsors/" + logo)" />
