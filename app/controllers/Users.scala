@@ -1,6 +1,5 @@
 package controllers
 
-import java.util.Date
 import javax.inject.Inject
 
 import db.ModelService
@@ -92,7 +91,6 @@ class Users @Inject()(fakeUser: FakeUser,
   def verify(returnPath: Option[String]) = Authenticated { implicit request =>
     val nonce = SingleSignOnConsumer.nonce
     this.signOns.add(SignOn(nonce = nonce))
-    println("returnPath = " + returnPath)
     redirectToSso(this.sso.getVerifyUrl(this.baseUrl + returnPath.getOrElse("/"), nonce))
   }
 
