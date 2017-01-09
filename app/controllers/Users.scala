@@ -18,6 +18,7 @@ import ore.user.{FakeUser, Prompts}
 import ore.{OreConfig, OreEnv}
 import org.spongepowered.play.mail.Mailer
 import org.spongepowered.play.security.SingleSignOnConsumer
+import play.Logger
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import util.EmailFactory
@@ -91,6 +92,7 @@ class Users @Inject()(fakeUser: FakeUser,
   def verify(returnPath: Option[String]) = Authenticated { implicit request =>
     val nonce = SingleSignOnConsumer.nonce
     this.signOns.add(SignOn(nonce = nonce))
+    println("returnPath = " + returnPath)
     redirectToSso(this.sso.getVerifyUrl(this.baseUrl + returnPath.getOrElse("/"), nonce))
   }
 
@@ -186,6 +188,7 @@ class Users @Inject()(fakeUser: FakeUser,
     */
   def deletePgpPublicKey(username: String, sso: Option[String], sig: Option[String]) = {
     VerifiedAction(username, sso, sig) { implicit request =>
+      Logger.info("Deleting public key for " + username)
       val user = request.user
       if (user.pgpPubKey.isEmpty)
         BadRequest
