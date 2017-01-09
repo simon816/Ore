@@ -142,7 +142,7 @@ class Users @Inject()(fakeUser: FakeUser,
   def saveTagline(username: String) = UserAction(username) { implicit request =>
     val tagline = this.forms.UserTagline.bindFromRequest.get.trim
     val maxLen = this.config.users.getInt("max-tagline-len").get
-    val user = request.user
+    val user = this.users.withName(username).get
     if (tagline.length > maxLen) {
       Redirect(ShowUser(user)).flashing("error" -> this.messagesApi("error.tagline.tooLong", maxLen))
     } else {

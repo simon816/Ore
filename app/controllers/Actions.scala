@@ -235,7 +235,7 @@ trait Actions extends Calls with ActionHelpers {
       Actions.this.users.withName(username).flatMap[User] { toCheck =>
         val user = request.user
         if (user.equals(toCheck) || (toCheck.isOrganization && (user can EditSettings in toCheck.toOrganization)))
-          Some(user)
+          Some(toCheck)
         else
           None
       }.map[Option[Result]](user => None).getOrElse(Some(Unauthorized))
