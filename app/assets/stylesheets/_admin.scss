@@ -38,3 +38,26 @@
 .flag-msg {
   color: #1f7199;
 }
+
+i.review-expand {
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.review-drawer {
+  border-top: 1px solid #ddd;
+  height: 150px;
+  padding: 10px;
+  margin-top: 10px;
+
+  .side-panel {
+    .row {
+      margin-bottom: 10px;
+      .btn { float: right; }
+    }
+
+    .row:not(:last-child) {
+      border-bottom: 1px solid #ddd;
+    }
+  }
+}

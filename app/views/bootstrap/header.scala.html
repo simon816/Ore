@@ -146,7 +146,7 @@ The main header displayed on each layout.
 
                         @if(user can ReviewProjects in GlobalScope) {
                             <li>
-                                <a href="@routes.Application.showQueue()">
+                                <a href="@routes.Application.showQueue(None)">
                                     <span class="pull-left">
                                         @messages("user.queue")
                                         @if(queue.nonEmpty) {

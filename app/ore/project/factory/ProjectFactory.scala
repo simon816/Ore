@@ -9,7 +9,7 @@ import com.google.common.base.Preconditions._
 import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
 import discourse.OreDiscourseApi
-import models.project.{Channel, Project, Version}
+import models.project.{Channel, Project, Version, VersionReview}
 import models.user.role.ProjectRole
 import models.user.{Notification, User}
 import ore.Colors.Color
@@ -325,6 +325,10 @@ trait ProjectFactory {
     this.actorSystem.scheduler.scheduleOnce(Duration.Zero, NotifyWatchersTask(newVersion, messages))
 
     project.lastUpdated = this.service.theTime
+    project.needsReview = true
+    this.service.access[VersionReview](classOf[VersionReview]).add(VersionReview(
+      versionId = newVersion.id.get,
+      projectId = project.id.get))
 
     uploadPlugin(project, channel, pending.plugin)
     newVersion

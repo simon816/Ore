@@ -70,12 +70,13 @@ final class Application @Inject()(data: DataHelper,
       val p = page.getOrElse(1)
       val offset = (p - 1) * pageSize
       val future = actions.collect(filter.fn, ordering, pageSize, offset)
-      val projects = this.service.await(future).get
+      val models = this.service.await(future).get
+      val total = this.service.await(this.service.count[Project](classOf[Project], filter.fn)).get
 
       if (categoryArray != null && Categories.visible.toSet.equals(categoryArray.toSet))
         categoryArray = null
 
-      Ok(views.home(projects, Option(categoryArray), query.find(_.nonEmpty), p, ordering, pform))
+      Ok(views.home(models, Option(categoryArray), query.find(_.nonEmpty), p, total, ordering, pform))
     }
   }
 
@@ -84,10 +85,14 @@ final class Application @Inject()(data: DataHelper,
     *
     * @return View of unreviewed versions.
     */
-  def showQueue() = {
+  def showQueue(page: Option[Int]) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) { implicit request =>
-      val queue = this.service.access[Version](classOf[Version]).filterNot(_.isReviewed).map(v => (v.project, v))
-      Ok(views.users.admin.queue(queue))
+      val pageSize = this.config.admin.getInt("queue.pageSize").get
+      val p = page.getOrElse(1)
+      val offset = (p - 1) * pageSize
+      val queue = this.projects.filter(_.needsReview, pageSize, offset)
+      val total = this.service.await(this.service.count[Project](classOf[Project], _.needsReview)).get
+      Ok(views.users.admin.queue(queue, p, pageSize, total))
     }
   }
 

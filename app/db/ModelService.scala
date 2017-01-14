@@ -248,8 +248,11 @@ trait ModelService {
     * @param offset Offset to drop
     * @return       Collection of models
     */
-  def collect[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean] = null,
-                          sort: M#T => ColumnOrdered[_] = null, limit: Int = -1, offset: Int = -1): Future[Seq[M]] = {
+  def collect[M <: Model](modelClass: Class[M],
+                          filter: M#T => Rep[Boolean] = null,
+                          sort: M#T => ColumnOrdered[_] = null,
+                          limit: Int = -1,
+                          offset: Int = -1): Future[Seq[M]] = {
     var query = newAction[M](modelClass)
     if (filter != null) query = query.filter(filter)
     if (sort != null) query = query.sortBy(sort)

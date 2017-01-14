@@ -1,0 +1,16 @@
+@(page: Int, pageSize: Int, total: Int, changePage: Int => Call)(implicit messages: Messages)
+
+@if(total > pageSize * page || page > 1) {
+    <li class="list-group-item project-list-footer">
+        <i class="pull-left minor page-count">@messages("general.page", page, total / pageSize + 1)</i>
+        <div class="pull-right">
+            @if(page > 1) {
+                <a href="@changePage(page - 1)" class="btn btn-default"><i class="fa fa-arrow-left"></i></a>
+            }
+            @if(total > pageSize * page) {
+                <a href="@changePage(page + 1)" class="btn btn-default"><i class="fa fa-arrow-right"></i></a>
+            }
+        </div>
+        <div class="clearfix"></div>
+    </li>
+}

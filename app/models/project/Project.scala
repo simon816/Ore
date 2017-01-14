@@ -3,6 +3,7 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
+import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.model.OreModel
@@ -63,7 +64,8 @@ case class Project(override val id: Option[Int] = None,
                    private var _postId: Int = -1,
                    private var _isTopicDirty: Boolean = false,
                    private var _isVisible: Boolean = true,
-                   private var _lastUpdated: Timestamp = null)
+                   private var _lastUpdated: Timestamp = null,
+                   private var _needsReview: Boolean = true)
                    extends OreModel(id, createdAt)
                      with ProjectScope
                      with Downloadable
@@ -295,6 +297,15 @@ case class Project(override val id: Option[Int] = None,
     this._lastUpdated = lastUpdated
     if (isDefined) update(LastUpdated)
   }
+
+  def needsReview: Boolean = this._needsReview
+
+  def needsReview_=(needsReview: Boolean) = {
+    this._needsReview = needsReview
+    if (isDefined) update(NeedsReview)
+  }
+
+  def reviews: ModelAccess[VersionReview] = this.schema.getChildren[VersionReview](classOf[VersionReview], this)
 
   /**
     * Returns [[db.access.ModelAccess]] to [[User]]s who have starred this

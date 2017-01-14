@@ -8,7 +8,8 @@ import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
-import ore.project.{Categories, FlagReasons}
+import ore.project.ReviewStatuses.ReviewStatus
+import ore.project.{Categories, FlagReasons, ReviewStatuses}
 import ore.user.Prompts
 import ore.user.Prompts.Prompt
 import ore.user.notification.NotificationTypes
@@ -36,6 +37,7 @@ trait OrePostgresDriver extends ExPostgresDriver with PgArraySupport with PgNetS
       str => utils.SimpleArrayUtils.fromString[Prompt](s => Prompts(Integer.parseInt(s)))(str).orNull,
       value => utils.SimpleArrayUtils.mkString[Prompt](_.id.toString)(value)
     ).to(_.toList)
+    implicit val reviewStatusTypeMapper = MappedJdbcType.base[ReviewStatus, Int](_.id, ReviewStatuses.apply)
   }
 
 }

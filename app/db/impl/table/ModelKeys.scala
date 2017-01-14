@@ -11,6 +11,7 @@ import models.user.{Notification, SignOn, User}
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
+import ore.project.ReviewStatuses.ReviewStatus
 import ore.user.Prompts.Prompt
 
 /**
@@ -39,6 +40,7 @@ object ModelKeys {
   val RecommendedVersionId  =   new IntKey[Project](
                                   _.recommendedVersionId, _.recommendedVersion.id.getOrElse(-1))
   val LastUpdated           =   new TimestampKey[Project](_.lastUpdated, _.lastUpdated)
+  val NeedsReview           =   new BooleanKey[Project](_.needsReview, _.needsReview)
 
   // ProjectSettings
   val Issues                =   new StringKey[ProjectSettings](_.issues, _.issues.orNull)
@@ -64,6 +66,10 @@ object ModelKeys {
   // Version
   val IsReviewed            =   new BooleanKey[Version](_.isReviewed, _.isReviewed)
   val ChannelId             =   new IntKey[Version](_.channelId, _.channelId)
+
+  // VersionReview
+  val AssigneeId            =   new IntKey[VersionReview](_.assigneeId, _.assigneeId)
+  val Status                =   new MappedTypeKey[VersionReview, ReviewStatus](_.status, _.status)
 
   // Channel
   val Color                 =   new MappedTypeKey[Channel, Color](_.color, _.color)

@@ -6,7 +6,11 @@ Collection of all projects.
 @import models.project.Project
 @import ore.OreConfig
 @import ore.project.Dependency
-@(models: Seq[Project], page: Int, pageSize: Int, call: Int => Call)(implicit messages: Messages, flash: Flash,
+@(models: Seq[Project],
+  page: Int,
+  pageSize: Int,
+  total: Int,
+  call: Int => Call)(implicit messages: Messages, flash: Flash,
         service: ModelService, config: OreConfig, users: UserBase)
 
 @spongeVersion(project: Project) = @{
@@ -22,6 +26,7 @@ Collection of all projects.
 }
 
 <ul class="list-group project-list">
+    @utils.pager(page, pageSize, total, call)
     @models.map { project =>
         <li class="list-group-item @if(!project.isVisible) { project-hidden }">
             <div class="project-list-header pull-left">
@@ -83,20 +88,5 @@ Collection of all projects.
             <div class="clearfix"></div>
         </li>
     }
-
-    @if(models.size >= pageSize || page > 1) {
-        <li class="list-group-item project-list-footer">
-            <div class="pull-right">
-                @if(page > 1) {
-                    <a href="@call(page - 1)"
-                       class="btn btn-default"><i class="fa fa-arrow-left"></i></a>
-                }
-                @if(models.size >= pageSize) {
-                    <a href="@call(page + 1)"
-                       class="btn btn-default"><i class="fa fa-arrow-right"></i></a>
-                }
-            </div>
-            <div class="clearfix"></div>
-        </li>
-    }
+    @utils.pager(page, pageSize, total, call)
 </ul>

@@ -1,11 +1,21 @@
-@import controllers.project.{routes => projectRoutes}
 @import db.ModelService
-@import db.impl.access.UserBase
-@import models.project.{Project, Version}
+@import db.impl.OrePostgresDriver.api._
+@import db.impl.access.{ProjectBase, UserBase}
+@import models.project.Project
 @import ore.OreConfig
-@import util.StringUtils._
-@(versions: Seq[(Project, Version)])(implicit messages: Messages, request: Request[_], service: ModelService,
-        config: OreConfig, users: UserBase)
+@(models: Seq[Project],
+  page: Int = 1,
+  pageSize: Int = 10,
+  total: Int)(implicit messages: Messages, request: Request[_], service: ModelService, config: OreConfig,
+        users: UserBase, projects: ProjectBase)
+
+@versionRoutes = @{
+    controllers.project.routes.Versions
+}
+
+@firstReview(project: Project) = @{
+    project.reviews.sorted(ordering = _.createdAt.desc, limit = 1).head
+}
 
 @bootstrap.layout(messages("user.queue")) {
 
@@ -15,39 +25,58 @@
         <div class="row">
             <div class="col-md-12 header-flags">
                 <h2>@messages("user.queue")</h2>
-                <h3 class="minor no-versions" @if(versions.nonEmpty) { style="display: none;" }>
+                <h3 class="minor no-versions" @if(models.nonEmpty) { style="display: none;" }>
                     <i class="fa fa-thumbs-o-up"></i> @messages("user.queue.none")
                 </h3>
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
-                <ul class="list-group list-versions">
-                    @versions.map { tuple =>
-                        <li class="list-group-item"
-                            data-version="@tuple._1.ownerName/@tuple._1.slug/versions/@tuple._2.name">
-                            @utils.userAvatar(tuple._1.owner.user, clazz = "user-avatar-xs")
-                            <a href="@projectRoutes.Versions.show(tuple._1.ownerName, tuple._1.slug, tuple._2.name)">
-                                @tuple._1.ownerName/<strong>@tuple._1.name</strong>
-                            </a>
-                            <span class="pull-right">
-                                <span class="faint">@prettifyDate(tuple._2.createdAt.get)</span>
-                                <span class="minor">@tuple._2.versionString</span>
-                                @defining(tuple._2.channel) { channel =>
-                                    <span class="channel" style="background-color: @channel.color.hex;">@channel.name</span>
-                                }
-                                <span class="btn-group-sm">
-                                    <a href="https://forums.spongepowered.org/users/@tuple._1.ownerName"
-                                       class="btn btn-default">
-                                        <i class="fa fa-reply"></i> @messages("user.flags.messageOwner")
-                                    </a>
-                                    <button class="btn btn-approve btn-success">
-                                        <i class="fa fa-thumbs-up"></i> @messages("user.queue.approve")
-                                    </button>
+                <ul class="list-group list-versions project-list">
+                    @utils.pager(page, pageSize, total, page => routes.Application.showQueue(Some(page)))
+                    @models.map { project =>
+                        <li class="list-group-item">
+                            <div class="project-list-header">
+                                @utils.userAvatar(
+                                    user = project.owner,
+                                    clazz = "user-avatar-sm pull-left")
+
+                                <span class="project-title">
+                                    <strong>
+                                        <a href="#">@project.name</a>
+                                    </strong>
+                                    <a href="#"><i class="fa fa-chevron-right review-expand"></i></a>
+                                    <div class="project-description minor">
+                                        @messages("admin.queue.pending", project.versions.filterNot(_.isReviewed).size)
+                                    </div>
                                 </span>
-                            </span>
+                            </div>
+
+                            <div class="review-drawer">
+                                @defining(firstReview(project)) { review =>
+                                    <div class="col-md-10">
+                                        <div class="row">
+                                            <h4>@review.version.name</h4>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 side-panel">
+                                        <div class="row">
+                                            <h5 class="minor">@messages("admin.queue.assignee")</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h5 class="minor">@messages("admin.queue.status")</h5>
+                                        </div>
+                                        <div class="row">
+                                            <a href="#" class="btn btn-primary btn-resolve">
+                                                <i class="fa fa-check"></i> @messages("admin.queue.resolve")
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
                         </li>
                     }
+                    @utils.pager(page, pageSize, total, page => routes.Application.showQueue(Some(page)))
                 </ul>
             </div>
         </div>

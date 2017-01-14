@@ -53,6 +53,17 @@ general.forgeMod.tooltip        =   To mark your project as a Forge mod, add for
 general.any                     =   Any
 general.platform                =   Platform
 general.notice                  =   Notice
+general.page                    =   Page {0} / {1}
+
+admin.queue.pending = {0} files awaiting approval
+admin.queue.assignee = Assignee
+admin.queue.status = Status
+admin.queue.resolve = Resolve
+admin.queue.unassigned = Unassigned
+admin.queue.assigned = Assigned
+admin.queue.inProgress = In Progress
+admin.queue.accepted = Accepted
+admin.queue.rejected = Rejected
 
 editor.deleteConfirm    =   Are you sure you want to delete {0}? This cannot be undone.
 

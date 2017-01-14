@@ -67,6 +67,7 @@ trait OreModelConfig extends ModelService with OreDBOs {
     .withChildren[Flag](classOf[Flag], _.projectId)
     .withChildren[ProjectRole](classOf[ProjectRole], _.projectId)
     .withChildren[ProjectView](classOf[ProjectView], _.modelId)
+    .withChildren[VersionReview](classOf[VersionReview], _.projectId)
     .withAssociation[ProjectWatchersTable, User](
       association = this.projectWatchers,
       selfReference = _.projectId,
@@ -92,6 +93,8 @@ trait OreModelConfig extends ModelService with OreDBOs {
     with StatSchema[ProjectView]
 
   val VersionSchema = new VersionSchema(this).withChildren[VersionDownload](classOf[VersionDownload], _.modelId)
+
+  val VersionReviewSchema = new ModelSchema[VersionReview](this, classOf[VersionReview], TableQuery[VersionReviewTable])
 
   case object DownloadSchema extends ModelSchema[VersionDownload](
     this, classOf[VersionDownload], TableQuery[VersionDownloadsTable]) with StatSchema[VersionDownload]

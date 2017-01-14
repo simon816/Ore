@@ -14,6 +14,7 @@ import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
+import ore.project.ReviewStatuses.ReviewStatus
 import ore.user.Prompts.Prompt
 import ore.user.notification.NotificationTypes.NotificationType
 
@@ -43,10 +44,11 @@ trait ProjectTable extends ModelTable[Project]
   def postId                =   column[Int]("post_id")
   def isTopicDirty          =   column[Boolean]("is_topic_dirty")
   def lastUpdated           =   column[Timestamp]("last_updated")
+  def needsReview           =   column[Boolean]("needs_review")
 
   override def * = (id.?, createdAt.?, pluginId, ownerName, userId, name, slug, recommendedVersionId.?, category,
                     isSpongePlugin, isForgeMod, description.?, stars, views, downloads, topicId, postId, isTopicDirty,
-                    isVisible, lastUpdated) <> ((Project.apply _).tupled, Project.unapply)
+                    isVisible, lastUpdated, needsReview) <> ((Project.apply _).tupled, Project.unapply)
 
 }
 
@@ -133,6 +135,18 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "project_versions"
   override def * = (id.?, createdAt.?, projectId, versionString, mcversion.?, dependencies, assets.?, channelId,
                     fileSize, hash, description.?, downloads, isReviewed, fileName,
                     signatureFileName) <> ((Version.apply _).tupled, Version.unapply)
+}
+
+class VersionReviewTable(tag: Tag) extends ModelTable[VersionReview](tag, "project_version_reviews") {
+
+  def versionId   = column[Int]("version_id")
+  def projectId   = column[Int]("project_id")
+  def assigneeId  = column[Int]("assignee_id")
+  def status      = column[ReviewStatus]("status")
+
+  override def * = (id.?, createdAt.?, versionId, projectId, assigneeId, status) <> (VersionReview.tupled,
+                    VersionReview.unapply)
+
 }
 
 class VersionDownloadsTable(tag: Tag)

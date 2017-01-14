@@ -4,6 +4,8 @@ import db.impl.OrePostgresDriver
 import db.table.MappedType
 import slick.jdbc.JdbcType
 
+import scala.language.implicitConversions
+
 /**
   * Represents the reasons for submitting a [[models.project.Flag]].
   */
