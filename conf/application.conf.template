@@ -46,9 +46,9 @@ security {
     }
 
     sso {
-        loginUrl = ${security.api.url}"/login"
-        signupUrl = ${security.api.url}"/signup"
-        verifyUrl = ${security.api.url}"/verify"
+        loginUrl = ${security.api.url}"/sso/"
+        signupUrl = ${security.api.url}"/sso/signup/"
+        verifyUrl = ${security.api.url}"/sso/sudo/"
         secret = "changeme"
         secret = ${?SPONGE_AUTH_SSO_SECRET}
         timeout = 10000
