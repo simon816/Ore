@@ -6,7 +6,7 @@ import java.nio.file.{Files, StandardCopyOption}
 import javax.inject.Inject
 
 import controllers.BaseController
-import controllers.Requests.ProjectRequest
+import controllers.sugar.Requests.ProjectRequest
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import discourse.OreDiscourseApi
@@ -17,10 +17,10 @@ import ore.project.Dependency
 import ore.project.factory.{PendingProject, ProjectFactory}
 import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload}
 import ore.{OreConfig, OreEnv, StatTracker}
-import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.Logger
 import play.api.i18n.MessagesApi
 import play.api.mvc.Result
+import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
 import views.html.projects.{versions => views}
 

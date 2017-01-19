@@ -3,7 +3,7 @@ package controllers
 import javax.inject.Inject
 
 import ore.rest.OreRestfulApi
-import org.spongepowered.play.StatusZ
+import util.StatusZ
 import play.api.libs.json._
 import play.api.mvc._
 

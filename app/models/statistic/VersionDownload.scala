@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import com.google.common.base.Preconditions._
-import controllers.Requests.ProjectRequest
+import controllers.sugar.Requests.ProjectRequest
 import db.impl.VersionDownloadsTable
 import db.impl.access.UserBase
 import models.project.Version

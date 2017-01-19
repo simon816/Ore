@@ -14,9 +14,9 @@ import ore.project.io.{InvalidPluginFileException, PluginUpload}
 import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv, StatTracker}
 import org.apache.commons.io.FileUtils
-import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.MessagesApi
 import play.api.mvc._
+import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
 import views.html.{projects => views}
 

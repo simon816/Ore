@@ -1,19 +1,19 @@
-package controllers
+package controllers.sugar
 
 import java.util.Date
 
-import controllers.Requests._
-import db.impl.OrePostgresDriver.api._
+import controllers.routes
+import controllers.sugar.Requests._
 import db.access.ModelAccess
+import db.impl.OrePostgresDriver.api._
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import models.project.Project
 import models.user.{SignOn, User}
 import ore.permission.scope.GlobalScope
 import ore.permission.{EditSettings, HideProjects, Permission}
-import org.spongepowered.play.security.SingleSignOnConsumer
-import org.spongepowered.play.util.ActionHelpers
-import play.api.mvc.Results._
+import play.api.mvc.Results.{NotFound, Redirect, Unauthorized}
 import play.api.mvc._
+import security.spauth.SingleSignOnConsumer
 
 import scala.concurrent.Future
 import scala.language.higherKinds

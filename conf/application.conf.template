@@ -30,7 +30,6 @@ play {
     http.session.maxAge                =   2419200 # 4 weeks
     http.parser.maxDiskBuffer          =   20MB
     ws.timeout.connection              =   10000
-    modules.enabled                    +=  "org.spongepowered.play.SpongeModule"
 }
 
 security {

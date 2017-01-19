@@ -1,13 +1,12 @@
-package security
+package security.spauth
 
 import java.util.concurrent.TimeoutException
 import javax.inject.Inject
 
 import ore.OreConfig
-import org.spongepowered.play.security.SpongeUser
-import org.spongepowered.play.util.WSUtils.parseJson
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
+import util.WSUtils.parseJson
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 

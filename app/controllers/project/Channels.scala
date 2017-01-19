@@ -8,8 +8,8 @@ import form.OreForms
 import ore.permission.EditChannels
 import ore.project.factory.ProjectFactory
 import ore.{OreConfig, OreEnv}
-import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.MessagesApi
+import security.spauth.SingleSignOnConsumer
 import views.html.projects.{channels => views}
 
 /**

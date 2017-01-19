@@ -15,12 +15,11 @@ import ore.user.notification.NotificationFilters.NotificationFilter
 import ore.user.notification.{InviteFilters, NotificationFilters}
 import ore.user.{FakeUser, Prompts}
 import ore.{OreConfig, OreEnv}
-import org.spongepowered.play.mail.Mailer
-import org.spongepowered.play.security.SingleSignOnConsumer
+import mail.{EmailFactory, Mailer}
 import play.Logger
 import play.api.i18n.MessagesApi
 import play.api.mvc._
-import util.EmailFactory
+import security.spauth.SingleSignOnConsumer
 import views.{html => views}
 
 /**

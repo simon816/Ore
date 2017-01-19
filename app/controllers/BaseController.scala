@@ -1,5 +1,6 @@
 package controllers
 
+import controllers.sugar.Actions
 import db.ModelService
 import db.access.ModelAccess
 import db.impl.VersionTable
@@ -7,9 +8,9 @@ import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import models.project.{Project, Version}
 import models.user.SignOn
 import ore.{OreConfig, OreEnv}
-import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.I18nSupport
 import play.api.mvc._
+import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
 
 /**

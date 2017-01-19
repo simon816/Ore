@@ -9,7 +9,7 @@ import db.{ModelBase, ModelService}
 import models.user.{Session, User}
 import ore.OreConfig
 import play.api.mvc.Request
-import security.SpongeAuthApi
+import security.spauth.SpongeAuthApi
 import util.StringUtils._
 
 /**

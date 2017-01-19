@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'se.walkercrou'
-version = '1.0.1'
+version = '1.0.0'
 description = 'Ore test plugin'
 
 sponge.plugin {

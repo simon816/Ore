@@ -5,7 +5,7 @@ import db.impl.model.OreModel
 import db.{Model, ModelProcessor, ModelService}
 import discourse.OreDiscourseApi
 import ore.OreConfig
-import security.SpongeAuthApi
+import security.spauth.SpongeAuthApi
 
 /**
   * A ModelProcessor that performs Ore specific model processing.

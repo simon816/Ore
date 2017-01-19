@@ -3,7 +3,7 @@ package ore
 import java.util.UUID
 import javax.inject.Inject
 
-import controllers.Requests.ProjectRequest
+import controllers.sugar.Requests.ProjectRequest
 import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
 import db.impl.schema.StatSchema

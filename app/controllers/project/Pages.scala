@@ -8,9 +8,9 @@ import form.OreForms
 import models.project.Page
 import ore.permission.EditPages
 import ore.{OreConfig, OreEnv, StatTracker}
-import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.MessagesApi
 import play.api.mvc.Action
+import security.spauth.SingleSignOnConsumer
 import views.html.projects.{pages => views}
 import util.StringUtils._
 

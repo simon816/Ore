@@ -9,7 +9,7 @@ import discourse.OreDiscourseApi
 import ore.{OreConfig, OreEnv}
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.i18n.MessagesApi
-import security.SpongeAuthApi
+import security.spauth.SpongeAuthApi
 import slick.driver.JdbcProfile
 
 import scala.concurrent.duration._

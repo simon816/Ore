@@ -1,4 +1,4 @@
-package controllers
+package controllers.sugar
 
 import models.project.Project
 import models.user.{Organization, User}

@@ -20,7 +20,6 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.spongepowered"     %   "sponge-play"             %   "1.0.1-SNAPSHOT",
   "org.spongepowered"     %   "play-discourse"          %   "1.0.0-SNAPSHOT",
   "org.spongepowered"     %   "plugin-meta"             %   "0.2",
   "com.typesafe.play"     %%  "play-slick"              %   "2.0.0",
@@ -32,5 +31,6 @@ libraryDependencies ++= Seq(
   "com.getsentry.raven"   %   "raven-logback"           %   "7.2.2",
   "org.bouncycastle"      %   "bcprov-jdk15on"          %   "1.56",
   "org.bouncycastle"      %   "bcpkix-jdk15on"          %   "1.56",
-  "org.bouncycastle"      %   "bcpg-jdk15on"            %   "1.56"
+  "org.bouncycastle"      %   "bcpg-jdk15on"            %   "1.56",
+  "javax.mail"            % "mail"                      %   "1.4.7"
 )

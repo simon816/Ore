@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
-import controllers.Requests.AuthRequest
+import controllers.sugar.Requests.AuthRequest
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
 import models.project.{Flag, Project, Version}
@@ -12,9 +12,9 @@ import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import ore.{OreConfig, OreEnv, Platforms}
-import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.MessagesApi
 import play.api.mvc._
+import security.spauth.SingleSignOnConsumer
 import util.DataHelper
 import views.{html => views}
 

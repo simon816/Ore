@@ -1,4 +1,4 @@
-package util
+package mail
 
 import javax.inject.Inject
 
@@ -6,7 +6,6 @@ import db.ModelService
 import db.impl.access.UserBase
 import models.user.User
 import ore.OreConfig
-import org.spongepowered.play.mail.Email
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Request
 

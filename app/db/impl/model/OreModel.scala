@@ -6,7 +6,7 @@ import db.Model
 import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import discourse.OreDiscourseApi
 import ore.OreConfig
-import security.SpongeAuthApi
+import security.spauth.SpongeAuthApi
 
 /** An Ore Model */
 abstract class OreModel(override val id: Option[Int],

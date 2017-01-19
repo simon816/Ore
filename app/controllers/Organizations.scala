@@ -9,9 +9,9 @@ import ore.permission.EditSettings
 import ore.rest.OreWrites
 import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv}
-import org.spongepowered.play.security.SingleSignOnConsumer
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
+import security.spauth.SingleSignOnConsumer
 import views.{html => views}
 
 import scala.concurrent.ExecutionContext.Implicits.global
