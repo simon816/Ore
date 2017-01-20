@@ -126,7 +126,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Public key information
     */
-  def pgpPubKeyInfo: Option[PGPPublicKeyInfo] = this.pgpPubKey.map(PGPPublicKeyInfo.decode)
+  def pgpPubKeyInfo: Option[PGPPublicKeyInfo] = this.pgpPubKey.flatMap(PGPPublicKeyInfo.decode)
 
   /**
     * Returns the last [[Timestamp]] when this User's PGP Public key was
