@@ -201,7 +201,7 @@ class Versions @Inject()(stats: StatTracker,
                   Redirect(call).withError("error.version.noDependency.forge")
                 else {
                   version.cache()
-                  Redirect(self.showCreatorWithMeta(author, slug, model.versionString))
+                  Redirect(self.showCreatorWithMeta(project.ownerName, slug, model.versionString))
                 }
               }
             } catch {
@@ -223,13 +223,12 @@ class Versions @Inject()(stats: StatTracker,
   def showCreatorWithMeta(author: String, slug: String, versionString: String) = {
     UserLock(ShowProject(author, slug)) { implicit request =>
       // Get pending version
-      val username = request.user.name
-      this.factory.getPendingVersion(username, slug, versionString) match {
+      this.factory.getPendingVersion(author, slug, versionString) match {
         case None =>
           Redirect(self.showCreator(author, slug))
         case Some(pendingVersion) =>
           // Get project
-          pendingOrReal(username, slug) match {
+          pendingOrReal(author, slug) match {
             case None =>
               Redirect(self.showCreator(author, slug))
             case Some(p) => p match {
@@ -263,8 +262,7 @@ class Versions @Inject()(stats: StatTracker,
   def publish(author: String, slug: String, versionString: String) = {
     UserLock(ShowProject(author, slug)) { implicit request =>
       // First get the pending Version
-      val username = request.user.name
-      this.factory.getPendingVersion(username, slug, versionString) match {
+      this.factory.getPendingVersion(author, slug, versionString) match {
         case None =>
           // Not found
           Redirect(self.showCreator(author, slug))
@@ -283,7 +281,7 @@ class Versions @Inject()(stats: StatTracker,
               pendingVersion.channelColor = versionData.color
 
               // Check for pending project
-              this.factory.getPendingProject(username, slug) match {
+              this.factory.getPendingProject(author, slug) match {
                 case None =>
                   // No pending project, create version for existing project
                   withProject(author, slug) { project =>

@@ -1,7 +1,6 @@
 package util
 
 import play.api.Logger
-import play.api.http.Status
 import play.api.libs.json.JsValue
 import play.api.libs.ws.WSResponse
 
@@ -10,8 +9,7 @@ import scala.util.{Failure, Success, Try}
 object WSUtils {
 
   def parseJson(response: WSResponse, log: Logger): Option[JsValue] = {
-    println("body = " + response.body)
-    if (response.status != Status.OK)
+    if (response.status < 200 || response.status >= 300)
       return None
     Try(response.json) match {
       case Failure(e) =>
