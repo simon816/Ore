@@ -5,6 +5,7 @@ import java.nio.file.{Files, Path}
 import java.util.jar.{JarEntry, JarInputStream}
 import java.util.zip.{ZipEntry, ZipFile}
 
+import com.google.common.base.Preconditions._
 import models.user.User
 import ore.user.UserOwned
 import org.apache.commons.codec.digest.DigestUtils
@@ -24,13 +25,17 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
   private val MetaFileName = "mcmod.info"
 
   private var _meta: Option[PluginMetadata] = None
+  private var _md5: String = _
 
   /**
     * Returns the actual file path associated with this plugin.
     *
     * @return Path of plugin file
     */
-  def path: Path = this._path
+  def path: Path = {
+    checkNotNull(this._path, "file is deleted", "")
+    this._path
+  }
 
   /**
     * Moves this PluginFile to the specified [[Path]].
@@ -45,7 +50,10 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
   /**
     * Deletes the File at this PluginFile's Path
     */
-  def delete() = Files.delete(this._path)
+  def delete() = {
+    Files.delete(this._path)
+    this._path = null
+  }
 
   /**
     * Returns the loaded PluginMetadata, if any.
@@ -59,7 +67,11 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
     *
     * @return MD5 hash
     */
-  def md5: String = DigestUtils.md5Hex(Files.newInputStream(this.path))
+  def md5: String = {
+    if (this._md5 == null)
+      this._md5 = DigestUtils.md5Hex(Files.newInputStream(this.path))
+    this._md5
+  }
 
   /**
     * Reads the temporary file's plugin meta file and returns the result.
@@ -71,7 +83,6 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
   @throws[InvalidPluginFileException]
   def loadMeta()(implicit messages: MessagesApi): PluginMetadata = {
     var jarIn: JarInputStream = null
-
     try {
       // Find plugin JAR
       jarIn = new JarInputStream(newJarStream)

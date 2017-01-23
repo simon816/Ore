@@ -12,7 +12,7 @@ import scala.util.Try
 /**
   * Handles file management of Projects.
   */
-class ProjectFileManager(val env: OreEnv) {
+class ProjectFiles(val env: OreEnv) {
 
   /**
     * Returns the specified project's plugin directory.

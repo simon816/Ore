@@ -15,7 +15,7 @@ import models.user.{Notification, User}
 import ore.Colors.Color
 import ore.OreConfig
 import ore.permission.role.RoleTypes
-import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload, ProjectFileManager}
+import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload, ProjectFiles}
 import ore.project.{Dependency, NotifyWatchersTask}
 import ore.user.notification.NotificationTypes
 import org.spongepowered.plugin.meta.PluginMetadata
@@ -38,7 +38,7 @@ trait ProjectFactory {
   implicit val users: UserBase = this.service.getModelBase(classOf[UserBase])
   implicit val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
 
-  val fileManager: ProjectFileManager = this.projects.fileManager
+  val fileManager: ProjectFiles = this.projects.fileManager
   val cacheApi: CacheApi
   val actorSystem: ActorSystem
   val pgp: PGPVerifier = new PGPVerifier

@@ -8,7 +8,7 @@ import db.impl.OrePostgresDriver.api._
 import db.{ModelBase, ModelService}
 import discourse.OreDiscourseApi
 import models.project.{Channel, Project, Version}
-import ore.project.io.ProjectFileManager
+import ore.project.io.ProjectFiles
 import ore.{OreConfig, OreEnv}
 import org.apache.commons.io.FileUtils
 import util.StringUtils._
@@ -21,7 +21,7 @@ class ProjectBase(override val service: ModelService,
 
   override val modelClass = classOf[Project]
 
-  val fileManager = new ProjectFileManager(this.env)
+  val fileManager = new ProjectFiles(this.env)
 
   implicit val self = this
 

@@ -11,7 +11,7 @@ import form.project.ProjectSettingsForm
 import models.user.Notification
 import models.user.role.ProjectRole
 import ore.permission.role.RoleTypes
-import ore.project.io.ProjectFileManager
+import ore.project.io.ProjectFiles
 import ore.project.{Categories, ProjectOwned}
 import ore.user.notification.NotificationTypes
 import play.api.Logger
@@ -121,7 +121,7 @@ case class ProjectSettings(override val id: Option[Int] = None,
     */
   //noinspection ComparingUnrelatedTypes
   def save(project: Project, formData: ProjectSettingsForm)(implicit messages: MessagesApi,
-                                                            fileManager: ProjectFileManager) = {
+                                                            fileManager: ProjectFiles) = {
     Logger.info("Saving project settings")
     Logger.info(formData.toString)
 
