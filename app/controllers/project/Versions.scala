@@ -302,9 +302,13 @@ class Versions @Inject()(stats: StatTracker,
                         if (versionData.recommended)
                           project.recommendedVersion = newVersion
 
-                        // Create forum topic reply
-                        if (project.topicId != -1)
-                          versionData.content.map(c => this.forums.postVersionRelease(project, newVersion, c.trim))
+                        // Create forum topic reply / update description
+                        versionData.content.foreach { content =>
+                          val c = content.trim
+                          newVersion.description = c
+                          if (project.topicId != -1)
+                            this.forums.postVersionRelease(project, newVersion, c)
+                        }
 
                         Redirect(self.show(author, slug, versionString))
                       }
