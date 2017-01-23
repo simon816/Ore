@@ -40,10 +40,10 @@ trait ProjectFactory {
 
   val fileManager: ProjectFileManager = this.projects.fileManager
   val cacheApi: CacheApi
-  val messages: MessagesApi
   val actorSystem: ActorSystem
   val pgp: PGPVerifier = new PGPVerifier
 
+  implicit val messages: MessagesApi
   implicit val config: OreConfig
   implicit val forums: OreDiscourseApi
   implicit val env = this.fileManager.env

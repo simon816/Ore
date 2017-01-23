@@ -9,6 +9,7 @@ import models.user.User
 import ore.user.UserOwned
 import org.apache.commons.codec.digest.DigestUtils
 import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
+import play.api.i18n.MessagesApi
 
 import scala.collection.JavaConverters._
 import scala.util.control.Breaks._
@@ -67,7 +68,8 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
     *
     * @return Result of parse
     */
-  def loadMeta(): PluginMetadata = {
+  @throws[InvalidPluginFileException]
+  def loadMeta()(implicit messages: MessagesApi): PluginMetadata = {
     var jarIn: JarInputStream = null
 
     try {
@@ -96,9 +98,20 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
 
       // Parse plugin meta info
       val meta = metaList.head
+
+      // check meta
+      def checkMeta(value: Any, field: String) = {
+        if (value == null)
+          throw InvalidPluginFileException(messages("error.plugin.incomplete", field))
+      }
+      checkMeta(meta.getName, "name")
+      checkMeta(meta.getVersion, "version")
+
       this._meta = Some(meta)
       meta
     } catch {
+      case pe: InvalidPluginFileException =>
+        throw pe
       case e: Exception =>
         throw InvalidPluginFileException(cause = e)
     } finally {
