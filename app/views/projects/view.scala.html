@@ -193,24 +193,13 @@ Base template for Project overview.
                             }
 
                             <!-- Download button -->
-                            @if(project.recommendedVersion.isReviewed) {
-                                <a href="@versionRoutes.downloadRecommended(project.ownerName, project.slug)"
-                                   title="@messages("project.download.recommend")"
-                                   data-toggle="tooltip"
-                                   data-placement="bottom"
-                                   class="btn btn-primary">
-                                    <i class="fa fa-download"></i> @messages("general.download")
-                                </a>
-                            } else {
-                                <button class="btn btn-primary" data-toggle="modal" data-target="#modal-download">
-                                    <i class="fa fa-download"></i> @messages("general.download")
-                                </button>
-
-                                @projects.utils.modalDownload(
-                                    call = versionRoutes.downloadRecommended(project.ownerName, project.slug),
-                                    message = "project.download.recommend.warn")
-
-                            }
+                            <a href="@versionRoutes.downloadRecommended(project.ownerName, project.slug)"
+                               title="@messages("project.download.recommend")"
+                               data-toggle="tooltip"
+                               data-placement="bottom"
+                               class="btn btn-primary">
+                                <i class="fa fa-download"></i> @messages("general.download")
+                            </a>
                         </div>
                     }
                 </div>

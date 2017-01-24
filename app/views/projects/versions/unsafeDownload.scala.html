@@ -1,0 +1,43 @@
+@import db.ModelService
+@import db.impl.access.UserBase
+@import ore.OreConfig
+@import models.project.Version
+@import models.project.Project
+@import ore.project.io.DownloadTypes.DownloadType
+@(project: Project,
+  target: Version,
+  origin: Option[String],
+  downloadType: DownloadType)(implicit messages: Messages, request: Request[_], service: ModelService,
+        config: OreConfig, users: UserBase)
+
+@versionRoutes = @{ controllers.project.routes.Versions }
+
+@bootstrap.layout(messages("version.download.confirm", project.ownerName, project.name, target.name)) {
+
+    <div class="container" style="margin-top: 90px;">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            @messages("version.download.confirm", project.ownerName, project.name, target.name)
+                        </h4>
+                    </div>
+                    <div class="panel-body">
+                        @Html(messages("version.download.confirm.body"))
+                        <a href="@origin.getOrElse(versionRoutes.show(project.ownerName, project.slug, target.name))"
+                           class="pull-left unsafe-dl-back">
+                            <i class="fa fa-arrow-left"></i> @messages("project.back")
+                        </a>
+                        <a href="@versionRoutes.downloadUnsafely(
+                            project.ownerName, project.slug, target.name, origin, Some(downloadType.id))"
+                           class="pull-right btn btn-primary">
+                            @messages("general.continue")
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}

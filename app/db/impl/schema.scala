@@ -2,6 +2,7 @@ package db.impl
 
 import java.sql.Timestamp
 
+import com.github.tminglei.slickpg.InetString
 import db.impl.OrePostgresDriver.api._
 import db.impl.table.common.{DescriptionColumn, DownloadsColumn, VisibilityColumn}
 import db.impl.table.StatTable
@@ -14,6 +15,7 @@ import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
+import ore.project.io.DownloadTypes.DownloadType
 import ore.user.Prompts.Prompt
 import ore.user.notification.NotificationTypes.NotificationType
 
@@ -133,6 +135,30 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "project_versions"
   override def * = (id.?, createdAt.?, projectId, versionString, mcversion.?, dependencies, assets.?, channelId,
                     fileSize, hash, description.?, downloads, isReviewed, fileName,
                     signatureFileName) <> ((Version.apply _).tupled, Version.unapply)
+}
+
+class DownloadWarningsTable(tag: Tag) extends ModelTable[DownloadWarning](tag, "project_version_download_warnings") {
+
+  def expiration = column[Timestamp]("expiration")
+  def token = column[String]("token")
+  def versionId = column[Int]("version_id")
+  def address = column[InetString]("address")
+  def downloadId = column[Int]("download_id")
+
+  override def * = (id.?, createdAt.?, expiration, token, versionId, address,
+                    downloadId) <> ((DownloadWarning.apply _).tupled, DownloadWarning.unapply)
+
+}
+
+class UnsafeDownloadsTable(tag: Tag) extends ModelTable[UnsafeDownload](tag, "project_version_unsafe_downloads") {
+
+  def userId = column[Int]("user_id")
+  def address = column[InetString]("address")
+  def downloadType = column[DownloadType]("download_type")
+
+  override def * = (id.?, createdAt.?, userId.?, address, downloadType) <> (UnsafeDownload.tupled,
+                    UnsafeDownload.unapply)
+
 }
 
 class VersionDownloadsTable(tag: Tag)

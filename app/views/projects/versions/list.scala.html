@@ -78,23 +78,10 @@ Versions page within Project overview.
                                                     <div class="pull-right">
                                                         <span class="date">@prettifyDate(version.createdAt.get)</span>
                                                         <span class="date">@version.humanFileSize</span>
-                                                        @if(version.isReviewed) {
-                                                            <a href="@versionRoutes.download(
-                                                                model.ownerName, model.slug, version.versionString)">
-                                                                <i title="Download" class="fa fa-download"></i>
-                                                            </a>
-                                                        } else {
-                                                            <a href="#" data-toggle="modal"
-                                                               data-target="#modal-download-@version.id.get">
-                                                                <i title="Download" class="fa fa-download"></i>
-                                                            </a>
-                                                        }
-
-                                                        @projects.utils.modalDownload(
-                                                            id = "modal-download-" + version.id.get,
-                                                            call = versionRoutes.download(
-                                                                model.ownerName, model.slug, version.versionString),
-                                                            message = "project.download.warn")
+                                                        <a href="@versionRoutes.download(
+                                                            model.ownerName, model.slug, version.versionString)">
+                                                            <i title="Download" class="fa fa-download"></i>
+                                                        </a>
                                                     </div>
                                                 </td>
                                             </tr>

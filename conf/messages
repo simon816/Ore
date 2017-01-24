@@ -150,6 +150,8 @@ project.removeMember.confirm    =   Are you sure you want to remove this user?
 project.deleted                 =   Project "{0}" deleted.
 project.license.link            =   Licensed under
 
+project.back = Get me out of here!
+
 org.create          =   New Organization
 org.create.title    =   Create a new Organization
 org.info            =   Organizations allow you group users provide closer collaboration between them within your projects on Ore.
@@ -174,6 +176,9 @@ version.recommended             =   Recommended version
 version.approved                =   Approved
 version.releaseBulletin         =   Release Bulletin
 version.releaseBulletin.info    =   What''s new in this release?
+
+version.download.confirm        =   Notice | {0}/{1} {2}
+version.download.confirm.body   =   <p>This version has not been reviewed by our moderation staff and may not be safe for download.</p> <p><i>Disclaimer: We disclaim all responsibility for any harm to your server or system should you choose not to heed this warning.</i></p>
 
 channel.name                    =   Channel name
 channel.edit.title              =   Edit channel

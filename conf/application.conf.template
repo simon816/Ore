@@ -35,6 +35,7 @@ play {
 security {
     requirePgp         =   true
     keyChangeCooldown  =   259200000
+    unsafeDownload.maxAge = 600000 # 10 minutes
 
     api {
         url = "http://localhost:8000"

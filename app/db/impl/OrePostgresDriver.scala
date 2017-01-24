@@ -8,6 +8,8 @@ import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
+import ore.project.io.DownloadTypes
+import ore.project.io.DownloadTypes.DownloadType
 import ore.project.{Categories, FlagReasons}
 import ore.user.Prompts
 import ore.user.Prompts.Prompt
@@ -36,6 +38,7 @@ trait OrePostgresDriver extends ExPostgresDriver with PgArraySupport with PgNetS
       str => utils.SimpleArrayUtils.fromString[Prompt](s => Prompts(Integer.parseInt(s)))(str).orNull,
       value => utils.SimpleArrayUtils.mkString[Prompt](_.id.toString)(value)
     ).to(_.toList)
+    implicit val downloadTypeTypeMapper = MappedJdbcType.base[DownloadType, Int](_.id, DownloadTypes.apply)
   }
 
 }

@@ -93,6 +93,12 @@ trait OreModelConfig extends ModelService with OreDBOs {
 
   val VersionSchema = new VersionSchema(this).withChildren[VersionDownload](classOf[VersionDownload], _.modelId)
 
+  val DownloadWarningSchema = new ModelSchema[DownloadWarning](
+    this, classOf[DownloadWarning], TableQuery[DownloadWarningsTable])
+
+  val UnsafeDownloadSchema = new ModelSchema[UnsafeDownload](
+    this, classOf[UnsafeDownload], TableQuery[UnsafeDownloadsTable])
+
   case object DownloadSchema extends ModelSchema[VersionDownload](
     this, classOf[VersionDownload], TableQuery[VersionDownloadsTable]) with StatSchema[VersionDownload]
 

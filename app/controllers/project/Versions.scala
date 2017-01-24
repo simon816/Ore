@@ -1,21 +1,26 @@
 package controllers.project
 
 import java.io.InputStream
+import java.net.{InetAddress, URI}
 import java.nio.file.Files._
 import java.nio.file.{Files, StandardCopyOption}
+import java.sql.Timestamp
+import java.util.{Date, UUID}
 import javax.inject.Inject
 
+import com.github.tminglei.slickpg.InetString
 import controllers.BaseController
 import controllers.sugar.Requests.ProjectRequest
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import discourse.OreDiscourseApi
 import form.OreForms
-import models.project.{Channel, Project, Version}
+import models.project._
 import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.Dependency
 import ore.project.factory.{PendingProject, ProjectFactory}
-import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload}
+import ore.project.io.DownloadTypes._
+import ore.project.io.{DownloadTypes, InvalidPluginFileException, PluginFile, PluginUpload}
 import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.Logger
 import play.api.i18n.MessagesApi
@@ -23,6 +28,8 @@ import play.api.mvc.Result
 import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
 import views.html.projects.{versions => views}
+
+import scala.util.Try
 
 /**
   * Controller for handling Version related actions.
@@ -40,6 +47,7 @@ class Versions @Inject()(stats: StatTracker,
 
   private val fileManager = this.projects.fileManager
   private val self = controllers.project.routes.Versions
+  private val warnings = this.service.access[DownloadWarning](classOf[DownloadWarning])
 
   private def VersionEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug, requireUnlock = true) andThen ProjectPermissionAction(EditVersions)
@@ -173,7 +181,6 @@ class Versions @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return Version create page (with meta)
     */
-  //noinspection ComparingUnrelatedTypes
   def upload(author: String, slug: String) = VersionEditAction(author, slug) { implicit request =>
     val call = self.showCreator(author, slug)
     val user = request.user
@@ -344,6 +351,139 @@ class Versions @Inject()(stats: StatTracker,
   }
 
   /**
+    * Displays a confirmation view for downloading unreviewed versions. The
+    * client is issued a unique token that will be checked once downloading to
+    * ensure that they have landed on this confirmation before downloading the
+    * version.
+    *
+    * @param author Project author
+    * @param slug   Project slug
+    * @param target Target version
+    * @param origin Origin URL
+    * @return       Confirmation view
+    */
+  def showDownloadConfirm(author: String,
+                          slug: String,
+                          target: String,
+                          origin: Option[String],
+                          downloadType: Option[Int]) = {
+    ProjectAction(author, slug) { implicit request =>
+      val dlType = downloadType.flatMap(i => DownloadTypes.values.find(_.id == i)).getOrElse(DownloadTypes.UploadedFile)
+      implicit val project = request.project
+      withVersion(target) { version =>
+        if (version.isReviewed)
+          Redirect(self.download(author, slug, target))
+        else if (origin.isDefined && !isValidRedirect(origin.get))
+          Redirect(ShowProject(author, slug))
+        else {
+          // generate a unique "warning" object to ensure the user has landed
+          // on the warning before downloading
+          val token = UUID.randomUUID().toString
+          val expiration = new Timestamp(new Date().getTime + this.config.security.getLong("unsafeDownload.maxAge").get)
+          val address = InetString(StatTracker.remoteAddress)
+          // remove old warning attached to address
+          this.warnings.removeAll(_.address === address)
+          // create warning
+          val warning = this.warnings.add(DownloadWarning(
+            expiration = expiration,
+            token = token,
+            versionId = version.id.get,
+            address = InetString(StatTracker.remoteAddress)))
+          Ok(views.unsafeDownload(project, version, origin, dlType)).withCookies(warning.cookie)
+        }
+      }
+    }
+  }
+
+  /**
+    * Verifies that the client has landed on a confirmation page for the
+    * target version and sends the file.
+    *
+    * @param author Project author
+    * @param slug   Project slug
+    * @param target Target version
+    * @param origin Origin URL
+    * @return       Unreviewed file
+    */
+  def downloadUnsafely(author: String,
+                       slug: String,
+                       target: String,
+                       origin: Option[String],
+                       downloadType: Option[Int]) = {
+    ProjectAction(author, slug) { implicit request =>
+      val dlType = downloadType.flatMap(i => DownloadTypes.values.find(_.id == i)).getOrElse(UploadedFile)
+      implicit val project = request.project
+      withVersion(target)(sendUnsafely(project, _, origin, dlType))
+    }
+  }
+
+  private def sendUnsafely(project: Project,
+                           version: Version,
+                           origin: Option[String],
+                           downloadType: DownloadType)(implicit request: ProjectRequest[_]): Result = {
+    val author = project.ownerName
+    val slug = project.slug
+    val target = version.name
+    if (version.isReviewed)
+      Redirect(self.download(author, slug, target))
+    else if (origin.isDefined && !isValidRedirect(origin.get))
+      Redirect(ShowProject(author, slug))
+    else if (request.cookies.get(DownloadWarning.COOKIE).isEmpty)
+      Redirect(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id)))
+    else {
+      val token = request.cookies.get(DownloadWarning.COOKIE).get.value
+      // find unexpired warning of token
+      val warning = this.warnings.find(_.token === token).flatMap { warning =>
+        if (warning.hasExpired) {
+          warning.remove()
+          None
+        } else
+          Some(warning)
+      }
+
+      // verify the user has landed on a confirmation for this version before
+      warning match {
+        case None =>
+          Redirect(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id)))
+        case Some(warn) =>
+          // make sure the client is downloading from the same address as
+          // they confirmed from
+          val address = InetString(StatTracker.remoteAddress)
+          val addrMatch = InetAddress.getByName(warn.address.address)
+            .equals(InetAddress.getByName(address.address))
+          if (warn.versionId != version.id.get || !addrMatch) {
+            warn.remove()
+            Redirect(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id)))
+          } else {
+            // create a record of this download
+            val downloads = this.service.access[UnsafeDownload](classOf[UnsafeDownload])
+            val userId = this.users.current.flatMap(_.id)
+            val download = downloads.add(UnsafeDownload(
+              userId = userId,
+              address = address,
+              downloadType = downloadType))
+            warn.download = download
+            downloadType match {
+              case UploadedFile =>
+                sendVersion(project, version, confirmed = true)
+              case JarFile =>
+                sendJar(project, version, confirmed = true)
+              case SignatureFile =>
+                // Note: Shouldn't get here in the first place since sig files
+                // don't need confirmation, but added as a failsafe.
+                sendSignatureFile(version)
+              case _ =>
+                throw new Exception("unknown download type: " + downloadType)
+            }
+          }
+      }
+    }
+  }
+
+  private def isValidRedirect(url: String)
+  = Try(!new URI(url).isAbsolute).toOption.getOrElse(false) && url.startsWith("/") && !url.startsWith("//")
+
+  /**
     * Sends the specified Project Version to the client.
     *
     * @param author        Project owner
@@ -354,9 +494,7 @@ class Versions @Inject()(stats: StatTracker,
   def download(author: String, slug: String, versionString: String) = ProjectAction(author, slug) { implicit request =>
     implicit val project = request.project
     withVersion(versionString) { version =>
-      this.stats.versionDownloaded(version) { implicit request =>
-        Ok.sendFile(this.fileManager.getProjectDir(author, project.name).resolve(version.fileName).toFile)
-      }
+      sendVersion(project, version, confirmed = false)
     }
   }
 
@@ -370,8 +508,18 @@ class Versions @Inject()(stats: StatTracker,
   def downloadRecommended(author: String, slug: String) = ProjectAction(author, slug) { implicit request =>
     val project = request.project
     val rv = project.recommendedVersion
-    this.stats.versionDownloaded(rv) { implicit request =>
-      Ok.sendFile(this.fileManager.getProjectDir(author, project.name).resolve(rv.fileName).toFile)
+    sendVersion(project, rv, confirmed = false)
+  }
+
+  private def sendVersion(project: Project,
+                          version: Version,
+                          confirmed: Boolean)(implicit req: ProjectRequest[_]): Result = {
+    if (!confirmed && !version.isReviewed)
+      Redirect(self.showDownloadConfirm(project.ownerName, project.slug, version.name, None, Some(UploadedFile.id)))
+    else {
+      this.stats.versionDownloaded(version) { implicit request =>
+        Ok.sendFile(this.fileManager.getProjectDir(project.ownerName, project.name).resolve(version.fileName).toFile)
+      }
     }
   }
 
@@ -387,8 +535,46 @@ class Versions @Inject()(stats: StatTracker,
   def downloadJar(author: String, slug: String, versionString: String) = {
     ProjectAction(author, slug) { implicit request =>
       implicit val project = request.project
-      withVersion(versionString)(version => sendJar(project, version))
+      withVersion(versionString)(version => sendJar(project, version, confirmed = false))
     }
+  }
+
+  /**
+    * Downloads the Project's recommended version as a JAR regardless of the
+    * original uploaded file type.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return       Sent file
+    */
+  def downloadRecommendedJar(author: String, slug: String) = ProjectAction(author, slug) { implicit request =>
+    val project = request.project
+    sendJar(project, project.recommendedVersion, confirmed = false)
+  }
+
+  /**
+    * Downloads the specified version as a JAR regardless of the original
+    * uploaded file type.
+    *
+    * @param pluginId       Project unique plugin ID
+    * @param versionString  Version name
+    * @return               Sent file
+    */
+  def downloadJarById(pluginId: String, versionString: String) = ProjectAction(pluginId) { implicit request =>
+    implicit val project = request.project
+    withVersion(versionString)(version => sendJar(project, version, confirmed = false))
+  }
+
+  /**
+    * Downloads the Project's recommended version as a JAR regardless of the
+    * original uploaded file type.
+    *
+    * @param pluginId Project unique plugin ID
+    * @return         Sent file
+    */
+  def downloadRecommendedJarById(pluginId: String) = ProjectAction(pluginId) { implicit request =>
+    val project = request.project
+    sendJar(project, project.recommendedVersion, confirmed = false)
   }
 
   /**
@@ -407,19 +593,6 @@ class Versions @Inject()(stats: StatTracker,
   }
 
   /**
-    * Downloads the specified version as a JAR regardless of the original
-    * uploaded file type.
-    *
-    * @param pluginId       Project unique plugin ID
-    * @param versionString  Version name
-    * @return               Sent file
-    */
-  def downloadJarById(pluginId: String, versionString: String) = ProjectAction(pluginId) { implicit request =>
-    implicit val project = request.project
-    withVersion(versionString)(version => sendJar(project, version))
-  }
-
-  /**
     * Downloads the signature file for the specified version.
     *
     * @param pluginId       Project unique plugin ID
@@ -429,19 +602,6 @@ class Versions @Inject()(stats: StatTracker,
   def downloadSignatureById(pluginId: String, versionString: String) = ProjectAction(pluginId) { implicit request =>
     implicit val project = request.project
     withVersion(versionString)(sendSignatureFile)
-  }
-
-  /**
-    * Downloads the Project's recommended version as a JAR regardless of the
-    * original uploaded file type.
-    *
-    * @param author Project owner
-    * @param slug   Project slug
-    * @return       Sent file
-    */
-  def downloadRecommendedJar(author: String, slug: String) = ProjectAction(author, slug) { implicit request =>
-    val project = request.project
-    sendJar(project, project.recommendedVersion)
   }
 
   /**
@@ -456,18 +616,6 @@ class Versions @Inject()(stats: StatTracker,
   }
 
   /**
-    * Downloads the Project's recommended version as a JAR regardless of the
-    * original uploaded file type.
-    *
-    * @param pluginId Project unique plugin ID
-    * @return         Sent file
-    */
-  def downloadRecommendedJarById(pluginId: String) = ProjectAction(pluginId) { implicit request =>
-    val project = request.project
-    sendJar(project, project.recommendedVersion)
-  }
-
-  /**
     * Downloads the signature file for the Project's recommended version.
     *
     * @param pluginId Project unique plugin ID
@@ -477,32 +625,37 @@ class Versions @Inject()(stats: StatTracker,
     sendSignatureFile(request.project.recommendedVersion)
   }
 
-  private def sendJar(project: Project, version: Version)(implicit request: ProjectRequest[_]): Result = {
-    val fileName = version.fileName
-    val path = this.fileManager.getProjectDir(project.ownerName, project.name).resolve(fileName)
-    this.stats.versionDownloaded(version) { implicit request =>
-      if (fileName.endsWith(".jar"))
-        Ok.sendFile(path.toFile)
-      else {
-        val pluginFile = new PluginFile(path, signaturePath = null, project.owner.user)
-        val jarName = fileName.substring(0, fileName.lastIndexOf('.')) + ".jar"
-        val jarPath = this.fileManager.env.tmp.resolve(project.ownerName).resolve(jarName)
+  private def sendJar(project: Project,
+                      version: Version,
+                      confirmed: Boolean)(implicit request: ProjectRequest[_]): Result = {
+    if (!confirmed && !version.isReviewed)
+      Redirect(self.showDownloadConfirm(project.ownerName, project.slug, version.name, None, Some(JarFile.id)))
+    else {
+      val fileName = version.fileName
+      val path = this.fileManager.getProjectDir(project.ownerName, project.name).resolve(fileName)
+      this.stats.versionDownloaded(version) { implicit request =>
+        if (fileName.endsWith(".jar"))
+          Ok.sendFile(path.toFile)
+        else {
+          val pluginFile = new PluginFile(path, signaturePath = null, project.owner.user)
+          val jarName = fileName.substring(0, fileName.lastIndexOf('.')) + ".jar"
+          val jarPath = this.fileManager.env.tmp.resolve(project.ownerName).resolve(jarName)
 
-        var jarIn: InputStream = null
-        try {
-          jarIn = pluginFile.newJarStream
-          copy(jarIn, jarPath, StandardCopyOption.REPLACE_EXISTING)
-        } catch {
-          case e: Exception =>
-            Logger.error("an error occurred while trying to send a plugin", e)
-        } finally {
-          if (jarIn != null)
-            jarIn.close()
-          else
-            Logger.error("could not obtain input stream for download request")
+          var jarIn: InputStream = null
+          try {
+            jarIn = pluginFile.newJarStream
+            copy(jarIn, jarPath, StandardCopyOption.REPLACE_EXISTING)
+          } catch {
+            case e: Exception =>
+              Logger.error("an error occurred while trying to send a plugin", e)
+          } finally {
+            if (jarIn != null)
+              jarIn.close()
+            else
+              Logger.error("could not obtain input stream for download request")
+          }
+          Ok.sendFile(jarPath.toFile, onClose = () => Files.delete(jarPath))
         }
-
-        Ok.sendFile(jarPath.toFile, onClose = () => Files.delete(jarPath))
       }
     }
   }

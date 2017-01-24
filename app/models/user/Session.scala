@@ -1,12 +1,11 @@
 package models.user
 
 import java.sql.Timestamp
-import java.util.Date
 
-import db.Model
 import db.impl.SessionTable
 import db.impl.access.UserBase
 import db.impl.model.OreModel
+import db.{Expirable, Model}
 
 /**
   * Represents a persistant [[User]] session.
@@ -19,19 +18,12 @@ import db.impl.model.OreModel
   */
 case class Session(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
-                   expiration: Timestamp,
+                   override val expiration: Timestamp,
                    username: String,
-                   token: String) extends OreModel(id, createdAt) {
+                   token: String) extends OreModel(id, createdAt) with Expirable {
 
   override type M = Session
   override type T = SessionTable
-
-  /**
-    * Returns true if this Session has expired.
-    *
-    * @return
-    */
-  def hasExpired: Boolean = expiration.before(new Date)
 
   /**
     * Returns the [[User]] that this Session belongs to.

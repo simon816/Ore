@@ -65,6 +65,9 @@ object ModelKeys {
   val IsReviewed            =   new BooleanKey[Version](_.isReviewed, _.isReviewed)
   val ChannelId             =   new IntKey[Version](_.channelId, _.channelId)
 
+  // DownloadWarning
+  val DownloadId            =   new IntKey[DownloadWarning](_.downloadId, _.downloadId)
+
   // Channel
   val Color                 =   new MappedTypeKey[Channel, Color](_.color, _.color)
 
