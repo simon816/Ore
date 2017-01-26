@@ -376,6 +376,14 @@ class Versions @Inject()(stats: StatTracker,
         else if (origin.isDefined && !isValidRedirect(origin.get))
           Redirect(ShowProject(author, slug))
         else {
+          val userAgent = request.headers.get("User-Agent")
+          var cliClient: Boolean = false
+          if (userAgent.isDefined) {
+            val ua = userAgent.get.toLowerCase
+            if (ua.startsWith("wget/") || ua.startsWith("curl/"))
+              cliClient = true
+          }
+
           // generate a unique "warning" object to ensure the user has landed
           // on the warning before downloading
           val token = UUID.randomUUID().toString
@@ -389,7 +397,14 @@ class Versions @Inject()(stats: StatTracker,
             token = token,
             versionId = version.id.get,
             address = InetString(StatTracker.remoteAddress)))
-          Ok(views.unsafeDownload(project, version, origin, dlType)).withCookies(warning.cookie)
+
+          if (!cliClient) {
+            Ok(views.unsafeDownload(project, version, origin, dlType)).withCookies(warning.cookie)
+          } else {
+            MultiStatus(this.messagesApi(
+              "version.download.confirm.body.plain",
+              self.downloadUnsafely(author, slug, target, origin, downloadType, Some(token)).absoluteURL()))
+          }
         }
       }
     }
@@ -409,18 +424,20 @@ class Versions @Inject()(stats: StatTracker,
                        slug: String,
                        target: String,
                        origin: Option[String],
-                       downloadType: Option[Int]) = {
+                       downloadType: Option[Int],
+                       token: Option[String]) = {
     ProjectAction(author, slug) { implicit request =>
       val dlType = downloadType.flatMap(i => DownloadTypes.values.find(_.id == i)).getOrElse(UploadedFile)
       implicit val project = request.project
-      withVersion(target)(sendUnsafely(project, _, origin, dlType))
+      withVersion(target)(sendUnsafely(project, _, origin, dlType, token))
     }
   }
 
   private def sendUnsafely(project: Project,
                            version: Version,
                            origin: Option[String],
-                           downloadType: DownloadType)(implicit request: ProjectRequest[_]): Result = {
+                           downloadType: DownloadType,
+                           token: Option[String])(implicit request: ProjectRequest[_]): Result = {
     val author = project.ownerName
     val slug = project.slug
     val target = version.name
@@ -428,12 +445,12 @@ class Versions @Inject()(stats: StatTracker,
       Redirect(self.download(author, slug, target))
     else if (origin.isDefined && !isValidRedirect(origin.get))
       Redirect(ShowProject(author, slug))
-    else if (request.cookies.get(DownloadWarning.COOKIE).isEmpty)
+    else if (token.isEmpty && request.cookies.get(DownloadWarning.COOKIE).isEmpty)
       Redirect(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id)))
     else {
-      val token = request.cookies.get(DownloadWarning.COOKIE).get.value
+      val tokenValue = token.orElse(request.cookies.get(DownloadWarning.COOKIE).map(_.value)).get
       // find unexpired warning of token
-      val warning = this.warnings.find(_.token === token).flatMap { warning =>
+      val warning = this.warnings.find(_.token === tokenValue).flatMap { warning =>
         if (warning.hasExpired) {
           warning.remove()
           None

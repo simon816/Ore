@@ -136,7 +136,7 @@ POST    /:author/:slug/versions/:version/approve                    @controllers
 POST    /:author/:slug/versions/:version/delete                     @controllers.project.Versions.delete(author, slug, version)
 
 GET     /:author/:slug/versions/:version/confirm                    @controllers.project.Versions.showDownloadConfirm(author, slug, version, origin: Option[String], downloadType: Option[Int])
-GET     /:author/:slug/versions/:version/unsafe                     @controllers.project.Versions.downloadUnsafely(author, slug, version, origin: Option[String], downloadType: Option[Int])
+GET     /:author/:slug/versions/:version/unsafe                     @controllers.project.Versions.downloadUnsafely(author, slug, version, origin: Option[String], downloadType: Option[Int], token: Option[String])
 
 GET     /:author/:slug/versions/recommended/download                @controllers.project.Versions.downloadRecommended(author, slug)
 GET     /:author/:slug/versions/recommended/signature               @controllers.project.Versions.downloadRecommendedSignature(author, slug)

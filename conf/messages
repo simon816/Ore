@@ -180,6 +180,13 @@ version.releaseBulletin.info    =   What''s new in this release?
 version.download.confirm        =   Notice | {0}/{1} {2}
 version.download.confirm.body   =   <p>This version has not been reviewed by our moderation staff and may not be safe for download.</p> <p><i>Disclaimer: We disclaim all responsibility for any harm to your server or system should you choose not to heed this warning.</i></p>
 
+version.download.confirm.body.plain = \
+  This version has not been reviewed by our moderation staff and may not be safe for download.\n\
+  Disclaimer: We disclaim all responsibility for any harm to your server or system should you choose not to heed this \
+  warning.\n\
+  Please use the following URL to acknowledge this disclaimer and continue to the download:\n\
+  {0}
+
 channel.name                    =   Channel name
 channel.edit.title              =   Edit channel
 channel.edit.close              =   Close
