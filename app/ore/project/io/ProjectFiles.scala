@@ -1,10 +1,12 @@
 package ore.project.io
 
+import java.io.IOException
 import java.nio.file.Files._
 import java.nio.file.Path
 
 import models.project.Project
 import ore.OreEnv
+import play.api.Logger
 
 import scala.collection.JavaConverters._
 import scala.util.Try
@@ -98,9 +100,20 @@ class ProjectFiles(val env: OreEnv) {
   = findFirstFile(getPendingIconDir(project.ownerName, project.name))
 
   private def findFirstFile(dir: Path): Option[Path] = {
-    if (exists(dir))
-      list(dir).iterator.asScala.filterNot(isDirectory(_)).toStream.headOption
-    else
+    if (exists(dir)) {
+      var stream: java.util.stream.Stream[Path] = null
+      try {
+        stream = list(dir)
+        stream.iterator.asScala.filterNot(isDirectory(_)).toStream.headOption
+      } catch {
+        case e: IOException =>
+          Logger.error("an error occurred while searching a directory", e)
+          None
+      } finally {
+        if (stream != null)
+          stream.close()
+      }
+    } else
       None
   }
 
