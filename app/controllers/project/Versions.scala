@@ -25,8 +25,10 @@ import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.Logger
 import play.api.i18n.MessagesApi
 import play.api.mvc.Result
+import play.filters.csrf.CSRFCheck
 import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
+import views.html.helper.CSRF
 import views.html.projects.{versions => views}
 
 import scala.util.Try
@@ -38,6 +40,7 @@ class Versions @Inject()(stats: StatTracker,
                          forms: OreForms,
                          factory: ProjectFactory,
                          forums: OreDiscourseApi,
+                         csrfCheck: CSRFCheck,
                          implicit override val sso: SingleSignOnConsumer,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
@@ -366,7 +369,7 @@ class Versions @Inject()(stats: StatTracker,
                           slug: String,
                           target: String,
                           origin: Option[String],
-                          downloadType: Option[Int]) = {
+                          downloadType: Option[Int]) = csrfCheck {
     ProjectAction(author, slug) { implicit request =>
       val dlType = downloadType.flatMap(i => DownloadTypes.values.find(_.id == i)).getOrElse(DownloadTypes.UploadedFile)
       implicit val project = request.project
@@ -446,7 +449,7 @@ class Versions @Inject()(stats: StatTracker,
     else if (origin.isDefined && !isValidRedirect(origin.get))
       Redirect(ShowProject(author, slug))
     else if (token.isEmpty && request.cookies.get(DownloadWarning.COOKIE).isEmpty)
-      Redirect(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id)))
+      Redirect(CSRF(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id))))
     else {
       val tokenValue = token.orElse(request.cookies.get(DownloadWarning.COOKIE).map(_.value)).get
       // find unexpired warning of token
@@ -461,16 +464,16 @@ class Versions @Inject()(stats: StatTracker,
       // verify the user has landed on a confirmation for this version before
       warning match {
         case None =>
-          Redirect(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id)))
+          Redirect(CSRF(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id))))
         case Some(warn) =>
           // make sure the client is downloading from the same address as
           // they confirmed from
           val address = InetString(StatTracker.remoteAddress)
           val addrMatch = InetAddress.getByName(warn.address.address)
             .equals(InetAddress.getByName(address.address))
-          if (warn.versionId != version.id.get || !addrMatch) {
+          if (warn.versionId != version.id.get || !addrMatch || warn.download.isDefined) {
             warn.remove()
-            Redirect(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id)))
+            Redirect(CSRF(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id))))
           } else {
             // create a record of this download
             val downloads = this.service.access[UnsafeDownload](classOf[UnsafeDownload])
@@ -532,7 +535,8 @@ class Versions @Inject()(stats: StatTracker,
                           version: Version,
                           confirmed: Boolean)(implicit req: ProjectRequest[_]): Result = {
     if (!confirmed && !version.isReviewed)
-      Redirect(self.showDownloadConfirm(project.ownerName, project.slug, version.name, None, Some(UploadedFile.id)))
+      Redirect(CSRF(self.showDownloadConfirm(
+        project.ownerName, project.slug, version.name, None, Some(UploadedFile.id))))
     else {
       this.stats.versionDownloaded(version) { implicit request =>
         Ok.sendFile(this.fileManager.getProjectDir(project.ownerName, project.name).resolve(version.fileName).toFile)
@@ -646,7 +650,7 @@ class Versions @Inject()(stats: StatTracker,
                       version: Version,
                       confirmed: Boolean)(implicit request: ProjectRequest[_]): Result = {
     if (!confirmed && !version.isReviewed)
-      Redirect(self.showDownloadConfirm(project.ownerName, project.slug, version.name, None, Some(JarFile.id)))
+      Redirect(CSRF(self.showDownloadConfirm(project.ownerName, project.slug, version.name, None, Some(JarFile.id))))
     else {
       val fileName = version.fileName
       val path = this.fileManager.getProjectDir(project.ownerName, project.name).resolve(fileName)
