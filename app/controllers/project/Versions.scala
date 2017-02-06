@@ -374,9 +374,7 @@ class Versions @Inject()(stats: StatTracker,
       val dlType = downloadType.flatMap(i => DownloadTypes.values.find(_.id == i)).getOrElse(DownloadTypes.UploadedFile)
       implicit val project = request.project
       withVersion(target) { version =>
-        if (version.isReviewed)
-          Redirect(self.download(author, slug, target))
-        else if (origin.isDefined && !isValidRedirect(origin.get))
+        if (version.isReviewed || (origin.isDefined && !isValidRedirect(origin.get)))
           Redirect(ShowProject(author, slug))
         else {
           val userAgent = request.headers.get("User-Agent")
@@ -444,9 +442,7 @@ class Versions @Inject()(stats: StatTracker,
     val author = project.ownerName
     val slug = project.slug
     val target = version.name
-    if (version.isReviewed)
-      Redirect(self.download(author, slug, target))
-    else if (origin.isDefined && !isValidRedirect(origin.get))
+    if (version.isReviewed || (origin.isDefined && !isValidRedirect(origin.get)))
       Redirect(ShowProject(author, slug))
     else if (token.isEmpty && request.cookies.get(DownloadWarning.COOKIE).isEmpty)
       Redirect(CSRF(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id))))

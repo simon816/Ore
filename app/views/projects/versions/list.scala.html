@@ -7,6 +7,7 @@ Versions page within Project overview.
 @import ore.OreConfig
 @import ore.permission.{EditChannels, EditVersions}
 @import util.StringUtils._
+@import views.html.helper.CSRF
 @(model: Project,
   channels: Seq[Channel],
   versions: Seq[Version],
@@ -78,10 +79,16 @@ Versions page within Project overview.
                                                     <div class="pull-right">
                                                         <span class="date">@prettifyDate(version.createdAt.get)</span>
                                                         <span class="date">@version.humanFileSize</span>
-                                                        <a href="@versionRoutes.download(
-                                                            model.ownerName, model.slug, version.versionString)">
+                                                        <a href="#" class="a-download"
+                                                           data-form="form-download-@version.id.get">
                                                             <i title="Download" class="fa fa-download"></i>
                                                         </a>
+                                                        <form action="@versionRoutes.download(
+                                                            model.ownerName, model.slug, version.versionString)"
+                                                              method="post" style="display: none;"
+                                                              id="form-download-@version.id.get">
+                                                            @CSRF.formField
+                                                        </form>
                                                     </div>
                                                 </td>
                                             </tr>

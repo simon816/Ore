@@ -141,4 +141,10 @@ $(function() {
         if (e.target == this)
             window.location.href = $(this).find('td:first-child').find('a').prop('href');
     });
+
+    $('.a-download').click(function(e) {
+        e.preventDefault();
+        var form = $('#' + $(this).data('form'));
+        form.submit();
+    })
 });

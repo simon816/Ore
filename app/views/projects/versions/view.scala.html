@@ -108,11 +108,14 @@
                                 }
                             }
 
-                            <a class="btn btn-primary"
-                               href="@versionRoutes.download(
-                                   project.ownerName, project.slug, version.versionString)">
+                            <button type="submit" form="form-download" class="btn btn-primary">
                                 <i class="fa fa-download"></i> @messages("general.download")
-                            </a>
+                            </button>
+                            <form action="@versionRoutes.download(
+                                project.ownerName, project.slug, version.versionString)"
+                                  method="post" style="display: none;" id="form-download">
+                                @CSRF.formField
+                            </form>
 
                         </div>
                     </div>

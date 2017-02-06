@@ -4,6 +4,7 @@
 @import models.project.Version
 @import models.project.Project
 @import ore.project.io.DownloadTypes.DownloadType
+@import views.html.helper.CSRF
 @(project: Project,
   target: Version,
   origin: Option[String],
@@ -29,11 +30,14 @@
                            class="pull-left unsafe-dl-back">
                             <i class="fa fa-arrow-left"></i> @messages("project.back")
                         </a>
-                        <a href="@versionRoutes.downloadUnsafely(
-                            project.ownerName, project.slug, target.name, origin, Some(downloadType.id), None)"
-                           class="pull-right btn btn-primary">
+                        <button type="submit" form="form-download" class="pull-right btn btn-primary">
                             @messages("general.continue")
-                        </a>
+                        </button>
+                        <form action="@versionRoutes.downloadUnsafely(
+                            project.ownerName, project.slug, target.name, origin, Some(downloadType.id), None)"
+                              method="post" style="display: none;" id="form-download">
+                            @CSRF.formField
+                        </form>
                     </div>
                 </div>
             </div>
