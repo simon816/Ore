@@ -30,7 +30,7 @@ import scala.concurrent.duration.Duration
 import scala.util.Try
 
 /**
-  * Handles creation of Project's and their components.
+  * Manages the project and version creation pipeline.
   */
 trait ProjectFactory {
 
@@ -62,10 +62,13 @@ trait ProjectFactory {
     val pluginFileName = uploadData.pluginFileName
     var signatureFileName = uploadData.signatureFileName
 
+    // file extension constraints
     if (!pluginFileName.endsWith(".zip") && !pluginFileName.endsWith(".jar"))
       throw InvalidPluginFileException("error.plugin.fileExtension")
     if (!signatureFileName.endsWith(".sig") && !signatureFileName.endsWith(".asc"))
       throw InvalidPluginFileException("error.plugin.sig.fileExtension")
+
+    // check user's public key validity
     if (owner.pgpPubKey.isEmpty)
       throw new IllegalArgumentException("error.plugin.noPubKey")
     if (!owner.isPgpPubKeyReady)
@@ -74,19 +77,21 @@ trait ProjectFactory {
     var pluginPath = uploadData.pluginFile.file.toPath
     var sigPath = uploadData.signatureFile.file.toPath
 
+    // verify detached signature
     if (!this.pgp.verifyDetachedSignature(pluginPath, sigPath, owner.pgpPubKey.get))
       throw InvalidPluginFileException("error.plugin.sig.failed")
 
+    // move uploaded files to temporary directory while the project creation
+    // process continues
     val tmpDir = this.env.tmp.resolve(owner.username)
     if (notExists(tmpDir))
       createDirectories(tmpDir)
-
     val signatureFileExtension = signatureFileName.substring(signatureFileName.lastIndexOf("."))
     signatureFileName = pluginFileName + signatureFileExtension
-
     pluginPath = copy(pluginPath, tmpDir.resolve(pluginFileName), StandardCopyOption.REPLACE_EXISTING)
     sigPath = copy(sigPath, tmpDir.resolve(signatureFileName), StandardCopyOption.REPLACE_EXISTING)
 
+    // create and load a new PluginFile instance for further processing
     val plugin = new PluginFile(pluginPath, sigPath, owner)
     plugin.loadMeta()
     plugin
@@ -103,15 +108,12 @@ trait ProjectFactory {
       // Make sure user has a key
       if (user.pgpPubKey.isEmpty)
         return Some("error.pgp.noPubKey")
-
       // Make sure the user has waited long enough to use a key
       if (!user.isPgpPubKeyReady)
         return Some("error.pgp.keyChangeCooldown")
     }
-
     if (user.isLocked)
       return Some("error.user.locked")
-
     None
   }
 

@@ -3,6 +3,7 @@ package security.spauth
 import java.util.concurrent.TimeoutException
 import javax.inject.Inject
 
+import com.google.common.base.Preconditions._
 import ore.OreConfig
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
@@ -40,7 +41,7 @@ trait SpongeAuthApi {
     *
     * @param username Username
     * @param email    Email
-    * @param password Password
+    * @param password Password (nullable)
     * @param verified True if should bypass email verification
     * @return         Newly created user
     */
@@ -66,6 +67,8 @@ trait SpongeAuthApi {
                            password: String,
                            verified: Boolean = false,
                            dummy: Boolean = false): Either[String, SpongeUser] = {
+    checkNotNull(username, "null username", "")
+    checkNotNull(email, "null email", "")
     var params = Map(
       "api-key" -> Seq(this.apiKey),
       "username" -> Seq(username),
@@ -84,6 +87,7 @@ trait SpongeAuthApi {
     * @return         User with username
     */
   def getUser(username: String): Option[SpongeUser] = {
+    checkNotNull(username, "null username", "")
     val url = route("/api/users/" + username) + s"?apiKey=$apiKey"
     readUser(this.ws.url(url).get()).right.toOption
   }
@@ -95,6 +99,7 @@ trait SpongeAuthApi {
     * @return         Deleted user
     */
   def deleteUser(username: String): Either[String, SpongeUser] = {
+    checkNotNull(username, "null username", "")
     val url = route("/api/users") + s"?username=$username&apiKey=$apiKey"
     readUser(this.ws.url(url).delete())
   }
