@@ -36,7 +36,6 @@ security {
     requirePgp         =   true
     keyChangeCooldown  =   259200000
     unsafeDownload.maxAge = 600000 # 10 minutes
-    caching = true
 
     api {
         url = "http://localhost:8000"
@@ -63,6 +62,7 @@ ore {
     debug-level =  3
     # Used in /admin/seed route. Run "gradle build" in OreTestPlugin before using that route
     test-plugin = "OreTestPlugin/build/libs/ore-test-plugin-dev-SNAPSHOT.jar"
+    caching = true
     
     channels {
         max-name-len = 15
