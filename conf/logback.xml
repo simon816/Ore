@@ -42,5 +42,6 @@
     <logger name="UserSync" level="INFO" />
     <logger name="Organizations" level="INFO" />
     <logger name="SSO" level="INFO" />
+    <!--<logger name="slick" level="DEBUG" />-->
 
 </configuration>

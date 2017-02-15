@@ -201,7 +201,7 @@ class SessionTable(tag: Tag) extends ModelTable[DbSession](tag, "user_sessions")
 
 }
 
-class SignOnTable(tag: Tag) extends ModelTable[SignOn](tag, "sign_ons") {
+class SignOnTable(tag: Tag) extends ModelTable[SignOn](tag, "user_sign_ons") {
 
   def nonce = column[String]("nonce")
   def isCompleted = column[Boolean]("is_completed")

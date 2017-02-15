@@ -1,6 +1,6 @@
 name := "ore"
 
-version := "1.2.2"
+version := "1.2.3"
 
 lazy val `ore` = (project in file(".")).enablePlugins(PlayScala)
 
@@ -22,8 +22,8 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "org.spongepowered"     %   "play-discourse"          %   "1.0.0-SNAPSHOT",
   "org.spongepowered"     %   "plugin-meta"             %   "0.2",
-  "com.typesafe.play"     %%  "play-slick"              %   "2.0.0",
-  "com.typesafe.play"     %%  "play-slick-evolutions"   %   "2.0.0",
+  "com.typesafe.play"     %%  "play-slick"              %   "2.0.2",
+  "com.typesafe.play"     %%  "play-slick-evolutions"   %   "2.0.2",
   "org.postgresql"        %   "postgresql"              %   "9.4.1212.jre7",
   "com.github.tminglei"   %%  "slick-pg"                %   "0.12.0",
   "org.apache.commons"    %   "commons-io"              %   "1.3.2",
@@ -32,5 +32,5 @@ libraryDependencies ++= Seq(
   "org.bouncycastle"      %   "bcprov-jdk15on"          %   "1.56",
   "org.bouncycastle"      %   "bcpkix-jdk15on"          %   "1.56",
   "org.bouncycastle"      %   "bcpg-jdk15on"            %   "1.56",
-  "javax.mail"            % "mail"                      %   "1.4.7"
+  "javax.mail"            %   "mail"                    %   "1.4.7"
 )

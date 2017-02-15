@@ -170,7 +170,7 @@ $(function() {
  * ==================================================
  */
 
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && caching) {
     window.addEventListener('load', function() {
         navigator.serviceWorker.register('/sw.js', {scope: '/'});
     });

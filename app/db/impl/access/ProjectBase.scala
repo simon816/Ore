@@ -1,6 +1,6 @@
 package db.impl.access
 
-import java.nio.file.Files
+import java.nio.file.{Files, NoSuchFileException}
 import java.nio.file.Files._
 
 import com.google.common.base.Preconditions._
@@ -11,6 +11,7 @@ import models.project.{Channel, Project, Version}
 import ore.project.io.ProjectFiles
 import ore.{OreConfig, OreEnv}
 import org.apache.commons.io.FileUtils
+import play.api.Logger
 import util.StringUtils._
 
 class ProjectBase(override val service: ModelService,
@@ -150,8 +151,13 @@ class ProjectBase(override val service: ModelService,
       this.deleteChannel(channel)
 
     val projectDir = this.fileManager.getProjectDir(proj.ownerName, project.name)
-    Files.delete(projectDir.resolve(version.fileName))
-    Files.delete(projectDir.resolve(version.signatureFileName))
+    try {
+      Files.delete(projectDir.resolve(version.fileName))
+      Files.delete(projectDir.resolve(version.signatureFileName))
+    } catch {
+      case _: NoSuchFileException =>
+        Logger.warn("a version was deleted but it's files were missing, did deletion fail before?")
+    }
   }
 
   /**
