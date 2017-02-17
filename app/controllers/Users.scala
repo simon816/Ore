@@ -124,7 +124,11 @@ class Users @Inject()(fakeUser: FakeUser,
     val p = page.getOrElse(1)
     val offset = (p - 1) * pageSize
     this.users.withName(username).map { u =>
-      (u, u.projects.sorted(ordering = _.stars.desc, limit = pageSize, offset = offset))
+      (u, u.projects.sorted(
+        ordering = _.stars.desc,
+        filter = _.recommendedVersionId =!= -1,
+        limit = pageSize,
+        offset = offset))
     } map {
       case (user, projectSeq) => Ok(views.users.projects(user, projectSeq, p))
     } getOrElse {

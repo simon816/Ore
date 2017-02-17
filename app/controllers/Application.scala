@@ -3,6 +3,7 @@ package controllers
 import javax.inject.Inject
 
 import controllers.sugar.Requests.AuthRequest
+import db.impl.OrePostgresDriver.api._
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
 import models.project.{Flag, Project, Version}
@@ -63,7 +64,8 @@ final class Application @Inject()(data: DataHelper,
 
       val searchFilter: ModelFilter[Project] = query.map(actions.searchFilter).getOrElse(ModelFilter.Empty)
 
-      val filter = visibleFilter +&& platformFilter +&& categoryFilter +&& searchFilter
+      val validFilter = ModelFilter[Project](_.recommendedVersionId =!= -1)
+      val filter = visibleFilter +&& platformFilter +&& categoryFilter +&& searchFilter +&& validFilter
 
       // Get projects
       val pageSize = this.config.projects.getInt("init-load").get

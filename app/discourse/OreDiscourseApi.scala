@@ -153,8 +153,8 @@ trait OreDiscourseApi extends DiscourseApi {
         s"Errors: ${errors.toString}"
     )
 
-    def fail() = {
-      Logger.info(s"Couldn't update project topic for project ${project.url}. Rescheduling...")
+    def fail(message: String) = {
+      Logger.info(s"Couldn't update project topic for project ${project.url}: " + message)
       resultPromise.success(false)
     }
 
@@ -187,12 +187,12 @@ trait OreDiscourseApi extends DiscourseApi {
                 resultPromise.success(true)
               }
             case Failure(e) =>
-              fail()
+              fail(e.getMessage)
           }
         }
       case Failure(e) =>
         // Discourse never received our request!
-        fail()
+        fail(e.getMessage)
     }
 
     resultPromise.future
@@ -236,8 +236,6 @@ trait OreDiscourseApi extends DiscourseApi {
     checkArgument(project.id.isDefined, "undefined project", "")
     checkArgument(version.id.isDefined, "undefined version", "")
     checkArgument(version.projectId == project.id.get, "invalid version project pair", "")
-    // TODO: Handle failure
-    // TODO: Need to be able to edit description before release so you can change the post content
     val cont = if (content.isEmpty) None else Some(content)
     postDiscussionReply(
       project = project,
