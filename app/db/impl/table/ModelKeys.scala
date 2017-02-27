@@ -67,6 +67,7 @@ object ModelKeys {
 
   // DownloadWarning
   val DownloadId            =   new IntKey[DownloadWarning](_.downloadId, _.downloadId)
+  val IsConfirmed           =   new BooleanKey[DownloadWarning](_.isConfirmed, _.isConfirmed)
 
   // Channel
   val Color                 =   new MappedTypeKey[Channel, Color](_.color, _.color)

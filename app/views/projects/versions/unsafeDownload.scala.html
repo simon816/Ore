@@ -7,8 +7,8 @@
 @import views.html.helper.CSRF
 @(project: Project,
   target: Version,
-  origin: Option[String],
-  downloadType: DownloadType)(implicit messages: Messages, request: Request[_], service: ModelService,
+  downloadType: DownloadType,
+  token: String)(implicit messages: Messages, request: Request[_], service: ModelService,
         config: OreConfig, users: UserBase)
 
 @versionRoutes = @{ controllers.project.routes.Versions }
@@ -26,15 +26,15 @@
                     </div>
                     <div class="panel-body">
                         @Html(messages("version.download.confirm.body"))
-                        <a href="@origin.getOrElse(versionRoutes.show(project.ownerName, project.slug, target.name))"
+                        <a href="@versionRoutes.show(project.ownerName, project.slug, target.name)"
                            class="pull-left unsafe-dl-back">
                             <i class="fa fa-arrow-left"></i> @messages("project.back")
                         </a>
                         <button type="submit" form="form-download" class="pull-right btn btn-primary">
                             @messages("general.continue")
                         </button>
-                        <form action="@versionRoutes.downloadUnsafely(
-                            project.ownerName, project.slug, target.name, origin, Some(downloadType.id), None)"
+                        <form action="@versionRoutes.confirmDownload(project.ownerName, project.slug, target.name,
+                            Some(downloadType.id), token)"
                               method="post" style="display: none;" id="form-download">
                             @CSRF.formField
                         </form>

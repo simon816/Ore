@@ -144,8 +144,9 @@ class DownloadWarningsTable(tag: Tag) extends ModelTable[DownloadWarning](tag, "
   def versionId = column[Int]("version_id")
   def address = column[InetString]("address")
   def downloadId = column[Int]("download_id")
+  def isConfirmed = column[Boolean]("is_confirmed")
 
-  override def * = (id.?, createdAt.?, expiration, token, versionId, address,
+  override def * = (id.?, createdAt.?, expiration, token, versionId, address, isConfirmed,
                     downloadId) <> ((DownloadWarning.apply _).tupled, DownloadWarning.unapply)
 
 }
