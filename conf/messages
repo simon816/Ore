@@ -189,8 +189,12 @@ version.download.confirm.body.plain = \
   This version has not been reviewed by our moderation staff and may not be safe for download.\n\
   Disclaimer: We disclaim all responsibility for any harm to your server or system should you choose not to heed this \
   warning.\n\
-  Please use the following URL to acknowledge this disclaimer and continue to the download:\n\
-  {0}
+  Please use the following curl to acknowledge this disclaimer and continue to the download:\n\
+  curl -O -J -L -d -X "{0}&csrfToken={1}"
+
+version.download.confirm.wget = Sorry, but Ore does not support the use of wget. \
+  Please use the following curl instead:\n\
+  curl -O -J -L "<url>"
 
 channel.name                    =   Channel name
 channel.edit.title              =   Edit channel

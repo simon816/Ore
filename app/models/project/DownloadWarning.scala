@@ -29,10 +29,18 @@ case class DownloadWarning(override val id: Option[Int] = None,
                            token: String,
                            versionId: Int,
                            address: InetString,
+                           private var _isConfirmed: Boolean = false,
                            private var _downloadId: Int = -1) extends OreModel(id, createdAt) with Expirable {
 
   override type M = DownloadWarning
   override type T = DownloadWarningsTable
+
+  def isConfirmed: Boolean = this._isConfirmed
+
+  def setConfirmed(confirmed: Boolean = true) = Defined {
+    this._isConfirmed = confirmed
+    update(IsConfirmed)
+  }
 
   /**
     * Returns the ID of the download this warning was for.

@@ -1,7 +1,6 @@
 package controllers.project
 
 import java.io.InputStream
-import java.net.{InetAddress, URI}
 import java.nio.file.Files._
 import java.nio.file.{Files, StandardCopyOption}
 import java.sql.Timestamp
@@ -25,13 +24,10 @@ import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.Logger
 import play.api.i18n.MessagesApi
 import play.api.mvc.Result
-import play.filters.csrf.CSRFCheck
+import play.filters.csrf.CSRF
 import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
-import views.html.helper.CSRF
 import views.html.projects.{versions => views}
-
-import scala.util.Try
 
 /**
   * Controller for handling Version related actions.
@@ -40,7 +36,6 @@ class Versions @Inject()(stats: StatTracker,
                          forms: OreForms,
                          factory: ProjectFactory,
                          forums: OreDiscourseApi,
-                         csrfCheck: CSRFCheck,
                          implicit override val sso: SingleSignOnConsumer,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
@@ -354,6 +349,69 @@ class Versions @Inject()(stats: StatTracker,
   }
 
   /**
+    * Sends the specified Project Version to the client.
+    *
+    * @param author        Project owner
+    * @param slug          Project slug
+    * @param versionString Version string
+    * @return Sent file
+    */
+  def download(author: String, slug: String, versionString: String, token: Option[String]) = {
+    ProjectAction(author, slug) { implicit request =>
+        implicit val project = request.project
+        withVersion(versionString) { version =>
+          sendVersion(project, version, token)
+        }
+    }
+  }
+
+  private def sendVersion(project: Project,
+                          version: Version,
+                          token: Option[String])
+                         (implicit req: ProjectRequest[_]): Result = {
+    if (!checkConfirmation(project, version, token))
+      Redirect(self.showDownloadConfirm(project.ownerName, project.slug, version.name, Some(UploadedFile.id)))
+    else
+      _sendVersion(project, version)
+  }
+
+  private def checkConfirmation(project: Project,
+                                version: Version,
+                                token: Option[String])
+                               (implicit req: ProjectRequest[_]): Boolean = {
+    if (version.isReviewed)
+      return true
+    // check for confirmation
+    req.cookies.get(DownloadWarning.COOKIE).map(_.value).orElse(token) match {
+      case None =>
+        // unconfirmed
+        false
+      case Some(tkn) =>
+        this.warnings.find { warn =>
+          (warn.token === tkn) &&
+          (warn.versionId === version.id.get) &&
+          (warn.address === InetString(StatTracker.remoteAddress)) &&
+          warn.isConfirmed
+        } map { warn =>
+          if (warn.hasExpired) {
+            warn.remove()
+            false
+          } else
+            true
+        } getOrElse {
+          false
+        }
+    }
+  }
+
+  private def _sendVersion(project: Project, version: Version)(implicit req: ProjectRequest[_]): Result = {
+    this.stats.versionDownloaded(version) { implicit request =>
+      Ok.sendFile(this.fileManager.getProjectDir(project.ownerName, project.name)
+        .resolve(version.fileName).toFile)
+    }
+  }
+
+  /**
     * Displays a confirmation view for downloading unreviewed versions. The
     * client is issued a unique token that will be checked once downloading to
     * ensure that they have landed on this confirmation before downloading the
@@ -362,27 +420,26 @@ class Versions @Inject()(stats: StatTracker,
     * @param author Project author
     * @param slug   Project slug
     * @param target Target version
-    * @param origin Origin URL
     * @return       Confirmation view
     */
   def showDownloadConfirm(author: String,
                           slug: String,
                           target: String,
-                          origin: Option[String],
-                          downloadType: Option[Int]) = csrfCheck {
+                          downloadType: Option[Int]) = {
     ProjectAction(author, slug) { implicit request =>
       val dlType = downloadType.flatMap(i => DownloadTypes.values.find(_.id == i)).getOrElse(DownloadTypes.UploadedFile)
       implicit val project = request.project
       withVersion(target) { version =>
-        if (version.isReviewed || (origin.isDefined && !isValidRedirect(origin.get)))
+        if (version.isReviewed)
           Redirect(ShowProject(author, slug))
         else {
           val userAgent = request.headers.get("User-Agent")
-          var cliClient: Boolean = false
+          var curl: Boolean = false
+          var wget: Boolean = false
           if (userAgent.isDefined) {
             val ua = userAgent.get.toLowerCase
-            if (ua.startsWith("wget/") || ua.startsWith("curl/"))
-              cliClient = true
+            curl = ua.startsWith("curl/")
+            wget = ua.startsWith("wget/")
           }
 
           // generate a unique "warning" object to ensure the user has landed
@@ -399,118 +456,74 @@ class Versions @Inject()(stats: StatTracker,
             versionId = version.id.get,
             address = InetString(StatTracker.remoteAddress)))
 
-          if (!cliClient) {
-            Ok(views.unsafeDownload(project, version, origin, dlType)).withCookies(warning.cookie)
+          if (wget) {
+            Ok(this.messagesApi("version.download.confirm.wget"))
+              .withHeaders("Content-Disposition" -> "inline; filename=\"README.txt\"")
+          } else if (curl) {
+            Ok(this.messagesApi("version.download.confirm.body.plain",
+              self.confirmDownload(author, slug, target, Some(dlType.id), token).absoluteURL(),
+              CSRF.getToken.get.value) + "\n")
+              .withHeaders("Content-Disposition" -> "inline; filename=\"README.txt\"")
           } else {
-            MultiStatus(this.messagesApi(
-              "version.download.confirm.body.plain",
-              self.downloadUnsafely(author, slug, target, origin, downloadType, Some(token)).absoluteURL()))
+            Ok(views.unsafeDownload(project, version, dlType, token)).withCookies(warning.cookie)
           }
         }
       }
     }
   }
 
-  /**
-    * Verifies that the client has landed on a confirmation page for the
-    * target version and sends the file.
-    *
-    * @param author Project author
-    * @param slug   Project slug
-    * @param target Target version
-    * @param origin Origin URL
-    * @return       Unreviewed file
-    */
-  def downloadUnsafely(author: String,
-                       slug: String,
-                       target: String,
-                       origin: Option[String],
-                       downloadType: Option[Int],
-                       token: Option[String]) = {
+  def confirmDownload(author: String, slug: String, target: String, downloadType: Option[Int], token: String) = {
     ProjectAction(author, slug) { implicit request =>
-      val dlType = downloadType.flatMap(i => DownloadTypes.values.find(_.id == i)).getOrElse(UploadedFile)
       implicit val project = request.project
-      withVersion(target)(sendUnsafely(project, _, origin, dlType, token))
-    }
-  }
-
-  private def sendUnsafely(project: Project,
-                           version: Version,
-                           origin: Option[String],
-                           downloadType: DownloadType,
-                           token: Option[String])(implicit request: ProjectRequest[_]): Result = {
-    val author = project.ownerName
-    val slug = project.slug
-    val target = version.name
-    if (version.isReviewed || (origin.isDefined && !isValidRedirect(origin.get)))
-      Redirect(ShowProject(author, slug))
-    else if (token.isEmpty && request.cookies.get(DownloadWarning.COOKIE).isEmpty)
-      Redirect(CSRF(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id))))
-    else {
-      val tokenValue = token.orElse(request.cookies.get(DownloadWarning.COOKIE).map(_.value)).get
-      // find unexpired warning of token
-      val warning = this.warnings.find(_.token === tokenValue).flatMap { warning =>
-        if (warning.hasExpired) {
-          warning.remove()
-          None
-        } else
-          Some(warning)
-      }
-
-      // verify the user has landed on a confirmation for this version before
-      warning match {
-        case None =>
-          Redirect(CSRF(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id))))
-        case Some(warn) =>
-          // make sure the client is downloading from the same address as
-          // they confirmed from
-          val address = InetString(StatTracker.remoteAddress)
-          val addrMatch = InetAddress.getByName(warn.address.address)
-            .equals(InetAddress.getByName(address.address))
-          if (warn.versionId != version.id.get || !addrMatch || warn.download.isDefined) {
-            warn.remove()
-            Redirect(CSRF(self.showDownloadConfirm(author, slug, target, origin, Some(downloadType.id))))
-          } else {
-            // create a record of this download
-            val downloads = this.service.access[UnsafeDownload](classOf[UnsafeDownload])
-            val userId = this.users.current.flatMap(_.id)
-            val download = downloads.add(UnsafeDownload(
-              userId = userId,
-              address = address,
-              downloadType = downloadType))
-            warn.download = download
-            downloadType match {
-              case UploadedFile =>
-                sendVersion(project, version, confirmed = true)
-              case JarFile =>
-                sendJar(project, version, confirmed = true)
-              case SignatureFile =>
-                // Note: Shouldn't get here in the first place since sig files
-                // don't need confirmation, but added as a failsafe.
-                sendSignatureFile(version)
-              case _ =>
-                throw new Exception("unknown download type: " + downloadType)
+      withVersion(target) { version =>
+        if (version.isReviewed)
+          Redirect(ShowProject(author, slug))
+        else {
+          val addr = InetString(StatTracker.remoteAddress)
+          val dlType = downloadType
+            .flatMap(i => DownloadTypes.values.find(_.id == i))
+            .getOrElse(DownloadTypes.UploadedFile)
+          // find warning
+          this.warnings.find { warn =>
+            (warn.address === addr) &&
+            (warn.token === token) &&
+            (warn.versionId === version.id.get) &&
+            !warn.isConfirmed &&
+            (warn.downloadId === -1)
+          } map { warn =>
+            if (warn.hasExpired) {
+              // warning has expired
+              warn.remove()
+              Redirect(ShowProject(author, slug))
+            } else {
+              // warning confirmed and redirect to download
+              warn.setConfirmed()
+              // create record of download
+              val downloads = this.service.access[UnsafeDownload](classOf[UnsafeDownload])
+              val userId = this.users.current.flatMap(_.id)
+              val download = downloads.add(UnsafeDownload(
+                userId = userId,
+                address = addr,
+                downloadType = dlType))
+              warn.download = download
+              dlType match {
+                case UploadedFile =>
+                  Redirect(self.download(author, slug, target, Some(token)))
+                case JarFile =>
+                  Redirect(self.downloadJar(author, slug, target, Some(token)))
+                case SignatureFile =>
+                  // Note: Shouldn't get here in the first place since sig files
+                  // don't need confirmation, but added as a failsafe.
+                  Redirect(self.downloadSignature(author, slug, target))
+                case _ =>
+                  throw new Exception("unknown download type: " + downloadType)
+              }
             }
+          } getOrElse {
+            Redirect(ShowProject(author, slug))
           }
+        }
       }
-    }
-  }
-
-  private def isValidRedirect(url: String)
-  = Try(!new URI(url).isAbsolute).toOption.getOrElse(false) && url.startsWith("/") && !url.startsWith("//")
-
-  /**
-    * Sends the specified Project Version to the client.
-    *
-    * @param author        Project owner
-    * @param slug          Project slug
-    * @param versionString Version string
-    * @return Sent file
-    */
-  def download(author: String, slug: String, versionString: String) = ProjectAction(author, slug) { implicit request =>
-    implicit val project = request.project
-    withVersion(versionString) { version =>
-      sendVersion(project, version, confirmed = false)
     }
   }
 
@@ -521,22 +534,11 @@ class Versions @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return Sent file
     */
-  def downloadRecommended(author: String, slug: String) = ProjectAction(author, slug) { implicit request =>
-    val project = request.project
-    val rv = project.recommendedVersion
-    sendVersion(project, rv, confirmed = false)
-  }
-
-  private def sendVersion(project: Project,
-                          version: Version,
-                          confirmed: Boolean)(implicit req: ProjectRequest[_]): Result = {
-    if (!confirmed && !version.isReviewed)
-      Redirect(CSRF(self.showDownloadConfirm(
-        project.ownerName, project.slug, version.name, None, Some(UploadedFile.id))))
-    else {
-      this.stats.versionDownloaded(version) { implicit request =>
-        Ok.sendFile(this.fileManager.getProjectDir(project.ownerName, project.name).resolve(version.fileName).toFile)
-      }
+  def downloadRecommended(author: String, slug: String, token: Option[String]) = {
+    ProjectAction(author, slug) { implicit request =>
+        val project = request.project
+        val rv = project.recommendedVersion
+        sendVersion(project, rv, token)
     }
   }
 
@@ -549,10 +551,45 @@ class Versions @Inject()(stats: StatTracker,
     * @param versionString  Version name
     * @return               Sent file
     */
-  def downloadJar(author: String, slug: String, versionString: String) = {
+  def downloadJar(author: String, slug: String, versionString: String, token: Option[String]) = {
     ProjectAction(author, slug) { implicit request =>
       implicit val project = request.project
-      withVersion(versionString)(version => sendJar(project, version, confirmed = false))
+      withVersion(versionString)(version => sendJar(project, version, token))
+    }
+  }
+
+  private def sendJar(project: Project,
+                      version: Version,
+                      token: Option[String])
+                     (implicit request: ProjectRequest[_]): Result = {
+    if (!checkConfirmation(project, version, token))
+      Redirect(self.showDownloadConfirm(project.ownerName, project.slug, version.name, Some(JarFile.id)))
+    else {
+      val fileName = version.fileName
+      val path = this.fileManager.getProjectDir(project.ownerName, project.name).resolve(fileName)
+      this.stats.versionDownloaded(version) { implicit request =>
+        if (fileName.endsWith(".jar"))
+          Ok.sendFile(path.toFile)
+        else {
+          val pluginFile = new PluginFile(path, signaturePath = null, project.owner.user)
+          val jarName = fileName.substring(0, fileName.lastIndexOf('.')) + ".jar"
+          val jarPath = this.fileManager.env.tmp.resolve(project.ownerName).resolve(jarName)
+          var jarIn: InputStream = null
+          try {
+            jarIn = pluginFile.newJarStream
+            copy(jarIn, jarPath, StandardCopyOption.REPLACE_EXISTING)
+          } catch {
+            case e: Exception =>
+              Logger.error("an error occurred while trying to send a plugin", e)
+          } finally {
+            if (jarIn != null)
+              jarIn.close()
+            else
+              Logger.error("could not obtain input stream for download request")
+          }
+          Ok.sendFile(jarPath.toFile, onClose = () => Files.delete(jarPath))
+        }
+      }
     }
   }
 
@@ -564,9 +601,11 @@ class Versions @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return       Sent file
     */
-  def downloadRecommendedJar(author: String, slug: String) = ProjectAction(author, slug) { implicit request =>
-    val project = request.project
-    sendJar(project, project.recommendedVersion, confirmed = false)
+  def downloadRecommendedJar(author: String, slug: String, token: Option[String]) = {
+    ProjectAction(author, slug) { implicit request =>
+        val project = request.project
+        sendJar(project, project.recommendedVersion, token)
+    }
   }
 
   /**
@@ -577,9 +616,11 @@ class Versions @Inject()(stats: StatTracker,
     * @param versionString  Version name
     * @return               Sent file
     */
-  def downloadJarById(pluginId: String, versionString: String) = ProjectAction(pluginId) { implicit request =>
-    implicit val project = request.project
-    withVersion(versionString)(version => sendJar(project, version, confirmed = false))
+  def downloadJarById(pluginId: String, versionString: String, token: Option[String]) = {
+    ProjectAction(pluginId) { implicit request =>
+        implicit val project = request.project
+        withVersion(versionString)(version => sendJar(project, version, token))
+    }
   }
 
   /**
@@ -589,9 +630,11 @@ class Versions @Inject()(stats: StatTracker,
     * @param pluginId Project unique plugin ID
     * @return         Sent file
     */
-  def downloadRecommendedJarById(pluginId: String) = ProjectAction(pluginId) { implicit request =>
-    val project = request.project
-    sendJar(project, project.recommendedVersion, confirmed = false)
+  def downloadRecommendedJarById(pluginId: String, token: Option[String]) = {
+    ProjectAction(pluginId) { implicit request =>
+      val project = request.project
+      sendJar(project, project.recommendedVersion, token)
+    }
   }
 
   /**
@@ -640,41 +683,6 @@ class Versions @Inject()(stats: StatTracker,
     */
   def downloadRecommendedSignatureById(pluginId: String) = ProjectAction(pluginId) { implicit request =>
     sendSignatureFile(request.project.recommendedVersion)
-  }
-
-  private def sendJar(project: Project,
-                      version: Version,
-                      confirmed: Boolean)(implicit request: ProjectRequest[_]): Result = {
-    if (!confirmed && !version.isReviewed)
-      Redirect(CSRF(self.showDownloadConfirm(project.ownerName, project.slug, version.name, None, Some(JarFile.id))))
-    else {
-      val fileName = version.fileName
-      val path = this.fileManager.getProjectDir(project.ownerName, project.name).resolve(fileName)
-      this.stats.versionDownloaded(version) { implicit request =>
-        if (fileName.endsWith(".jar"))
-          Ok.sendFile(path.toFile)
-        else {
-          val pluginFile = new PluginFile(path, signaturePath = null, project.owner.user)
-          val jarName = fileName.substring(0, fileName.lastIndexOf('.')) + ".jar"
-          val jarPath = this.fileManager.env.tmp.resolve(project.ownerName).resolve(jarName)
-
-          var jarIn: InputStream = null
-          try {
-            jarIn = pluginFile.newJarStream
-            copy(jarIn, jarPath, StandardCopyOption.REPLACE_EXISTING)
-          } catch {
-            case e: Exception =>
-              Logger.error("an error occurred while trying to send a plugin", e)
-          } finally {
-            if (jarIn != null)
-              jarIn.close()
-            else
-              Logger.error("could not obtain input stream for download request")
-          }
-          Ok.sendFile(jarPath.toFile, onClose = () => Files.delete(jarPath))
-        }
-      }
-    }
   }
 
   private def sendSignatureFile(version: Version): Result = {

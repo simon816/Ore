@@ -79,16 +79,10 @@ Versions page within Project overview.
                                                     <div class="pull-right">
                                                         <span class="date">@prettifyDate(version.createdAt.get)</span>
                                                         <span class="date">@version.humanFileSize</span>
-                                                        <a href="#" class="a-download"
-                                                           data-form="form-download-@version.id.get">
+                                                        <a href="@versionRoutes.download(
+                                                            model.ownerName, model.slug, version.versionString, None)">
                                                             <i title="Download" class="fa fa-download"></i>
                                                         </a>
-                                                        <form action="@versionRoutes.download(
-                                                            model.ownerName, model.slug, version.versionString)"
-                                                              method="post" style="display: none;"
-                                                              id="form-download-@version.id.get">
-                                                            @CSRF.formField
-                                                        </form>
                                                     </div>
                                                 </td>
                                             </tr>
