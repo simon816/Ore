@@ -100,6 +100,7 @@ ore {
     }
     
     orgs {
+        enabled = false
         passwordLength = 60
         dummyEmailDomain = "spongepowered.org"
         groupId = 64

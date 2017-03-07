@@ -67,6 +67,7 @@ error.project.invalidPluginFile =   Invalid plugin file.
 error.channel.last              =   You cannot delete your only channel.
 error.channel.lastNonEmpty      =   You cannot delete your only non-empty channel.
 error.tagline.tooLong           =   Tagline is too long (max {0}).
+error.org.disabled              =   Apologies, creation of Organizations is temporarily disabled.
 error.org.createLimit           =   You may only create up to {0} organizations!
 error.org.cannotCreate          =   Unable to create an organization at this time.
 error.org.cannotUpdateAvatar    =   Unable to update avatar at this time.

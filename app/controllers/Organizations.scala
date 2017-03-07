@@ -58,6 +58,8 @@ class Organizations @Inject()(forms: OreForms,
       BadRequest
     else if (user.isLocked)
       Redirect(failCall).withError("error.user.locked")
+    else if (!this.config.orgs.getBoolean("enabled").get)
+      Redirect(failCall).withError("error.org.disabled")
     else {
       this.forms.OrganizationCreate.bindFromRequest().fold(
         hasErrors =>
