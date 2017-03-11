@@ -3,6 +3,15 @@ package models.project
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
+import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension
+import com.vladsch.flexmark.ext.autolink.AutolinkExtension
+import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension
+import com.vladsch.flexmark.ext.gfm.tasklist.TaskListExtension
+import com.vladsch.flexmark.ext.tables.TablesExtension
+import com.vladsch.flexmark.ext.typographic.TypographicExtension
+import com.vladsch.flexmark.html.HtmlRenderer
+import com.vladsch.flexmark.parser.Parser
+import com.vladsch.flexmark.util.options.MutableDataSet
 import db.Named
 import db.impl.PageTable
 import db.impl.model.OreModel
@@ -10,8 +19,6 @@ import db.impl.schema.PageSchema
 import db.impl.table.ModelKeys._
 import ore.permission.scope.ProjectScope
 import ore.{OreConfig, Visitable}
-import org.pegdown.Extensions._
-import org.pegdown.PegDownProcessor
 import play.twirl.api.Html
 import util.StringUtils._
 
@@ -86,7 +93,7 @@ case class Page(override val id: Option[Int] = None,
     *
     * @return HTML representation
     */
-  def html: Html = Html(MarkdownProcessor.markdownToHtml(this.contents))
+  def html: Html = Render(this.contents)
 
   /**
     * Returns true if this is the home page.
@@ -102,12 +109,31 @@ case class Page(override val id: Option[Int] = None,
 
 object Page {
 
-  /**
-    * The Markdown processor.
-    */
-  val MarkdownProcessor: PegDownProcessor = new PegDownProcessor(
-    ALL - ANCHORLINKS + SUPPRESS_ALL_HTML + TASKLISTITEMS + EXTANCHORLINKS, 10000
-  )
+  private val (markdownParser, htmlRenderer) = {
+    val options = new MutableDataSet()
+      .set[java.lang.Boolean](HtmlRenderer.SUPPRESS_HTML, true)
+
+      .set[java.lang.Boolean](AnchorLinkExtension.ANCHORLINKS_WRAP_TEXT, false)
+
+      // GFM table compatibility
+      .set[java.lang.Boolean](TablesExtension.COLUMN_SPANS, false)
+      .set[java.lang.Boolean](TablesExtension.APPEND_MISSING_COLUMNS, true)
+      .set[java.lang.Boolean](TablesExtension.DISCARD_EXTRA_COLUMNS, true)
+      .set[java.lang.Boolean](TablesExtension.HEADER_SEPARATOR_COLUMN_MATCH, true)
+
+      .set(Parser.EXTENSIONS, java.util.Arrays.asList(
+        AutolinkExtension.create(),
+        AnchorLinkExtension.create(),
+        StrikethroughExtension.create(),
+        TaskListExtension.create(),
+        TablesExtension.create(),
+        TypographicExtension.create()
+      ))
+
+    (Parser.builder(options).build(), HtmlRenderer.builder(options).build())
+  }
+
+  def Render(markdown: String): Html = Html(htmlRenderer.render(markdownParser.parse(markdown)))
 
   /**
     * The name of each Project's homepage.

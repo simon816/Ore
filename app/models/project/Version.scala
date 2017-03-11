@@ -107,7 +107,7 @@ case class Version(override val id: Option[Int] = None,
     * @return Description in html
     */
   def descriptionHtml: Html
-  = this.description.map(str => Html(Page.MarkdownProcessor.markdownToHtml(str))).getOrElse(Html(""))
+  = this.description.map(str => Page.Render(str)).getOrElse(Html(""))
 
   /**
     * Returns the base URL for this Version.

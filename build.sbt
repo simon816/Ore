@@ -27,10 +27,17 @@ libraryDependencies ++= Seq(
   "org.postgresql"        %   "postgresql"              %   "9.4.1212.jre7",
   "com.github.tminglei"   %%  "slick-pg"                %   "0.12.0",
   "org.apache.commons"    %   "commons-io"              %   "1.3.2",
-  "org.pegdown"           %   "pegdown"                 %   "1.6.0",
   "com.getsentry.raven"   %   "raven-logback"           %   "7.2.2",
   "org.bouncycastle"      %   "bcprov-jdk15on"          %   "1.56",
   "org.bouncycastle"      %   "bcpkix-jdk15on"          %   "1.56",
   "org.bouncycastle"      %   "bcpg-jdk15on"            %   "1.56",
-  "javax.mail"            %   "mail"                    %   "1.4.7"
+  "javax.mail"            %   "mail"                    %   "1.4.7",
+
+  "com.vladsch.flexmark"  % "flexmark"                       %  "0.18.0",
+  "com.vladsch.flexmark"  % "flexmark-ext-autolink"          %  "0.18.0",
+  "com.vladsch.flexmark"  % "flexmark-ext-anchorlink"        %  "0.18.0",
+  "com.vladsch.flexmark"  % "flexmark-ext-gfm-strikethrough" %  "0.18.0",
+  "com.vladsch.flexmark"  % "flexmark-ext-gfm-tasklist"      %  "0.18.0",
+  "com.vladsch.flexmark"  % "flexmark-ext-tables"            %  "0.18.0",
+  "com.vladsch.flexmark"  % "flexmark-ext-typographic"       %  "0.18.0"
 )
