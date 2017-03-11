@@ -15,8 +15,8 @@ import models.statistic.VersionDownload
 import ore.Visitable
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
-import org.apache.commons.io.FileUtils
 import play.twirl.api.Html
+import util.FileUtils
 
 /**
   * Represents a single version of a Project.
@@ -181,7 +181,7 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Human readable file size
     */
-  def humanFileSize: String = FileUtils.byteCountToDisplaySize(this.fileSize)
+  def humanFileSize: String = FileUtils.formatFileSize(this.fileSize)
 
   /**
     * Returns true if a project ID is defined on this Model, there is no

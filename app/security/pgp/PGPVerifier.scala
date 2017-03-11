@@ -2,10 +2,10 @@ package security.pgp
 
 import java.io.{ByteArrayInputStream, InputStream, OutputStream}
 import java.nio.file.Files._
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 
 import com.google.common.base.Preconditions._
-import org.apache.commons.io.IOUtils
+import com.google.common.io.ByteStreams
 import org.bouncycastle.openpgp._
 import org.bouncycastle.openpgp.jcajce.{JcaPGPObjectFactory, JcaPGPPublicKeyRingCollection}
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentVerifierBuilderProvider
@@ -23,12 +23,12 @@ class PGPVerifier {
     * Verifies the specified document [[InputStream]] against the specified
     * signature [[InputStream]] and public key [[InputStream]].
     *
-    * @param docIn Document input stream
+    * @param doc Document bytes
     * @param sigIn Signature input stream
     * @param keyIn Public key input stream
     * @return True if verified, false otherwise
     */
-  def verifyDetachedSignature(docIn: InputStream, sigIn: InputStream, keyIn: InputStream): Boolean = {
+  def verifyDetachedSignature(doc: Array[Byte], sigIn: InputStream, keyIn: InputStream): Boolean = {
     Logger.info("Processing signature...")
     var result = false
     try {
@@ -73,14 +73,13 @@ class PGPVerifier {
       }
 
       sig.init(new JcaPGPContentVerifierBuilderProvider().setProvider("BC"), pubKey)
-      sig.update(IOUtils.toByteArray(docIn))
+      sig.update(doc)
       result = sig.verify()
     } catch {
       case e: Exception =>
         Logger.error("<VERIFICATION FAILED> An error occurred while verifying a signature.", e)
         result = false
     } finally {
-      docIn.close()
       sigIn.close()
       keyIn.close()
     }
@@ -105,7 +104,7 @@ class PGPVerifier {
     checkArgument(exists(docPath), "doc does not exist", "")
     checkArgument(exists(sigPath), "sig does not exist", "")
     val keyStream = PGPUtil.getDecoderStream(new ByteArrayInputStream(key.getBytes))
-    verifyDetachedSignature(newInputStream(docPath), newInputStream(sigPath), keyStream)
+    verifyDetachedSignature(Files.readAllBytes(docPath), newInputStream(sigPath), keyStream)
   }
 
   /**
@@ -155,7 +154,7 @@ class PGPVerifier {
           sig = onePassSigList.get(0)
         case literalData: PGPLiteralData =>
           val dataIn = literalData.getInputStream
-          data = IOUtils.toByteArray(dataIn)
+          data = ByteStreams.toByteArray(dataIn)
           dataIn.close()
         case signatureList: PGPSignatureList =>
           if (signatureList.isEmpty) {
