@@ -45,9 +45,9 @@
 }
 
 #spongie, .col-spongie > div {
-  @include size(50px, 50px);
+  @include size(25px, 25px);
   display: block;
-  margin: 0 auto;
+  margin: 12px auto;
   path {
     @include transition3(fill, 0.15s, ease-in-out);
     fill: gray;

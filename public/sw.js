@@ -22,7 +22,6 @@ function networkFirstIndex(request, values, options) {
 var preCache = [
     '/',
     '/offline',
-    '/assets/stylesheets/fontawesome/font-awesome.css',
     '/assets/bootstrap/css/bootstrap.min.css',
     '/assets/bootstrap/css/bootstrap.min.css',
     '/assets/bootstrap/js/bootstrap.min.js',
