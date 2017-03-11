@@ -23,7 +23,7 @@
         <div class="row">
             <div class="col-md-12">
                 <ul class="list-group list-versions">
-                    @versions.map { tuple =>
+                    @versions.sortWith(_._2.createdAt.get.getTime < _._2.createdAt.get.getTime).map { tuple =>
                         <li class="list-group-item"
                             data-version="@tuple._1.ownerName/@tuple._1.slug/versions/@tuple._2.name">
                             @utils.userAvatar(tuple._1.owner.user, clazz = "user-avatar-xs")
