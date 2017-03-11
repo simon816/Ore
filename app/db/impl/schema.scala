@@ -121,7 +121,6 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "project_versions"
   with DescriptionColumn[Version] {
 
   def versionString     =   column[String]("version_string")
-  def mcversion         =   column[String]("mcversion")
   def dependencies      =   column[List[String]]("dependencies")
   def assets            =   column[String]("assets")
   def projectId         =   column[Int]("project_id")
@@ -132,7 +131,7 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "project_versions"
   def fileName          =   column[String]("file_name")
   def signatureFileName =   column[String]("signature_file_name")
 
-  override def * = (id.?, createdAt.?, projectId, versionString, mcversion.?, dependencies, assets.?, channelId,
+  override def * = (id.?, createdAt.?, projectId, versionString, dependencies, assets.?, channelId,
                     fileSize, hash, description.?, downloads, isReviewed, fileName,
                     signatureFileName) <> ((Version.apply _).tupled, Version.unapply)
 }
