@@ -28,6 +28,11 @@ object Dependency {
   val SpongeApiId: String = "spongeapi"
 
   /**
+    * The Minecraft dependency ID
+    */
+  val MinecraftId: String = "minecraft"
+
+  /**
     * The Forge dependency ID
     */
   val ForgeId: String = "Forge"

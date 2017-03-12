@@ -159,12 +159,11 @@ trait ProjectFactory {
       throw InvalidPluginFileException("error.plugin.invalidPluginId")
 
     // Create new pending version
-    val depends = for (depend <- metaData.getRequiredDependencies.asScala) yield
+    val depends = for (depend <- metaData.collectRequiredDependencies().asScala) yield
       depend.getId + ":" + depend.getVersion
     val path = plugin.path
     val version = Version.Builder(this.service)
       .versionString(metaData.getVersion)
-      .mcversion(metaData.getMinecraftVersion)
       .dependencyIds(depends.toList)
       .description(metaData.getDescription)
       .projectId(project.id.getOrElse(-1)) // Version might be for an uncreated project
@@ -311,7 +310,6 @@ trait ProjectFactory {
 
     val newVersion = this.service.access[Version](classOf[Version]).add(Version(
       versionString = pendingVersion.versionString,
-      mcversion = pendingVersion.mcversion,
       dependencyIds = pendingVersion.dependencyIds,
       _description = pendingVersion.description,
       assets = pendingVersion.assets,
