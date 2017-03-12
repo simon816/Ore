@@ -60,7 +60,7 @@ object PGPPublicKeyInfo {
           val isMaster = key.isMasterKey
           val validSeconds = key.getValidSeconds
           val expirationDate = if (validSeconds != 0)
-            Some(new Date(new Date().getTime + Math.round(validSeconds / 1000f)))
+            Some(new Date(createdAt.getTime + validSeconds * 1000))
           else
             None
 
