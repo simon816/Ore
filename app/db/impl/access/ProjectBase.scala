@@ -10,8 +10,8 @@ import discourse.OreDiscourseApi
 import models.project.{Channel, Project, Version}
 import ore.project.io.ProjectFiles
 import ore.{OreConfig, OreEnv}
-import org.apache.commons.io.FileUtils
 import play.api.Logger
+import util.FileUtils
 import util.StringUtils._
 
 class ProjectBase(override val service: ModelService,
@@ -82,7 +82,7 @@ class ProjectBase(override val service: ModelService,
       val iconDir = this.fileManager.getIconDir(project.ownerName, project.name)
       if (notExists(iconDir))
         createDirectories(iconDir)
-      FileUtils.cleanDirectory(iconDir.toFile)
+      FileUtils.cleanDirectory(iconDir)
       move(iconPath, iconDir.resolve(iconPath.getFileName))
     }
   }
@@ -122,7 +122,7 @@ class ProjectBase(override val service: ModelService,
     checkArgument(channel.versions.isEmpty ||
       channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
 
-    FileUtils.deleteDirectory(this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(channel.name).toFile)
+    FileUtils.deleteDirectory(this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(channel.name))
     channel.remove()
   }
 
@@ -166,7 +166,7 @@ class ProjectBase(override val service: ModelService,
     * @param project Project to delete
     */
   def delete(project: Project) = {
-    FileUtils.deleteDirectory(this.fileManager.getProjectDir(project.ownerName, project.name).toFile)
+    FileUtils.deleteDirectory(this.fileManager.getProjectDir(project.ownerName, project.name))
     if (project.topicId != -1)
       this.forums.deleteProjectTopic(project)
     // TODO: Instead, move to the "projects_deleted" table just in case we couldn't delete the topic

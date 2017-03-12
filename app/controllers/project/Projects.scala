@@ -13,7 +13,6 @@ import ore.project.factory.ProjectFactory
 import ore.project.io.{InvalidPluginFileException, PluginUpload}
 import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv, StatTracker}
-import org.apache.commons.io.FileUtils
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
@@ -248,7 +247,7 @@ class Projects @Inject()(stats: StatTracker,
     }
   }
 
-  private def showImage(path: Path) = Ok(FileUtils.readFileToByteArray(path.toFile)).as("image/jpeg")
+  private def showImage(path: Path) = Ok(Files.readAllBytes(path)).as("image/jpeg")
 
   /**
     * Submits a flag on the specified project for further review.
