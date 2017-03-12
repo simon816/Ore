@@ -21,7 +21,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   "org.spongepowered"     %   "play-discourse"          %   "1.0.0-SNAPSHOT",
-  "org.spongepowered"     %   "plugin-meta"             %   "0.2",
+  "org.spongepowered"     %   "plugin-meta"             %   "0.4.1",
   "com.typesafe.play"     %%  "play-slick"              %   "2.0.2",
   "com.typesafe.play"     %%  "play-slick-evolutions"   %   "2.0.2",
   "org.postgresql"        %   "postgresql"              %   "9.4.1212.jre7",

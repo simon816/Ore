@@ -35,7 +35,6 @@ case class Version(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
                    override val projectId: Int,
                    versionString: String,
-                   mcversion: Option[String] = None,
                    dependencyIds: List[String] = List(),
                    assets: Option[String] = None,
                    channelId: Int = -1,
@@ -211,7 +210,6 @@ object Version {
   case class Builder(service: ModelService) {
 
     private var _versionString: String = _
-    private var _mcversion: String = _
     private var _dependencyIds: List[String] = List()
     private var _description: String = _
     private var _projectId: Int = -1
@@ -222,11 +220,6 @@ object Version {
 
     def versionString(versionString: String) = {
       this._versionString = versionString
-      this
-    }
-
-    def mcversion(mcversion: String) = {
-      this._mcversion = mcversion
       this
     }
 
@@ -269,7 +262,6 @@ object Version {
       checkArgument(this._fileSize != -1, "invalid file size", "")
       this.service.processor.process(Version(
         versionString = checkNotNull(this._versionString, "name null", ""),
-        mcversion = Option(this._mcversion),
         dependencyIds = this._dependencyIds,
         _description = Option(this._description),
         projectId = this._projectId,

@@ -26,6 +26,13 @@
     controllers.project.routes.Versions
 }
 
+@filterDependencies = @{
+    version.dependencies
+            .filterNot(_.pluginId.equals(SpongeApiId))
+            .filterNot(_.pluginId.equals(MinecraftId))
+            .filterNot(_.pluginId.equals(ForgeId))
+}
+
 @projects.view(project, "#versions", noButtons = true) {
 
     <div class="container">
@@ -159,23 +166,32 @@
 
                             @version.dependencies.find(_.pluginId.equals(SpongeApiId)).map { spongeApi =>
                                 <li class="list-group-item">
-                                    <a href="https://spongepowered.org#downloads">
+                                    <a href="https://www.spongepowered.org/downloads">
                                         <strong>@messages("general.spongeApi")</strong>
                                     </a>
                                     <p class="version-string">@spongeApi.version</p>
                                 </li>
                             }
 
+                            @version.dependencies.find(_.pluginId.equals(MinecraftId)).map { minecraft =>
+                                <li class="list-group-item">
+                                    <a href="https://minecraft.net">
+                                        <strong>@messages("general.minecraft")</strong>
+                                    </a>
+                                    <p class="version-string">@minecraft.version</p>
+                                </li>
+                            }
+
                             @version.dependencies.find(_.pluginId.equals(ForgeId)).map { forge =>
                                 <li class="list-group-item">
-                                    <a href="https://spongepowered.org#downloads">
+                                    <a href="http://files.minecraftforge.net">
                                         <strong>@messages("general.forge")</strong>
                                     </a>
                                     <p class="version-string">@forge.version</p>
                                 </li>
                             }
 
-                            @version.dependencies.filterNot(_.pluginId.equals(SpongeApiId)).filterNot(_.pluginId.equals(ForgeId)).map { depend =>
+                            @filterDependencies.map { depend =>
                                 <li class="list-group-item">
                                     @defining(depend.project) { project =>
                                         @if(project.isDefined) {

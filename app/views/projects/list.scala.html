@@ -52,9 +52,9 @@ Collection of all projects.
                             <strong>@rv.name</strong>
                         </a>
                     </span>
-                    @rv.mcversion.map { mcversion =>
+                    @rv.dependencies.find(_.pluginId.equals(Dependency.MinecraftId)).map { dep =>
                         <span class="stat" title="Minecraft version">
-                            <strong>MC@mcversion</strong>
+                            <strong>MC @dep.version</strong>
                         </span>
                     }
                 }
