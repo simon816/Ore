@@ -11,7 +11,6 @@ import models.project.{Channel, Project, ProjectSettings, Version}
 import models.user.User
 import ore.OreConfig
 import ore.project.factory.ProjectFactory
-import org.apache.commons.io.FileUtils
 import play.api.cache.CacheApi
 
 /**
@@ -42,7 +41,7 @@ final class DataHelper @Inject()(config: OreConfig,
     Logger.info(s"Deleting ${this.users.size} users...")
     this.users.removeAll()
     Logger.info("Clearing disk...")
-    FileUtils.deleteDirectory(this.factory.env.uploads.toFile)
+    FileUtils.deleteDirectory(this.factory.env.uploads)
     Logger.info("Done.")
   }
 
