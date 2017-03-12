@@ -1,0 +1,115 @@
+@import db.ModelService
+@import db.impl.OrePostgresDriver.api._
+@import ore.OreConfig
+@import db.impl.access.UserBase
+@import db.impl.access.ProjectBase
+@()(implicit messages: Messages, request: Request[_], service: ModelService, config: OreConfig, users: UserBase,
+        projects: ProjectBase)
+
+@projectRoutes = @{controllers.project.routes.Projects}
+
+@bootstrap.layout(messages("admin.health.title")) {
+
+    <div class="container" style="margin-top: 90px;">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>@messages("admin.health.title")</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">@messages("admin.health.discuss")</h4>
+                    </div>
+                    <div class="panel-body list-group list-group-health">
+                        @projects.filter(p => p.topicId === -1 || p.postId === -1).map { project =>
+                          <div class="list-group-item">
+                              <a class="pull-left" href="@projectRoutes.show(project.ownerName, project.slug)">
+                                  <strong>@project.namespace</strong>
+                              </a>
+                              <a class="pull-right" href="@projectRoutes.showLog(project.ownerName, project.slug)">
+                                  <i class="fa fa-book"></i>
+                              </a>
+                              <div class="clearfix"></div>
+                          </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">@messages("admin.health.topic")</h4>
+                    </div>
+                    <div class="panel-body list-group list-group-health">
+                    @projects.filter(_.isTopicDirty).map { project =>
+                        <div class="list-group-item">
+                            <a class="pull-left" href="@projectRoutes.show(project.ownerName, project.slug)">
+                                <strong>@project.namespace</strong>
+                            </a>
+                            <a class="pull-right" href="@projectRoutes.showLog(project.ownerName, project.slug)">
+                                <i class="fa fa-book"></i>
+                            </a>
+                            <div class="clearfix"></div>
+                        </div>
+                    }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">@messages("admin.health.stale")</h4>
+                    </div>
+                    <div class="panel-body list-group list-group-health">
+                        @projects.stale.map { project =>
+                          <div class="list-group-item">
+                              <a href="@projectRoutes.show(project.ownerName, project.slug)">
+                                  <strong>@project.namespace</strong>
+                              </a>
+                          </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">@messages("admin.health.hidden")</h4>
+                    </div>
+                    <div class="panel-body list-group list-group-health">
+                    @projects.filterNot(_.isVisible).map { project =>
+                        <div class="list-group-item">
+                            <a href="@projectRoutes.show(project.ownerName, project.slug)">
+                                <strong>@project.namespace</strong>
+                            </a>
+                        </div>
+                    }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">@messages("admin.health.platform")</h4>
+                    </div>
+                    <div class="panel-body list-group list-group-health">
+                        @projects.filterNot(_.isSpongePlugin).filterNot(_.isForgeMod).map { project =>
+                          <div class="list-group-item">
+                              <a href="@projectRoutes.show(project.ownerName, project.slug)">
+                                  <strong>@project.namespace</strong>
+                              </a>
+                          </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}

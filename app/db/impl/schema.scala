@@ -7,6 +7,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.table.common.{DescriptionColumn, DownloadsColumn, VisibilityColumn}
 import db.impl.table.StatTable
 import db.table.{AssociativeTable, ModelTable, NameColumn}
+import models.admin.{ProjectLog, ProjectLogEntry}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
@@ -93,6 +94,27 @@ class ProjectStarsTable(tag: Tag) extends AssociativeTable(tag, "project_stars",
   def projectId   =   column[Int]("project_id")
 
   override def * = (userId, projectId)
+
+}
+
+class ProjectLogTable(tag: Tag) extends ModelTable[ProjectLog](tag, "project_logs") {
+
+  def projectId = column[Int]("project_id")
+
+  override def * = (id.?, createdAt.?, projectId) <> (ProjectLog.tupled, ProjectLog.unapply)
+
+}
+
+class ProjectLogEntryTable(tg: Tag) extends ModelTable[ProjectLogEntry](tg, "project_log_entries") {
+
+  def logId = column[Int]("log_id")
+  def tag = column[String]("tag")
+  def message = column[String]("message")
+  def occurrences = column[Int]("occurrences")
+  def lastOccurrence = column[Timestamp]("last_occurrence")
+
+  override def * = (id.?, createdAt.?, logId, tag, message, occurrences, lastOccurrence) <> (ProjectLogEntry.tupled,
+                    ProjectLogEntry.unapply)
 
 }
 

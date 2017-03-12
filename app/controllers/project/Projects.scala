@@ -4,10 +4,11 @@ import java.nio.file.{Files, Path}
 import javax.inject.Inject
 
 import controllers.BaseController
+import controllers.sugar.Requests.AuthRequest
 import db.ModelService
 import discourse.OreDiscourseApi
 import form.OreForms
-import ore.permission.{EditSettings, HideProjects}
+import ore.permission.{EditSettings, HideProjects, ViewLogs}
 import ore.project.FlagReasons
 import ore.project.factory.ProjectFactory
 import ore.project.io.{InvalidPluginFileException, PluginUpload}
@@ -464,6 +465,12 @@ class Projects @Inject()(stats: StatTracker,
       andThen ProjectPermissionAction(HideProjects)) { implicit request =>
       request.project.setVisible(visible)
       Ok
+    }
+  }
+
+  def showLog(author: String, slug: String) = {
+    (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(ViewLogs)) { implicit request =>
+      Ok(views.log(request.project))
     }
   }
 

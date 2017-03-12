@@ -56,6 +56,13 @@ general.any                     =   Any
 general.platform                =   Platform
 general.notice                  =   Notice
 
+admin.health.title = Ore Health Report
+admin.health.discuss = Missing discussion topic
+admin.health.hidden = Hidden projects
+admin.health.stale = Stale projects
+admin.health.topic = Failed discussion topic updates
+admin.health.platform = No platform detected
+
 editor.deleteConfirm    =   Are you sure you want to delete {0}? This cannot be undone.
 
 error.minLength                 =   Content too short.
@@ -158,6 +165,8 @@ project.deleted                 =   Project "{0}" deleted.
 project.license.link            =   Licensed under
 
 project.back = Get me out of here!
+
+project.log.title = Project Log: {0}
 
 org.create          =   New Organization
 org.create.title    =   Create a new Organization

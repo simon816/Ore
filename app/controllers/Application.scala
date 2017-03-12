@@ -120,6 +120,10 @@ final class Application @Inject()(data: DataHelper,
     }
   }
 
+  def showHealth() = (Authenticated andThen PermissionAction[AuthRequest](ViewHealth)) { implicit request =>
+    Ok(views.users.admin.health())
+  }
+
   /**
     * Removes a trailing slash from a route.
     *
@@ -168,4 +172,5 @@ final class Application @Inject()(data: DataHelper,
   def showOffline() = Action { implicit request =>
     Ok(views.errors.offline())
   }
+
 }

@@ -89,6 +89,7 @@ ore {
         file-validate = true
         tmp-file-save = false
         icon-size = 200
+        staleAge = 2419200
     }
     
     users {

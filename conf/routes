@@ -10,6 +10,7 @@ GET     /admin/seed                                                 @controllers
 GET     /admin/queue                                                @controllers.Application.showQueue()
 GET     /admin/flags                                                @controllers.Application.showFlags()
 GET     /admin/flags/:id/resolve/:resolved                          @controllers.Application.setFlagResolved(id: Int, resolved: Boolean)
+GET     /admin/health                                               @controllers.Application.showHealth()
 
 GET     /statusz                                                    @controllers.ApiController.showStatusZ()
 
@@ -105,6 +106,8 @@ POST    /:author/:slug/manage/save                                  @controllers
 POST    /:author/:slug/manage/rename                                @controllers.project.Projects.rename(author, slug)
 POST    /:author/:slug/manage/delete                                @controllers.project.Projects.delete(author, slug)
 POST    /:author/:slug/manage/members/remove                        @controllers.project.Projects.removeMember(author, slug)
+
+GET     /:author/:slug/log                                          @controllers.project.Projects.showLog(author, slug)
 
 GET     /:author/:slug/issues                                       @controllers.project.Projects.showIssues(author, slug)
 GET     /:author/:slug/source                                       @controllers.project.Projects.showSource(author, slug)

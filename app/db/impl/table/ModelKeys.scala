@@ -4,6 +4,7 @@ import db.Named
 import db.impl.OrePostgresDriver.api._
 import db.impl.model.common.{Describable, Downloadable, Hideable}
 import db.table.key._
+import models.admin.ProjectLogEntry
 import models.project._
 import models.statistic.StatEntry
 import models.user.role.RoleModel
@@ -45,6 +46,10 @@ object ModelKeys {
   val Source                =   new StringKey[ProjectSettings](_.source, _.source.orNull)
   val LicenseName           =   new StringKey[ProjectSettings](_.licenseName, _.licenseName.orNull)
   val LicenseUrl            =   new StringKey[ProjectSettings](_.licenseUrl, _.licenseUrl.orNull)
+
+  // ProjectLogEntry
+  val Occurrences           =   new IntKey[ProjectLogEntry](_.occurrences, _.occurrences)
+  val LastOccurrence        =   new TimestampKey[ProjectLogEntry](_.lastOccurrence, _.lastOccurrence)
 
   // User
   val FullName              =   new StringKey[User](_.fullName, _.fullName.orNull)

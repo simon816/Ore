@@ -1,6 +1,5 @@
 package models.project
 
-import java.nio.file.Files
 import java.nio.file.Files._
 import java.sql.Timestamp
 

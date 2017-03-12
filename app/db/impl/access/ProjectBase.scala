@@ -2,6 +2,8 @@ package db.impl.access
 
 import java.nio.file.{Files, NoSuchFileException}
 import java.nio.file.Files._
+import java.sql.Timestamp
+import java.util.Date
 
 import com.google.common.base.Preconditions._
 import db.impl.OrePostgresDriver.api._
@@ -25,6 +27,14 @@ class ProjectBase(override val service: ModelService,
   val fileManager = new ProjectFiles(this.env)
 
   implicit val self = this
+
+  /**
+    * Returns projects that have not beein updated in a while.
+    *
+    * @return Stale projects
+    */
+  def stale: Seq[Project]
+  = this.filter(_.lastUpdated > new Timestamp(new Date().getTime - this.config.projects.getInt("staleAge").get))
 
   /**
     * Returns the Project with the specified owner name and name.

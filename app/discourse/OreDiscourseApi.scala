@@ -84,13 +84,13 @@ trait OreDiscourseApi extends DiscourseApi {
         case Left(errors) =>
           // Request went through but Discourse responded with errors
           // Don't schedule a retry because this will just keep happening
-          Logger.warn(
-            "Request to create project topic was successful but Discourse responded with errors:\n" +
-              s"Project: ${project.url}\n" +
-              s"Title: $title\n" +
-              s"Content: $content\n" +
-              s"Errors: ${errors.toString}")
-          resultPromise.success(false)
+          val message = "Request to create project topic was successful but Discourse responded with errors:\n" +
+            s"Project: ${project.url}\n" +
+            s"Title: $title\n" +
+            s"Content: $content\n" +
+            s"Errors: ${errors.toString}"
+          Logger.warn(message)
+          project.logger.err(message)
         case Right(topic) =>
           // Topic created!
           // Catch some unexpected cases (should never happen)
@@ -111,7 +111,7 @@ trait OreDiscourseApi extends DiscourseApi {
 
           resultPromise.success(true)
       }
-      case Failure(e) =>
+      case Failure(_) =>
         // Discourse never received our request! Try again later.
         Logger.info(s"Could not create project topic for project ${project.url}. Rescheduling...")
         resultPromise.success(false)
@@ -145,13 +145,15 @@ trait OreDiscourseApi extends DiscourseApi {
     // A promise for our final result
     val resultPromise: Promise[Boolean] = Promise()
 
-    def logErrors(errors: List[String]) = Logger.warn(
-      "Request to update project topic was successful but Discourse responded with errors:\n" +
+    def logErrors(errors: List[String]) = {
+      val message = "Request to update project topic was successful but Discourse responded with errors:\n" +
         s"Project: ${project.url}\n" +
         s"Topic ID: $topicId\n" +
         s"Title: $title\n" +
         s"Errors: ${errors.toString}"
-    )
+      project.logger.err(message)
+      Logger.warn(message)
+    }
 
     def fail(message: String) = {
       Logger.info(s"Couldn't update project topic for project ${project.url}: " + message)
@@ -218,7 +220,7 @@ trait OreDiscourseApi extends DiscourseApi {
       topicId = project.topicId,
       content = content
     ).map(_.left.toOption.getOrElse(List.empty)).recover {
-      case e: Exception =>
+      case _: Exception =>
         List("Could not connect to forums, please try again later.")
     }
   }
@@ -240,7 +242,12 @@ trait OreDiscourseApi extends DiscourseApi {
     postDiscussionReply(
       project = project,
       user = project.owner,
-      content = this.templates.versionRelease(project, version, cont))
+      content = this.templates.versionRelease(project, version, cont)).map { errors =>
+      if (errors.nonEmpty) {
+        errors.foreach(project.logger.err(_))
+      }
+      errors
+    }
   }
 
   /**

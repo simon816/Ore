@@ -11,6 +11,7 @@ import db.impl.schema.ProjectSchema
 import db.impl.table.ModelKeys
 import db.impl.table.ModelKeys._
 import db.{ModelService, Named}
+import models.admin.ProjectLog
 import models.statistic.ProjectView
 import models.user.User
 import models.user.role.ProjectRole
@@ -179,6 +180,8 @@ case class Project(override val id: Option[Int] = None,
     this._slug = _slug
     if (isDefined) update(Slug)
   }
+
+  def namespace: String = this.ownerName + '/' + this.slug
 
   /**
     * Returns the base URL for this Project.
@@ -463,6 +466,11 @@ case class Project(override val id: Option[Int] = None,
     checkNotNull(name, "null name", "")
     val page = new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true)
     this.service.await(page.schema.getOrInsert(page)).get
+  }
+
+  def logger: ProjectLog = {
+    val loggers = this.service.access[ProjectLog](classOf[ProjectLog])
+    loggers.find(_.projectId === this.id.get).getOrElse(loggers.add(ProjectLog(projectId = this.id.get)))
   }
 
   /**

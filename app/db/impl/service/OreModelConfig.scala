@@ -5,6 +5,7 @@ import db.impl._
 import db.impl.schema._
 import db.table.ModelAssociation
 import db.{ModelSchema, ModelService}
+import models.admin.{ProjectLog, ProjectLogEntry}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole}
@@ -85,6 +86,12 @@ trait OreModelConfig extends ModelService with OreDBOs {
 
   val ProjectSettingsSchema = new ModelSchema[ProjectSettings](this, classOf[ProjectSettings],
     TableQuery[ProjectSettingsTable])
+
+  val ProjectLogSchema = new ModelSchema[ProjectLog](this, classOf[ProjectLog], TableQuery[ProjectLogTable])
+    .withChildren[ProjectLogEntry](classOf[ProjectLogEntry], _.logId)
+
+  val ProjectLogEntrySchema = new ModelSchema[ProjectLogEntry](
+    this, classOf[ProjectLogEntry], TableQuery[ProjectLogEntryTable])
 
   val FlagSchema = new ModelSchema[Flag](this, classOf[Flag], TableQuery[FlagTable])
 
