@@ -32,11 +32,11 @@ libraryDependencies ++= Seq(
   "org.bouncycastle"      %   "bcpg-jdk15on"            %   "1.56",
   "javax.mail"            %   "mail"                    %   "1.4.7",
 
-  "com.vladsch.flexmark"  % "flexmark"                       %  "0.18.0",
-  "com.vladsch.flexmark"  % "flexmark-ext-autolink"          %  "0.18.0",
-  "com.vladsch.flexmark"  % "flexmark-ext-anchorlink"        %  "0.18.0",
-  "com.vladsch.flexmark"  % "flexmark-ext-gfm-strikethrough" %  "0.18.0",
-  "com.vladsch.flexmark"  % "flexmark-ext-gfm-tasklist"      %  "0.18.0",
-  "com.vladsch.flexmark"  % "flexmark-ext-tables"            %  "0.18.0",
-  "com.vladsch.flexmark"  % "flexmark-ext-typographic"       %  "0.18.0"
+  "com.vladsch.flexmark"  % "flexmark"                       %  "0.18.2",
+  "com.vladsch.flexmark"  % "flexmark-ext-autolink"          %  "0.18.2",
+  "com.vladsch.flexmark"  % "flexmark-ext-anchorlink"        %  "0.18.2",
+  "com.vladsch.flexmark"  % "flexmark-ext-gfm-strikethrough" %  "0.18.2",
+  "com.vladsch.flexmark"  % "flexmark-ext-gfm-tasklist"      %  "0.18.2",
+  "com.vladsch.flexmark"  % "flexmark-ext-tables"            %  "0.18.2",
+  "com.vladsch.flexmark"  % "flexmark-ext-typographic"       %  "0.18.2"
 )
