@@ -38,5 +38,10 @@ libraryDependencies ++= Seq(
   "com.vladsch.flexmark"  % "flexmark-ext-gfm-strikethrough" %  "0.18.0",
   "com.vladsch.flexmark"  % "flexmark-ext-gfm-tasklist"      %  "0.18.0",
   "com.vladsch.flexmark"  % "flexmark-ext-tables"            %  "0.18.0",
-  "com.vladsch.flexmark"  % "flexmark-ext-typographic"       %  "0.18.0"
+  "com.vladsch.flexmark"  % "flexmark-ext-typographic"       %  "0.18.0",
+
+  "org.webjars"       % "jquery"       % "2.2.4",
+  "org.webjars"       % "font-awesome" % "4.7.0",
+  "org.webjars.bower" % "filesize"     % "3.2.1",
+  "org.webjars.bower" % "sw-toolbox"   % "3.6.1"
 )

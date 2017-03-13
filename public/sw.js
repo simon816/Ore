@@ -1,4 +1,4 @@
-importScripts('/assets/sw-toolbox/sw-toolbox.js');
+importScripts('/assets/lib/sw-toolbox/sw-toolbox.js');
 
 function networkOnlyError(request, values, options) {
   return toolbox.networkOnly(request, values, options).catch((err) => {
@@ -27,7 +27,7 @@ var preCache = [
     '/assets/bootstrap/js/bootstrap.min.js',
     '/assets/javascripts/svg.js',
     '/assets/javascripts/main.js',
-    '/assets/javascripts/jquery-2.2.1.min.js',
+    '/assets/lib/jquery/jquery.min.js',
     '/assets/stylesheets/main.css',
     '/assets/images/ore-dark.png',
     '/assets/images/ore-desc.png',

@@ -1,7 +1,7 @@
 @import 'pallette';
-@import 'fontawesome/font-awesome';
+@import 'lib/font-awesome/scss/font-awesome';
 
-$fa-font-path: "../fonts/fontawesome";
+$fa-font-path: "../lib/font-awesome/fonts";
 
 .push-down {
   margin-top: 10px;

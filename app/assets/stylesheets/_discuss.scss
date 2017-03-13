@@ -1,5 +1,5 @@
 @import 'utils';
-@import 'fontawesome/font-awesome';
+@import 'lib/font-awesome/scss/font-awesome';
 
 .reply-box {
   .icon-save { @extend .fa-reply }
