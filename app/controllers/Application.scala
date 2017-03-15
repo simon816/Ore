@@ -2,6 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
+import controllers.sugar.Bakery
 import controllers.sugar.Requests.AuthRequest
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema.ProjectSchema
@@ -23,6 +24,7 @@ import views.{html => views}
   * Main entry point for application.
   */
 final class Application @Inject()(data: DataHelper,
+                                  implicit override val bakery: Bakery,
                                   implicit override val sso: SingleSignOnConsumer,
                                   implicit override val messagesApi: MessagesApi,
                                   implicit override val env: OreEnv,

@@ -4,6 +4,7 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import com.google.common.base.Preconditions._
+import controllers.sugar.Bakery
 import db.Expirable
 import db.impl.DownloadWarningsTable
 import db.impl.model.OreModel
@@ -78,9 +79,9 @@ case class DownloadWarning(override val id: Option[Int] = None,
     *
     * @return Cookie for client
     */
-  def cookie: Cookie = {
+  def cookie(implicit bakery: Bakery): Cookie = {
     checkNotNull(this.token, "null token", "")
-    Cookie(COOKIE, this.token, secure = true)
+    bakery.bake(COOKIE, this.token)
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)

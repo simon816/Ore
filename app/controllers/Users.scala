@@ -2,6 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
+import controllers.sugar.Bakery
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase.ORDERING_PROJECTS
@@ -31,6 +32,7 @@ class Users @Inject()(fakeUser: FakeUser,
                       writes: OreWrites,
                       mailer: Mailer,
                       emails: EmailFactory,
+                      implicit override val bakery: Bakery,
                       implicit override val sso: SingleSignOnConsumer,
                       implicit override val messagesApi: MessagesApi,
                       implicit override val env: OreEnv,

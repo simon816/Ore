@@ -1,6 +1,6 @@
 package controllers
 
-import controllers.sugar.Actions
+import controllers.sugar.{Actions, Bakery}
 import db.ModelService
 import db.access.ModelAccess
 import db.impl.VersionTable
@@ -19,6 +19,7 @@ import util.StringUtils._
 abstract class BaseController(implicit val env: OreEnv,
                               val config: OreConfig,
                               val service: ModelService,
+                              override val bakery: Bakery,
                               override val sso: SingleSignOnConsumer)
                               extends Controller
                                 with Actions

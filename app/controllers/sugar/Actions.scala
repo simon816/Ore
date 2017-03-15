@@ -28,6 +28,7 @@ trait Actions extends Calls with ActionHelpers {
   val organizations: OrganizationBase
   val sso: SingleSignOnConsumer
   val signOns: ModelAccess[SignOn]
+  val bakery: Bakery
 
   val PermsLogger = play.api.Logger("Permissions")
 
@@ -173,7 +174,7 @@ trait Actions extends Calls with ActionHelpers {
     def authenticatedAs(user: User, maxAge: Int = -1) = {
       val session = Actions.this.users.createSession(user)
       val age = if (maxAge == -1) None else Some(maxAge)
-      result.withCookies(Cookie(AuthTokenName, session.token, age, secure = true))
+      result.withCookies(Actions.this.bakery.bake(AuthTokenName, session.token, age))
     }
 
     /**

@@ -4,6 +4,7 @@ import java.nio.file.{Files, Path}
 import javax.inject.Inject
 
 import controllers.BaseController
+import controllers.sugar.Bakery
 import controllers.sugar.Requests.AuthRequest
 import db.ModelService
 import discourse.OreDiscourseApi
@@ -28,6 +29,7 @@ import scala.collection.JavaConverters._
 class Projects @Inject()(stats: StatTracker,
                          forms: OreForms,
                          factory: ProjectFactory,
+                         implicit override val bakery: Bakery,
                          implicit override val sso: SingleSignOnConsumer,
                          implicit val forums: OreDiscourseApi,
                          implicit override val messagesApi: MessagesApi,

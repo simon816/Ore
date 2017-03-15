@@ -3,6 +3,7 @@ package controllers.project
 import javax.inject.Inject
 
 import controllers.BaseController
+import controllers.sugar.Bakery
 import db.ModelService
 import form.OreForms
 import models.project.Page
@@ -19,6 +20,7 @@ import util.StringUtils._
   */
 class Pages @Inject()(forms: OreForms,
                       stats: StatTracker,
+                      implicit override val bakery: Bakery,
                       implicit override val sso: SingleSignOnConsumer,
                       implicit override val messagesApi: MessagesApi,
                       implicit override val env: OreEnv,

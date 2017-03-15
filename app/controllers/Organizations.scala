@@ -2,6 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
+import controllers.sugar.Bakery
 import db.ModelService
 import discourse.OreDiscourseApi
 import form.OreForms
@@ -23,6 +24,7 @@ import scala.concurrent.Future
 class Organizations @Inject()(forms: OreForms,
                               writes: OreWrites,
                               forums: OreDiscourseApi,
+                              implicit override val bakery: Bakery,
                               implicit override val sso: SingleSignOnConsumer,
                               implicit override val env: OreEnv,
                               implicit override val config: OreConfig,

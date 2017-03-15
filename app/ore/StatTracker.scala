@@ -3,6 +3,7 @@ package ore
 import java.util.UUID
 import javax.inject.Inject
 
+import controllers.sugar.Bakery
 import controllers.sugar.Requests.ProjectRequest
 import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
@@ -10,7 +11,7 @@ import db.impl.schema.StatSchema
 import models.project.Version
 import models.statistic.{ProjectView, VersionDownload}
 import ore.StatTracker.COOKIE_NAME
-import play.api.mvc.{Cookie, RequestHeader, Result}
+import play.api.mvc.{RequestHeader, Result}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -22,6 +23,7 @@ trait StatTracker {
   implicit val users: UserBase
   implicit val projects: ProjectBase
 
+  val bakery: Bakery
   val viewSchema: StatSchema[ProjectView]
   val downloadSchema: StatSchema[VersionDownload]
 
@@ -40,7 +42,7 @@ trait StatTracker {
         project.addView()
       }
     }
-    f(request).withCookies(Cookie(COOKIE_NAME, statEntry.cookie, secure = true))
+    f(request).withCookies(bakery.bake(COOKIE_NAME, statEntry.cookie, secure = true))
   }
 
   /**
@@ -59,7 +61,7 @@ trait StatTracker {
         request.project.addDownload()
       }
     }
-    f(request).withCookies(Cookie(COOKIE_NAME, statEntry.cookie, secure = true))
+    f(request).withCookies(bakery.bake(COOKIE_NAME, statEntry.cookie, secure = true))
   }
 
 }
@@ -93,7 +95,7 @@ object StatTracker {
 
 }
 
-class OreStatTracker @Inject()(service: ModelService) extends StatTracker {
+class OreStatTracker @Inject()(service: ModelService, override val bakery: Bakery) extends StatTracker {
   override val users = this.service.getModelBase(classOf[UserBase])
   override val projects = this.service.getModelBase(classOf[ProjectBase])
   override val viewSchema = this.service.getSchemaByModel(classOf[ProjectView]).asInstanceOf[StatSchema[ProjectView]]

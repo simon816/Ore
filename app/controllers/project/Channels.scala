@@ -3,6 +3,7 @@ package controllers.project
 import javax.inject.Inject
 
 import controllers.BaseController
+import controllers.sugar.Bakery
 import db.ModelService
 import form.OreForms
 import ore.permission.EditChannels
@@ -17,6 +18,7 @@ import views.html.projects.{channels => views}
   */
 class Channels @Inject()(forms: OreForms,
                          factory: ProjectFactory,
+                         implicit override val bakery: Bakery,
                          implicit override val sso: SingleSignOnConsumer,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,

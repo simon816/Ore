@@ -9,6 +9,7 @@ import javax.inject.Inject
 
 import com.github.tminglei.slickpg.InetString
 import controllers.BaseController
+import controllers.sugar.Bakery
 import controllers.sugar.Requests.ProjectRequest
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
@@ -36,6 +37,7 @@ class Versions @Inject()(stats: StatTracker,
                          forms: OreForms,
                          factory: ProjectFactory,
                          forums: OreDiscourseApi,
+                         implicit override val bakery: Bakery,
                          implicit override val sso: SingleSignOnConsumer,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
