@@ -80,11 +80,11 @@ case class Page(override val id: Option[Int] = None,
     checkArgument(_contents.length >= MinLength, "contents not long enough", "")
     this._contents = _contents
     if (isDefined) {
+      update(Contents)
       // Contents were updated, update on forums
       val project = this.project
       if (this.name.equals(HomeName) && project.topicId != -1)
         this.forums.updateProjectTopic(project)
-      update(Contents)
     }
   }
 
