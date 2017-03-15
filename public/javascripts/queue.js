@@ -29,6 +29,7 @@ $(function() {
         $.ajax({
             type: 'post',
             url: '/' + versionPath + '/approve',
+            data: { csrfToken: csrf },
             complete: function() { icon.removeClass('fa-spinner fa-spin').addClass('fa-thumbs-up'); },
             success: function() {
                 $.when(listItem.fadeOut('slow')).done(function() { 
