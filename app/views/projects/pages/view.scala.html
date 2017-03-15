@@ -9,6 +9,7 @@ Documentation page within Project overview.
 @import models.project.{Page, Project}
 @import ore.OreConfig
 @import ore.permission.EditPages
+@import security.NonceFilter._
 @import util.StringUtils._
 @(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages, request: Request[_],
         flash: Flash, service: ModelService, config: OreConfig, userBase: UserBase)
@@ -20,7 +21,7 @@ Documentation page within Project overview.
 @projects.view(model, "#docs") {
 
     @if(editorOpen) {
-        <script>$(function() { $('.btn-edit').click(); });</script>
+        <script nonce="@nonce">$(function() { $('.btn-edit').click(); });</script>
     }
 
     <div class="project-wiki">

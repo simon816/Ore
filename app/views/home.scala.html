@@ -6,14 +6,14 @@ sorted according to different criteria.
 @import db.ModelService
 @import db.impl.access.UserBase
 @import models.project.Project
-@import ore.OreConfig
+@import ore.{OreConfig, Platforms}
+@import ore.Platforms.Platform
 @import ore.project.Categories._
 @import ore.project.ProjectSortingStrategies.{values, _}
 @import ore.project.{Categories, ProjectSortingStrategies}
+@import security.NonceFilter._
 
 @import scala.util.Random
-@import ore.Platforms
-@import ore.Platforms.Platform
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], query: Option[String], page: Int,
         sort: ProjectSortingStrategy, platform: Option[Platform])(implicit messages: Messages, flash: Flash,
         request: Request[_], service: ModelService, config: OreConfig, users: UserBase)
@@ -52,7 +52,7 @@ sorted according to different criteria.
 @bootstrap.layout(messages("general.title")) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/home.js")"></script>
-    <script>
+    <script nonce="@nonce">
         @if(visibleCategories.isDefined) {
             CATEGORY_STRING = "@visibleCategories.get.map(_.id).mkString(",")";
         }

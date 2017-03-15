@@ -7,10 +7,8 @@ Page used for uploading and creating new projects.
 @import ore.OreConfig
 @import ore.project.factory.PendingProject
 @import play.twirl.api.Html
-@import views.html.helper.form
-@import ore.project.Dependency
-@import ore.project.Dependency._
-@import views.html.helper.CSRF
+@import security.NonceFilter._
+@import views.html.helper.{CSRF, form}
 @(pending: Option[PendingProject])(implicit messages: Messages, flash: Flash, request: Request[_],
         service: ModelService, config: OreConfig, users: UserBase)
 
@@ -102,7 +100,7 @@ Page used for uploading and creating new projects.
                         </tbody>
                     </table>
 
-                    <script>
+                    <script nonce="@nonce">
                         $(function() {
                             validateMeta("@project.pluginId", "@project.name",
                                     "@project.ownerName", "@project.slug");
