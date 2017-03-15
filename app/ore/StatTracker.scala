@@ -40,7 +40,7 @@ trait StatTracker {
         project.addView()
       }
     }
-    f(request).withCookies(Cookie(COOKIE_NAME, statEntry.cookie))
+    f(request).withCookies(Cookie(COOKIE_NAME, statEntry.cookie, secure = true))
   }
 
   /**
@@ -59,7 +59,7 @@ trait StatTracker {
         request.project.addDownload()
       }
     }
-    f(request).withCookies(Cookie(COOKIE_NAME, statEntry.cookie))
+    f(request).withCookies(Cookie(COOKIE_NAME, statEntry.cookie, secure = true))
   }
 
 }

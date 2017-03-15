@@ -80,7 +80,7 @@ case class DownloadWarning(override val id: Option[Int] = None,
     */
   def cookie: Cookie = {
     checkNotNull(this.token, "null token", "")
-    Cookie(COOKIE, this.token)
+    Cookie(COOKIE, this.token, secure = true)
   }
 
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)
