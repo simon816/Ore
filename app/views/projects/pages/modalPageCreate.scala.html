@@ -1,9 +1,10 @@
 @import controllers.project.{routes => projectRoutes}
 @import models.project.Project
-@(model: Project)(implicit messages: Messages)
+@import security.NonceFilter._
+@(model: Project)(implicit messages: Messages, request: RequestHeader)
 
 <script type="text/javascript" src="@routes.Assets.at("javascripts/pageEdit.js")"></script>
-<script>
+<script nonce="@nonce">
     PROJECT_OWNER = '@model.ownerName';
     PROJECT_SLUG = '@model.slug';
 </script>

@@ -7,19 +7,20 @@ Discussion page within Project overview.
 @import models.project.Project
 @import ore.OreConfig
 @import org.spongepowered.play.discourse.DiscourseApi
+@import security.NonceFilter._
 @(model: Project)(implicit messages: Messages, request: Request[_], flash: Flash, service: ModelService,
         forums: DiscourseApi, config: OreConfig, users: UserBase)
 
 @projects.view(model, "#discussion") {
 
-    <script>
+    <script nonce="@nonce">
         DiscourseEmbed = {
             discourseUrl: '@config.forums.getString("baseUrl").get/',
             topicId: @model.topicId
         };
     </script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/projectDiscuss.js")"></script>
-    <script>$(function() { $('.btn-edit').click(); });</script>
+    <script nonce="@nonce">$(function() { $('.btn-edit').click(); });</script>
 
     <div class="container">
         <div id='discourse-comments'></div>

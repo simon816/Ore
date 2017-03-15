@@ -30,6 +30,8 @@ play {
     http.session.maxAge                =   2419200 # 4 weeks
     http.parser.maxDiskBuffer          =   20MB
     ws.timeout.connection              =   10000
+
+    filters.headers.contentSecurityPolicy = "default-src 'self'; script-src 'self' '%NONCE-SOURCE%' https://www.google-analytics.com/analytics.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https:; font-src 'self' https://fonts.gstatic.com; block-all-mixed-content"
 }
 
 security {

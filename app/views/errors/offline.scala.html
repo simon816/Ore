@@ -1,6 +1,7 @@
 @import db.ModelService
 @import db.impl.access.UserBase
 @import ore.{OreConfig, OreEnv}
+@import security.NonceFilter._
 @()(implicit messages: Messages, session: Session, request: Request[_] = null, service: ModelService, config: OreConfig,
         users: UserBase, env: OreEnv)
 
@@ -12,7 +13,7 @@
         <i class="minor">@messages("error.offline.body")</i>
     </div>
 
-    <script>
+    <script nonce="@nonce">
         // we do not want to show the offline alert of this page
         var IS_OFFLINE_PAGE = true;
     </script>

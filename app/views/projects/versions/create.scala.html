@@ -4,9 +4,9 @@
 @import models.project.{Channel, Project}
 @import ore.OreConfig
 @import ore.project.factory.PendingVersion
+@import security.NonceFilter._
 @import util.StringUtils
-@import views.html.helper.form
-@import views.html.helper.CSRF
+@import views.html.helper.{CSRF, form}
 @(project: Project, pending: Option[PendingVersion],
   channels: Option[Seq[Channel]], showFileControls: Boolean)(implicit messages: Messages, flash: Flash,
         request: Request[_], service: ModelService, config: OreConfig, users: UserBase)
@@ -82,7 +82,7 @@
                                                     </a>
                                                     <script type="text/javascript"
                                                             src="@routes.Assets.at("javascripts/versionCreateChannelNew.js")"></script>
-                                                    <script>DEFAULT_COLOR = '@config.defaultChannelColor.hex';</script>
+                                                    <script nonce="@nonce">DEFAULT_COLOR = '@config.defaultChannelColor.hex';</script>
                                                 } else {
                                                     <span id="channel-name" class="channel" style="background-color: @pending.get.channelColor;">
                                                         @pending.get.channelName
@@ -91,7 +91,7 @@
                                                         <i id="channel-edit" class="fa fa-edit"
                                                            data-toggle="modal" data-target="#channel-settings"></i>
                                                     </a>
-                                                    <script>
+                                                    <script nonce="@nonce">
                                                         $(function() {
                                                             // Setup editor
                                                             initChannelManager(
@@ -134,7 +134,7 @@
                                             )
                                         </div>
                                     </div>
-                                    <script>$(function () { $('.btn-edit').click() });</script>
+                                    <script nonce="@nonce">$(function () { $('.btn-edit').click() });</script>
                                 }
                             }
                         }

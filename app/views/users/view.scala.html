@@ -5,9 +5,9 @@
 @import ore.OreConfig
 @import ore.permission.EditSettings
 @import ore.user.Prompts
+@import security.NonceFilter._
 @import util.StringUtils._
-@import views.html.helper.form
-@import views.html.helper.CSRF
+@import views.html.helper.{CSRF, form}
 @(user: User)(content: Html)(implicit messages: Messages, flash: Flash, request: Request[_], service: ModelService,
         config: OreConfig, users: UserBase)
 
@@ -34,14 +34,14 @@
 @bootstrap.layout(user.username) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/userPage.js")"></script>
-    <script>USERNAME = '@user.username';</script>
+    <script nonce="@nonce">USERNAME = '@user.username';</script>
 
     <div class="container" style="margin-top: 90px">
 
         @utils.alert("error")
 
         @flash.get("pgp-updated").map { updated =>
-          <script>
+          <script nonce="@nonce">
               $(function() {
                   $('#modal-pgp').modal('show');
               });

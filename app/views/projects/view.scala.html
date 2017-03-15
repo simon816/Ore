@@ -9,8 +9,8 @@ Base template for Project overview.
 @import ore.OreConfig
 @import ore.permission.EditSettings
 @import ore.project.FlagReasons
-@import views.html.helper.form
-@import views.html.helper.CSRF
+@import security.NonceFilter._
+@import views.html.helper.{CSRF, form}
 @(project: Project, active: String, noButtons: Boolean = false)(content: Html)(implicit messages: Messages,
         request: Request[_], flash: Flash, service: ModelService, config: OreConfig, users: UserBase)
 
@@ -100,7 +100,7 @@ Base template for Project overview.
                                     }
                                 }
                             </ul>
-                            <script>$(function() { $(".nav").find("@active").addClass("active"); });</script>
+                            <script nonce="@nonce">$(function() { $(".nav").find("@active").addClass("active"); });</script>
                         </div>
                     </div>
 
@@ -115,14 +115,14 @@ Base template for Project overview.
 
                             @if(hasUser) {
 
-                                <script>
+                                <script nonce="@nonce">
                                     var projectOwner = "@project.ownerName";
                                     var projectSlug = "@project.slug";
                                 </script>
 
                                 @defining(project.stars.contains(user)) { alreadyStarred =>
 
-                                    <script>var alreadyStarred = @alreadyStarred;</script>
+                                    <script nonce="@nonce">var alreadyStarred = @alreadyStarred;</script>
 
                                     @if(!isOwner(user)) {
                                         <button class="btn btn-default btn-star">
