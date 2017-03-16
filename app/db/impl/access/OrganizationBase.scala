@@ -7,13 +7,9 @@ import models.user.{Notification, Organization, User}
 import ore.OreConfig
 import ore.permission.role.RoleTypes
 import ore.user.notification.NotificationTypes
-import org.apache.commons.lang3.RandomStringUtils
 import play.api.i18n.MessagesApi
 import security.spauth.SpongeAuthApi
 import util.StringUtils
-
-import scala.concurrent.TimeoutException
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class OrganizationBase(override val service: ModelService,
                        forums: OreDiscourseApi,
@@ -57,42 +53,6 @@ class OrganizationBase(override val service: ModelService,
     val spongeUser = spongeResult.right.get
     Logger.info("<SUCCESS> " + spongeUser)
 
-    // Next we'll create a forum user for the organization. This requires a
-    // password but we'll just make up a random one and not keep it. Since
-    // users can't log into organization accounts the way they can with
-    // user accounts, we don't need to (and shouldn't) keep the password.
-    if (this.forums.isEnabled) {
-      Logger.info("Creating on Discourse...")
-      val dummyPassword = RandomStringUtils.randomAlphanumeric(60)
-      val userResult = this.forums.await(this.forums.createUser(name, name, dummyEmail, dummyPassword).recover {
-        case toe: TimeoutException =>
-          Left(List("error.discourse.connect"))
-        case e: Exception =>
-          Left(List("error.discourse.unexpected"))
-      })
-
-      // Check for error
-      if (userResult.isLeft) {
-        val error = userResult.left.get.head
-        Logger.info("<FAILURE> " + error)
-        Logger.info("Deleting user on SpongeAuth...")
-        val deleteResult = this.auth.deleteUser(spongeUser.username)
-        if (deleteResult.isLeft)
-          Logger.warn("Failed to delete user from SpongeAuth (id " + spongeUser.id + ")")
-        return Left(error)
-      }
-      val forumUserId = userResult.right.get
-      Logger.info("<SUCCESS> New user ID : " + forumUserId)
-
-
-      // Assign the organization group to the forum user. Note: This is not
-      // really critical that this succeeds since the group will be added Ore
-      // side anyways. For this reason, we won't bother checking for failure and
-      // just assume it has succeeded.
-      val groupId = this.config.orgs.getInt("groupId").get
-      this.forums.addUserGroup(forumUserId, groupId)
-    }
-
     // Next we will create the Organization on Ore itself. This contains a
     // reference to the Sponge user ID, the organization's username and a
     // reference to the User owner of the organization.
@@ -131,7 +91,6 @@ class OrganizationBase(override val service: ModelService,
 
     val result = userOrg.toOrganization
     Logger.info("<SUCCESS> " + result)
-    pendingOrg.remove()
     Right(userOrg.toOrganization)
   }
 

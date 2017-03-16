@@ -4,7 +4,7 @@ import java.net.{MalformedURLException, URL}
 import javax.inject.Inject
 
 import form.organization.{OrganizationAvatarUpdate, OrganizationMembersUpdate, OrganizationRoleSetBuilder}
-import form.project.{ChannelData, ProjectRoleSetBuilder, ProjectSettingsForm, VersionData}
+import form.project._
 import models.project.Channel
 import models.project.Page._
 import models.user.role.ProjectRole
@@ -78,7 +78,10 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
   /**
     * Submits a post reply for a project discussion.
     */
-  lazy val ProjectReply = Form(single("content" -> text(minLength = MinLength, maxLength = MaxLength)))
+  lazy val ProjectReply = Form(mapping(
+    "content" -> text(minLength = MinLength, maxLength = MaxLength),
+    "poster" -> optional(nonEmptyText)
+  )(DiscussionReplyForm.apply)(DiscussionReplyForm.unapply))
 
   /**
     * Submits a list of organization members to be invited.

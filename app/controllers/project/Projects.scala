@@ -8,7 +8,7 @@ import controllers.sugar.Bakery
 import db.ModelService
 import discourse.OreDiscourseApi
 import form.OreForms
-import ore.permission.{EditSettings, HideProjects, ViewLogs}
+import ore.permission.{EditSettings, HideProjects, PostAsOrganization, ViewLogs}
 import ore.project.FlagReasons
 import ore.project.factory.ProjectFactory
 import ore.project.io.{InvalidPluginFileException, PluginUpload}
@@ -195,13 +195,25 @@ class Projects @Inject()(stats: StatTracker,
     this.forms.ProjectReply.bindFromRequest.fold(
       hasErrors =>
         Redirect(self.showDiscussion(author, slug)).withError(hasErrors.errors.head.message),
-      content => {
+      formData => {
         val project = request.project
         if (project.topicId == -1)
           BadRequest
         else {
           // Do forum post and display errors to user if any
-          val errors = this.forums.await(this.forums.postDiscussionReply(project, request.user, content))
+          val poster = formData.poster.flatMap { posterName =>
+            this.users.withName(posterName).flatMap { user =>
+              if (user.equals(request.user)
+                || (user.isOrganization && (request.user can PostAsOrganization in user.toOrganization))) {
+                Some(user)
+              } else {
+                None
+              }
+            }
+          } getOrElse {
+            request.user
+          }
+          val errors = this.forums.await(this.forums.postDiscussionReply(project, poster, formData.content))
           var result = Redirect(self.showDiscussion(author, slug))
           if (errors.nonEmpty)
             result = result.withError(errors.head)

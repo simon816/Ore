@@ -132,6 +132,7 @@ project.rename                  =   Rename
 project.rename.title            =   Rename project
 project.rename.info             =   Are you sure you want to rename your Project? This can have unintended side effects as we will not set up any redirects for you.
 project.discuss                 =   Discuss
+project.discuss.postAs          =   Posting as:
 project.docs                    =   Docs
 project.settings                =   Settings
 project.settings.members        =   Members
