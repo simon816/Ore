@@ -9,6 +9,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.access.{OrganizationBase, UserBase}
 import db.impl.model.OreModel
+import db.impl.model.common.Emailable
 import db.impl.table.ModelKeys._
 import models.project.{Flag, Project, Version}
 import models.user.role.{OrganizationRole, ProjectRole}
@@ -54,7 +55,8 @@ case class User(override val id: Option[Int] = None,
                   with UserOwned
                   with ScopeSubject
                   with Named
-                  with Visitable {
+                  with Visitable
+                  with Emailable {
 
   override type M = User
   override type T = UserTable
@@ -89,7 +91,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return User email
     */
-  def email: Option[String] = this._email
+  override def email: Option[String] = this._email
 
   /**
     * Sets this User's email.

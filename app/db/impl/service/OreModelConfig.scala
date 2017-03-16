@@ -9,7 +9,7 @@ import models.admin.{ProjectLog, ProjectLogEntry}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole}
-import models.user.{Notification, Organization, SignOn, User}
+import models.user._
 
 trait OreModelConfig extends ModelService with OreDBOs {
 
@@ -124,6 +124,9 @@ trait OreModelConfig extends ModelService with OreDBOs {
       selfReference = _.organizationId,
       targetClass = classOf[User],
       targetReference = _.userId)
+
+  val PendingOrganizationSchema = new ModelSchema[PendingOrganization](
+    this, classOf[PendingOrganization], TableQuery[PendingOrganizationTable])
 
   val OrganizationRoleSchema = new ModelSchema[OrganizationRole](
     this, classOf[OrganizationRole], TableQuery[OrganizationRoleTable])

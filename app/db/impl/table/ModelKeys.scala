@@ -2,13 +2,13 @@ package db.impl.table
 
 import db.Named
 import db.impl.OrePostgresDriver.api._
-import db.impl.model.common.{Describable, Downloadable, Hideable}
+import db.impl.model.common.{Describable, Downloadable, Emailable, Hideable}
 import db.table.key._
 import models.admin.ProjectLogEntry
 import models.project._
 import models.statistic.StatEntry
 import models.user.role.RoleModel
-import models.user.{Notification, SignOn, User}
+import models.user.{Notification, PendingOrganization, SignOn, User}
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
@@ -24,6 +24,7 @@ object ModelKeys {
   val Downloads             =   new IntKey[Downloadable](_.downloads, _.downloadCount)
   val Description           =   new StringKey[Describable](_.description, _.description.orNull)
   val IsVisible             =   new BooleanKey[Hideable](_.isVisible, _.isVisible)
+  val Email                 =   new StringKey[Emailable](_.email, _.email.orNull)
 
   // Project
   val OwnerId               =   new IntKey[Project](_.userId, _.ownerId)
@@ -53,7 +54,6 @@ object ModelKeys {
 
   // User
   val FullName              =   new StringKey[User](_.fullName, _.fullName.orNull)
-  val Email                 =   new StringKey[User](_.email, _.email.orNull)
   val PGPPubKey             =   new StringKey[User](_.pgpPubKey, _.pgpPubKey.orNull)
   val LastPGPPubKeyUpdate   =   new TimestampKey[User](_.lastPgpPubKeyUpdate, _.lastPgpPubKeyUpdate.orNull)
   val IsLocked              =   new BooleanKey[User](_.isLocked, _.isLocked)
@@ -92,5 +92,9 @@ object ModelKeys {
 
   // Notification
   val Read                  =   new BooleanKey[Notification](_.read, _.isRead)
+
+  // PendingOrganization
+  val SpongeId              =   new IntKey[PendingOrganization](_.spongeId, _.spongeId)
+  val DiscourseId           =   new IntKey[PendingOrganization](_.discourseId, _.discourseId)
 
 }

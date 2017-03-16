@@ -68,6 +68,7 @@ class OreModelService @Inject()(override val env: OreEnv,
     registerSchema(PageSchema)
     registerSchema(NotificationSchema)
     registerSchema(OrganizationSchema)
+    registerSchema(PendingOrganizationSchema)
     registerSchema(OrganizationRoleSchema)
 
     Logger.info(

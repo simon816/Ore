@@ -1,9 +1,10 @@
 package db.impl.access
 
 import db.{ModelBase, ModelService}
+import db.impl.OrePostgresDriver.api._
 import discourse.OreDiscourseApi
 import models.user.role.OrganizationRole
-import models.user.{Notification, Organization, User}
+import models.user.{Notification, Organization, PendingOrganization, User}
 import ore.OreConfig
 import ore.permission.role.RoleTypes
 import ore.user.notification.NotificationTypes
@@ -41,33 +42,46 @@ class OrganizationBase(override val service: ModelService,
     Logger.info("Owner ID : " + ownerId)
     Logger.info("Members  : " + members.size)
 
+    val pendingOrgs = this.service.access[PendingOrganization](classOf[PendingOrganization])
+    val pendingOrg = pendingOrgs.find { org =>
+      org.userId === ownerId && org.name.toLowerCase === name.toLowerCase
+    } getOrElse {
+      pendingOrgs.add(PendingOrganization(userId = ownerId, name = name))
+    }
+
     // Create the organization as a User on SpongeAuth. This will reserve the
     // name so that no new users or organizations can create an account with
     // that name. We will give the organization a dummy email for continuity.
     // By default we use "<org>@ore.spongepowered.org".
-    Logger.info("Creating on SpongeAuth...")
-    val dummyEmail = name + '@' + this.config.orgs.getString("dummyEmailDomain").get
-    val spongeResult = this.auth.createDummyUser(name, dummyEmail, verified = true)
-    // Check for error
-    if (spongeResult.isLeft) {
-      val error = spongeResult.left.get
-      Logger.info("<FAILURE> " + error)
-      return Left(error)
+    if (pendingOrg.spongeId == -1) {
+      Logger.info("Creating on SpongeAuth...")
+      val dummyEmail = name + '@' + this.config.orgs.getString("dummyEmailDomain").get
+      val spongeResult = this.auth.createDummyUser(name, dummyEmail, verified = true)
+      // Check for error
+      if (spongeResult.isLeft) {
+        val error = spongeResult.left.get
+        Logger.info("<FAILURE> " + error)
+        return Left(error)
+      }
+      val spongeUser = spongeResult.right.get
+      pendingOrg.email = spongeUser.email
+      pendingOrg.spongeId = spongeUser.id
+      Logger.info("<SUCCESS> " + spongeUser)
     }
-    val spongeUser = spongeResult.right.get
-    Logger.info("<SUCCESS> " + spongeUser)
 
     // Next we'll create a forum user for the organization. This requires a
     // password but we'll just make up a random one and not keep it. Since
     // users can't log into organization accounts the way they can with
     // user accounts, we don't need to (and shouldn't) keep the password.
-    if (this.forums.isEnabled) {
+    if (this.forums.isEnabled && pendingOrg.discourseId == -1 && pendingOrg.spongeId != -1
+      && pendingOrg.email.isDefined) {
       Logger.info("Creating on Discourse...")
       val dummyPassword = RandomStringUtils.randomAlphanumeric(60)
-      val userResult = this.forums.await(this.forums.createUser(name, name, dummyEmail, dummyPassword).recover {
-        case toe: TimeoutException =>
+      val userFuture = this.forums.createUser(name, name, pendingOrg.email.get, dummyPassword)
+      val userResult = this.forums.await(userFuture.recover {
+        case _: TimeoutException =>
           Left(List("error.discourse.connect"))
-        case e: Exception =>
+        case _: Exception =>
           Left(List("error.discourse.unexpected"))
       })
 
@@ -76,12 +90,15 @@ class OrganizationBase(override val service: ModelService,
         val error = userResult.left.get.head
         Logger.info("<FAILURE> " + error)
         Logger.info("Deleting user on SpongeAuth...")
-        val deleteResult = this.auth.deleteUser(spongeUser.username)
+        val deleteResult = this.auth.deleteUser(pendingOrg.name)
         if (deleteResult.isLeft)
-          Logger.warn("Failed to delete user from SpongeAuth (id " + spongeUser.id + ")")
+          Logger.warn("Failed to delete user from SpongeAuth (id " + pendingOrg.spongeId + ")")
+        else
+          pendingOrg.spongeId = -1
         return Left(error)
       }
       val forumUserId = userResult.right.get
+      pendingOrg.discourseId = forumUserId
       Logger.info("<SUCCESS> New user ID : " + forumUserId)
 
 
@@ -93,12 +110,16 @@ class OrganizationBase(override val service: ModelService,
       this.forums.addUserGroup(forumUserId, groupId)
     }
 
+    if (pendingOrg.spongeId == -1 || pendingOrg.discourseId == -1) {
+      return Left("error.organization.incomplete")
+    }
+
     // Next we will create the Organization on Ore itself. This contains a
     // reference to the Sponge user ID, the organization's username and a
     // reference to the User owner of the organization.
     Logger.info("Creating on Ore...")
     val org = this.add(Organization(
-      id = Some(spongeUser.id),
+      id = Some(pendingOrg.spongeId),
       username = name,
       ownerId = ownerId))
 
