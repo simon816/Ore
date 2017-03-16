@@ -4,14 +4,14 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import db.impl.OrePostgresDriver.api._
-import db.impl.table.common.{DescriptionColumn, DownloadsColumn, EmailColumn, VisibilityColumn}
+import db.impl.table.common.{DescriptionColumn, DownloadsColumn, VisibilityColumn}
 import db.impl.table.StatTable
 import db.table.{AssociativeTable, ModelTable, NameColumn}
 import models.admin.{ProjectLog, ProjectLogEntry}
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
-import models.user.{Notification, Organization, PendingOrganization, SignOn, User, Session => DbSession}
+import models.user.{Notification, Organization, SignOn, User, Session => DbSession}
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
@@ -191,12 +191,13 @@ class VersionDownloadsTable(tag: Tag)
 
 }
 
-class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn[User] with EmailColumn[User] {
+class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn[User] {
 
   // Override to remove auto increment
   override def id           =   column[Int]("id", O.PrimaryKey)
 
   def fullName              =   column[String]("full_name")
+  def email                 =   column[String]("email")
   def pgpPubKey             =   column[String]("pgp_pub_key")
   def lastPgpPubKeyUpdate   =   column[Timestamp]("last_pgp_pub_key_update")
   def isLocked              =   column[Boolean]("is_locked")
@@ -237,18 +238,6 @@ class OrganizationTable(tag: Tag) extends ModelTable[Organization](tag, "organiz
   def userId        =   column[Int]("user_id")
 
   override def * = (id.?, createdAt.?, name, userId) <> (Organization.tupled, Organization.unapply)
-
-}
-
-class PendingOrganizationTable(tag: Tag) extends ModelTable[PendingOrganization](tag, "organizations_pending")
-  with NameColumn[PendingOrganization] with EmailColumn[PendingOrganization] {
-
-  def userId = column[Int]("user_id")
-  def spongeId = column[Int]("sponge_id")
-  def discourseId = column[Int]("discourse_id")
-
-  override def * = (id.?, createdAt.?, userId, name, spongeId, email.?, discourseId) <> (PendingOrganization.tupled,
-                    PendingOrganization.unapply)
 
 }
 
