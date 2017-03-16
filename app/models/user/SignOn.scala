@@ -6,6 +6,14 @@ import db.impl.SignOnTable
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
 
+/**
+  * Represents a sign-on instance for a user.
+  *
+  * @param id           User ID
+  * @param createdAt    Instant of creation
+  * @param nonce        Nonce used
+  * @param _isCompleted True if sign on was completed
+  */
 case class SignOn(override val id: Option[Int] = None,
                   override val createdAt: Option[Timestamp] = None,
                   nonce: String,

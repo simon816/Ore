@@ -152,6 +152,7 @@ class OrganizationBase(override val service: ModelService,
 
     val result = userOrg.toOrganization
     Logger.info("<SUCCESS> " + result)
+    pendingOrg.remove()
     Right(userOrg.toOrganization)
   }
 

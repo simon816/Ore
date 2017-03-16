@@ -9,6 +9,13 @@ import db.impl.ProjectLogTable
 import db.impl.model.OreModel
 import ore.project.ProjectOwned
 
+/**
+  * Represents a log for a [[models.project.Project]].
+  *
+  * @param id         Log ID
+  * @param createdAt  Instant of creation
+  * @param projectId  ID of project log is for
+  */
 case class ProjectLog(override val id: Option[Int] = None,
                       override val createdAt: Option[Timestamp] = None,
                       override val projectId: Int)
@@ -17,8 +24,19 @@ case class ProjectLog(override val id: Option[Int] = None,
   override type T = ProjectLogTable
   override type M = ProjectLog
 
+  /**
+    * Returns all entries in this log.
+    *
+    * @return Entries in log
+    */
   def entries: ModelAccess[ProjectLogEntry] = this.schema.getChildren[ProjectLogEntry](classOf[ProjectLogEntry], this)
 
+  /**
+    * Adds a new entry with an "error" tag to the log.
+    *
+    * @param message  Message to log
+    * @return         New entry
+    */
   def err(message: String): ProjectLogEntry = Defined {
     val entries = this.service.access[ProjectLogEntry](
       classOf[ProjectLogEntry], ModelFilter[ProjectLogEntry](_.logId === this.id.get))
