@@ -1,7 +1,6 @@
 @*
 Page used for uploading and creating new projects.
 *@
-@import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
 @import db.impl.access.UserBase
 @import ore.OreConfig
@@ -9,8 +8,11 @@ Page used for uploading and creating new projects.
 @import play.twirl.api.Html
 @import security.NonceFilter._
 @import views.html.helper.{CSRF, form}
+@import ore.permission.CreateProject
 @(pending: Option[PendingProject])(implicit messages: Messages, flash: Flash, request: Request[_],
         service: ModelService, config: OreConfig, users: UserBase)
+
+@projectRoutes = @{controllers.project.routes.Projects}
 
 @projects.utils.panelCreate(messages("project.create"), if (pending.isEmpty) 1 else 2) {
 
@@ -45,11 +47,12 @@ Page used for uploading and creating new projects.
                             <tr>
                                 <td colspan="2"><strong>@messages("project.owner")</strong></td>
                                 <td>
-                                    @defining(project.owner.ownedOrganizations) { organizations =>
+                                    @defining(project.owner.organizations.all
+                                            .filter(project.owner can CreateProject in _)) { organizations =>
                                         @if(organizations.nonEmpty) {
                                             <select name="owner" form="continue">
                                                 <option value="@project.ownerId" selected>@project.ownerName</option>
-                                                @organizations.all.map { organization =>
+                                                @organizations.map { organization =>
                                                   <option value="@organization.id.get">@organization.name</option>
                                                 }
                                             </select>
@@ -86,12 +89,13 @@ Page used for uploading and creating new projects.
                                     <label for="description">Description</label>
                                     @defining(pending.get.pendingVersion.underlying.description) { description =>
                                         <input form="continue" class="form-control" type="text" id="description"
-                                        name="description" maxlength="@config.projects.getInt("max-desc-len").get"
+                                               name="description"
+                                               maxlength="@config.projects.getInt("max-desc-len").get"
                                             @description.map { value =>
-                                            value="@value"
+                                               value="@value"
                                             }.getOrElse {
-                                                placeholder="@messages("version.create.noDescription")"
-                                    }
+                                               placeholder="@messages("version.create.noDescription")"
+                                            }
                                         />
                                     }
                                 </td>

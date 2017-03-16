@@ -1,9 +1,11 @@
-@import ore.permission.role.{Absolute, Role, RoleTypes}
+@import ore.permission.role.Role
+@import ore.permission.role.RoleTypes
 @(roleClass: Class[_ <: Role], form: String = "form-continue", id: String = "", classes: String = "",
         hidden: Boolean = false)
 
 @roles = @{
-    RoleTypes.values.filter(role => role.roleClass.equals(roleClass) && !role.trust.equals(Absolute))
+    RoleTypes.values.filter(role => role.roleClass.equals(roleClass) && role.isAssignable)
+            .toList.sortBy(_.trust).reverse
 }
 
 <select id="@id" form="@form" class="@classes" @if(hidden) { style="display: none;" }>

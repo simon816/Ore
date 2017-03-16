@@ -6,6 +6,7 @@ import com.google.common.base.Preconditions._
 import db.impl.RoleTable
 import db.impl.model.OreModel
 import db.impl.model.common.Hideable
+import db.impl.table.ModelKeys
 import db.impl.table.ModelKeys._
 import models.user.User
 import ore.Visitable
@@ -49,7 +50,7 @@ abstract class RoleModel(override val id: Option[Int],
   def roleType_=(_roleType: RoleType) = {
     checkNotNull(_roleType, "null role type", "")
     this._roleType = _roleType
-    if (isDefined) update(RoleType)
+    if (isDefined) update(ModelKeys.RoleType)
   }
 
   /**

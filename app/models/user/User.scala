@@ -27,6 +27,7 @@ import security.spauth.SpongeUser
 import util.StringUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.control.Breaks._
 
 /**
   * Represents a Sponge user.
@@ -289,7 +290,22 @@ case class User(override val id: Option[Int] = None,
       case GlobalScope =>
         this.globalRoles.map(_.trust).toList.sorted.lastOption.getOrElse(Default)
       case pScope: ProjectScope =>
-        pScope.project.memberships.getTrust(this)
+        val members = pScope.project.memberships
+        var trust = members.getTrust(this)
+        if (trust.equals(Default)) {
+          breakable {
+            for (member <- members.members) {
+              if (member.isOrganization) {
+                val orgTrust = trustIn(member.toOrganization)
+                if (!orgTrust.equals(Default)) {
+                  trust = orgTrust
+                  break
+                }
+              }
+            }
+          }
+        }
+        trust
       case oScope: OrganizationScope =>
         oScope.organization.memberships.getTrust(this)
       case _ =>

@@ -18,3 +18,4 @@ case object ViewLogs        extends Permission { val trust = Standard }
 case object ResetOre        extends Permission { val trust = Absolute }
 case object SeedOre         extends Permission { val trust = Absolute }
 case object MigrateOre      extends Permission { val trust = Absolute }
+case object CreateProject   extends Permission { val trust = Absolute }

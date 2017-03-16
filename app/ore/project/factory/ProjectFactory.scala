@@ -233,17 +233,6 @@ trait ProjectFactory {
     val projectId = newProject.id.get
 
     dossier.addRole(new ProjectRole(ownerId, RoleTypes.ProjectOwner, projectId, accepted = true, visible = true))
-    if (owner.isOrganization) {
-      // "Secretly" add the organization owner as a project owner
-      val organization = owner.toOrganization
-      dossier.addRole(new ProjectRole(
-        userId = organization.ownerId,
-        roleType = RoleTypes.ProjectOwner,
-        projectId = projectId,
-        accepted = true,
-        visible = false))
-    }
-
     for (role <- pending.roles) {
       val user = role.user
       dossier.addRole(role.copy(projectId = projectId))

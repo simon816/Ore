@@ -5,7 +5,6 @@ import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.sugar.Bakery
-import controllers.sugar.Requests.AuthRequest
 import db.ModelService
 import discourse.OreDiscourseApi
 import form.OreForms
@@ -15,6 +14,7 @@ import ore.project.factory.ProjectFactory
 import ore.project.io.{InvalidPluginFileException, PluginUpload}
 import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv, StatTracker}
+import play.api.cache.CacheApi
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
@@ -29,6 +29,7 @@ import scala.collection.JavaConverters._
 class Projects @Inject()(stats: StatTracker,
                          forms: OreForms,
                          factory: ProjectFactory,
+                         implicit val cache: CacheApi,
                          implicit override val bakery: Bakery,
                          implicit override val sso: SingleSignOnConsumer,
                          implicit val forums: OreDiscourseApi,
@@ -116,6 +117,12 @@ class Projects @Inject()(stats: StatTracker,
             FormError(self.showCreator(), hasErrors),
           formData => {
             pendingProject.settings.save(pendingProject.underlying, formData)
+            // update cache for name changes
+            val project = pendingProject.underlying
+            val version = pendingProject.pendingVersion
+            val namespace = project.namespace
+            this.cache.set(namespace, pendingProject)
+            this.cache.set(namespace + '/' + version.underlying.versionString, version)
             Ok(views.invite(pendingProject))
           }
         )
@@ -131,7 +138,7 @@ class Projects @Inject()(stats: StatTracker,
     * @return Redirection to project page if successful
     */
   def showFirstVersionCreator(author: String, slug: String) = UserLock() { implicit request =>
-    this.factory.getPendingProject(request.user.name, slug) match {
+    this.factory.getPendingProject(author, slug) match {
       case None =>
         Redirect(self.showCreator())
       case Some(pendingProject) =>

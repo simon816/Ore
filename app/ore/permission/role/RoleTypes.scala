@@ -6,6 +6,8 @@ import models.user.role.{OrganizationRole, ProjectRole}
 import ore.Colors._
 import slick.jdbc.JdbcType
 
+import scala.language.implicitConversions
+
 /**
   * Represents a collection of roles a User may have.
   */
@@ -34,15 +36,19 @@ object RoleTypes extends Enumeration {
 
   // Project
 
-  val ProjectOwner   = new  RoleType(17, -1, classOf[ProjectRole], Absolute, "Owner",     Transparent)
-  val ProjectDev     = new  RoleType(18, -2, classOf[ProjectRole], Standard, "Developer", Transparent)
-  val ProjectEditor  = new  RoleType(19, -3, classOf[ProjectRole], Limited,  "Editor",    Transparent)
-  val ProjectSupport = new  RoleType(20, -4, classOf[ProjectRole], Default,  "Support",   Transparent)
+  val ProjectOwner   = new RoleType(17, -1, classOf[ProjectRole], Absolute, "Owner",    Transparent,
+                                    isAssignable = false)
+  val ProjectDev     = new RoleType(18, -2, classOf[ProjectRole], Standard, "Developer",Transparent)
+  val ProjectEditor  = new RoleType(19, -3, classOf[ProjectRole], Limited,  "Editor",   Transparent)
+  val ProjectSupport = new RoleType(20, -4, classOf[ProjectRole], Default,  "Support",  Transparent)
 
   // Organization
 
-  val Organization        = new RoleType(21, 64, classOf[OrganizationRole], Absolute, "Organization", Purple)
-  val OrganizationOwner   = new RoleType(22, -5, classOf[OrganizationRole], Absolute, "Owner",        Purple)
+  val Organization        = new RoleType(21, 64, classOf[OrganizationRole], Absolute, "Organization", Purple,
+                                         isAssignable = false)
+  val OrganizationOwner   = new RoleType(22, -5, classOf[OrganizationRole], Absolute, "Owner",        Purple,
+                                         isAssignable = false)
+  val OrganizationAdmin   = new RoleType(26, -9, classOf[OrganizationRole], Absolute, "Admin",        Purple)
   val OrganizationDev     = new RoleType(23, -6, classOf[OrganizationRole], Standard, "Developer",    Transparent)
   val OrganizationEditor  = new RoleType(24, -7, classOf[OrganizationRole], Limited,  "Editor",       Transparent)
   val OrganizationSupport = new RoleType(25, -8, classOf[OrganizationRole], Default,  "Support",      Transparent)
@@ -73,7 +79,8 @@ object RoleTypes extends Enumeration {
                  val roleClass: Class[_ <: Role],
                  val trust: Trust,
                  val title: String,
-                 val color: Color)
+                 val color: Color,
+                 val isAssignable: Boolean = true)
                  extends super.Val(i, title) with MappedType[RoleType] {
     implicit val mapper: JdbcType[RoleType] = OrePostgresDriver.api.roleTypeTypeMapper
   }
