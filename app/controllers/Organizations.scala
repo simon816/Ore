@@ -115,29 +115,7 @@ class Organizations @Inject()(forms: OreForms,
     * @return             Json response with errors if any
     */
   def updateAvatar(organization: String) = EditOrganizationAction(organization) { implicit request =>
-    import writes._
-
-    def handleUpdate(future: Future[List[String]]) = {
-      val errors = this.forums.await(future.recover {
-        case e: Exception =>
-          List(this.messagesApi("error.org.cannotUpdateAvatar"))
-      })
-      if (errors.isEmpty)
-        Ok(Json.toJson(request.organization.toUser.pullForumData()))
-      else
-        Ok(Json.obj("errors" -> errors))
-    }
-
-    val formData = this.forms.OrganizationUpdateAvatar.bindFromRequest.get
-    if (formData.isFileUpload) {
-      request.body.asMultipartFormData.get.file("avatar-file") match {
-        case None =>
-          BadRequest
-        case Some(file) =>
-          handleUpdate(this.forums.setAvatar(organization, file.filename, file.ref.file.toPath))
-      }
-    } else
-      handleUpdate(this.forums.setAvatar(organization, formData.url.get))
+    Ok
   }
 
   /**
