@@ -6,11 +6,12 @@ Documentation page within Project overview.
 @import controllers.project.routes
 @import db.ModelService
 @import db.impl.access.UserBase
-@import models.project.{Page, Project}
 @import ore.OreConfig
 @import ore.permission.EditPages
 @import security.NonceFilter._
 @import util.StringUtils._
+@import models.project.Project
+@import models.project.Page
 @(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages, request: Request[_],
         flash: Flash, service: ModelService, config: OreConfig, userBase: UserBase)
 

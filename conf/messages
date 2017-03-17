@@ -304,3 +304,5 @@ licenses.apache2.0 = Apache 2.0
 licenses.gpl = GNU General Public License (GPL)
 licenses.lgpl = GNU Lesser General Public License (LGPL)
 licenses.custom = Custom
+
+ph.comment = Comment

@@ -24,6 +24,7 @@ case class Flag(override val id: Option[Int],
                 override val projectId: Int,
                 override val userId: Int,
                 reason: FlagReason,
+                comment: String,
                 private var _isResolved: Boolean = false)
                 extends OreModel(id, createdAt)
                   with UserOwned
@@ -32,8 +33,8 @@ case class Flag(override val id: Option[Int],
   override type M = Flag
   override type T = FlagTable
 
-  def this(projectId: Int, userId: Int, reason: FlagReason) = {
-    this(id=None, createdAt=None, projectId=projectId, userId=userId, reason=reason)
+  def this(projectId: Int, userId: Int, reason: FlagReason, comment: String) = {
+    this(id=None, createdAt=None, projectId=projectId, userId=userId, reason=reason, comment=comment)
   }
 
   /**

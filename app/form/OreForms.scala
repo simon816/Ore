@@ -50,7 +50,10 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
   /**
     * Submits a flag on a project for further review.
     */
-  lazy val ProjectFlag = Form(single("flag-reason" -> number))
+  lazy val ProjectFlag = Form(mapping(
+    "flag-reason" -> number,
+    "comment" -> optional(nonEmptyText))
+  (FlagForm.apply)(FlagForm.unapply))
 
   /**
     * Submits settings changes for a Project.

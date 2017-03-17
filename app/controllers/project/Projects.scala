@@ -285,9 +285,14 @@ class Projects @Inject()(stats: StatTracker,
       // One flag per project, per user at a time
       BadRequest
     } else {
-      val reason = FlagReasons(this.forms.ProjectFlag.bindFromRequest.get)
-      project.flagFor(user, reason)
-      Redirect(self.show(author, slug)).flashing("reported" -> "true")
+      this.forms.ProjectFlag.bindFromRequest().fold(
+        hasErrors =>
+          FormError(ShowProject(project), hasErrors),
+        formData => {
+          project.flagFor(user, formData.reason, formData.comment.orNull)
+          Redirect(self.show(author, slug)).flashing("reported" -> "true")
+        }
+      )
     }
   }
 

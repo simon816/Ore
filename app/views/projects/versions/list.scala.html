@@ -3,11 +3,13 @@ Versions page within Project overview.
 *@
 @import db.ModelService
 @import db.impl.access.UserBase
-@import models.project.{Channel, Project, Version}
 @import ore.OreConfig
 @import ore.permission.{EditChannels, EditVersions}
 @import security.NonceFilter._
 @import util.StringUtils._
+@import models.project.Project
+@import models.project.Channel
+@import models.project.Version
 @(model: Project,
   channels: Seq[Channel],
   versions: Seq[Version],

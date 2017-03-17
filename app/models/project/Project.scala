@@ -388,13 +388,13 @@ case class Project(override val id: Option[Int] = None,
     * @param user   Flagger
     * @param reason Reason for flagging
     */
-  def flagFor(user: User, reason: FlagReason) = Defined {
+  def flagFor(user: User, reason: FlagReason, comment: String) = Defined {
     checkNotNull(user, "null user", "")
     checkNotNull(reason, "null reason", "")
     checkArgument(user.isDefined, "undefined user", "")
     val userId = user.id.get
     checkArgument(userId != this.ownerId, "cannot flag own project", "")
-    this.service.access[Flag](classOf[Flag]).add(new Flag(this.id.get, user.id.get, reason))
+    this.service.access[Flag](classOf[Flag]).add(new Flag(this.id.get, user.id.get, reason, comment))
   }
 
   /**
