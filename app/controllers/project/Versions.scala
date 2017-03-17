@@ -304,7 +304,7 @@ class Versions @Inject()(stats: StatTracker,
                       error => {
                         Redirect(self.showCreatorWithMeta(author, slug, versionString)).withError(error)
                       },
-                      channel => {
+                      _ => {
                         val newVersion = pendingVersion.complete().get
                         if (versionData.recommended)
                           project.recommendedVersion = newVersion

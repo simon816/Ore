@@ -7,6 +7,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.access.{ProjectBase, UserBase}
 import db.impl.schema.{ProjectSchema, VersionSchema}
 import db.{ModelFilter, ModelService}
+import models.project.Version
 import models.user.User
 import ore.OreConfig
 import ore.project.Categories.Category
@@ -80,7 +81,8 @@ trait OreRestfulApi {
       })
 
       // Only allow versions in the specified channels
-      val filter = channelIds.map(service.getSchema(classOf[VersionSchema]).channelFilter).getOrElse(ModelFilter.Empty)
+      var filter = channelIds.map(service.getSchema(classOf[VersionSchema]).channelFilter).getOrElse(ModelFilter.Empty)
+      filter = filter +&& ModelFilter[Version](_.isReviewed)
       val maxLoad = this.config.projects.getInt("init-version-load").get
       val lim = max(min(limit.getOrElse(maxLoad), maxLoad), 0)
 
