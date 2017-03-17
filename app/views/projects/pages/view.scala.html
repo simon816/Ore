@@ -44,7 +44,8 @@ Documentation page within Project overview.
                 <div class="col-md-3">
 
                     <div class="stats minor">
-                        <p>Published on @prettifyDate(model.createdAt.get)</p>
+                        <p>@messages("project.category.info", model.category.title)</p>
+                        <p>@messages("project.publishDate", prettifyDate(model.createdAt.get))</p>
                         <p>@model.viewCount views</p>
                         <p>@NumberFormat.getInstance.format(model.downloadCount) total downloads</p>
                         @defining(model.settings) { settings =>

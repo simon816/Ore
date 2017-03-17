@@ -164,6 +164,8 @@ project.removeMember            =   Remove member
 project.removeMember.confirm    =   Are you sure you want to remove this user?
 project.deleted                 =   Project "{0}" deleted.
 project.license.link            =   Licensed under
+project.category.info           =   Category: {0}
+project.publishDate             =   Published on {0}
 
 project.back = Get me out of here!
 
