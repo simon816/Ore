@@ -7,6 +7,7 @@
         projects: ProjectBase)
 
 @projectRoutes = @{controllers.project.routes.Projects}
+@versionRoutes = @{controllers.project.routes.Versions}
 
 @bootstrap.layout(messages("admin.health.title")) {
 
@@ -104,6 +105,24 @@
                               <a href="@projectRoutes.show(project.ownerName, project.slug)">
                                   <strong>@project.namespace</strong>
                               </a>
+                          </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">@messages("admin.health.missingFile")</h4>
+                    </div>
+                    <div class="panel-body list-group list-group-health">
+                        @projects.missingFile.map { version =>
+                          <div class="list-group-item">
+                              @defining(version.project) { project =>
+                                  <a href="@versionRoutes.show(project.ownerName, project.slug, version.name)">
+                                      <strong>@project.namespace/@version.name</strong>
+                                  </a>
+                              }
                           </div>
                         }
                     </div>

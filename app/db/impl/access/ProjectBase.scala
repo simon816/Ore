@@ -28,6 +28,17 @@ class ProjectBase(override val service: ModelService,
 
   implicit val self = this
 
+  def missingFile: Seq[Version] = {
+    var versions = Seq.empty[Version]
+    for (version <- this.service.access[Version](classOf[Version]).all) {
+      val project = version.project
+      if (Files.notExists(this.fileManager.getProjectDir(project.ownerName, project.name).resolve(version.fileName))) {
+        versions :+= version
+      }
+    }
+    versions
+  }
+
   /**
     * Returns projects that have not beein updated in a while.
     *
