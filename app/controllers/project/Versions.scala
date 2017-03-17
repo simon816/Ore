@@ -375,7 +375,7 @@ class Versions @Inject()(stats: StatTracker,
                          (implicit req: ProjectRequest[_]): Result = {
     if (!checkConfirmation(project, version, token))
       Redirect(self.showDownloadConfirm(
-        project.ownerName, project.slug, version.name, Some(UploadedFile.id), api = false))
+        project.ownerName, project.slug, version.name, Some(UploadedFile.id), api = Some(false)))
     else
       _sendVersion(project, version)
   }
@@ -431,7 +431,7 @@ class Versions @Inject()(stats: StatTracker,
                           slug: String,
                           target: String,
                           downloadType: Option[Int],
-                          api: Boolean = false) = {
+                          api: Option[Boolean]) = {
     ProjectAction(author, slug) { implicit request =>
       val dlType = downloadType.flatMap(i => DownloadTypes.values.find(_.id == i)).getOrElse(DownloadTypes.UploadedFile)
       implicit val project = request.project
@@ -470,7 +470,7 @@ class Versions @Inject()(stats: StatTracker,
               self.confirmDownload(author, slug, target, Some(dlType.id), token).absoluteURL(),
               CSRF.getToken.get.value) + "\n")
               .withHeaders("Content-Disposition" -> "inline; filename=\"README.txt\"")
-          } else if (api) {
+          } else if (api.getOrElse(false)) {
             Ok(Json.obj(
               "message" -> this.messagesApi("version.download.confirm.body.api").split('\n'),
               "post" -> helper.CSRF(
@@ -575,7 +575,8 @@ class Versions @Inject()(stats: StatTracker,
                       api: Boolean = false)
                      (implicit request: ProjectRequest[_]): Result = {
     if (!checkConfirmation(project, version, token))
-      Redirect(self.showDownloadConfirm(project.ownerName, project.slug, version.name, Some(JarFile.id), api = api))
+      Redirect(self.showDownloadConfirm(
+        project.ownerName, project.slug, version.name, Some(JarFile.id), api = Some(api)))
     else {
       val fileName = version.fileName
       val path = this.fileManager.getProjectDir(project.ownerName, project.name).resolve(fileName)
