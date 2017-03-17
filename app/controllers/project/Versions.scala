@@ -24,11 +24,13 @@ import ore.project.io.{DownloadTypes, InvalidPluginFileException, PluginFile, Pl
 import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.Logger
 import play.api.i18n.MessagesApi
+import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.filters.csrf.CSRF
 import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
 import views.html.projects.{versions => views}
+import _root_.views.html.helper
 
 /**
   * Controller for handling Version related actions.
@@ -438,6 +440,7 @@ class Versions @Inject()(stats: StatTracker,
           val userAgent = request.headers.get("User-Agent")
           var curl: Boolean = false
           var wget: Boolean = false
+          var api: Boolean = request2flash.get("api").isDefined
           if (userAgent.isDefined) {
             val ua = userAgent.get.toLowerCase
             curl = ua.startsWith("curl/")
@@ -466,6 +469,11 @@ class Versions @Inject()(stats: StatTracker,
               self.confirmDownload(author, slug, target, Some(dlType.id), token).absoluteURL(),
               CSRF.getToken.get.value) + "\n")
               .withHeaders("Content-Disposition" -> "inline; filename=\"README.txt\"")
+          } else if (api) {
+            Ok(Json.obj(
+              "message" -> this.messagesApi("version.download.confirm.body.api").split('\n'),
+              "post" -> helper.CSRF(
+                self.confirmDownload(author, slug, target, Some(dlType.id), token)).absoluteURL()))
           } else {
             Ok(views.unsafeDownload(project, version, dlType, token)).withCookies(warning.cookie)
           }
@@ -538,9 +546,9 @@ class Versions @Inject()(stats: StatTracker,
     */
   def downloadRecommended(author: String, slug: String, token: Option[String]) = {
     ProjectAction(author, slug) { implicit request =>
-        val project = request.project
-        val rv = project.recommendedVersion
-        sendVersion(project, rv, token)
+      val project = request.project
+      val rv = project.recommendedVersion
+      sendVersion(project, rv, token)
     }
   }
 
@@ -562,10 +570,12 @@ class Versions @Inject()(stats: StatTracker,
 
   private def sendJar(project: Project,
                       version: Version,
-                      token: Option[String])
+                      token: Option[String],
+                      api: Boolean = false)
                      (implicit request: ProjectRequest[_]): Result = {
     if (!checkConfirmation(project, version, token))
       Redirect(self.showDownloadConfirm(project.ownerName, project.slug, version.name, Some(JarFile.id)))
+        .flashing("api" -> "true")
     else {
       val fileName = version.fileName
       val path = this.fileManager.getProjectDir(project.ownerName, project.name).resolve(fileName)
@@ -605,8 +615,8 @@ class Versions @Inject()(stats: StatTracker,
     */
   def downloadRecommendedJar(author: String, slug: String, token: Option[String]) = {
     ProjectAction(author, slug) { implicit request =>
-        val project = request.project
-        sendJar(project, project.recommendedVersion, token)
+      val project = request.project
+      sendJar(project, project.recommendedVersion, token)
     }
   }
 
@@ -620,8 +630,8 @@ class Versions @Inject()(stats: StatTracker,
     */
   def downloadJarById(pluginId: String, versionString: String, token: Option[String]) = {
     ProjectAction(pluginId) { implicit request =>
-        implicit val project = request.project
-        withVersion(versionString)(version => sendJar(project, version, token))
+      implicit val project = request.project
+      withVersion(versionString)(version => sendJar(project, version, token, api = true))
     }
   }
 
@@ -635,7 +645,7 @@ class Versions @Inject()(stats: StatTracker,
   def downloadRecommendedJarById(pluginId: String, token: Option[String]) = {
     ProjectAction(pluginId) { implicit request =>
       val project = request.project
-      sendJar(project, project.recommendedVersion, token)
+      sendJar(project, project.recommendedVersion, token, api = true)
     }
   }
 

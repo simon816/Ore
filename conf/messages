@@ -206,6 +206,12 @@ version.download.confirm.body.plain = \
   Please use the following curl to acknowledge this disclaimer and continue to the download:\n\
   curl -O -J -L -d -X "{0}&csrfToken={1}"
 
+version.download.confirm.body.api = \
+  This version has not been reviewed by our moderation staff and may not be safe for download.\n\
+  Disclaimer: We disclaim all responsibility for any harm to your server or system should you choose not to heed this \
+  warning.\n\
+  Please POST to the attached link to acknowledge this disclaimer and continue to the download.
+
 version.download.confirm.wget = Sorry, but Ore does not support the use of wget. \
   Please use the following curl instead:\n\
   curl -O -J -L "<url>"
