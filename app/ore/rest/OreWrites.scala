@@ -41,7 +41,6 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
       val dependencies: List[JsObject] = version.dependencies.map { dependency =>
         obj("pluginId" -> dependency.pluginId, "version" -> dependency.version)
       }
-
       obj(
         "id"            ->  version.id.get,
         "createdAt"     ->  version.createdAt.get.toString,
@@ -49,7 +48,8 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "dependencies"  ->  dependencies,
         "pluginId"      ->  project.pluginId,
         "channel"       ->  toJson(project.channels.get(version.channelId).get),
-        "fileSize"      ->  version.fileSize
+        "fileSize"      ->  version.fileSize,
+        "staffApproved" ->  version.isReviewed
       )
     }
   }

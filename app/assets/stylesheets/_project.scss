@@ -62,9 +62,11 @@
   }
 }
 
-.version-panel tr:hover {
-  background-color: $mainBackground;
-  cursor: pointer;
+.version-panel {
+  tr:hover {
+    background-color: $mainBackground;
+    cursor: pointer;
+  }
 }
 
 .version-string {

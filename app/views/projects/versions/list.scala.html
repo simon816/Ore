@@ -59,10 +59,19 @@ Versions page within Project overview.
             <div class="col-md-12">
                 <div class="row">
                     <div class="col-md-9">
-
-                        <h2 class="versions-header">Versions</h2>
-
                         <div class="panel panel-default version-panel">
+                            <div class="panel-heading">
+                                <h4 class="panel-title pull-left">@messages("project.versions")</h2>
+                                @if(userBase.current.isDefined && (userBase.current.get can EditVersions in model)) {
+                                    <a href="@versionRoutes.showCreator(model.ownerName, model.slug)"
+                                       class="btn btn-primary btn-sm pull-right"
+                                       data-toggle="tooltip"
+                                       title="@messages("project.new")">
+                                        <i class="fa fa-plus"></i>
+                                    </a>
+                                }
+                                <div class="clearfix"></div>
+                            </div>
                             <!-- Version table -->
                             <table class="table">
                                 <tbody>
@@ -117,12 +126,6 @@ Versions page within Project overview.
 
                     </div>
                     <div class="col-md-3">
-                        @if(userBase.current.isDefined && (userBase.current.get can EditVersions in model)) {
-                            <a href="@versionRoutes.showCreator(model.ownerName, model.slug)"
-                            class="btn btn-block btn-primary btn-version">
-                                <i class="fa fa-plus"></i> New version
-                            </a>
-                        }
                         <div class="panel panel-default channels">
                             <div class="panel-heading">
                                 <h3 class="panel-title pull-left">Channels</h3>

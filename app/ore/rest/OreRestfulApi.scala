@@ -75,16 +75,17 @@ trait OreRestfulApi {
                      limit: Option[Int], offset: Option[Int]): Option[JsValue] = {
     this.projects.withPluginId(pluginId).map { project =>
       // Map channel names to IDs
-      val channelIds: Option[Seq[Int]] = channels.map(_.toLowerCase.split(',').map { name =>
-        project.channels.find(equalsIgnoreCase(_.name, name)).get.id.get
-      })
+      val channelIds: Option[Seq[Int]] = channels
+        .map(_.toLowerCase.split(',')
+        .map(name => project.channels.find(equalsIgnoreCase(_.name, name)).get.id.get))
 
       // Only allow versions in the specified channels
       val filter = channelIds.map(service.getSchema(classOf[VersionSchema]).channelFilter).getOrElse(ModelFilter.Empty)
       val maxLoad = this.config.projects.getInt("init-version-load").get
       val lim = max(min(limit.getOrElse(maxLoad), maxLoad), 0)
-
-      toJson(project.versions.sorted(_.createdAt.desc, filter.fn, lim, offset.getOrElse(-1)))
+      
+      val versions = project.versions.sorted(_.createdAt.desc, filter.fn, lim, offset.getOrElse(-1))
+      toJson(versions)
     }
   }
 

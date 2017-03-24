@@ -50,6 +50,7 @@ function loadVersions(increment) {
         success: function(versions) {
             var content = '';
             var count = 0;
+            //console.log(versions);
             for (var i in versions) {
                 if (!versions.hasOwnProperty(i)) continue;
                 var version = versions[i];
