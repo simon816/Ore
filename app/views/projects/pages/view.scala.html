@@ -98,7 +98,7 @@ Documentation page within Project overview.
                                         @pg.name
                                     </a>
                                 </li>
-                              @if(page.parentId == pg.id.get) {
+                              @if(page.parentId != -1 && page.parentId == pg.id.get) {
                                   <div class="page-children" data-page-id="@pg.id.get">
                                       @pg.children.sorted(_.name).map { child =>
                                         <li class="list-group-item page-item-child">
