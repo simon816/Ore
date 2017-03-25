@@ -474,8 +474,7 @@ case class Project(override val id: Option[Int] = None,
     * @return Root pages of project
     */
   def rootPages: Seq[Page] = {
-    println(this.service.access[Page](classOf[Page]).sorted(_.name, _.parentId === -1))
-    this.service.access[Page](classOf[Page]).sorted(_.name, _.parentId === -1)
+    this.service.access[Page](classOf[Page]).sorted(_.name, p => p.projectId === this.id.get && p.parentId === -1)
   }
 
   def logger: ProjectLog = {

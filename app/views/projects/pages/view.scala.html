@@ -87,7 +87,6 @@ Documentation page within Project overview.
                                 </a>
                             </li>
                             @model.rootPages.filterNot(_.name.equals(Page.HomeName)).map { pg =>
-                                @println(pg)
                                 <li class="list-group-item">
                                     @if(pg.children.nonEmpty) {
                                         @if(page.parentId != pg.id.get) {
