@@ -24,7 +24,7 @@ final class ApiController @Inject()(api: OreRestfulApi, status: StatusZ) extends
                    limit: Option[Int], offset: Option[Int]) = Action {
     version match {
       case "v1" => Ok(this.api.getProjectList(categories, sort, q, limit, offset))
-      case zoinks => NotFound
+      case _ => NotFound
     }
   }
 
@@ -38,7 +38,7 @@ final class ApiController @Inject()(api: OreRestfulApi, status: StatusZ) extends
   def showProject(version: String, pluginId: String) = Action {
     version match {
       case "v1" => ApiResult(this.api.getProject(pluginId))
-      case yikes => NotFound
+      case _ => NotFound
     }
   }
 
@@ -56,7 +56,7 @@ final class ApiController @Inject()(api: OreRestfulApi, status: StatusZ) extends
                    limit: Option[Int], offset: Option[Int]) = Action {
     version match {
       case "v1" => ApiResult(this.api.getVersionList(pluginId, channels, limit, offset))
-      case gorp => NotFound
+      case _ => NotFound
     }
   }
 
@@ -71,7 +71,14 @@ final class ApiController @Inject()(api: OreRestfulApi, status: StatusZ) extends
   def showVersion(version: String, pluginId: String, name: String) = Action {
     version match {
       case "v1" => ApiResult(this.api.getVersion(pluginId, name))
-      case fffffs => NotFound
+      case _ => NotFound
+    }
+  }
+
+  def listPages(version: String, pluginId: String, parentId: Option[Int]) = Action {
+    version match {
+      case "v1" => ApiResult(this.api.getPages(pluginId, parentId))
+      case _ => NotFound
     }
   }
 
@@ -86,7 +93,7 @@ final class ApiController @Inject()(api: OreRestfulApi, status: StatusZ) extends
   def listUsers(version: String, limit: Option[Int], offset: Option[Int]) = Action {
     version match {
       case "v1" => Ok(this.api.getUserList(limit, offset))
-      case oops => NotFound
+      case _ => NotFound
     }
   }
 
@@ -100,7 +107,7 @@ final class ApiController @Inject()(api: OreRestfulApi, status: StatusZ) extends
   def showUser(version: String, username: String) = Action {
     version match {
       case "v1" => ApiResult(this.api.getUser(username))
-      case sad => NotFound
+      case _ => NotFound
     }
   }
 

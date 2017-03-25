@@ -12,11 +12,13 @@ import com.vladsch.flexmark.ext.typographic.TypographicExtension
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.options.MutableDataSet
-import db.Named
+import db.access.ModelAccess
+import db.impl.OrePostgresDriver.api._
 import db.impl.PageTable
 import db.impl.model.OreModel
 import db.impl.schema.PageSchema
 import db.impl.table.ModelKeys._
+import db.{ModelFilter, Named}
 import ore.permission.scope.ProjectScope
 import ore.{OreConfig, Visitable}
 import play.twirl.api.Html
@@ -28,6 +30,7 @@ import util.StringUtils._
   * @param id           Page ID
   * @param createdAt    Timestamp of creation
   * @param projectId    Project ID
+  * @param parentId     The parent page ID, -1 if none
   * @param name         Page name
   * @param slug         Page URL slug
   * @param _contents    Markdown contents
@@ -36,6 +39,7 @@ import util.StringUtils._
 case class Page(override val id: Option[Int] = None,
                 override val createdAt: Option[Timestamp] = None,
                 override val projectId: Int = -1,
+                parentId: Int = -1,
                 override val name: String,
                 slug: String,
                 isDeletable: Boolean = true,
@@ -56,9 +60,9 @@ case class Page(override val id: Option[Int] = None,
   checkNotNull(this.slug, "slug cannot be null", "")
   checkNotNull(this._contents, "contents cannot be null", "")
 
-  def this(projectId: Int, name: String, content: String, isDeletable: Boolean) = {
-    this(projectId=projectId, name=compact(name),
-         slug=slugify(name), _contents=content.trim, isDeletable=isDeletable)
+  def this(projectId: Int, name: String, content: String, isDeletable: Boolean, parentId: Int) = {
+    this(projectId=projectId, name=compact(name), slug=slugify(name),
+      _contents=content.trim, isDeletable=isDeletable, parentId = parentId)
   }
 
   /**
@@ -77,7 +81,6 @@ case class Page(override val id: Option[Int] = None,
   def contents_=(_contents: String) = {
     checkNotNull(_contents, "null contents", "")
     checkArgument(_contents.length <= MaxLength, "contents too long", "")
-    checkArgument(_contents.length >= MinLength, "contents not long enough", "")
     this._contents = _contents
     if (isDefined) {
       update(Contents)
@@ -101,6 +104,14 @@ case class Page(override val id: Option[Int] = None,
     * @return True if home page
     */
   def isHome: Boolean = this.name.equals(HomeName)
+
+  /**
+    * Returns access to this Page's children (if any).
+    *
+    * @return Page's children
+    */
+  def children: ModelAccess[Page]
+  = this.service.access[Page](classOf[Page], ModelFilter[Page](_.parentId === this.id.get))
 
   override def url: String = this.project.url + "/pages/" + this.slug
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)

@@ -1,7 +1,8 @@
-@import controllers.project.{routes => projectRoutes}
 @import models.project.Project
 @import security.NonceFilter._
-@(model: Project)(implicit messages: Messages, request: RequestHeader)
+@import models.project.Page
+@import ore.OreConfig
+@(model: Project)(implicit messages: Messages, request: RequestHeader, config: OreConfig)
 
 <script type="text/javascript" src="@routes.Assets.at("javascripts/pageEdit.js")"></script>
 <script nonce="@nonce">
@@ -19,13 +20,28 @@
                 <h4 class="modal-title" id="new-page-label">@messages("page.new.title")</h4>
             </div>
             <div class="modal-body input-group">
-                <div class="setting setting-no-border">
+                <div class="setting">
                     <div class="setting-description">
-                        <h4>Page name</h4>
-                        <p>Enter a title for your new page.</p>
+                        <h4>@messages("project.page.name")</h4>
+                        <p>@messages("project.page.name.info")</p>
                     </div>
                     <div class="setting-content">
                         <input class="form-control" type="text" id="page-name" name="page-name">
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="setting setting-no-border">
+                    <div class="setting-description">
+                        <h4>@messages("project.page.parent")</h4>
+                        <p>@messages("project.page.parent.info")</p>
+                    </div>
+                    <div class="setting-content">
+                        <select class="form-control select-parent">
+                            <option selected value="-1">&lt;none&gt;</option>
+                            @model.rootPages.filterNot(_.name.equals(Page.HomeName)).map { page =>
+                              <option value="@page.id.get">@page.name</option>
+                            }
+                        </select>
                     </div>
                     <div class="clearfix"></div>
                 </div>

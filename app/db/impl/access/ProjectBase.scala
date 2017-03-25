@@ -9,7 +9,7 @@ import com.google.common.base.Preconditions._
 import db.impl.OrePostgresDriver.api._
 import db.{ModelBase, ModelService}
 import discourse.OreDiscourseApi
-import models.project.{Channel, Project, Version}
+import models.project.{Channel, Page, Project, Version}
 import ore.project.io.ProjectFiles
 import ore.{OreConfig, OreEnv}
 import play.api.Logger

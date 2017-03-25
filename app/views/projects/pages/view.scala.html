@@ -6,14 +6,17 @@ Documentation page within Project overview.
 @import controllers.project.routes
 @import db.ModelService
 @import db.impl.access.UserBase
+@import db.impl.OrePostgresDriver.api._
 @import ore.OreConfig
 @import ore.permission.EditPages
 @import security.NonceFilter._
 @import util.StringUtils._
 @import models.project.Project
 @import models.project.Page
-@(model: Project, page: Page, editorOpen: Boolean = false)(implicit messages: Messages, request: Request[_],
-        flash: Flash, service: ModelService, config: OreConfig, userBase: UserBase)
+@(model: Project,
+  page: Page,
+  editorOpen: Boolean = false)(implicit messages: Messages, request: Request[_], flash: Flash, service: ModelService,
+        config: OreConfig, userBase: UserBase)
 
 @canEditPages = @{
     userBase.current.isDefined && (userBase.current.get can EditPages in model)
@@ -21,6 +24,11 @@ Documentation page within Project overview.
 
 @projects.view(model, "#docs") {
 
+    <script type="text/javascript" src="@controllers.routes.Assets.at("javascripts/pageView.js")"></script>
+    <script nonce="@nonce">
+        pluginId = '@model.pluginId';
+        namespace = '@model.namespace';
+    </script>
     @if(editorOpen) {
         <script nonce="@nonce">$(function() { $('.btn-edit').click(); });</script>
     }
@@ -31,6 +39,7 @@ Documentation page within Project overview.
                 <div class="col-md-9">
                     <div class="row">
                         <div class="col-md-12">
+                            @utils.alert("error")
                             @utils.editor(
                                 saveCall = routes.Pages.save(model.ownerName, model.slug, page.name),
                                 deleteCall = routes.Pages.delete(model.ownerName, model.slug, page.name),
@@ -72,10 +81,34 @@ Documentation page within Project overview.
                             <div class="clearfix"></div>
                         </div>
                         <ul class="list-group">
-                            @for(page <- model.pages.all) {
+                            @model.rootPages.map { pg =>
                                 <li class="list-group-item">
-                                    <a href="@routes.Pages.show(model.ownerName, model.slug, page.name)">@page.name</a>
+                                    @if(pg.children.nonEmpty) {
+                                        @if(page.parentId != pg.id.get) {
+                                            <a href="#" class="page-expand" data-page-id="@pg.id.get">
+                                                <i class="fa fa-plus-square-o"></i>
+                                            </a>
+                                        } else {
+                                            <a href="#" class="page-collapse" data-page-id="@pg.id.get">
+                                                <i class="fa fa-minus-square-o"></i>
+                                            </a>
+                                        }
+                                    }
+                                    <a href="@routes.Pages.show(model.ownerName, model.slug, pg.name)">
+                                        @pg.name
+                                    </a>
                                 </li>
+                              @if(page.parentId == pg.id.get) {
+                                  <div class="page-children" data-page-id="@pg.id.get">
+                                      @pg.children.sorted(_.name).map { child =>
+                                        <li class="list-group-item page-item-child">
+                                            <a href="@routes.Pages.show(model.ownerName, model.slug, child.name)">
+                                                @child.name
+                                            </a>
+                                        </li>
+                                      }
+                                  </div>
+                              }
                             }
                         </ul>
                     </div>

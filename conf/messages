@@ -167,6 +167,10 @@ project.deleted                 =   Project "{0}" deleted.
 project.license.link            =   Licensed under
 project.category.info           =   Category: {0}
 project.publishDate             =   Published on {0}
+project.page.name               =   Page name
+project.page.name.info          =   Enter a title for your new page.
+project.page.parent             =   Parent page
+project.page.parent.info        =   Select a parent page (optional)
 
 project.back = Get me out of here!
 

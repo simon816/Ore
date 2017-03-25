@@ -7,6 +7,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.access.{ProjectBase, UserBase}
 import db.impl.schema.{ProjectSchema, VersionSchema}
 import db.{ModelFilter, ModelService}
+import models.project.Page
 import models.user.User
 import ore.OreConfig
 import ore.project.Categories.Category
@@ -100,6 +101,28 @@ trait OreRestfulApi {
     this.projects.withPluginId(pluginId)
       .flatMap(_.versions.find(equalsIgnoreCase(_.versionString, name)))
       .map(toJson(_))
+  }
+
+  /**
+    * Returns a list of pages for the specified project.
+    *
+    * @param pluginId Project plugin ID
+    * @param parentId Optional parent ID filter
+    * @return         List of project pages
+    */
+  def getPages(pluginId: String, parentId: Option[Int]): Option[JsValue] = {
+    this.projects.withPluginId(pluginId).map { project =>
+      val pages = project.pages
+      var result: Seq[Page] = null
+      if (parentId.isDefined) {
+        result = pages.filter(_.parentId === parentId.get)
+      } else {
+        result = pages.toSeq
+      }
+      result
+    } map {
+      toJson(_)
+    }
   }
 
   /**

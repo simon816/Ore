@@ -121,11 +121,12 @@ class ProjectLogEntryTable(tg: Tag) extends ModelTable[ProjectLogEntry](tg, "pro
 class PageTable(tag: Tag) extends ModelTable[Page](tag, "project_pages") with NameColumn[Page] {
 
   def projectId     =   column[Int]("project_id")
+  def parentId      =   column[Int]("parent_id")
   def slug          =   column[String]("slug")
   def contents      =   column[String]("contents")
   def isDeletable   =   column[Boolean]("is_deletable")
 
-  override def * = (id.?, createdAt.?, projectId, name, slug, isDeletable,
+  override def * = (id.?, createdAt.?, projectId, parentId, name, slug, isDeletable,
                     contents) <> ((Page.apply _).tupled, Page.unapply)
 
 }

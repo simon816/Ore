@@ -43,7 +43,20 @@ $(function() {
     });
 
     $('#continue-page').click(function() {
-        var url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/pages/' + $('#page-name').val() + '/edit';
-        go(url);
+        var pageName = $('#page-name').val();
+        var url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/pages/' + pageName + '/edit';
+        var parent = $('.select-parent').find(':selected');
+        var parentId = -1;
+        if (parent.length) {
+            parentId = parent.val();
+        }
+        $.ajax({
+            method: 'post',
+            url: url,
+            data: {csrfToken: csrf, 'parent-id': parentId, 'content': '# ' + pageName + '\n'},
+            success: function() {
+                go(url);
+            }
+        });
     })
 });

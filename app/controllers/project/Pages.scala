@@ -81,12 +81,25 @@ class Pages @Inject()(forms: OreForms,
     * @return Project home
     */
   def save(author: String, slug: String, page: String) = PageEditAction(author, slug) { implicit request =>
-    this.forms.PageEdit.bindFromRequest.fold(
+    this.forms.PageEdit.bindFromRequest().fold(
       hasErrors =>
         Redirect(self.show(author, slug, page)).withError(hasErrors.errors.head.message),
       pageData => {
-        request.project.getOrCreatePage(page).contents = pageData
-        Redirect(self.show(author, slug, page))
+        val project = request.project
+        val parentId = pageData.parentId.getOrElse(-1)
+        //noinspection ComparingUnrelatedTypes
+        if (parentId != -1 && !project.rootPages.filterNot(_.name.equals(Page.HomeName)).exists(_.id.get == parentId)) {
+          BadRequest("Invalid parent ID.")
+        } else {
+          val content = pageData.content
+          if (page.equals(Page.HomeName) && (content.isEmpty || content.get.length < Page.MinLength)) {
+            Redirect(self.show(author, slug, page)).withError("error.minLength")
+          } else {
+            val pageModel = project.getOrCreatePage(page, parentId)
+            pageData.content.map(pageModel.contents = _)
+            Redirect(self.show(author, slug, page))
+          }
+        }
       }
     )
   }

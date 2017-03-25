@@ -444,7 +444,7 @@ case class Project(override val id: Option[Int] = None,
     * @return Project home page
     */
   def homePage: Page = Defined {
-    val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false)
+    val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false, -1)
     this.service.await(page.schema.getOrInsert(page)).get
   }
 
@@ -462,10 +462,19 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Page name
     * @return       Page with name or new name if it doesn't exist
     */
-  def getOrCreatePage(name: String): Page = Defined {
+  def getOrCreatePage(name: String, parentId: Int = -1): Page = Defined {
     checkNotNull(name, "null name", "")
-    val page = new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true)
+    val page = new Page(this.id.get, name, Page.Template(name, Page.HomeMessage), true, parentId)
     this.service.await(page.schema.getOrInsert(page)).get
+  }
+
+  /**
+    * Returns the parentless, root, pages for this project.
+    *
+    * @return Root pages of project
+    */
+  def rootPages: Seq[Page] = {
+    this.service.access[Page](classOf[Page]).sorted(_.name, _.parentId === -1)
   }
 
   def logger: ProjectLog = {

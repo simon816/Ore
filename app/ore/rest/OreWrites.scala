@@ -4,14 +4,13 @@ import javax.inject.Inject
 
 import db.ModelService
 import db.impl.access.ProjectBase
-import models.project.{Channel, Project, Version}
+import models.project.{Channel, Page, Project, Version}
 import models.user.User
 import ore.OreConfig
 import ore.project.ProjectMember
 import play.api.libs.json.Json.{obj, toJson}
 import play.api.libs.json._
 import security.pgp.PGPPublicKeyInfo
-import _root_.util.StringUtils._
 
 /**
   * Contains implicit JSON [[Writes]] for the Ore API.
@@ -19,6 +18,16 @@ import _root_.util.StringUtils._
 final class OreWrites @Inject()(implicit config: OreConfig, service: ModelService) {
 
   implicit val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
+
+  implicit val pageWrites = new Writes[Page] {
+    def writes(page: Page) = obj(
+      "id" -> page.id.get,
+      "createdAt" -> page.createdAt.get.toString,
+      "parentId" -> page.parentId,
+      "name" -> page.name,
+      "slug" -> page.slug
+    )
+  }
 
   implicit val channelWrites = new Writes[Channel] {
     def writes(channel: Channel) = obj("name" -> channel.name, "color" -> channel.color.hex)

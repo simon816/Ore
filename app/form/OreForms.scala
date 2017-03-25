@@ -134,11 +134,11 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory) {
   /**
     * Submits changes on a documentation page.
     */
-  lazy val PageEdit = Form(single(
-    "content" -> text(
-      minLength = MinLength,
+  lazy val PageEdit = Form(mapping(
+    "parent-id" -> optional(number),
+    "content" -> optional(text(
       maxLength = MaxLength
-    )))
+    )))(PageSaveForm.apply)(PageSaveForm.unapply))
 
   /**
     * Submits a tagline change for a User.
