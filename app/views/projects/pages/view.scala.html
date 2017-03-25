@@ -81,7 +81,12 @@ Documentation page within Project overview.
                             <div class="clearfix"></div>
                         </div>
                         <ul class="list-group">
-                            @model.rootPages.map { pg =>
+                            <li class="list-group-item">
+                                <a href="@routes.Pages.show(model.ownerName, model.slug, Page.HomeName)">
+                                    @Page.HomeName
+                                </a>
+                            </li>
+                            @model.rootPages.filterNot(_.name.equals(Page.HomeName)).map { pg =>
                                 <li class="list-group-item">
                                     @if(pg.children.nonEmpty) {
                                         @if(page.parentId != pg.id.get) {
