@@ -11,7 +11,13 @@ import play.api.mvc.{Filter, RequestHeader, Result}
 import scala.concurrent.Future
 
 object NonceFilter {
-  def nonce(implicit request: RequestHeader): String = request.tags("nonce")
+  def nonce(implicit request: RequestHeader): String = {
+    if (request != null) {
+      request.tags("nonce")
+    } else {
+      ""
+    }
+  }
 }
 
 class NonceFilter @Inject() (implicit val mat: Materializer) extends Filter {

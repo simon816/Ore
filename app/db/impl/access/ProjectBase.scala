@@ -143,8 +143,14 @@ class ProjectBase(override val service: ModelService,
     checkArgument(channel.versions.isEmpty ||
       channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
 
-    FileUtils.deleteDirectory(this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(channel.name))
     channel.remove()
+
+    try {
+      FileUtils.deleteDirectory(this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(channel.name))
+    } catch {
+      case _: NoSuchFileException =>
+        Logger.warn("a channel was deleted but it's files were missing, did deletion fail before?")
+    }
   }
 
   /**
