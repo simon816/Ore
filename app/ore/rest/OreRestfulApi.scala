@@ -1,5 +1,6 @@
 package ore.rest
 
+import java.io.File
 import java.lang.Math._
 import javax.inject.Inject
 
@@ -12,7 +13,8 @@ import models.user.User
 import ore.OreConfig
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
-import play.api.libs.json.JsValue
+import play.api.libs.Files.TemporaryFile
+import play.api.libs.json.{JsValue, Json}
 import play.api.libs.json.Json.toJson
 import util.StringUtils._
 
@@ -101,6 +103,11 @@ trait OreRestfulApi {
     this.projects.withPluginId(pluginId)
       .flatMap(_.versions.find(equalsIgnoreCase(_.versionString, name)))
       .map(toJson(_))
+  }
+
+  def deployVersion(pluginId: String, name: String, tmpFile: TemporaryFile): Option[JsValue] = {
+    tmpFile.moveTo(new File("/tmp/oreFile"), replace = true)
+    Some(Json.obj())
   }
 
   /**

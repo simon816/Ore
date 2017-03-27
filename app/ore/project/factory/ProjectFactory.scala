@@ -97,6 +97,24 @@ trait ProjectFactory {
     plugin
   }
 
+  def processSubsequentPluginUpload(uploadData: PluginUpload,
+                                    owner: User,
+                                    project: Project): Either[String, PendingVersion] = {
+    val plugin = this.processPluginUpload(uploadData, owner)
+    if (!plugin.meta.get.getId.equals(project.pluginId))
+      return Left("error.version.invalidPluginId")
+    val version = this.startVersion(plugin, project, project.channels.all.head.name)
+    val model = version.underlying
+    if (model.exists && this.config.projects.getBoolean("file-validate").get)
+      return Left("error.version.duplicate")
+    if (project.isSpongePlugin && !model.hasDependency(Dependency.SpongeApiId))
+      return Left("error.version.noDependency.sponge")
+    if (project.isForgeMod && !model.hasDependency(Dependency.ForgeId))
+      return Left("error.version.noDependency.forge")
+    version.cache()
+    Right(version)
+  }
+
   /**
     * Returns the error ID to display to the User, if any, if they cannot
     * upload files.
