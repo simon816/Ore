@@ -1,6 +1,6 @@
 package ore
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
 import models.project.Channel
 import ore.Colors._
@@ -13,6 +13,7 @@ import util.StringUtils._
   *
   * @param config Base configuration file
   */
+@Singleton
 final class OreConfig @Inject()(config: Configuration) {
 
   // Sub-configs
