@@ -1,6 +1,5 @@
 package controllers
 
-import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 
@@ -9,6 +8,7 @@ import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import form.OreForms
 import models.api.ProjectApiKey
+import models.user.User
 import ore.permission.EditApiKeys
 import ore.project.factory.ProjectFactory
 import ore.project.io.{InvalidPluginFileException, PluginUpload, ProjectFiles}
@@ -157,7 +157,9 @@ final class ApiController @Inject()(api: OreRestfulApi,
             else if (project.versions.exists(_.versionString === name))
               BadRequest(error("versionName", "api.deploy.versionExists"))
             else {
-              val user = project.owner
+              var user: User = project.owner
+              if (user.isOrganization)
+                user = user.toOrganization.owner
               this.factory.getUploadError(user) match {
                 case Some(err) => BadRequest(error("user", err))
                 case None => PluginUpload.bindFromRequest() match {

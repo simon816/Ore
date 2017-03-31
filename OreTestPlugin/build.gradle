@@ -38,6 +38,7 @@ sponge.plugin {
 
 oreDeploy {
     instanceUrl = 'http://localhost:9000'
+    apiKey = '8c115d0c9b9e425281d870e329dd6741'
     recommended = false
     deploy = configurations.archives
     channel = 'release'
