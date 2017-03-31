@@ -115,7 +115,7 @@ final class Application @Inject()(data: DataHelper,
   def setFlagResolved(flagId: Int, resolved: Boolean) = FlagAction { implicit request =>
     this.service.access[Flag](classOf[Flag]).get(flagId) match {
       case None =>
-        NotFound
+        notFound
       case Some(flag) =>
         flag.setResolved(resolved)
         Ok

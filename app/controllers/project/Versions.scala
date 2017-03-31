@@ -25,7 +25,7 @@ import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.Logger
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.Result
+import play.api.mvc.{Result, Request}
 import play.filters.csrf.CSRF
 import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
@@ -698,12 +698,12 @@ class Versions @Inject()(stats: StatTracker,
     sendSignatureFile(request.project.recommendedVersion)
   }
 
-  private def sendSignatureFile(version: Version): Result = {
+  private def sendSignatureFile(version: Version)(implicit request: Request[_]): Result = {
     val project = version.project
     val path = this.fileManager.getProjectDir(project.ownerName, project.name).resolve(version.signatureFileName)
     if (notExists(path)) {
       Logger.warn("project version missing signature file")
-      NotFound
+      notFound
     } else
       Ok.sendFile(path.toFile)
   }

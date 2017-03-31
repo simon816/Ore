@@ -31,6 +31,8 @@ abstract class BaseController(implicit val env: OreEnv,
 
   override val signOns: ModelAccess[SignOn] = this.service.access[SignOn](classOf[SignOn])
 
+  override def notFound()(implicit request: Request[_]) = NotFound(views.html.errors.notFound())
+
   /**
     * Executes the given function with the specified result or returns a
     * NotFound if not found.
@@ -41,8 +43,8 @@ abstract class BaseController(implicit val env: OreEnv,
     * @param request  Incoming request
     * @return         NotFound or function result
     */
-  def withProject(author: String, slug: String)(fn: Project => Result)(implicit request: RequestHeader): Result
-  = this.projects.withSlug(author, slug).map(fn).getOrElse(NotFound)
+  def withProject(author: String, slug: String)(fn: Project => Result)(implicit request: Request[_]): Result
+  = this.projects.withSlug(author, slug).map(fn).getOrElse(notFound)
 
   /**
     * Executes the given function with the specified result or returns a
@@ -55,7 +57,7 @@ abstract class BaseController(implicit val env: OreEnv,
     * @return               NotFound or function result
     */
   def withVersion(versionString: String)(fn: Version => Result)
-                 (implicit request: RequestHeader, project: Project): Result
-  = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).map(fn).getOrElse(NotFound)
+                 (implicit request: Request[_], project: Project): Result
+  = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).map(fn).getOrElse(notFound)
 
 }

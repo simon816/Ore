@@ -38,4 +38,12 @@ class ErrorHandler @Inject()(env: Environment,
     }
   }
 
+  override def onNotFound(request: RequestHeader, message: String): Future[Result] = {
+    implicit val users: UserBase = service.getModelBase(classOf[UserBase])
+    implicit val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
+    implicit val session = request.session
+    implicit val impRequest = request
+    Future.successful(NotFound(views.html.errors.notFound()))
+  }
+
 }

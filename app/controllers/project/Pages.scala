@@ -44,7 +44,7 @@ class Pages @Inject()(forms: OreForms,
   def show(author: String, slug: String, page: String) = ProjectAction(author, slug) { implicit request =>
     val project = request.project
     project.pages.find(equalsIgnoreCase(_.name, page)) match {
-      case None => NotFound
+      case None => notFound
       case Some(p) => this.stats.projectViewed(implicit request => Ok(views.view(project, p)))
     }
   }

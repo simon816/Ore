@@ -105,7 +105,7 @@ class Channels @Inject()(forms: OreForms,
     } else {
       channels.find(c => c.name.equals(channelName)) match {
         case None =>
-          NotFound
+          notFound
         case Some(channel) =>
           if (channel.versions.nonEmpty && channels.count(c => c.versions.nonEmpty) == 1) {
             Redirect(self.showList(author, slug)).withError("error.channel.lastNonEmpty")
