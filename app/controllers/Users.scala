@@ -134,7 +134,7 @@ class Users @Inject()(fakeUser: FakeUser,
     } map {
       case (user, projectSeq) => Ok(views.users.projects(user, projectSeq, p))
     } getOrElse {
-      NotFound
+      notFound
     }
   }
 
@@ -271,7 +271,7 @@ class Users @Inject()(fakeUser: FakeUser,
   def markNotificationRead(id: Int) = Authenticated { implicit request =>
     request.user.notifications.get(id) match {
       case None =>
-        NotFound
+        notFound
       case Some(notification) =>
         notification.setRead(read = true)
         Ok

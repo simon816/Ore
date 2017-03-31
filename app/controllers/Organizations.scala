@@ -89,7 +89,7 @@ class Organizations @Inject()(forms: OreForms,
     val user = request.user
     user.organizationRoles.get(id) match {
       case None =>
-        NotFound
+        notFound
       case Some(role) =>
         val dossier = role.organization.memberships
         status match {

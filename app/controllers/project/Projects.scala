@@ -168,7 +168,7 @@ class Projects @Inject()(stats: StatTracker,
     */
   def showProjectById(pluginId: String) = Action { implicit request =>
     this.projects.withPluginId(pluginId) match {
-      case None => NotFound
+      case None => notFound
       case Some(project) => Redirect(self.show(project.ownerName, project.slug))
     }
   }
@@ -232,7 +232,7 @@ class Projects @Inject()(stats: StatTracker,
     */
   def showIssues(author: String, slug: String) = ProjectAction(author, slug) { implicit request =>
     request.project.settings.issues match {
-      case None => NotFound
+      case None => notFound
       case Some(link) => Redirect(link)
     }
   }
@@ -246,7 +246,7 @@ class Projects @Inject()(stats: StatTracker,
     */
   def showSource(author: String, slug: String) = ProjectAction(author, slug) { implicit request =>
     request.project.settings.source match {
-      case None => NotFound
+      case None => notFound
       case Some(link) => Redirect(link)
     }
   }
@@ -263,7 +263,7 @@ class Projects @Inject()(stats: StatTracker,
     val project = request.project
     this.projects.fileManager.getIconPath(project) match {
       case None =>
-        project.owner.user.avatarUrl.map(Redirect(_)).getOrElse(NotFound)
+        project.owner.user.avatarUrl.map(Redirect(_)).getOrElse(notFound)
       case Some(iconPath) =>
         showImage(iconPath)
     }
@@ -341,7 +341,7 @@ class Projects @Inject()(stats: StatTracker,
     val user = request.user
     user.projectRoles.get(id) match {
       case None =>
-        NotFound
+        notFound
       case Some(role) =>
         val dossier = role.project.memberships
         status match {
@@ -420,7 +420,7 @@ class Projects @Inject()(stats: StatTracker,
   def showPendingIcon(author: String, slug: String) = ProjectAction(author, slug) { implicit request =>
     val project = request.project
     this.projects.fileManager.getPendingIconPath(project) match {
-      case None => NotFound
+      case None => notFound
       case Some(path) => showImage(path)
     }
   }

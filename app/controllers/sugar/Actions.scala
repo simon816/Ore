@@ -11,7 +11,7 @@ import models.project.Project
 import models.user.{SignOn, User}
 import ore.permission.scope.GlobalScope
 import ore.permission.{EditSettings, HideProjects, Permission}
-import play.api.mvc.Results.{NotFound, Redirect, Unauthorized}
+import play.api.mvc.Results.{Redirect, Unauthorized}
 import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
 
@@ -202,6 +202,13 @@ trait Actions extends Calls with ActionHelpers {
     }
   }
 
+  /**
+   * Returns a NotFound result with the 404 HTML template.
+   *
+   * @return NotFound
+   */
+  def notFound()(implicit request: Request[_]): Result
+
   // Implementation
 
   private def userLock(redirect: Call) = new ActionFilter[AuthRequest] {
@@ -265,7 +272,7 @@ trait Actions extends Calls with ActionHelpers {
     project
       .flatMap(processProject(_, this.users.current(request)))
       .map(new ProjectRequest[A](_, request))
-      .toRight(NotFound)
+      .toRight(notFound()(request))
   }
 
   private def processProject(project: Project, user: Option[User]): Option[Project] = {
@@ -281,7 +288,7 @@ trait Actions extends Calls with ActionHelpers {
       Actions.this.projects.withSlug(author, slug)
         .flatMap(processProject(_, Some(request.user)))
         .map(new AuthedProjectRequest[A](_, request))
-        .toRight(NotFound)
+        .toRight(notFound()(request))
     }
   }
 
@@ -289,7 +296,7 @@ trait Actions extends Calls with ActionHelpers {
     def refine[A](request: Request[A]): Future[Either[Result, OrganizationRequest[A]]] = Future.successful {
       Actions.this.organizations.withName(organization)
         .map(new OrganizationRequest(_, request))
-        .toRight(NotFound)
+        .toRight(notFound()(request))
     }
   }
 
@@ -298,7 +305,7 @@ trait Actions extends Calls with ActionHelpers {
     def refine[A](request: AuthRequest[A]) = Future.successful {
       Actions.this.organizations.withName(organization)
         .map(new AuthedOrganizationRequest[A](_, request))
-        .toRight(NotFound)
+        .toRight(notFound()(request))
     }
   }
 
