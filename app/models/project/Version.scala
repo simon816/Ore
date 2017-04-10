@@ -12,6 +12,7 @@ import db.impl.model.common.{Describable, Downloadable}
 import db.impl.schema.VersionSchema
 import db.impl.table.ModelKeys._
 import models.statistic.VersionDownload
+import models.user.User
 import ore.Visitable
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
@@ -43,6 +44,8 @@ case class Version(override val id: Option[Int] = None,
                    private var _description: Option[String] = None,
                    private var _downloads: Int = 0,
                    private var _isReviewed: Boolean = false,
+                   private var _reviewerId: Int = -1,
+                   private var _approvedAt: Option[Timestamp] = None,
                    fileName: String,
                    signatureFileName: String)
                    extends OreModel(id, createdAt)
@@ -130,6 +133,22 @@ case class Version(override val id: Option[Int] = None,
   def setReviewed(reviewed: Boolean) = {
     this._isReviewed = reviewed
     if (isDefined) update(IsReviewed)
+  }
+
+  def reviewerId: Int = this._reviewerId
+
+  def reviewer: Option[User] = this.userBase.get(this._reviewerId)
+
+  def reviewer_=(reviewer: User) = Defined {
+    this._reviewerId = reviewer.id.get
+    update(ReviewerId)
+  }
+
+  def approvedAt: Option[Timestamp] = this._approvedAt
+
+  def approvedAt_=(approvedAt: Timestamp) = Defined {
+    this._approvedAt = Option(approvedAt)
+    update(ApprovedAt)
   }
 
   /**

@@ -204,6 +204,7 @@ version.create.tos              =   By clicking "Publish" you are agreeing to Or
 version.create.info             =   Release a new version for <strong>{0}</strong>.
 version.recommended             =   Recommended version
 version.approved                =   Approved
+version.approved.info           =   <strong>{0}</strong> approved this version on <strong>{1}</strong>
 version.releaseBulletin         =   Release Bulletin
 version.releaseBulletin.info    =   What''s new in this release?
 

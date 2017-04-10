@@ -68,6 +68,8 @@ object ModelKeys {
 
   // Version
   val IsReviewed            =   new BooleanKey[Version](_.isReviewed, _.isReviewed)
+  val ReviewerId            =   new IntKey[Version](_.reviewerId, _.reviewerId)
+  val ApprovedAt            =   new TimestampKey[Version](_.approvedAt, _.approvedAt.orNull)
   val ChannelId             =   new IntKey[Version](_.channelId, _.channelId)
 
   // DownloadWarning

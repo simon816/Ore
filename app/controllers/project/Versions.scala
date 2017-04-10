@@ -121,6 +121,8 @@ class Versions @Inject()(stats: StatTracker,
       implicit val project = request.project
       withVersion(versionString) { version =>
         version.setReviewed(reviewed = true)
+        version.reviewer = request.user
+        version.approvedAt = this.service.theTime
         Redirect(self.show(author, slug, versionString))
       }
     }

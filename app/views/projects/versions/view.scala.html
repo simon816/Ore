@@ -18,13 +18,8 @@
 @canApprove = @{ hasUser && (user can ReviewProjects in GlobalScope) }
 @isRecommended = @{ project.recommendedVersion.equals(version) }
 
-@projectRoutes = @{
-    controllers.project.routes.Projects
-}
-
-@versionRoutes = @{
-    controllers.project.routes.Versions
-}
+@projectRoutes = @{controllers.project.routes.Projects}
+@versionRoutes = @{controllers.project.routes.Versions}
 
 @filterDependencies = @{
     version.dependencies
@@ -59,15 +54,23 @@
                     <div class="version-icons">
                         @if(isRecommended) {
                             <div>
-                                <i data-toggle="tooltip" data-placement="left" title="@messages("version.recommended")"
-                                class="recommended fa fa-diamond"></i>
+                                <i data-toggle="tooltip" data-placement="left"
+                                   title="@messages("version.recommended")"
+                                   class="recommended fa fa-diamond"></i>
                             </div>
                         }
 
                         @if(version.isReviewed) {
                             <div>
+                                @if(canApprove) {
+                                    @version.reviewer.flatMap(r => version.approvedAt.map((r, _))).map { t =>
+                                        <i class="minor">
+                                            @Html(messages("version.approved.info", t._1.name, prettifyDate(t._2)))
+                                        </i>
+                                    }
+                                }
                                 <i data-toggle="tooltip" data-placement="left" title="@messages("version.approved")"
-                                class="fa fa-lg fa-check-circle-o"></i>
+                                   class="fa fa-lg fa-check-circle-o"></i>
                             </div>
                         }
                     </div>

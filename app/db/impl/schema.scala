@@ -155,11 +155,13 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "project_versions"
   def fileSize          =   column[Long]("file_size")
   def hash              =   column[String]("hash")
   def isReviewed        =   column[Boolean]("is_reviewed")
+  def reviewerId        =   column[Int]("reviewer_id")
+  def approvedAt        =   column[Timestamp]("approved_at")
   def fileName          =   column[String]("file_name")
   def signatureFileName =   column[String]("signature_file_name")
 
   override def * = (id.?, createdAt.?, projectId, versionString, dependencies, assets.?, channelId,
-                    fileSize, hash, description.?, downloads, isReviewed, fileName,
+                    fileSize, hash, description.?, downloads, isReviewed, reviewerId, approvedAt.?, fileName,
                     signatureFileName) <> ((Version.apply _).tupled, Version.unapply)
 }
 
