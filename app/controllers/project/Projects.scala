@@ -78,7 +78,7 @@ class Projects @Inject()(stats: StatTracker,
               Redirect(self.showCreatorWithMeta(model.ownerName, model.slug))
             } catch {
               case e: InvalidPluginFileException =>
-                Redirect(self.showCreator()).withError(e.getMessage)
+                Redirect(self.showCreator()).withError(Option(e.getMessage).getOrElse(""))
             }
         }
     }

@@ -204,7 +204,7 @@ class Versions @Inject()(stats: StatTracker,
               )
             } catch {
               case e: InvalidPluginFileException =>
-                Redirect(call).withError(e.getMessage)
+                Redirect(call).withError(Option(e.getMessage).getOrElse(""))
             }
         }
     }
