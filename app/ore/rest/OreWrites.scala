@@ -69,6 +69,7 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "pluginId"      ->  project.pluginId,
         "channel"       ->  toJson(project.channels.get(version.channelId).get),
         "fileSize"      ->  version.fileSize,
+        "md5"           ->  version.hash,
         "staffApproved" ->  version.isReviewed,
         "href"          ->  ('/' + version.url)
       )
