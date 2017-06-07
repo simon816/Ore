@@ -405,6 +405,8 @@ class Versions @Inject()(stats: StatTracker,
     }
   }
 
+  private val MultipleChoices = new Status(MULTIPLE_CHOICES)
+
   /**
     * Displays a confirmation view for downloading unreviewed versions. The
     * client is issued a unique token that will be checked once downloading to
@@ -452,20 +454,20 @@ class Versions @Inject()(stats: StatTracker,
             address = InetString(StatTracker.remoteAddress)))
 
           if (wget) {
-            Ok(this.messagesApi("version.download.confirm.wget"))
+            MultipleChoices(this.messagesApi("version.download.confirm.wget"))
               .withHeaders("Content-Disposition" -> "inline; filename=\"README.txt\"")
           } else if (curl) {
-            Ok(this.messagesApi("version.download.confirm.body.plain",
+            MultipleChoices(this.messagesApi("version.download.confirm.body.plain",
               self.confirmDownload(author, slug, target, Some(dlType.id), token).absoluteURL(),
               CSRF.getToken.get.value) + "\n")
               .withHeaders("Content-Disposition" -> "inline; filename=\"README.txt\"")
           } else if (api.getOrElse(false)) {
-            Ok(Json.obj(
+            MultipleChoices(Json.obj(
               "message" -> this.messagesApi("version.download.confirm.body.api").split('\n'),
               "post" -> helper.CSRF(
                 self.confirmDownload(author, slug, target, Some(dlType.id), token)).absoluteURL()))
           } else {
-            Ok(views.unsafeDownload(project, version, dlType, token)).withCookies(warning.cookie)
+            MultipleChoices(views.unsafeDownload(project, version, dlType, token)).withCookies(warning.cookie)
           }
         }
       }

@@ -11,6 +11,7 @@ import play.api.mvc.{Filter, RequestHeader, Result}
 import scala.concurrent.Future
 
 object NonceFilter {
+
   def nonce(implicit request: RequestHeader): String = {
     if (request != null) {
       request.tags("nonce")
@@ -18,9 +19,11 @@ object NonceFilter {
       ""
     }
   }
+
 }
 
 class NonceFilter @Inject() (implicit val mat: Materializer) extends Filter {
+
   private val random = new SecureRandom()
 
   override def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
@@ -36,4 +39,5 @@ class NonceFilter @Inject() (implicit val mat: Materializer) extends Filter {
     random.nextBytes(bytes)
     Base64.getEncoder.encodeToString(bytes)
   }
+
 }

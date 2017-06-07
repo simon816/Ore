@@ -2,7 +2,6 @@
 The main entry point of Ore. This page displays a list of Projects that can be
 sorted according to different criteria.
 *@
-@import controllers.project.routes.{Projects => projectRoutes}
 @import db.ModelService
 @import db.impl.access.UserBase
 @import models.project.Project
@@ -17,6 +16,8 @@ sorted according to different criteria.
 @(models: Seq[Project], visibleCategories: Option[Array[Category]], query: Option[String], page: Int,
         sort: ProjectSortingStrategy, platform: Option[Platform])(implicit messages: Messages, flash: Flash,
         request: Request[_], service: ModelService, config: OreConfig, users: UserBase)
+
+@projectRoutes = @{controllers.project.routes.Projects}
 
 @randomSponsor = @{
     val logos = config.sponge.getStringList("sponsors.logos").get
