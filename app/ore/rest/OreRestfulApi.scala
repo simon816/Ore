@@ -78,7 +78,7 @@ trait OreRestfulApi {
       // Map channel names to IDs
       val channelIds: Option[Seq[Int]] = channels
         .map(_.toLowerCase.split(',')
-        .map(name => project.channels.find(equalsIgnoreCase(_.name, name)).get.id.get))
+        .flatMap(name => project.channels.find(equalsIgnoreCase(_.name, name)).map(_.id)).flatten)
 
       // Only allow versions in the specified channels
       val filter = channelIds.map(service.getSchema(classOf[VersionSchema]).channelFilter).getOrElse(ModelFilter.Empty)
