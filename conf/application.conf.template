@@ -87,7 +87,7 @@ ore {
     
     projects {
         max-name-len = 25
-        max-pages = 10
+        max-pages = 50
         max-channels = 5
         init-load = 25
         init-version-load = 10
