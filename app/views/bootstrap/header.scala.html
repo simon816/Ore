@@ -107,7 +107,7 @@ The main header displayed on each layout.
                         @if(user.hasUnreadNotifications) {
                             <span class="unread"></span>
                         }
-                        <img height="32" width="32" class="user-avatar" src="@user.avatarUrl" />
+                        <img height="32" width="32" class="user-avatar" src="@user.avatarUrl.getOrElse(routes.Assets.at("images/spongie-mark.svg"))" />
                         <span class="caret"></span>
                     </a>
                     <ul class="user-dropdown dropdown-menu" aria-label="@messages("aria.dropdown.menu", 1)">
