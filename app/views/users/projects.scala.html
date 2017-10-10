@@ -35,9 +35,9 @@
                                 @stars.map { star =>
                                     <tr>
                                         <td>
-                                            <a href="@projectRoutes.Projects.show(star.ownerName, star.name)"
+                                            <a href="@projectRoutes.Projects.show(star.ownerName, star.slug)"
                                                class="pull-left">
-                                                @star.ownerName/<strong>@star.slug</strong>
+                                                @star.ownerName/<strong>@star.name</strong>
                                             </a>
                                             <div class="pull-right">
                                                 <span class="minor">@star.recommendedVersion.versionString</span>
