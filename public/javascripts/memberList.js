@@ -65,7 +65,7 @@ function initMember(memberRow) {
     // Set form input on modal when delete is clicked
     memberRow.find('.fa-trash').parent().click(function(event) {
         event.preventDefault();
-        $('#modal-user-delete').find('input').val(getItemContainer($(this)).find('.username').text());
+        $('#modal-user-delete').find('input[name=username]').val(getItemContainer($(this)).find('.username').text().trim());
     });
 }
 
