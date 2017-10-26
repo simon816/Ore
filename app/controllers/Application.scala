@@ -46,7 +46,7 @@ final class Application @Inject()(data: DataHelper,
                platform: Option[String]) = {
     Action { implicit request =>
       // Get categories and sorting strategy
-      val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
+      val ordering = sort.flatMap(ProjectSortingStrategies.withId).getOrElse(ProjectSortingStrategies.Default)
       val actions = this.service.getSchema(classOf[ProjectSchema])
 
       val canHideProjects = this.users.current.isDefined && (this.users.current.get can HideProjects in GlobalScope)

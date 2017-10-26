@@ -17,7 +17,6 @@ import discourse.OreDiscourseApi
 import form.OreForms
 import models.project._
 import ore.permission.{EditVersions, ReviewProjects}
-import ore.project.Dependency
 import ore.project.factory.{PendingProject, ProjectFactory}
 import ore.project.io.DownloadTypes._
 import ore.project.io.{DownloadTypes, InvalidPluginFileException, PluginFile, PluginUpload}
