@@ -142,8 +142,8 @@ class Versions @Inject()(stats: StatTracker,
 
       var visibleNames: Option[Array[String]] = channels.map(_.toLowerCase.split(','))
       val visible: Option[Array[Channel]] = visibleNames.map(_.map { name =>
-        allChannels.find(_.name.equalsIgnoreCase(name)).get
-      })
+        allChannels.find(_.name.equalsIgnoreCase(name))
+      }).map(_.flatten)
 
       val visibleIds: Array[Int] = visible.map(_.map(_.id.get)).getOrElse(allChannels.map(_.id.get).toArray)
 
