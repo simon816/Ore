@@ -107,8 +107,13 @@ class Channels @Inject()(forms: OreForms,
           if (channel.versions.nonEmpty && channels.count(c => c.versions.nonEmpty) == 1) {
             Redirect(self.showList(author, slug)).withError("error.channel.lastNonEmpty")
           } else {
-            this.projects.deleteChannel(channel)
-            Redirect(self.showList(author, slug))
+            val reviewedChannels = channels.filter(!_.isNonReviewed)
+            if (!channel.isNonReviewed && reviewedChannels.size <= 1 && reviewedChannels.contains(channel)) {
+              Redirect(self.showList(author, slug)).withError("error.channel.lastReviewed")
+            } else {
+              this.projects.deleteChannel(channel)
+              Redirect(self.showList(author, slug))
+            }
           }
       }
     }
