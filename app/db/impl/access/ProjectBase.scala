@@ -143,6 +143,10 @@ class ProjectBase(override val service: ModelService,
     checkArgument(channel.versions.isEmpty ||
       channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
 
+    val reviewedChannels = channels.filter(!_.isNonReviewed)
+    checkArgument(channel.isNonReviewed || reviewedChannels.size > 1 || !reviewedChannels.contains(channel),
+      "last reviewed channel", "")
+
     channel.remove()
 
     try {

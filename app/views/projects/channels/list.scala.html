@@ -38,14 +38,7 @@
                             @messages("channel.list.description")
                         </p>
 
-                        @if(flash.get("error").isDefined) {
-                            <div class="alert alert-danger alert-dismissable" role="alert">
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                                <strong>@messages("channel.list.error")</strong> @flash.get("error").get
-                            </div>
-                        }
+                        @utils.alert("error")
 
                         <table class="table no-border">
                             <tbody>
