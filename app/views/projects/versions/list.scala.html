@@ -89,6 +89,11 @@ Versions page within Project overview.
                                                 <td>
                                                     <div class="pull-right">
                                                         <span class="date">@prettifyDate(version.createdAt.get)</span>
+                                                        @defining(version.downloadCount) { d: Int =>
+                                                            <span class="date">
+                                                                @d Download@if(d != 1) { s } else { &nbsp; }
+                                                            </span>
+                                                        }
                                                         <span class="date">@version.humanFileSize</span>
                                                         <a href="@versionRoutes.download(
                                                             model.ownerName, model.slug, version.versionString, None)">
