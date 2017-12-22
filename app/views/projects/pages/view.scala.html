@@ -24,7 +24,7 @@ Documentation page within Project overview.
 
 @projects.view(model, "#docs") {
 
-    <script type="text/javascript" src="@controllers.routes.Assets.at("javascripts/pageView.js")"></script>
+    <script type="text/javascript" src="@controllers.routes.Assets.at("javascripts/pageCollapse.js")"></script>
     <script nonce="@nonce">
         pluginId = '@model.pluginId';
         namespace = '@model.namespace';
@@ -90,11 +90,11 @@ Documentation page within Project overview.
                                 <li class="list-group-item">
                                     @if(pg.children.nonEmpty) {
                                         @if(page.parentId != pg.id.get) {
-                                            <a href="#" class="page-expand" data-page-id="@pg.id.get">
+                                            <a class="page-expand" data-page-id="@pg.id.get">
                                                 <i class="fa fa-plus-square-o"></i>
                                             </a>
                                         } else {
-                                            <a href="#" class="page-collapse" data-page-id="@pg.id.get">
+                                            <a class="page-collapse" data-page-id="@pg.id.get">
                                                 <i class="fa fa-minus-square-o"></i>
                                             </a>
                                         }
