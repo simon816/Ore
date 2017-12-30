@@ -41,7 +41,7 @@ case class OrganizationMembersUpdate(override val users: List[Int],
     // Update existing roles
     val orgRoleTypes = RoleTypes.values.filter(_.roleClass.equals(classOf[OrganizationRole]))
     for ((user, i) <- this.userUps.zipWithIndex) {
-      organization.memberships.members.find(_.username.equalsIgnoreCase(user)).foreach { user =>
+      organization.memberships.members.find(_.username.equalsIgnoreCase(user.trim)).foreach { user =>
         user.headRole.roleType = orgRoleTypes.find(_.title.equals(roleUps(i)))
           .getOrElse(throw new RuntimeException("supplied invalid role type"))
       }

@@ -126,7 +126,7 @@
 
                         <span class="minor pull-right">
                             @if(!member.headRole.isAccepted) {
-                                <span class="minor">(Invited)</span>
+                                <span class="minor">(Invited as @member.headRole.roleType.title)</span>
                             } else {
                                 @member.headRole.roleType.title
                             }

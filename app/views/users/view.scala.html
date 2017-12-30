@@ -254,7 +254,9 @@
     </div>
 
     @utils.modal("modal-pgp-show", "label-pgp-show", "user.pgp.pubKey") {
-        <pre style="text-align:center">@user.pgpPubKey.get</pre>
+        @if(user.pgpPubKey.isDefined) {
+            <pre style="text-align: center">@user.pgpPubKey.get</pre>
+        }
     }
 
     @utils.modal("modal-lock", "label-lock", if (user.isLocked) "user.unlock" else "user.lock") {
