@@ -60,8 +60,7 @@
                                 aria-label="@messages("general.close")">
                             <span aria-hidden="true">&times;</span>
                         </button>
-                        <h4 class="modal-title" id="label-use
-                        r-delete">@messages("project.removeMember")</h4>
+                        <h4 class="modal-title" id="label-user-delete">@messages("project.removeMember")</h4>
                     </div>
                     <div class="modal-body">@messages("project.removeMember.confirm")</div>
                     <div class="modal-footer">
@@ -116,7 +115,11 @@
                         <a class="username" href="@routes.Users.showProjects(member.username, None)">
                             @member.username
                         </a>
-
+                        @defining(member.headRole.id) { id: Option[Int] =>
+                            @if(id.isDefined) {
+                                <p style="display: none;" class="role-id">@id.get</p>
+                            }
+                        }
                         @if(canEdit && !member.headRole.roleType.trust.equals(Absolute)) {
                             <a href="#">
                                 <i style="padding-left:5px" class="fa fa-trash" data-toggle="modal" data-target="#modal-user-delete"></i>
