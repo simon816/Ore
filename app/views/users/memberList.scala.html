@@ -60,7 +60,8 @@
                                 aria-label="@messages("general.close")">
                             <span aria-hidden="true">&times;</span>
                         </button>
-                        <h4 class="modal-title" id="label-user-delete">@messages("project.removeMember")</h4>
+                        <h4 class="modal-title" id="label-use
+                        r-delete">@messages("project.removeMember")</h4>
                     </div>
                     <div class="modal-body">@messages("project.removeMember.confirm")</div>
                     <div class="modal-footer">
@@ -95,7 +96,7 @@
                         @form(action = saveCall, 'id -> "save") {
                             @CSRF.formField
                             <button class="btn-members-save btn btn-default btn-panel btn-xs" data-toggle="tooltip"
-                                    data-placement="top" data-title="Send updates" style="display: none;">
+                                    data-placement="top" data-title="@messages("org.users.save")" style="display: none;">
                                 <i class="fa fa-paper-plane"></i>
                             </button>
                         }
@@ -118,9 +119,9 @@
 
                         @if(canEdit && !member.headRole.roleType.trust.equals(Absolute)) {
                             <a href="#">
-                                <i class="fa fa-trash" data-toggle="modal" data-target="#modal-user-delete"></i>
+                                <i style="padding-left:5px" class="fa fa-trash" data-toggle="modal" data-target="#modal-user-delete"></i>
                             </a>
-                            <a href="#"><i class="fa fa-edit"></i></a>
+                            <a href="#"><i style="padding-left:5px" class="fa fa-edit"></i></a>
                         }
 
                         <span class="minor pull-right">
