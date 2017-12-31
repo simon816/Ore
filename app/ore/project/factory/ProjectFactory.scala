@@ -7,6 +7,7 @@ import javax.inject.Inject
 import akka.actor.ActorSystem
 import com.google.common.base.Preconditions._
 import db.ModelService
+import db.impl.OrePostgresDriver.api._
 import db.impl.access.{ProjectBase, UserBase}
 import discourse.OreDiscourseApi
 import models.project.{Channel, Project, Tag, Version}
@@ -318,30 +319,32 @@ trait ProjectFactory {
       signatureFileName = pendingVersion.signatureFileName
     ))
 
-    if (newVersion.hasDependency(SpongeApiId)) {
-      val spongeDependency = newVersion.dependencies.filter(_.pluginId == SpongeApiId).head
-      val spongeTag = Tag(
-        projectId = newVersion.project.id.get,
-        versionId = newVersion.id.get,
-        name = "Sponge",
-        data = spongeDependency.version,
-        color = Colors.Orange
-      )
-      service.access[Tag](classOf[Tag]).add(spongeTag)
-      newVersion.addTag(spongeTag)
+    def addTags(dependencyName: String, tagName: String, tagColor: Color) = {
+      val dependenciesMatchingName = newVersion.dependencies.filter(_.pluginId == dependencyName)
+      if (dependenciesMatchingName.nonEmpty) {
+        val dependency = dependenciesMatchingName.head
+        val tagsWithVersion = service.access(classOf[Tag])
+          .filter(t => t.name === dependencyName && t.data === dependency.version).toList
+
+        if (tagsWithVersion.isEmpty) {
+          val tag = Tag(
+            _versionIds = List(newVersion.id.get),
+            name = tagName,
+            data = dependency.version,
+            color = tagColor
+          )
+          service.access(classOf[Tag]).add(tag)
+          newVersion.addTag(tag)
+        } else {
+          val tag = tagsWithVersion.head
+          tag.addVersionId(newVersion.id.get)
+          newVersion.addTag(tag)
+        }
+      }
     }
-    if (newVersion.hasDependency(ForgeId)) {
-      val forgeDependency = newVersion.dependencies.filter(_.pluginId == ForgeId).head
-      val forgeTag = Tag(
-        projectId = newVersion.project.id.get,
-        versionId = newVersion.id.get,
-        name = "Forge",
-        data = forgeDependency.version,
-        color = Colors.Red
-      )
-      service.access[Tag](classOf[Tag]).add(forgeTag)
-      newVersion.addTag(forgeTag)
-    }
+
+    addTags(SpongeApiId, "Sponge", Colors.Orange)
+    addTags(ForgeId, "Forge", Colors.Red)
 
     // Notify watchers
     this.actorSystem.scheduler.scheduleOnce(Duration.Zero, NotifyWatchersTask(newVersion, messages))

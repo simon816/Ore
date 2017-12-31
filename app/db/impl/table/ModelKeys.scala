@@ -72,6 +72,9 @@ object ModelKeys {
   val ChannelId             =   new IntKey[Version](_.channelId, _.channelId)
   val TagIds                =   new Key[Version, List[Int]](_.tagIds, _.tagIds)
 
+  // Tags
+  val TagVersionIds           =   new Key[models.project.Tag, List[Int]](_.versionIds, _.versionIds)
+
   // DownloadWarning
   val DownloadId            =   new IntKey[DownloadWarning](_.downloadId, _.downloadId)
   val IsConfirmed           =   new BooleanKey[DownloadWarning](_.isConfirmed, _.isConfirmed)

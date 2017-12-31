@@ -182,9 +182,13 @@ case class Version(override val id: Option[Int] = None,
     }
   }
 
-  def isSpongePlugin : Boolean = tags.map(_.name).contains("Sponge")
+  def isSpongePlugin: Boolean = {
+    tags.map(_.name).contains("Sponge")
+  }
 
-  def isForgeMod : Boolean = tags.map(_.name).contains("Forge")
+  def isForgeMod: Boolean = {
+    tags.map(_.name).contains("Forge")
+  }
 
   /**
     * Returns this Versions plugin dependencies.

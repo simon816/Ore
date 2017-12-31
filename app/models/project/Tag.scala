@@ -5,22 +5,28 @@ import java.sql.Timestamp
 import db.Named
 import db.impl.TagTable
 import db.impl.model.OreModel
+import db.impl.table.ModelKeys._
 import ore.Colors.Color
-import ore.permission.scope.ProjectScope
 
 case class Tag(override val id: Option[Int] = None,
-               override val createdAt: Option[Timestamp] = None,
-               override val projectId: Int,
-               versionId: Int,
+               private var _versionIds: List[Int],
                name: String,
                data: String,
                color: Color)
-  extends OreModel(id, createdAt)
-    with Named
-    with ProjectScope {
+  extends OreModel(id, None)
+    with Named {
 
   override type M = Tag
   override type T = TagTable
 
-  def copyWith(id: Option[Int], theTime: Option[Timestamp]): Tag = this.copy(id = id, createdAt = theTime)
+  def versionIds: List[Int] = this._versionIds
+
+  def addVersionId(versionId: Int) = {
+    this._versionIds :+ versionId
+    if (isDefined) {
+      update(TagVersionIds)
+    }
+  }
+
+  def copyWith(id: Option[Int], theTime: Option[Timestamp]): Tag = this.copy(id = id)
 }
