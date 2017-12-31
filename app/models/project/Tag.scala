@@ -11,6 +11,7 @@ import ore.permission.scope.ProjectScope
 case class Tag(override val id: Option[Int] = None,
                override val createdAt: Option[Timestamp] = None,
                override val projectId: Int,
+               versionId: Int,
                name: String,
                data: String,
                color: Color)

@@ -151,10 +151,11 @@ class ChannelTable(tag: RowTag) extends ModelTable[Channel](tag, "project_channe
 class TagTable(tag: RowTag) extends ModelTable[ProjectTag](tag, "project_tags") with NameColumn[ProjectTag] {
 
   def projectId = column[Int]("project_id")
+  def versionId = column[Int]("version_id")
   def data      = column[String]("data")
   def color     = column[Color]("color")
 
-  override def * = (id.?, createdAt.?, projectId, name, data, color) <> ((Tag.apply _).tupled, Tag.unapply)
+  override def * = (id.?, createdAt.?, projectId, versionId, name, data, color) <> ((Tag.apply _).tupled, Tag.unapply)
 }
 
 class VersionTable(tag: RowTag) extends ModelTable[Version](tag, "project_versions")

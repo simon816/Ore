@@ -318,17 +318,27 @@ trait ProjectFactory {
     ))
 
     if (newVersion.hasDependency(SpongeApiId)) {
-      val tagAmount = service.access[Tag](classOf[Tag]).all.size
-      val spongeDependency = newVersion.dependencies.filter(_.pluginId == "spongeapi").head
-      val spongeTag = Tag(Some(tagAmount + 1), None, newVersion.project.id.get, "Sponge", spongeDependency.version, Colors.Orange)
-      service.insert(spongeTag)
+      val spongeDependency = newVersion.dependencies.filter(_.pluginId == SpongeApiId).head
+      val spongeTag = Tag(
+        projectId = newVersion.project.id.get,
+        versionId = newVersion.id.get,
+        name = "Sponge",
+        data = spongeDependency.version,
+        color = Colors.Orange
+      )
+      service.access[Tag](classOf[Tag]).add(spongeTag)
       newVersion.addTag(spongeTag)
     }
     if (newVersion.hasDependency(ForgeId)) {
-      val tagAmount = service.access[Tag](classOf[Tag]).all.size
-      val forgeDependency = newVersion.dependencies.filter(_.pluginId == "Forge").head
-      val forgeTag = Tag(Some(tagAmount + 1), None, newVersion.project.id.get, "Forge", forgeDependency.version, Colors.Red)
-      service.insert(forgeTag)
+      val forgeDependency = newVersion.dependencies.filter(_.pluginId == ForgeId).head
+      val forgeTag = Tag(
+        projectId = newVersion.project.id.get,
+        versionId = newVersion.id.get,
+        name = "Forge",
+        data = forgeDependency.version,
+        color = Colors.Red
+      )
+      service.access[Tag](classOf[Tag]).add(forgeTag)
       newVersion.addTag(forgeTag)
     }
 
