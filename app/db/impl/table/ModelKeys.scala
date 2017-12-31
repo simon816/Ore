@@ -30,7 +30,7 @@ object ModelKeys {
   val OwnerName             =   new StringKey[Project](_.ownerName, _.ownerName)
   val Slug                  =   new StringKey[Project](_.slug, _.slug)
   val Category              =   new MappedTypeKey[Project, Category](_.category, _.category)
-  val Tags                  =   new Key[Project, String](_.tags, _.tagsAsString)
+  val Tags                  =   new Key[Project, List[Int]](_.tags, _.tagIds)
   val Stars                 =   new IntKey[Project](_.stars, _.starCount)
   val Views                 =   new IntKey[Project](_.views, _.viewCount)
   val TopicId               =   new IntKey[Project](_.topicId, _.topicId)

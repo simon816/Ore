@@ -65,7 +65,7 @@ case class Project(override val id: Option[Int] = None,
                    private var _isTopicDirty: Boolean = false,
                    private var _isVisible: Boolean = true,
                    private var _lastUpdated: Timestamp = null,
-                   private var _tagIds: String)
+                   private var _tagIds: List[Int])
                    extends OreModel(id, createdAt)
                      with ProjectScope
                      with Downloadable
@@ -99,7 +99,7 @@ case class Project(override val id: Option[Int] = None,
   }
 
   def this(pluginId: String, name: String, owner: String, ownerId: Int) = {
-    this(pluginId=pluginId, _name=compact(name), _slug=slugify(name), _ownerName=owner, _ownerId=ownerId, _tagIds="")
+    this(pluginId=pluginId, _name=compact(name), _slug=slugify(name), _ownerName=owner, _ownerId=ownerId, _tagIds=List())
   }
 
   /**
@@ -209,9 +209,7 @@ case class Project(override val id: Option[Int] = None,
     if (isDefined) update(ModelKeys.Category)
   }
 
-  def tagsAsString: String = this._tagIds
-
-  def tagIds: List[Int] = this._tagIds.split(",").map(_.toInt).toList
+  def tagIds: List[Int] = this._tagIds
 
   def tags: List[Tag] = {
     tagIds.map { id =>
@@ -220,7 +218,7 @@ case class Project(override val id: Option[Int] = None,
   }
 
   def addTag(tag: Tag): Unit = {
-    this._tagIds += s",${tag.id}"
+    this._tagIds :+ tag.id.get
     if (isDefined) {
       update(Tags)
     }
@@ -565,7 +563,7 @@ object Project {
     private var _ownerName: String = _
     private var _ownerId: Int = -1
     private var _name: String = _
-    private var _tags: String = _
+    private var _tags: List[Int] = List[Int]()
 
     def pluginId(pluginId: String) = {
       this._pluginId = pluginId
@@ -587,7 +585,7 @@ object Project {
       this
     }
 
-    def tags(tags: String) = {
+    def tags(tags: List[Int]) = {
       this._tags = tags
       this
     }

@@ -53,7 +53,7 @@ trait ProjectTable extends ModelTable[Project]
   def postId                =   column[Int]("post_id")
   def isTopicDirty          =   column[Boolean]("is_topic_dirty")
   def lastUpdated           =   column[Timestamp]("last_updated")
-  def tags                  =   column[String]("tags")
+  def tags                  =   column[List[Int]]("tags")
 
   override def * = (id.?, createdAt.?, pluginId, ownerName, userId, name, slug, recommendedVersionId.?, category,
                     description.?, stars, views, downloads, topicId, postId, isTopicDirty,
