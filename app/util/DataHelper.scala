@@ -88,6 +88,7 @@ final class DataHelper @Inject()(config: OreConfig,
               channelId = channel.id.get,
               fileSize = 1,
               hash = "none",
+              _authorId = i,
               fileName = "none",
               signatureFileName = "none"))
             if (l == 0)

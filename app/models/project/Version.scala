@@ -41,6 +41,7 @@ case class Version(override val id: Option[Int] = None,
                    channelId: Int = -1,
                    fileSize: Long,
                    hash: String,
+                   private var _authorId: Int = -1,
                    private var _description: Option[String] = None,
                    private var _downloads: Int = 0,
                    private var _isReviewed: Boolean = false,
@@ -133,6 +134,18 @@ case class Version(override val id: Option[Int] = None,
   def setReviewed(reviewed: Boolean) = {
     this._isReviewed = reviewed
     if (isDefined) update(IsReviewed)
+  }
+
+  def authorId: Int = this._authorId
+
+  def author: Option[User] = this.userBase.get(this._authorId)
+
+  def authorId_=(authorId: Int) = {
+    this._authorId = authorId
+    // If the project is in the Database
+    if (isDefined) {
+      update(AuthorId)
+    }
   }
 
   def reviewerId: Int = this._reviewerId
@@ -232,6 +245,7 @@ object Version {
     private var _dependencyIds: List[String] = List()
     private var _description: String = _
     private var _projectId: Int = -1
+    private var _authorId: Int = -1
     private var _fileSize: Long = -1
     private var _hash: String = _
     private var _fileName: String = _
@@ -267,6 +281,11 @@ object Version {
       this
     }
 
+    def authorId(authorId: Int) = {
+      this._authorId = authorId
+      this
+    }
+
     def fileName(fileName: String) = {
       this._fileName = fileName
       this
@@ -286,6 +305,7 @@ object Version {
         projectId = this._projectId,
         fileSize = this._fileSize,
         hash = checkNotNull(this._hash, "hash null", ""),
+        _authorId = checkNotNull(this._authorId, "author id null", ""),
         fileName = checkNotNull(this._fileName, "file name null", ""),
         signatureFileName = checkNotNull(this._signatureFileName, "signature file name null", "")))
     }

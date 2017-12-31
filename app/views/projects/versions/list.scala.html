@@ -10,6 +10,7 @@ Versions page within Project overview.
 @import models.project.Project
 @import models.project.Channel
 @import models.project.Version
+@import models.user.User
 @(model: Project,
   channels: Seq[Channel],
   versions: Seq[Version],
@@ -91,8 +92,15 @@ Versions page within Project overview.
                                                         <span class="date">@prettifyDate(version.createdAt.get)</span>
                                                         @defining(version.downloadCount) { d: Int =>
                                                             <span class="date">
-                                                                @d Download@if(d != 1) { s } else { &nbsp; }
+                                                                @d Download@if(d != 1) {s}
                                                             </span>
+                                                        }
+                                                        @if(version.authorId != -1) {
+                                                            @defining(version.author.get.name) { author: String =>
+                                                                <a class="date" href="@routes.Users.showProjects(author, None)">
+                                                                    <i title="Signed By: @author" class="fa fa-key"></i>
+                                                                </a>
+                                                            }
                                                         }
                                                         <span class="date">@version.humanFileSize</span>
                                                         <a href="@versionRoutes.download(

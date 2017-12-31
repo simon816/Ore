@@ -198,8 +198,10 @@ class Versions @Inject()(stats: StatTracker,
             try {
               this.factory.processSubsequentPluginUpload(uploadData, user, request.project).fold(
                 err => Redirect(call).withError(err),
-                version =>
+                version => {
+                  version.underlying.authorId = user.id.getOrElse(-1)
                   Redirect(self.showCreatorWithMeta(request.project.ownerName, slug, version.underlying.versionString))
+                }
               )
             } catch {
               case e: InvalidPluginFileException =>
