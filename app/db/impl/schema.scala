@@ -169,6 +169,7 @@ class VersionTable(tag: RowTag) extends ModelTable[Version](tag, "project_versio
   def channelId         =   column[Int]("channel_id")
   def fileSize          =   column[Long]("file_size")
   def hash              =   column[String]("hash")
+  def authorId          =   column[Int]("author_id")
   def isReviewed        =   column[Boolean]("is_reviewed")
   def reviewerId        =   column[Int]("reviewer_id")
   def approvedAt        =   column[Timestamp]("approved_at")
@@ -177,7 +178,7 @@ class VersionTable(tag: RowTag) extends ModelTable[Version](tag, "project_versio
   def tagIds            =   column[List[Int]]("tags")
 
   override def * = (id.?, createdAt.?, projectId, versionString, dependencies, assets.?, channelId,
-                    fileSize, hash, description.?, downloads, isReviewed, reviewerId, approvedAt.?,
+                    fileSize, hash, authorId, description.?, downloads, isReviewed, reviewerId, approvedAt.?,
                     tagIds, fileName, signatureFileName) <> ((Version.apply _).tupled, Version.unapply)
 }
 

@@ -115,6 +115,9 @@ error.plugin.notSponge          =   Project is marked as a Sponge Plugin and new
 error.plugin.notForge           =   Project is marked as a Forge Mod and new version contains no dependency to Forge.
 error.plugin.fileName           =   Filename already in use. Please rename your file and try again.
 
+error.spongeauth.auth           =   Couldn't connect to SpongeAuth.
+error.spongeauth.parse          =   That name is invalid, please choose a name without spaces or symbols.
+
 page.edit.cannotDeleteHomepage  =   Your project's homepage cannot be deleted
 page.edit.maxPages              =   You have reached the maximum amount of allowed pages.
 page.new.title                  =   Create a new page
@@ -190,6 +193,8 @@ org.info            =   Organizations allow you group users provide closer colla
 org.name            =   Organization name
 org.welcome         =   Welcome to your new organization! Start by changing your avatar by clicking on it.
 org.welcome.confirm =   Got it!
+org.users.add       =   Add User
+org.users.save      =   Save Users
 
 version                         =   Version
 version.description             =   Description

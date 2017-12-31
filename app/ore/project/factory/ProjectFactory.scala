@@ -313,6 +313,7 @@ trait ProjectFactory {
       channelId = channel.id.get,
       fileSize = pendingVersion.fileSize,
       hash = pendingVersion.hash,
+      _authorId = pendingVersion.authorId,
       fileName = pendingVersion.fileName,
       signatureFileName = pendingVersion.signatureFileName
     ))
