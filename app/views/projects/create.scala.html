@@ -65,28 +65,6 @@ Page used for uploading and creating new projects.
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="2"><strong>@messages("general.spongePlugin")</strong></td>
-                                <td>
-                                    @if(project.recommendedVersion.isSpongePlugin) {
-                                        <i class="fa fa-check-circle"></i>
-                                    } else {
-                                        <i class="fa fa-time-circle" data-toggle="tooltip"
-                                           title="@messages("general.spongePlugin.tooltip")"></i>
-                                    }
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2"><strong>@messages("general.forgeMod")</strong></td>
-                                <td>
-                                    @if(project.recommendedVersion.isForgeMod) {
-                                        <i class="fa fa-check-circle"></i>
-                                    } else {
-                                        <i class="fa fa-times-circle" data-toggle="tooltip"
-                                           title="@messages("general.forgeMod.tooltip")"></i>
-                                    }
-                                </td>
-                            </tr>
-                            <tr>
                                 <td colspan="2">
                                     <label for="description">Description</label>
                                     @defining(pending.get.pendingVersion.underlying.description) { description =>

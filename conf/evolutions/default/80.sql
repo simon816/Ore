@@ -155,12 +155,20 @@ WHERE project_versions.id = ANY (forge_tags_appended.version_ids);
 
 -- Remove the boolean fields
 ALTER TABLE projects
-  ALTER COLUMN is_sponge_plugin DROP DEFAULT;
+  DROP COLUMN is_sponge_plugin;
 ALTER TABLE projects
-  ALTER COLUMN is_forge_mod DROP DEFAULT;
+  DROP COLUMN is_forge_mod;
 
 # --- !Downs
 
 -- TODO
+
+-- add the tags column
+ALTER TABLE project_versions
+  ADD COLUMN is_sponge_plugin BOOLEAN DEFAULT FALSE;
+ALTER TABLE project_versions
+  ADD COLUMN is_forge_mod BOOLEAN DEFAULT FALSE;
+
+-- when sponge_
 
 DROP TABLE project_tags;

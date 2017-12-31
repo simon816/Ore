@@ -173,8 +173,10 @@ case class Version(override val id: Option[Int] = None,
   }
 
   def addTag(tag: Tag) = {
-    this._tagIds :+ tag.id
-    if(isDefined) update(TagIds)
+    this._tagIds = this._tagIds :+ tag.id.get
+    if (isDefined) {
+      update(TagIds)
+    }
   }
   def tags: List[Tag] = {
     tagIds.map { id =>

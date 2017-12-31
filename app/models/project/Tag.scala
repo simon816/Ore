@@ -22,7 +22,7 @@ case class Tag(override val id: Option[Int] = None,
   def versionIds: List[Int] = this._versionIds
 
   def addVersionId(versionId: Int) = {
-    this._versionIds :+ versionId
+    this._versionIds = this._versionIds :+ versionId
     if (isDefined) {
       update(TagVersionIds)
     }

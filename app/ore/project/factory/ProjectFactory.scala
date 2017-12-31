@@ -324,7 +324,7 @@ trait ProjectFactory {
       if (dependenciesMatchingName.nonEmpty) {
         val dependency = dependenciesMatchingName.head
         val tagsWithVersion = service.access(classOf[Tag])
-          .filter(t => t.name === dependencyName && t.data === dependency.version).toList
+          .filter(t => t.name === tagName && t.data === dependency.version).toList
 
         if (tagsWithVersion.isEmpty) {
           val tag = Tag(
@@ -334,7 +334,9 @@ trait ProjectFactory {
             color = tagColor
           )
           service.access(classOf[Tag]).add(tag)
-          newVersion.addTag(tag)
+          // requery the tag because it now includes the id
+          val newTag = service.access(classOf[Tag]).filter(t => t.name === tag.name && t.data === tag.data).toList.head
+          newVersion.addTag(newTag)
         } else {
           val tag = tagsWithVersion.head
           tag.addVersionId(newVersion.id.get)
