@@ -161,14 +161,46 @@ ALTER TABLE projects
 
 # --- !Downs
 
--- TODO
-
 -- add the tags column
-ALTER TABLE project_versions
+ALTER TABLE projects
   ADD COLUMN is_sponge_plugin BOOLEAN DEFAULT FALSE;
-ALTER TABLE project_versions
+ALTER TABLE projects
   ADD COLUMN is_forge_mod BOOLEAN DEFAULT FALSE;
 
--- when sponge_
+-- Get all the tags that are Sponge
+WITH sponge_tags AS (
+    SELECT *
+    FROM project_tags
+    WHERE name = 'Sponge'
+)
+  -- Get all the projects that have a Sponge Tag
+  , sponge_project_ids AS (
+    SELECT project_id
+    FROM project_versions
+      JOIN sponge_tags ON project_versions.id = ANY (sponge_tags.version_ids)
+)
+-- Set is_sponge_plugin to True in every projects that has a sponge tag
+UPDATE projects
+SET is_sponge_plugin = TRUE
+WHERE projects.id IN (SELECT project_id
+                      FROM sponge_project_ids);
+
+WITH forge_tags AS (
+    SELECT *
+    FROM project_tags
+    WHERE name = 'Forge'
+)
+  , forge_project_ids AS (
+    SELECT project_id
+    FROM project_versions
+      JOIN forge_tags ON project_versions.id = ANY (forge_tags.version_ids)
+)
+UPDATE projects
+SET is_forge_mod = TRUE
+WHERE projects.id IN (SELECT project_id
+                      FROM forge_project_ids);
+
+ALTER TABLE project_versions
+  DROP COLUMN tags;
 
 DROP TABLE project_tags;
