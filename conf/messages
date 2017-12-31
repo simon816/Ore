@@ -193,6 +193,8 @@ org.info            =   Organizations allow you group users provide closer colla
 org.name            =   Organization name
 org.welcome         =   Welcome to your new organization! Start by changing your avatar by clicking on it.
 org.welcome.confirm =   Got it!
+org.users.add       =   Add User
+org.users.save      =   Save Users
 
 version                         =   Version
 version.description             =   Description
