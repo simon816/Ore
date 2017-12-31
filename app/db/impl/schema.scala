@@ -53,11 +53,10 @@ trait ProjectTable extends ModelTable[Project]
   def postId                =   column[Int]("post_id")
   def isTopicDirty          =   column[Boolean]("is_topic_dirty")
   def lastUpdated           =   column[Timestamp]("last_updated")
-  def tags                  =   column[List[Int]]("tags")
 
   override def * = (id.?, createdAt.?, pluginId, ownerName, userId, name, slug, recommendedVersionId.?, category,
                     description.?, stars, views, downloads, topicId, postId, isTopicDirty,
-                    isVisible, lastUpdated, tags) <> ((Project.apply _).tupled, Project.unapply)
+                    isVisible, lastUpdated) <> ((Project.apply _).tupled, Project.unapply)
 
 }
 
@@ -174,10 +173,11 @@ class VersionTable(tag: RowTag) extends ModelTable[Version](tag, "project_versio
   def approvedAt        =   column[Timestamp]("approved_at")
   def fileName          =   column[String]("file_name")
   def signatureFileName =   column[String]("signature_file_name")
+  def tagIds            =   column[List[Int]]("tags")
 
   override def * = (id.?, createdAt.?, projectId, versionString, dependencies, assets.?, channelId,
-                    fileSize, hash, description.?, downloads, isReviewed, reviewerId, approvedAt.?, fileName,
-                    signatureFileName) <> ((Version.apply _).tupled, Version.unapply)
+                    fileSize, hash, description.?, downloads, isReviewed, reviewerId, approvedAt.?,
+                    tagIds, fileName, signatureFileName) <> ((Version.apply _).tupled, Version.unapply)
 }
 
 class DownloadWarningsTable(tag: RowTag) extends ModelTable[DownloadWarning](tag, "project_version_download_warnings") {

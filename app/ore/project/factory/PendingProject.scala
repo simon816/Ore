@@ -43,18 +43,6 @@ case class PendingProject(projects: ProjectBase,
   val pendingVersion: PendingVersion = {
     val version = this.factory.startVersion(this.file, this.underlying, this.channelName)
     val model = version.underlying
-
-    if (model.hasDependency(SpongeApiId)) {
-      val tagAmount = service.access[Tag](classOf[Tag]).all.size
-      val spongeDependency = model.dependencies.filter(_.pluginId == "spongeapi").head
-      val spongeTag = Tag(Some(tagAmount + 1), None, version.project.id.get, "Sponge", spongeDependency.version, Colors.Orange)
-      this.underlying.addTag(spongeTag)
-    }
-    if (model.hasDependency(ForgeId)) {
-      val tagAmount = service.access[Tag](classOf[Tag]).all.size
-      val forgeDependency = model.dependencies.filter(_.pluginId == "Forge").head
-      val forgeTag = Tag(Some(tagAmount + 1), None, version.project.id.get, "Forge", forgeDependency.version, Colors.Red)
-    }
     version.cache()
     version
   }

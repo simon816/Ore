@@ -46,6 +46,7 @@ case class Version(override val id: Option[Int] = None,
                    private var _isReviewed: Boolean = false,
                    private var _reviewerId: Int = -1,
                    private var _approvedAt: Option[Timestamp] = None,
+                   private var _tagIds: List[Int] = List(),
                    fileName: String,
                    signatureFileName: String)
                    extends OreModel(id, createdAt)
@@ -151,6 +152,27 @@ case class Version(override val id: Option[Int] = None,
     update(ApprovedAt)
   }
 
+  def tagIds: List[Int] = this._tagIds
+
+  def tagIds_=(tags: List[Int]) = {
+    this._tagIds = tags
+    if(isDefined) update(TagIds)
+  }
+
+  def addTag(tag: Tag) = {
+    this._tagIds :+ tag.id
+    if(isDefined) update(TagIds)
+  }
+  def tags: List[Tag] = {
+    tagIds.map { id =>
+      this.service.access[Tag](classOf[Tag]).find(_.id === id).get
+    }
+  }
+
+  def isSpongePlugin : Boolean = tags.map(_.name).contains("Sponge")
+
+  def isForgeMod : Boolean = tags.map(_.name).contains("Forge")
+
   /**
     * Returns this Versions plugin dependencies.
     *
@@ -236,6 +258,7 @@ object Version {
     private var _hash: String = _
     private var _fileName: String = _
     private var _signatureFileName: String = _
+    private var _tagIds: List[Int] = List()
 
     def versionString(versionString: String) = {
       this._versionString = versionString
@@ -277,6 +300,11 @@ object Version {
       this
     }
 
+    def tagIds(tagIds: List[Int]) = {
+      this._tagIds = tagIds
+      this
+    }
+
     def build() = {
       checkArgument(this._fileSize != -1, "invalid file size", "")
       this.service.processor.process(Version(
@@ -287,6 +315,7 @@ object Version {
         fileSize = this._fileSize,
         hash = checkNotNull(this._hash, "hash null", ""),
         fileName = checkNotNull(this._fileName, "file name null", ""),
+        _tagIds = this._tagIds,
         signatureFileName = checkNotNull(this._signatureFileName, "signature file name null", "")))
     }
 

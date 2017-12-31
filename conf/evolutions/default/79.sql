@@ -5,13 +5,14 @@ CREATE TABLE project_tags (
   id         SERIAL,
   created_at TIMESTAMP,
   project_id BIGINT,
+  version_id BIGINT,
   name       VARCHAR(255),
   data       VARCHAR(255),
   color      INT
 );
 
 -- add the tags column
-ALTER TABLE projects
+ALTER TABLE project_versions
   ADD COLUMN tags INT [] DEFAULT NULL;
 
 -- migrate the sponge versions to the tags table
@@ -26,6 +27,7 @@ WITH sponge_projects AS (
   , sponge_tag_info AS (
     SELECT
       project_versions.project_id,
+      project_versions.id as version_id,
       project_versions.created_at,
       -- split the sponge version string and get the version number
       split_part(
@@ -41,10 +43,11 @@ WITH sponge_projects AS (
     FROM project_versions
       INNER JOIN sponge_projects ON project_versions.project_id = sponge_projects.project_id
 )
-INSERT INTO project_tags (created_at, project_id, name, data, color)
+INSERT INTO project_tags (created_at, project_id, version_id, name, data, color)
   SELECT
     created_at,
     project_id,
+    version_id,
     name,
     data,
     color
@@ -61,16 +64,16 @@ WITH sponge_projects AS (
 )
   , sponge_tags_appended AS (
     SELECT
-      project_tags.project_id,
+      project_tags.version_id,
       array_agg(project_tags.id) AS tags
     FROM project_tags
       JOIN sponge_projects ON project_tags.project_id = sponge_projects.project_id
-    GROUP BY project_tags.project_id
+    GROUP BY project_tags.version_id
 )
-UPDATE projects
+UPDATE project_versions
 SET tags = sponge_tags_appended.tags
 FROM sponge_tags_appended
-WHERE projects.id = sponge_tags_appended.project_id;
+WHERE project_versions.id = sponge_tags_appended.version_id;
 
 -- migrate the forge versions to the tags table (duplicate of above)
 WITH forge_projects AS (
@@ -83,6 +86,7 @@ WITH forge_projects AS (
     forge_tag_info AS (
       SELECT
         project_versions.project_id,
+        project_versions.id as version_id,
         project_versions.created_at,
         -- split the forge version string and get the version number
         split_part(
@@ -98,10 +102,11 @@ WITH forge_projects AS (
       FROM project_versions
         INNER JOIN forge_projects ON project_versions.project_id = forge_projects.project_id
   )
-INSERT INTO project_tags (created_at, project_id, name, data, color)
+INSERT INTO project_tags (created_at, project_id, version_id, name, data, color)
   SELECT
     created_at,
     project_id,
+    version_id,
     name,
     data,
     color
@@ -118,16 +123,16 @@ WITH forge_projects AS (
 )
   , forge_tags_appended AS (
     SELECT
-      project_tags.project_id,
+      project_tags.version_id,
       array_agg(project_tags.id) AS tags
     FROM project_tags
       JOIN forge_projects ON project_tags.project_id = forge_projects.project_id
-    GROUP BY project_tags.project_id
+    GROUP BY project_tags.version_id
 )
-UPDATE projects
+UPDATE project_versions
 SET tags = forge_tags_appended.tags
 FROM forge_tags_appended
-WHERE projects.id = forge_tags_appended.project_id;
+WHERE project_versions.id = forge_tags_appended.version_id;
 
 -- Remove the boolean fields
 ALTER TABLE projects
@@ -138,3 +143,5 @@ ALTER TABLE projects
 # --- !Downs
 
 -- TODO
+
+drop table project_tags;

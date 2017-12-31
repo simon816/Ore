@@ -9,12 +9,13 @@ import com.google.common.base.Preconditions._
 import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
 import discourse.OreDiscourseApi
-import models.project.{Channel, Project, Version}
+import models.project.{Channel, Project, Tag, Version}
 import models.user.role.ProjectRole
 import models.user.{Notification, User}
 import ore.Colors.Color
-import ore.OreConfig
+import ore.{Colors, OreConfig}
 import ore.permission.role.RoleTypes
+import ore.project.Dependency.{ForgeId, SpongeApiId}
 import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload, ProjectFiles}
 import ore.project.{Dependency, NotifyWatchersTask}
 import ore.user.notification.NotificationTypes
@@ -107,10 +108,6 @@ trait ProjectFactory {
     val model = version.underlying
     if (model.exists && this.config.projects.getBoolean("file-validate").get)
       return Left("error.version.duplicate")
-    if (project.isSpongePlugin && !model.hasDependency(Dependency.SpongeApiId))
-      return Left("error.version.noDependency.sponge")
-    if (project.isForgeMod && !model.hasDependency(Dependency.ForgeId))
-      return Left("error.version.noDependency.forge")
     version.cache()
     Right(version)
   }
@@ -307,14 +304,6 @@ trait ProjectFactory {
     if (pendingVersion.exists && this.config.projects.getBoolean("file-validate").get)
       throw new IllegalArgumentException("Version already exists.")
 
-    // Check to make sure that the required dependencies are there
-    if (project.isSpongePlugin && !pendingVersion.hasDependency(Dependency.SpongeApiId))
-      throw InvalidPluginFileException("error.plugin.notSponge")
-
-    if (project.isForgeMod && !pendingVersion.hasDependency(Dependency.ForgeId)) {
-      throw InvalidPluginFileException("error.plugin.notForge")
-    }
-
     val newVersion = this.service.access[Version](classOf[Version]).add(Version(
       versionString = pendingVersion.versionString,
       dependencyIds = pendingVersion.dependencyIds,
@@ -327,6 +316,21 @@ trait ProjectFactory {
       fileName = pendingVersion.fileName,
       signatureFileName = pendingVersion.signatureFileName
     ))
+
+    if (newVersion.hasDependency(SpongeApiId)) {
+      val tagAmount = service.access[Tag](classOf[Tag]).all.size
+      val spongeDependency = newVersion.dependencies.filter(_.pluginId == "spongeapi").head
+      val spongeTag = Tag(Some(tagAmount + 1), None, newVersion.project.id.get, "Sponge", spongeDependency.version, Colors.Orange)
+      service.insert(spongeTag)
+      newVersion.addTag(spongeTag)
+    }
+    if (newVersion.hasDependency(ForgeId)) {
+      val tagAmount = service.access[Tag](classOf[Tag]).all.size
+      val forgeDependency = newVersion.dependencies.filter(_.pluginId == "Forge").head
+      val forgeTag = Tag(Some(tagAmount + 1), None, newVersion.project.id.get, "Forge", forgeDependency.version, Colors.Red)
+      service.insert(forgeTag)
+      newVersion.addTag(forgeTag)
+    }
 
     // Notify watchers
     this.actorSystem.scheduler.scheduleOnce(Duration.Zero, NotifyWatchersTask(newVersion, messages))
