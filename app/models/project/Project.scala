@@ -56,8 +56,6 @@ case class Project(override val id: Option[Int] = None,
                    private var _slug: String,
                    private var recommendedVersionId: Option[Int] = None,
                    private var _category: Category = Categories.Undefined,
-                   private var _isSpongePlugin: Boolean = false,
-                   private var _isForgeMod: Boolean = false,
                    private var _description: Option[String] = None,
                    private var _stars: Int = 0,
                    private var _views: Int = 0,
@@ -66,7 +64,8 @@ case class Project(override val id: Option[Int] = None,
                    private var _postId: Int = -1,
                    private var _isTopicDirty: Boolean = false,
                    private var _isVisible: Boolean = true,
-                   private var _lastUpdated: Timestamp = null)
+                   private var _lastUpdated: Timestamp = null,
+                   private var _tagIds: String)
                    extends OreModel(id, createdAt)
                      with ProjectScope
                      with Downloadable
@@ -100,7 +99,7 @@ case class Project(override val id: Option[Int] = None,
   }
 
   def this(pluginId: String, name: String, owner: String, ownerId: Int) = {
-    this(pluginId=pluginId, _name=compact(name), _slug=slugify(name), _ownerName=owner, _ownerId=ownerId)
+    this(pluginId=pluginId, _name=compact(name), _slug=slugify(name), _ownerName=owner, _ownerId=ownerId, _tagIds="")
   }
 
   /**
@@ -210,19 +209,26 @@ case class Project(override val id: Option[Int] = None,
     if (isDefined) update(ModelKeys.Category)
   }
 
-  def isSpongePlugin: Boolean = this._isSpongePlugin
+  def tagsAsString: String = this._tagIds
 
-  def setSpongePlugin(spongePlugin: Boolean) = {
-    this._isSpongePlugin = spongePlugin
-    if (isDefined) update(IsSpongePlugin)
+  def tagIds: List[Int] = this._tagIds.split(",").map(_.toInt).toList
+
+  def tags: List[Tag] = {
+    tagIds.map { id =>
+      this.service.access[Tag](classOf[Tag]).find(_.id === id).get
+    }
   }
 
-  def isForgeMod: Boolean = this._isForgeMod
-
-  def setForgeMod(forgeMod: Boolean) = {
-    this._isForgeMod = forgeMod
-    if (isDefined) update(IsForgeMod)
+  def addTag(tag: Tag): Unit = {
+    this._tagIds += s",${tag.id}"
+    if (isDefined) {
+      update(Tags)
+    }
   }
+
+  def isSpongePlugin : Boolean = tags.map(_.name).contains("Sponge")
+
+  def isForgeMod : Boolean = tags.map(_.name).contains("Forge")
 
   /**
     * Returns this Project's description.
@@ -559,6 +565,7 @@ object Project {
     private var _ownerName: String = _
     private var _ownerId: Int = -1
     private var _name: String = _
+    private var _tags: String = _
 
     def pluginId(pluginId: String) = {
       this._pluginId = pluginId
@@ -580,6 +587,11 @@ object Project {
       this
     }
 
+    def tags(tags: String) = {
+      this._tags = tags
+      this
+    }
+
     def build(): Project = {
       checkNotNull(this._pluginId, "plugin id null", "")
       checkNotNull(this._ownerName, "owner name null", "")
@@ -590,7 +602,8 @@ object Project {
         _ownerName = this._ownerName,
         _ownerId = this._ownerId,
         _name = this._name,
-        _slug = slugify(this._name)
+        _slug = slugify(this._name),
+        _tagIds = _tags
       ))
     }
 

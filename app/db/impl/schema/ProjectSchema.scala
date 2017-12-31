@@ -56,8 +56,10 @@ class ProjectSchema(override val service: ModelService, implicit val users: User
     * @return Model filter
     */
   def platformFilter(platform: Platform): ModelFilter[Project] = ModelFilter[Project] { project =>
-    (project.isSpongePlugin && platform.equals(Platforms.Sponge)) ||
-    (project.isForgeMod && platform.equals(Platforms.Forge))
+    // TODO: Better filter
+//    (project.isSpongePlugin && platform.equals(Platforms.Sponge)) ||
+//    (project.isForgeMod && platform.equals(Platforms.Forge))
+    false
   }
 
   /**

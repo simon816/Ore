@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import db.impl.OrePostgresDriver.api._
-import db.impl.schema.RowTag
+import db.impl.schema._
 import db.impl.table.common.{DescriptionColumn, DownloadsColumn, VisibilityColumn}
 import db.impl.table.StatTable
 import db.table.{AssociativeTable, ModelTable, NameColumn}
@@ -30,7 +30,10 @@ import ore.user.notification.NotificationTypes.NotificationType
  */
 
 // Alias Slick's Tag type because we have our own Tag type
-package object schema { type RowTag = slick.lifted.Tag }
+package object schema {
+  type RowTag = slick.lifted.Tag
+  type ProjectTag = models.project.Tag
+}
 
 trait ProjectTable extends ModelTable[Project]
   with NameColumn[Project]
@@ -44,18 +47,17 @@ trait ProjectTable extends ModelTable[Project]
   def slug                  =   column[String]("slug")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
   def category              =   column[Category]("category")
-  def isSpongePlugin        =   column[Boolean]("is_sponge_plugin")
-  def isForgeMod            =   column[Boolean]("is_forge_mod")
   def stars                 =   column[Int]("stars")
   def views                 =   column[Int]("views")
   def topicId               =   column[Int]("topic_id")
   def postId                =   column[Int]("post_id")
   def isTopicDirty          =   column[Boolean]("is_topic_dirty")
   def lastUpdated           =   column[Timestamp]("last_updated")
+  def tags                  =   column[String]("tags")
 
   override def * = (id.?, createdAt.?, pluginId, ownerName, userId, name, slug, recommendedVersionId.?, category,
-                    isSpongePlugin, isForgeMod, description.?, stars, views, downloads, topicId, postId, isTopicDirty,
-                    isVisible, lastUpdated) <> ((Project.apply _).tupled, Project.unapply)
+                    description.?, stars, views, downloads, topicId, postId, isTopicDirty,
+                    isVisible, lastUpdated, tags) <> ((Project.apply _).tupled, Project.unapply)
 
 }
 
@@ -145,6 +147,15 @@ class ChannelTable(tag: RowTag) extends ModelTable[Channel](tag, "project_channe
 
   override def * = (id.?, createdAt.?, projectId, name, color, isNonReviewed) <> ((Channel.apply _).tupled,
                     Channel.unapply)
+}
+
+class TagTable(tag: RowTag) extends ModelTable[ProjectTag](tag, "project_tags") with NameColumn[ProjectTag] {
+
+  def projectId = column[Int]("project_id")
+  def data      = column[String]("data")
+  def color     = column[Color]("color")
+
+  override def * = (id.?, createdAt.?, projectId, name, data, color) <> ((Tag.apply _).tupled, Tag.unapply)
 }
 
 class VersionTable(tag: RowTag) extends ModelTable[Version](tag, "project_versions")

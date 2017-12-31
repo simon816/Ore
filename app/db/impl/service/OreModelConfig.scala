@@ -12,6 +12,10 @@ import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole}
 import models.user.{Notification, Organization, SignOn, User}
 
+package object schema {
+  type ProjectTag = models.project.Tag
+}
+
 trait OreModelConfig extends ModelService with OreDBOs {
 
   val projectWatchers = new ModelAssociation[ProjectWatchersTable](
@@ -113,6 +117,8 @@ trait OreModelConfig extends ModelService with OreDBOs {
 
   val ChannelSchema = new ModelSchema[Channel](this, classOf[Channel], TableQuery[ChannelTable])
     .withChildren[Version](classOf[Version], _.channelId)
+
+  val TagSchema = new ModelSchema[ProjectTag](this, classOf[ProjectTag], TableQuery[TagTable])
 
   val PageSchema = new PageSchema(this)
 
