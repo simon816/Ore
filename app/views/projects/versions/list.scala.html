@@ -9,6 +9,7 @@ Versions page within Project overview.
 @import util.StringUtils._
 @import models.project.Project
 @import models.project.Channel
+@import models.project.Tag
 @import models.project.Version
 @import models.user.User
 @(model: Project,
@@ -77,7 +78,7 @@ Versions page within Project overview.
                             <table class="table">
                                 <tbody>
                                     @versions.map { version =>
-                                        @defining(version.findChannelFrom(channels).get) { channel =>
+                                        @defining(version.findChannelFrom(channels).get) { channel: Channel =>
                                             <tr>
                                                 <td>
                                                     <i title="@channel.name" class="fa fa-circle channel-id"
@@ -86,6 +87,22 @@ Versions page within Project overview.
                                                         model.ownerName, model.slug, version.versionString)">
                                                         <strong>@version.versionString</strong>
                                                     </a>
+                                                </td>
+                                                <td>
+                                                    @defining(version.tags.find(_.name == "Sponge")) { tag: Option[Tag] =>
+                                                        @if(tag.isDefined && tag.get.data != "null") {
+                                                            <span class="stat channel channel-sm spongeapi">
+                                                            @tag.get.data
+                                                            </span>
+                                                        }
+                                                    }
+                                                    @defining(version.tags.find(_.name == "Forge")) { tag: Option[Tag] =>
+                                                        @if(tag.isDefined && tag.get.data != "null") {
+                                                            <span class="stat channel channel-sm forgemod">
+                                                            @tag.get.data
+                                                            </span>
+                                                        }
+                                                    }
                                                 </td>
                                                 <td>
                                                     <div class="pull-right">

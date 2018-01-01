@@ -178,6 +178,7 @@ case class Version(override val id: Option[Int] = None,
       update(TagIds)
     }
   }
+
   def tags: List[Tag] = {
     tagIds.map { id =>
       this.service.access[Tag](classOf[Tag]).find(_.id === id).get
