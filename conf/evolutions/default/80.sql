@@ -11,7 +11,7 @@ CREATE TABLE project_tags (
 
 -- add the tags column
 ALTER TABLE project_versions
-  ADD COLUMN tags INT [] DEFAULT NULL;
+  ADD COLUMN tags INT [] DEFAULT '{}';
 
 -- migrate the sponge versions to the tags table
 WITH sponge_projects AS (
