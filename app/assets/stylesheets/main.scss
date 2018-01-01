@@ -31,13 +31,8 @@ body {
   width: 100%;
 }
 
-.panel {
-  .panel-heading { background-color: white; }
-  .panel-footer { background-color: white; }
-}
-
 .index-header {
-  padding-bottom: 20px;
+  padding-bottom: 24px;
 }
 
 .index-header .alert {
@@ -48,26 +43,32 @@ body {
   height: 40px;
 }
 
-.sponsor-logo {
-  max-height: 35px;
+.sponsor-block {
   max-width: 100%;
 }
 
 .sponsor {
-  @include padding-horiz(5px, 5px);
-  @include rounded-corners();
-  max-height: 60px;
-  background-color: #ddd;
-  border: 1px solid $light;
-  padding-bottom: 5px;
+  float: right;
+  width: 100%;
+  height: 50px;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   i {
     font-size: 10px;
-    color: #fafafa;
+    color: $sponge_dark_grey;
   }
-}
 
-.sponsor-featured {
-  margin-bottom: 20px;
+  .logo {
+    max-height: 50px;
+    max-width: 100%;
+    height: auto;
+    z-index: 1;
+  }
 }
 
 form {
@@ -190,22 +191,24 @@ form {
 }
 
 .category-table {
-  tr.selected:hover { background: #f6d830; }
-  tr.selected > td { padding-top: 8px; }
-  tr > td:first-child {
-    text-align: center;
-    padding-right: 0;
-  }
+  tr {
+    &:hover {
+      cursor: pointer;
+      background-color: $mainBackground;
+    }
 
-  tr:hover {
-    cursor: pointer;
-    background-color: $mainBackground;
-  }
+    > td {
+      &:first-child {
+        text-align: center;
+        padding-right: 0;
+      }
 
-  tr.selected {
-    @include box-shadow5(inset, 0, 0, 5px, #e6b800);
-    background: #f6d830;
-    border: none;
+      border: none;
+    }
+
+    &.selected {
+      box-shadow: inset -10px 0px 0px 0px $sponge_yellow;
+    }
   }
 }
 
@@ -223,6 +226,7 @@ form {
   }
 }
 
+
 .btn {
   border-radius: 4px;
 
@@ -231,3 +235,42 @@ form {
     border: 1px solid $sponge_light_gray;
   }
 }
+
+.panel .panel-heading {
+  background: $sponge_grey;
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+
+  a, i {
+    color: #ffffff;
+  }
+
+  .btn {
+    color: $sponge_yellow;
+    background: $sponge_grey;
+    border: none;
+    outline: none;
+  }
+}
+
+.panel.panel-default {
+  border: 1px solid $sponge_grey;
+  border-radius: 4px;
+}
+
+.panel>.list-group:last-child .list-group-item:last-child, .panel>.panel-collapse>.list-group:last-child .list-group-item:last-child {
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+select.form-control {
+  border: 1px solid $sponge_grey;
+  border-radius: 4px;
+
+  &:focus {
+    box-shadow: none;
+    border: 1px solid $sponge_grey;
+  }
+}
+
