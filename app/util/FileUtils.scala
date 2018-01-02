@@ -47,12 +47,16 @@ object FileUtils {
   private class DeleteFileVisitor extends SimpleFileVisitor[Path] {
 
     override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
-      Files.delete(file)
+      if (Files.exists(file)) {
+        Files.delete(file)
+      }
       FileVisitResult.CONTINUE
     }
 
     override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
-      Files.delete(dir)
+      if (Files.exists(dir)) {
+        Files.delete(dir)
+      }
       FileVisitResult.CONTINUE
     }
 
