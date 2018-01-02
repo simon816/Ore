@@ -126,8 +126,8 @@ class Users @Inject()(fakeUser: FakeUser,
     val p = page.getOrElse(1)
     val offset = (p - 1) * pageSize
     this.users.withName(username).map { u =>
-      (u, u.projects.sorted(
-        ordering = _.stars.desc,
+      (u, u.projects.sortedMultipleOrders(
+        orderings = p => List(p.stars.desc, p.name.asc),
         filter = _.recommendedVersionId =!= -1,
         limit = pageSize,
         offset = offset))
