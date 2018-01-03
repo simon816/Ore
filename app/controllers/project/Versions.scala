@@ -24,12 +24,13 @@ import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.Logger
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Result, Request}
+import play.api.mvc.{Request, Result}
 import play.filters.csrf.CSRF
 import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
 import views.html.projects.{versions => views}
 import _root_.views.html.helper
+import ore.project.factory.TagAlias.ProjectTag
 
 /**
   * Controller for handling Version related actions.
@@ -276,6 +277,31 @@ class Versions @Inject()(stats: StatTracker,
 
             versionData => {
               // Channel is valid
+
+              def addWipTag(version: Version) = {
+                if (versionData.wip) {
+                  val tagsWithVersion = service.access(classOf[ProjectTag])
+                    .filter(t => t.name === "WIP" && t.data === "").toList
+
+                  if (tagsWithVersion.isEmpty) {
+                    val tag = Tag(
+                      _versionIds = List(version.id.get),
+                      name = "WIP",
+                      data = "",
+                      color = TagColors.WIP
+                    )
+                    service.access(classOf[ProjectTag]).add(tag)
+                    // requery the tag because it now includes the id
+                    val newTag = service.access(classOf[ProjectTag]).filter(t => t.name === tag.name && t.data === tag.data).toList.head
+                    version.addTag(newTag)
+                  } else {
+                    val tag = tagsWithVersion.head
+                    tag.addVersionId(version.id.get)
+                    version.addTag(tag)
+                  }
+                }
+              }
+
               pendingVersion.channelName = versionData.channelName.trim
               pendingVersion.channelColor = versionData.color
 
@@ -309,13 +335,15 @@ class Versions @Inject()(stats: StatTracker,
                             this.forums.postVersionRelease(project, newVersion, c)
                         }
 
+                        addWipTag(newVersion)
                         Redirect(self.show(author, slug, versionString))
                       }
                     )
                   }
                 case Some(pendingProject) =>
                   // Found a pending project, create it with first version
-                  pendingProject.complete().get
+                  val project = pendingProject.complete().get
+                  addWipTag(project.recommendedVersion)
                   Redirect(ShowProject(author, slug))
               }
             }

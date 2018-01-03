@@ -10,7 +10,8 @@ import ore.project.factory.ProjectFactory
   * @param channelColorHex  Channel color hex
   * @param recommended      True if recommended version
   */
-case class VersionData(recommended: Boolean,
+case class VersionData(wip: Boolean,
+                       recommended: Boolean,
                        override val channelName: String,
                        override protected val channelColorHex: String,
                        override val nonReviewed: Boolean,

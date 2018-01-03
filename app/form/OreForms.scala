@@ -166,6 +166,7 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory, se
     * Submits a new Version.
     */
   lazy val VersionCreate = Form(mapping(
+    "wip" -> boolean,
     "recommended" -> boolean,
     "channel-input" -> text.verifying(
       "Invalid channel name.", config.isValidChannelName(_)),
