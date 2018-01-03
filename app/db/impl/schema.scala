@@ -274,7 +274,7 @@ class OrganizationMembersTable(tag: RowTag) extends AssociativeTable(tag, "organ
 
 }
 
-trait RoleTable[R <: RoleModel] extends ModelTable[R] with VisibilityColumn[R] {
+trait RoleTable[R <: RoleModel] extends ModelTable[R] {
 
   def userId      =   column[Int]("user_id")
   def roleType    =   column[RoleType]("role_type")
@@ -288,8 +288,8 @@ class OrganizationRoleTable(tag: RowTag)
 
   def organizationId = column[Int]("organization_id")
 
-  override def * = (id.?, createdAt.?, userId, organizationId, roleType, isAccepted,
-                    isVisible) <> (OrganizationRole.tupled, OrganizationRole.unapply)
+  override def * = (id.?, createdAt.?, userId, organizationId, roleType,
+                    isAccepted) <> (OrganizationRole.tupled, OrganizationRole.unapply)
 
 }
 
@@ -299,7 +299,7 @@ class ProjectRoleTable(tag: RowTag)
 
   def projectId = column[Int]("project_id")
 
-  override def * = (id.?, createdAt.?, userId, projectId, roleType, isAccepted, isVisible) <> (ProjectRole.tupled,
+  override def * = (id.?, createdAt.?, userId, projectId, roleType, isAccepted) <> (ProjectRole.tupled,
                     ProjectRole.unapply)
 
 }
