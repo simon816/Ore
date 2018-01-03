@@ -3,16 +3,18 @@ package models.project
 import java.sql.Timestamp
 
 import db.Named
-import db.impl.TagTable
+import db.impl.{OrePostgresDriver, TagTable}
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
-import ore.Colors.Color
+import db.table.MappedType
+import models.project.TagColors.TagColor
+import slick.jdbc.JdbcType
 
 case class Tag(override val id: Option[Int] = None,
                private var _versionIds: List[Int],
                name: String,
                data: String,
-               color: Color)
+               color: TagColor)
   extends OreModel(id, None)
     with Named {
 
@@ -29,4 +31,19 @@ case class Tag(override val id: Option[Int] = None,
   }
 
   def copyWith(id: Option[Int], theTime: Option[Timestamp]): Tag = this.copy(id = id)
+}
+
+object TagColors extends Enumeration {
+
+  // Tag colors
+  val Sponge = TagColor(1, "#F7Cf0D", "#000000")
+  val Forge = TagColor(2, "#910020", "#FFFFFF")
+
+  /** Represents a color. */
+  case class TagColor(i: Int, background: String, foreground: String) extends super.Val(i, background + foreground) with MappedType[TagColor] {
+    implicit val mapper: JdbcType[TagColor] = OrePostgresDriver.api.tagColorTypeMapper
+  }
+
+  implicit def convert(value: Value): TagColor = value.asInstanceOf[TagColor]
+
 }

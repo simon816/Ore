@@ -50,8 +50,7 @@ INSERT INTO project_tags (version_ids, name, data, color)
     version_ids,
     'Sponge' AS name,
     data,
-    -- TODO Correct Sponge Color (This is Orange in ore/Colors.scala)
-    13       AS color
+    1        AS color
   FROM sponge_tag_info_merged;
 
 -- add the tags into the projects table
@@ -120,8 +119,7 @@ INSERT INTO project_tags (version_ids, name, data, color)
     version_ids,
     'Forge' AS name,
     data,
-    -- TODO Correct Forge Color (This is Red in ore/Colors.scala)
-    14      AS color
+    2       AS color
   FROM forge_tag_info_merged;
 
 -- add the tags into the projects table

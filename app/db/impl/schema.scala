@@ -10,6 +10,7 @@ import db.impl.table.StatTable
 import db.table.{AssociativeTable, ModelTable, NameColumn}
 import models.admin.{ProjectLog, ProjectLogEntry}
 import models.api.ProjectApiKey
+import models.project.TagColors.TagColor
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
@@ -152,7 +153,7 @@ class TagTable(tag: RowTag) extends ModelTable[ProjectTag](tag, "project_tags") 
 
   def versionIds = column[List[Int]]("version_ids")
   def data       = column[String]("data")
-  def color      = column[Color]("color")
+  def color      = column[TagColor]("color")
 
   override def * = (id.?, versionIds, name, data, color) <> ((Tag.apply _).tupled, Tag.unapply)
 }

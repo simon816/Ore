@@ -10,15 +10,17 @@ import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.{ProjectBase, UserBase}
 import discourse.OreDiscourseApi
-import models.project.{Channel, Project, Tag, Version}
+import models.project._
+import models.project.TagColors.TagColor
 import models.user.role.ProjectRole
 import models.user.{Notification, User}
 import ore.Colors.Color
-import ore.{Colors, OreConfig}
+import ore.OreConfig
 import ore.permission.role.RoleTypes
 import ore.project.Dependency.{ForgeId, SpongeApiId}
+import ore.project.NotifyWatchersTask
+import ore.project.factory.TagAlias.ProjectTag
 import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload, ProjectFiles}
-import ore.project.{Dependency, NotifyWatchersTask}
 import ore.user.notification.NotificationTypes
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.cache.CacheApi
@@ -30,6 +32,10 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.Try
+
+package object TagAlias {
+  type ProjectTag = models.project.Tag
+}
 
 /**
   * Manages the project and version creation pipeline.
@@ -319,11 +325,11 @@ trait ProjectFactory {
       signatureFileName = pendingVersion.signatureFileName
     ))
 
-    def addTags(dependencyName: String, tagName: String, tagColor: Color) = {
+    def addTags(dependencyName: String, tagName: String, tagColor: TagColor) = {
       val dependenciesMatchingName = newVersion.dependencies.filter(_.pluginId == dependencyName)
       if (dependenciesMatchingName.nonEmpty) {
         val dependency = dependenciesMatchingName.head
-        val tagsWithVersion = service.access(classOf[Tag])
+        val tagsWithVersion = service.access(classOf[ProjectTag])
           .filter(t => t.name === tagName && t.data === dependency.version).toList
 
         if (tagsWithVersion.isEmpty) {
@@ -333,9 +339,9 @@ trait ProjectFactory {
             data = dependency.version,
             color = tagColor
           )
-          service.access(classOf[Tag]).add(tag)
+          service.access(classOf[ProjectTag]).add(tag)
           // requery the tag because it now includes the id
-          val newTag = service.access(classOf[Tag]).filter(t => t.name === tag.name && t.data === tag.data).toList.head
+          val newTag = service.access(classOf[ProjectTag]).filter(t => t.name === tag.name && t.data === tag.data).toList.head
           newVersion.addTag(newTag)
         } else {
           val tag = tagsWithVersion.head
@@ -345,8 +351,8 @@ trait ProjectFactory {
       }
     }
 
-    addTags(SpongeApiId, "Sponge", Colors.Orange)
-    addTags(ForgeId, "Forge", Colors.Red)
+    addTags(SpongeApiId, "Sponge", TagColors.Sponge)
+    addTags(ForgeId, "Forge", TagColors.Forge)
 
     // Notify watchers
     this.actorSystem.scheduler.scheduleOnce(Duration.Zero, NotifyWatchersTask(newVersion, messages))

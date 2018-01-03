@@ -89,19 +89,12 @@ Versions page within Project overview.
                                                     </a>
                                                 </td>
                                                 <td>
-                                                    @defining(version.tags.find(_.name == "Sponge")) { tag: Option[Tag] =>
-                                                        @if(tag.isDefined && tag.get.data != "null") {
-                                                            <span class="stat channel channel-sm spongeapi">
-                                                            @tag.get.data
-                                                            </span>
-                                                        }
-                                                    }
-                                                    @defining(version.tags.find(_.name == "Forge")) { tag: Option[Tag] =>
-                                                        @if(tag.isDefined && tag.get.data != "null") {
-                                                            <span class="stat channel channel-sm forgemod">
-                                                            @tag.get.data
-                                                            </span>
-                                                        }
+                                                    @for(tag <- version.tags) {
+                                                        <span class="stat channel channel-sm"
+                                                        style="color: @tag.color.foreground;
+                                                            background-color:@tag.color.background">
+                                                            @tag.name: @tag.data
+                                                        </span>
                                                     }
                                                 </td>
                                                 <td>
