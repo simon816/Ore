@@ -7,6 +7,8 @@ import java.nio.file.attribute.BasicFileAttributes
 
 object FileUtils {
 
+  val Logger = play.api.Logger("FileUtils")
+
   /**
     * Formats the number of bytes into a human readable file size
     * (e.g. 100.0 KB).
@@ -28,7 +30,11 @@ object FileUtils {
     * @param dir The directory to delete
     */
   def deleteDirectory(dir: Path): Unit = {
-    Files.walkFileTree(dir, DeleteFileVisitor)
+    if (Files.exists(dir)) {
+      Files.walkFileTree(dir, DeleteFileVisitor)
+    } else {
+      Logger.info(s"Tried to remove directory that doesn't exist: $dir")
+    }
   }
 
   /**
@@ -37,7 +43,11 @@ object FileUtils {
     * @param dir The directory to clean
     */
   def cleanDirectory(dir: Path): Unit = {
-    Files.walkFileTree(dir, new CleanFileVisitor(dir))
+    if (Files.exists(dir)) {
+      Files.walkFileTree(dir, new CleanFileVisitor(dir))
+    } else {
+      Logger.info(s"Tried to remove directory that doesn't exist: $dir")
+    }
   }
 
   /**
@@ -49,6 +59,8 @@ object FileUtils {
     override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
       if (Files.exists(file)) {
         Files.delete(file)
+      } else {
+        Logger.info(s"Tried to remove file that doesn't exist: $file")
       }
       FileVisitResult.CONTINUE
     }
@@ -56,6 +68,8 @@ object FileUtils {
     override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
       if (Files.exists(dir)) {
         Files.delete(dir)
+      } else {
+        Logger.info(s"Tried to remove directory that doesn't exist: $dir")
       }
       FileVisitResult.CONTINUE
     }
