@@ -9,14 +9,6 @@ Collection of all projects.
 @(models: Seq[Project], page: Int, pageSize: Int, call: Int => Call)(implicit messages: Messages, flash: Flash,
         service: ModelService, config: OreConfig, users: UserBase)
 
-@spongeVersion(project: Project) = @{
-    project.recommendedVersion.tags.find(_.name == "Sponge").get.data
-}
-
-@forgeVersion(project: Project) = @{
-    project.recommendedVersion.tags.find(_.name == "Forge").get.data
-}
-
 @projectRoutes = @{
     controllers.project.routes.Projects
 }
@@ -42,46 +34,53 @@ Collection of all projects.
                 </span>
             </div>
 
-            <!-- Stats -->
-            <div class="pull-right minor">
-                @defining(project.recommendedVersion) { rv: Version =>
-                    <span class="stat" title="Recommended version">
-                        <i class="fa fa-diamond"></i>
-                        <a href="@controllers.project.routes.Versions.show(
-                            project.ownerName, project.slug, rv.name)">
-                            <strong>@rv.name</strong>
-                        </a>
-                    </span>
-                    @rv.dependencies.find(_.pluginId.equals(Dependency.MinecraftId)).map { dep =>
-                        <span class="stat" title="Minecraft version">
-                            <strong>MC @dep.version</strong>
-                        </span>
-                    }
-                }
+            <table class="pull-right">
+                <tr>
+                    <td>
+                            <!-- Stats -->
+                        <div class="pull-right minor">
+                            @defining(project.recommendedVersion) { rv: Version =>
+                                <span class="stat" title="Recommended version">
+                                    <i class="fa fa-diamond"></i>
+                                    <a href="@controllers.project.routes.Versions.show(
+                                        project.ownerName, project.slug, rv.name)">
+                                        <strong>@rv.name</strong>
+                                    </a>
+                                </span>
+                            @rv.dependencies.find(_.pluginId.equals(Dependency.MinecraftId)).map { dep =>
+                                <span class="stat" title="Minecraft version">
+                                    <strong>MC @dep.version</strong>
+                                </span>
+                            }
+                            }
 
-                <span class="stat" title="Views"><i class="fa fa-eye"></i> @project.viewCount</span>
-                <span class="stat" title="Download"><i class="fa fa-download"></i> @project.downloadCount</span>
-                <span class="stat" title="Stars"><i class="fa fa-star"></i> @project.starCount</span>
+                            <span class="stat" title="Views"><i class="fa fa-eye"></i> @project.viewCount</span>
+                            <span class="stat" title="Download"><i class="fa fa-download"></i> @project.downloadCount</span>
+                            <span class="stat" title="Stars"><i class="fa fa-star"></i> @project.starCount</span>
 
-                @defining(project.category) { category: Categories.Category =>
-                    <span class="stat fa @category.icon" title="@category.title"></span>
-                }
-
-                @defining(project.recommendedVersion) { rv: Version =>
-                    @if(rv.isSpongePlugin) {
-                        <span class="stat channel channel-sm spongeapi" data-toggle="tooltip" title="@spongeVersion(project)">
-                        @messages("general.sponge")
-                        </span>
-                    }
-
-                    @if(rv.isForgeMod) {
-                        <span class="stat channel channel-sm forgemod" data-toggle="tooltip" title="@forgeVersion(project)">
-                        @messages("general.forge")
-                        </span>
-                    }
-                }
-
-            </div>
+                            @defining(project.category) { category: Categories.Category =>
+                                <span class="stat fa @category.icon" title="@category.title"></span>
+                            }
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="pull-right minor" style="margin-top:1vh;">
+                        @defining(project.recommendedVersion) { rv: Version =>
+                            @for(tag <- rv.tags) {
+                                <span class="stat channel channel-sm"
+                                style="color:@tag.color.foreground;
+                                    background-color:@tag.color.background;
+                                    margin-right: 5px;">
+                                 @tag.name@if(tag.data.length > 0) {: @tag.data }
+                                </span>
+                            }
+                        }
+                        </div>
+                    </td>
+                </tr>
+            </table>
             <div class="clearfix"></div>
         </li>
     }
