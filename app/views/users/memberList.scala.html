@@ -18,7 +18,7 @@
 @shouldShowMember(member: Member[_ <: RoleModel]) = @{
     val headRole = member.headRole
     val isCurrentUsersProject = userBase.current.isDefined && userBase.current.get.username.equals(model.owner.user.name)
-    canEdit || (headRole.isVisible && (headRole.isAccepted || isCurrentUsersProject))
+    canEdit || headRole.isAccepted || isCurrentUsersProject
 }
 
 @roleClass = @{
