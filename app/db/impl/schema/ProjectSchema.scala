@@ -6,7 +6,6 @@ import db.impl._
 import db.impl.access.UserBase
 import models.project._
 import models.user.User
-import ore.Platforms
 import ore.Platforms.Platform
 import ore.project.Categories.Category
 import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
@@ -56,10 +55,8 @@ class ProjectSchema(override val service: ModelService, implicit val users: User
     * @return Model filter
     */
   def platformFilter(platform: Platform): ModelFilter[Project] = ModelFilter[Project] { project =>
-    // TODO: Better filter
-//    (project.isSpongePlugin && platform.equals(Platforms.Sponge)) ||
-//    (project.isForgeMod && platform.equals(Platforms.Forge))
-    false
+    // TODO Filtering based on Tags
+    true
   }
 
   /**
@@ -84,7 +81,7 @@ class ProjectSchema(override val service: ModelService, implicit val users: User
               limit: Int, offset: Int): Future[Seq[Project]]
   = this.service.collect[Project](this.modelClass, filter, Option(sort).map(_.fn).orNull, limit, offset)
 
-  override def like(model: Project) = {
+  override def like(model: Project): Future[Option[Project]] = {
     this.service.find[Project](this.modelClass, p => p.ownerName.toLowerCase === model.ownerName.toLowerCase
       && p.name.toLowerCase === model.name.toLowerCase)
   }
