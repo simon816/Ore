@@ -15,7 +15,16 @@ html {
 
 body {
   background-color: $mainBackground;
-  margin-bottom: 60px;
+}
+
+.site {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.site-content {
+  flex: 1;
 }
 
 .modal-body {
@@ -211,5 +220,14 @@ form {
   img {
     display: block;
     margin: 0 auto;
+  }
+}
+
+.btn {
+  border-radius: 4px;
+
+  &.dark {
+    background: $sponge_dark_grey;
+    border: 1px solid $sponge_light_gray;
   }
 }

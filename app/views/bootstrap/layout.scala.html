@@ -37,12 +37,14 @@ this.
             <script type="text/javascript" src="@routes.Assets.at("lib/jquery/jquery.min.js")"></script>
         }
     </head>
-    <body>
+    <body class="site">
         @if(header) {
             @bootstrap.header(user)
         }
 
-        @content
+        <div class="site-content">
+            @content
+        </div>
 
         @if(footer) {
             @bootstrap.footer()
