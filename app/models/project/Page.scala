@@ -1,15 +1,18 @@
 package models.project
 
+import java.net.{URI, URISyntaxException}
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
+import com.vladsch.flexmark.ast.{MailLink, Node}
 import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListExtension
 import com.vladsch.flexmark.ext.tables.TablesExtension
 import com.vladsch.flexmark.ext.typographic.TypographicExtension
-import com.vladsch.flexmark.html.HtmlRenderer
+import com.vladsch.flexmark.html.renderer.{LinkStatus, LinkType, NodeRendererContext, ResolvedLink}
+import com.vladsch.flexmark.html.{HtmlRenderer, LinkResolver, LinkResolverFactory}
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.options.MutableDataSet
 import db.access.ModelAccess
@@ -120,7 +123,57 @@ case class Page(override val id: Option[Int] = None,
 
 object Page {
 
-  private val (markdownParser, htmlRenderer) = {
+  private object ExternalLinkResolver {
+
+    class Factory(config: OreConfig) extends LinkResolverFactory {
+      override def getAfterDependents: Null = null
+
+      override def getBeforeDependents: Null = null
+
+      override def affectsGlobalScope() = false
+
+      override def create(context: NodeRendererContext) = new ExternalLinkResolver(this.config)
+    }
+
+  }
+
+  private class ExternalLinkResolver(config: OreConfig) extends LinkResolver {
+    override def resolveLink(node: Node, context: NodeRendererContext, link: ResolvedLink): ResolvedLink = {
+      if (link.getLinkType.equals(LinkType.IMAGE) || node.isInstanceOf[MailLink]) {
+        link
+      } else {
+        link.withStatus(LinkStatus.VALID).withUrl(wrapExternal(link.getUrl))
+      }
+    }
+
+    private def wrapExternal(urlString: String) = {
+      try {
+        val uri = new URI(urlString)
+        val host = uri.getHost
+        if (uri.getScheme != null && host == null) {
+          if (uri.getScheme == "mailto") {
+            urlString
+          } else {
+            controllers.routes.Application.linkOut(urlString).toString
+          }
+        } else {
+          val trustedUrlHosts = this.config.app.getStringSeq("trustedUrlHosts").get
+          val checkSubdomain = (trusted: String) => trusted(0) == '.' && (host.endsWith(trusted) || host == trusted.substring(1));
+          if (host == null || trustedUrlHosts.exists(trusted => trusted == host || checkSubdomain(trusted))) {
+            urlString
+          } else {
+            controllers.routes.Application.linkOut(urlString).toString
+          }
+        }
+      } catch {
+        case _: URISyntaxException => controllers.routes.Application.linkOut(urlString).toString
+      }
+    }
+  }
+
+  private var linkResolver: Option[LinkResolverFactory] = None
+
+  private lazy val (markdownParser, htmlRenderer) = {
     val options = new MutableDataSet()
       .set[java.lang.Boolean](HtmlRenderer.SUPPRESS_HTML, true)
 
@@ -141,10 +194,17 @@ object Page {
         TypographicExtension.create()
       ))
 
-    (Parser.builder(options).build(), HtmlRenderer.builder(options).build())
+    (Parser.builder(options).build(), HtmlRenderer.builder(options)
+      .linkResolverFactory(linkResolver.get)
+      .build())
   }
 
-  def Render(markdown: String): Html = Html(htmlRenderer.render(markdownParser.parse(markdown)))
+  def Render(markdown: String)(implicit config: OreConfig): Html = {
+    // htmlRenderer is lazy loaded so linkResolver will exist upon loading
+    if (linkResolver.isEmpty)
+      linkResolver = Some(new ExternalLinkResolver.Factory(config))
+    Html(htmlRenderer.render(markdownParser.parse(markdown)))
+  }
 
   /**
     * The name of each Project's homepage.
