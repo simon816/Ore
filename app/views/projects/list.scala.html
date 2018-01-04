@@ -66,15 +66,10 @@ Collection of all projects.
                 </tr>
                 <tr>
                     <td>
-                        <div class="pull-right minor" style="margin-top:1vh;">
+                        <div class="pull-right minor" style="margin-top: 1vh;">
                         @defining(project.recommendedVersion) { rv: Version =>
-                            @for(tag <- rv.tags) {
-                                <span class="stat channel channel-sm"
-                                style="color:@tag.color.foreground;
-                                    background-color:@tag.color.background;
-                                    margin-right: 5px;">
-                                 @tag.name@if(tag.data.length > 0) {: @tag.data }
-                                </span>
+                            @for(t <- rv.tags) {
+                                @projects.tag(t)
                             }
                         }
                         </div>

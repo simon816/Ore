@@ -38,7 +38,7 @@ object TagColors extends Enumeration {
   // Tag colors
   val Sponge = TagColor(1, "#F7Cf0D", "#000000")
   val Forge = TagColor(2, "#910020", "#FFFFFF")
-  val WIP = TagColor(3, "#FFDAB9", "#000000")
+  val Unstable = TagColor(3, "#FFDAB9", "#000000")
 
   /** Represents a color. */
   case class TagColor(i: Int, background: String, foreground: String) extends super.Val(i, background + foreground) with MappedType[TagColor] {

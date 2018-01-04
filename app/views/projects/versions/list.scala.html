@@ -89,14 +89,9 @@ Versions page within Project overview.
                                                     </a>
                                                 </td>
                                                 <td>
-                                                    @for(tag <- version.tags) {
-                                                        <span class="stat channel channel-sm"
-                                                        style="color: @tag.color.foreground;
-                                                            background-color:@tag.color.background;
-                                                            margin-right:5px;">
-                                                            @tag.name@if(tag.data.length > 0){: @tag.data}
-                                                        </span>
-                                                    }
+                                                @for(t <- version.tags) {
+                                                    @projects.tag(t)
+                                                }
                                                 </td>
                                                 <td>
                                                     <div class="pull-right">

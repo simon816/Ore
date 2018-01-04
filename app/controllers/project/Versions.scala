@@ -278,17 +278,17 @@ class Versions @Inject()(stats: StatTracker,
             versionData => {
               // Channel is valid
 
-              def addWipTag(version: Version) = {
-                if (versionData.wip) {
+              def addUnstableTag(version: Version) = {
+                if (versionData.unstable) {
                   val tagsWithVersion = service.access(classOf[ProjectTag])
-                    .filter(t => t.name === "WIP" && t.data === "").toList
+                    .filter(t => t.name === "Unstable" && t.data === "").toList
 
                   if (tagsWithVersion.isEmpty) {
                     val tag = Tag(
                       _versionIds = List(version.id.get),
-                      name = "WIP",
+                      name = "Unstable",
                       data = "",
-                      color = TagColors.WIP
+                      color = TagColors.Unstable
                     )
                     service.access(classOf[ProjectTag]).add(tag)
                     // requery the tag because it now includes the id
@@ -335,7 +335,7 @@ class Versions @Inject()(stats: StatTracker,
                             this.forums.postVersionRelease(project, newVersion, c)
                         }
 
-                        addWipTag(newVersion)
+                        addUnstableTag(newVersion)
                         Redirect(self.show(author, slug, versionString))
                       }
                     )
@@ -343,7 +343,7 @@ class Versions @Inject()(stats: StatTracker,
                 case Some(pendingProject) =>
                   // Found a pending project, create it with first version
                   val project = pendingProject.complete().get
-                  addWipTag(project.recommendedVersion)
+                  addUnstableTag(project.recommendedVersion)
                   Redirect(ShowProject(author, slug))
               }
             }
