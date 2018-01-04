@@ -179,11 +179,43 @@ sponge {
     logo = "https://www.spongepowered.org/assets/img/icons/spongie-mark.svg"
     icon = "https://www.spongepowered.org/favicon.ico"
     service = "Ore"
-    
-    sponsors {
-        urls = [  "https://billing.creeperhost.net/link.php?id=8", "https://www.enjin.com/", "http://www.multiplaygameservers.com", "https://www.beastnode.com/", "https://serverminer.com/", "https://mcprohosting.com/?promo=Sponge" ]
-        logos = [ "creeperhost.svg", "enjin.png", "multiplay.png", "beastnode.png", "serverminer.png", "mcprohosting.png" ]
-        featured.logo = "creeperhost.svg"
-        featured.url = "https://billing.creeperhost.net/link.php?id=8"
-    }
+
+    # Sponsors from high to low donation amounts
+    sponsors = [
+        {
+          "name": "MC Pro Hosting",
+          "image": "assets/img/sponsors/mcprohosting.png",
+          "link": "https://mcprohosting.com/?promo=Sponge"
+        },
+        {
+          "name": "Enjin",
+          "image": "assets/img/sponsors/enjin.png",
+          "link": "https://www.enjin.com/"
+        },
+        {
+          "name": "Negafinity",
+          "image": "assets/img/sponsors/negafinity.png",
+          "link": "https://www.negafinity.com/"
+        },
+        {
+          "name": "Apex Hosting",
+          "image": "assets/img/sponsors/apexhosting.png",
+          "link": "https://apexminecrafthosting.com/"
+        },
+        {
+          "name": "CreeperHost",
+          "image": "assets/img/sponsors/creeperhost.svg",
+          "link": "https://billing.creeperhost.net/link.php?id=8"
+        },
+        {
+          "name": "JetBrains",
+          "image": "assets/img/sponsors/jetbrains.svg",
+          "link": "https://www.jetbrains.com/"
+        },
+        {
+          "name": "YourKit",
+          "image": "assets/img/sponsors/yourkit.png",
+          "link": "https://www.yourkit.com/"
+        }
+    ]
 }
