@@ -166,7 +166,7 @@ object Page {
           }
         }
       } catch {
-        case _: URISyntaxException => controllers.routes.Application.linkOut(urlString).toString()
+        case _: URISyntaxException => controllers.routes.Application.linkOut(urlString).toString
       }
     }
   }
@@ -199,7 +199,12 @@ object Page {
       .build())
   }
 
-  def Render(markdown: String): Html = Html(htmlRenderer.render(markdownParser.parse(markdown)))
+  def Render(markdown: String)(implicit config: OreConfig): Html = {
+    // htmlRenderer is lazy loaded so linkResolver will exist upon loading
+    if (linkResolver.isEmpty)
+      linkResolver = Some(new ExternalLinkResolver.Factory(config))
+    Html(htmlRenderer.render(markdownParser.parse(markdown)))
+  }
 
   /**
     * The name of each Project's homepage.
