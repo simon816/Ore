@@ -359,19 +359,19 @@ trait ProjectFactory {
 
     project.lastUpdated = this.service.theTime
 
-    uploadPlugin(project, channel, pending.plugin)
+    uploadPlugin(project, channel, pending.plugin, newVersion)
     newVersion
   }
 
-  private def uploadPlugin(project: Project, channel: Channel, plugin: PluginFile): Try[Unit] = Try {
+  private def uploadPlugin(project: Project, channel: Channel, plugin: PluginFile, version: Version): Try[Unit] = Try {
     val meta = plugin.meta.get
 
     val oldPath = plugin.path
     val oldSigPath = plugin.signaturePath
 
-    val projectDir = this.fileManager.getProjectDir(project.ownerName, project.name)
-    val newPath = projectDir.resolve(oldPath.getFileName)
-    val newSigPath = projectDir.resolve(oldSigPath.getFileName)
+    val versionDir = this.fileManager.getVersionDir(project.ownerName, project.name, version.name)
+    val newPath = versionDir.resolve(oldPath.getFileName)
+    val newSigPath = versionDir.resolve(oldSigPath.getFileName)
 
     if (exists(newPath) || exists(newSigPath))
       throw InvalidPluginFileException("error.plugin.fileName")

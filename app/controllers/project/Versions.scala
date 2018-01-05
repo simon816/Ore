@@ -429,7 +429,7 @@ class Versions @Inject()(stats: StatTracker,
 
   private def _sendVersion(project: Project, version: Version)(implicit req: ProjectRequest[_]): Result = {
     this.stats.versionDownloaded(version) { implicit request =>
-      Ok.sendFile(this.fileManager.getProjectDir(project.ownerName, project.name)
+      Ok.sendFile(this.fileManager.getVersionDir(project.ownerName, project.name, version.name)
         .resolve(version.fileName).toFile)
     }
   }
@@ -599,7 +599,7 @@ class Versions @Inject()(stats: StatTracker,
         project.ownerName, project.slug, version.name, Some(JarFile.id), api = Some(api)))
     else {
       val fileName = version.fileName
-      val path = this.fileManager.getProjectDir(project.ownerName, project.name).resolve(fileName)
+      val path = this.fileManager.getVersionDir(project.ownerName, project.name, version.name).resolve(fileName)
       this.stats.versionDownloaded(version) { implicit request =>
         if (fileName.endsWith(".jar"))
           Ok.sendFile(path.toFile)
@@ -720,7 +720,7 @@ class Versions @Inject()(stats: StatTracker,
 
   private def sendSignatureFile(version: Version)(implicit request: Request[_]): Result = {
     val project = version.project
-    val path = this.fileManager.getProjectDir(project.ownerName, project.name).resolve(version.signatureFileName)
+    val path = this.fileManager.getVersionDir(project.ownerName, project.name, version.name).resolve(version.signatureFileName)
     if (notExists(path)) {
       Logger.warn("project version missing signature file")
       notFound

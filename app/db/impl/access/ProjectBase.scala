@@ -32,7 +32,8 @@ class ProjectBase(override val service: ModelService,
     var versions = Seq.empty[Version]
     for (version <- this.service.access[Version](classOf[Version]).all) {
       val project = version.project
-      if (Files.notExists(this.fileManager.getProjectDir(project.ownerName, project.name).resolve(version.fileName))) {
+      val versionDir = this.fileManager.getVersionDir(project.ownerName, project.name, version.name)
+      if (Files.notExists(versionDir.resolve(version.fileName))) {
         versions :+= version
       }
     }
@@ -149,11 +150,12 @@ class ProjectBase(override val service: ModelService,
 
     channel.remove()
 
+    val p = this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(channel.name)
     try {
-      FileUtils.deleteDirectory(this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(channel.name))
+      FileUtils.deleteDirectory(p)
     } catch {
       case _: NoSuchFileException =>
-        Logger.warn("a channel was deleted but it's files were missing, did deletion fail before?")
+        Logger.warn(s"a channel was deleted but it's files were missing, did deletion fail before?\nPath:$p")
     }
   }
 
@@ -181,10 +183,10 @@ class ProjectBase(override val service: ModelService,
     if (channel.versions.isEmpty)
       this.deleteChannel(channel)
 
-    val projectDir = this.fileManager.getProjectDir(proj.ownerName, project.name)
+    val versionDir = this.fileManager.getVersionDir(proj.ownerName, project.name, version.name)
     try {
-      Files.delete(projectDir.resolve(version.fileName))
-      Files.delete(projectDir.resolve(version.signatureFileName))
+      Files.delete(versionDir.resolve(version.fileName))
+      Files.delete(versionDir.resolve(version.signatureFileName))
     } catch {
       case _: NoSuchFileException =>
         Logger.warn("a version was deleted but it's files were missing, did deletion fail before?")
