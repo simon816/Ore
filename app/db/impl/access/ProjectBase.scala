@@ -150,12 +150,12 @@ class ProjectBase(override val service: ModelService,
 
     channel.remove()
 
-    val p = this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(channel.name)
+    val path = this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(channel.name)
     try {
-      FileUtils.deleteDirectory(p)
+      FileUtils.deleteDirectory(path)
     } catch {
       case _: NoSuchFileException =>
-        Logger.warn(s"a channel was deleted but it's files were missing, did deletion fail before?\nPath:$p")
+        Logger.warn(s"a channel was deleted but it's files were missing, did deletion fail before?\nPath:$path")
     }
   }
 
