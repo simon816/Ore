@@ -575,7 +575,7 @@ object User {
     * @param user User to convert
     * @return     Ore User
     */
-  @deprecated("use fromSponge instead")
+  @deprecated("use fromSponge instead", "Oct 14, 2016, 1:45 PM PDT")
   def fromDiscourse(user: DiscourseUser) = User().fill(user).copy(id = Some(user.id))
 
   /**

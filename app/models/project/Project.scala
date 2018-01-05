@@ -56,8 +56,6 @@ case class Project(override val id: Option[Int] = None,
                    private var _slug: String,
                    private var recommendedVersionId: Option[Int] = None,
                    private var _category: Category = Categories.Undefined,
-                   private var _isSpongePlugin: Boolean = false,
-                   private var _isForgeMod: Boolean = false,
                    private var _description: Option[String] = None,
                    private var _stars: Int = 0,
                    private var _views: Int = 0,
@@ -208,20 +206,6 @@ case class Project(override val id: Option[Int] = None,
     checkNotNull(category, "null category", "")
     this._category = category
     if (isDefined) update(ModelKeys.Category)
-  }
-
-  def isSpongePlugin: Boolean = this._isSpongePlugin
-
-  def setSpongePlugin(spongePlugin: Boolean) = {
-    this._isSpongePlugin = spongePlugin
-    if (isDefined) update(IsSpongePlugin)
-  }
-
-  def isForgeMod: Boolean = this._isForgeMod
-
-  def setForgeMod(forgeMod: Boolean) = {
-    this._isForgeMod = forgeMod
-    if (isDefined) update(IsForgeMod)
   }
 
   /**

@@ -7,16 +7,20 @@ import javax.inject.Inject
 import akka.actor.ActorSystem
 import com.google.common.base.Preconditions._
 import db.ModelService
+import db.impl.OrePostgresDriver.api._
 import db.impl.access.{ProjectBase, UserBase}
 import discourse.OreDiscourseApi
-import models.project.{Channel, Project, Version}
+import models.project._
+import models.project.TagColors.TagColor
 import models.user.role.ProjectRole
 import models.user.{Notification, User}
 import ore.Colors.Color
 import ore.OreConfig
 import ore.permission.role.RoleTypes
+import ore.project.Dependency.{ForgeId, SpongeApiId}
+import ore.project.NotifyWatchersTask
+import ore.project.factory.TagAlias.ProjectTag
 import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload, ProjectFiles}
-import ore.project.{Dependency, NotifyWatchersTask}
 import ore.user.notification.NotificationTypes
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.cache.CacheApi
@@ -28,6 +32,10 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.Try
+
+package object TagAlias {
+  type ProjectTag = models.project.Tag
+}
 
 /**
   * Manages the project and version creation pipeline.
@@ -107,10 +115,6 @@ trait ProjectFactory {
     val model = version.underlying
     if (model.exists && this.config.projects.getBoolean("file-validate").get)
       return Left("error.version.duplicate")
-    if (project.isSpongePlugin && !model.hasDependency(Dependency.SpongeApiId))
-      return Left("error.version.noDependency.sponge")
-    if (project.isForgeMod && !model.hasDependency(Dependency.ForgeId))
-      return Left("error.version.noDependency.forge")
     version.cache()
     Right(version)
   }
@@ -307,14 +311,6 @@ trait ProjectFactory {
     if (pendingVersion.exists && this.config.projects.getBoolean("file-validate").get)
       throw new IllegalArgumentException("Version already exists.")
 
-    // Check to make sure that the required dependencies are there
-    if (project.isSpongePlugin && !pendingVersion.hasDependency(Dependency.SpongeApiId))
-      throw InvalidPluginFileException("error.plugin.notSponge")
-
-    if (project.isForgeMod && !pendingVersion.hasDependency(Dependency.ForgeId)) {
-      throw InvalidPluginFileException("error.plugin.notForge")
-    }
-
     val newVersion = this.service.access[Version](classOf[Version]).add(Version(
       versionString = pendingVersion.versionString,
       dependencyIds = pendingVersion.dependencyIds,
@@ -328,6 +324,35 @@ trait ProjectFactory {
       fileName = pendingVersion.fileName,
       signatureFileName = pendingVersion.signatureFileName
     ))
+
+    def addTags(dependencyName: String, tagName: String, tagColor: TagColor) = {
+      val dependenciesMatchingName = newVersion.dependencies.filter(_.pluginId == dependencyName)
+      if (dependenciesMatchingName.nonEmpty) {
+        val dependency = dependenciesMatchingName.head
+        val tagsWithVersion = service.access(classOf[ProjectTag])
+          .filter(t => t.name === tagName && t.data === dependency.version).toList
+
+        if (tagsWithVersion.isEmpty) {
+          val tag = Tag(
+            _versionIds = List(newVersion.id.get),
+            name = tagName,
+            data = dependency.version,
+            color = tagColor
+          )
+          service.access(classOf[ProjectTag]).add(tag)
+          // requery the tag because it now includes the id
+          val newTag = service.access(classOf[ProjectTag]).filter(t => t.name === tag.name && t.data === tag.data).toList.head
+          newVersion.addTag(newTag)
+        } else {
+          val tag = tagsWithVersion.head
+          tag.addVersionId(newVersion.id.get)
+          newVersion.addTag(tag)
+        }
+      }
+    }
+
+    addTags(SpongeApiId, "Sponge", TagColors.Sponge)
+    addTags(ForgeId, "Forge", TagColors.Forge)
 
     // Notify watchers
     this.actorSystem.scheduler.scheduleOnce(Duration.Zero, NotifyWatchersTask(newVersion, messages))

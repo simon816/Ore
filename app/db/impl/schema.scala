@@ -4,11 +4,13 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import db.impl.OrePostgresDriver.api._
+import db.impl.schema._
 import db.impl.table.common.{DescriptionColumn, DownloadsColumn, VisibilityColumn}
 import db.impl.table.StatTable
 import db.table.{AssociativeTable, ModelTable, NameColumn}
 import models.admin.{ProjectLog, ProjectLogEntry}
 import models.api.ProjectApiKey
+import models.project.TagColors.TagColor
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
@@ -28,6 +30,12 @@ import ore.user.notification.NotificationTypes.NotificationType
  * model.
  */
 
+// Alias Slick's Tag type because we have our own Tag type
+package object schema {
+  type RowTag = slick.lifted.Tag
+  type ProjectTag = models.project.Tag
+}
+
 trait ProjectTable extends ModelTable[Project]
   with NameColumn[Project]
   with DownloadsColumn[Project]
@@ -40,8 +48,6 @@ trait ProjectTable extends ModelTable[Project]
   def slug                  =   column[String]("slug")
   def recommendedVersionId  =   column[Int]("recommended_version_id")
   def category              =   column[Category]("category")
-  def isSpongePlugin        =   column[Boolean]("is_sponge_plugin")
-  def isForgeMod            =   column[Boolean]("is_forge_mod")
   def stars                 =   column[Int]("stars")
   def views                 =   column[Int]("views")
   def topicId               =   column[Int]("topic_id")
@@ -50,16 +56,16 @@ trait ProjectTable extends ModelTable[Project]
   def lastUpdated           =   column[Timestamp]("last_updated")
 
   override def * = (id.?, createdAt.?, pluginId, ownerName, userId, name, slug, recommendedVersionId.?, category,
-                    isSpongePlugin, isForgeMod, description.?, stars, views, downloads, topicId, postId, isTopicDirty,
+                    description.?, stars, views, downloads, topicId, postId, isTopicDirty,
                     isVisible, lastUpdated) <> ((Project.apply _).tupled, Project.unapply)
 
 }
 
-class ProjectTableMain(tag: Tag) extends ModelTable[Project](tag, "projects") with ProjectTable
+class ProjectTableMain(tag: RowTag) extends ModelTable[Project](tag, "projects") with ProjectTable
 
-//class ProjectTableDeleted(tag: Tag) extends ModelTable[Project](tag, "projects_deleted") with ProjectTable
+//class ProjectTableDeleted(tag: RowTag) extends ModelTable[Project](tag, "projects_deleted") with ProjectTable
 
-class ProjectSettingsTable(tag: Tag) extends ModelTable[ProjectSettings](tag, "project_settings") {
+class ProjectSettingsTable(tag: RowTag) extends ModelTable[ProjectSettings](tag, "project_settings") {
 
   def projectId             =   column[Int]("project_id")
   def homepage              =   column[String]("homepage")
@@ -73,7 +79,7 @@ class ProjectSettingsTable(tag: Tag) extends ModelTable[ProjectSettings](tag, "p
 
 }
 
-class ProjectWatchersTable(tag: Tag)
+class ProjectWatchersTable(tag: RowTag)
   extends AssociativeTable(tag, "project_watchers", classOf[Project], classOf[User]) {
 
   def projectId   =   column[Int]("project_id")
@@ -83,14 +89,14 @@ class ProjectWatchersTable(tag: Tag)
 
 }
 
-class ProjectViewsTable(tag: Tag) extends StatTable[ProjectView](tag, "project_views", "project_id") {
+class ProjectViewsTable(tag: RowTag) extends StatTable[ProjectView](tag, "project_views", "project_id") {
 
   override def * = (id.?, createdAt.?, modelId, address, cookie,
                     userId.?) <> ((ProjectView.apply _).tupled, ProjectView.unapply)
 
 }
 
-class ProjectStarsTable(tag: Tag) extends AssociativeTable(tag, "project_stars", classOf[User], classOf[Project]) {
+class ProjectStarsTable(tag: RowTag) extends AssociativeTable(tag, "project_stars", classOf[User], classOf[Project]) {
 
   def userId      =   column[Int]("user_id")
   def projectId   =   column[Int]("project_id")
@@ -99,7 +105,7 @@ class ProjectStarsTable(tag: Tag) extends AssociativeTable(tag, "project_stars",
 
 }
 
-class ProjectLogTable(tag: Tag) extends ModelTable[ProjectLog](tag, "project_logs") {
+class ProjectLogTable(tag: RowTag) extends ModelTable[ProjectLog](tag, "project_logs") {
 
   def projectId = column[Int]("project_id")
 
@@ -107,7 +113,7 @@ class ProjectLogTable(tag: Tag) extends ModelTable[ProjectLog](tag, "project_log
 
 }
 
-class ProjectLogEntryTable(tg: Tag) extends ModelTable[ProjectLogEntry](tg, "project_log_entries") {
+class ProjectLogEntryTable(tg: RowTag) extends ModelTable[ProjectLogEntry](tg, "project_log_entries") {
 
   def logId = column[Int]("log_id")
   def tag = column[String]("tag")
@@ -120,7 +126,7 @@ class ProjectLogEntryTable(tg: Tag) extends ModelTable[ProjectLogEntry](tg, "pro
 
 }
 
-class PageTable(tag: Tag) extends ModelTable[Page](tag, "project_pages") with NameColumn[Page] {
+class PageTable(tag: RowTag) extends ModelTable[Page](tag, "project_pages") with NameColumn[Page] {
 
   def projectId     =   column[Int]("project_id")
   def parentId      =   column[Int]("parent_id")
@@ -133,7 +139,7 @@ class PageTable(tag: Tag) extends ModelTable[Page](tag, "project_pages") with Na
 
 }
 
-class ChannelTable(tag: Tag) extends ModelTable[Channel](tag, "project_channels") with NameColumn[Channel] {
+class ChannelTable(tag: RowTag) extends ModelTable[Channel](tag, "project_channels") with NameColumn[Channel] {
 
   def color         = column[Color]("color")
   def projectId     = column[Int]("project_id")
@@ -143,7 +149,16 @@ class ChannelTable(tag: Tag) extends ModelTable[Channel](tag, "project_channels"
                     Channel.unapply)
 }
 
-class VersionTable(tag: Tag) extends ModelTable[Version](tag, "project_versions")
+class TagTable(tag: RowTag) extends ModelTable[ProjectTag](tag, "project_tags") with NameColumn[ProjectTag] {
+
+  def versionIds = column[List[Int]]("version_ids")
+  def data       = column[String]("data")
+  def color      = column[TagColor]("color")
+
+  override def * = (id.?, versionIds, name, data, color) <> ((Tag.apply _).tupled, Tag.unapply)
+}
+
+class VersionTable(tag: RowTag) extends ModelTable[Version](tag, "project_versions")
   with DownloadsColumn[Version]
   with DescriptionColumn[Version] {
 
@@ -160,13 +175,14 @@ class VersionTable(tag: Tag) extends ModelTable[Version](tag, "project_versions"
   def approvedAt        =   column[Timestamp]("approved_at")
   def fileName          =   column[String]("file_name")
   def signatureFileName =   column[String]("signature_file_name")
+  def tagIds            =   column[List[Int]]("tags")
 
   override def * = (id.?, createdAt.?, projectId, versionString, dependencies, assets.?, channelId,
-                    fileSize, hash, authorId, description.?, downloads, isReviewed, reviewerId, approvedAt.?, fileName,
-                    signatureFileName) <> ((Version.apply _).tupled, Version.unapply)
+                    fileSize, hash, authorId, description.?, downloads, isReviewed, reviewerId, approvedAt.?,
+                    tagIds, fileName, signatureFileName) <> ((Version.apply _).tupled, Version.unapply)
 }
 
-class DownloadWarningsTable(tag: Tag) extends ModelTable[DownloadWarning](tag, "project_version_download_warnings") {
+class DownloadWarningsTable(tag: RowTag) extends ModelTable[DownloadWarning](tag, "project_version_download_warnings") {
 
   def expiration = column[Timestamp]("expiration")
   def token = column[String]("token")
@@ -180,7 +196,7 @@ class DownloadWarningsTable(tag: Tag) extends ModelTable[DownloadWarning](tag, "
 
 }
 
-class UnsafeDownloadsTable(tag: Tag) extends ModelTable[UnsafeDownload](tag, "project_version_unsafe_downloads") {
+class UnsafeDownloadsTable(tag: RowTag) extends ModelTable[UnsafeDownload](tag, "project_version_unsafe_downloads") {
 
   def userId = column[Int]("user_id")
   def address = column[InetString]("address")
@@ -191,7 +207,7 @@ class UnsafeDownloadsTable(tag: Tag) extends ModelTable[UnsafeDownload](tag, "pr
 
 }
 
-class VersionDownloadsTable(tag: Tag)
+class VersionDownloadsTable(tag: RowTag)
   extends StatTable[VersionDownload](tag, "project_version_downloads", "version_id") {
 
   override def * = (id.?, createdAt.?, modelId, address, cookie, userId.?) <> ((VersionDownload.apply _).tupled,
@@ -199,7 +215,7 @@ class VersionDownloadsTable(tag: Tag)
 
 }
 
-class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn[User] {
+class UserTable(tag: RowTag) extends ModelTable[User](tag, "users") with NameColumn[User] {
 
   // Override to remove auto increment
   override def id           =   column[Int]("id", O.PrimaryKey)
@@ -221,7 +237,7 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
 
 }
 
-class SessionTable(tag: Tag) extends ModelTable[DbSession](tag, "user_sessions") {
+class SessionTable(tag: RowTag) extends ModelTable[DbSession](tag, "user_sessions") {
 
   def expiration = column[Timestamp]("expiration")
   def username = column[String]("username")
@@ -231,7 +247,7 @@ class SessionTable(tag: Tag) extends ModelTable[DbSession](tag, "user_sessions")
 
 }
 
-class SignOnTable(tag: Tag) extends ModelTable[SignOn](tag, "user_sign_ons") {
+class SignOnTable(tag: RowTag) extends ModelTable[SignOn](tag, "user_sign_ons") {
 
   def nonce = column[String]("nonce")
   def isCompleted = column[Boolean]("is_completed")
@@ -240,7 +256,7 @@ class SignOnTable(tag: Tag) extends ModelTable[SignOn](tag, "user_sign_ons") {
 
 }
 
-class OrganizationTable(tag: Tag) extends ModelTable[Organization](tag, "organizations") with NameColumn[Organization] {
+class OrganizationTable(tag: RowTag) extends ModelTable[Organization](tag, "organizations") with NameColumn[Organization] {
 
   override def id   =   column[Int]("id", O.PrimaryKey)
   def userId        =   column[Int]("user_id")
@@ -249,7 +265,7 @@ class OrganizationTable(tag: Tag) extends ModelTable[Organization](tag, "organiz
 
 }
 
-class OrganizationMembersTable(tag: Tag) extends AssociativeTable(tag, "organization_members", classOf[User],
+class OrganizationMembersTable(tag: RowTag) extends AssociativeTable(tag, "organization_members", classOf[User],
   classOf[Organization]) {
 
   def userId          =   column[Int]("user_id")
@@ -267,7 +283,7 @@ trait RoleTable[R <: RoleModel] extends ModelTable[R] {
 
 }
 
-class OrganizationRoleTable(tag: Tag)
+class OrganizationRoleTable(tag: RowTag)
   extends ModelTable[OrganizationRole](tag, "user_organization_roles")
   with RoleTable[OrganizationRole] {
 
@@ -278,7 +294,7 @@ class OrganizationRoleTable(tag: Tag)
 
 }
 
-class ProjectRoleTable(tag: Tag)
+class ProjectRoleTable(tag: RowTag)
   extends ModelTable[ProjectRole](tag, "user_project_roles")
   with RoleTable[ProjectRole] {
 
@@ -289,7 +305,7 @@ class ProjectRoleTable(tag: Tag)
 
 }
 
-class ProjectMembersTable(tag: Tag) extends AssociativeTable(tag, "project_members", classOf[Project], classOf[User]) {
+class ProjectMembersTable(tag: RowTag) extends AssociativeTable(tag, "project_members", classOf[Project], classOf[User]) {
 
   def projectId   =   column[Int]("project_id")
   def userId      =   column[Int]("user_id")
@@ -298,7 +314,7 @@ class ProjectMembersTable(tag: Tag) extends AssociativeTable(tag, "project_membe
 
 }
 
-class NotificationTable(tag: Tag) extends ModelTable[Notification](tag, "notifications") {
+class NotificationTable(tag: RowTag) extends ModelTable[Notification](tag, "notifications") {
 
   def userId            =   column[Int]("user_id")
   def originId          =   column[Int]("origin_id")
@@ -312,7 +328,7 @@ class NotificationTable(tag: Tag) extends ModelTable[Notification](tag, "notific
 
 }
 
-class FlagTable(tag: Tag) extends ModelTable[Flag](tag, "project_flags") {
+class FlagTable(tag: RowTag) extends ModelTable[Flag](tag, "project_flags") {
 
   def projectId   =   column[Int]("project_id")
   def userId      =   column[Int]("user_id")
@@ -324,7 +340,7 @@ class FlagTable(tag: Tag) extends ModelTable[Flag](tag, "project_flags") {
 
 }
 
-class ProjectApiKeyTable(tag: Tag) extends ModelTable[ProjectApiKey](tag, "project_api_keys") {
+class ProjectApiKeyTable(tag: RowTag) extends ModelTable[ProjectApiKey](tag, "project_api_keys") {
 
   def projectId = column[Int]("project_id")
   def keyType = column[ProjectApiKeyType]("key_type")

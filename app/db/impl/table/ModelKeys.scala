@@ -30,8 +30,6 @@ object ModelKeys {
   val OwnerName             =   new StringKey[Project](_.ownerName, _.ownerName)
   val Slug                  =   new StringKey[Project](_.slug, _.slug)
   val Category              =   new MappedTypeKey[Project, Category](_.category, _.category)
-  val IsSpongePlugin        =   new BooleanKey[Project](_.isSpongePlugin, _.isSpongePlugin)
-  val IsForgeMod            =   new BooleanKey[Project](_.isForgeMod, _.isForgeMod)
   val Stars                 =   new IntKey[Project](_.stars, _.starCount)
   val Views                 =   new IntKey[Project](_.views, _.viewCount)
   val TopicId               =   new IntKey[Project](_.topicId, _.topicId)
@@ -72,6 +70,10 @@ object ModelKeys {
   val ReviewerId            =   new IntKey[Version](_.reviewerId, _.reviewerId)
   val ApprovedAt            =   new TimestampKey[Version](_.approvedAt, _.approvedAt.orNull)
   val ChannelId             =   new IntKey[Version](_.channelId, _.channelId)
+  val TagIds                =   new Key[Version, List[Int]](_.tagIds, _.tagIds)
+
+  // Tags
+  val TagVersionIds           =   new Key[models.project.Tag, List[Int]](_.versionIds, _.versionIds)
 
   // DownloadWarning
   val DownloadId            =   new IntKey[DownloadWarning](_.downloadId, _.downloadId)
