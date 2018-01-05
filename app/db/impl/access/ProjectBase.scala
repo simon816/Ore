@@ -1,6 +1,6 @@
 package db.impl.access
 
-import java.nio.file.{Files, NoSuchFileException}
+import java.nio.file.Files
 import java.nio.file.Files._
 import java.sql.Timestamp
 import java.util.Date
@@ -9,10 +9,9 @@ import com.google.common.base.Preconditions._
 import db.impl.OrePostgresDriver.api._
 import db.{ModelBase, ModelService}
 import discourse.OreDiscourseApi
-import models.project.{Channel, Page, Project, Version}
+import models.project.{Channel, Project, Version}
 import ore.project.io.ProjectFiles
 import ore.{OreConfig, OreEnv}
-import play.api.Logger
 import util.FileUtils
 import util.StringUtils._
 
@@ -32,7 +31,8 @@ class ProjectBase(override val service: ModelService,
     var versions = Seq.empty[Version]
     for (version <- this.service.access[Version](classOf[Version]).all) {
       val project = version.project
-      if (Files.notExists(this.fileManager.getProjectDir(project.ownerName, project.name).resolve(version.fileName))) {
+      val versionDir = this.fileManager.getVersionDir(project.ownerName, project.name, version.name)
+      if (Files.notExists(versionDir.resolve(version.fileName))) {
         versions :+= version
       }
     }
@@ -135,10 +135,10 @@ class ProjectBase(override val service: ModelService,
     * @param context Project context
     */
   def deleteChannel(channel: Channel)(implicit context: Project = null) = {
-    val proj = if (context != null) context else channel.project
-    checkArgument(proj.id.get == channel.projectId, "invalid project id", "")
+    val project = if (context != null) context else channel.project
+    checkArgument(project.id.get == channel.projectId, "invalid project id", "")
 
-    val channels = proj.channels.all
+    val channels = project.channels.all
     checkArgument(channels.size > 1, "only one channel", "")
     checkArgument(channel.versions.isEmpty ||
       channels.count(c => c.versions.nonEmpty) > 1, "last non-empty channel", "")
@@ -149,11 +149,10 @@ class ProjectBase(override val service: ModelService,
 
     channel.remove()
 
-    try {
-      FileUtils.deleteDirectory(this.fileManager.getProjectDir(proj.ownerName, proj.name).resolve(channel.name))
-    } catch {
-      case _: NoSuchFileException =>
-        Logger.warn("a channel was deleted but it's files were missing, did deletion fail before?")
+    channel.versions.all.foreach { version: Version =>
+      val versionFolder = this.fileManager.getVersionDir(project.ownerName, project.name, version.name)
+      Files.deleteIfExists(versionFolder)
+      version.remove()
     }
   }
 
@@ -181,14 +180,8 @@ class ProjectBase(override val service: ModelService,
     if (channel.versions.isEmpty)
       this.deleteChannel(channel)
 
-    val projectDir = this.fileManager.getProjectDir(proj.ownerName, project.name)
-    try {
-      Files.delete(projectDir.resolve(version.fileName))
-      Files.delete(projectDir.resolve(version.signatureFileName))
-    } catch {
-      case _: NoSuchFileException =>
-        Logger.warn("a version was deleted but it's files were missing, did deletion fail before?")
-    }
+    val versionDir = this.fileManager.getVersionDir(proj.ownerName, project.name, version.name)
+    Files.deleteIfExists(versionDir)
   }
 
   /**
