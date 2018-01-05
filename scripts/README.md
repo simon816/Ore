@@ -4,4 +4,5 @@
 files to the proper directory. The bug was fixed in commit
 `ecd8100`.
 
-<!-- TODO Other script -->
+`fix_file_paths_b725a7c.py3` needs to be run _after_ the
+above script and _after_ commit `b725a7c` is deployed.
