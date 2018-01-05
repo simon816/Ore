@@ -40,8 +40,12 @@ object TagColors extends Enumeration {
   val Forge = TagColor(2, "#910020", "#FFFFFF")
   val Unstable = TagColor(3, "#FFDAB9", "#000000")
 
+  def withId(id: Int): TagColor = {
+    this.apply(id).asInstanceOf[TagColor]
+  }
+
   /** Represents a color. */
-  case class TagColor(i: Int, background: String, foreground: String) extends super.Val(i, background + foreground) with MappedType[TagColor] {
+  case class TagColor(i: Int, background: String, foreground: String) extends super.Val(i, s"$background $foreground") with MappedType[TagColor] {
     implicit val mapper: JdbcType[TagColor] = OrePostgresDriver.api.tagColorTypeMapper
   }
 

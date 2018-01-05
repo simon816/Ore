@@ -51,6 +51,8 @@ GET     /api/:version/projects/:pluginId/pages                      @controllers
 GET     /api/:version/users                                         @controllers.ApiController.listUsers(version, limit: Option[Int], offset: Option[Int])
 GET     /api/:version/users/:user                                   @controllers.ApiController.showUser(version, user)
 
+GET     /api/:version/projects/:plugin/:versionName/tags            @controllers.ApiController.listTags(version, plugin, versionName)
+GET     /api/:version/tags/:tagId                                   @controllers.ApiController.tagColor(version, tagId)
 
 # ---------- Application ----------
 

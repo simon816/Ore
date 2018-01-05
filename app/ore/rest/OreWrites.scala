@@ -5,7 +5,7 @@ import javax.inject.Inject
 import db.ModelService
 import db.impl.access.ProjectBase
 import models.api.ProjectApiKey
-import models.project.{Channel, Page, Project, Version}
+import models.project._
 import models.user.User
 import ore.OreConfig
 import ore.project.ProjectMember
@@ -107,6 +107,28 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "starred"         ->  user.starred().map(p => p.pluginId),
         "avatarUrl"       ->  user.avatarUrl,
         "projects"        ->  user.projects.all
+      )
+    }
+  }
+
+  implicit val tagWrites = new Writes[Tag] {
+    override def writes(tag: Tag): JsValue = {
+      obj(
+        "id" -> tag.id,
+        "name" -> tag.name,
+        "data" -> tag.data,
+        "backgroundColor" -> tag.color.background,
+        "foregroundColor" -> tag.color.foreground
+      )
+    }
+  }
+
+  implicit val tagColorWrites = new Writes[TagColors.TagColor] {
+    override def writes(tagColor: TagColors.TagColor): JsValue = {
+      obj(
+        "id" -> tagColor.id,
+        "backgroundColor" -> tagColor.background,
+        "foregroundColor" -> tagColor.foreground
       )
     }
   }

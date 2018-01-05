@@ -226,6 +226,20 @@ final class ApiController @Inject()(api: OreRestfulApi,
     }
   }
 
+  def listTags(version: String, plugin: String, versionName: String) = Action {
+    version match {
+      case "v1" => ApiResult(this.api.getTags(plugin, versionName))
+      case _ => NotFound
+    }
+  }
+
+  def tagColor(version: String, id: String) = Action {
+    version match {
+      case "v1" => ApiResult(this.api.getTagColor(id.toInt))
+      case _ => NotFound
+    }
+  }
+
   /**
     * Returns a JSON statusz endpoint for Ore.
     *
