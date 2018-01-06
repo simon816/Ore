@@ -171,6 +171,7 @@ project.create.infoText.pgp     =   To upload files to Ore, you must first add a
 project.create.issue-input      =   Issue tracker URL
 project.create.source-input     =   Source code URL
 project.icon                    =   Project icon
+project.version.new             =   New Version
 project.members.infoText.head   =   Project members are other users of Ore that have special access to your project. Different user "roles" define what a user can and cannot do to your project.
 project.members.infoText.bottom =   Ore was able to find <strong>{0}</strong> users who are registered with Ore in your plugin file.
 project.search                  =   Search for projects.

@@ -73,12 +73,11 @@ Documentation page within Project overview.
                             <h3 class="pull-left panel-title">@messages("page.plural")</h3>
                             @if(canEditPages && model.pages.size < config.projects.getInt("max-pages").get) {
                                 <button data-toggle="modal" data-target="#new-page" title="New"
-                                        class="btn-panel new-page btn btn-default btn-xs pull-right">
+                                        class="new-page btn yellow btn-xs pull-right">
                                     <i class="fa fa-plus"></i>
                                 </button>
                                 @projects.pages.modalPageCreate(model)
                             }
-                            <div class="clearfix"></div>
                         </div>
                         <ul class="list-group">
                             <li class="list-group-item">

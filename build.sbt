@@ -43,5 +43,6 @@ libraryDependencies ++= Seq(
   "org.webjars"       % "jquery"       % "2.2.4",
   "org.webjars"       % "font-awesome" % "4.7.0",
   "org.webjars.bower" % "filesize"     % "3.2.1",
-  "org.webjars.bower" % "sw-toolbox"   % "3.6.1"
+  "org.webjars.bower" % "sw-toolbox"   % "3.6.1",
+  "org.webjars.bower" % "momentjs"     % "2.20.1"
 )
