@@ -83,7 +83,7 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
       val dependencies: List[JsObject] = version.dependencies.map { dependency =>
         obj("pluginId" -> dependency.pluginId, "version" -> dependency.version)
       }
-      obj(
+      var returnObject = obj(
         "id"            ->  version.id.get,
         "createdAt"     ->  version.createdAt.get.toString,
         "name"          ->  version.versionString,
@@ -95,9 +95,13 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "staffApproved" ->  version.isReviewed,
         "href"          ->  ('/' + version.url),
         "tags"          ->  version.tags.map(toJson(_)),
-        "downloads"     ->  version.downloadCount,
-        "author"        ->  version.author.get.name
+        "downloads"     ->  version.downloadCount
       )
+      val maybeAuthor = version.author
+      if (maybeAuthor.isDefined) {
+        returnObject = returnObject.+(("author", JsString(maybeAuthor.get.name)))
+      }
+      returnObject
     }
   }
 
