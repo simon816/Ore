@@ -94,7 +94,8 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "md5"           ->  version.hash,
         "staffApproved" ->  version.isReviewed,
         "href"          ->  ('/' + version.url),
-        "tags"          ->  version.tags.map(toJson(_))
+        "tags"          ->  version.tags.map(toJson(_)),
+        "downloads"    ->   version.downloadCount
       )
     }
   }
