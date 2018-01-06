@@ -226,6 +226,14 @@ final class ApiController @Inject()(api: OreRestfulApi,
     }
   }
 
+  /**
+    * Get the tags for a single version
+    *
+    * @param version     API Version
+    * @param plugin      Plugin Id
+    * @param versionName Version of the plugin
+    * @return Tags for the version of the plugin
+    */
   def listTags(version: String, plugin: String, versionName: String) = Action {
     version match {
       case "v1" => ApiResult(this.api.getTags(plugin, versionName))

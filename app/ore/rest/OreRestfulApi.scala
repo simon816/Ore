@@ -13,7 +13,7 @@ import ore.OreConfig
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.libs.json.{JsArray, JsValue}
-import play.api.libs.json.Json.{arr, toJson}
+import play.api.libs.json.Json.{obj, arr, toJson}
 import util.StringUtils._
 
 /**
@@ -155,11 +155,14 @@ trait OreRestfulApi {
     * @param version  Version name
     * @return         Tags on the Version
     */
-  def getTags(pluginId: String, version: String): Option[JsArray] = {
+  def getTags(pluginId: String, version: String): Option[JsValue] = {
     val maybeProject = this.projects.withPluginId(pluginId)
       .flatMap(_.versions.find(equalsIgnoreCase(_.versionString, version)))
     maybeProject match {
-      case Some(project) => Some(arr(project.tags.map(toJson(_))))
+      case Some(project) => Some(obj(
+        "pluginId" -> pluginId,
+        "version" -> version,
+        "tags" -> project.tags.map(toJson(_))))
       case None => None
     }
   }
