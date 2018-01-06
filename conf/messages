@@ -123,6 +123,7 @@ error.spongeauth.parse          =   That name is invalid, please choose a name w
 page.edit.cannotDeleteHomepage  =   Your project's homepage cannot be deleted
 page.edit.maxPages              =   You have reached the maximum amount of allowed pages.
 page.new.title                  =   Create a new page
+page.new.error                  =   Error creating page
 page.plural                     =   Pages
 
 project.author                  =   Author

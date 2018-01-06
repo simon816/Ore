@@ -54,13 +54,13 @@ function loadVersions(increment) {
             for (var i in versions) {
                 if (!versions.hasOwnProperty(i)) continue;
                 var version = versions[i];
-                var channel = version.channel;
-                var slug = 'versions/' + version.name;
+                var channel = sanitize(version.channel);
+                var slug = 'versions/' + sanitize(version.name);
 
                 // Build result row
                 var row = $('#row-version').clone().removeAttr('id');
                 row.find('.channel-id').css('color', channel.color);
-                row.find('.version-str').html('<strong>' + version.name + '</strong>').attr('href', slug);
+                row.find('.version-str').html('<strong>' + sanitize(version.name) + '</strong>').attr('href', slug);
                 row.find('.created').text(version.createdAt);
                 row.find('.size').text(filesize(version.fileSize));
                 row.find('.info').attr('href', window.location + '/versions/' + decodeHtml(slug));

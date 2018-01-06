@@ -50,6 +50,10 @@ function shouldExecuteHotkey(event) {
     return !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey;
 }
 
+function sanitize(html) {
+    return $('<textarea>').html(html).text();
+}
+
 function decodeHtml(html) {
     // lol
     return $('<textarea>').html(html).val();

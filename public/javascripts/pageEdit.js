@@ -56,6 +56,10 @@ $(function() {
             data: {csrfToken: csrf, 'parent-id': parentId, 'content': '# ' + pageName + '\n'},
             success: function() {
                 go(url);
+            },
+            error: function() {
+                console.log("error");
+                $("#new-page-label-error").show().delay(2000).fadeOut();
             }
         });
     })
