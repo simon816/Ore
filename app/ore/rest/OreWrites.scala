@@ -5,11 +5,11 @@ import javax.inject.Inject
 import db.ModelService
 import db.impl.access.ProjectBase
 import models.api.ProjectApiKey
-import models.project.{Channel, Page, Project, Version}
+import models.project._
 import models.user.User
 import ore.OreConfig
 import ore.project.ProjectMember
-import play.api.libs.json.Json.{obj, toJson}
+import play.api.libs.json.Json.{obj, arr, toJson}
 import play.api.libs.json._
 import security.pgp.PGPPublicKeyInfo
 
@@ -55,6 +55,28 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
     }
   }
 
+  implicit val tagWrites = new Writes[Tag] {
+    override def writes(tag: Tag): JsValue = {
+      obj(
+        "id" -> tag.id,
+        "name" -> tag.name,
+        "data" -> tag.data,
+        "backgroundColor" -> tag.color.background,
+        "foregroundColor" -> tag.color.foreground
+      )
+    }
+  }
+
+  implicit val tagColorWrites = new Writes[TagColors.TagColor] {
+    override def writes(tagColor: TagColors.TagColor): JsValue = {
+      obj(
+        "id" -> tagColor.id,
+        "backgroundColor" -> tagColor.background,
+        "foregroundColor" -> tagColor.foreground
+      )
+    }
+  }
+
   implicit val versionWrites = new Writes[Version] {
     def writes(version: Version) = {
       val project = version.project
@@ -71,7 +93,10 @@ final class OreWrites @Inject()(implicit config: OreConfig, service: ModelServic
         "fileSize"      ->  version.fileSize,
         "md5"           ->  version.hash,
         "staffApproved" ->  version.isReviewed,
-        "href"          ->  ('/' + version.url)
+        "href"          ->  ('/' + version.url),
+        "tags"          ->  version.tags.map(toJson(_)),
+        "downloads"     ->  version.downloadCount,
+        "author"        ->  version.author.get.name
       )
     }
   }
