@@ -112,7 +112,7 @@ ore {
     orgs {
         enabled = true
         passwordLength = 60
-        dummyEmailDomain = "spongepowered.org"
+        dummyEmailDomain = "ore.spongepowered.org"
         groupId = 64
         createLimit = 5
     }
