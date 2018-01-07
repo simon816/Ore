@@ -325,10 +325,17 @@ trait ProjectFactory {
       signatureFileName = pendingVersion.signatureFileName
     ))
 
-    def addTags(dependencyName: String, tagName: String, tagColor: TagColor) = {
+    def addTags(dependencyName: String, tagName: String, tagColor: TagColor): Unit = {
       val dependenciesMatchingName = newVersion.dependencies.filter(_.pluginId == dependencyName)
       if (dependenciesMatchingName.nonEmpty) {
         val dependency = dependenciesMatchingName.head
+
+        val versionRegex = "^[0-9a-zA-Z\\.\\,\\[\\]\\(\\)-]+$".r
+
+        if (!versionRegex.pattern.matcher(dependency.version).matches()) {
+          return
+        }
+
         val tagsWithVersion = service.access(classOf[ProjectTag])
           .filter(t => t.name === tagName && t.data === dependency.version).toList
 
