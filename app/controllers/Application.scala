@@ -105,6 +105,12 @@ final class Application @Inject()(data: DataHelper,
         this.service.access[Version](classOf[Version])
           .filterNot(_.isReviewed)
           .filterNot(_.channel.isNonReviewed)
+          .filterNot(_.reviewEntries.isEmpty)
+          .map(v => (v.project, v)),
+        this.service.access[Version](classOf[Version])
+          .filterNot(_.isReviewed)
+          .filterNot(_.channel.isNonReviewed)
+          .filter(_.reviewEntries.isEmpty)
           .map(v => (v.project, v))))
     }
   }

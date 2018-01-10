@@ -45,7 +45,7 @@ class Versions @Inject()(stats: StatTracker,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
                          implicit override val service: ModelService)
-                         extends BaseController {
+  extends BaseController {
 
   private val fileManager = this.projects.fileManager
   private val self = controllers.project.routes.Versions
@@ -380,10 +380,10 @@ class Versions @Inject()(stats: StatTracker,
     */
   def download(author: String, slug: String, versionString: String, token: Option[String]) = {
     ProjectAction(author, slug) { implicit request =>
-        implicit val project = request.project
-        withVersion(versionString) { version =>
-          sendVersion(project, version, token)
-        }
+      implicit val project = request.project
+      withVersion(versionString) { version =>
+        sendVersion(project, version, token)
+      }
     }
   }
 
@@ -412,9 +412,9 @@ class Versions @Inject()(stats: StatTracker,
       case Some(tkn) =>
         this.warnings.find { warn =>
           (warn.token === tkn) &&
-          (warn.versionId === version.id.get) &&
-          (warn.address === InetString(StatTracker.remoteAddress)) &&
-          warn.isConfirmed
+            (warn.versionId === version.id.get) &&
+            (warn.address === InetString(StatTracker.remoteAddress)) &&
+            warn.isConfirmed
         } map { warn =>
           if (warn.hasExpired) {
             warn.remove()
@@ -517,10 +517,10 @@ class Versions @Inject()(stats: StatTracker,
           // find warning
           this.warnings.find { warn =>
             (warn.address === addr) &&
-            (warn.token === token) &&
-            (warn.versionId === version.id.get) &&
-            !warn.isConfirmed &&
-            (warn.downloadId === -1)
+              (warn.token === token) &&
+              (warn.versionId === version.id.get) &&
+              !warn.isConfirmed &&
+              (warn.downloadId === -1)
           } map { warn =>
             if (warn.hasExpired) {
               // warning has expired

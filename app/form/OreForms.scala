@@ -218,4 +218,6 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory, se
     "recommended" -> default(boolean, true))
   (VersionDeployForm.apply)(VersionDeployForm.unapply))
 
+
+  lazy val ReviewDescription = Form(single("content" -> text))
 }

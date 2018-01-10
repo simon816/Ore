@@ -171,6 +171,16 @@ POST    /:author/:slug/versions/:version/save                       @controllers
 POST    /:author/:slug/versions/:version/recommended                @controllers.project.Versions.setRecommended(author, slug, version)
 
 
+# ---------- Reviews ----------
+GET     /:author/:slug/versions/:version/reviews                    @controllers.Reviews.showReviews(author, slug, version)
+POST    /:author/:slug/versions/:version/reviews/init               @controllers.Reviews.createReview(author, slug, version)
+POST    /:author/:slug/versions/:version/reviews/stop               @controllers.Reviews.stopReview(author, slug, version)
+POST    /:author/:slug/versions/:version/reviews/approve            @controllers.Reviews.approveReview(author, slug, version)
+POST    /:author/:slug/versions/:version/reviews/takeover           @controllers.Reviews.takeoverReview(author, slug, version)
+POST    /:author/:slug/versions/:version/reviews/addmessage         @controllers.Reviews.addMessage(author, slug, version)
+POST    /:author/:slug/versions/:version/reviews/edit/:review       @controllers.Reviews.editReview(author, slug, version, review: Int)
+
+
 # ---------- Other ----------
 
 GET     /assets/*file                                               controllers.Assets.at(path="/public", file)

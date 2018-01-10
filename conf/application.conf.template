@@ -67,6 +67,7 @@ security {
 # Ore configuration
 ore {
     date-format =  "MMM dd, yyyy"
+    date-and-time-format = "MMM dd, yyyy HH:mm"
     debug       =  true
     debug-level =  3
     # Used in /admin/seed route. Run "gradle build" in OreTestPlugin before using that route
@@ -115,6 +116,10 @@ ore {
         dummyEmailDomain = "ore.spongepowered.org"
         groupId = 64
         createLimit = 5
+    }
+
+    queue {
+        max-review-time = 86400000                  // 1 day (millis)
     }
 }
 
