@@ -39,7 +39,7 @@
         }
       }
 
-      &.information {
+      &.information-one, &.information-two {
         vertical-align: middle;
         display: none;
       }
@@ -74,7 +74,7 @@
       }
 
       @media (min-width: 768px) {
-        &.information, &.download {
+        &.information-one, &.information-two, &.download {
           display: table-cell;
         }
 
@@ -84,11 +84,19 @@
 
         &.version-tags {
           text-align: left;
-          width: 45%;
+          width: 25%;
         }
 
-        &.information {
+        &.information-one {
           width: 20%;
+        }
+
+        &.information-two {
+          width: 20%;
+
+          .author {
+            display: none;
+          }
         }
 
         &.download {
