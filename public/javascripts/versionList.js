@@ -70,9 +70,13 @@ function loadVersions(increment, scrollTop) {
                 versionTemplate.find('.channel').text(channel.name).css("background", channel.color);
                 versionTemplate.find('.name').html("<a href='" + version.href + "'>" + version.name + "</a>");
                 versionTemplate.find('.version-tags').html(tagsHtml);
-                versionTemplate.find('.information .created').text(moment(version.createdAt).format("MMM D, YYYY"));
-                versionTemplate.find('.information .size').text(filesize(version.fileSize));
-                versionTemplate.find('.information .download-count').text(version.downloads);
+                versionTemplate.find('.information-one .created').text(moment(version.createdAt).format("MMM D, YYYY"));
+                versionTemplate.find('.information-one .size').text(filesize(version.fileSize));
+                if(version.author != null) {
+                    versionTemplate.find('.information-two .author').show();
+                    versionTemplate.find('.information-two .author-name').text(version.author);
+                }
+                versionTemplate.find('.information-two .download-count').text(version.downloads);
 
                 var downloadLink = versionTemplate.find('.download .download-link');
                 var tooltip = "";
