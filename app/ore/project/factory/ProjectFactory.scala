@@ -193,6 +193,7 @@ trait ProjectFactory {
       .hash(plugin.md5)
       .fileName(path.getFileName.toString)
       .signatureFileName(plugin.signaturePath.getFileName.toString)
+      .authorId(plugin.user.id.get)
       .build()
 
     PendingVersion(
