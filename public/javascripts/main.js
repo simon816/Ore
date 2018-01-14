@@ -175,15 +175,3 @@ $(function() {
         location.replace(remote);
     });
 });
-
-/*
- * ==================================================
- * =                 Service Worker                 =
- * ==================================================
- */
-
-if ('serviceWorker' in navigator && caching) {
-    window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js', {scope: '/'});
-    });
-}
