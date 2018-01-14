@@ -101,6 +101,13 @@ sorted according to different criteria.
         <div class="row project-content">
                 <!-- Project table -->
             <div class="col-md-9">
+                <div class="project-search input-group">
+                    <input type="text" class="form-control" placeholder="Search in projects...">
+                    <span class="input-group-btn">
+                        <button class="btn yellow" type="button">Search</button>
+                    </span>
+                </div>
+
                 @if(query.isDefined) {
                     <li class="list-group-item minor search-header">
                         <span class="pull-left">Showing results for: <i>@query</i></span>

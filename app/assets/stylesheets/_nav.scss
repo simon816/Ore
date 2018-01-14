@@ -60,12 +60,6 @@
   }
 }
 
-.project-search {
-  @include size(0, 40px);
-  padding: 3px;
-  overflow: hidden;
-}
-
 .nav-icon {
   @include transition2(background-color, 0.5s);
   cursor: pointer;
