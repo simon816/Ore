@@ -63,20 +63,6 @@ The main header displayed on each layout.
         <!-- Right navbar -->
         @if(user) {
             <ul class="nav navbar-nav navbar-collapse collapse navbar-right">
-
-                <li class="project-search">
-                    <div class="input-group" style="display: none;">
-                        <input type="text" class="form-control" placeholder="Search projects&hellip;" />
-                        <div class="input-group-btn">
-                            <button class="btn btn-default"><i class="fa fa-arrow-right"></i></button>
-                        </div>
-                    </div>
-                </li>
-
-                <li class="nav-icon search-icon" @tooltip(messages("project.search"))>
-                    <i class="icon fa fa-search"></i>
-                </li>
-
                 <li class="nav-icon authors-icon" @tooltip(messages("project.viewAuthors"))>
                     <i class="icon fa fa-users"></i>
                 </li>

@@ -109,25 +109,6 @@ $(function() {
         $(this).find('.' + iconClass).removeClass(iconClass).addClass('fa-spinner fa-spin');
     });
 
-    $('.search-icon').click(function() {
-        var searchBar = $('.project-search');
-        var input = searchBar.find('.input-group');
-        if (input.is(':visible')) {
-            searchBar.animate({width: '0'}, 100);
-            input.fadeOut(100);
-        } else {
-            var startPos = searchBar.position();
-            var dropdown = $('#sp-logo-container');
-            var endPos = dropdown.position();
-            var a = startPos.left - (endPos.left + dropdown.width());
-            var b = startPos.top - endPos.top;
-            var distance = Math.sqrt(a*a + b*b);
-            input.fadeIn(100);
-            searchBar.animate({width: distance}, 100);
-            input.find('input').focus();
-        }
-    });
-
     var searchBar = $('.project-search');
     searchBar.find('input').on('keypress', function(event) {
         if (event.keyCode === KEY_ENTER) {

@@ -228,9 +228,12 @@ form {
   }
 }
 
-
 .btn {
   border-radius: 4px;
+
+  &:focus, &:active:focus, &.active:focus, &.focus, &:active.focus, &.active.focus {
+    outline: none;
+  }
 
   &.dark {
     background: $sponge_dark_grey;
@@ -240,7 +243,7 @@ form {
 
   &.yellow {
     background: $sponge_yellow;
-    border: 1px solid darken($sponge_yellow, 10);
+    border: 1px solid $sponge_dark_yellow;
     color: darken($sponge_yellow, 30);
     font-weight: 600;
   }
@@ -268,14 +271,19 @@ form {
   }
 }
 
-select.form-control {
-  border: 1px solid $sponge_grey;
+select.form-control, input.form-control {
   border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid $sponge_grey;
 
   &:focus {
     box-shadow: none;
     border: 1px solid $sponge_grey;
   }
+}
+
+.btn-group .form-control {
+  z-index: 4;
 }
 
 .template {
@@ -382,4 +390,8 @@ select.form-control {
 
 .table.centered {
   text-align: center;
+}
+
+.project-search {
+  margin-bottom: 1rem;
 }
