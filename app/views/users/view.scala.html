@@ -84,7 +84,7 @@
                             @user.username
 
                             @if(user.isCurrent && !user.isOrganization) {
-                                <a class="user-settings" href="@config.security.getString("api.url").get/settings">
+                                <a class="user-settings" href="@config.security.getString("api.url").get/accounts/settings">
                                     <i class="fa fa-cog" data-toggle="tooltip"
                                         data-placement="top" title="Settings"></i>
                                 </a>
