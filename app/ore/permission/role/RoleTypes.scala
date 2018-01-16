@@ -48,7 +48,7 @@ object RoleTypes extends Enumeration {
                                          isAssignable = false)
   val OrganizationOwner   = new RoleType(22, -5, classOf[OrganizationRole], Absolute, "Owner",        Purple,
                                          isAssignable = false)
-  val OrganizationAdmin   = new RoleType(26, -9, classOf[OrganizationRole], Absolute, "Admin",        Purple)
+  val OrganizationAdmin   = new RoleType(26, -9, classOf[OrganizationRole], Lifted,   "Admin",        Purple)
   val OrganizationDev     = new RoleType(23, -6, classOf[OrganizationRole], Standard, "Developer",    Transparent)
   val OrganizationEditor  = new RoleType(24, -7, classOf[OrganizationRole], Limited,  "Editor",       Transparent)
   val OrganizationSupport = new RoleType(25, -8, classOf[OrganizationRole], Default,  "Support",      Transparent)
