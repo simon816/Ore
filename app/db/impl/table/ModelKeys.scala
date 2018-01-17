@@ -4,7 +4,7 @@ import db.Named
 import db.impl.OrePostgresDriver.api._
 import db.impl.model.common.{Describable, Downloadable, Hideable}
 import db.table.key._
-import models.admin.ProjectLogEntry
+import models.admin.{ProjectLogEntry, Review}
 import models.project._
 import models.statistic.StatEntry
 import models.user.role.RoleModel
@@ -98,5 +98,9 @@ object ModelKeys {
 
   // Notification
   val Read                  =   new BooleanKey[Notification](_.read, _.isRead)
+
+  // Review
+  val Comment               =   new StringKey[Review](_.comment, _.message)
+  val EndedAt               =   new TimestampKey[Review](_.endedAt, _.endedAt.get)
 
 }

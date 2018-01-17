@@ -60,6 +60,7 @@ class OreModelService @Inject()(override val env: OreEnv,
     registerSchema(ProjectLogEntrySchema)
     registerSchema(FlagSchema)
     registerSchema(ViewSchema)
+    registerSchema(ReviewSchema)
     registerSchema(VersionSchema)
     registerSchema(TagSchema)
     registerSchema(DownloadWarningSchema)

@@ -8,7 +8,7 @@ import db.impl.schema._
 import db.impl.table.common.{DescriptionColumn, DownloadsColumn, VisibilityColumn}
 import db.impl.table.StatTable
 import db.table.{AssociativeTable, ModelTable, NameColumn}
-import models.admin.{ProjectLog, ProjectLogEntry}
+import models.admin.{ProjectLog, ProjectLogEntry, Review}
 import models.api.ProjectApiKey
 import models.project.TagColors.TagColor
 import models.project._
@@ -23,6 +23,7 @@ import ore.project.io.DownloadTypes.DownloadType
 import ore.rest.ProjectApiKeyTypes.ProjectApiKeyType
 import ore.user.Prompts.Prompt
 import ore.user.notification.NotificationTypes.NotificationType
+import slick.lifted.ProvenShape
 
 /*
  * Database schema definitions. Changes must be first applied as an evolutions
@@ -348,4 +349,14 @@ class ProjectApiKeyTable(tag: RowTag) extends ModelTable[ProjectApiKey](tag, "pr
 
   override def * = (id.?, createdAt.?, projectId, keyType, value) <> (ProjectApiKey.tupled, ProjectApiKey.unapply)
 
+}
+
+class ReviewTable(tag: RowTag) extends ModelTable[Review](tag, "project_version_reviews") {
+
+  def versionId         =   column[Int]("version_id")
+  def userId            =   column[Int]("user_id")
+  def endedAt           =   column[Timestamp]("ended_at")
+  def comment           =   column[String]("comment")
+
+  override def * =  (id.?, createdAt.?, versionId, userId, endedAt.?, comment) <> ((Review.apply _).tupled, Review.unapply)
 }
