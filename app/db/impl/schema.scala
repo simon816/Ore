@@ -336,8 +336,10 @@ class FlagTable(tag: RowTag) extends ModelTable[Flag](tag, "project_flags") {
   def reason      =   column[FlagReason]("reason")
   def comment     =   column[String]("comment")
   def isResolved  =   column[Boolean]("is_resolved")
+  def resolvedAt  =   column[Timestamp]("resolved_at")
+  def resolvedBy  =   column[Int]("resolved_by")
 
-  override def * = (id.?, createdAt.?, projectId, userId, reason, comment, isResolved) <> (Flag.tupled, Flag.unapply)
+  override def * = (id.?, createdAt.?, projectId, userId, reason, comment, isResolved, resolvedAt.?, resolvedBy.?) <> (Flag.tupled, Flag.unapply)
 
 }
 
