@@ -98,6 +98,7 @@ error.ore.timeout.title         =   Ore took too long to respond.
 error.ore.timeout.body          =   Whoops! We couldn't respond to your request in a timely manner, this could be because a service Ore uses is currently unavailable or the servers are just overloaded. Please try again later.
 error.notFound.title            =   404 Not Found
 error.notFound.message          =   The URI "{0}" could not be found
+error.required.comment          =   A comment is required
 
 error.plugin.fileExtension      =   Plugin file must be either a JAR or ZIP file.
 error.plugin.sig.fileExtension  =   Signature file must be either a SIG or ASC file.

@@ -289,7 +289,7 @@ class Projects @Inject()(stats: StatTracker,
         hasErrors =>
           FormError(ShowProject(project), hasErrors),
         formData => {
-          project.flagFor(user, formData.reason, formData.comment.orNull)
+          project.flagFor(user, formData.reason, formData.comment)
           Redirect(self.show(author, slug)).flashing("reported" -> "true")
         }
       )

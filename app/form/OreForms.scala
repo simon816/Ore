@@ -61,7 +61,7 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory, se
     */
   lazy val ProjectFlag = Form(mapping(
     "flag-reason" -> number,
-    "comment" -> optional(nonEmptyText))
+    "comment" -> nonEmptyText)
   (FlagForm.apply)(FlagForm.unapply))
 
   /**

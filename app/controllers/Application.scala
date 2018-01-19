@@ -137,7 +137,7 @@ final class Application @Inject()(data: DataHelper,
       case None =>
         notFound
       case Some(flag) =>
-        flag.setResolved(resolved)
+        flag.setResolved(resolved, users.current)
         Ok
     }
   }

@@ -92,6 +92,8 @@ object ModelKeys {
 
   // Flag
   val IsResolved            =   new BooleanKey[Flag](_.isResolved, _.isResolved)
+  val ResolvedAt            =   new TimestampKey[Flag](_.resolvedAt, _.resolvedAt.orNull)
+  val ResolvedBy            =   new IntKey[Flag](_.resolvedBy, _.resolvedBy.getOrElse(-1))
 
   // StatEntry
   val UserId                =   new IntKey[StatEntry[_]](_.userId, _.user.flatMap(_.id).getOrElse(-1))
