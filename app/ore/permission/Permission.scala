@@ -21,3 +21,4 @@ case object MigrateOre          extends Permission { val trust = Absolute }
 case object CreateProject       extends Permission { val trust = Lifted   }
 case object PostAsOrganization  extends Permission { val trust = Standard }
 case object EditApiKeys         extends Permission { val trust = Lifted   }
+case object ViewActivity        extends Permission { val trust = Standard }

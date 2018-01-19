@@ -1,5 +1,7 @@
 package controllers
 
+import java.sql.Timestamp
+import java.time.Instant
 import javax.inject.Inject
 
 import controllers.sugar.Bakery
@@ -7,6 +9,7 @@ import controllers.sugar.Requests.AuthRequest
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
+import models.admin.Review
 import models.project.{Flag, Project, Version}
 import ore.Platforms.Platform
 import ore.permission._
@@ -186,4 +189,42 @@ final class Application @Inject()(data: DataHelper,
     Redirect(ShowHome)
   }
 
+  /**
+    * Show the activities page for a user
+    */
+  def showActivities(user: String) = (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) { implicit request =>
+    val u = this.users.withName(user).get
+    var activities: Seq[(Object, Option[Project])] = Seq.empty
+    if (u.id.isDefined) {
+      val reviews: Seq[(Review, Option[Project])] = this.service.access[Review](classOf[Review])
+        .filter(_.userId === u.id.get)
+        .take(20)
+        .map(review => review -> this.projects.find(_.id === this.service.access[Version](classOf[Version]).filter(_.id === review.versionId).head.projectId))
+      val flags: Seq[(Flag, Option[Project])] = this.service.access[Flag](classOf[Flag])
+        .filter(_.resolvedBy === u.id.get)
+        .take(20)
+        .map(flag => flag -> this.projects.find(_.id === flag.projectId))
+      activities = reviews ++ flags
+      activities.sortWith(sortActivities)
+    }
+    Ok(views.users.admin.activity(u, activities))
+  }
+
+  /**
+    * Compares 2 activities (supply a [[Review]] or [[Flag]]) to decide which came first
+    * @param o1 Review / Flag
+    * @param o2 Review / Flag
+    * @return Boolean
+    */
+  def sortActivities(o1: Object, o2: Object): Boolean = {
+    var o1Time: Long = 0
+    var o2Time: Long = 0
+    if (o1.isInstanceOf[Review]) {
+      o1Time = o1.asInstanceOf[Review].endedAt.getOrElse(Timestamp.from(Instant.EPOCH)).getTime
+    }
+    if (o2.isInstanceOf[Flag]) {
+      o2Time = o2.asInstanceOf[Flag].resolvedAt.getOrElse(Timestamp.from(Instant.EPOCH)).getTime
+    }
+    return o1Time > o2Time
+  }
 }
