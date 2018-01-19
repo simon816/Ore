@@ -5,13 +5,13 @@ ALTER TABLE project_flags ADD COLUMN resolved_by int;
 
 UPDATE project_flags
   SET resolved_at = created_at
-  WHERE is_resolved=true
+  WHERE is_resolved=true;
 UPDATE project_flags
   SET resolved_by = -1
-  WHERE is_resolved=true
+  WHERE is_resolved=true;
 UPDATE project_flags
   SET comment = ''
-  WHERE comment IS NULL
+  WHERE comment IS NULL;
 
 # --- !Downs
 
