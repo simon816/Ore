@@ -23,3 +23,5 @@ case object PostAsOrganization  extends Permission { val trust = Standard }
 case object EditApiKeys         extends Permission { val trust = Lifted   }
 case object ViewActivity        extends Permission { val trust = Standard }
 case object ViewStats           extends Permission { val trust = Standard }
+// TODO: Finer admin permissions
+case object ViewAdmin           extends Permission { val trust = Absolute }

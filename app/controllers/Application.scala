@@ -270,4 +270,15 @@ final class Application @Inject()(data: DataHelper,
 
     Ok(views.users.admin.stats(reviews, uploads, totalDownloads, unsafeDownloads, flagsOpen, flagsClosed))
   }
+
+  def AdminAction = Authenticated andThen PermissionAction[AuthRequest](ViewAdmin)
+
+  def userAdmin(user: String) = AdminAction { implicit request =>
+    this.users.withName(user).map { u =>
+      Ok(views.users.admin.userAdmin(u))
+    } getOrElse {
+      notFound
+    }
+  }
+
 }
