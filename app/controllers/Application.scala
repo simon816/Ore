@@ -23,6 +23,8 @@ import security.spauth.SingleSignOnConsumer
 import util.DataHelper
 import views.{html => views}
 
+import scala.concurrent.Future
+
 /**
   * Main entry point for application.
   */
@@ -226,5 +228,46 @@ final class Application @Inject()(data: DataHelper,
       o2Time = o2.asInstanceOf[Flag].resolvedAt.getOrElse(Timestamp.from(Instant.EPOCH)).getTime
     }
     return o1Time > o2Time
+  }
+  /**
+    * Show stats
+    * @return
+    */
+  def showStats() = (Authenticated andThen PermissionAction[AuthRequest](ViewStats)) { implicit request =>
+
+    /**
+      * Query to get a count where columnDate is equal to the date
+      */
+    def last10DaysCountQuery(table: String, columnDate: String): Seq[(String,String)] = {
+      val query = this.service.DB.db.run(sql"""
+        SELECT
+          (SELECT COUNT(*) FROM #$table WHERE CAST(#$columnDate AS DATE) = day),
+          CAST(day AS DATE)
+        FROM (SELECT current_date - (INTERVAL '1 day' * generate_series(0, 9)) AS day) dates
+        ORDER BY day ASC""".as[(String, String)])
+      this.service.await(query).getOrElse(Seq())
+    }
+
+    /**
+      * Query to get a count of open record in last 10 days
+      */
+    def last10DaysTotalOpen(table: String, columnStartDate: String, columnEndDate: String): Seq[(String,String)] = {
+      val query = this.service.DB.db.run(sql"""
+        SELECT
+          (SELECT COUNT(*) FROM #$table WHERE CAST(#$columnStartDate AS DATE) <= date.when AND (CAST(#$columnEndDate AS DATE) >= date.when OR #$columnEndDate IS NULL)) count,
+          CAST(date.when AS DATE) AS days
+        FROM (SELECT current_date - (INTERVAL '1 day' * generate_series(0, 9)) AS when) date
+        ORDER BY days ASC""".as[(String, String)])
+      this.service.await(query).getOrElse(Seq())
+    }
+
+    val reviews: Seq[(String, String)] = last10DaysCountQuery("project_version_reviews", "ended_at")
+    val uploads: Seq[(String, String)] = last10DaysCountQuery("project_versions", "created_at")
+    val totalDownloads: Seq[(String, String)] = last10DaysCountQuery("project_version_downloads", "created_at")
+    val unsafeDownloads: Seq[(String, String)] = last10DaysCountQuery("project_version_unsafe_downloads", "created_at")
+    val flagsOpen: Seq[(String, String)] = last10DaysTotalOpen("project_flags", "created_at", "resolved_at")
+    val flagsClosed: Seq[(String, String)] = last10DaysCountQuery("project_flags", "resolved_at")
+
+    Ok(views.users.admin.stats(reviews, uploads, totalDownloads, unsafeDownloads, flagsOpen, flagsClosed))
   }
 }
