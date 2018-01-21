@@ -15,6 +15,7 @@ case object ReviewFlags         extends Permission { val trust = Standard }
 case object ReviewProjects      extends Permission { val trust = Standard }
 case object ViewHealth          extends Permission { val trust = Standard }
 case object ViewLogs            extends Permission { val trust = Standard }
+case object UserAdmin           extends Permission { val trust = Standard }
 case object ResetOre            extends Permission { val trust = Absolute }
 case object SeedOre             extends Permission { val trust = Absolute }
 case object MigrateOre          extends Permission { val trust = Absolute }
@@ -23,5 +24,3 @@ case object PostAsOrganization  extends Permission { val trust = Standard }
 case object EditApiKeys         extends Permission { val trust = Lifted   }
 case object ViewActivity        extends Permission { val trust = Standard }
 case object ViewStats           extends Permission { val trust = Standard }
-// TODO: Finer admin permissions
-case object ViewAdmin           extends Permission { val trust = Absolute }

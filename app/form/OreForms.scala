@@ -220,4 +220,10 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory, se
 
 
   lazy val ReviewDescription = Form(single("content" -> text))
+
+  lazy val UserAdminUpdate = Form(tuple(
+      "thing" -> text,
+      "action" -> text,
+      "data" -> text
+  ))
 }
