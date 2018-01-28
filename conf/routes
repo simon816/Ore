@@ -11,6 +11,7 @@ GET     /admin/queue                                                @controllers
 GET     /admin/flags                                                @controllers.Application.showFlags()
 GET     /admin/flags/:id/resolve/:resolved                          @controllers.Application.setFlagResolved(id: Int, resolved: Boolean)
 GET     /admin/health                                               @controllers.Application.showHealth()
+GET     /admin/activities/:user                                     @controllers.Application.showActivities(user: String)
 
 GET     /statusz                                                    @controllers.ApiController.showStatusZ()
 
