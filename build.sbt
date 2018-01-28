@@ -22,10 +22,10 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "org.spongepowered"     %   "play-discourse"          %   "1.0.0-SNAPSHOT",
   "org.spongepowered"     %   "plugin-meta"             %   "0.4.1",
-  "com.typesafe.play"     %%  "play-slick"              %   "2.0.2",
-  "com.typesafe.play"     %%  "play-slick-evolutions"   %   "2.0.2",
+  "com.typesafe.play"     %%  "play-slick"              %   "2.1.0",
+  "com.typesafe.play"     %%  "play-slick-evolutions"   %   "2.1.0",
   "org.postgresql"        %   "postgresql"              %   "9.4.1212.jre7",
-  "com.github.tminglei"   %%  "slick-pg"                %   "0.12.0",
+  "com.github.tminglei"   %%  "slick-pg"                %   "0.15.5",
   "com.getsentry.raven"   %   "raven-logback"           %   "7.2.2",
   "org.bouncycastle"      %   "bcprov-jdk15on"          %   "1.56",
   "org.bouncycastle"      %   "bcpkix-jdk15on"          %   "1.56",
