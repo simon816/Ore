@@ -346,3 +346,6 @@ review.whytakeover = Please explain why you are takingover
 review.addmessage = Add message
 queue.review.none = There are no reviews in progress
 activity.title = Activity: 
+
+notes = Notes
+notes.addmessage = Add message

@@ -23,8 +23,12 @@ import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
 import ore.project.{Categories, ProjectMember}
 import ore.user.MembershipDossier
-import ore.{Joinable, Visitable}
-import util.StringUtils._
+import ore.{Joinable, OreConfig, Visitable}
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+import play.twirl.api.Html
+import _root_.util.StringUtils
+import _root_.util.StringUtils._
 
 /**
   * Represents an Ore package.
@@ -47,6 +51,7 @@ import util.StringUtils._
   * @param _isTopicDirty          Whether this project's forum topic needs to be updated
   * @param _isVisible             Whether this project is visible to the default user
   * @param _lastUpdated           Instant of last version release
+  * @param _notes                 JSON notes
   */
 case class Project(override val id: Option[Int] = None,
                    override val createdAt: Option[Timestamp] = None,
@@ -65,7 +70,8 @@ case class Project(override val id: Option[Int] = None,
                    private var _postId: Int = -1,
                    private var _isTopicDirty: Boolean = false,
                    private var _isVisible: Boolean = true,
-                   private var _lastUpdated: Timestamp = null)
+                   private var _lastUpdated: Timestamp = null,
+                   var _notes: String = "")
                    extends OreModel(id, createdAt)
                      with ProjectScope
                      with Downloadable
@@ -537,6 +543,78 @@ case class Project(override val id: Option[Int] = None,
   override def hashCode() = this.id.get.hashCode
   override def equals(o: Any) = o.isInstanceOf[Project] && o.asInstanceOf[Project].id.get == this.id.get
 
+  /**
+    * Set a message and update the database
+    * @param content
+    * @return
+    */
+  private def setNote(content: String) = {
+    this._notes = content
+    update(Notes)
+  }
+
+  /**
+    * Helper function to decode the json
+    */
+  implicit val notesRead: Reads[Note] = (
+    (JsPath \ "message").read[String] and
+      (JsPath \ "user").read[Int] and
+      (JsPath \ "time").read[Long]
+    ) (Note.apply _)
+
+  /**
+    * Add new note
+    * @param message
+    * @return
+    */
+  def addNote(message: Note) = {
+
+    /**
+      * Helper function to encode to json
+      */
+    implicit val noteWrites = new Writes[Note] {
+      def writes(note: Note) = Json.obj(
+        "message" -> note.message,
+        "user" -> note.user,
+        "time" -> note.time
+      )
+    }
+
+    val messages = getNotes() :+ message
+    val js: Seq[JsValue] = messages.map(m => Json.toJson(m))
+    setNote(
+      Json.stringify(
+        JsObject(Seq(
+          "messages" -> JsArray(
+            js
+          )
+        ))
+      )
+    )
+  }
+
+  /**
+    * Get all messages
+    * @return
+    */
+  def getNotes(): Seq[Note] = {
+    if (this._notes.startsWith("{")  && _notes.endsWith("}")) {
+      val messages: JsValue = Json.parse(_notes)
+      (messages \ "messages").as[Seq[Note]]
+    } else {
+      Seq()
+    }
+  }
+}
+
+/**
+  * This modal is needed to convert the json
+  * @param time
+  * @param message
+  */
+case class Note(message: String, user: Int, time: Long = System.currentTimeMillis()) {
+  def getTime(implicit oreConfig: OreConfig) = StringUtils.prettifyDateAndTime(new Timestamp(time))
+  def render(implicit oreConfig: OreConfig): Html = Page.Render(message)
 }
 
 object Project {
