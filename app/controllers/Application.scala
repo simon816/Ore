@@ -6,13 +6,17 @@ import javax.inject.Inject
 
 import controllers.sugar.Bakery
 import controllers.sugar.Requests.AuthRequest
+import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
+import form.OreForms
 import models.admin.Review
 import models.project.{Flag, Project, Version}
+import models.user.role._
 import ore.Platforms.Platform
 import ore.permission._
+import ore.permission.role.{RoleTypes, GlobalRole, Role}
 import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
@@ -29,6 +33,7 @@ import scala.concurrent.Future
   * Main entry point for application.
   */
 final class Application @Inject()(data: DataHelper,
+                                  forms: OreForms,
                                   implicit override val bakery: Bakery,
                                   implicit override val sso: SingleSignOnConsumer,
                                   implicit override val messagesApi: MessagesApi,
@@ -270,4 +275,88 @@ final class Application @Inject()(data: DataHelper,
 
     Ok(views.users.admin.stats(reviews, uploads, totalDownloads, unsafeDownloads, flagsOpen, flagsClosed))
   }
+
+  def UserAdminAction = Authenticated andThen PermissionAction[AuthRequest](UserAdmin)
+
+  def userAdmin(user: String) = UserAdminAction { implicit request =>
+    this.users.withName(user).map { u =>
+      Ok(views.users.admin.userAdmin(u))
+    } getOrElse {
+      notFound
+    }
+  }
+
+  def updateUser(user: String) = UserAdminAction { implicit request =>
+    this.users.withName(user).map { user =>
+      this.forms.UserAdminUpdate.bindFromRequest.fold(
+          hasErrors => BadRequest,
+          { case (thing, action, data) =>
+
+            import play.api.libs.json._
+            val json = Json.parse(data)
+
+            def updateRoleTable[M <: RoleModel](modelAccess: ModelAccess[M], allowedType: Class[_ <: Role], ownerType: RoleTypes.RoleType, transferOwner: M => Unit) = {
+                val id = (json \ "id").as[Int]
+                action match {
+                  case "setRole" => modelAccess.get(id).map { role =>
+                    val roleType = RoleTypes.withId((json \ "role").as[Int])
+                    if (roleType == ownerType) {
+                      transferOwner(role)
+                      Ok
+                    } else if (roleType.roleClass == allowedType && roleType.isAssignable) {
+                      role.roleType = roleType
+                      Ok
+                    } else BadRequest
+                  } getOrElse BadRequest
+                  case "setAccepted" => modelAccess.get(id).map { role =>
+                    role.setAccepted((json \ "accepted").as[Boolean])
+                    Ok
+                  } getOrElse BadRequest
+                  case "deleteRole" => modelAccess.get(id).map { role =>
+                    if (role.roleType.isAssignable) {
+                      role.remove()
+                      Ok
+                    } else BadRequest
+                  } getOrElse BadRequest
+               }
+            }
+
+            def transferOrgOwner(r: OrganizationRole) = r.organization.transferOwner(r.organization.memberships.newMember(r.userId))
+
+            thing match {
+
+              case "globalRole" =>
+                val role = RoleTypes.withId((json \ "role").as[Int])
+                if (role.roleClass != classOf[GlobalRole] || !role.isAssignable) {
+                  BadRequest
+                } else action match {
+                  case "add" => user.globalRoles += role
+                    Ok
+                  case "remove" => user.globalRoles -= role
+                    Ok
+                }
+
+              case "orgRole" =>
+                if (user.isOrganization) {
+                  BadRequest
+                } else updateRoleTable(user.organizationRoles, classOf[OrganizationRole], RoleTypes.OrganizationOwner, transferOrgOwner)
+              case "memberRole" =>
+                if (!user.isOrganization) {
+                  BadRequest
+                } else updateRoleTable(user.toOrganization.memberships.roles, classOf[OrganizationRole], RoleTypes.OrganizationOwner, transferOrgOwner)
+              case "projectRole" =>
+                if (user.isOrganization) {
+                  BadRequest
+                } else updateRoleTable(user.projectRoles, classOf[ProjectRole], RoleTypes.ProjectOwner,
+                    (r:ProjectRole) => r.project.transferOwner(r.project.memberships.newMember(r.userId)))
+
+              case _ => BadRequest
+            }
+
+      })
+    } getOrElse {
+      notFound
+    }
+  }
+
 }

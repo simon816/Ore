@@ -17,6 +17,7 @@ import models.api.ProjectApiKey
 import models.statistic.ProjectView
 import models.user.User
 import models.user.role.ProjectRole
+import ore.permission.role.RoleTypes
 import ore.permission.scope.ProjectScope
 import ore.project.Categories.Category
 import ore.project.FlagReasons.FlagReason
@@ -121,6 +122,14 @@ case class Project(override val id: Option[Int] = None,
     * @return Owner Member of project
     */
   override def owner: ProjectMember = new ProjectMember(this, this.ownerId)
+
+  override def transferOwner(member: ProjectMember) {
+    // Down-grade current owner to "Developer"
+    this.memberships.getRoles(this.owner.user).filter(_.roleType == RoleTypes.ProjectOwner)
+      .foreach(_.roleType = RoleTypes.ProjectDev);
+    this.memberships.getRoles(member.user).foreach(_.roleType = RoleTypes.ProjectOwner);
+    this.owner = member.user;
+  }
 
   /**
     * Sets the [[User]] that owns this Project.

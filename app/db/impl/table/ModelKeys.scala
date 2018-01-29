@@ -8,7 +8,7 @@ import models.admin.{ProjectLogEntry, Review}
 import models.project._
 import models.statistic.StatEntry
 import models.user.role.RoleModel
-import models.user.{Notification, SignOn, User}
+import models.user.{Notification, SignOn, User, Organization}
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
@@ -60,6 +60,9 @@ object ModelKeys {
   val JoinDate              =   new TimestampKey[User](_.joinDate, _.joinDate.orNull)
   val AvatarUrl             =   new StringKey[User](_.avatarUrl, _.avatarUrl.orNull)
   val ReadPrompts           =   new Key[User, List[Prompt]](_.readPrompts, _.readPrompts.toList)
+
+  // Organization
+  val OrgOwnerId            =   new IntKey[Organization](_.userId, _.owner.userId)
 
   // SignOn
   val IsCompleted           =   new BooleanKey[SignOn](_.isCompleted, _.isCompleted)
