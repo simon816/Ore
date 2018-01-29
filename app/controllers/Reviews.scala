@@ -11,7 +11,10 @@ import db.ModelService
 import db.impl.{ReviewTable, VersionTable}
 import form.OreForms
 import models.admin.{Message, Review}
+import models.user.{Notification, User}
 import ore.permission.ReviewProjects
+import ore.permission.role.Lifted
+import ore.user.notification.NotificationTypes
 import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
@@ -73,6 +76,29 @@ final class Reviews @Inject()(data: DataHelper,
         withVersion(versionString) { version =>
           val review = version.mostRecentUnfinishedReview.get
           review.setEnded(Timestamp.from(Instant.now()))
+
+          // send notification that review happened
+          val organization = this.organizations.get(project.ownerId)
+
+          if (organization.isDefined) {
+            val users: List[User] = organization.get.memberships.members.toList.filter(_.headRole.roleType.trust.level >= Lifted.level).map(_.user)
+
+            if (!users.contains(version.author.get))
+              users :+ version.author.get
+
+            users.foreach(user => user.sendNotification(Notification(
+              originId = request.user.id.get,
+              notificationType = NotificationTypes.ProjectInvite,
+              message = messagesApi("notification.project.reviewed", slug, versionString)
+            )))
+          } else {
+            version.author.get.sendNotification(Notification(
+              originId = request.user.id.get,
+              notificationType = NotificationTypes.ProjectInvite,
+              message = messagesApi("notification.project.reviewed", slug, versionString)
+            ))
+          }
+
           Redirect(routes.Reviews.showReviews(author, slug, versionString))
         }
       }

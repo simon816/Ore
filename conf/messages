@@ -309,6 +309,7 @@ notification.organization.invite    =   You have been invited to join the group 
 notification.empty.unread           =   You have no unread notifications.
 notification.empty.read             =   You have no read notifications.
 notification.empty.all              =   You have no notifications.
+notification.project.reviewed       =   {0} {1} has been reviewed and is approved.
 
 prompt.confirm = Got it!
 prompt.changeAvatar.title = Change your avatar!
