@@ -155,7 +155,7 @@ mail {
 
 # Slick configuration
 slick.dbs.default {
-    driver        =   "slick.driver.PostgresDriver$"
+    profile = "slick.jdbc.PostgresProfile$"
     db {
         driver = "org.postgresql.Driver"
         url = "jdbc:postgresql://localhost/ore"
