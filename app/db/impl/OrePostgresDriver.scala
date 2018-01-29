@@ -23,7 +23,7 @@ import ore.user.notification.NotificationTypes.NotificationType
 /**
   * Custom Postgres driver to support array data and custom type mappings.
   */
-trait OrePostgresDriver extends ExPostgresDriver with PgArraySupport with PgNetSupport {
+trait OrePostgresDriver extends ExPostgresProfile with PgArraySupport with PgNetSupport {
 
   override val api = OreDriver
 
