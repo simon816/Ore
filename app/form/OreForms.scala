@@ -19,6 +19,7 @@ import ore.rest.ProjectApiKeyTypes.ProjectApiKeyType
 import play.api.data.{Form, FormError}
 import play.api.data.Forms._
 import play.api.data.format.Formatter
+import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 
 import scala.util.Try
 
@@ -64,10 +65,31 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory, se
     "comment" -> nonEmptyText)
   (FlagForm.apply)(FlagForm.unapply))
 
+
+  /**
+    * This is a Constraint checker for the ownerId that will search the list allowedIds to see if the number is in it.
+    * @param allowedIds number that are allowed as ownerId
+    * @return Constraint
+    */
+  def ownerIdInList(allowedIds: Seq[Int]): Constraint[Option[Int]] = Constraint("constraints.check")({
+    ownerId =>
+      var errors: Seq[ValidationError] = Seq()
+      if (ownerId.isDefined) {
+        if (!allowedIds.contains(ownerId.get)) {
+          errors = Seq(ValidationError("error.plugin"))
+        }
+      }
+      if (errors.isEmpty) {
+        Valid
+      } else {
+        Invalid(errors)
+      }
+  })
+
   /**
     * Submits settings changes for a Project.
     */
-  lazy val ProjectSave = Form(mapping(
+  def ProjectSave(organisationUserCanUploadTo: Seq[Int]) = Form(mapping(
     "category" -> text,
     "issues" -> url,
     "source" -> url,
@@ -79,7 +101,7 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory, se
     "userUps" -> list(text),
     "roleUps" -> list(text),
     "update-icon" -> boolean,
-    "owner" -> optional(number)
+    "owner" -> optional(number).verifying(ownerIdInList(organisationUserCanUploadTo))
   )(ProjectSettingsForm.apply)(ProjectSettingsForm.unapply))
 
   /**

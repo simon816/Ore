@@ -8,7 +8,7 @@ import controllers.sugar.Bakery
 import db.ModelService
 import discourse.OreDiscourseApi
 import form.OreForms
-import ore.permission.{EditSettings, HideProjects, PostAsOrganization, ViewLogs}
+import ore.permission._
 import ore.project.FlagReasons
 import ore.project.factory.ProjectFactory
 import ore.project.io.{InvalidPluginFileException, PluginUpload}
@@ -108,11 +108,13 @@ class Projects @Inject()(stats: StatTracker,
     * @return         View of members config
     */
   def showInvitationForm(author: String, slug: String) = UserLock() { implicit request =>
+    val organisationUserCanUploadTo = request.user.organizations.all
+      .filter(request.user can CreateProject in _).map(_.id.get).toSeq :+ request.user.id.get
     this.factory.getPendingProject(author, slug) match {
       case None =>
         Redirect(self.showCreator())
       case Some(pendingProject) =>
-        this.forms.ProjectSave.bindFromRequest().fold(
+        this.forms.ProjectSave(organisationUserCanUploadTo).bindFromRequest().fold(
           hasErrors =>
             FormError(self.showCreator(), hasErrors),
           formData => {
@@ -449,8 +451,10 @@ class Projects @Inject()(stats: StatTracker,
     * @return View of project
     */
   def save(author: String, slug: String) = SettingsEditAction(author, slug) { implicit request =>
+    val organisationUserCanUploadTo = request.user.organizations.all
+      .filter(request.user can CreateProject in _).map(_.id.get).toSeq :+ request.user.id.get
     val project = request.project
-    this.forms.ProjectSave.bindFromRequest().fold(
+    this.forms.ProjectSave(organisationUserCanUploadTo).bindFromRequest().fold(
       hasErrors =>
         FormError(self.showSettings(author, slug), hasErrors),
       formData => {
