@@ -172,7 +172,7 @@
     <script nonce="@nonce">
         $(function(){
             var momentNow = moment();
-            var maxDiffrence = @config.ore.getConfig("queue").get.getInt("max-review-time").get;
+            var maxDiffrence = @config.ore.getConfig("queue").get.getInt("max-review-time").getOrElse(86400000);
             $('span[data-ago]').each(function() {
                 var momentAgo = moment($(this).data('ago'))
                 $(this).text($(this).data('title') + momentAgo.fromNow());
