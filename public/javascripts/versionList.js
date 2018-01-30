@@ -57,7 +57,7 @@ function loadVersions(increment, scrollTop) {
                 tags.forEach(function (tag) {
                     var style = "background:" + tag.backgroundColor +";border-color:" + tag.backgroundColor + ";color:" + tag.foregroundColor;
 
-                    if(tag.data !== "") {
+                    if(tag.data !== "" && tag.data !== "null") {
                         tagsHtml += "<div class='tags has-addons'><span style='" + style + "' class='tag'>" + tag.name + "</span><span class='tag'>" + tag.data + "</span></div>";
                     } else {
                         tagsHtml += "<div class='tags'><span style='" + style + "' class='tag'>" + tag.name + "</span></div>";
