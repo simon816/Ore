@@ -9,7 +9,7 @@
         config: OreConfig, users: UserBase, projects: ProjectBase, organizations: OrganizationBase)
 
 @isOrg = @{user.isOrganization}
-@prefix = @{"Edit " + (if(isOrg) "Organization" else "User") + " - "}
+@prefix = @{"Edit " + (if(isOrg) "Organization" else "User") + ": "}
 
 @orgRoles = @{RoleTypes.values.filter(r => r.roleClass == classOf[OrganizationRole] && (r.isAssignable || r == RoleTypes.OrganizationOwner))}
 @projectRoles = @{RoleTypes.values.filter(r => r.roleClass == classOf[ProjectRole] && (r.isAssignable || r == RoleTypes.ProjectOwner))}
@@ -98,33 +98,6 @@
             }
         </div>
         }
-        <div class="row">
-            @panel("Global Roles") {
-                <div class="list-group" id="global-roles-list">
-                @for(role <- user.globalRoles) {
-                    <div class="list-group-item" data-role="@role.roleId">
-                        @role.title
-                        @if(role.isAssignable) {
-                            <span class="pull-right">
-                                <a href="#" class="global-role-delete"><i class="fa fa-trash"></i></a>
-                            </span>
-                        }
-                    </div>
-                }
-                    <div class="list-group-item">
-                        <select id="add-global-role-select">
-                        @for(roleType <- globalRoles.filter(r => !user.globalRoles.contains(r))) {
-                            <option value="@roleType.roleId">@roleType.title</option>
-                        }
-                        </select>
-                        <button title="Add" class="btn yellow btn-sm" id="add-global-role">
-                            <i class="fa fa-plus"></i>
-                        </button>
-                    </div>
-                </div>
-            }
-        </div>
-
         </div>
 
         @panel("Other Administration", size=3) {
@@ -137,7 +110,7 @@
                 </div>
             </div>
         }
-    
+
         </div>
     </div>
 

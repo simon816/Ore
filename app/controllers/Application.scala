@@ -324,18 +324,6 @@ final class Application @Inject()(data: DataHelper,
             def transferOrgOwner(r: OrganizationRole) = r.organization.transferOwner(r.organization.memberships.newMember(r.userId))
 
             thing match {
-
-              case "globalRole" =>
-                val role = RoleTypes.withId((json \ "role").as[Int])
-                if (role.roleClass != classOf[GlobalRole] || !role.isAssignable) {
-                  BadRequest
-                } else action match {
-                  case "add" => user.globalRoles += role
-                    Ok
-                  case "remove" => user.globalRoles -= role
-                    Ok
-                }
-
               case "orgRole" =>
                 if (user.isOrganization) {
                   BadRequest

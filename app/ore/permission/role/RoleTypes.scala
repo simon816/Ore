@@ -16,7 +16,7 @@ object RoleTypes extends Enumeration {
   // Global
 
   val Admin           = new  RoleType( 0, 61, classOf[GlobalRole], Absolute, "Ore Admin",          Red)
-  val Mod             = new  RoleType( 1, 62, classOf[GlobalRole], Standard, "Ore Moderator",      Aqua)
+  val Mod             = new  RoleType( 1, 62, classOf[GlobalRole], Lifted,   "Ore Moderator",      Aqua)
   val SpongeLeader    = new  RoleType( 2, 44, classOf[GlobalRole], Absolute, "Sponge Leader",      Amber)
   val TeamLeader      = new  RoleType( 3, 58, classOf[GlobalRole], Standard, "Team Leader",        Amber)
   val CommunityLeader = new  RoleType( 4, 59, classOf[GlobalRole], Standard, "Community Leader",   Amber)
