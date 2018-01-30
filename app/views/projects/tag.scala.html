@@ -1,9 +1,9 @@
 @import models.project.Tag
 
 @(tag: Tag)
-@if(tag.data.equals("")) {
+@if(tag.data.isEmpty || tag.data.equals("null")) {
     <div class="tags">
-        <span style="color: @tag.color.foreground; background-color:@tag.color.background; borer-color: @tag.color.background" class="tag">@tag.name</span>
+        <span style="color: @tag.color.foreground; background-color:@tag.color.background; border-color: @tag.color.background" class="tag">@tag.name</span>
     </div>
 } else {
     <div class="tags has-addons">
