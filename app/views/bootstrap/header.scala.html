@@ -7,7 +7,7 @@ The main header displayed on each layout.
 @import models.project.{Flag, Version}
 @import ore.OreConfig
 @import ore.permission.scope.GlobalScope
-@import ore.permission.{ReviewFlags, ReviewProjects}
+@import ore.permission._
 @(user: Boolean = true)(implicit messages: Messages, request: Request[_], service: ModelService, config: OreConfig,
         users: UserBase)
 
@@ -143,6 +143,29 @@ The main header displayed on each layout.
                                 </a>
                             </li>
                         }
+
+                        @if(user can ViewStats in GlobalScope) {
+                            <li>
+                                <a href="@routes.Application.showStats()">
+                                    <span class="pull-left">
+                                        @messages("user.stats")
+                                    </span>
+                                    <i class="pull-right fa fa-area-chart"></i>
+                                </a>
+                            </li>
+                        }
+
+                        @if(user can ViewHealth in GlobalScope) {
+                            <li>
+                                <a href="@routes.Application.showHealth()">
+                                    <span class="pull-left">
+                                    @messages("admin.health.title")
+                                    </span>
+                                    <i class="pull-right fa fa-heartbeat"></i>
+                                </a>
+                            </li>
+                        }
+
 
                         <li role="separator" class="divider"></li>
                         <li>
