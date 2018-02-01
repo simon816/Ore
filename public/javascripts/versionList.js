@@ -106,7 +106,7 @@ function loadVersions(increment, scrollTop) {
                 content = "";
 
                 // [First] ...
-                if(page >= 3) {
+                if(totalPages > 3 && page >= 3) {
                     content += "<li class='page'><a>" + 1 + "</a></li>";
 
                     if(page > 3) {
@@ -138,7 +138,7 @@ function loadVersions(increment, scrollTop) {
                 }
 
                 // [Last] ...
-                if(left > 1) {
+                if(totalPages > 3 && left > 1) {
                     if(left > 2) {
                         content += "<li class='disabled'><a>...</a></li>"
                     }
