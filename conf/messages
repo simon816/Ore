@@ -287,6 +287,7 @@ user.lock.confirm           =   Are you sure you want to lock your account? You 
 user.unlock                 =   Unlock account
 user.unlock.confirm         =   Are you sure you want to unlock your account?
 user.enterPassword          =   Enter your password to continue:
+user.stats                  =   Stats
 
 notification.invite                 =   You have been invited to join the {0}
 notification.invites                =   Invites
