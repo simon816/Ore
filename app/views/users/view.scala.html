@@ -112,7 +112,7 @@
                                 </span>
                             }
 
-                            @if(users.current.get can ViewActivity in user) {
+                            @if(users.current.isDefined && (users.current.get can ViewActivity in user)) {
                                 @if((user can ReviewFlags in user) || (user can ReviewProjects in user)) {
                                     <a class="user-settings" href="@routes.Application.showActivities(user.name)">
                                         <i class="fa fa-calendar" data-toggle="tooltip"
