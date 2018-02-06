@@ -54,11 +54,9 @@ function initChannelDelete(toggle, channelName, versionCount) {
         modal.find('.modal-footer').find('form').attr('action', url);
         modal.find('.version-count').text(versionCount);
     });
-    $('.safe-delete').click(function(e) {
-        console.log('clicked');
+    $('.btn[data-channel-delete]').click(function(e) {
         e.preventDefault();
         var id = $(this).data('channel-id');
-        console.log(id);
         $('#form-delete-' + id)[0].submit();
     });
 }
