@@ -232,8 +232,6 @@ form {
 }
 
 .btn {
-  border-radius: 4px;
-
   &:focus, &:active:focus, &.active:focus, &.focus, &:active.focus, &.active.focus {
     outline: none;
   }
@@ -242,13 +240,21 @@ form {
     background: $sponge_dark_grey;
     border: 1px solid $sponge_light_gray;
     color: #ffffff;
+
+    &:hover {
+      background: darken($sponge_dark_grey, 1);
+    }
   }
 
   &.yellow {
     background: $sponge_yellow;
-    border: 1px solid $sponge_dark_yellow;
+    border: 1px solid darken($sponge_yellow, 7);
     color: darken($sponge_yellow, 30);
     font-weight: 600;
+
+    &:hover {
+      background: darken($sponge_yellow, 2);
+    }
   }
 }
 
@@ -275,13 +281,12 @@ form {
 }
 
 select.form-control, input.form-control {
-  border-radius: 4px;
   box-shadow: none;
-  border: 1px solid $sponge_grey;
+  border: 1px solid $lighter;
 
   &:focus {
     box-shadow: none;
-    border: 1px solid $sponge_grey;
+    border: 1px solid $lighter;
   }
 }
 
@@ -408,6 +413,11 @@ select.form-control, input.form-control {
   font-weight: bold;
   vertical-align: top;
 }
+
 .table-notes-log tr .note-fixed-with {
   width: 10em;
+}
+
+.input-group .input-group-btn {
+  z-index: 999;
 }
