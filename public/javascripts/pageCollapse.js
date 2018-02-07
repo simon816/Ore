@@ -16,14 +16,15 @@ function bindExpand(e) {
                 listItem.after(div);
                 for (var i = 0; i < childPages.length; i++) {
                     var page = childPages[i];
-                    div.append(
+                    var childPage = $(
                         '<li class="list-group-item page-item-child">' +
                         '<a href=""></a>' +
                         '</li>'
                     );
-                    var link = div.find("li a");
+                    var link = childPage.find('a');
                     link.attr("href", '/' + namespace + '/pages/' + page.name);
-                    link.text(page.name) // this will sanitize the input
+                    link.text(page.name); // this will sanitize the input
+                    div.append(childPage);
                 }
                 $this.removeClass('page-expand')
                     .addClass('page-collapse')
