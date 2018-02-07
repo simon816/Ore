@@ -38,6 +38,7 @@ object ModelKeys {
   val RecommendedVersionId  =   new IntKey[Project](
                                   _.recommendedVersionId, _.recommendedVersion.id.getOrElse(-1))
   val LastUpdated           =   new TimestampKey[Project](_.lastUpdated, _.lastUpdated)
+  val Notes                 =   new StringKey[Project](_.notes, _._notes)
 
   // ProjectSettings
   val Issues                =   new StringKey[ProjectSettings](_.issues, _.issues.orNull)

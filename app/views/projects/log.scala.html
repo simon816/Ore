@@ -5,12 +5,14 @@
 @(project: Project)(implicit messages: Messages, request: Request[_], service: ModelService, config: OreConfig,
         users: UserBase)
 
+@projectRoutes = @{controllers.project.routes.Projects}
+
 @bootstrap.layout(messages("project.log.title", project.namespace)) {
 
     <div class="container" style="margin-top: 90px;">
         <div class="row">
             <div class="col-md-12">
-                <h1>@messages("project.log.title", project.namespace)</h1>
+                <h1>@messages("project.log.title", "") <a href="@projectRoutes.show(project.ownerName, project.slug)">@project.ownerName/@project.slug</a></h1>
             </div>
         </div>
         <div class="row">

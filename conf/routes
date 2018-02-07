@@ -122,6 +122,9 @@ POST    /:author/:slug/manage/delete                                @controllers
 POST    /:author/:slug/manage/members/remove                        @controllers.project.Projects.removeMember(author, slug)
 
 GET     /:author/:slug/log                                          @controllers.project.Projects.showLog(author, slug)
+GET     /:author/:slug/flags                                        @controllers.project.Projects.showFlags(author, slug)
+GET     /:author/:slug/notes                                        @controllers.project.Projects.showNotes(author, slug)
+POST    /:author/:slug/notes/addmessage                             @controllers.project.Projects.addMessage(author, slug)
 
 GET     /:author/:slug/issues                                       @controllers.project.Projects.showIssues(author, slug)
 GET     /:author/:slug/source                                       @controllers.project.Projects.showSource(author, slug)

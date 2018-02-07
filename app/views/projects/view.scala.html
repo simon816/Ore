@@ -11,6 +11,9 @@ Base template for Project overview.
 @import ore.project.FlagReasons
 @import security.NonceFilter._
 @import views.html.helper.{CSRF, form}
+@import ore.permission.ReviewProjects
+@import ore.permission.ReviewFlags
+@import ore.permission.ViewLogs
 @(project: Project, active: String, noButtons: Boolean = false)(content: Html)(implicit messages: Messages,
         request: Request[_], flash: Flash, service: ModelService, config: OreConfig, users: UserBase)
 
@@ -19,6 +22,9 @@ Base template for Project overview.
 @isOwner(user: User) = @{ user.id.get == project.ownerId }
 @projectRoutes = @{ controllers.project.routes.Projects }
 @versionRoutes = @{ controllers.project.routes.Versions }
+@canAdminFlag = @{ user can ReviewFlags in project }
+@canAdminNotes = @{ user can ReviewFlags in project }
+@canAdminLog = @{ user can ViewLogs in project }
 
 @bootstrap.layout(project.ownerName + " / " + project.name) {
 
@@ -201,6 +207,28 @@ Base template for Project overview.
                                data-placement="bottom" class="btn btn-primary">
                                 <i class="fa fa-download"></i> @messages("general.download")
                             </a>
+
+                            @if(user can ReviewProjects in project) {
+                                <button class="btn btn-alert dropdown-toggle" type="button" id="admin-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                    Admin actions
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="admin-actions">
+                                    @if(canAdminFlag) {
+                                        <li><a href="@projectRoutes.showFlags(project.ownerName, project.slug)">
+                                            Flag history (@project.flags.size) </a></li>
+                                    }
+                                    @if(canAdminNotes) {
+                                        <li><a href="@projectRoutes.showNotes(project.ownerName, project.slug)">
+                                            Staff notes (@project.getNotes().size) </a></li>
+                                    }
+                                    @if(canAdminLog) {
+                                        <li><a href="@projectRoutes.showLog(project.ownerName, project.slug)">
+                                            Log (@project.logger.entries.size) </a></li>
+                                    }
+                                    <li><a href="https://forums.spongepowered.org/users/@project.ownerName">Owner on forum <i class="fa fa-external-link" aria-hidden="true"></i></a></li>
+                                </ul>
+                            }
                         </div>
                     }
                 </div>

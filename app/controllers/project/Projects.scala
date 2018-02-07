@@ -1,13 +1,18 @@
 package controllers.project
 
 import java.nio.file.{Files, Path}
+import java.sql.Timestamp
 import javax.inject.Inject
 
 import controllers.BaseController
 import controllers.sugar.Bakery
+import controllers.sugar.Requests.AuthRequest
 import db.ModelService
 import discourse.OreDiscourseApi
 import form.OreForms
+import ore.permission._
+import models.admin.Message
+import models.project.{Note, Page}
 import ore.permission._
 import ore.project.FlagReasons
 import ore.project.factory.ProjectFactory
@@ -16,9 +21,12 @@ import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.cache.CacheApi
 import play.api.i18n.MessagesApi
+import play.api.libs.json._
 import play.api.mvc._
+import play.twirl.api.Html
 import security.spauth.SingleSignOnConsumer
-import util.StringUtils._
+import _root_.util.StringUtils
+import _root_.util.StringUtils._
 import views.html.{projects => views}
 
 import scala.collection.JavaConverters._
@@ -517,4 +525,40 @@ class Projects @Inject()(stats: StatTracker,
     Redirect(ShowHome).withSuccess(this.messagesApi("project.deleted", project.name))
   }
 
+  /**
+    * Show the flags that have been made on this project
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    */
+  def showFlags(author: String, slug: String) = {
+    (Authenticated andThen PermissionAction[AuthRequest](ReviewFlags)) { implicit request =>
+      withProject(author, slug) { project =>
+        Ok(views.admin.flags(project))
+      }
+    }
+  }
+
+  /**
+    * Show the notes that have been made on this project
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    */
+  def showNotes(author: String, slug: String) = {
+    (Authenticated andThen PermissionAction[AuthRequest](ReviewFlags)) { implicit request =>
+      withProject(author, slug) { project =>
+        Ok(views.admin.notes(project))
+      }
+    }
+  }
+
+  def addMessage(author: String, slug: String) = {
+    (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) { implicit request =>
+      withProject(author, slug) { project =>
+        project.addNote(Note(this.forms.NoteDescription.bindFromRequest.get.trim, request.user.userId))
+        Ok("Review")
+      }
+    }
+  }
 }
