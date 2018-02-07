@@ -22,9 +22,9 @@ Base template for Project overview.
 @isOwner(user: User) = @{ user.id.get == project.ownerId }
 @projectRoutes = @{ controllers.project.routes.Projects }
 @versionRoutes = @{ controllers.project.routes.Versions }
-@canAdminFlag = @{ user can ReviewFlags in project }
-@canAdminNotes = @{ user can ReviewFlags in project }
-@canAdminLog = @{ user can ViewLogs in project }
+@canAdminFlag = @{ hasUser && (user can ReviewFlags in project) }
+@canAdminNotes = @{ hasUser && (user can ReviewFlags in project) }
+@canAdminLog = @{ hasUser && (user can ViewLogs in project) }
 
 @bootstrap.layout(project.ownerName + " / " + project.name) {
 
@@ -208,7 +208,7 @@ Base template for Project overview.
                                 <i class="fa fa-download"></i> @messages("general.download")
                             </a>
 
-                            @if(user can ReviewProjects in project) {
+                            @if(hasUser && (user can ReviewProjects in project)) {
                                 <button class="btn btn-alert dropdown-toggle" type="button" id="admin-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                     Admin actions
                                     <span class="caret"></span>
