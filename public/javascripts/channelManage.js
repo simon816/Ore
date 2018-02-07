@@ -82,6 +82,7 @@ function initChannelManager(toggle, channelName, channelHex, title, call, method
         modal.find('.color-picker').css('color', channelHex);
         modal.find('.modal-title').text(title);
         modal.find('.non-reviewed').prop('checked', nonReviewed);
+        modal.find('input[type=submit]').attr('disabled', null);
         preview.css('background-color', channelHex).text(channelName);
 
         // Set input values
@@ -127,10 +128,14 @@ function initModal() {
     modal.find('.channel-input').on('input', function() {
         var val = $(this).val();
         var preview = getModal().find('.preview');
-        if (val.length === 0) {
+        var submit = getModal().find('input[type=submit]');
+        var pattern = /^[a-zA-Z0-9]+$/;
+        if (val.length === 0 || !pattern.exec(val)) {
             preview.hide();
+            submit.attr('disabled', true);
         } else {
             preview.show().text(val);
+            submit.attr('disabled', null);
         }
     });
     initColorPicker();

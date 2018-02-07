@@ -252,6 +252,7 @@ channel.delete.info             =   Are you sure you want to delete this channel
 channel.delete.info.versions    =   versions will be deleted.
 channel.nonReviewed             =   Exclude versions in this channel from the staff approval queue
 channel.nonReviewed.info        =   Certain restrictions may apply
+channel.nameRequirements        =   Name must be: unique, alphanumerical, no spaces, max 15 characters
 
 aria.dropdown.menu              =   dropdownMenu{0}
 
