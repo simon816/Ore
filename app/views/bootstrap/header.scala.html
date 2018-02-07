@@ -63,13 +63,9 @@ The main header displayed on each layout.
         <!-- Right navbar -->
         @if(user) {
             <ul class="nav navbar-nav navbar-collapse collapse navbar-right">
-                <li class="nav-icon authors-icon" @tooltip(messages("project.viewAuthors"))>
-                    <i class="icon fa fa-users"></i>
-                </li>
-
                 @users.current.map { user =>
 
-                <li class="dropdown nav-icon new-icon new-controls">
+                <li class="dropdown nav-icon new-controls">
                     <a href="#" class="drop-down-toggle" data-toggle="dropdown">
                         <i class="icon fa fa-plus"></i>
                         <span class="caret"></span>
@@ -87,8 +83,13 @@ The main header displayed on each layout.
                         </li>
                     </ul>
                 </li>
+
+                <li class="nav-icon authors-icon" @tooltip(messages("project.viewAuthors"))>
+                    <i class="icon fa fa-users"></i>
+                </li>
+
                     @* Show user controls *@
-                <li class="dropdown user-controls">
+                <li class="dropdown user-controls nav-icon">
                     <a href="#" class="drop-down-toggle user-toggle" data-toggle="dropdown">
                         @if(user.hasUnreadNotifications) {
                             <span class="unread"></span>
