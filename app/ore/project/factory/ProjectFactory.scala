@@ -50,6 +50,7 @@ trait ProjectFactory {
   val cacheApi: CacheApi
   val actorSystem: ActorSystem
   val pgp: PGPVerifier = new PGPVerifier
+  val dependencyVersionRegex = "^[0-9a-zA-Z\\.\\,\\[\\]\\(\\)-]+$".r
 
   implicit val messages: MessagesApi
   implicit val config: OreConfig
@@ -331,9 +332,7 @@ trait ProjectFactory {
       if (dependenciesMatchingName.nonEmpty) {
         val dependency = dependenciesMatchingName.head
 
-        val versionRegex = "^[0-9a-zA-Z\\.\\,\\[\\]\\(\\)-]+$".r
-
-        if (!versionRegex.pattern.matcher(dependency.version).matches()) {
+        if (!dependencyVersionRegex.pattern.matcher(dependency.version).matches()) {
           return
         }
 
