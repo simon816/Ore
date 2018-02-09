@@ -507,8 +507,10 @@ class Projects @Inject()(stats: StatTracker,
   }
 
   def showLog(author: String, slug: String) = {
-    (AuthedProjectAction(author, slug) andThen ProjectPermissionAction(ViewLogs)) { implicit request =>
-      Ok(views.log(request.project))
+    (Authenticated andThen PermissionAction[AuthRequest](ViewLogs)) { implicit request =>
+      withProject(author, slug) { project =>
+        Ok(views.log(project))
+      }
     }
   }
 
