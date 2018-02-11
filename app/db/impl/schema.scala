@@ -59,7 +59,7 @@ trait ProjectTable extends ModelTable[Project]
 
   override def * = (id.?, createdAt.?, pluginId, ownerName, userId, name, slug, recommendedVersionId.?, category,
                     description.?, stars, views, downloads, topicId, postId, isTopicDirty,
-                    isVisible, lastUpdated, notes) <> ((Project.apply _).tupled, Project.unapply)
+                    visibility, lastUpdated, notes) <> ((Project.apply _).tupled, Project.unapply)
 
 }
 

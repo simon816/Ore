@@ -29,6 +29,7 @@ import play.api.libs.functional.syntax._
 import play.twirl.api.Html
 import _root_.util.StringUtils
 import _root_.util.StringUtils._
+import models.project.VisibilityTypes.{Public, Visibility}
 
 /**
   * Represents an Ore package.
@@ -49,7 +50,7 @@ import _root_.util.StringUtils._
   * @param _topicId               ID of forum topic
   * @param _postId                ID of forum topic post ID
   * @param _isTopicDirty          Whether this project's forum topic needs to be updated
-  * @param _isVisible             Whether this project is visible to the default user
+  * @param _visibility            Whether this project is visible to the default user
   * @param _lastUpdated           Instant of last version release
   * @param _notes                 JSON notes
   */
@@ -69,7 +70,7 @@ case class Project(override val id: Option[Int] = None,
                    private var _topicId: Int = -1,
                    private var _postId: Int = -1,
                    private var _isTopicDirty: Boolean = false,
-                   private var _isVisible: Boolean = true,
+                   private var _visibility: Visibility = Public,
                    private var _lastUpdated: Timestamp = null,
                    var _notes: String = "")
                    extends OreModel(id, createdAt)
@@ -270,16 +271,16 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return True if visible
     */
-  override def isVisible: Boolean = this._isVisible
+  override def visibility: Visibility = this._visibility
 
   /**
     * Sets whether this project is visible.
     *
-    * @param visible True if visible
+    * @param visibility True if visible
     */
-  def setVisible(visible: Boolean) = {
-    this._isVisible = visible
-    if (isDefined) update(IsVisible)
+  def setVisibility(visibility: Visibility) = {
+    this._visibility = visibility
+    if (isDefined) update(ModelKeys.Visibility)
   }
 
   /**
@@ -630,6 +631,7 @@ object Project {
     private var _ownerName: String = _
     private var _ownerId: Int = -1
     private var _name: String = _
+    private var _visibility: Visibility = _
 
     def pluginId(pluginId: String) = {
       this._pluginId = pluginId
@@ -651,6 +653,11 @@ object Project {
       this
     }
 
+    def visibility(visibility: Visibility) = {
+      this._visibility = visibility
+      this
+    }
+
     def build(): Project = {
       checkNotNull(this._pluginId, "plugin id null", "")
       checkNotNull(this._ownerName, "owner name null", "")
@@ -661,7 +668,8 @@ object Project {
         _ownerName = this._ownerName,
         _ownerId = this._ownerId,
         _name = this._name,
-        _slug = slugify(this._name)
+        _slug = slugify(this._name),
+        _visibility = this._visibility
       ))
     }
 

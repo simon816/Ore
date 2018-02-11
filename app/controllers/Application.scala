@@ -12,7 +12,7 @@ import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
 import form.OreForms
 import models.admin.Review
-import models.project.{Flag, Project, Version}
+import models.project.{Flag, Project, Version, VisibilityTypes}
 import models.user.role._
 import ore.Platforms.Platform
 import ore.permission._
@@ -60,10 +60,15 @@ final class Application @Inject()(data: DataHelper,
       val actions = this.service.getSchema(classOf[ProjectSchema])
 
       val canHideProjects = this.users.current.isDefined && (this.users.current.get can HideProjects in GlobalScope)
-      val visibleFilter: ModelFilter[Project] = if (!canHideProjects)
-        ModelFilter[Project](_.isVisible)
+      var visibleFilter: ModelFilter[Project] = if (!canHideProjects)
+        ModelFilter[Project](_.visibility === VisibilityTypes.Public) +|| ModelFilter[Project](_.visibility === VisibilityTypes.New)
       else
         ModelFilter.Empty
+      if (this.users.current.isDefined) {
+        val currentUser = this.users.current.get
+        visibleFilter = visibleFilter +|| (ModelFilter[Project](_.userId === currentUser.id.get)
+            +&& ModelFilter[Project](_.visibility =!= VisibilityTypes.SoftDelete))
+      }
 
       val pform = platform.flatMap(p => Platforms.values.find(_.name.equalsIgnoreCase(p)).map(_.asInstanceOf[Platform]))
       val platformFilter = pform.map(actions.platformFilter).getOrElse(ModelFilter.Empty)

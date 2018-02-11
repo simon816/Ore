@@ -15,6 +15,8 @@ Base template for Project overview.
 @import ore.permission.ReviewFlags
 @import ore.permission.ViewLogs
 @import ore.permission.scope.GlobalScope
+@import models.project.VisibilityTypes
+@import ore.permission.EditPages
 @(project: Project, active: String, noButtons: Boolean = false)(content: Html)(implicit messages: Messages,
         request: Request[_], flash: Flash, service: ModelService, config: OreConfig, users: UserBase)
 
@@ -26,6 +28,7 @@ Base template for Project overview.
 @canAdminFlag = @{ hasUser && (user can ReviewFlags in GlobalScope) }
 @canAdminNotes = @{ hasUser && (user can ReviewFlags in GlobalScope) }
 @canAdminLog = @{ hasUser && (user can ViewLogs in GlobalScope) }
+@canEditPages = @{ hasUser && (user can EditPages in project) }
 
 @bootstrap.layout(project.ownerName + " / " + project.name) {
 
@@ -33,6 +36,31 @@ Base template for Project overview.
 
     <div class="project-header-container">
         <div class="container">
+            @if(project.visibility != VisibilityTypes.Public) {
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="alert alert-danger" role="alert" style="margin: 0.2em 0 0 0">
+                            @if(project.visibility == VisibilityTypes.New) {
+                                @messages("visibility.notice." + project.visibility.nameKey)
+                                @if(canEditPages) {
+                                    <br>
+                                    @messages("visibility.notice.author." + project.visibility.nameKey)
+                                    <a class="btn btn-success pull-right" href="/@project.ownerName/@project.slug/manage/publish" style="margin-top: -.5em" >Publish</a>
+                                }
+                            } else {
+                                @if(project.visibility == VisibilityTypes.NeedsChanges) {
+                                    @messages("visibility.notice." + project.visibility.nameKey, "Unknown")
+                                    @if(canEditPages) {
+                                        <a class="btn btn-success pull-right" href="/@project.ownerName/@project.slug/manage/sendforapproval" style="margin-top: -.5em">Send for approval</a>
+                                    }
+                                } else {
+                                    @messages("visibility.notice." + project.visibility.nameKey)
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
             <!-- Header -->
             <div class="row">
                 <div class="col-md-12">

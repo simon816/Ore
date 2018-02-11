@@ -15,8 +15,7 @@
  * ==================================================
  */
 
-var ICON_VIS = 'fa-eye-slash';
-var ICON_INVIS = 'fa-eye';
+var ICON = 'fa-eye';
 
 /*
  * ==================================================
@@ -26,22 +25,20 @@ var ICON_INVIS = 'fa-eye';
 
 $(function() {
     $('.btn-hide').click(function () {
-        var lang = $(this).find('span');
-        var icon = $(this).find('i');
-        var visible = icon.hasClass(ICON_VIS);
-        var iconClass = visible ? ICON_VIS : ICON_INVIS;
         var project = $(this).data('project');
-        var spinner = icon.removeClass(iconClass).addClass('fa-spinner fa-spin');
+        var visibilityLevel = $(this).data('level');
+        var spinner = $('button[data-project="'  + project + '"]').find('i');
+        spinner.removeClass(ICON).addClass('fa-spinner fa-spin');
         $.ajax({
             type: 'post',
-            url: '/' + project + '/visible/' + !visible,
+            url: '/' + project + '/visible/' + visibilityLevel,
             data: { csrfToken: csrf },
             fail: function () {
-                spinner.addClass(iconClass).removeClass('fa-spinner fa-spin');
+                spinner.addClass(ICON).removeClass('fa-spinner fa-spin');
             },
             success: function () {
-                spinner.addClass(visible ? ICON_INVIS : ICON_VIS).removeClass('fa-spinner fa-spin');
-                lang.text(visible ? 'Unhide' : 'Hide');
+                spinner.addClass(ICON).removeClass('fa-spinner fa-spin');
+                location.reload();
             }
         });
     });

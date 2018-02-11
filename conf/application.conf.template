@@ -101,6 +101,8 @@ ore {
         tmp-file-save = false
         icon-size = 200
         staleAge = 2419200
+        check-interval = 300000                  // 1 hour (millis)
+        draft-expire = 86400000                  // 1 day (millis)
     }
     
     users {

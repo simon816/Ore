@@ -5,6 +5,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.model.common.{Describable, Downloadable, Hideable}
 import db.table.key._
 import models.admin.{ProjectLogEntry, Review}
+import models.project.VisibilityTypes.Visibility
 import models.project._
 import models.statistic.StatEntry
 import models.user.role.RoleModel
@@ -23,7 +24,7 @@ object ModelKeys {
   val Name                  =   new StringKey[Named](_.name, _.name)
   val Downloads             =   new IntKey[Downloadable](_.downloads, _.downloadCount)
   val Description           =   new StringKey[Describable](_.description, _.description.orNull)
-  val IsVisible             =   new BooleanKey[Hideable](_.isVisible, _.isVisible)
+  val Visibility            =   new MappedTypeKey[Project, Visibility](_.visibility, _.visibility)
 
   // Project
   val OwnerId               =   new IntKey[Project](_.userId, _.ownerId)
