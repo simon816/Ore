@@ -20,7 +20,7 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.spongepowered"     %   "play-discourse"          %   "1.0.0-SNAPSHOT",
+  "org.spongepowered"     %   "play-discourse"          %   "1.1.0-SNAPSHOT",
   "org.spongepowered"     %   "plugin-meta"             %   "0.4.1",
   "com.typesafe.play"     %%  "play-slick"              %   "2.1.0",
   "com.typesafe.play"     %%  "play-slick-evolutions"   %   "2.1.0",
