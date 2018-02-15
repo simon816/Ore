@@ -109,13 +109,15 @@ POST    /:author/:slug                                              @controllers
 GET     /:author/:slug                                              @controllers.project.Projects.show(author, slug)
 POST    /:author/:slug/star/:starred                                @controllers.project.Projects.setStarred(author, slug, starred: Boolean)
 POST    /:author/:slug/flag                                         @controllers.project.Projects.flag(author, slug)
-POST    /:author/:slug/visible/:visible                             @controllers.project.Projects.setVisible(author, slug, visible: Boolean)
+POST    /:author/:slug/visible/:visibility                          @controllers.project.Projects.setVisible(author, slug, visibility: Int)
 POST    /:author/:slug/watch/:watching                              @controllers.project.Projects.setWatching(author, slug, watching: Boolean)
 
 GET     /:author/:slug/discuss                                      @controllers.project.Projects.showDiscussion(author, slug)
 POST    /:author/:slug/discuss/reply                                @controllers.project.Projects.postDiscussionReply(author, slug)
 
 GET     /:author/:slug/manage                                       @controllers.project.Projects.showSettings(author, slug)
+GET     /:author/:slug/manage/publish                               @controllers.project.Projects.publish(author, slug)
+GET     /:author/:slug/manage/sendforapproval                       @controllers.project.Projects.sendForApproval(author, slug)
 POST    /:author/:slug/manage/save                                  @controllers.project.Projects.save(author, slug)
 POST    /:author/:slug/manage/rename                                @controllers.project.Projects.rename(author, slug)
 POST    /:author/:slug/manage/delete                                @controllers.project.Projects.delete(author, slug)

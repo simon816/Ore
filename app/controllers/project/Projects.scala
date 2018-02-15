@@ -12,7 +12,7 @@ import discourse.OreDiscourseApi
 import form.OreForms
 import ore.permission._
 import models.admin.Message
-import models.project.{Note, Page}
+import models.project.{Note, Page, VisibilityTypes}
 import ore.permission._
 import ore.project.FlagReasons
 import ore.project.factory.ProjectFactory
@@ -27,6 +27,8 @@ import play.twirl.api.Html
 import security.spauth.SingleSignOnConsumer
 import _root_.util.StringUtils
 import _root_.util.StringUtils._
+import models.project.VisibilityTypes.Visibility
+import ore.permission.scope.GlobalScope
 import views.html.{projects => views}
 
 import scala.collection.JavaConverters._
@@ -493,17 +495,48 @@ class Projects @Inject()(stats: StatTracker,
   /**
     * Sets the visible state of the specified Project.
     *
-    * @param author   Project owner
-    * @param slug     Project slug
-    * @param visible  Project visibility
+    * @param author     Project owner
+    * @param slug       Project slug
+    * @param visibility Project visibility
     * @return         Ok
     */
-  def setVisible(author: String, slug: String, visible: Boolean) = {
+  def setVisible(author: String, slug: String, visibility: Int) = {
     (AuthedProjectAction(author, slug, requireUnlock = true)
       andThen ProjectPermissionAction(HideProjects)) { implicit request =>
-      request.project.setVisible(visible)
+      val newVisibility = VisibilityTypes.withId(visibility)
+      if (request.user can newVisibility.permission in GlobalScope) {
+        request.project.setVisibility(newVisibility)
+      }
       Ok
     }
+  }
+
+  /**
+    * Set a project that is in new to public
+    * @param author   Project owner
+    * @param slug     Project slug
+    * @return         Redirect home
+    */
+  def publish(author: String, slug: String) = SettingsEditAction(author, slug) { implicit request =>
+    val project = request.project
+    if (project.visibility == VisibilityTypes.New) {
+      project.setVisibility(VisibilityTypes.Public)
+    }
+    Redirect(ShowHome)
+  }
+
+  /**
+    * Set a project that needed changes to the approval state
+    * @param author   Project owner
+    * @param slug     Project slug
+    * @return         Redirect home
+    */
+  def sendForApproval(author: String, slug: String) = SettingsEditAction(author, slug) { implicit request =>
+    val project = request.project
+    if (project.visibility == VisibilityTypes.NeedsChanges) {
+      project.setVisibility(VisibilityTypes.NeedsApproval)
+    }
+    Redirect(ShowHome)
   }
 
   def showLog(author: String, slug: String) = {

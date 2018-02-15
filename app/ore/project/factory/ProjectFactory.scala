@@ -156,6 +156,7 @@ trait ProjectFactory {
       .ownerName(owner.name)
       .ownerId(owner.id.get)
       .name(metaData.getName)
+      .visibility(VisibilityTypes.New)
       .build()
 
     val pendingProject = PendingProject(

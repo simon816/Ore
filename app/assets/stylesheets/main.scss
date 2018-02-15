@@ -101,10 +101,6 @@ form {
     overflow: hidden;
   }
 
-  .list-group-item.project-hidden {
-    background: repeating-linear-gradient(45deg, $lighter, $lighter 10px, #f5f5f5 10px, #f5f5f5 20px);
-  }
-
   .list-group-item.project-list-footer {
     padding: 0;
     .btn { border: none; }
@@ -420,4 +416,20 @@ select.form-control, input.form-control {
 
 .input-group .input-group-btn {
   z-index: 999;
+}
+
+.striped {
+  background: repeating-linear-gradient(45deg, $lighter, $lighter 15px, #f5f5f5 15px, #f5f5f5 35px);
+}
+
+.project-new {
+  box-shadow: inset -10px 0px cadetblue;
+}
+
+.project-needsChanges {
+  box-shadow: inset -10px 0px gold;
+}
+
+.project-hidden {
+  box-shadow: inset -10px 0px red;
 }

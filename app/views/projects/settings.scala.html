@@ -36,8 +36,8 @@
                 <div class="panel panel-default panel-settings">
                     <div class="panel-heading">
                         <h3 class="panel-title pull-left">@messages("project.settings")</h3>
-                        @if(userBase.current.get can HideProjects in GlobalScope) {
-                            @projects.utils.btnHide(project, "pull-right")
+                        @if(userBase.current.isDefined && (userBase.current.get can HideProjects in GlobalScope)) {
+                            @projects.utils.btnHide(project, userBase.current.get)
                         }
                     </div>
 
