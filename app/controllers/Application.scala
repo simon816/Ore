@@ -352,4 +352,19 @@ final class Application @Inject()(data: DataHelper,
     }
   }
 
+  /**
+    *
+    * @return Show page
+    */
+  def showProjectVisibility() = (Authenticated andThen PermissionAction[AuthRequest](ReviewVisibility)) { implicit request =>
+    val projectSchema = this.service.getSchema(classOf[ProjectSchema])
+
+    val futureApproval = projectSchema.collect(ModelFilter[Project](_.visibility === VisibilityTypes.NeedsApproval).fn, ProjectSortingStrategies.Default, -1, 0)
+    val projectApprovals = this.service.await(futureApproval).get
+
+    val futureChanges = projectSchema.collect(ModelFilter[Project](_.visibility === VisibilityTypes.NeedsChanges).fn, ProjectSortingStrategies.Default, -1, 0)
+    val projectChanges = this.service.await(futureChanges).get
+
+    Ok(views.users.admin.visibility(projectApprovals.seq, projectChanges.seq))
+  }
 }

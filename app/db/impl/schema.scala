@@ -8,7 +8,7 @@ import db.impl.schema._
 import db.impl.table.common.{DescriptionColumn, DownloadsColumn, VisibilityColumn}
 import db.impl.table.StatTable
 import db.table.{AssociativeTable, ModelTable, NameColumn}
-import models.admin.{ProjectLog, ProjectLogEntry, Review}
+import models.admin.{ProjectLog, ProjectLogEntry, Review, VisibilityChange}
 import models.api.ProjectApiKey
 import models.project.TagColors.TagColor
 import models.project._
@@ -362,4 +362,16 @@ class ReviewTable(tag: RowTag) extends ModelTable[Review](tag, "project_version_
   def comment           =   column[String]("comment")
 
   override def * =  (id.?, createdAt.?, versionId, userId, endedAt.?, comment) <> ((Review.apply _).tupled, Review.unapply)
+}
+
+class VisibilityChangeTable(tag: RowTag) extends ModelTable[VisibilityChange](tag, "project_visibility_changes") {
+
+  def createdBy         =   column[Int]("created_by")
+  def projectId         =   column[Int]("project_id")
+  def comment           =   column[String]("comment")
+  def resolvedAt        =   column[Timestamp]("resolved_at")
+  def resolvedBy        =   column[Int]("resolved_by")
+  def visibility        =   column[Int]("visibility")
+
+  override def * = (id.?, createdAt.?, createdBy.?, projectId, comment, resolvedAt.?, resolvedBy.?, visibility) <> (VisibilityChange.tupled, VisibilityChange.unapply)
 }

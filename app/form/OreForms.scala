@@ -251,4 +251,5 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory, se
 
   lazy val NoteDescription = Form(single("content" -> text))
 
+  lazy val NeedsChanges = Form(single("comment" -> text))
 }

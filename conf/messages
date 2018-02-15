@@ -187,7 +187,8 @@ project.page.parent.info        =   Select a parent page (optional)
 
 project.back = Get me out of here!
 
-project.log.title = Project Log: {0}
+project.log.logger.title        = Project Log
+project.log.visibility.title    = Visibility Log
 
 org.create          =   New Organization
 org.create.title    =   Create a new Organization
@@ -272,7 +273,7 @@ user.flags.markResolved     =   Mark resolved
 user.flags.markAllResolved  =   Mark all resolved
 user.flags.messageUser      =   Message user
 user.flags.messageOwner     =   Message project owner
-user.queue                  =   Approval queue
+user.queue                  =   Version approvals
 user.queue.none             =   There are no versions to review.
 user.queue.approve          =   Approve
 user.queue.open             =   Approval queue
@@ -360,6 +361,6 @@ visibility.name.softDelete      = Soft deleted
 visibility.notice.public        = None
 visibility.notice.new           = This project is new, and the author may not have finished writing the documentation.
 visibility.notice.author.new    = Click ''Publish'' to publish. This project will automatically be moved from the new stage in 24 hours.
-visibility.notice.needsChanges  = This project requires changes: {0}
+visibility.notice.needsChanges  = This project requires changes:
 visibility.notice.needsApproval = You have send the project for review
 visibility.notice.softDelete    = Project deleted by {0}: {1}
