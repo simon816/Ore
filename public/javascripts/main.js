@@ -176,6 +176,34 @@ $(function() {
     });
 });
 
+// Fix page anchors which were broken by the fixed top navigation
+
+var scrollToAnchor = function (anchor) {
+    if (anchor) {
+        var target = $("a" + anchor);
+
+        if (target.length) {
+            $('html,body').animate({
+                scrollTop: target.offset().top - ($("#topbar").height() + 10)
+            }, 1);
+
+            return false;
+        }
+    }
+
+    return true;
+};
+
+$(window).load(function () {
+    return scrollToAnchor(window.location.hash);
+});
+
+$("a[href^='#']").click(function () {
+    window.location.replace(window.location.toString().split("#")[0] + $(this).attr("href"));
+
+    return scrollToAnchor(this.hash);
+});
+
 /*
  * ==================================================
  * =                 Service Worker                 =
