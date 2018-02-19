@@ -4,12 +4,12 @@ import db.Named
 import db.impl.OrePostgresDriver.api._
 import db.impl.model.common.{Describable, Downloadable, Hideable}
 import db.table.key._
-import models.admin.{ProjectLogEntry, Review}
+import models.admin.{ProjectLogEntry, Review, VisibilityChange}
 import models.project.VisibilityTypes.Visibility
 import models.project._
 import models.statistic.StatEntry
 import models.user.role.RoleModel
-import models.user.{Notification, SignOn, User, Organization}
+import models.user.{Notification, Organization, SignOn, User}
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
@@ -110,4 +110,7 @@ object ModelKeys {
   val Comment               =   new StringKey[Review](_.comment, _.message)
   val EndedAt               =   new TimestampKey[Review](_.endedAt, _.endedAt.get)
 
+  // VisibilityChange
+  val ResolvedByVC          =   new IntKey[VisibilityChange](_.resolvedBy, _.resolvedBy.get)
+  val ResolvedAtVC          =   new TimestampKey[VisibilityChange](_.resolvedAt, _.resolvedAt.get)
 }

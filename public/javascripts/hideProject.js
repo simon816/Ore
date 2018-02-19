@@ -24,15 +24,37 @@ var ICON = 'fa-eye';
  */
 
 $(function() {
-    $('.btn-hide').click(function () {
+    $('.btn-visibility-change').click(function () {
         var project = $(this).data('project');
         var visibilityLevel = $(this).data('level');
+        var needsModal = $(this).data('modal');
         var spinner = $('button[data-project="'  + project + '"]').find('i');
         spinner.removeClass(ICON).addClass('fa-spinner fa-spin');
+        if (needsModal) {
+            $('.modal-title').html($(this).text().trim() + ": comment");
+            $('#modal-visibility-comment').modal('show');
+            $('.btn-visibility-comment-submit').data('project', project);
+            $('.btn-visibility-comment-submit').data('level', visibilityLevel);
+            spinner.addClass(ICON).removeClass('fa-spinner fa-spin');
+        } else {
+            sendVisibilityRequest(project, visibilityLevel, '', spinner);
+        }
+    });
+
+    $('.btn-visibility-comment-submit').click(function () {
+        var project = $(this).data('project');
+        var visibilityLevel = $(this).data('level');
+        var spinner = $(this).find('i');
+        spinner.removeClass(ICON).addClass('fa-spinner fa-spin');
+        sendVisibilityRequest(project, visibilityLevel, $('.textarea-visibility-comment').val(), spinner);
+
+    });
+
+    function sendVisibilityRequest(project, level, comment, spinner) {
         $.ajax({
             type: 'post',
-            url: '/' + project + '/visible/' + visibilityLevel,
-            data: { csrfToken: csrf },
+            url: '/' + project + '/visible/' + level,
+            data: { csrfToken: csrf, comment: comment },
             fail: function () {
                 spinner.addClass(ICON).removeClass('fa-spinner fa-spin');
             },
@@ -41,5 +63,5 @@ $(function() {
                 location.reload();
             }
         });
-    });
+    }
 });

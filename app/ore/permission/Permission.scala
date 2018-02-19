@@ -13,6 +13,7 @@ case object EditVersions        extends Permission { val trust = Standard }
 case object HideProjects        extends Permission { val trust = Standard }
 case object ReviewFlags         extends Permission { val trust = Standard }
 case object ReviewProjects      extends Permission { val trust = Standard }
+case object ReviewVisibility    extends Permission { val trust = Standard }
 case object ViewHealth          extends Permission { val trust = Standard }
 case object ViewLogs            extends Permission { val trust = Lifted }
 case object UserAdmin           extends Permission { val trust = Lifted   }

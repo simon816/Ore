@@ -1,6 +1,7 @@
 package models.project
 
 import java.sql.Timestamp
+import java.time.Instant
 
 import com.google.common.base.Preconditions._
 import db.access.ModelAccess
@@ -12,7 +13,7 @@ import db.impl.schema.ProjectSchema
 import db.impl.table.ModelKeys
 import db.impl.table.ModelKeys._
 import db.{ModelService, Named}
-import models.admin.ProjectLog
+import models.admin.{ProjectLog, VisibilityChange}
 import models.api.ProjectApiKey
 import models.statistic.ProjectView
 import models.user.User
@@ -278,10 +279,27 @@ case class Project(override val id: Option[Int] = None,
     *
     * @param visibility True if visible
     */
-  def setVisibility(visibility: Visibility) = {
+  def setVisibility(visibility: Visibility, comment: String, creator: User) = {
     this._visibility = visibility
     if (isDefined) update(ModelKeys.Visibility)
+
+    if (lastVisibilityChange.isDefined) {
+      val visibilityChange =lastVisibilityChange.get
+      visibilityChange.setResolvedAt(Timestamp.from(Instant.now()))
+      visibilityChange.setResolvedBy(creator)
+    }
+
+    this.service.access[VisibilityChange](classOf[VisibilityChange]).add(VisibilityChange(None, Some(Timestamp.from(Instant.now())), creator.id, this.id.get, comment, None, None, visibility.id))
   }
+
+  /**
+    * Get VisibilityChanges
+    */
+  def visibilityChanges = this.schema.getChildren[VisibilityChange](classOf[VisibilityChange], this)
+  def visibilityChangesByDate = visibilityChanges.all.toSeq.sortWith(byCreationDate)
+  def byCreationDate(first: VisibilityChange, second: VisibilityChange) = first.createdAt.getOrElse(Timestamp.from(Instant.MIN)).getTime < second.createdAt.getOrElse(Timestamp.from(Instant.MIN)).getTime
+  def lastVisibilityChange: Option[VisibilityChange] = visibilityChanges.all.toSeq.filter(cr => !cr.isResolved).sortWith(byCreationDate).headOption
+  def lastChangeRequest: Option[VisibilityChange] = visibilityChanges.all.toSeq.filter(cr => cr.visibility == VisibilityTypes.NeedsChanges.id).sortWith(byCreationDate).lastOption
 
   /**
     * Returns the last time this [[Project]] was updated.

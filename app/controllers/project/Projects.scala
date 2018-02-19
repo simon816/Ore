@@ -2,6 +2,7 @@ package controllers.project
 
 import java.nio.file.{Files, Path}
 import java.sql.Timestamp
+import java.time.Instant
 import javax.inject.Inject
 
 import controllers.BaseController
@@ -505,7 +506,12 @@ class Projects @Inject()(stats: StatTracker,
       andThen ProjectPermissionAction(HideProjects)) { implicit request =>
       val newVisibility = VisibilityTypes.withId(visibility)
       if (request.user can newVisibility.permission in GlobalScope) {
-        request.project.setVisibility(newVisibility)
+        if (visibility == VisibilityTypes.NeedsChanges.id) {
+          val comment = this.forms.NeedsChanges.bindFromRequest.get.trim
+          request.project.setVisibility(newVisibility, comment, request.user)
+        } else {
+          request.project.setVisibility(newVisibility, "", request.user)
+        }
       }
       Ok
     }
@@ -520,7 +526,7 @@ class Projects @Inject()(stats: StatTracker,
   def publish(author: String, slug: String) = SettingsEditAction(author, slug) { implicit request =>
     val project = request.project
     if (project.visibility == VisibilityTypes.New) {
-      project.setVisibility(VisibilityTypes.Public)
+      project.setVisibility(VisibilityTypes.Public, "", request.user)
     }
     Redirect(ShowHome)
   }
@@ -534,7 +540,7 @@ class Projects @Inject()(stats: StatTracker,
   def sendForApproval(author: String, slug: String) = SettingsEditAction(author, slug) { implicit request =>
     val project = request.project
     if (project.visibility == VisibilityTypes.NeedsChanges) {
-      project.setVisibility(VisibilityTypes.NeedsApproval)
+      project.setVisibility(VisibilityTypes.NeedsApproval, "", request.user)
     }
     Redirect(ShowHome)
   }
