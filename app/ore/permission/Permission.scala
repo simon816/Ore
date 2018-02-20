@@ -11,6 +11,7 @@ case object EditPages           extends Permission { val trust = Limited  }
 case object EditSettings        extends Permission { val trust = Lifted   }
 case object EditVersions        extends Permission { val trust = Standard }
 case object HideProjects        extends Permission { val trust = Standard }
+case object HardRemoveProject   extends Permission { val trust = Absolute }
 case object ReviewFlags         extends Permission { val trust = Standard }
 case object ReviewProjects      extends Permission { val trust = Standard }
 case object ReviewVisibility    extends Permission { val trust = Standard }
