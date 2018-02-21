@@ -142,10 +142,10 @@ GET     /:author/:slug/icon/pending                                 @controllers
 
 # ---------- Pages ----------
 
-GET     /:author/:slug/pages/:page/edit                             @controllers.project.Pages.showEditor(author, slug, page)
-POST    /:author/:slug/pages/:page/edit                             @controllers.project.Pages.save(author, slug, page)
-POST    /:author/:slug/pages/:page/delete                           @controllers.project.Pages.delete(author, slug, page)
-GET     /:author/:slug/pages/:page                                  @controllers.project.Pages.show(author, slug, page)
+GET     /:author/:slug/pages/*page/edit                             @controllers.project.Pages.showEditor(author, slug, page)
+POST    /:author/:slug/pages/*page/edit                             @controllers.project.Pages.save(author, slug, page)
+POST    /:author/:slug/pages/*page/delete                           @controllers.project.Pages.delete(author, slug, page)
+GET     /:author/:slug/pages/*page                                  @controllers.project.Pages.show(author, slug, page)
 
 
 # ---------- Channels ----------

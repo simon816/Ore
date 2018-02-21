@@ -49,6 +49,8 @@ $(function() {
         var parentId = -1;
         if (parent.length) {
             parentId = parent.val();
+            if (parentId != -1)
+                url = '/' + PROJECT_OWNER + '/' + PROJECT_SLUG + '/pages/' + parent.text() + '/' + pageName + '/edit';
         }
         $.ajax({
             method: 'post',
