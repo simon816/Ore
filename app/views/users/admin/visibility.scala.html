@@ -60,7 +60,11 @@
                                     <div class="row">
                                         <div class="col-xs-12 col-md-8">
                                             <span class="description">
-                                                <strong>@users.get(project.lastVisibilityChange.get.createdBy.getOrElse(1)).map(_.username).getOrElse("Unknown")</strong>
+                                                @if(project.lastVisibilityChange.isDefined) {
+                                                    <strong>@users.get(project.lastVisibilityChange.get.createdBy.getOrElse(1)).map(_.username).getOrElse("Unknown")</strong>
+                                                } else {
+                                                    <strong>Unknown</strong>
+                                                }
                                                 <span class="minor"> requested changes on </span>
                                                 <a href="@projectRoutes.show(project.ownerName, project.slug)">
                                                     @project.ownerName/<strong>@project.slug</strong>

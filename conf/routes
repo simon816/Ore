@@ -121,7 +121,8 @@ GET     /:author/:slug/manage/publish                               @controllers
 GET     /:author/:slug/manage/sendforapproval                       @controllers.project.Projects.sendForApproval(author, slug)
 POST    /:author/:slug/manage/save                                  @controllers.project.Projects.save(author, slug)
 POST    /:author/:slug/manage/rename                                @controllers.project.Projects.rename(author, slug)
-POST    /:author/:slug/manage/delete                                @controllers.project.Projects.delete(author, slug)
+POST    /:author/:slug/manage/hardDelete                            @controllers.project.Projects.delete(author, slug)
+POST    /:author/:slug/manage/delete                                @controllers.project.Projects.softDelete(author, slug)
 POST    /:author/:slug/manage/members/remove                        @controllers.project.Projects.removeMember(author, slug)
 
 GET     /:author/:slug/log                                          @controllers.project.Projects.showLog(author, slug)

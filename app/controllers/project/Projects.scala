@@ -506,7 +506,7 @@ class Projects @Inject()(stats: StatTracker,
       andThen ProjectPermissionAction(HideProjects)) { implicit request =>
       val newVisibility = VisibilityTypes.withId(visibility)
       if (request.user can newVisibility.permission in GlobalScope) {
-        if (visibility == VisibilityTypes.NeedsChanges.id) {
+        if (newVisibility.showModal) {
           val comment = this.forms.NeedsChanges.bindFromRequest.get.trim
           request.project.setVisibility(newVisibility, comment, request.user)
         } else {
@@ -560,9 +560,26 @@ class Projects @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return Home page
     */
-  def delete(author: String, slug: String) = SettingsEditAction(author, slug) { implicit request =>
+  def delete(author: String, slug: String) = {
+    (Authenticated andThen PermissionAction[AuthRequest](HardRemoveProject)) { implicit request =>
+      withProject(author, slug) { project =>
+        this.projects.delete(project)
+        Redirect(ShowHome).withSuccess(this.messagesApi("project.deleted", project.name))
+      }
+    }
+  }
+
+  /**
+    * Soft deletes the specified project.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return Home page
+    */
+  def softDelete(author: String, slug: String) = SettingsEditAction(author, slug) { implicit request =>
     val project = request.project
-    this.projects.delete(project)
+    val comment = this.forms.NeedsChanges.bindFromRequest.get.trim
+    project.setVisibility(VisibilityTypes.SoftDelete, comment, request.user)
     Redirect(ShowHome).withSuccess(this.messagesApi("project.deleted", project.name))
   }
 

@@ -47,22 +47,27 @@ Base template for Project overview.
                                     @messages("visibility.notice.author." + project.visibility.nameKey)
                                     <a class="btn btn-success pull-right" href="/@project.ownerName/@project.slug/manage/publish" style="margin-top: -.5em">Publish</a>
                                 }
-                            } else {
-                                @if(project.visibility == VisibilityTypes.NeedsChanges) {
-                                    @if(canEditPages) {
-                                        <a class="btn btn-success pull-right" href="/@project.ownerName/@project.slug/manage/sendforapproval">Send for approval</a>
-                                    }
-                                    <strong>@messages("visibility.notice." + project.visibility.nameKey)</strong>
-                                    <br>
-                                    @if(project.lastVisibilityChange.isDefined) {
-                                        @project.lastVisibilityChange.get.renderComment()
-                                    } else {
-                                        Unknown
-                                    }
-                                } else {
-                                    @messages("visibility.notice." + project.visibility.nameKey)
+                            } else { @if(project.visibility == VisibilityTypes.NeedsChanges) {
+                                @if(canEditPages) {
+                                    <a class="btn btn-success pull-right" href="/@project.ownerName/@project.slug/manage/sendforapproval">Send for approval</a>
                                 }
-                            }
+                                <strong>@messages("visibility.notice." + project.visibility.nameKey)</strong>
+                                <br>
+                                @if(project.lastVisibilityChange.isDefined) {
+                                    @project.lastVisibilityChange.get.renderComment()
+                                } else {
+                                    Unknown
+                                }
+                            } else { @if(project.visibility == VisibilityTypes.SoftDelete) {
+                                @if(project.lastVisibilityChange.isDefined) {
+                                    @messages("visibility.notice." + project.visibility.nameKey, users.get(project.lastVisibilityChange.get.createdBy.get).map(_.username).getOrElse("Unknown"))
+                                    @project.lastVisibilityChange.get.renderComment()
+                                } else {
+                                    @messages("visibility.notice." + project.visibility.nameKey, "Unknown")
+                                }
+                            } else {
+                                @messages("visibility.notice." + project.visibility.nameKey)
+                            }}}
                         </div>
                     </div>
                 </div>

@@ -51,9 +51,10 @@ $(function() {
     });
 
     function sendVisibilityRequest(project, level, comment, spinner) {
+        var _url = '/' + project + (level == -99 ? '/manage/hardDelete' : '/visible/' + level);
         $.ajax({
             type: 'post',
-            url: '/' + project + '/visible/' + level,
+            url: _url,
             data: { csrfToken: csrf, comment: comment },
             fail: function () {
                 spinner.addClass(ICON).removeClass('fa-spinner fa-spin');
