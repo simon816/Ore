@@ -38,7 +38,7 @@
                             @activities.map { tuple =>
                                 @if(tuple._1.isInstanceOf[Review]) {
                                     <tr>
-                                        <td>Review approved:</td>
+                                        <td>Review approved</td>
                                         <td>@prettifyDateAndTime(tuple._1.asInstanceOf[Review].endedAt.getOrElse(Timestamp.from(Instant.EPOCH)))</td>
                                         <td>for:
                                             @if(tuple._2.isDefined) {
@@ -52,7 +52,7 @@
                                 }
                                 @if(tuple._1.isInstanceOf[Flag]) {
                                     <tr>
-                                        <td>Flag resolved:</td>
+                                        <td>Flag resolved</td>
                                         <td>@prettifyDateAndTime(tuple._1.asInstanceOf[Flag].resolvedAt.getOrElse(Timestamp.from(Instant.EPOCH)))</td>
                                         <td>for:
                                             @if(tuple._2.isDefined) {
