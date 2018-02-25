@@ -10,6 +10,8 @@
 @(underReview: Seq[(Project, Version)], versions: Seq[(Project, Version)])(implicit messages: Messages, request: Request[_], service: ModelService,
         config: OreConfig, users: UserBase)
 
+@import java.sql.Timestamp
+@import java.time.Instant
 @versionRoutes = @{controllers.project.routes.Versions}
 @currentUserId = @{users.current.get.id.get}
 
@@ -66,6 +68,8 @@
                                         <a href="https://forums.spongepowered.org/users/@tuple._1.ownerName">
                                             @tuple._2.author.get.name
                                         </a>
+                                    } else {
+                                        Unknown
                                     }
                                     <br>
                                     @prettifyDateAndTime(tuple._2.createdAt.get)
@@ -85,11 +89,11 @@
                                     @if(currentReview.isDefined) {
                                         @users.get(currentReview.get.userId).get.name
                                         <br>
-                                        <span data-ago="@currentReview.get.createdAt" data-title="started "></span>
+                                        <span data-ago="@currentReview.get.createdAt.getOrElse(Timestamp.from(Instant.now())).getTime" data-title="started "></span>
                                     } else {
                                         <strike>@users.get(tuple._2.mostRecentReviews.last.userId).get.name</strike>
                                         <br>
-                                        <span data-ago="@tuple._2.mostRecentReviews.last.createdAt" data-title="abandoned "></span>
+                                        <span data-ago="@tuple._2.mostRecentReviews.last.createdAt.getOrElse(Timestamp.from(Instant.now())).getTime" data-title="abandoned "></span>
                                     }
                                 </td>
                                 <td style="vertical-align: middle; text-align: right; padding-right: 15px;">
