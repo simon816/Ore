@@ -119,7 +119,14 @@ trait OreRestfulApi {
       } else {
         result = pages.toSeq
       }
-      result
+      Some(toJson(result.map(page => obj(
+        "createdAt" -> page.createdAt,
+        "id" -> page.id,
+        "name" -> page.name,
+        "parentId" -> page.parentId,
+        "slug" -> page.slug,
+        "fullSlug" -> page.fullSlug
+      ))))
     } map {
       toJson(_)
     }

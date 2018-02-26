@@ -15,11 +15,12 @@ Documentation page within Project overview.
 @import models.project.Page
 @(model: Project,
   page: Page,
+  forceHideEditor: Boolean = false,
   editorOpen: Boolean = false)(implicit messages: Messages, request: Request[_], flash: Flash, service: ModelService,
         config: OreConfig, userBase: UserBase)
 
 @canEditPages = @{
-    userBase.current.isDefined && (userBase.current.get can EditPages in model)
+    userBase.current.isDefined && (userBase.current.get can EditPages in model) && !forceHideEditor
 }
 
 @projects.view(model, "#docs") {
@@ -98,7 +99,7 @@ Documentation page within Project overview.
                                             </a>
                                         }
                                     }
-                                    <a href="@routes.Pages.show(model.ownerName, model.slug, pg.name)">
+                                    <a href="@routes.Pages.show(model.ownerName, model.slug, pg.fullSlug)">
                                         @pg.name
                                     </a>
                                 </li>
