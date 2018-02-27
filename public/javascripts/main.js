@@ -75,6 +75,10 @@ function initTooltips() {
     });
 }
 
+function slugify(name) {
+    return name.trim().replace(/ +/g, ' ').replace(/ /g, '-');
+}
+
 /*
  * ==================================================
  * =               Google Analytics                 =

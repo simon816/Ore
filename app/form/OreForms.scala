@@ -168,6 +168,7 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory, se
     */
   lazy val PageEdit = Form(mapping(
     "parent-id" -> optional(number),
+    "name" -> optional(text),
     "content" -> optional(text(
       maxLength = MaxLength
     )))(PageSaveForm.apply)(PageSaveForm.unapply))
