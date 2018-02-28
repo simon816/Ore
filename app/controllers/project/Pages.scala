@@ -44,13 +44,13 @@ class Pages @Inject()(forms: OreForms,
   def withPage(project: Project, page: String): (Option[Page], Boolean) = {
     val parts = page.split("/")
     if (parts.size == 2) {
-      val parentId = project.pages.find(equalsIgnoreCase(_.name, parts(0))).map(_.id.getOrElse(-1)).getOrElse(-1)
-      val pages: Seq[Page] = project.pages.filter(equalsIgnoreCase(_.name, parts(1))).seq
+      val parentId = project.pages.find(equalsIgnoreCase(_.slug, parts(0))).map(_.id.getOrElse(-1)).getOrElse(-1)
+      val pages: Seq[Page] = project.pages.filter(equalsIgnoreCase(_.slug, parts(1))).seq
       (pages.find(_.parentId == parentId), false)
     } else {
-      val result = project.pages.find((ModelFilter[Page](_.name === parts(0)) +&& ModelFilter[Page](_.parentId === -1)).fn)
-      if (!result.isDefined) {
-        (project.pages.find((ModelFilter[Page](_.name === parts(0))).fn), true)
+      val result = project.pages.find((ModelFilter[Page](_.slug === parts(0)) +&& ModelFilter[Page](_.parentId === -1)).fn)
+      if (result.isEmpty) {
+        (project.pages.find(ModelFilter[Page](_.slug === parts(0)).fn), true)
       } else {
         (result, false)
       }
@@ -91,9 +91,10 @@ class Pages @Inject()(forms: OreForms,
     var parentId = -1
     if (parts.size == 2) {
       pageName = parts(1)
-      parentId = project.pages.find(equalsIgnoreCase(_.name, parts(0))).map(_.id.getOrElse(-1)).getOrElse(-1)
+      parentId = project.pages.find(equalsIgnoreCase(_.slug, parts(0))).map(_.id.getOrElse(-1)).getOrElse(-1)
     }
-    val pageModel = project.getOrCreatePage(pageName, parentId)
+    val optionPage = project.pages.find(equalsIgnoreCase(_.slug, pageName))
+    val pageModel = optionPage.getOrElse(project.getOrCreatePage(pageName, parentId))
     Ok(views.view(project, pageModel, editorOpen = true))
   }
 
@@ -130,10 +131,10 @@ class Pages @Inject()(forms: OreForms,
             Redirect(self.show(author, slug, page)).withError("error.minLength")
           } else {
             val parts = page.split("/")
-            var pageName = parts(0)
+            var pageName = pageData.name.getOrElse(parts(0))
             if (parts.size == 2) {
-              pageName = parts(1)
-              parentId = project.pages.find(equalsIgnoreCase(_.name, parts(0))).map(_.id.getOrElse(-1)).getOrElse(-1)
+              pageName = pageData.name.getOrElse(parts(1))
+              parentId = project.pages.find(equalsIgnoreCase(_.slug, parts(0))).map(_.id.getOrElse(-1)).getOrElse(-1)
             }
             val pageModel = project.getOrCreatePage(pageName, parentId)
             pageData.content.map(pageModel.contents = _)

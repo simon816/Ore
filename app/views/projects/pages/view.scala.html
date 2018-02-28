@@ -42,13 +42,14 @@ Documentation page within Project overview.
                         <div class="col-md-12">
                             @utils.alert("error")
                             @utils.editor(
-                                saveCall = routes.Pages.save(model.ownerName, model.slug, page.name),
-                                deleteCall = routes.Pages.delete(model.ownerName, model.slug, page.name),
+                                saveCall = routes.Pages.save(model.ownerName, model.slug, page.fullSlug),
+                                deleteCall = routes.Pages.delete(model.ownerName, model.slug, page.fullSlug),
                                 deletable = !page.isHome,
                                 enabled = canEditPages,
                                 raw = page.contents,
                                 cooked = page.html,
-                                subject = "Page")
+                                subject = "Page",
+                                extraFormValue = page.name)
                         </div>
                     </div>
                 </div>
@@ -107,7 +108,7 @@ Documentation page within Project overview.
                                   <div class="page-children" data-page-id="@pg.id.get">
                                       @pg.children.sorted(_.name).map { child =>
                                         <li class="list-group-item page-item-child">
-                                            <a href="@routes.Pages.show(model.ownerName, model.slug, child.name)">
+                                            <a href="@routes.Pages.show(model.ownerName, model.slug, child.fullSlug)">
                                                 @child.name
                                             </a>
                                         </li>

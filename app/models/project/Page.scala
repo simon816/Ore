@@ -128,7 +128,7 @@ case class Page(override val id: Option[Int] = None,
     *
     * @return String
     */
-  def fullSlug: String = if (parentPage.isDefined) { s"${parentPage.get.name}/${slug}" } else { slug }
+  def fullSlug: String = if (parentPage.isDefined) { s"${parentPage.get.slug}/${slug}" } else { slug }
 
   /**
     * Returns access to this Page's children (if any).
