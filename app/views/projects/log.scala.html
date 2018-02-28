@@ -32,7 +32,7 @@
                                 <th>State</th>
                                 <th>Time</th>
                                 <th>Comment</th>
-                                <th>Resolved by</th>
+                                <th>Set by</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -44,8 +44,8 @@
                                     <td>@VisibilityTypes.withId(entry.visibility)</td>
                                     <td>@prettifyDateAndTime(entry.createdAt.getOrElse(Timestamp.from(Instant.now())))</td>
                                     <td>@entry.renderComment()</td>
-                                    @if(entry.resolvedBy.isDefined) {
-                                        <td>@users.get(entry.resolvedBy.get).map(_.username).getOrElse("Unknown")</td>
+                                    @if(entry.createdBy.isDefined) {
+                                        <td>@users.get(entry.createdBy.get).map(_.username).getOrElse("Unknown")</td>
                                     } else {
                                         <td>Unknown</td>
                                     }
