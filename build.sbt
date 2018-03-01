@@ -24,12 +24,12 @@ libraryDependencies ++= Seq(
   "org.spongepowered"     %   "plugin-meta"             %   "0.4.1",
   "com.typesafe.play"     %%  "play-slick"              %   "2.1.0",
   "com.typesafe.play"     %%  "play-slick-evolutions"   %   "2.1.0",
-  "org.postgresql"        %   "postgresql"              %   "9.4.1212.jre7",
+  "org.postgresql"        %   "postgresql"              %   "42.2.1",
   "com.github.tminglei"   %%  "slick-pg"                %   "0.15.5",
-  "com.getsentry.raven"   %   "raven-logback"           %   "7.2.2",
-  "org.bouncycastle"      %   "bcprov-jdk15on"          %   "1.56",
-  "org.bouncycastle"      %   "bcpkix-jdk15on"          %   "1.56",
-  "org.bouncycastle"      %   "bcpg-jdk15on"            %   "1.56",
+  "com.getsentry.raven"   %   "raven-logback"           %   "8.0.3",
+  "org.bouncycastle"      %   "bcprov-jdk15on"          %   "1.59",
+  "org.bouncycastle"      %   "bcpkix-jdk15on"          %   "1.59",
+  "org.bouncycastle"      %   "bcpg-jdk15on"            %   "1.59",
   "javax.mail"            %   "mail"                    %   "1.4.7",
 
   "com.vladsch.flexmark"  % "flexmark"                       %  "0.32.4",
@@ -41,8 +41,8 @@ libraryDependencies ++= Seq(
   "com.vladsch.flexmark"  % "flexmark-ext-typographic"       %  "0.32.4",
   "com.vladsch.flexmark"  % "flexmark-ext-wikilink"          %  "0.32.4",
 
-  "org.webjars"       % "jquery"       % "2.2.4",
+  "org.webjars"       % "jquery"       % "3.3.1",
   "org.webjars"       % "font-awesome" % "4.7.0",
-  "org.webjars.bower" % "filesize"     % "3.2.1",
+  "org.webjars.bower" % "filesize"     % "3.5.6",
   "org.webjars.bower" % "momentjs"     % "2.20.1"
 )
