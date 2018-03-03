@@ -152,7 +152,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
         this.forms.VersionDeploy.bindFromRequest().fold(
           hasErrors => BadRequest(Json.obj("errors" -> hasErrors.errorsAsJson)),
           formData => {
-            if (!this.projectApiKeys.exists(k => k.keyType === Deployment && k.value === formData.apiKey))
+            if (!this.projectApiKeys.exists(k => k.keyType === Deployment && k.value === formData.apiKey && project.id.isDefined && k.projectId === project.id.get))
               Unauthorized(error("apiKey", "api.deploy.invalidKey"))
             else if (project.versions.exists(_.versionString === name))
               BadRequest(error("versionName", "api.deploy.versionExists"))
