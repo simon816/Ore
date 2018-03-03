@@ -75,9 +75,10 @@ class ProjectSettingsTable(tag: RowTag) extends ModelTable[ProjectSettings](tag,
   def source                =   column[String]("source")
   def licenseName           =   column[String]("license_name")
   def licenseUrl            =   column[String]("license_url")
+  def forumSync             =   column[Boolean]("forum_sync")
 
   override def * = (id.?, createdAt.?, projectId, homepage.?, issues.?, source.?, licenseName.?,
-                    licenseUrl.?) <> (ProjectSettings.tupled, ProjectSettings.unapply)
+                    licenseUrl.?, forumSync) <> (ProjectSettings.tupled, ProjectSettings.unapply)
 
 }
 

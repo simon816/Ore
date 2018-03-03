@@ -38,7 +38,8 @@ case class ProjectSettings(override val id: Option[Int] = None,
                            private var _issues: Option[String] = None,
                            private var _source: Option[String] = None,
                            private var _licenseName: Option[String] = None,
-                           private var _licenseUrl: Option[String] = None)
+                           private var _licenseUrl: Option[String] = None,
+                           private var _forumSync: Boolean = true)
                            extends OreModel(id, createdAt) with ProjectOwned {
 
   override type M = ProjectSettings
@@ -113,6 +114,23 @@ case class ProjectSettings(override val id: Option[Int] = None,
   }
 
   /**
+    * Returns if this [[Project]] should create new posts on the forums for noteworthy events.
+    *
+    * @return If posts should be created on the forum
+    */
+  def forumSync: Boolean = this._forumSync
+
+  /**
+    * Sets if this project should create post on the forums.
+    *
+    * @param shouldPost If posts should be created on the forum
+    */
+  def forumSync_=(shouldPost: Boolean): Unit = {
+    this._forumSync = shouldPost
+    if (isDefined) update(ForumSync)
+  }
+
+  /**
     * Saves a submitted [[ProjectSettingsForm]] to the [[Project]].
     *
     * @param formData Submitted settings
@@ -131,6 +149,7 @@ case class ProjectSettings(override val id: Option[Int] = None,
     this.source = nullIfEmpty(formData.source)
     this.licenseUrl = nullIfEmpty(formData.licenseUrl)
     this.licenseUrl.foreach(url => this.licenseName = formData.licenseName)
+    this.forumSync = formData.forumSync
 
     // Update the owner if needed
     formData.ownerId.find(_ != project.ownerId).foreach(ownerId => project.owner = this.userBase.get(ownerId).get)

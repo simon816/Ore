@@ -206,6 +206,7 @@ trait ProjectFactory {
       channelColor = this.config.defaultChannelColor,
       underlying = version,
       plugin = plugin,
+      createForumPost = project.settings.forumSync,
       cacheApi = this.cacheApi)
   }
 
@@ -368,6 +369,10 @@ trait ProjectFactory {
     project.lastUpdated = this.service.theTime
 
     uploadPlugin(project, channel, pending.plugin, newVersion)
+
+    if (project.topicId != -1 && pending.createForumPost) {
+      this.forums.postVersionRelease(project, newVersion, newVersion.description)
+    }
     newVersion
   }
 

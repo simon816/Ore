@@ -27,6 +27,7 @@ case class PendingVersion(projects: ProjectBase,
                           var channelColor: Color,
                           underlying: Version,
                           plugin: PluginFile,
+                          var createForumPost: Boolean,
                           override val cacheApi: CacheApi)
                           extends PendingAction[Version]
                             with Cacheable {
