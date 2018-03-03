@@ -9,7 +9,7 @@ import form.organization.{OrganizationAvatarUpdate, OrganizationMembersUpdate, O
 import form.project._
 import javax.inject.Inject
 import models.api.ProjectApiKey
-import models.project.Channel
+import models.project.{Channel, Page}
 import models.project.Page._
 import models.user.role.ProjectRole
 import ore.OreConfig
@@ -256,7 +256,8 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory, se
     "apiKey" -> nonEmptyText,
     "channel" -> channel,
     "recommended" -> default(boolean, true),
-    "forumPost" -> default(boolean, request.data.settings.forumSync))
+    "forumPost" -> default(boolean, request.data.settings.forumSync),
+    "changelog" -> optional(text(minLength = Page.MinLength, maxLength = Page.MaxLength)))
   (VersionDeployForm.apply)(VersionDeployForm.unapply))
 
   lazy val ReviewDescription = Form(single("content" -> text))
