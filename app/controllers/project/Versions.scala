@@ -594,6 +594,9 @@ class Versions @Inject()(stats: StatTracker,
                       token: Option[String],
                       api: Boolean = false)
                      (implicit request: ProjectRequest[_]): Result = {
+    if (project.visibility == VisibilityTypes.SoftDelete) {
+      return notFound
+    }
     if (!checkConfirmation(project, version, token))
       Redirect(self.showDownloadConfirm(
         project.ownerName, project.slug, version.name, Some(JarFile.id), api = Some(api)))
@@ -720,6 +723,9 @@ class Versions @Inject()(stats: StatTracker,
 
   private def sendSignatureFile(version: Version)(implicit request: Request[_]): Result = {
     val project = version.project
+    if (project.visibility == VisibilityTypes.SoftDelete) {
+      return notFound
+    }
     val path = this.fileManager.getVersionDir(project.ownerName, project.name, version.name).resolve(version.signatureFileName)
     if (notExists(path)) {
       Logger.warn("project version missing signature file")
