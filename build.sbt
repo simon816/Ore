@@ -1,31 +1,24 @@
 name := "ore"
-
 version := "1.5.13"
 
 lazy val `ore` = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.11.7"
-
-libraryDependencies ++= Seq(cache, ws, filters, specs2 % Test)
-
-unmanagedResourceDirectories in Test <+=  baseDirectory (_ /"target/web/public/test")
-
-resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
-
+scalaVersion := "2.12.4"
 routesGenerator := InjectedRoutesGenerator
-
-// Additional dependencies
 resolvers ++= Seq(
-  "sponge" at "https://repo.spongepowered.org/maven"
+  "sponge" at "https://repo.spongepowered.org/maven",
+  "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
+  "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/"
 )
 
+libraryDependencies ++= Seq( ehcache , ws , specs2 % Test , guice )
 libraryDependencies ++= Seq(
-  "org.spongepowered"     %   "play-discourse"          %   "1.1.0-SNAPSHOT",
+  "org.spongepowered"     %   "play-discourse"          %   "2.0.0-SNAPSHOT",
   "org.spongepowered"     %   "plugin-meta"             %   "0.4.1",
-  "com.typesafe.play"     %%  "play-slick"              %   "2.1.0",
-  "com.typesafe.play"     %%  "play-slick-evolutions"   %   "2.1.0",
+  "com.typesafe.play"     %%  "play-slick"              %   "3.0.3",
+  "com.typesafe.play"     %%  "play-slick-evolutions" %     "3.0.3",
   "org.postgresql"        %   "postgresql"              %   "42.2.1",
-  "com.github.tminglei"   %%  "slick-pg"                %   "0.15.5",
+  "com.github.tminglei"   %%  "slick-pg"                %   "0.16.0",
   "com.getsentry.raven"   %   "raven-logback"           %   "8.0.3",
   "org.bouncycastle"      %   "bcprov-jdk15on"          %   "1.59",
   "org.bouncycastle"      %   "bcpkix-jdk15on"          %   "1.59",
@@ -46,3 +39,5 @@ libraryDependencies ++= Seq(
   "org.webjars.bower" % "filesize"     % "3.5.6",
   "org.webjars.bower" % "momentjs"     % "2.20.1"
 )
+
+unmanagedResourceDirectories in Test +=  (baseDirectory.value / "target/web/public/test")
