@@ -101,7 +101,8 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory, se
     "userUps" -> list(text),
     "roleUps" -> list(text),
     "update-icon" -> boolean,
-    "owner" -> optional(number).verifying(ownerIdInList(organisationUserCanUploadTo))
+    "owner" -> optional(number).verifying(ownerIdInList(organisationUserCanUploadTo)),
+    "forum-sync" -> boolean
   )(ProjectSettingsForm.apply)(ProjectSettingsForm.unapply))
 
   /**
@@ -196,7 +197,8 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory, se
     "channel-color-input" -> text.verifying(
       "Invalid channel color.", c => Channel.Colors.exists(_.hex.equalsIgnoreCase(c))),
     "non-reviewed" -> default(boolean, false),
-    "content" -> optional(text)
+    "content" -> optional(text),
+    "forum-post" -> boolean
   )(VersionData.apply)(VersionData.unapply))
 
   /**
@@ -238,7 +240,8 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory, se
   def VersionDeploy(implicit request: ProjectRequest[_]) = Form(mapping(
     "apiKey" -> nonEmptyText,
     "channel" -> channel,
-    "recommended" -> default(boolean, true))
+    "recommended" -> default(boolean, true),
+    "forumPost" -> default(boolean, request.project.settings.forumSync))
   (VersionDeployForm.apply)(VersionDeployForm.unapply))
 
 

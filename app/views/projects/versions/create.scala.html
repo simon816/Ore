@@ -140,6 +140,17 @@
                                                 </td>
                                             </tr>
                                         }
+
+                                        <tr>
+                                            <td><strong>Create forum post</strong></td>
+                                            <td class="rv">
+                                                <div class="checkbox-inline">
+                                                    <input form="form-publish" name="forum-post" type="checkbox"
+                                                            @if(project.settings.forumSync) { checked } value="true"/>
+                                                </div>
+                                                <div class="clearfix"></div>
+                                            </td>
+                                        </tr>
                                     </table>
                                 </div>
 

@@ -46,6 +46,7 @@ object ModelKeys {
   val Source                =   new StringKey[ProjectSettings](_.source, _.source.orNull)
   val LicenseName           =   new StringKey[ProjectSettings](_.licenseName, _.licenseName.orNull)
   val LicenseUrl            =   new StringKey[ProjectSettings](_.licenseUrl, _.licenseUrl.orNull)
+  val ForumSync             =   new BooleanKey[ProjectSettings](_.forumSync, _.forumSync)
 
   // ProjectLogEntry
   val Occurrences           =   new IntKey[ProjectLogEntry](_.occurrences, _.occurrences)

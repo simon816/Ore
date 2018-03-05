@@ -304,6 +304,7 @@ class Versions @Inject()(stats: StatTracker,
 
               pendingVersion.channelName = versionData.channelName.trim
               pendingVersion.channelColor = versionData.color
+              pendingVersion.createForumPost = versionData.forumPost
 
               // Check for pending project
               this.factory.getPendingProject(author, slug) match {
@@ -323,17 +324,14 @@ class Versions @Inject()(stats: StatTracker,
                         Redirect(self.showCreatorWithMeta(author, slug, versionString)).withError(error)
                       },
                       channel => {
+                        // Update description
+                        versionData.content.foreach { content =>
+                          pendingVersion.underlying.description = content.trim
+                        }
+
                         val newVersion = pendingVersion.complete().get
                         if (versionData.recommended)
                           project.recommendedVersion = newVersion
-
-                        // Create forum topic reply / update description
-                        versionData.content.foreach { content =>
-                          val c = content.trim
-                          newVersion.description = c
-                          if (project.topicId != -1)
-                            this.forums.postVersionRelease(project, newVersion, c)
-                        }
 
                         addUnstableTag(newVersion)
                         Redirect(self.show(author, slug, versionString))

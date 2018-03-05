@@ -169,6 +169,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
                       this.factory.processSubsequentPluginUpload(uploadData, user, project).fold(
                         err => BadRequest(error("upload", err)),
                         version => {
+                          version.createForumPost = formData.createForumPost
                           version.channelName = formData.channel.name
                           val newVersion = version.complete().get
                           if (formData.recommended)
