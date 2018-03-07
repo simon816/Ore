@@ -5,6 +5,7 @@ Discussion page within Project overview.
 @import db.impl.access.UserBase
 @import models.project.Project
 @import ore.OreConfig
+@import ore.project.ProjectMember
 @import org.spongepowered.play.discourse.DiscourseApi
 @import security.NonceFilter._
 @import ore.permission.PostAsOrganization
@@ -33,10 +34,8 @@ Discussion page within Project overview.
                         @utils.alert("error")
 
                         @if(forums.isAvailable) {
-
-                            @defining(model.owner) { owner =>
+                            @defining(model.owner) { owner: ProjectMember =>
                               @if(owner.isOrganization
-                                      && (users.current.isDefined)
                                       && (users.current.get can PostAsOrganization in owner.toOrganization)) {
                                   <div class="pull-right push-down">
                                       <i class="minor">@messages("project.discuss.postAs")</i>

@@ -17,7 +17,7 @@ case class PermissionPredicate(user: User, not: Boolean = false) {
   protected case class AndThen(user: User, p: Permission, not: Boolean) {
     def in(subject: ScopeSubject): Boolean = {
       // Test org perms on projects
-      subject match {
+      val organizationResult: Option[Boolean] = subject match {
         case project: Project =>
           val id = project.ownerId
           val maybeOrg: Option[Organization] = project.service.getModelBase(classOf[OrganizationBase]).get(id)
@@ -27,11 +27,14 @@ case class PermissionPredicate(user: User, not: Boolean = false) {
             // Test the org scope and the project scope
             val orgTest = org.scope.test(user, p)
             val projectTest = project.scope.test(user, p)
-            return orgTest | projectTest
-          }
-        case _ =>
+            Some(orgTest | projectTest)
+          } else None
+        case _ => None
       }
-      val result = subject.scope.test(user, p)
+      val result = organizationResult.getOrElse(subject.scope.test(user, p))
+      if (result && PermissionLogger.shouldLog(p)) {
+        PermissionLogger.log(user, p, user.service)
+      }
       if (not) !result else result
     }
   }
