@@ -14,7 +14,7 @@ import models.project.TagColors.TagColor
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
-import models.user.{Notification, Organization, SignOn, User, Session => DbSession}
+import models.user.{Notification, Organization, SignOn, User, UserAction, Session => DbSession}
 import ore.Colors.Color
 import ore.permission.role.RoleTypes.RoleType
 import ore.project.Categories.Category
@@ -375,4 +375,12 @@ class VisibilityChangeTable(tag: RowTag) extends ModelTable[VisibilityChange](ta
   def visibility        =   column[Int]("visibility")
 
   override def * = (id.?, createdAt.?, createdBy.?, projectId, comment, resolvedAt.?, resolvedBy.?, visibility) <> (VisibilityChange.tupled, VisibilityChange.unapply)
+}
+
+class UserActionLogTable(tag: RowTag) extends ModelTable[UserAction](tag, "user_action_log") {
+
+  def userId = column[Int]("userId")
+  def action = column[String]("action")
+
+  override def * = (id.?, createdAt.?, userId, action) <> (UserAction.tupled, UserAction.unapply)
 }

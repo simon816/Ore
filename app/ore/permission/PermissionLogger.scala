@@ -1,7 +1,7 @@
 package ore.permission
 
 import db.ModelService
-import models.user.User
+import models.user.{User, UserAction}
 
 object PermissionLogger {
 
@@ -32,6 +32,7 @@ object PermissionLogger {
 
   def log(user: User, p: Permission, service: ModelService): Unit = {
     Logger.info(s"${user.name} did ${p.getClass.getSimpleName}.")
+    service.insert(new UserAction(None, None, user.userId, s"${p.getClass.getSimpleName}"))
   }
 
 }
