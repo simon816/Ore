@@ -29,7 +29,7 @@ class Organizations @Inject()(forms: OreForms,
                               implicit override val env: OreEnv,
                               implicit override val config: OreConfig,
                               implicit override val service: ModelService,
-                              implicit override val messagesApi: MessagesApi) extends BaseController {
+                              implicit override val messagesApi: MessagesApi) extends OreBaseController {
 
   private def EditOrganizationAction(organization: String)
   = AuthedOrganizationAction(organization, requireUnlock = true) andThen OrganizationPermissionAction(EditSettings)

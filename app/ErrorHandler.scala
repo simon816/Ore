@@ -26,10 +26,11 @@ class ErrorHandler @Inject()(env: Environment,
                              extends DefaultHttpErrorHandler(env, conf, sourceMapper, router)
                                with I18nSupport {
 
-  override def onProdServerError(request: RequestHeader, exception: UsefulException) = {
+  override def onProdServerError(implicit request: RequestHeader, exception: UsefulException) = {
     implicit val users: UserBase = service.getModelBase(classOf[UserBase])
     implicit val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
     implicit val session = request.session
+
     Future.successful {
       if (exception.cause.isInstanceOf[TimeoutException])
         GatewayTimeout(views.html.errors.timeout())
@@ -38,11 +39,11 @@ class ErrorHandler @Inject()(env: Environment,
     }
   }
 
-  override def onNotFound(request: RequestHeader, message: String): Future[Result] = {
+  override def onNotFound(implicit request: RequestHeader, message: String): Future[Result] = {
     implicit val users: UserBase = service.getModelBase(classOf[UserBase])
     implicit val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
     implicit val session = request.session
-    implicit val impRequest = request
+
     Future.successful(NotFound(views.html.errors.notFound()))
   }
 

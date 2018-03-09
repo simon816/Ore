@@ -63,7 +63,7 @@ sorted according to different criteria.
     @if(visibleCategories.isDefined) {
     CATEGORY_STRING = "@visibleCategories.get.map(_.id).mkString(",")";
     }
-    @if(!sort.equals(Default)) {
+    @if(!sort.equals(ProjectSortingStrategies.Default)) {
     SORT_STRING = "@sort.id";
     }
     @if(request.getQueryString("q").isDefined) {

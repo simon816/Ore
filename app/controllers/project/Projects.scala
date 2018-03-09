@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import java.time.Instant
 import javax.inject.Inject
 
-import controllers.BaseController
+import controllers.OreBaseController
 import controllers.sugar.Bakery
 import controllers.sugar.Requests.AuthRequest
 import db.ModelService
@@ -48,7 +48,7 @@ class Projects @Inject()(stats: StatTracker,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
                          implicit override val service: ModelService)
-                         extends BaseController {
+                         extends OreBaseController {
 
   implicit val fileManager = factory.fileManager
 

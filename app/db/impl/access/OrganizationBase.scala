@@ -7,7 +7,7 @@ import models.user.{Notification, Organization, User}
 import ore.OreConfig
 import ore.permission.role.RoleTypes
 import ore.user.notification.NotificationTypes
-import play.api.i18n.MessagesApi
+import play.api.i18n.{Lang, MessagesApi}
 import security.spauth.SpongeAuthApi
 import util.StringUtils
 
@@ -20,6 +20,7 @@ class OrganizationBase(override val service: ModelService,
                        extends ModelBase[Organization] {
 
   override val modelClass = classOf[Organization]
+  implicit val lang = Lang.defaultLang
 
   val Logger = play.api.Logger("Organizations")
 

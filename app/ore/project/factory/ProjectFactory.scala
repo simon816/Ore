@@ -2,8 +2,8 @@ package ore.project.factory
 
 import java.nio.file.Files._
 import java.nio.file.StandardCopyOption
-import javax.inject.Inject
 
+import javax.inject.Inject
 import akka.actor.ActorSystem
 import com.google.common.base.Preconditions._
 import db.ModelService
@@ -24,7 +24,7 @@ import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload, Pro
 import ore.user.notification.NotificationTypes
 import org.spongepowered.plugin.meta.PluginMetadata
 import play.api.cache.CacheApi
-import play.api.i18n.MessagesApi
+import play.api.i18n.{Lang, MessagesApi}
 import security.pgp.PGPVerifier
 import util.StringUtils._
 
@@ -56,6 +56,7 @@ trait ProjectFactory {
   implicit val config: OreConfig
   implicit val forums: OreDiscourseApi
   implicit val env = this.fileManager.env
+  implicit val lang = Lang.defaultLang
 
   var isPgpEnabled = this.config.security.getBoolean("requirePgp").get
 

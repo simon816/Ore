@@ -37,7 +37,7 @@ class Users @Inject()(fakeUser: FakeUser,
                       implicit override val messagesApi: MessagesApi,
                       implicit override val env: OreEnv,
                       implicit override val config: OreConfig,
-                      implicit override val service: ModelService) extends BaseController {
+                      implicit override val service: ModelService) extends OreBaseController {
 
   private val baseUrl = this.config.app.getString("baseUrl").get
 

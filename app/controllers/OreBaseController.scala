@@ -8,7 +8,7 @@ import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import models.project.{Project, Version}
 import models.user.SignOn
 import ore.{OreConfig, OreEnv}
-import play.api.i18n.I18nSupport
+import play.api.i18n.{I18nSupport, Lang}
 import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
@@ -16,18 +16,19 @@ import util.StringUtils._
 /**
   * Represents a Secured base Controller for this application.
   */
-abstract class BaseController(implicit val env: OreEnv,
-                              val config: OreConfig,
-                              val service: ModelService,
-                              override val bakery: Bakery,
-                              override val sso: SingleSignOnConsumer)
-                              extends Controller
+abstract class OreBaseController(implicit val env: OreEnv,
+                                 val config: OreConfig,
+                                 val service: ModelService,
+                                 override val bakery: Bakery,
+                                 override val sso: SingleSignOnConsumer)
+                              extends InjectedController
                                 with Actions
                                 with I18nSupport {
 
   implicit override val users: UserBase = this.service.getModelBase(classOf[UserBase])
   implicit override val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
   implicit override val organizations: OrganizationBase = this.service.getModelBase(classOf[OrganizationBase])
+  implicit val lang = Lang.defaultLang
 
   override val signOns: ModelAccess[SignOn] = this.service.access[SignOn](classOf[SignOn])
 

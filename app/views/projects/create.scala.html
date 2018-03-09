@@ -12,6 +12,7 @@ Page used for uploading and creating new projects.
 @import ore.permission.CreateProject
 @import models.project.Tag
 @import models.project.TagColors
+@import views.html.utils
 @(pending: Option[PendingProject])(implicit messages: Messages, flash: Flash, request: Request[_],
         service: ModelService, config: OreConfig, users: UserBase)
 
@@ -108,7 +109,7 @@ Page used for uploading and creating new projects.
 
         @if(pending.isDefined) {
             @* Category select *@
-            @projects.utils.inputSettings("continue")
+            @projects.helper.inputSettings("continue")
         }
 
         <div class="create-buttons">
@@ -143,7 +144,7 @@ Page used for uploading and creating new projects.
                 }
             }
 
-            @projects.utils.alertFile()
+            @projects.helper.alertFile()
         </div>
     </div>
 

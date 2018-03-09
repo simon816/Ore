@@ -8,6 +8,7 @@ Discussion page within Project overview.
 @import org.spongepowered.play.discourse.DiscourseApi
 @import security.NonceFilter._
 @import ore.permission.PostAsOrganization
+@import views.html.utils
 @(model: Project)(implicit messages: Messages, request: Request[_], flash: Flash, service: ModelService,
         forums: DiscourseApi, config: OreConfig, users: UserBase)
 

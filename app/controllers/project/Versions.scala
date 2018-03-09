@@ -5,10 +5,10 @@ import java.nio.file.Files._
 import java.nio.file.{Files, StandardCopyOption}
 import java.sql.Timestamp
 import java.util.{Date, UUID}
-import javax.inject.Inject
 
+import javax.inject.Inject
 import com.github.tminglei.slickpg.InetString
-import controllers.BaseController
+import controllers.OreBaseController
 import controllers.sugar.Bakery
 import controllers.sugar.Requests.ProjectRequest
 import db.ModelService
@@ -31,6 +31,10 @@ import util.StringUtils._
 import views.html.projects.{versions => views}
 import _root_.views.html.helper
 import ore.project.factory.TagAlias.ProjectTag
+import util.JavaUtils.autoClose
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Controller for handling Version related actions.
@@ -45,7 +49,7 @@ class Versions @Inject()(stats: StatTracker,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
                          implicit override val service: ModelService)
-  extends BaseController {
+  extends OreBaseController {
 
   private val fileManager = this.projects.fileManager
   private val self = controllers.project.routes.Versions
@@ -427,8 +431,8 @@ class Versions @Inject()(stats: StatTracker,
 
   private def _sendVersion(project: Project, version: Version)(implicit req: ProjectRequest[_]): Result = {
     this.stats.versionDownloaded(version) { implicit request =>
-      Ok.sendFile(this.fileManager.getVersionDir(project.ownerName, project.name, version.name)
-        .resolve(version.fileName).toFile)
+      Ok.sendPath(this.fileManager.getVersionDir(project.ownerName, project.name, version.name)
+        .resolve(version.fileName))
     }
   }
 
@@ -603,25 +607,19 @@ class Versions @Inject()(stats: StatTracker,
       val path = this.fileManager.getVersionDir(project.ownerName, project.name, version.name).resolve(fileName)
       this.stats.versionDownloaded(version) { implicit request =>
         if (fileName.endsWith(".jar"))
-          Ok.sendFile(path.toFile)
+          Ok.sendPath(path)
         else {
           val pluginFile = new PluginFile(path, signaturePath = null, project.owner.user)
           val jarName = fileName.substring(0, fileName.lastIndexOf('.')) + ".jar"
           val jarPath = this.fileManager.env.tmp.resolve(project.ownerName).resolve(jarName)
-          var jarIn: InputStream = null
-          try {
-            jarIn = pluginFile.newJarStream
+
+          autoClose(pluginFile.newJarStream) { jarIn =>
             copy(jarIn, jarPath, StandardCopyOption.REPLACE_EXISTING)
-          } catch {
-            case e: Exception =>
-              Logger.error("an error occurred while trying to send a plugin", e)
-          } finally {
-            if (jarIn != null)
-              jarIn.close()
-            else
-              Logger.error("could not obtain input stream for download request")
+          }{ e =>
+            Logger.error("an error occurred while trying to send a plugin", e)
           }
-          Ok.sendFile(jarPath.toFile, onClose = () => Files.delete(jarPath))
+
+          Ok.sendPath(jarPath, onClose = () => Files.delete(jarPath))
         }
       }
     }
@@ -729,7 +727,7 @@ class Versions @Inject()(stats: StatTracker,
       Logger.warn("project version missing signature file")
       notFound
     } else
-      Ok.sendFile(path.toFile)
+      Ok.sendPath(path)
   }
 
 }
