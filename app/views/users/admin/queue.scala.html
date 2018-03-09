@@ -5,7 +5,7 @@
 @import ore.OreConfig
 @import security.NonceFilter._
 
-
+@import play.api.Configuration
 @(underReview: Seq[(Project, Version)], versions: Seq[(Project, Version)])(implicit messages: Messages, request: Request[_], service: ModelService,
         config: OreConfig, users: UserBase)
 
@@ -175,7 +175,7 @@
     <script nonce="@nonce">
         $(function(){
             var momentNow = moment();
-            var maxDiffrence = @config.ore.getConfig("queue").get.get[Int]("max-review-time")OrElse(86400000);
+            var maxDiffrence = @config.ore.get[Configuration]("queue").get[Int]("max-review-time")OrElse(86400000);
             $('span[data-ago]').each(function() {
                 var momentAgo = moment($(this).data('ago'))
                 $(this).text($(this).data('title') + momentAgo.fromNow());

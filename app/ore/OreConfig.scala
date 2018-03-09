@@ -18,17 +18,17 @@ final class OreConfig @Inject()(config: Configuration) {
 
   // Sub-configs
   lazy val root = this.config
-  lazy val app = this.config.getConfig("application").get
-  lazy val play = this.config.getConfig("play").get
-  lazy val ore = this.config.getConfig("ore").get
-  lazy val channels = this.ore.getConfig("channels").get
-  lazy val pages = this.ore.getConfig("pages").get
-  lazy val projects = this.ore.getConfig("projects").get
-  lazy val users = this.ore.getConfig("users").get
-  lazy val orgs = this.ore.getConfig("orgs").get
-  lazy val forums = this.root.getConfig("discourse").get
-  lazy val sponge = this.root.getConfig("sponge").get
-  lazy val security = this.root.getConfig("security").get
+  lazy val app = this.config.get[Configuration]("application")
+  lazy val play = this.config.get[Configuration]("play")
+  lazy val ore = this.config.get[Configuration]("ore")
+  lazy val channels = this.ore.get[Configuration]("channels")
+  lazy val pages = this.ore.get[Configuration]("pages")
+  lazy val projects = this.ore.get[Configuration]("projects")
+  lazy val users = this.ore.get[Configuration]("users")
+  lazy val orgs = this.ore.get[Configuration]("orgs")
+  lazy val forums = this.root.get[Configuration]("discourse")
+  lazy val sponge = this.root.get[Configuration]("sponge")
+  lazy val security = this.root.get[Configuration]("security")
 
   /**
     * The default color used for Channels.

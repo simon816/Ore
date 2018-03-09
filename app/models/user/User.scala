@@ -154,7 +154,7 @@ case class User(override val id: Option[Int] = None,
     * @return True if key is ready for use
     */
   def isPgpPubKeyReady: Boolean = this.pgpPubKey.isDefined && this.lastPgpPubKeyUpdate.forall { lastUpdate =>
-    val cooldown = this.config.security.getLong("keyChangeCooldown").get
+    val cooldown = this.config.security.get[Long]("keyChangeCooldown")
     val minTime = new Timestamp(lastUpdate.getTime + cooldown)
     minTime.before(this.service.theTime)
   }

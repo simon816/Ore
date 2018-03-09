@@ -25,7 +25,7 @@ class SpongeForums @Inject()(env: OreEnv,
 
   override val key: String = this.conf.get[String]("api.key")
   override val admin: String = this.conf.get[String]("api.admin")
-  override val timeout: Duration = this.conf.get[Int]("api.timeout").millis
+  override val timeout: Duration = this.conf.get[FiniteDuration]("api.timeout")
   override val url: String = this.conf.get[String]("baseUrl")
   override val baseUrl: String = this.config.app.get[String]("baseUrl")
 
@@ -33,6 +33,6 @@ class SpongeForums @Inject()(env: OreEnv,
   override val topicTemplatePath: Path = this.env.conf.resolve("discourse/project_topic.md")
   override val versionReleasePostTemplatePath: Path = this.env.conf.resolve("discourse/version_post.md")
   override val scheduler = this.actorSystem.scheduler
-  override val retryRate: FiniteDuration = this.conf.get[Int]("embed.retryRate").millis
+  override val retryRate = this.conf.get[FiniteDuration]("embed.retryRate")
 
 }

@@ -175,12 +175,12 @@ object SingleSignOnConsumer {
 
 class SpongeSingleSignOnConsumer @Inject()(override val ws: WSClient, config: Configuration) extends SingleSignOnConsumer {
 
-  private val conf = this.config.getConfig("security").get
+  private val conf = this.config.get[Configuration]("security")
 
   override val loginUrl = this.conf.get[String]("sso.loginUrl")
   override val signupUrl = this.conf.get[String]("sso.signupUrl")
   override val verifyUrl = this.conf.get[String]("sso.verifyUrl")
   override val secret = this.conf.get[String]("sso.secret")
-  override val timeout = this.conf.getLong("sso.timeout").get.millis
+  override val timeout = this.conf.get[FiniteDuration]("sso.timeout")
 
 }
