@@ -206,7 +206,7 @@ trait ProjectFactory {
       channelColor = this.config.defaultChannelColor,
       underlying = version,
       plugin = plugin,
-      createForumPost = project.settings.forumSync,
+      createForumPost = if (project.id.isDefined) project.settings.forumSync else true,
       cacheApi = this.cacheApi)
   }
 
