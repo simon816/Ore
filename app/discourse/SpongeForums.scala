@@ -21,6 +21,7 @@ class SpongeForums @Inject()(env: OreEnv,
   private val conf = this.config.forums
 
   isEnabled = this.conf.getBoolean("api.enabled").get
+  isDebugMode = this.config.ore.getBoolean("debug").getOrElse(false)
 
   override val key: String = this.conf.getString("api.key").get
   override val admin: String = this.conf.getString("api.admin").get
