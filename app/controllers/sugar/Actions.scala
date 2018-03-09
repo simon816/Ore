@@ -236,7 +236,7 @@ trait Actions extends Calls with ActionHelpers {
     }
   }
 
-  def authedProjectAction(author: String, slug: String) = authedProjectActionImpl(this.projects.withSlug(author, slug))
+  def authedProjectAction(author: String, slug: String)(implicit ec: ExecutionContext) = authedProjectActionImpl(this.projects.withSlug(author, slug))
 
   def authedProjectActionById(pluginId: String)(implicit ec: ExecutionContext) = authedProjectActionImpl(this.projects.withPluginId(pluginId))
 

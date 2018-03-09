@@ -29,6 +29,8 @@ import views.{html => views}
 
 import scala.concurrent.Future
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 /**
   * Main entry point for application.
   */

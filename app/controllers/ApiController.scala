@@ -21,7 +21,7 @@ import play.api.libs.json._
 import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
 
-import scala.concurrent.ExecutionContext.global
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Ore API (v1)
@@ -147,7 +147,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
 
   private def error(key: String, error: String) = Json.obj("errors" -> Map(key -> List(this.messagesApi(error))))
 
-  def deployVersion(version: String, pluginId: String, name: String) = (Action andThen projectAction(pluginId)) { request =>
+  def deployVersion(version: String, pluginId: String, name: String) = (Action andThen projectAction(pluginId)) { implicit request =>
     version match {
       case "v1" =>
         val project = request.project

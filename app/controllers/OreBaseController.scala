@@ -15,7 +15,7 @@ import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
 
 import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.global
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Represents a Secured base Controller for this application.
@@ -66,10 +66,10 @@ abstract class OreBaseController(implicit val env: OreEnv,
   = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).map(fn).getOrElse(notFound)
 
   /** Ensures a request is authenticated */
-  def Authenticated(implicit ec: ExecutionContext) = Action andThen authAction
+  def Authenticated = Action andThen authAction
 
   /** Ensures a user's account is unlocked */
-  def UserLock(redirect: Call = ShowHome)(implicit ec: ExecutionContext) = Authenticated andThen userLock(redirect)
+  def UserLock(redirect: Call = ShowHome) = Authenticated andThen userLock(redirect)
 
   /**
     * Retrieves, processes, and adds a [[Project]] to a request.
@@ -78,7 +78,7 @@ abstract class OreBaseController(implicit val env: OreEnv,
     * @param slug   Project slug
     * @return       Request with a project if found, NotFound otherwise.
     */
-  def ProjectAction(author: String, slug: String)(implicit ec: ExecutionContext) = Action andThen projectAction(author, slug)
+  def ProjectAction(author: String, slug: String) = Action andThen projectAction(author, slug)
 
   /**
     * Retrieves, processes, and adds a [[Project]] to a request.
@@ -86,7 +86,7 @@ abstract class OreBaseController(implicit val env: OreEnv,
     * @param pluginId The project's unique plugin ID
     * @return         Request with a project if found, NotFound otherwise
     */
-  def ProjectAction(pluginId: String)(implicit ec: ExecutionContext) = Action andThen projectAction(pluginId)
+  def ProjectAction(pluginId: String) = Action andThen projectAction(pluginId)
 
   /**
     * Ensures a request is authenticated and retrieves, processes, and adds a
@@ -101,7 +101,7 @@ abstract class OreBaseController(implicit val env: OreEnv,
     first andThen authedProjectAction(author, slug)
   }
 
-  def AuthedProjectActionById(pluginId: String, requireUnlock: Boolean = true)(implicit ec: ExecutionContext) = {
+  def AuthedProjectActionById(pluginId: String, requireUnlock: Boolean = true) = {
     val first = if (requireUnlock) UserLock(ShowProject(pluginId)) else Authenticated
     first andThen authedProjectActionById(pluginId)
   }

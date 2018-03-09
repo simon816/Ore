@@ -13,6 +13,8 @@ import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
 import views.html.projects.{channels => views}
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 /**
   * Controller for handling Channel related actions.
   */

@@ -19,6 +19,8 @@ import security.spauth.SingleSignOnConsumer
 import util.DataHelper
 import views.{html => views}
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 /**
   * Controller for handling Review related actions.
   */

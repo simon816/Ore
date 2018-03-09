@@ -34,6 +34,8 @@ import views.html.{projects => views}
 
 import scala.collection.JavaConverters._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 /**
   * Controller for handling Project related actions.
   */

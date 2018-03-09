@@ -16,6 +16,8 @@ import security.spauth.SingleSignOnConsumer
 import views.html.projects.{pages => views}
 import util.StringUtils._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 /**
   * Controller for handling Page related actions.
   */
