@@ -15,7 +15,7 @@
         @projectList(
             models = models,
             page = page,
-            pageSize = config.users.getInt("project-page-size").get,
+            pageSize = config.users.get[Int]("project-page-size"),
             call = page => routes.Users.showProjects(user.username, Some(page))
         )
         </div>

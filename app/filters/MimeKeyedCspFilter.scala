@@ -29,7 +29,7 @@ class MimeKeyedCspFilter @Inject()(implicit val mat: Materializer, ec: Execution
         conf match {
             case Some(defaults) =>
                 defaults.keys.map { k =>
-                    (k, defaults.getStringList(k).map(_.asScala).getOrElse(Seq.empty))
+                    (k, defaults.get[Seq[String]](k))
                 }.toMap.filter(_._2.nonEmpty)
             case None => Map.empty
         }

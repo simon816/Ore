@@ -18,7 +18,7 @@ Discussion page within Project overview.
 
     <script nonce="@nonce">
         DiscourseEmbed = {
-            discourseUrl: '@config.forums.getString("baseUrl").get/',
+            discourseUrl: '@config.forums.get[String]("baseUrl")/',
             topicId: @model.topicId
         };
     </script>
@@ -63,7 +63,7 @@ Discussion page within Project overview.
                     </div>
                     <div class="reply-controls">
                         <a class="forums" target="_blank"
-                           href="@config.forums.getString("baseUrl").get/t/@model.topicId">
+                           href="@config.forums.get[String]("baseUrl")/t/@model.topicId">
                             @messages("general.viewOnForums")
                         </a>
                     </div>

@@ -24,12 +24,12 @@ sorted according to different criteria.
 @projectRoutes = @{controllers.project.routes.Projects}
 
 @randomSponsor = @{
-    val logos: List[Configuration] = config.sponge.getConfigList("sponsors").get.toList
+    val logos: Seq[Configuration] = config.sponge.get[Seq[Configuration]]("sponsors")
 
     val index = new Random().nextInt(logos.size)
     val logo = logos(index)
 
-    (logo.getString("name").get, logo.getString("image").get, logo.getString("link").get)
+    (logo.get[String]("name"), logo.get[String]("image"), logo.get[String]("link"))
 }
 
 @categoryString = @{
@@ -119,7 +119,7 @@ sorted according to different criteria.
                 @projects.list(
                     models = models,
                     page = page,
-                    pageSize = config.projects.getInt("init-load").get,
+                    pageSize = config.projects.get[Int]("init-load"),
                     call = page => routes.Application.showHome(
                         categoryString, query, orderingOption, Some(page), platformOption)
                 )

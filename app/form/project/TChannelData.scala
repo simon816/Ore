@@ -33,7 +33,7 @@ trait TChannelData {
     */
   def addTo(project: Project): Either[String, Channel] = {
     val channels = project.channels.all
-    if (channels.size >= config.projects.getInt("max-channels").get) {
+    if (channels.size >= config.projects.get[Int]("max-channels")) {
       Left("A project may only have up to five channels.")
     } else {
       channels.find(_.name.equalsIgnoreCase(this.channelName)) match {

@@ -152,7 +152,7 @@ class Versions @Inject()(stats: StatTracker,
 
       val visibleIds: Array[Int] = visible.map(_.map(_.id.get)).getOrElse(allChannels.map(_.id.get).toArray)
 
-      val pageSize = this.config.projects.getInt("init-version-load").get
+      val pageSize = this.config.projects.get[Int]("init-version-load")
       val p = page.getOrElse(1)
       val versions = project.versions.sorted(
         ordering = _.createdAt.desc,
@@ -473,7 +473,7 @@ class Versions @Inject()(stats: StatTracker,
           // generate a unique "warning" object to ensure the user has landed
           // on the warning before downloading
           val token = UUID.randomUUID().toString
-          val expiration = new Timestamp(new Date().getTime + this.config.security.getLong("unsafeDownload.maxAge").get)
+          val expiration = new Timestamp(new Date().getTime + this.config.security.get[Long]("unsafeDownload.maxAge"))
           val address = InetString(StatTracker.remoteAddress)
           // remove old warning attached to address
           this.warnings.removeAll(_.address === address)

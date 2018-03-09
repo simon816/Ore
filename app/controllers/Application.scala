@@ -85,7 +85,7 @@ final class Application @Inject()(data: DataHelper,
       val filter = visibleFilter +&& platformFilter +&& categoryFilter +&& searchFilter +&& validFilter
 
       // Get projects
-      val pageSize = this.config.projects.getInt("init-load").get
+      val pageSize = this.config.projects.get[Int]("init-load")
       val p = page.getOrElse(1)
       val offset = (p - 1) * pageSize
       val future = actions.collect(filter.fn, ordering, pageSize, offset)

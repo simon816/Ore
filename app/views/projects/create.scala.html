@@ -18,7 +18,7 @@ Page used for uploading and creating new projects.
 
 @projectRoutes = @{controllers.project.routes.Projects}
 
-@projects.utils.panelCreate(messages("project.create"), if (pending.isEmpty) 1 else 2) {
+@projects.helper.panelCreate(messages("project.create"), if (pending.isEmpty) 1 else 2) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/projectCreateValidate.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/pluginUpload.js")"></script>
@@ -83,7 +83,7 @@ Page used for uploading and creating new projects.
                                     @defining(pending.get.pendingVersion.underlying.description) { description =>
                                         <input form="continue" class="form-control" type="text" id="description"
                                                name="description"
-                                               maxlength="@config.projects.getInt("max-desc-len").get"
+                                               maxlength="@config.projects.get[Int]("max-desc-len")"
                                             @description.map { value =>
                                                value="@value"
                                             }.getOrElse {

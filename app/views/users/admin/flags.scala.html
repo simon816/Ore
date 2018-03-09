@@ -61,7 +61,7 @@
                                         <a target="_blank" href="https://forums.spongepowered.org/users/@flag.project.ownerName" class="btn btn-default">
                                             <i class="fa fa-reply"></i> @messages("user.flags.messageOwner")
                                         </a>
-                                        @projects.utils.btnHide(flag.project, users.current.get)
+                                        @projects.helper.btnHide(flag.project, users.current.get)
                                         <button type="submit" class="btn btn-primary btn-resolve">
                                             <i class="fa fa-check"></i> <strong>@messages("user.flags.markResolved")</strong>
                                         </button>

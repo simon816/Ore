@@ -33,12 +33,12 @@ final class OreConfig @Inject()(config: Configuration) {
   /**
     * The default color used for Channels.
     */
-  lazy val defaultChannelColor: Color = Channel.Colors(this.channels.getInt("color-default").get)
+  lazy val defaultChannelColor: Color = Channel.Colors(this.channels.get[Int]("color-default"))
 
   /**
     * The default name used for Channels.
     */
-  lazy val defaultChannelName: String = this.channels.getString("name-default").get
+  lazy val defaultChannelName: String = this.channels.get[String]("name-default")
 
   /**
     * Returns true if the specified name is a valid Project name.
@@ -48,7 +48,7 @@ final class OreConfig @Inject()(config: Configuration) {
     */
   def isValidProjectName(name: String): Boolean = {
     val sanitized = compact(name)
-    sanitized.length >= 1 && sanitized.length <= this.projects.getInt("max-name-len").get
+    sanitized.length >= 1 && sanitized.length <= this.projects.get[Int]("max-name-len")
   }
 
   /**
@@ -59,7 +59,7 @@ final class OreConfig @Inject()(config: Configuration) {
     */
   def isValidChannelName(name: String): Boolean = {
     val c = this.channels
-    name.length >= 1 && name.length <= c.getInt("max-name-len").get && name.matches(c.getString("name-regex").get)
+    name.length >= 1 && name.length <= c.get[Int]("max-name-len") && name.matches(c.get[String]("name-regex"))
   }
 
   /**
@@ -74,10 +74,10 @@ final class OreConfig @Inject()(config: Configuration) {
   def getSuggestedNameForVersion(version: String): String
   = Option(new ComparableVersion(version).getFirstString).getOrElse(this.defaultChannelName)
 
-  lazy val debugLevel = this.ore.getInt("debug-level").get
+  lazy val debugLevel = this.ore.get[Int]("debug-level")
 
   /** Returns true if the application is running in debug mode. */
-  def isDebug: Boolean = this.ore.getBoolean("debug").get
+  def isDebug: Boolean = this.ore.get[Boolean]("debug")
 
   /** Sends a debug message if in debug mode */
   def debug(msg: Any, level: Int = 1) = {

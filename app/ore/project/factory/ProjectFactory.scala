@@ -58,7 +58,7 @@ trait ProjectFactory {
   implicit val env = this.fileManager.env
   implicit val lang = Lang.defaultLang
 
-  var isPgpEnabled = this.config.security.getBoolean("requirePgp").get
+  var isPgpEnabled = this.config.security.get[Boolean]("requirePgp")
 
   /**
     * Processes incoming [[PluginUpload]] data, verifies it, and loads a new
@@ -115,7 +115,7 @@ trait ProjectFactory {
       return Left("error.version.invalidPluginId")
     val version = this.startVersion(plugin, project, project.channels.all.head.name)
     val model = version.underlying
-    if (model.exists && this.config.projects.getBoolean("file-validate").get)
+    if (model.exists && this.config.projects.get[Boolean]("file-validate"))
       return Left("error.version.duplicate")
     version.cache()
     Right(version)
@@ -289,7 +289,7 @@ trait ProjectFactory {
     checkNotNull(name, "null name", "")
     checkArgument(this.config.isValidChannelName(name), "invalid name", "")
     checkNotNull(color, "null color", "")
-    checkState(project.channels.size < this.config.projects.getInt("max-channels").get, "channel limit reached", "")
+    checkState(project.channels.size < this.config.projects.get[Int]("max-channels"), "channel limit reached", "")
     this.service.access[Channel](classOf[Channel]).add(new Channel(name, color, project.id.get))
   }
 
@@ -313,7 +313,7 @@ trait ProjectFactory {
 
     // Create version
     val pendingVersion = pending.underlying
-    if (pendingVersion.exists && this.config.projects.getBoolean("file-validate").get)
+    if (pendingVersion.exists && this.config.projects.get[Boolean]("file-validate"))
       throw new IllegalArgumentException("Version already exists.")
 
     val newVersion = this.service.access[Version](classOf[Version]).add(Version(

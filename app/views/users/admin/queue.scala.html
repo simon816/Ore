@@ -7,7 +7,7 @@
 
 
 @(underReview: Seq[(Project, Version)], versions: Seq[(Project, Version)])(implicit messages: Messages, request: Request[_], service: ModelService,
-        config: OreConfig, users: UserBase, currentReview: Option[models.admin.Review] = None)
+        config: OreConfig, users: UserBase)
 
 @import java.sql.Timestamp
 @import java.time.Instant
@@ -15,7 +15,6 @@
 @currentUserId = @{users.current.get.id.get}
 
 @bootstrap.layout(messages("user.queue")) {
-
     <script nonce="@nonce" type="text/javascript" src="@routes.Assets.at("javascripts/queue.js")"></script>
 
     <div class="container" style="margin-top: 90px">
@@ -50,30 +49,30 @@
                             </tr>
                         }
                         @underReview.map { tuple =>
-                            @(currentReview = tuple._2.mostRecentUnfinishedReview)
-                            <tr @if(currentReview.isDefined && currentUserId == (currentReview.get.userId)){ class="warning" }>
-                                <td>
-                                    <a href="@versionRoutes.show(tuple._1.ownerName, tuple._1.slug, tuple._2.name)">
-                                        @tuple._1.ownerName/<string>@tuple._1.name</string>
-                                    </a>
-                                    <br>
-                                    @tuple._2.versionString
-                                    @defining(tuple._2.channel) { channel =>
-                                        <span class="channel" style="background-color: @channel.color.hex">@channel.name</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if(tuple._2.author.isDefined) {
-                                        <a href="https://forums.spongepowered.org/users/@tuple._1.ownerName">
-                                            @tuple._2.author.get.name
+                            @defining(tuple._2.mostRecentUnfinishedReview) { currentReview =>
+                                <tr @if(currentReview.isDefined && currentUserId == (currentReview.get.userId)){ class="warning" }>
+                                    <td>
+                                        <a href="@versionRoutes.show(tuple._1.ownerName, tuple._1.slug, tuple._2.name)">
+                                            @tuple._1.ownerName/<string>@tuple._1.name</string>
                                         </a>
-                                    } else {
-                                        Unknown
-                                    }
-                                    <br>
-                                    @prettifyDateAndTime(tuple._2.createdAt.get)
-                                </td>
-                                <td style="text-align: right; max-width: 40px">
+                                        <br>
+                                        @tuple._2.versionString
+                                        @defining(tuple._2.channel) { channel =>
+                                            <span class="channel" style="background-color: @channel.color.hex">@channel.name</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if(tuple._2.author.isDefined) {
+                                            <a href="https://forums.spongepowered.org/users/@tuple._1.ownerName">
+                                            @tuple._2.author.get.name
+                                            </a>
+                                        } else {
+                                            Unknown
+                                        }
+                                        <br>
+                                        @prettifyDateAndTime(tuple._2.createdAt.get)
+                                    </td>
+                                    <td style="text-align: right; max-width: 40px">
                                     @if(currentReview.isDefined) {
                                         @if(currentUserId == (currentReview.get.userId)) {
                                             <i class="status fa fa-fw fa-play-circle fa-2x" style="color: green"></i>
@@ -83,8 +82,8 @@
                                     } else {
                                         <i class="status fa fa-fw fa-pause-circle fa-2x" style="color: orange"></i>
                                     }
-                                </td>
-                                <td @if(!currentReview.isDefined){ style="color: darkred" }>
+                                    </td>
+                                    <td @if(!currentReview.isDefined){ style="color: darkred" }>
                                     @if(currentReview.isDefined) {
                                         @users.get(currentReview.get.userId).get.name
                                         <br>
@@ -94,11 +93,12 @@
                                         <br>
                                         <span data-ago="@tuple._2.mostRecentReviews.last.createdAt.getOrElse(Timestamp.from(Instant.now())).getTime" data-title="abandoned "></span>
                                     }
-                                </td>
-                                <td style="vertical-align: middle; text-align: right; padding-right: 15px;">
-                                    <a href="/@tuple._1.ownerName/@tuple._1.slug/versions/@tuple._2.name/reviews"><i class="fa fa-2x fa-fw fa-info"></i></a>
-                                </td>
-                            </tr>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: right; padding-right: 15px;">
+                                        <a href="/@tuple._1.ownerName/@tuple._1.slug/versions/@tuple._2.name/reviews"><i class="fa fa-2x fa-fw fa-info"></i></a>
+                                    </td>
+                                </tr>
+                            }
                         }
                         </tbody>
                     </table>
@@ -175,7 +175,7 @@
     <script nonce="@nonce">
         $(function(){
             var momentNow = moment();
-            var maxDiffrence = @config.ore.getConfig("queue").get.getInt("max-review-time").getOrElse(86400000);
+            var maxDiffrence = @config.ore.getConfig("queue").get.get[Int]("max-review-time")OrElse(86400000);
             $('span[data-ago]').each(function() {
                 var momentAgo = moment($(this).data('ago'))
                 $(this).text($(this).data('title') + momentAgo.fromNow());

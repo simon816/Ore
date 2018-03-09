@@ -21,6 +21,8 @@ import play.api.libs.json._
 import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
 
+import scala.concurrent.ExecutionContext.global
+
 /**
   * Ore API (v1)
   */
@@ -73,7 +75,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
   }
 
   def createKey(version: String, pluginId: String) = {
-    (AuthedProjectActionById(pluginId) andThen ProjectPermissionAction(EditApiKeys)) { implicit request =>
+    (Action andThen AuthedProjectActionById(pluginId) andThen ProjectPermissionAction(EditApiKeys)) { implicit request =>
       val project = request.project
       this.forms.ProjectApiKeyCreate.bindFromRequest().fold(
         _ => BadRequest,
@@ -145,7 +147,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
 
   private def error(key: String, error: String) = Json.obj("errors" -> Map(key -> List(this.messagesApi(error))))
 
-  def deployVersion(version: String, pluginId: String, name: String) = ProjectAction(pluginId) { implicit request =>
+  def deployVersion(version: String, pluginId: String, name: String) = (Action andThen projectAction(pluginId)) { request =>
     version match {
       case "v1" =>
         val project = request.project
