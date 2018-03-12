@@ -20,7 +20,7 @@ import ore.project.factory.ProjectFactory
 import ore.project.io.{InvalidPluginFileException, PluginUpload}
 import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv, StatTracker}
-import play.api.cache.{CacheApi, SyncCacheApi}
+import play.api.cache.SyncCacheApi
 import play.api.i18n.MessagesApi
 import play.api.libs.json._
 import play.api.mvc._
