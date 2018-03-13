@@ -2,6 +2,7 @@ package models.user
 
 import java.sql.Timestamp
 
+import com.github.tminglei.slickpg.InetString
 import db.impl.UserActionLogTable
 import db.impl.model.OreModel
 import ore.user.UserOwned
@@ -9,6 +10,7 @@ import ore.user.UserOwned
 case class UserAction(override val id: Option[Int] = None,
                       override val createdAt: Option[Timestamp] = None,
                       private val _userId: Int,
+                      private val _address: InetString,
                       private val _action: String
                      )
   extends OreModel(id, createdAt)
@@ -21,6 +23,8 @@ case class UserAction(override val id: Option[Int] = None,
   override def copyWith(id: Option[Int], theTime: Option[Timestamp]): UserAction = this.copy(createdAt = theTime)
 
   override def userId: Int = _userId
+
+  def address: InetString = _address
 
   def action: String = _action
 

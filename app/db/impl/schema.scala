@@ -380,7 +380,8 @@ class VisibilityChangeTable(tag: RowTag) extends ModelTable[VisibilityChange](ta
 class UserActionLogTable(tag: RowTag) extends ModelTable[UserAction](tag, "user_action_log") {
 
   def userId = column[Int]("userId")
+  def address = column[InetString]("address")
   def action = column[String]("action")
 
-  override def * = (id.?, createdAt.?, userId, action) <> (UserAction.tupled, UserAction.unapply)
+  override def * = (id.?, createdAt.?, userId, address, action) <> (UserAction.tupled, UserAction.unapply)
 }

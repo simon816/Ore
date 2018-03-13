@@ -1,5 +1,6 @@
 package ore.permission
 
+import com.github.tminglei.slickpg.InetString
 import db.ModelService
 import models.user.{User, UserAction}
 
@@ -32,7 +33,8 @@ object PermissionLogger {
 
   def log(user: User, p: Permission, service: ModelService): Unit = {
     Logger.info(s"${user.name} did ${p.getClass.getSimpleName}.")
-    service.insert(new UserAction(None, None, user.userId, s"${p.getClass.getSimpleName}"))
+    // TODO: get user's address
+    service.insert(new UserAction(None, None, user.userId, InetString("127.0.0.1"),  s"${p.getClass.getSimpleName}"))
   }
 
 }
