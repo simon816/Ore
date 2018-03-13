@@ -9,6 +9,7 @@
 @import views.html.helper.{CSRF, form}
 @import ore.rest.ProjectApiKeyTypes._
 @import ore.permission.HardRemoveProject
+@import views.html.utils
 @(project: Project)(implicit messages: Messages, flash: Flash, request: Request[_], service: ModelService,
         config: OreConfig, userBase: UserBase)
 
@@ -38,7 +39,7 @@
                     <div class="panel-heading">
                         <h3 class="panel-title pull-left">@messages("project.settings")</h3>
                         @if(userBase.current.isDefined && (userBase.current.get can HideProjects in GlobalScope)) {
-                            @projects.utils.btnHide(project, userBase.current.get)
+                            @projects.helper.btnHide(project, userBase.current.get)
 
                             <div class="modal fade" id="modal-visibility-comment" tabindex="-1" role="dialog" aria-labelledby="modal-visibility-comment">
                                 <div class="modal-dialog" role="document">
@@ -64,7 +65,7 @@
 
                     <div class="panel-body">
                         @defining(project.settings) { settings =>
-                            @projects.utils.inputSettings(
+                            @projects.helper.inputSettings(
                                 form = "save",
                                 issues = settings.issues,
                                 source = settings.source,
@@ -76,7 +77,7 @@
                         }
 
                         <!-- Description -->
-                        @defining(config.projects.getInt("max-desc-len").get) { maxLength =>
+                        @defining(config.projects.get[Int]("max-desc-len")) { maxLength =>
                             <div class="setting">
                                 <div class="setting-description">
                                     <h4>Description</h4>
@@ -161,7 +162,7 @@
                             <div class="setting-content">
                                 <input form="rename" id="name" name="name" class="form-control" type="text"
                                        value="@project.name"
-                                       maxlength="@config.projects.getInt("max-name-len").get">
+                                       maxlength="@config.projects.get[Int]("max-name-len")">
                                 <button id="btn-rename" data-toggle="modal" data-target="#modal-rename"
                                         class="btn btn-warning" disabled>
                                     @messages("project.rename")

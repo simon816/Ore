@@ -6,7 +6,7 @@ import ore.Cacheable
 import ore.Colors.Color
 import ore.project.Dependency
 import ore.project.io.PluginFile
-import play.api.cache.CacheApi
+import play.api.cache.SyncCacheApi
 import util.PendingAction
 
 import scala.util.Try
@@ -28,7 +28,7 @@ case class PendingVersion(projects: ProjectBase,
                           underlying: Version,
                           plugin: PluginFile,
                           var createForumPost: Boolean,
-                          override val cacheApi: CacheApi)
+                          override val cacheApi: SyncCacheApi)
                           extends PendingAction[Version]
                             with Cacheable {
 

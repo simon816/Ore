@@ -3,9 +3,9 @@ package controllers.project
 import java.nio.file.{Files, Path}
 import java.sql.Timestamp
 import java.time.Instant
-import javax.inject.Inject
 
-import controllers.BaseController
+import javax.inject.Inject
+import controllers.OreBaseController
 import controllers.sugar.Bakery
 import controllers.sugar.Requests.AuthRequest
 import db.ModelService
@@ -20,7 +20,7 @@ import ore.project.factory.ProjectFactory
 import ore.project.io.{InvalidPluginFileException, PluginUpload}
 import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv, StatTracker}
-import play.api.cache.CacheApi
+import play.api.cache.SyncCacheApi
 import play.api.i18n.MessagesApi
 import play.api.libs.json._
 import play.api.mvc._
@@ -34,13 +34,15 @@ import views.html.{projects => views}
 
 import scala.collection.JavaConverters._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 /**
   * Controller for handling Project related actions.
   */
 class Projects @Inject()(stats: StatTracker,
                          forms: OreForms,
                          factory: ProjectFactory,
-                         implicit val cache: CacheApi,
+                         implicit val cache: SyncCacheApi,
                          implicit override val bakery: Bakery,
                          implicit override val sso: SingleSignOnConsumer,
                          implicit val forums: OreDiscourseApi,
@@ -48,7 +50,7 @@ class Projects @Inject()(stats: StatTracker,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
                          implicit override val service: ModelService)
-                         extends BaseController {
+                         extends OreBaseController {
 
   implicit val fileManager = factory.fileManager
 

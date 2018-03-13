@@ -29,6 +29,8 @@ import views.{html => views}
 
 import scala.concurrent.Future
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 /**
   * Main entry point for application.
   */
@@ -40,7 +42,7 @@ final class Application @Inject()(data: DataHelper,
                                   implicit override val env: OreEnv,
                                   implicit override val config: OreConfig,
                                   implicit override val service: ModelService)
-                                  extends BaseController {
+                                  extends OreBaseController {
 
   private def FlagAction = Authenticated andThen PermissionAction[AuthRequest](ReviewFlags)
 
@@ -85,7 +87,7 @@ final class Application @Inject()(data: DataHelper,
       val filter = visibleFilter +&& platformFilter +&& categoryFilter +&& searchFilter +&& validFilter
 
       // Get projects
-      val pageSize = this.config.projects.getInt("init-load").get
+      val pageSize = this.config.projects.get[Int]("init-load")
       val p = page.getOrElse(1)
       val offset = (p - 1) * pageSize
       val future = actions.collect(filter.fn, ordering, pageSize, offset)

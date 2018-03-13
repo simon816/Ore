@@ -20,8 +20,8 @@ import ore.OreConfig
 class ProjectTask @Inject()(models: ModelService, actorSystem: ActorSystem, config: OreConfig) extends Runnable {
 
   val Logger = play.api.Logger("ProjectTask")
-  val interval = this.config.projects.getLong("check-interval").get.millis
-  val draftExpire: Long = this.config.projects.getLong("draft-expire").getOrElse(86400000)
+  val interval = this.config.projects.get[FiniteDuration]("check-interval")
+  val draftExpire: Long = this.config.projects.getOptional[Long]("draft-expire").getOrElse(86400000)
 
   /**
     * Starts the task.

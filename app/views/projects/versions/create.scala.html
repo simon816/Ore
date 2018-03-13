@@ -184,7 +184,7 @@
                                     @messages("version.create.selectFile")
                                 </label>
 
-                                @projects.utils.alertFile()
+                                @projects.helper.alertFile()
                             }
                         }
 
@@ -230,11 +230,11 @@
                 }
             </div>
             @if(pending.isDefined) {
-                @projects.utils.createSteps(4)
+                @projects.helper.createSteps(4)
             }
         </div>
     </div>
 
-    @projects.channels.utils.modalManage()
+    @projects.channels.helper.modalManage()
 
 }

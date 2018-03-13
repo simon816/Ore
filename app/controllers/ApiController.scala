@@ -1,8 +1,8 @@
 package controllers
 
 import java.util.UUID
-import javax.inject.Inject
 
+import javax.inject.Inject
 import controllers.sugar.Bakery
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
@@ -15,11 +15,13 @@ import ore.project.io.{InvalidPluginFileException, PluginUpload, ProjectFiles}
 import ore.rest.ProjectApiKeyTypes._
 import ore.rest.{OreRestfulApi, OreWrites}
 import ore.{OreConfig, OreEnv}
-import play.api.i18n.MessagesApi
+import play.api.i18n.{Lang, MessagesApi}
 import util.StatusZ
 import play.api.libs.json._
 import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Ore API (v1)
@@ -35,7 +37,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
                                     implicit override val bakery: Bakery,
                                     implicit override val sso: SingleSignOnConsumer,
                                     implicit override val messagesApi: MessagesApi)
-                                    extends BaseController {
+                                    extends OreBaseController {
 
   import writes._
 
@@ -73,7 +75,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
   }
 
   def createKey(version: String, pluginId: String) = {
-    (AuthedProjectActionById(pluginId) andThen ProjectPermissionAction(EditApiKeys)) { implicit request =>
+    (Action andThen AuthedProjectActionById(pluginId) andThen ProjectPermissionAction(EditApiKeys)) { implicit request =>
       val project = request.project
       this.forms.ProjectApiKeyCreate.bindFromRequest().fold(
         _ => BadRequest,

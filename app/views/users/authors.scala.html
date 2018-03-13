@@ -9,7 +9,7 @@
 @(authors: Seq[User], ordering: String, page: Int)(implicit messages: Messages, request: Request[_],
         service: ModelService, config: OreConfig, users: UserBase, projectBase: ProjectBase)
 
-@pageSize = @{ config.users.getInt("author-page-size").get }
+@pageSize = @{ config.users.get[Int]("author-page-size") }
 @direction = @{ if (ordering.startsWith("-")) "o-chevron-down" else "o-chevron-up" }
 
 @isActiveSort(td: String) = @{

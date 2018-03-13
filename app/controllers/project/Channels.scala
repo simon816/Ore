@@ -2,7 +2,7 @@ package controllers.project
 
 import javax.inject.Inject
 
-import controllers.BaseController
+import controllers.OreBaseController
 import controllers.sugar.Bakery
 import db.ModelService
 import form.OreForms
@@ -12,6 +12,8 @@ import ore.{OreConfig, OreEnv}
 import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
 import views.html.projects.{channels => views}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Controller for handling Channel related actions.
@@ -24,7 +26,7 @@ class Channels @Inject()(forms: OreForms,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
                          implicit override val service: ModelService)
-                         extends BaseController {
+                         extends OreBaseController {
 
   private val self = controllers.project.routes.Channels
 

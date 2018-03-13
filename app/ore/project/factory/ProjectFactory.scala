@@ -2,8 +2,8 @@ package ore.project.factory
 
 import java.nio.file.Files._
 import java.nio.file.StandardCopyOption
-import javax.inject.Inject
 
+import javax.inject.Inject
 import akka.actor.ActorSystem
 import com.google.common.base.Preconditions._
 import db.ModelService
@@ -23,8 +23,8 @@ import ore.project.factory.TagAlias.ProjectTag
 import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload, ProjectFiles}
 import ore.user.notification.NotificationTypes
 import org.spongepowered.plugin.meta.PluginMetadata
-import play.api.cache.CacheApi
-import play.api.i18n.MessagesApi
+import play.api.cache.SyncCacheApi
+import play.api.i18n.{Lang, MessagesApi}
 import security.pgp.PGPVerifier
 import util.StringUtils._
 
@@ -47,7 +47,7 @@ trait ProjectFactory {
   implicit val projects: ProjectBase = this.service.getModelBase(classOf[ProjectBase])
 
   val fileManager: ProjectFiles = this.projects.fileManager
-  val cacheApi: CacheApi
+  val cacheApi: SyncCacheApi
   val actorSystem: ActorSystem
   val pgp: PGPVerifier = new PGPVerifier
   val dependencyVersionRegex = "^[0-9a-zA-Z\\.\\,\\[\\]\\(\\)-]+$".r
@@ -56,8 +56,9 @@ trait ProjectFactory {
   implicit val config: OreConfig
   implicit val forums: OreDiscourseApi
   implicit val env = this.fileManager.env
+  implicit val lang = Lang.defaultLang
 
-  var isPgpEnabled = this.config.security.getBoolean("requirePgp").get
+  var isPgpEnabled = this.config.security.get[Boolean]("requirePgp")
 
   /**
     * Processes incoming [[PluginUpload]] data, verifies it, and loads a new
@@ -83,8 +84,8 @@ trait ProjectFactory {
     if (!owner.isPgpPubKeyReady)
       throw new IllegalArgumentException("error.plugin.pubKey.cooldown")
 
-    var pluginPath = uploadData.pluginFile.file.toPath
-    var sigPath = uploadData.signatureFile.file.toPath
+    var pluginPath = uploadData.pluginFile.path
+    var sigPath = uploadData.signatureFile.path
 
     // verify detached signature
     if (!this.pgp.verifyDetachedSignature(pluginPath, sigPath, owner.pgpPubKey.get))
@@ -114,7 +115,7 @@ trait ProjectFactory {
       return Left("error.version.invalidPluginId")
     val version = this.startVersion(plugin, project, project.channels.all.head.name)
     val model = version.underlying
-    if (model.exists && this.config.projects.getBoolean("file-validate").get)
+    if (model.exists && this.config.projects.get[Boolean]("file-validate"))
       return Left("error.version.duplicate")
     version.cache()
     Right(version)
@@ -288,7 +289,7 @@ trait ProjectFactory {
     checkNotNull(name, "null name", "")
     checkArgument(this.config.isValidChannelName(name), "invalid name", "")
     checkNotNull(color, "null color", "")
-    checkState(project.channels.size < this.config.projects.getInt("max-channels").get, "channel limit reached", "")
+    checkState(project.channels.size < this.config.projects.get[Int]("max-channels"), "channel limit reached", "")
     this.service.access[Channel](classOf[Channel]).add(new Channel(name, color, project.id.get))
   }
 
@@ -312,7 +313,7 @@ trait ProjectFactory {
 
     // Create version
     val pendingVersion = pending.underlying
-    if (pendingVersion.exists && this.config.projects.getBoolean("file-validate").get)
+    if (pendingVersion.exists && this.config.projects.get[Boolean]("file-validate"))
       throw new IllegalArgumentException("Version already exists.")
 
     val newVersion = this.service.access[Version](classOf[Version]).add(Version(
@@ -402,7 +403,7 @@ trait ProjectFactory {
 class OreProjectFactory @Inject()(override val service: ModelService,
                                   override val config: OreConfig,
                                   override val forums: OreDiscourseApi,
-                                  override val cacheApi: CacheApi,
+                                  override val cacheApi: SyncCacheApi,
                                   override val messages: MessagesApi,
                                   override val actorSystem: ActorSystem)
                                   extends ProjectFactory

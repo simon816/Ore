@@ -154,7 +154,7 @@ case class User(override val id: Option[Int] = None,
     * @return True if key is ready for use
     */
   def isPgpPubKeyReady: Boolean = this.pgpPubKey.isDefined && this.lastPgpPubKeyUpdate.forall { lastUpdate =>
-    val cooldown = this.config.security.getLong("keyChangeCooldown").get
+    val cooldown = this.config.security.get[Long]("keyChangeCooldown")
     val minTime = new Timestamp(lastUpdate.getTime + cooldown)
     minTime.before(this.service.theTime)
   }
@@ -241,7 +241,7 @@ case class User(override val id: Option[Int] = None,
     * @param _tagline Tagline to display
     */
   def tagline_=(_tagline: String) = {
-    checkArgument(_tagline.length <= this.config.users.getInt("max-tagline-len").get, "tagline too long", "")
+    checkArgument(_tagline.length <= this.config.users.get[Int]("max-tagline-len"), "tagline too long", "")
     this._tagline = Option(nullIfEmpty(_tagline))
     if (isDefined) update(Tagline)
   }
@@ -318,7 +318,7 @@ case class User(override val id: Option[Int] = None,
     * @return     Projects user has starred
     */
   def starred(page: Int = -1): Seq[Project] = Defined {
-    val starsPerPage = this.config.users.getInt("stars-per-page").get
+    val starsPerPage = this.config.users.get[Int]("stars-per-page")
     val limit = if (page < 1) -1 else starsPerPage
     val offset = (page - 1) * starsPerPage
     val filter = ModelFilter[Project](_.visibility === VisibilityTypes.Public) +|| ModelFilter[Project](_.visibility === VisibilityTypes.New)
@@ -372,7 +372,7 @@ case class User(override val id: Option[Int] = None,
     this.email = user.email
     user.avatarUrl.map { url =>
       if (!url.startsWith("http")) {
-        val baseUrl = config.security.getString("api.url").get
+        val baseUrl = config.security.get[String]("api.url")
         baseUrl + url
       } else
         url

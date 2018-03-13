@@ -34,7 +34,7 @@ trait Bootstrap {
 
   this.projectTask.start()
 
-  if (this.config.security.getBoolean("requirePgp").get)
+  if (this.config.security.get[Boolean]("requirePgp"))
     Security.addProvider(new BouncyCastleProvider)
 
   Logger.info(s"Ore Initialized (${System.currentTimeMillis() - time}ms).")
