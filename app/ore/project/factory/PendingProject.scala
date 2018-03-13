@@ -8,7 +8,7 @@ import models.user.role.ProjectRole
 import ore.project.Dependency._
 import ore.project.io.PluginFile
 import ore.{Cacheable, Colors, OreConfig}
-import play.api.cache.CacheApi
+import play.api.cache.SyncCacheApi
 import util.PendingAction
 
 import scala.util.Try
@@ -27,7 +27,7 @@ case class PendingProject(projects: ProjectBase,
                           channelName: String,
                           implicit val config: OreConfig,
                           var roles: Set[ProjectRole] = Set(),
-                          override val cacheApi: CacheApi)
+                          override val cacheApi: SyncCacheApi)
                          (implicit service: ModelService)
                           extends PendingAction[Project]
                             with Cacheable {
