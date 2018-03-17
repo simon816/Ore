@@ -32,9 +32,6 @@ case class PermissionPredicate(user: User, not: Boolean = false) {
         case _ => None
       }
       val result = organizationResult.getOrElse(subject.scope.test(user, p))
-      if (result && PermissionLogger.shouldLog(p)) {
-        PermissionLogger.log(user, p, user.service)
-      }
       if (not) !result else result
     }
   }

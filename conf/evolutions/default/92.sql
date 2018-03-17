@@ -1,10 +1,10 @@
  # --- !Ups
 CREATE TABLE user_action_log (
-  id     SERIAL PRIMARY KEY,
-  time   TIMESTAMP NOT NULL DEFAULT NOW(),
-  userId INT REFERENCES users,
-  address INET NOT NULL,
-  action TEXT
+  id         SERIAL PRIMARY KEY,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  user_id    INT REFERENCES users,
+  address    INET NOT NULL,
+  action     TEXT
 );
 
 # --- !Downs

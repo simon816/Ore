@@ -379,7 +379,7 @@ class VisibilityChangeTable(tag: RowTag) extends ModelTable[VisibilityChange](ta
 
 class UserActionLogTable(tag: RowTag) extends ModelTable[UserAction](tag, "user_action_log") {
 
-  def userId = column[Int]("userId")
+  def userId = column[Int]("user_id")
   def address = column[InetString]("address")
   def action = column[String]("action")
 
