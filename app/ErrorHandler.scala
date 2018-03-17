@@ -30,6 +30,8 @@ class ErrorHandler @Inject()(env: Environment,
     implicit val users: UserBase = service.getModelBase(classOf[UserBase])
     implicit val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
     implicit val session = request.session
+    implicit val requestImpl = request
+
     Future.successful {
       if (exception.cause.isInstanceOf[TimeoutException])
         GatewayTimeout(views.html.errors.timeout())
@@ -42,7 +44,8 @@ class ErrorHandler @Inject()(env: Environment,
     implicit val users: UserBase = service.getModelBase(classOf[UserBase])
     implicit val projects: ProjectBase = service.getModelBase(classOf[ProjectBase])
     implicit val session = request.session
-    implicit val impRequest = request
+    implicit val requestImpl = request
+
     Future.successful(NotFound(views.html.errors.notFound()))
   }
 

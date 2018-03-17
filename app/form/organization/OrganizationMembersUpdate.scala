@@ -5,7 +5,7 @@ import models.user.role.OrganizationRole
 import models.user.{Notification, Organization}
 import ore.permission.role.RoleTypes
 import ore.user.notification.NotificationTypes
-import play.api.i18n.MessagesApi
+import play.api.i18n.{Lang, MessagesApi}
 
 /**
   * Saves new and old [[OrganizationRole]]s.
@@ -19,6 +19,8 @@ case class OrganizationMembersUpdate(override val users: List[Int],
                                      override val roles: List[String],
                                      userUps: List[String],
                                      roleUps: List[String]) extends TOrganizationRoleSetBuilder {
+
+  implicit val lang = Lang.defaultLang
 
   //noinspection ComparingUnrelatedTypes
   def saveTo(organization: Organization)(implicit messages: MessagesApi, users: UserBase) = {

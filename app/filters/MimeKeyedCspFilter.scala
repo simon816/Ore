@@ -17,22 +17,9 @@ class MimeKeyedCspFilter @Inject()(implicit val mat: Materializer, ec: Execution
     private type CspSpec = Map[String, Seq[String]]
 
     private val keyWords = Set("self", "unsafe-inline", "none")
-    private val defaultMime: String = compileHeader(readCspSpec(conf.getConfig("filters.csp.default")))
-    private val mimeLookup: Map[String, String] = {
-        conf.getConfig("filters.csp.per-mime") match {
-            case Some(perMime) => perMime.keys.map(k => (k, compileHeader(readCspSpec(perMime.getConfig(k))))).toMap
-            case None => Map.empty
-        }
-    }
-
-    private def readCspSpec(conf: Option[Configuration]): CspSpec = {
-        conf match {
-            case Some(defaults) =>
-                defaults.keys.map { k =>
-                    (k, defaults.getStringList(k).map(_.asScala).getOrElse(Seq.empty))
-                }.toMap.filter(_._2.nonEmpty)
-            case None => Map.empty
-        }
+    private val defaultMime: String = compileHeader(conf.get[CspSpec]("filters.csp.default"))
+    private val mimeLookup: Map[String, String] = conf.get[Map[String, CspSpec]]("filters.csp.per-mime").map {
+        case (mime, spec) => (mime, compileHeader(spec))
     }
 
     private def compileHeader(section: CspSpec): String = {

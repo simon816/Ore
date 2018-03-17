@@ -4,6 +4,7 @@
 @import ore.OreConfig
 @import security.NonceFilter._
 @import views.html.helper.{CSRF, form}
+@import views.html.utils
 @(project: Project, channels: Seq[Channel])(implicit messages: Messages, flash: Flash, request: Request[_],
         service: ModelService, config: OreConfig, users: UserBase)
 
@@ -91,7 +92,7 @@
                             <i class="fa fa-arrow-left"></i>
                         </a>
                         <a href="#" id="channel-new" class="pull-right btn btn-primary"
-                           @if(channels.size >= config.projects.getInt("max-channels").get) {
+                           @if(channels.size >= config.projects.get[Int]("max-channels")) {
                                disabled data-toggle="tooltip" data-placement="left"
                                title="@messages("channel.edit.maxReached")"
                            } else {
@@ -100,7 +101,7 @@
                         >
                             <i class="fa fa-plus"></i>
                         </a>
-                        @projects.channels.utils.modalManage()
+                        @projects.channels.helper.modalManage()
                     </div>
                 </div>
             </div>

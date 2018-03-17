@@ -48,7 +48,7 @@ trait OreRestfulApi {
     val searchFilter = q.map(queries.searchFilter).getOrElse(ModelFilter.Empty)
     val categoryFilter = categoryArray.map(queries.categoryFilter).getOrElse(ModelFilter.Empty)
     val filter = categoryFilter +&& searchFilter
-    val maxLoad = this.config.projects.getInt("init-load").get
+    val maxLoad = this.config.projects.get[Int]("init-load")
     val lim = max(min(limit.getOrElse(maxLoad), maxLoad), 0)
     val future = queries.collect(filter.fn, ordering, lim, offset.getOrElse(-1))
     val projects = this.service.await(future).get
@@ -82,7 +82,7 @@ trait OreRestfulApi {
 
       // Only allow versions in the specified channels
       val filter = channelIds.map(service.getSchema(classOf[VersionSchema]).channelFilter).getOrElse(ModelFilter.Empty)
-      val maxLoad = this.config.projects.getInt("init-version-load").get
+      val maxLoad = this.config.projects.get[Int]("init-version-load")
       val lim = max(min(limit.getOrElse(maxLoad), maxLoad), 0)
 
       val versions = project.versions.sorted(_.createdAt.desc, filter.fn, lim, offset.getOrElse(-1))

@@ -85,7 +85,7 @@
                             @user.username
 
                             @if(user.isCurrent && !user.isOrganization) {
-                                <a class="user-settings" href="@config.security.getString("api.url").get/accounts/settings">
+                                <a class="user-settings" href="@config.security.get[String]("api.url")/accounts/settings">
                                     <i class="fa fa-cog" data-toggle="tooltip"
                                         data-placement="top" title="Settings"></i>
                                 </a>
@@ -311,7 +311,7 @@
                         <p>@messages("user.tagline.info")</p>
                     </div>
                     <input class="form-control" type="text" value="@user.tagline.getOrElse("")" id="tagline"
-                           name="tagline" maxlength="@config.users.getInt("max-tagline-len").get" />
+                           name="tagline" maxlength="@config.users.get[Int]("max-tagline-len")" />
                 </div>
                 <div class="clearfix"></div>
             </div>

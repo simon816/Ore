@@ -17,7 +17,7 @@ Versions page within Project overview.
         page: Int)(implicit messages: Messages, request: Request[_], flash: Flash,
         service: ModelService, config: OreConfig, userBase: UserBase)
 
-@pageSize = @{ config.projects.getInt("init-version-load").get }
+@pageSize = @{ config.projects.get[Int]("init-version-load") }
 @projectRoutes = @{ controllers.project.routes.Projects }
 @versionRoutes = @{ controllers.project.routes.Versions }
 @channelRoutes = @{ controllers.project.routes.Channels }
@@ -39,46 +39,6 @@ Versions page within Project overview.
     }
     </script>
 
-
-    <table class="template">
-        <tbody>
-            <tr class="version-template">
-                <td class="base-info">
-                    <div class="name"></div>
-                    <span class="channel"></span>
-                </td>
-                <td class="version-tags"></td>
-                <td class="information-one">
-                    <div>
-                        <i class="fa fa-calendar"></i>
-                        <span class="created"></span>
-                    </div>
-                    <div>
-                        <i class="fa fa-file-o"></i>
-                        <span class="size"></span>
-                    </div>
-                </td>
-                <td class="information-two">
-                    <div class="author">
-                        <i class="fa fa-key"></i>
-                        <span>Signed by:</span>
-                        <span class="author-name"></span>
-                    </div>
-                    <div>
-                        <i class="fa fa-download"></i>
-                        <span class="download-count"></span>
-                        <span>Downloads</span>
-                    </div>
-                </td>
-                <td class="download">
-                    <a class="download-link">
-                        <i class="fa fa-2x fa-download"></i>
-                    </a>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
     <div class="container version-container">
         <div class="row">
             <div class="col-md-9">
@@ -97,7 +57,10 @@ Versions page within Project overview.
                     <div class="loading">
                         <i class="fa fa-spinner fa-spin"></i>
                     </div>
-                    <table class="table version-list"></table>
+
+                    <table class="version-table table">
+                        <tbody></tbody>
+                    </table>
 
                     <div class="panel-pagination">
                         <ul class="pagination">

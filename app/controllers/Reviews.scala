@@ -2,13 +2,11 @@ package controllers
 
 import java.sql.Timestamp
 import java.time.Instant
-import javax.inject.Inject
 
-import controllers.BaseController
+import javax.inject.Inject
 import controllers.sugar.Bakery
 import controllers.sugar.Requests.AuthRequest
 import db.ModelService
-import db.impl.{ReviewTable, VersionTable}
 import form.OreForms
 import models.admin.{Message, Review}
 import models.user.{Notification, User}
@@ -16,10 +14,12 @@ import ore.permission.ReviewProjects
 import ore.permission.role.Lifted
 import ore.user.notification.NotificationTypes
 import ore.{OreConfig, OreEnv}
-import play.api.i18n.MessagesApi
+import play.api.i18n.{Lang, MessagesApi}
 import security.spauth.SingleSignOnConsumer
-import util.{DataHelper, StringUtils}
+import util.DataHelper
 import views.{html => views}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Controller for handling Review related actions.
@@ -32,8 +32,7 @@ final class Reviews @Inject()(data: DataHelper,
                               implicit override val env: OreEnv,
                               implicit override val config: OreConfig,
                               implicit override val service: ModelService)
-                              extends BaseController {
-
+                              extends OreBaseController {
 
   def showReviews(author: String, slug: String, versionString: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) { implicit request =>

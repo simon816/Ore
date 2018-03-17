@@ -14,7 +14,7 @@ import ore.project.io.ProjectFiles
 import ore.project.{Categories, ProjectOwned}
 import ore.user.notification.NotificationTypes
 import play.api.Logger
-import play.api.i18n.MessagesApi
+import play.api.i18n.{Lang, MessagesApi}
 import util.StringUtils._
 
 import scala.collection.JavaConverters._
@@ -42,6 +42,7 @@ case class ProjectSettings(override val id: Option[Int] = None,
                            private var _forumSync: Boolean = true)
                            extends OreModel(id, createdAt) with ProjectOwned {
 
+  implicit val lang = Lang.defaultLang
   override type M = ProjectSettings
   override type T = ProjectSettingsTable
 

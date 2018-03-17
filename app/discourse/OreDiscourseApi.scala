@@ -45,8 +45,6 @@ trait OreDiscourseApi extends DiscourseApi {
 
   private var recovery: RecoveryTask = _
 
-  isDebugMode = true
-
   /**
     * Initializes and starts this API instance.
     */

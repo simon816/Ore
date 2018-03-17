@@ -146,7 +146,7 @@
                                             <td class="rv">
                                                 <div class="checkbox-inline">
                                                     <input form="form-publish" name="forum-post" type="checkbox"
-                                                            @if(project.settings.forumSync) { checked } value="true"/>
+                                                            @if(!project.id.isDefined || project.settings.forumSync) { checked } value="true"/>
                                                 </div>
                                                 <div class="clearfix"></div>
                                             </td>
@@ -184,7 +184,7 @@
                                     @messages("version.create.selectFile")
                                 </label>
 
-                                @projects.utils.alertFile()
+                                @projects.helper.alertFile()
                             }
                         }
 
@@ -230,11 +230,11 @@
                 }
             </div>
             @if(pending.isDefined) {
-                @projects.utils.createSteps(4)
+                @projects.helper.createSteps(4)
             }
         </div>
     </div>
 
-    @projects.channels.utils.modalManage()
+    @projects.channels.helper.modalManage()
 
 }

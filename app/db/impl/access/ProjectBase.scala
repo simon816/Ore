@@ -45,7 +45,7 @@ class ProjectBase(override val service: ModelService,
     * @return Stale projects
     */
   def stale: Seq[Project]
-  = this.filter(_.lastUpdated > new Timestamp(new Date().getTime - this.config.projects.getInt("staleAge").get))
+  = this.filter(_.lastUpdated > new Timestamp(new Date().getTime - this.config.projects.get[Int]("staleAge")))
 
   /**
     * Returns the Project with the specified owner name and name.
