@@ -88,7 +88,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val project = request.project
       withVersion(versionString) { version =>
         version.description = this.forms.VersionDescription.bindFromRequest.get.trim
-        UserActionLogger.log(users.current.get, s"Edited description of $author/$slug version ${version.name}", service, request)
+        UserActionLogger.log(users.current.get, s"Edited description of $author/$slug version ${version.name}")
         Redirect(self.show(author, slug, versionString))
       }
     }
@@ -107,7 +107,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val project = request.project
       withVersion(versionString) { version =>
         project.recommendedVersion = version
-        UserActionLogger.log(users.current.get, s"Set the Recommended Version of $author/$slug to ${version.name}", service, request)
+        UserActionLogger.log(users.current.get, s"Set the Recommended Version of $author/$slug to ${version.name}")
         Redirect(self.show(author, slug, versionString))
       }
     }
@@ -207,7 +207,7 @@ class Versions @Inject()(stats: StatTracker,
                 err => Redirect(call).withError(err),
                 version => {
                   UserActionLogger.log(users.current.get, s"Uploaded ${version.underlying.name} to $author/$slug" +
-                    s" (File: ${uploadData.pluginFileName}, Sig: ${uploadData.signatureFileName})", service, request)
+                    s" (File: ${uploadData.pluginFileName}, Sig: ${uploadData.signatureFileName})")
 
                   version.underlying.authorId = user.id.getOrElse(-1)
                   Redirect(self.showCreatorWithMeta(request.project.ownerName, slug, version.underlying.versionString))

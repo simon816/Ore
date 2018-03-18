@@ -40,7 +40,7 @@ object UserActionLogger {
 
   val Logger = play.api.Logger("Permissions")
 
-  def log(user: User, action: String, service: ModelService, request: RequestHeader): Unit = {
+  def log(user: User, action: String)(implicit service: ModelService, request: RequestHeader): Unit = {
     val address = StatTracker.remoteAddress(request)
     Logger.info(s"${user.name} did '$action'. ($address)")
     service.insert(UserAction(None, None, user.userId, InetString(address), action))

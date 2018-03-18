@@ -139,7 +139,7 @@ class Pages @Inject()(forms: OreForms,
               pageName = pageData.name.getOrElse(parts(1))
               parentId = project.pages.find(equalsIgnoreCase(_.slug, parts(0))).map(_.id.getOrElse(-1)).getOrElse(-1)
             }
-            UserActionLogger.log(users.current.get, s"Edited page $page in $author/$slug", service, request)
+            UserActionLogger.log(users.current.get, s"Edited page $page in $author/$slug")
             val pageModel = project.getOrCreatePage(pageName, parentId)
             pageData.content.map(pageModel.contents = _)
             Redirect(self.show(author, slug, page))
