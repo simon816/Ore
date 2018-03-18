@@ -30,10 +30,10 @@ import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
 import views.html.projects.{versions => views}
 import _root_.views.html.helper
+import models.user.UserActionLogger
 import ore.project.factory.TagAlias.ProjectTag
 import util.JavaUtils.autoClose
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
@@ -88,6 +88,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val project = request.project
       withVersion(versionString) { version =>
         version.description = this.forms.VersionDescription.bindFromRequest.get.trim
+        UserActionLogger.log(users.current.get, s"Edited description of $author/$slug version ${version.name}", service, request)
         Redirect(self.show(author, slug, versionString))
       }
     }
@@ -106,6 +107,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val project = request.project
       withVersion(versionString) { version =>
         project.recommendedVersion = version
+        UserActionLogger.log(users.current.get, s"Set the Recommended Version of $author/$slug to ${version.name}", service, request)
         Redirect(self.show(author, slug, versionString))
       }
     }
@@ -204,6 +206,9 @@ class Versions @Inject()(stats: StatTracker,
               this.factory.processSubsequentPluginUpload(uploadData, user, request.project).fold(
                 err => Redirect(call).withError(err),
                 version => {
+                  UserActionLogger.log(users.current.get, s"Uploaded ${version.underlying.name} to $author/$slug" +
+                    s" (File: ${uploadData.pluginFileName}, Sig: ${uploadData.signatureFileName})", service, request)
+
                   version.underlying.authorId = user.id.getOrElse(-1)
                   Redirect(self.showCreatorWithMeta(request.project.ownerName, slug, version.underlying.versionString))
                 }
