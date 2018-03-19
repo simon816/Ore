@@ -129,6 +129,7 @@ class Versions @Inject()(stats: StatTracker,
         version.setReviewed(reviewed = true)
         version.reviewer = request.user
         version.approvedAt = this.service.theTime
+        UserActionLogger.log(users.current.get, s"Approved version ${version.name} of $author/$slug")
         Redirect(self.show(author, slug, versionString))
       }
     }
@@ -343,6 +344,7 @@ class Versions @Inject()(stats: StatTracker,
                           project.recommendedVersion = newVersion
 
                         addUnstableTag(newVersion)
+                        UserActionLogger.log(users.current.get, s"Published version $versionString for $author/$slug")
                         Redirect(self.show(author, slug, versionString))
                       }
                     )
@@ -351,6 +353,7 @@ class Versions @Inject()(stats: StatTracker,
                   // Found a pending project, create it with first version
                   val project = pendingProject.complete().get
                   addUnstableTag(project.recommendedVersion)
+                  UserActionLogger.log(users.current.get, s"Published version $versionString for $author/$slug")
                   Redirect(ShowProject(author, slug))
               }
             }
@@ -372,6 +375,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val project = request.project
       withVersion(versionString) { version =>
         this.projects.deleteVersion(version)
+        UserActionLogger.log(users.current.get, s"Deleted version $versionString from $author/$slug")
         Redirect(self.showList(author, slug, None, None))
       }
     }
