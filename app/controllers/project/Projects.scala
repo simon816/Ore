@@ -16,12 +16,14 @@ import ore.permission._
 import ore.permission.scope.GlobalScope
 import ore.project.factory.ProjectFactory
 import ore.project.io.{InvalidPluginFileException, PluginUpload}
+import ore.rest.ProjectApiKeyTypes
 import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.cache.{AsyncCacheApi, SyncCacheApi}
 import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
 import views.html.{projects => views}
+import db.impl.OrePostgresDriver.api._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -426,7 +428,7 @@ class Projects @Inject()(stats: StatTracker,
   def showSettings(author: String, slug: String) = SettingsEditAction(author, slug) async { request =>
     implicit val r = request.request
     val projectData = request.data
-    projectData.project.apiKeys.get(r.user.id.get).map { deployKey =>
+    projectData.project.apiKeys.find(_.keyType === ProjectApiKeyTypes.Deployment).map { deployKey =>
       Ok(views.settings(projectData, request.scoped, deployKey))
     }
   }
