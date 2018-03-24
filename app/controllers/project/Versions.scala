@@ -1,40 +1,41 @@
 package controllers.project
 
-import java.io.InputStream
 import java.nio.file.Files._
 import java.nio.file.{Files, StandardCopyOption}
 import java.sql.Timestamp
 import java.util.{Date, UUID}
 
-import javax.inject.Inject
+import _root_.views.html.helper
 import com.github.tminglei.slickpg.InetString
 import controllers.OreBaseController
 import controllers.sugar.Bakery
-import controllers.sugar.Requests.ProjectRequest
+import controllers.sugar.Requests.{OreRequest, ProjectRequest}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import discourse.OreDiscourseApi
 import form.OreForms
+import javax.inject.Inject
 import models.project._
+import models.viewhelper.{ProjectData, VersionData}
 import ore.permission.{EditVersions, ReviewProjects}
+import ore.project.factory.TagAlias.ProjectTag
 import ore.project.factory.{PendingProject, ProjectFactory}
 import ore.project.io.DownloadTypes._
 import ore.project.io.{DownloadTypes, InvalidPluginFileException, PluginFile, PluginUpload}
 import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.Logger
+import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Request, Result}
+import play.api.mvc.Result
 import play.filters.csrf.CSRF
 import security.spauth.SingleSignOnConsumer
+import util.JavaUtils.autoClose
 import util.StringUtils._
 import views.html.projects.{versions => views}
-import _root_.views.html.helper
-import ore.project.factory.TagAlias.ProjectTag
-import util.JavaUtils.autoClose
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 /**
   * Controller for handling Version related actions.
@@ -45,6 +46,7 @@ class Versions @Inject()(stats: StatTracker,
                          forums: OreDiscourseApi,
                          implicit override val bakery: Bakery,
                          implicit override val sso: SingleSignOnConsumer,
+                         implicit override val cache: AsyncCacheApi,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
@@ -66,11 +68,18 @@ class Versions @Inject()(stats: StatTracker,
     * @param versionString Version name
     * @return Version view
     */
-  def show(author: String, slug: String, versionString: String) = ProjectAction(author, slug) { implicit request =>
-    implicit val project = request.project
-    withVersion(versionString) { version =>
-      this.stats.projectViewed { implicit request =>
-        Ok(views.view(project, version.channel, version))
+  def show(author: String, slug: String, versionString: String) = ProjectAction(author, slug) async { request =>
+    implicit val data = request.data
+    implicit val r = request.request
+    implicit val p = data.project
+    withVersionAsync(versionString) { version =>
+      for {
+        data <- VersionData.of(request, version)
+        response <- this.stats.projectViewed(request) { request =>
+          Ok(views.view(data, request.scoped))
+        }
+      } yield {
+        response
       }
     }
   }
@@ -84,10 +93,12 @@ class Versions @Inject()(stats: StatTracker,
     * @return View of Version
     */
   def saveDescription(author: String, slug: String, versionString: String) = {
-    VersionEditAction(author, slug) { implicit request =>
-      implicit val project = request.project
+    VersionEditAction(author, slug).async { request =>
+      implicit val r = request.request
+      implicit val data = request.data
+      implicit val p = data.project
       withVersion(versionString) { version =>
-        version.description = this.forms.VersionDescription.bindFromRequest.get.trim
+        version.setDescription(this.forms.VersionDescription.bindFromRequest.get.trim)
         Redirect(self.show(author, slug, versionString))
       }
     }
@@ -102,10 +113,12 @@ class Versions @Inject()(stats: StatTracker,
     * @return               View of version
     */
   def setRecommended(author: String, slug: String, versionString: String) = {
-    VersionEditAction(author, slug) { implicit request =>
-      implicit val project = request.project
+    VersionEditAction(author, slug).async { implicit request =>
+      implicit val r = request.request
+      implicit val data = request.data
+      implicit val p = data.project
       withVersion(versionString) { version =>
-        project.recommendedVersion = version
+        data.project.setRecommendedVersion(version)
         Redirect(self.show(author, slug, versionString))
       }
     }
@@ -121,12 +134,14 @@ class Versions @Inject()(stats: StatTracker,
     */
   def approve(author: String, slug: String, versionString: String) = {
     (AuthedProjectAction(author, slug, requireUnlock = true)
-      andThen ProjectPermissionAction(ReviewProjects)) { implicit request =>
-      implicit val project = request.project
+      andThen ProjectPermissionAction(ReviewProjects)).async { implicit request =>
+      implicit val project = request.data
+      implicit val r = request.request
+      implicit val p = project.project
       withVersion(versionString) { version =>
         version.setReviewed(reviewed = true)
-        version.reviewer = request.user
-        version.approvedAt = this.service.theTime
+        version.setReviewer(request.user)
+        version.setApprovedAt(this.service.theTime)
         Redirect(self.show(author, slug, versionString))
       }
     }
@@ -141,31 +156,37 @@ class Versions @Inject()(stats: StatTracker,
     * @return View of project
     */
   def showList(author: String, slug: String, channels: Option[String], page: Option[Int]) = {
-    ProjectAction(author, slug) { implicit request =>
-      val project = request.project
-      val allChannels = project.channels.toSeq
+    ProjectAction(author, slug).async { request =>
+      val data = request.data
+      implicit val r = request.request
+      data.project.channels.toSeq.flatMap { allChannels =>
+        var visibleNames: Option[Array[String]] = channels.map(_.toLowerCase.split(','))
+        val visible: Option[Array[Channel]] = visibleNames.map(_.map { name =>
+          allChannels.find(_.name.equalsIgnoreCase(name))
+        }).map(_.flatten)
 
-      var visibleNames: Option[Array[String]] = channels.map(_.toLowerCase.split(','))
-      val visible: Option[Array[Channel]] = visibleNames.map(_.map { name =>
-        allChannels.find(_.name.equalsIgnoreCase(name))
-      }).map(_.flatten)
+        val visibleIds: Array[Int] = visible.map(_.map(_.id.get)).getOrElse(allChannels.map(_.id.get).toArray)
 
-      val visibleIds: Array[Int] = visible.map(_.map(_.id.get)).getOrElse(allChannels.map(_.id.get).toArray)
+        val pageSize = this.config.projects.get[Int]("init-version-load")
+        val p = page.getOrElse(1)
+        val futureVersions = data.project.versions.sorted(
+          ordering = _.createdAt.desc,
+          filter = _.channelId inSetBind visibleIds,
+          offset = pageSize * (p - 1),
+          limit = pageSize)
 
-      val pageSize = this.config.projects.get[Int]("init-version-load")
-      val p = page.getOrElse(1)
-      val versions = project.versions.sorted(
-        ordering = _.createdAt.desc,
-        filter = _.channelId inSetBind visibleIds,
-        offset = pageSize * (p - 1),
-        limit = pageSize)
+        if (visibleNames.isDefined && visibleNames.get.toSet.equals(allChannels.map(_.name.toLowerCase).toSet)) {
+          visibleNames = None
+        }
 
-      if (visibleNames.isDefined && visibleNames.get.toSet.equals(allChannels.map(_.name.toLowerCase).toSet)) {
-        visibleNames = None
-      }
-
-      this.stats.projectViewed { implicit request =>
-        Ok(views.list(project, allChannels, versions, visibleNames, p))
+        for {
+          versions <- futureVersions
+          r <- this.stats.projectViewed(request) { request =>
+            Ok(views.list(data, request.scoped, allChannels, versions, visibleNames, p))
+          }
+        } yield {
+          r
+        }
       }
     }
   }
@@ -177,9 +198,12 @@ class Versions @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return Version creation view
     */
-  def showCreator(author: String, slug: String) = VersionEditAction(author, slug) { implicit request =>
-    val project = request.project
-    Ok(views.create(project, None, Some(project.channels.all.toSeq), showFileControls = true))
+  def showCreator(author: String, slug: String) = VersionEditAction(author, slug).async { request =>
+    val data = request.data
+    implicit val r = request.request
+    data.project.channels.all.map { channels =>
+      Ok(views.create(data, data.settings.forumSync, None, Some(channels.toSeq), showFileControls = true))
+    }
   }
 
   /**
@@ -189,28 +213,28 @@ class Versions @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return Version create page (with meta)
     */
-  def upload(author: String, slug: String) = VersionEditAction(author, slug) { implicit request =>
+  def upload(author: String, slug: String) = VersionEditAction(author, slug).async { implicit request =>
     val call = self.showCreator(author, slug)
     val user = request.user
     this.factory.getUploadError(user) match {
       case Some(error) =>
-        Redirect(call).withError(error)
+        Future.successful(Redirect(call).withError(error))
       case None =>
         PluginUpload.bindFromRequest() match {
           case None =>
-            Redirect(call).withError("error.noFile")
+            Future.successful(Redirect(call).withError("error.noFile"))
           case Some(uploadData) =>
             try {
-              this.factory.processSubsequentPluginUpload(uploadData, user, request.project).fold(
+              this.factory.processSubsequentPluginUpload(uploadData, user, request.data.project).map(_.fold(
                 err => Redirect(call).withError(err),
                 version => {
-                  version.underlying.authorId = user.id.getOrElse(-1)
-                  Redirect(self.showCreatorWithMeta(request.project.ownerName, slug, version.underlying.versionString))
+                  version.underlying.setAuthorId(user.id.getOrElse(-1))
+                  Redirect(self.showCreatorWithMeta(request.data.project.ownerName, slug, version.underlying.versionString))
                 }
-              )
+              ))
             } catch {
               case e: InvalidPluginFileException =>
-                Redirect(call).withError(Option(e.getMessage).getOrElse(""))
+                Future.successful(Redirect(call).withError(Option(e.getMessage).getOrElse("")))
             }
         }
     }
@@ -225,30 +249,37 @@ class Versions @Inject()(stats: StatTracker,
     * @return Version create view
     */
   def showCreatorWithMeta(author: String, slug: String, versionString: String) = {
-    UserLock(ShowProject(author, slug)) { implicit request =>
+    UserLock(ShowProject(author, slug)).async { implicit request =>
       // Get pending version
       this.factory.getPendingVersion(author, slug, versionString) match {
         case None =>
-          Redirect(self.showCreator(author, slug))
+          Future.successful(Redirect(self.showCreator(author, slug)))
         case Some(pendingVersion) =>
           // Get project
-          pendingOrReal(author, slug) match {
+          pendingOrReal(author, slug).flatMap {
             case None =>
-              Redirect(self.showCreator(author, slug))
+              Future.successful(Redirect(self.showCreator(author, slug)))
             case Some(p) => p match {
               case pending: PendingProject =>
-                Ok(views.create(pending.underlying, Some(pendingVersion), None, showFileControls = false))
+                ProjectData.of(request, pending).map { data =>
+                  Ok(views.create(data, data.settings.forumSync, Some(pendingVersion), None, showFileControls = false))
+                }
               case real: Project =>
-                Ok(views.create(real, Some(pendingVersion), Some(real.channels.toSeq), showFileControls = true))
+                for {
+                  channels <- real.channels.toSeq
+                  data <- ProjectData.of(real)
+                } yield {
+                  Ok(views.create(data, data.settings.forumSync, Some(pendingVersion), Some(channels), showFileControls = true))
+                }
             }
           }
       }
     }
   }
 
-  private def pendingOrReal(author: String, slug: String): Option[Any] = {
+  private def pendingOrReal(author: String, slug: String): Future[Option[Any]] = {
     // Returns either a PendingProject or existing Project
-    this.projects.withSlug(author, slug) match {
+    this.projects.withSlug(author, slug) map {
       case None => this.factory.getPendingProject(author, slug)
       case Some(project) => Some(project)
     }
@@ -264,47 +295,23 @@ class Versions @Inject()(stats: StatTracker,
     * @return New version view
     */
   def publish(author: String, slug: String, versionString: String) = {
-    UserLock(ShowProject(author, slug)) { implicit request =>
+    UserLock(ShowProject(author, slug)).async { implicit request =>
       // First get the pending Version
       this.factory.getPendingVersion(author, slug, versionString) match {
         case None =>
           // Not found
-          Redirect(self.showCreator(author, slug))
+          Future.successful(Redirect(self.showCreator(author, slug)))
         case Some(pendingVersion) =>
           // Get submitted channel
           this.forms.VersionCreate.bindFromRequest.fold(
             hasErrors => {
               // Invalid channel
               val call = self.showCreatorWithMeta(author, slug, versionString)
-              Redirect(call).withError(hasErrors.errors.head.message)
+              Future.successful(Redirect(call).withError(hasErrors.errors.head.message))
             },
 
             versionData => {
               // Channel is valid
-
-              def addUnstableTag(version: Version) = {
-                if (versionData.unstable) {
-                  val tagsWithVersion = service.access(classOf[ProjectTag])
-                    .filter(t => t.name === "Unstable" && t.data === "").toList
-
-                  if (tagsWithVersion.isEmpty) {
-                    val tag = Tag(
-                      _versionIds = List(version.id.get),
-                      name = "Unstable",
-                      data = "",
-                      color = TagColors.Unstable
-                    )
-                    service.access(classOf[ProjectTag]).add(tag)
-                    // requery the tag because it now includes the id
-                    val newTag = service.access(classOf[ProjectTag]).filter(t => t.name === tag.name && t.data === tag.data).toList.head
-                    version.addTag(newTag)
-                  } else {
-                    val tag = tagsWithVersion.head
-                    tag.addVersionId(version.id.get)
-                    version.addTag(tag)
-                  }
-                }
-              }
 
               pendingVersion.channelName = versionData.channelName.trim
               pendingVersion.channelColor = versionData.color
@@ -314,42 +321,68 @@ class Versions @Inject()(stats: StatTracker,
               this.factory.getPendingProject(author, slug) match {
                 case None =>
                   // No pending project, create version for existing project
-                  withProject(author, slug) { project =>
-                    val existingChannel = project.channels.find {
+                  withProjectAsync(author, slug) { project =>
+                    project.channels.find {
                       equalsIgnoreCase(_.name, pendingVersion.channelName)
-                    }.orNull
+                    } flatMap {
+                      case None => versionData.addTo(project)
+                      case Some(channel) => Future.successful(Right(channel))
+                    } flatMap { channelResult =>
+                      channelResult.fold(
+                        error => {
+                          Future.successful(Redirect(self.showCreatorWithMeta(author, slug, versionString)).withError(error))
+                        },
+                        _ => {
+                          // Update description
+                          versionData.content.foreach { content =>
+                            pendingVersion.underlying.setDescription(content.trim)
+                          }
 
-                    var channelResult: Either[String, Channel] = Right(existingChannel)
-                    if (existingChannel == null)
-                      channelResult = versionData.addTo(project)
-
-                    channelResult.fold(
-                      error => {
-                        Redirect(self.showCreatorWithMeta(author, slug, versionString)).withError(error)
-                      },
-                      channel => {
-                        // Update description
-                        versionData.content.foreach { content =>
-                          pendingVersion.underlying.description = content.trim
+                          pendingVersion.complete.map { newVersion =>
+                            if (versionData.recommended)
+                              project.setRecommendedVersion(newVersion._1)
+                            addUnstableTag(newVersion._1, versionData.unstable)
+                            Redirect(self.show(author, slug, versionString))
+                          }
                         }
-
-                        val newVersion = pendingVersion.complete().get
-                        if (versionData.recommended)
-                          project.recommendedVersion = newVersion
-
-                        addUnstableTag(newVersion)
-                        Redirect(self.show(author, slug, versionString))
-                      }
-                    )
+                      )
+                    }
                   }
                 case Some(pendingProject) =>
                   // Found a pending project, create it with first version
-                  val project = pendingProject.complete().get
-                  addUnstableTag(project.recommendedVersion)
-                  Redirect(ShowProject(author, slug))
+                  pendingProject.complete.map { created =>
+                    addUnstableTag(created._2, versionData.unstable)
+                    Redirect(ShowProject(author, slug))
+                  }
               }
             }
           )
+      }
+    }
+  }
+
+  private def addUnstableTag(version: Version, unstable: Boolean) = {
+    if (unstable) {
+      service.access(classOf[ProjectTag])
+        .filter(t => t.name === "Unstable" && t.data === "").map { tagsWithVersion =>
+        if (tagsWithVersion.isEmpty) {
+          val tag = Tag(
+            _versionIds = List(version.id.get),
+            name = "Unstable",
+            data = "",
+            color = TagColors.Unstable
+          )
+          service.access(classOf[ProjectTag]).add(tag).flatMap { tag =>
+            // requery the tag because it now includes the id
+            service.access(classOf[ProjectTag]).filter(t => t.name === tag.name && t.data === tag.data).map(_.toList.head)
+          } map { newTag =>
+            version.addTag(newTag)
+          }
+        } else {
+          val tag = tagsWithVersion.head
+          tag.addVersionId(version.id.get)
+          version.addTag(tag)
+        }
       }
     }
   }
@@ -363,8 +396,10 @@ class Versions @Inject()(stats: StatTracker,
     * @return Versions page
     */
   def delete(author: String, slug: String, versionString: String) = {
-    VersionEditAction(author, slug) { implicit request =>
-      implicit val project = request.project
+    VersionEditAction(author, slug).async { implicit request =>
+      implicit val data = request.data
+      implicit val r = request.request
+      implicit val p = data.project
       withVersion(versionString) { version =>
         this.projects.deleteVersion(version)
         Redirect(self.showList(author, slug, None, None))
@@ -381,10 +416,12 @@ class Versions @Inject()(stats: StatTracker,
     * @return Sent file
     */
   def download(author: String, slug: String, versionString: String, token: Option[String]) = {
-    ProjectAction(author, slug) { implicit request =>
-      implicit val project = request.project
-      withVersion(versionString) { version =>
-        sendVersion(project, version, token)
+    ProjectAction(author, slug).async { implicit request =>
+      implicit val project = request.data
+      implicit val p: Project = project.project
+      implicit val r = request.request
+      withVersionAsync(versionString) { version =>
+        sendVersion(project.project, version, token)
       }
     }
   }
@@ -392,44 +429,48 @@ class Versions @Inject()(stats: StatTracker,
   private def sendVersion(project: Project,
                           version: Version,
                           token: Option[String])
-                         (implicit req: ProjectRequest[_]): Result = {
-    if (!checkConfirmation(project, version, token))
-      Redirect(self.showDownloadConfirm(
-        project.ownerName, project.slug, version.name, Some(UploadedFile.id), api = Some(false)))
-    else
-      _sendVersion(project, version)
+                         (implicit req: ProjectRequest[_]): Future[Result] = {
+    checkConfirmation(project, version, token).flatMap { passed =>
+      if (passed)
+        _sendVersion(project, version)
+      else
+       Future.successful(
+        Redirect(self.showDownloadConfirm(
+          project.ownerName, project.slug, version.name, Some(UploadedFile.id), api = Some(false))))
+    }
+
   }
 
   private def checkConfirmation(project: Project,
                                 version: Version,
                                 token: Option[String])
-                               (implicit req: ProjectRequest[_]): Boolean = {
+                               (implicit req: ProjectRequest[_]): Future[Boolean] = {
     if (version.isReviewed)
-      return true
+      return Future.successful(true)
     // check for confirmation
     req.cookies.get(DownloadWarning.COOKIE).map(_.value).orElse(token) match {
       case None =>
         // unconfirmed
-        false
+        Future.successful(false)
       case Some(tkn) =>
         this.warnings.find { warn =>
           (warn.token === tkn) &&
             (warn.versionId === version.id.get) &&
             (warn.address === InetString(StatTracker.remoteAddress)) &&
             warn.isConfirmed
-        } map { warn =>
-          if (warn.hasExpired) {
-            warn.remove()
-            false
-          } else
-            true
-        } getOrElse {
-          false
+        } map {
+          case None => false
+          case Some(warn) =>
+            if (!warn.hasExpired) true
+            else {
+              warn.remove()
+              false
+            }
         }
     }
   }
 
-  private def _sendVersion(project: Project, version: Version)(implicit req: ProjectRequest[_]): Result = {
+  private def _sendVersion(project: Project, version: Version)(implicit req: ProjectRequest[_]): Future[Result] = {
     this.stats.versionDownloaded(version) { implicit request =>
       Ok.sendPath(this.fileManager.getVersionDir(project.ownerName, project.name, version.name)
         .resolve(version.fileName))
@@ -454,12 +495,14 @@ class Versions @Inject()(stats: StatTracker,
                           target: String,
                           downloadType: Option[Int],
                           api: Option[Boolean]) = {
-    ProjectAction(author, slug) { implicit request =>
+    ProjectAction(author, slug).async { request =>
       val dlType = downloadType.flatMap(i => DownloadTypes.values.find(_.id == i)).getOrElse(DownloadTypes.UploadedFile)
-      implicit val project = request.project
-      withVersion(target) { version =>
+      implicit val data = request.data
+      implicit val p = data.project
+      implicit val r = request.request
+      withVersionAsync(target) { version =>
         if (version.isReviewed)
-          Redirect(ShowProject(author, slug))
+          Future.successful(Redirect(ShowProject(author, slug)))
         else {
           val userAgent = request.headers.get("User-Agent")
           var curl: Boolean = false
@@ -485,20 +528,21 @@ class Versions @Inject()(stats: StatTracker,
             address = InetString(StatTracker.remoteAddress)))
 
           if (wget) {
+            Future.successful(
             MultipleChoices(this.messagesApi("version.download.confirm.wget"))
-              .withHeaders("Content-Disposition" -> "inline; filename=\"README.txt\"")
+              .withHeaders("Content-Disposition" -> "inline; filename=\"README.txt\""))
           } else if (curl) {
-            MultipleChoices(this.messagesApi("version.download.confirm.body.plain",
+            Future.successful(MultipleChoices(this.messagesApi("version.download.confirm.body.plain",
               self.confirmDownload(author, slug, target, Some(dlType.id), token).absoluteURL(),
               CSRF.getToken.get.value) + "\n")
-              .withHeaders("Content-Disposition" -> "inline; filename=\"README.txt\"")
+              .withHeaders("Content-Disposition" -> "inline; filename=\"README.txt\""))
           } else if (api.getOrElse(false)) {
-            MultipleChoices(Json.obj(
+            Future.successful(MultipleChoices(Json.obj(
               "message" -> this.messagesApi("version.download.confirm.body.api").split('\n'),
               "post" -> helper.CSRF(
-                self.confirmDownload(author, slug, target, Some(dlType.id), token)).absoluteURL()))
+                self.confirmDownload(author, slug, target, Some(dlType.id), token)).absoluteURL())))
           } else {
-            MultipleChoices(views.unsafeDownload(project, version, dlType, token)).withCookies(warning.cookie)
+            warning.map(warn => MultipleChoices(views.unsafeDownload(data.project, version, dlType, token)).withCookies(warn.cookie))
           }
         }
       }
@@ -506,11 +550,13 @@ class Versions @Inject()(stats: StatTracker,
   }
 
   def confirmDownload(author: String, slug: String, target: String, downloadType: Option[Int], token: String) = {
-    ProjectAction(author, slug) { implicit request =>
-      implicit val project = request.project
-      withVersion(target) { version =>
+    ProjectAction(author, slug) async { request =>
+      implicit val data = request.data
+      implicit val p = data.project
+      implicit val r: OreRequest[_] = request.request
+      withVersionAsync(target) { version =>
         if (version.isReviewed)
-          Redirect(ShowProject(author, slug))
+          Future.successful(Redirect(ShowProject(author, slug)))
         else {
           val addr = InetString(StatTracker.remoteAddress)
           val dlType = downloadType
@@ -523,37 +569,41 @@ class Versions @Inject()(stats: StatTracker,
               (warn.versionId === version.id.get) &&
               !warn.isConfirmed &&
               (warn.downloadId === -1)
-          } map { warn =>
+          } flatMap {
+            case None => Future.successful(Redirect(ShowProject(author, slug)))
+            case Some(warn) =>
             if (warn.hasExpired) {
               // warning has expired
               warn.remove()
-              Redirect(ShowProject(author, slug))
+              Future.successful(Redirect(ShowProject(author, slug)))
             } else {
               // warning confirmed and redirect to download
               warn.setConfirmed()
               // create record of download
               val downloads = this.service.access[UnsafeDownload](classOf[UnsafeDownload])
-              val userId = this.users.current.flatMap(_.id)
-              val download = downloads.add(UnsafeDownload(
-                userId = userId,
-                address = addr,
-                downloadType = dlType))
-              warn.download = download
-              dlType match {
-                case UploadedFile =>
-                  Redirect(self.download(author, slug, target, Some(token)))
-                case JarFile =>
-                  Redirect(self.downloadJar(author, slug, target, Some(token)))
-                case SignatureFile =>
-                  // Note: Shouldn't get here in the first place since sig files
-                  // don't need confirmation, but added as a failsafe.
-                  Redirect(self.downloadSignature(author, slug, target))
-                case _ =>
-                  throw new Exception("unknown download type: " + downloadType)
+              this.users.current.flatMap { user =>
+                val userId = user.flatMap(_.id)
+                downloads.add(UnsafeDownload(
+                  userId = userId,
+                  address = addr,
+                  downloadType = dlType))
+              } map { dl =>
+                warn.setDownload(dl)
+              } map { _ =>
+                dlType match {
+                  case UploadedFile =>
+                    Redirect(self.download(author, slug, target, Some(token)))
+                  case JarFile =>
+                    Redirect(self.downloadJar(author, slug, target, Some(token)))
+                  case SignatureFile =>
+                    // Note: Shouldn't get here in the first place since sig files
+                    // don't need confirmation, but added as a failsafe.
+                    Redirect(self.downloadSignature(author, slug, target))
+                  case _ =>
+                    throw new Exception("unknown download type: " + downloadType)
+                }
               }
             }
-          } getOrElse {
-            Redirect(ShowProject(author, slug))
           }
         }
       }
@@ -568,10 +618,11 @@ class Versions @Inject()(stats: StatTracker,
     * @return Sent file
     */
   def downloadRecommended(author: String, slug: String, token: Option[String]) = {
-    ProjectAction(author, slug) { implicit request =>
-      val project = request.project
-      val rv = project.recommendedVersion
-      sendVersion(project, rv, token)
+    ProjectAction(author, slug).async { implicit request =>
+      val data = request.data
+      data.project.recommendedVersion.flatMap { rv =>
+        sendVersion(data.project, rv, token)
+      }
     }
   }
 
@@ -585,9 +636,12 @@ class Versions @Inject()(stats: StatTracker,
     * @return               Sent file
     */
   def downloadJar(author: String, slug: String, versionString: String, token: Option[String]) = {
-    ProjectAction(author, slug) { implicit request =>
-      implicit val project = request.project
-      withVersion(versionString)(version => sendJar(project, version, token))
+    ProjectAction(author, slug).async { implicit request =>
+      implicit val data = request.data
+      implicit val project = data.project
+      implicit val r = request.request
+      withVersionAsync(versionString)(version =>
+        sendJar(project, version, token))
     }
   }
 
@@ -595,34 +649,40 @@ class Versions @Inject()(stats: StatTracker,
                       version: Version,
                       token: Option[String],
                       api: Boolean = false)
-                     (implicit request: ProjectRequest[_]): Result = {
+                     (implicit request: ProjectRequest[_]): Future[Result] = {
     if (project.visibility == VisibilityTypes.SoftDelete) {
-      return notFound
+      return Future.successful(NotFound)
     }
-    if (!checkConfirmation(project, version, token))
-      Redirect(self.showDownloadConfirm(
-        project.ownerName, project.slug, version.name, Some(JarFile.id), api = Some(api)))
-    else {
-      val fileName = version.fileName
-      val path = this.fileManager.getVersionDir(project.ownerName, project.name, version.name).resolve(fileName)
-      this.stats.versionDownloaded(version) { implicit request =>
-        if (fileName.endsWith(".jar"))
-          Ok.sendPath(path)
-        else {
-          val pluginFile = new PluginFile(path, signaturePath = null, project.owner.user)
-          val jarName = fileName.substring(0, fileName.lastIndexOf('.')) + ".jar"
-          val jarPath = this.fileManager.env.tmp.resolve(project.ownerName).resolve(jarName)
+    checkConfirmation(project, version, token).flatMap { passed =>
+      if (!passed)
+        Future.successful(Redirect(self.showDownloadConfirm(
+          project.ownerName, project.slug, version.name, Some(JarFile.id), api = Some(api))))
+      else {
+        val fileName = version.fileName
+        val path = this.fileManager.getVersionDir(project.ownerName, project.name, version.name).resolve(fileName)
+        project.owner.user.flatMap { projectOwner =>
+          this.stats.versionDownloaded(version) { implicit request =>
+            if (fileName.endsWith(".jar"))
+              Ok.sendPath(path)
+            else {
+              val pluginFile = new PluginFile(path, signaturePath = null, projectOwner)
+              val jarName = fileName.substring(0, fileName.lastIndexOf('.')) + ".jar"
+              val jarPath = this.fileManager.env.tmp.resolve(project.ownerName).resolve(jarName)
 
-          autoClose(pluginFile.newJarStream) { jarIn =>
-            copy(jarIn, jarPath, StandardCopyOption.REPLACE_EXISTING)
-          }{ e =>
-            Logger.error("an error occurred while trying to send a plugin", e)
+              autoClose(pluginFile.newJarStream) { jarIn =>
+                copy(jarIn, jarPath, StandardCopyOption.REPLACE_EXISTING)
+              }{ e =>
+                Logger.error("an error occurred while trying to send a plugin", e)
+              }
+
+              Ok.sendPath(jarPath, onClose = () => Files.delete(jarPath))
+            }
           }
-
-          Ok.sendPath(jarPath, onClose = () => Files.delete(jarPath))
         }
+
       }
     }
+
   }
 
   /**
@@ -634,9 +694,11 @@ class Versions @Inject()(stats: StatTracker,
     * @return       Sent file
     */
   def downloadRecommendedJar(author: String, slug: String, token: Option[String]) = {
-    ProjectAction(author, slug) { implicit request =>
-      val project = request.project
-      sendJar(project, project.recommendedVersion, token)
+    ProjectAction(author, slug).async { implicit request =>
+      val data = request.data
+      data.project.recommendedVersion.flatMap { rv =>
+        sendJar(data.project, rv, token)
+      }
     }
   }
 
@@ -649,9 +711,12 @@ class Versions @Inject()(stats: StatTracker,
     * @return               Sent file
     */
   def downloadJarById(pluginId: String, versionString: String, token: Option[String]) = {
-    ProjectAction(pluginId) { implicit request =>
-      implicit val project = request.project
-      withVersion(versionString)(version => sendJar(project, version, token, api = true))
+    ProjectAction(pluginId).async { implicit request =>
+      implicit val data = request.data
+      implicit val p = data.project
+      implicit val r = request.request
+      withVersionAsync(versionString)(version =>
+        sendJar(data.project, version, token, api = true))
     }
   }
 
@@ -663,9 +728,11 @@ class Versions @Inject()(stats: StatTracker,
     * @return         Sent file
     */
   def downloadRecommendedJarById(pluginId: String, token: Option[String]) = {
-    ProjectAction(pluginId) { implicit request =>
-      val project = request.project
-      sendJar(project, project.recommendedVersion, token, api = true)
+    ProjectAction(pluginId).async { implicit request =>
+      val data = request.data
+      data.project.recommendedVersion.flatMap { rv =>
+        sendJar(data.project, rv, token, api = true)
+      }
     }
   }
 
@@ -678,9 +745,11 @@ class Versions @Inject()(stats: StatTracker,
     * @return               Sent file
     */
   def downloadSignature(author: String, slug: String, versionString: String) = {
-    ProjectAction(author, slug) { implicit request =>
-      implicit val project = request.project
-      withVersion(versionString)(sendSignatureFile)
+    ProjectAction(author, slug).async { implicit request =>
+      implicit val data = request.data
+      implicit val project = data.project
+      implicit val r = request.request
+      withVersion(versionString)(sendSignatureFile(_, project))
     }
   }
 
@@ -691,9 +760,11 @@ class Versions @Inject()(stats: StatTracker,
     * @param versionString  Version name
     * @return               Sent file
     */
-  def downloadSignatureById(pluginId: String, versionString: String) = ProjectAction(pluginId) { implicit request =>
-    implicit val project = request.project
-    withVersion(versionString)(sendSignatureFile)
+  def downloadSignatureById(pluginId: String, versionString: String) = ProjectAction(pluginId).async { implicit request =>
+    implicit val data = request.data
+    implicit val project = data.project
+    implicit val r = request.request
+    withVersion(versionString)(sendSignatureFile(_, project))
   }
 
   /**
@@ -703,8 +774,10 @@ class Versions @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return       Sent file
     */
-  def downloadRecommendedSignature(author: String, slug: String) = ProjectAction(author, slug) { implicit request =>
-    sendSignatureFile(request.project.recommendedVersion)
+  def downloadRecommendedSignature(author: String, slug: String) = ProjectAction(author, slug) async { implicit request =>
+    implicit val data = request.data
+    implicit val r = request.request
+    request.data.project.recommendedVersion.map(sendSignatureFile(_, request.data.project))
   }
 
   /**
@@ -713,21 +786,22 @@ class Versions @Inject()(stats: StatTracker,
     * @param pluginId Project unique plugin ID
     * @return         Sent file
     */
-  def downloadRecommendedSignatureById(pluginId: String) = ProjectAction(pluginId) { implicit request =>
-    sendSignatureFile(request.project.recommendedVersion)
+  def downloadRecommendedSignatureById(pluginId: String) = ProjectAction(pluginId).async { implicit request =>
+    implicit val r = request.request
+    request.data.project.recommendedVersion.map(sendSignatureFile(_, request.data.project))
   }
 
-  private def sendSignatureFile(version: Version)(implicit request: Request[_]): Result = {
-    val project = version.project
+  private def sendSignatureFile(version: Version, project: Project)(implicit request: OreRequest[_]): Result = {
     if (project.visibility == VisibilityTypes.SoftDelete) {
-      return notFound
-    }
-    val path = this.fileManager.getVersionDir(project.ownerName, project.name, version.name).resolve(version.signatureFileName)
-    if (notExists(path)) {
-      Logger.warn("project version missing signature file")
       notFound
-    } else
-      Ok.sendPath(path)
+    } else {
+      val path = this.fileManager.getVersionDir(project.ownerName, project.name, version.name).resolve(version.signatureFileName)
+      if (notExists(path)) {
+        Logger.warn("project version missing signature file")
+        notFound
+      } else
+        Ok.sendPath(path)
+    }
   }
 
 }

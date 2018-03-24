@@ -2,9 +2,11 @@ package ore.permission
 
 import db.impl.access.OrganizationBase
 import models.project.Project
-import models.user.{Organization, User}
+import models.user.User
 import ore.permission.role.RoleTypes
 import ore.permission.scope.ScopeSubject
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Permission wrapper used for chaining permission checks.
@@ -13,10 +15,10 @@ import ore.permission.scope.ScopeSubject
   */
 case class PermissionPredicate(user: User, not: Boolean = false) {
 
-  def apply(p: Permission): AndThen = AndThen(user, p, not)
+  def apply(p: Permission)(implicit ec: ExecutionContext): AndThen = AndThen(user, p, not)
 
-  protected case class AndThen(user: User, p: Permission, not: Boolean) {
-    def in(subject: ScopeSubject): Boolean = {
+  protected case class AndThen(user: User, p: Permission, not: Boolean)(implicit ec: ExecutionContext) {
+    def in(subject: ScopeSubject): Future[Boolean] = {
       // Special Ore Developer Case
       if (user.globalRoles.contains(RoleTypes.OreDev)) {
         if (p == ViewHealth
@@ -24,27 +26,44 @@ case class PermissionPredicate(user: User, not: Boolean = false) {
           || p == ViewActivity
           || p == ViewStats
         ) {
-          return !not
+          return Future.successful(!not)
         }
       }
-
       // Test org perms on projects
-      subject match {
+
+      val projectTested = subject match {
         case project: Project =>
-          val id = project.ownerId
-          val maybeOrg: Option[Organization] = project.service.getModelBase(classOf[OrganizationBase]).get(id)
-          if (maybeOrg.isDefined) {
-            // Project's owner is an organization
-            val org = maybeOrg.get
-            // Test the org scope and the project scope
-            val orgTest = org.scope.test(user, p)
-            val projectTest = project.scope.test(user, p)
-            return orgTest | projectTest
-          }
+          checkProjectPerm(project)
         case _ =>
+          Future.successful(false)
       }
-      val result = subject.scope.test(user, p)
-      if (not) !result else result
+
+      projectTested.flatMap {
+        case true => Future.successful(true)
+        case false =>
+          for {
+            result <- subject.scope.test(user, p)
+          } yield {
+            if (not) !result else result
+          }
+      }
+    }
+
+    private def checkProjectPerm(project: Project): Future[Boolean] = {
+      for {
+        pp <- project.service.getModelBase(classOf[OrganizationBase]).get(project.ownerId)
+        orgTest <- if (pp.isEmpty) Future.successful(false) else pp.get.scope.test(user, p)
+        projectTest <- project.scope.test(user, p)
+      } yield {
+        orgTest || projectTest
+      }
+    }
+
+    def in(subject: Option[ScopeSubject]): Future[Boolean] = {
+      subject match {
+        case None => Future.successful(false)
+        case Some(s) => this.in(s)
+      }
     }
   }
 

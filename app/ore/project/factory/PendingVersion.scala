@@ -5,11 +5,15 @@ import models.project._
 import ore.Cacheable
 import ore.Colors.Color
 import ore.project.Dependency
+import ore.project.factory.TagAlias.ProjectTag
 import ore.project.io.PluginFile
 import play.api.cache.SyncCacheApi
-import util.PendingAction
 
-import scala.util.Try
+import scala.concurrent.{ExecutionContext, Future}
+
+package object TagAlias {
+  type ProjectTag = models.project.Tag
+}
 
 /**
   * Represents a pending version to be created later.
@@ -29,15 +33,15 @@ case class PendingVersion(projects: ProjectBase,
                           plugin: PluginFile,
                           var createForumPost: Boolean,
                           override val cacheApi: SyncCacheApi)
-                          extends PendingAction[Version]
-                            with Cacheable {
 
-  override def complete(): Try[Version] = Try {
+    extends Cacheable {
+
+  def complete()(implicit ec: ExecutionContext): Future[(Version, Channel, Seq[ProjectTag])] = {
     free()
-    return this.factory.createVersion(this)
+    this.factory.createVersion(this)
   }
 
-  override def cancel() = {
+  def cancel()(implicit ec: ExecutionContext): Unit = {
     free()
     this.plugin.delete()
     if (this.underlying.isDefined)

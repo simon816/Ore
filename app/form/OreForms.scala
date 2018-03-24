@@ -1,13 +1,13 @@
 package form
 
 import java.net.{MalformedURLException, URL}
-import javax.inject.Inject
 
 import controllers.sugar.Requests.ProjectRequest
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import form.organization.{OrganizationAvatarUpdate, OrganizationMembersUpdate, OrganizationRoleSetBuilder}
 import form.project._
+import javax.inject.Inject
 import models.api.ProjectApiKey
 import models.project.Channel
 import models.project.Page._
@@ -16,10 +16,10 @@ import ore.OreConfig
 import ore.project.factory.ProjectFactory
 import ore.rest.ProjectApiKeyTypes
 import ore.rest.ProjectApiKeyTypes.ProjectApiKeyType
-import play.api.data.{Form, FormError}
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
+import play.api.data.{Form, FormError}
 
 import scala.util.Try
 
@@ -219,31 +219,45 @@ class OreForms @Inject()(implicit config: OreConfig, factory: ProjectFactory, se
   def required(key: String) = Seq(FormError(key, "error.required", Nil))
 
   val projectApiKey = of[ProjectApiKey](new Formatter[ProjectApiKey] {
-    val projectApiKeys = OreForms.this.service.access[ProjectApiKey](classOf[ProjectApiKey])
-    def bind(key: String, data: Map[String, String]) =
+    def bind(key: String, data: Map[String, String]) = {
       data.get(key).
-        flatMap(id => Try(id.toInt).toOption.flatMap(this.projectApiKeys.get(_)))
+        flatMap(id => Try(id.toInt).toOption.flatMap(evilAwaitpProjectApiKey(_)))
         .toRight(required(key))
+    }
+
     def unbind(key: String, value: ProjectApiKey): Map[String, String] = Map(key -> value.id.get.toString)
   })
+
+  def evilAwaitpProjectApiKey(key: Int): Option[ProjectApiKey] = {
+    val projectApiKeys = this.service.access[ProjectApiKey](classOf[ProjectApiKey])
+    // TODO remvove await
+    this.service.await(projectApiKeys.get(key)).getOrElse(None)
+  }
 
   lazy val ProjectApiKeyRevoke = Form(single("id" -> projectApiKey))
 
   def channel(implicit request: ProjectRequest[_]) = of[Channel](new Formatter[Channel] {
-    def bind(key: String, data: Map[String, String]) =
+    def bind(key: String, data: Map[String, String]) = {
       data.get(key)
-        .flatMap(c => request.project.channels.find(_.name.toLowerCase === c.toLowerCase))
+        .flatMap(evilAwaitChannel(_))
         .toRight(Seq(FormError(key, "api.deploy.channelNotFound", Nil)))
+    }
+
     def unbind(key: String, value: Channel) = Map(key -> value.name.toLowerCase)
   })
+
+  def evilAwaitChannel(c: String)(implicit request: ProjectRequest[_]): Option[Channel] = {
+    val value = request.data.project.channels.find(_.name.toLowerCase === c.toLowerCase)
+    // TODO remvove await
+    this.service.await(value).getOrElse(None)
+  }
 
   def VersionDeploy(implicit request: ProjectRequest[_]) = Form(mapping(
     "apiKey" -> nonEmptyText,
     "channel" -> channel,
     "recommended" -> default(boolean, true),
-    "forumPost" -> default(boolean, request.project.settings.forumSync))
+    "forumPost" -> default(boolean, request.data.settings.forumSync))
   (VersionDeployForm.apply)(VersionDeployForm.unapply))
-
 
   lazy val ReviewDescription = Form(single("content" -> text))
 

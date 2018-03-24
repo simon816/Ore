@@ -5,8 +5,8 @@ import java.sql.Timestamp
 import com.github.tminglei.slickpg.InetString
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema._
-import db.impl.table.common.{DescriptionColumn, DownloadsColumn, VisibilityColumn}
 import db.impl.table.StatTable
+import db.impl.table.common.{DescriptionColumn, DownloadsColumn, VisibilityColumn}
 import db.table.{AssociativeTable, ModelTable, NameColumn}
 import models.admin.{ProjectLog, ProjectLogEntry, Review, VisibilityChange}
 import models.api.ProjectApiKey
@@ -23,7 +23,6 @@ import ore.project.io.DownloadTypes.DownloadType
 import ore.rest.ProjectApiKeyTypes.ProjectApiKeyType
 import ore.user.Prompts.Prompt
 import ore.user.notification.NotificationTypes.NotificationType
-import slick.lifted.ProvenShape
 
 /*
  * Database schema definitions. Changes must be first applied as an evolutions
@@ -264,7 +263,7 @@ class OrganizationTable(tag: RowTag) extends ModelTable[Organization](tag, "orga
   override def id   =   column[Int]("id", O.PrimaryKey)
   def userId        =   column[Int]("user_id")
 
-  override def * = (id.?, createdAt.?, name, userId) <> (Organization.tupled, Organization.unapply)
+  override def * = (id.?, createdAt.?, name, userId) <> ((Organization.apply _).tupled, Organization.unapply)
 
 }
 

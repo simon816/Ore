@@ -2,7 +2,7 @@ package db.impl.table
 
 import db.Named
 import db.impl.OrePostgresDriver.api._
-import db.impl.model.common.{Describable, Downloadable, Hideable}
+import db.impl.model.common.{Describable, Downloadable}
 import db.table.key._
 import models.admin.{ProjectLogEntry, Review, VisibilityChange}
 import models.project.VisibilityTypes.Visibility
@@ -36,8 +36,7 @@ object ModelKeys {
   val TopicId               =   new IntKey[Project](_.topicId, _.topicId)
   val PostId                =   new IntKey[Project](_.postId, _.postId)
   val IsTopicDirty          =   new BooleanKey[Project](_.isTopicDirty, _.isTopicDirty)
-  val RecommendedVersionId  =   new IntKey[Project](
-                                  _.recommendedVersionId, _.recommendedVersion.id.getOrElse(-1))
+  val RecommendedVersionId  =   new IntKey[Project](_.recommendedVersionId, _.recommendedVersionId.getOrElse(-1))
   val LastUpdated           =   new TimestampKey[Project](_.lastUpdated, _.lastUpdated)
   val Notes                 =   new StringKey[Project](_.notes, _._notes)
 
@@ -102,7 +101,7 @@ object ModelKeys {
   val ResolvedBy            =   new IntKey[Flag](_.resolvedBy, _.resolvedBy.getOrElse(-1))
 
   // StatEntry
-  val UserId                =   new IntKey[StatEntry[_]](_.userId, _.user.flatMap(_.id).getOrElse(-1))
+  val UserId                =   new IntKey[StatEntry[_]](_.userId, _.userId.getOrElse(-1))
 
   // Notification
   val Read                  =   new BooleanKey[Notification](_.read, _.isRead)
