@@ -219,7 +219,14 @@ final class ApiController @Inject()(api: OreRestfulApi,
                   }
                 }
 
-                projectData.project.owner.user.flatMap(upload)
+                for {
+                  user <- projectData.project.owner.user
+                  orga <- user.toMaybeOrganization
+                  owner <- orga.map(_.owner.user).getOrElse(Future.successful(user))
+                  result <- upload(owner)
+                } yield {
+                  result
+                }
               }
             }
             dep.flatten
