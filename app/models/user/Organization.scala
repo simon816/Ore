@@ -69,7 +69,7 @@ case class Organization(override val id: Option[Int] = None,
       * @return Trust of user
       */
     override def getTrust(user: User)(implicit ex: ExecutionContext): Future[Trust] = {
-      this.userBase.service.DB.db.run(Organization.roleForTrustQuery(id.get).result).map { l =>
+      this.userBase.service.DB.db.run(Organization.roleForTrustQuery(id.get, user.id.get).result).map { l =>
         l.sortBy(_.roleType.trust).headOption.map(_.roleType.trust).getOrElse(Default)
       }
     }
@@ -136,12 +136,12 @@ case class Organization(override val id: Option[Int] = None,
 object Organization {
   lazy val roleForTrustQuery = Compiled(queryRoleForTrust _)
 
-  private def queryRoleForTrust(orgId: Rep[Int]) = {
+  private def queryRoleForTrust(orgId: Rep[Int], userId: Rep[Int]) = {
     val memberTable = TableQuery[OrganizationMembersTable]
     val roleTable = TableQuery[OrganizationRoleTable]
 
     for {
-      m <- memberTable if m.organizationId === orgId
+      m <- memberTable if m.organizationId === orgId && m.userId === userId
       r <- roleTable if m.userId === r.userId && r.organizationId === orgId
     } yield {
       r
