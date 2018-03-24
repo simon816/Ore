@@ -239,6 +239,8 @@ trait OreRestfulApi {
     } getOrElse queryVersions filter {
       case (p, v, vId, c, uName) =>
         p.pluginId.toLowerCase === pluginId.toLowerCase
+    } sortBy { case (_, v, _, _, _) =>
+      v.createdAt.desc
     }
 
     val maxLoad = this.config.projects.get[Int]("init-version-load")
