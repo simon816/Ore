@@ -14,9 +14,8 @@ import play.api.i18n.{I18nSupport, Lang}
 import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import util.instances.future._
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Represents a Secured base Controller for this application.
@@ -43,6 +42,8 @@ abstract class OreBaseController(implicit val env: OreEnv,
 
   override def notFound(implicit request: OreRequest[_]) = NotFound(views.html.errors.notFound())
 
+  implicit def ec: ExecutionContext
+
   /**
     * Executes the given function with the specified result or returns a
     * NotFound if not found.
@@ -54,10 +55,10 @@ abstract class OreBaseController(implicit val env: OreEnv,
     * @return         NotFound or function result
     */
   def withProject(author: String, slug: String)(fn: Project => Result)(implicit request: OreRequest[_]): Future[Result]
-  = this.projects.withSlug(author, slug).map(_.map(fn).getOrElse(notFound))
+  = this.projects.withSlug(author, slug).map(fn).getOrElse(notFound)
 
   def withProjectAsync(author: String, slug: String)(fn: Project => Future[Result])(implicit request: OreRequest[_]): Future[Result]
-  = this.projects.withSlug(author, slug).flatMap(_.map(fn).getOrElse(Future.successful(NotFound)))
+  = this.projects.withSlug(author, slug).semiFlatMap(fn).getOrElse(NotFound)
 
   /**
     * Executes the given function with the specified result or returns a
@@ -71,11 +72,11 @@ abstract class OreBaseController(implicit val env: OreEnv,
     */
   def withVersion(versionString: String)(fn: Version => Result)
                  (implicit request: OreRequest[_], project: Project): Future[Result]
-  = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).map(_.map(fn).getOrElse(notFound))
+  = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).map(fn).getOrElse(notFound)
 
   def withVersionAsync(versionString: String)(fn: Version => Future[Result])
                  (implicit request: OreRequest[_], project: Project): Future[Result]
-  = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).flatMap(_.map(fn).getOrElse(Future.successful(notFound)))
+  = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).semiFlatMap(fn).getOrElse(notFound)
 
   def OreAction = Action andThen oreAction
 

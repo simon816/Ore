@@ -5,8 +5,9 @@ import models.project.Project
 import models.user.User
 import ore.permission.role.RoleTypes
 import ore.permission.scope.ScopeSubject
-
 import scala.concurrent.{ExecutionContext, Future}
+
+import util.FutureUtils
 
 /**
   * Permission wrapper used for chaining permission checks.
@@ -50,13 +51,14 @@ case class PermissionPredicate(user: User, not: Boolean = false) {
     }
 
     private def checkProjectPerm(project: Project): Future[Boolean] = {
-      for {
-        pp <- project.service.getModelBase(classOf[OrganizationBase]).get(project.ownerId)
-        orgTest <- if (pp.isEmpty) Future.successful(false) else pp.get.scope.test(user, p)
-        projectTest <- project.scope.test(user, p)
-      } yield {
-        orgTest || projectTest
-      }
+      val orgTest = project.service
+        .getModelBase(classOf[OrganizationBase])
+        .get(project.ownerId).value
+        .flatMap(_.fold(Future.successful(false))(_.scope.test(user, p)))
+
+      val projectTest = project.scope.test(user, p)
+
+      FutureUtils.raceBoolean(orgTest, projectTest)
     }
 
     def in(subject: Option[ScopeSubject]): Future[Boolean] = {

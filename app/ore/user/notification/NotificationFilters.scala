@@ -3,8 +3,7 @@ package ore.user.notification
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import models.user.Notification
-
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 
 /**
@@ -22,7 +21,7 @@ object NotificationFilters extends Enumeration {
                                 title: String,
                                 filter: Notification#T => Rep[Boolean]) extends super.Val(i, name) {
 
-    def apply(notifications: ModelAccess[Notification]): Future[Seq[Notification]] = notifications.filter(this.filter)
+    def apply(notifications: ModelAccess[Notification])(implicit ec: ExecutionContext): Future[Seq[Notification]] = notifications.filter(this.filter)
 
   }
 

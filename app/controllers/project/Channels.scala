@@ -5,6 +5,7 @@ import controllers.sugar.Bakery
 import db.ModelService
 import form.OreForms
 import javax.inject.Inject
+
 import ore.permission.EditChannels
 import ore.project.factory.ProjectFactory
 import ore.{OreConfig, OreEnv}
@@ -12,9 +13,8 @@ import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
 import views.html.projects.{channels => views}
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import util.instances.future._
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Controller for handling Channel related actions.
@@ -27,7 +27,7 @@ class Channels @Inject()(forms: OreForms,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
-                         implicit override val service: ModelService)
+                         implicit override val service: ModelService)(implicit val ec: ExecutionContext)
                          extends OreBaseController {
 
   private val self = controllers.project.routes.Channels
@@ -64,14 +64,10 @@ class Channels @Inject()(forms: OreForms,
     this.forms.ChannelEdit.bindFromRequest.fold(
       hasErrors => Future.successful(Redirect(self.showList(author, slug)).withError(hasErrors.errors.head.message)),
       channelData => {
-        channelData.addTo(request.data.project).map { _.fold(
-            error => Redirect(self.showList(author, slug)).withError(error),
-            _ => {
-              Redirect(self.showList(author, slug))
-            }
-
-          )
-        }
+        channelData.addTo(request.data.project).fold(
+          error => Redirect(self.showList(author, slug)).withError(error),
+          _ => Redirect(self.showList(author, slug))
+        )
       }
     )
   }
@@ -91,12 +87,10 @@ class Channels @Inject()(forms: OreForms,
         Future.successful(Redirect(self.showList(author, slug)).withError(hasErrors.errors.head.message)),
       channelData => {
         implicit val p = data.project
-        channelData.saveTo(channelName).map { _.map { error =>
-            Redirect(self.showList(author, slug)).withError(error)
-          } getOrElse {
-            Redirect(self.showList(author, slug))
-          }
-        }
+        channelData.saveTo(channelName).cata(
+          Redirect(self.showList(author, slug)),
+          error => Redirect(self.showList(author, slug)).withError(error)
+        )
       }
     )
   }

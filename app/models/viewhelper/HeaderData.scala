@@ -16,6 +16,8 @@ import slick.lifted.TableQuery
 
 import scala.concurrent.{ExecutionContext, Future}
 
+import util.syntax._
+
 /**
   * Holds global user specific data - When a User is not authenticated a dummy is used
   */
@@ -142,20 +144,20 @@ object HeaderData {
     if (currentUser.isEmpty) Future.successful(noPerms)
     else {
       val user = currentUser.get
-      for {
-        reviewFlags       <- user can ReviewFlags in GlobalScope map ((ReviewFlags, _))
-        reviewVisibility  <- user can ReviewVisibility in GlobalScope map ((ReviewVisibility, _))
-        reviewProjects    <- user can ReviewProjects in GlobalScope map ((ReviewProjects, _))
-        viewStats         <- user can ViewStats in GlobalScope map ((ViewStats, _))
-        viewHealth        <- user can ViewHealth in GlobalScope map ((ViewHealth, _))
-        viewLogs          <- user can ViewLogs in GlobalScope map ((ViewLogs, _))
-        hideProjects      <- user can HideProjects in GlobalScope map ((HideProjects, _))
-        hardRemoveProject <- user can HardRemoveProject in GlobalScope map ((HardRemoveProject, _))
-        userAdmin         <- user can UserAdmin in GlobalScope map ((UserAdmin, _))
-        hideProjects      <- user can HideProjects in GlobalScope map ((HideProjects, _))
-      } yield {
-        val perms = Seq(reviewFlags, reviewVisibility, reviewProjects, viewStats, viewHealth, viewLogs, hideProjects, hardRemoveProject, userAdmin, hideProjects)
-        perms toMap
+      (
+        user can ReviewFlags in GlobalScope map ((ReviewFlags, _)),
+        user can ReviewVisibility in GlobalScope map ((ReviewVisibility, _)),
+        user can ReviewProjects in GlobalScope map ((ReviewProjects, _)),
+        user can ViewStats in GlobalScope map ((ViewStats, _)),
+        user can ViewHealth in GlobalScope map ((ViewHealth, _)),
+        user can ViewLogs in GlobalScope map ((ViewLogs, _)),
+        user can HideProjects in GlobalScope map ((HideProjects, _)),
+        user can HardRemoveProject in GlobalScope map ((HardRemoveProject, _)),
+        user can UserAdmin in GlobalScope map ((UserAdmin, _)),
+      ).parMapN {
+        case (reviewFlags, reviewVisibility, reviewProjects, viewStats, viewHealth, viewLogs, hideProjects, hardRemoveProject, userAdmin) =>
+          val perms = Seq(reviewFlags, reviewVisibility, reviewProjects, viewStats, viewHealth, viewLogs, hideProjects, hardRemoveProject, userAdmin)
+          perms.toMap
       }
     }
   }

@@ -16,6 +16,7 @@ import com.vladsch.flexmark.html.renderer._
 import com.vladsch.flexmark.html.{HtmlRenderer, LinkResolver, LinkResolverFactory}
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.options.MutableDataSet
+
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl.PageTable
@@ -27,7 +28,8 @@ import ore.OreConfig
 import ore.permission.scope.ProjectScope
 import play.twirl.api.Html
 import util.StringUtils._
-
+import util.OptionT
+import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -119,18 +121,14 @@ case class Page(override val id: Option[Int] = None,
     *
     * @return Optional Project
     */
-  def parentProject(implicit ec: ExecutionContext): Future[Option[Project]] = this.projectBase.get(projectId)
+  def parentProject(implicit ec: ExecutionContext): OptionT[Future, Project] = this.projectBase.get(projectId)
 
   /**
     *
     * @return
     */
-  def parentPage(implicit ec: ExecutionContext): Future[Option[Page]] = {
-    parentProject.flatMap {
-      case None => Future.successful(None)
-      case Some(pp) =>
-        pp.pages.find(ModelFilter[Page](_.id === parentId).fn)
-    }
+  def parentPage(implicit ec: ExecutionContext): OptionT[Future, Page] = {
+    parentProject.flatMap(_.pages.find(ModelFilter[Page](_.id === parentId).fn))
   }
 
   /**

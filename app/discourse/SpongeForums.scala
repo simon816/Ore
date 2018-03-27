@@ -33,6 +33,7 @@ class SpongeForums @Inject()(env: OreEnv,
   override val topicTemplatePath: Path = this.env.conf.resolve("discourse/project_topic.md")
   override val versionReleasePostTemplatePath: Path = this.env.conf.resolve("discourse/version_post.md")
   override val scheduler = this.actorSystem.scheduler
+  override val bootstrapExecutionContext = this.actorSystem.dispatcher
   override val retryRate = this.conf.get[FiniteDuration]("embed.retryRate")
 
 }

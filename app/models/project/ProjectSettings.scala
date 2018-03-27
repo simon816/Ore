@@ -8,6 +8,8 @@ import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
+import util.OptionT
+import util.instances.future._
 import form.project.ProjectSettingsForm
 import models.user.Notification
 import models.user.role.ProjectRole
@@ -20,7 +22,6 @@ import play.api.cache.AsyncCacheApi
 import play.api.i18n.{Lang, MessagesApi}
 import slick.lifted.TableQuery
 import util.StringUtils._
-
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -158,7 +159,7 @@ case class ProjectSettings(override val id: Option[Int] = None,
     // Update the owner if needed
     val ownerSet = formData.ownerId.find(_ != project.ownerId) match {
       case None => Future.successful(true)
-      case Some(ownerId) => this.userBase.get(ownerId).flatMap(user => project.setOwner(user.get))
+      case Some(ownerId) => this.userBase.get(ownerId).semiFlatMap(project.setOwner).value
     }
     ownerSet.flatMap { _ =>
       // Update icon

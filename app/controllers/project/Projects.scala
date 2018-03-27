@@ -10,6 +10,7 @@ import db.ModelService
 import discourse.OreDiscourseApi
 import form.OreForms
 import javax.inject.Inject
+
 import models.project.{Note, VisibilityTypes}
 import models.user.User
 import ore.permission._
@@ -24,10 +25,11 @@ import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
 import views.html.{projects => views}
 import db.impl.OrePostgresDriver.api._
-
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+
+import util.OptionT
+import util.instances.future._
 
 /**
   * Controller for handling Project related actions.
@@ -43,7 +45,7 @@ class Projects @Inject()(stats: StatTracker,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
-                         implicit override val service: ModelService)
+                         implicit override val service: ModelService)(implicit val ec: ExecutionContext)
                          extends OreBaseController {
 
 
@@ -151,7 +153,7 @@ class Projects @Inject()(stats: StatTracker,
 
                 val authors = pendingProject.file.meta.get.getAuthors.asScala
                 for {
-                  users <- Future.sequence(authors.filterNot(_.equals(currentUser.username)).map(this.users.withName))
+                  users <- Future.sequence(authors.filterNot(_.equals(currentUser.username)).map(this.users.withName(_).value))
                   registered <- this.forums.countUsers(authors.toList)
                   owner <- pendingProject.underlying.owner.user
                 } yield {
@@ -221,9 +223,8 @@ class Projects @Inject()(stats: StatTracker,
     * @return Redirect to project page.
     */
   def showProjectById(pluginId: String) = OreAction async { implicit request =>
-    this.projects.withPluginId(pluginId).map {
-      case None => notFound
-      case Some(project) => Redirect(self.show(project.ownerName, project.slug))
+    this.projects.withPluginId(pluginId).fold(notFound) { project =>
+      Redirect(self.show(project.ownerName, project.slug))
     }
   }
 
@@ -256,14 +257,9 @@ class Projects @Inject()(stats: StatTracker,
           Future.successful(BadRequest)
         else {
           // Do forum post and display errors to user if any
-          val poster = formData.poster match {
-            case None => Future.successful(request.user)
-            case Some(posterName) =>
-              this.users.requestPermission(request.user, posterName, PostAsOrganization).map {
-                case None => request.user // No Permission ; Post as self instead
-                case Some(user) => user   // Permission granted
-              }
-          }
+          val poster = OptionT.fromOption[Future](formData.poster)
+            .flatMap(posterName => this.users.requestPermission(request.user, posterName, PostAsOrganization))
+            .getOrElse(request.user)
           val errors = poster.flatMap { post =>
             this.forums.postDiscussionReply(data.project, post, formData.content)
           }
@@ -316,16 +312,14 @@ class Projects @Inject()(stats: StatTracker,
     */
   def showIcon(author: String, slug: String) = Action async { implicit request =>
     // TODO maybe instead of redirect cache this on ore?
-    this.projects.withSlug(author, slug).flatMap {
-      case None => Future.successful(NotFound)
-      case Some(project) =>
-        this.projects.fileManager.getIconPath(project) match {
-          case None =>
-            project.owner.user.map(_.avatarUrl.map(Redirect(_)).getOrElse(NotFound))
-          case Some(iconPath) =>
-            Future.successful(showImage(iconPath))
-        }
-    }
+    this.projects.withSlug(author, slug).semiFlatMap { project =>
+      this.projects.fileManager.getIconPath(project) match {
+        case None =>
+          project.owner.user.map(_.avatarUrl.map(Redirect(_)).getOrElse(NotFound))
+        case Some(iconPath) =>
+          Future.successful(showImage(iconPath))
+      }
+    }.getOrElse(NotFound)
   }
 
   private def showImage(path: Path) = Ok(Files.readAllBytes(path)).as("image/jpeg")
@@ -396,26 +390,24 @@ class Projects @Inject()(stats: StatTracker,
     */
   def setInviteStatus(id: Int, status: String) = Authenticated.async { implicit request =>
     val user = request.user
-    user.projectRoles.get(id).flatMap {
-      case None => Future.successful(NotFound)
-      case Some(role) =>
-        role.project.map { project =>
-          val dossier = project.memberships
-          status match {
-            case STATUS_DECLINE =>
-              dossier.removeRole(role)
-              Ok
-            case STATUS_ACCEPT =>
-              role.setAccepted(true)
-              Ok
-            case STATUS_UNACCEPT =>
-              role.setAccepted(false)
-              Ok
-            case _ =>
-              BadRequest
-          }
+    user.projectRoles.get(id).semiFlatMap { role =>
+      role.project.map { project =>
+        val dossier = project.memberships
+        status match {
+          case STATUS_DECLINE =>
+            dossier.removeRole(role)
+            Ok
+          case STATUS_ACCEPT =>
+            role.setAccepted(true)
+            Ok
+          case STATUS_UNACCEPT =>
+            role.setAccepted(false)
+            Ok
+          case _ =>
+            BadRequest
         }
-    }
+      }
+    }.getOrElse(NotFound)
   }
 
   /**
@@ -428,7 +420,7 @@ class Projects @Inject()(stats: StatTracker,
   def showSettings(author: String, slug: String) = SettingsEditAction(author, slug) async { request =>
     implicit val r = request.request
     val projectData = request.data
-    projectData.project.apiKeys.find(_.keyType === ProjectApiKeyTypes.Deployment).map { deployKey =>
+    projectData.project.apiKeys.find(_.keyType === ProjectApiKeyTypes.Deployment).value.map { deployKey =>
       Ok(views.settings(projectData, request.scoped, deployKey))
     }
   }
@@ -495,12 +487,10 @@ class Projects @Inject()(stats: StatTracker,
     * @param slug   Project slug
     */
   def removeMember(author: String, slug: String) = SettingsEditAction(author, slug).async { implicit request =>
-    this.users.withName(this.forms.ProjectMemberRemove.bindFromRequest.get.trim).map {
-      case None => BadRequest
-      case Some(user) =>
-        request.data.project.memberships.removeMember(user)
-        Redirect(self.showSettings(author, slug))
-    }
+    this.users.withName(this.forms.ProjectMemberRemove.bindFromRequest.get.trim).map { user =>
+      request.data.project.memberships.removeMember(user)
+      Redirect(self.showSettings(author, slug))
+    }.getOrElse(BadRequest)
   }
 
   /**
@@ -606,7 +596,7 @@ class Projects @Inject()(stats: StatTracker,
       val project = request.data.project
       for {
         changes <- project.visibilityChangesByDate
-        changedBy <- Future.sequence(changes.map(_.created))
+        changedBy <- Future.sequence(changes.map(_.created.value))
         logger <- project.logger
         logs <- logger.entries.all
       } yield {
@@ -671,7 +661,7 @@ class Projects @Inject()(stats: StatTracker,
   def showNotes(author: String, slug: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewFlags)).async { implicit request =>
       withProjectAsync(author, slug) { project =>
-        Future.sequence(project.getNotes().map(note => users.get(note.user).map(user => (note, user)))) map { notes =>
+        Future.sequence(project.getNotes().map(note => users.get(note.user).value.map(user => (note, user)))) map { notes =>
           Ok(views.admin.notes(project, notes))
         }
       }

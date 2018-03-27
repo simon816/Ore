@@ -4,10 +4,9 @@ import akka.actor.ActorSystem
 import db.ModelService
 import db.impl.access.UserBase
 import javax.inject.{Inject, Singleton}
-import ore.OreConfig
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import ore.OreConfig
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 /**
@@ -17,7 +16,7 @@ import scala.concurrent.duration._
   * @param models ModelService instance
   */
 @Singleton
-final class UserSyncTask @Inject()(models: ModelService, actorSystem: ActorSystem, config: OreConfig) extends Runnable {
+final class UserSyncTask @Inject()(models: ModelService, actorSystem: ActorSystem, config: OreConfig)(implicit ec: ExecutionContext) extends Runnable {
 
   val Logger = play.api.Logger("UserSync")
   val interval = this.config.users.get[Long]("syncRate").millis

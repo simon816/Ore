@@ -6,6 +6,7 @@ import java.sql.Timestamp
 import java.util.{Date, UUID}
 
 import com.github.tminglei.slickpg.InetString
+
 import controllers.OreBaseController
 import controllers.sugar.Bakery
 import controllers.sugar.Requests.{OreRequest, ProjectRequest}
@@ -14,6 +15,7 @@ import db.impl.OrePostgresDriver.api._
 import discourse.OreDiscourseApi
 import form.OreForms
 import javax.inject.Inject
+
 import models.project._
 import models.viewhelper.{ProjectData, VersionData}
 import ore.permission.{EditVersions, ReviewProjects}
@@ -31,10 +33,12 @@ import play.filters.csrf.CSRF
 import security.spauth.SingleSignOnConsumer
 import util.JavaUtils.autoClose
 import util.StringUtils._
+import util.syntax._
 import views.html.projects.{versions => views}
+import scala.concurrent.{ExecutionContext, Future}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import util.{EitherT, OptionT}
+import util.instances.future._
 
 /**
   * Controller for handling Version related actions.
@@ -49,7 +53,7 @@ class Versions @Inject()(stats: StatTracker,
                          implicit override val messagesApi: MessagesApi,
                          implicit override val env: OreEnv,
                          implicit override val config: OreConfig,
-                         implicit override val service: ModelService)
+                         implicit override val service: ModelService)(implicit val ec: ExecutionContext)
   extends OreBaseController {
 
   private val fileManager = this.projects.fileManager
@@ -249,36 +253,29 @@ class Versions @Inject()(stats: StatTracker,
     */
   def showCreatorWithMeta(author: String, slug: String, versionString: String) = {
     UserLock(ShowProject(author, slug)).async { implicit request =>
-      // Get pending version
-      this.factory.getPendingVersion(author, slug, versionString) match {
-        case None =>
-          Future.successful(Redirect(self.showCreator(author, slug)))
-        case Some(pendingVersion) =>
-          // Get project
-          pendingOrReal(author, slug).flatMap {
-            case None =>
-              Future.successful(Redirect(self.showCreator(author, slug)))
-            case Some(p) => p match {
-              case pending: PendingProject =>
-                ProjectData.of(request, pending).map { data =>
-                  Ok(views.create(data, data.settings.forumSync, Some(pendingVersion), None, showFileControls = false))
-                }
-              case real: Project =>
-                for {
-                  channels <- real.channels.toSeq
-                  data <- ProjectData.of(real)
-                } yield {
-                  Ok(views.create(data, data.settings.forumSync, Some(pendingVersion), Some(channels), showFileControls = true))
-                }
-            }
+      //TODO: Does order matter here. If not, the code could be rewritten a bit clearer
+      val success = OptionT.fromOption[Future](this.factory.getPendingVersion(author, slug, versionString))
+        .flatMap { pendingVersion =>
+          // Get pending version
+          pendingOrReal(author, slug).semiFlatMap {
+            case pending: PendingProject =>
+              ProjectData.of(request, pending).map(data =>
+                Ok(views.create(data, data.settings.forumSync, Some(pendingVersion), None, showFileControls = false)))
+            case real: Project =>
+              (real.channels.toSeq, ProjectData.of(real)).parMapN { case (channels, data) =>
+                Ok(views
+                  .create(data, data.settings.forumSync, Some(pendingVersion), Some(channels), showFileControls = true))
+              }
           }
-      }
+        }
+
+      success.getOrElse(Redirect(self.showCreator(author, slug)))
     }
   }
 
-  private def pendingOrReal(author: String, slug: String): Future[Option[Any]] = {
+  private def pendingOrReal(author: String, slug: String): OptionT[Future, Any] = {
     // Returns either a PendingProject or existing Project
-    this.projects.withSlug(author, slug) map {
+    this.projects.withSlug(author, slug) transform {
       case None => this.factory.getPendingProject(author, slug)
       case Some(project) => Some(project)
     }
@@ -321,31 +318,25 @@ class Versions @Inject()(stats: StatTracker,
                 case None =>
                   // No pending project, create version for existing project
                   withProjectAsync(author, slug) { project =>
-                    project.channels.find {
-                      equalsIgnoreCase(_.name, pendingVersion.channelName)
-                    } flatMap {
-                      case None => versionData.addTo(project)
-                      case Some(channel) => Future.successful(Right(channel))
-                    } flatMap { channelResult =>
-                      channelResult.fold(
-                        error => {
-                          Future.successful(Redirect(self.showCreatorWithMeta(author, slug, versionString)).withError(error))
-                        },
-                        _ => {
-                          // Update description
-                          versionData.content.foreach { content =>
-                            pendingVersion.underlying.setDescription(content.trim)
-                          }
-
-                          pendingVersion.complete.map { newVersion =>
-                            if (versionData.recommended)
-                              project.setRecommendedVersion(newVersion._1)
-                            addUnstableTag(newVersion._1, versionData.unstable)
-                            Redirect(self.show(author, slug, versionString))
-                          }
+                    project.channels
+                      .find(equalsIgnoreCase(_.name, pendingVersion.channelName))
+                      .toRight(versionData.addTo(project).value)
+                      .leftFlatMap(EitherT.apply)
+                      .semiFlatMap { _ =>
+                        // Update description
+                        versionData.content.foreach { content =>
+                          pendingVersion.underlying.setDescription(content.trim)
                         }
-                      )
-                    }
+
+                        pendingVersion.complete.map { newVersion =>
+                          if (versionData.recommended)
+                            project.setRecommendedVersion(newVersion._1)
+                          addUnstableTag(newVersion._1, versionData.unstable)
+                          Redirect(self.show(author, slug, versionString))
+                        }
+                      }
+                      .leftMap(error => Redirect(self.showCreatorWithMeta(author, slug, versionString)).withError(error))
+                      .merge
                   }
                 case Some(pendingProject) =>
                   // Found a pending project, create it with first version
@@ -457,9 +448,8 @@ class Versions @Inject()(stats: StatTracker,
             (warn.versionId === version.id.get) &&
             (warn.address === InetString(StatTracker.remoteAddress)) &&
             warn.isConfirmed
-        } map {
-          case None => false
-          case Some(warn) =>
+        } exists {
+          warn =>
             if (!warn.hasExpired) true
             else {
               warn.remove()
@@ -565,7 +555,7 @@ class Versions @Inject()(stats: StatTracker,
         if (version.isReviewed)
           Future.successful(Redirect(ShowProject(author, slug)))
         else {
-          confirmDownload0(version.id.get, downloadType, token).map {
+          confirmDownload0(version.id.get, downloadType, token).value.map {
             case None => Redirect(ShowProject(author, slug))
             case Some(dl) =>
               dl.downloadType match {
@@ -589,7 +579,7 @@ class Versions @Inject()(stats: StatTracker,
   /**
     * Confirms the download and prepares the unsafe download.
     */
-  private def confirmDownload0(versionId: Int, downloadType: Option[Int],token: String)(implicit requestHeader: Request[_]): Future[Option[UnsafeDownload]] = {
+  private def confirmDownload0(versionId: Int, downloadType: Option[Int],token: String)(implicit requestHeader: Request[_]): OptionT[Future, UnsafeDownload] = {
     val addr = InetString(StatTracker.remoteAddress)
     val dlType = downloadType
       .flatMap(i => DownloadTypes.values.find(_.id == i))
@@ -601,28 +591,24 @@ class Versions @Inject()(stats: StatTracker,
         (warn.versionId === versionId) &&
         !warn.isConfirmed &&
         (warn.downloadId === -1)
-    } flatMap {
-      case None => Future.successful(None)
-      case Some(warn) =>
-        if (warn.hasExpired) {
-          // warning has expired
-          warn.remove()
-          Future.successful(None)
-        } else {
-          // warning confirmed and redirect to download
-          val downloads = this.service.access[UnsafeDownload](classOf[UnsafeDownload])
-          for {
-            user <- this.users.current
-            _ <- warn.setConfirmed()
-            unsafeDownload <- downloads.add(UnsafeDownload(
-                                            userId = user.flatMap(_.id),
-                                            address = addr,
-                                            downloadType = dlType))
-            _ <- warn.setDownload(unsafeDownload)
-          } yield {
-            Some(unsafeDownload)
-          }
-        }
+    }.filterNot { warn =>
+      val isInvalid = warn.hasExpired
+      // warning has expired
+      if(isInvalid) warn.remove()
+
+      isInvalid
+    }.semiFlatMap { warn =>
+      // warning confirmed and redirect to download
+      val downloads = this.service.access[UnsafeDownload](classOf[UnsafeDownload])
+      for {
+        user <- this.users.current.value
+        _ <- warn.setConfirmed()
+        unsafeDownload <- downloads.add(UnsafeDownload(
+          userId = user.flatMap(_.id),
+          address = addr,
+          downloadType = dlType))
+        _ <- warn.setDownload(unsafeDownload)
+      } yield unsafeDownload
     }
   }
 
@@ -735,7 +721,7 @@ class Versions @Inject()(stats: StatTracker,
       withVersionAsync(versionString) { version =>
         if (token.isDefined) {
           request.headers
-          confirmDownload0(version.id.get, Some(JarFile.id), token.get)(request.request).flatMap { _ =>
+          confirmDownload0(version.id.get, Some(JarFile.id), token.get)(request.request).value.flatMap { _ =>
             sendJar(data.project, version, token, api = true)
           }
         } else {

@@ -18,9 +18,11 @@ import play.api.mvc.Results.{Redirect, Unauthorized}
 import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
 import slick.jdbc.JdbcBackend
-
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.higherKinds
+
+import util.{FutureUtils, OptionT}
+import util.instances.future._
 
 /**
   * A set of actions used by Ore.
@@ -42,8 +44,8 @@ trait Actions extends Calls with ActionHelpers {
   /** Called when a [[User]] tries to make a request they do not have permission for */
   def onUnauthorized(implicit request: Request[_], ec: ExecutionContext): Future[Result] = {
     val noRedirect = request.flash.get("noRedirect")
-    this.users.current.map { currentUser =>
-      if (noRedirect.isEmpty && currentUser.isEmpty)
+    this.users.current.isEmpty.map { currentUserEmpty =>
+      if(noRedirect.isEmpty && currentUserEmpty)
         Redirect(routes.Users.logIn(None, None, Some(request.path)))
       else
         Redirect(ShowHome)
@@ -134,16 +136,14 @@ trait Actions extends Calls with ActionHelpers {
     * @param nonce Nonce to check
     * @return True if valid
     */
-  def isNonceValid(nonce: String)(implicit ec: ExecutionContext): Future[Boolean] = this.signOns.find(_.nonce === nonce).map {
-    _.exists {
-      signOn =>
-        if (signOn.isCompleted || new Date().getTime - signOn.createdAt.get.getTime > 600000)
-          false
-        else {
-          signOn.setCompleted()
-          true
-        }
-    }
+  def isNonceValid(nonce: String)(implicit ec: ExecutionContext): Future[Boolean] = this.signOns.find(_.nonce === nonce).exists {
+    signOn =>
+      if (signOn.isCompleted || new Date().getTime - signOn.createdAt.get.getTime > 600000)
+        false
+      else {
+        signOn.setCompleted()
+        true
+      }
   }
 
   /**
@@ -167,29 +167,28 @@ trait Actions extends Calls with ActionHelpers {
   def verifiedAction(sso: Option[String], sig: Option[String])(implicit ec: ExecutionContext) = new ActionFilter[AuthRequest] {
     def executionContext = ec
 
-    def filter[A](request: AuthRequest[A]): Future[Option[Result]] =
-      if (sso.isEmpty || sig.isEmpty)
-        Future.successful(Some(Unauthorized))
-      else {
-        Actions.this.sso.authenticate(sso.get, sig.get)(isNonceValid) map {
-          case None => Some(Unauthorized)
-          case Some(spongeUser) =>
-            if (spongeUser.id == request.user.id.get)
-              None
-            else
-              Some(Unauthorized)
-        }
-      }
+    def filter[A](request: AuthRequest[A]): Future[Option[Result]] = {
+      val auth = for {
+        ssoSome <- sso
+        sigSome <- sig
+      } yield Actions.this.sso.authenticate(ssoSome, sigSome)(isNonceValid)
+
+      OptionT.fromOption[Future](auth).flatMap(identity).cata(Some(Unauthorized), spongeUser =>
+        if (spongeUser.id == request.user.id.get)
+          None
+        else
+          Some(Unauthorized))
+    }
   }
 
   def userAction(username: String)(implicit ec: ExecutionContext) = new ActionFilter[AuthRequest] {
     def executionContext = ec
 
     def filter[A](request: AuthRequest[A]): Future[Option[Result]] = {
-      Actions.this.users.requestPermission(request.user, username, EditSettings).map {
+      Actions.this.users.requestPermission(request.user, username, EditSettings).transform {
         case None => Some(Unauthorized) // No Permission
         case Some(_) => None            // Permission granted => No Filter
-      }
+      }.value
     }
   }
 
@@ -210,15 +209,12 @@ trait Actions extends Calls with ActionHelpers {
 
   }
 
-  private def maybeAuthRequest[A](request: Request[A], futUser: Future[Option[User]])(implicit ec: ExecutionContext,
+  private def maybeAuthRequest[A](request: Request[A], futUser: OptionT[Future, User])(implicit ec: ExecutionContext,
                   asyncCacheApi: AsyncCacheApi, db: JdbcBackend#DatabaseDef): Future[Either[Result, AuthRequest[A]]] = {
-    futUser.flatMap {
-      case None => onUnauthorized(request, ec).map(Left(_))
-      case Some(user) => {
-        implicit val service = users.service
-        HeaderData.of(request).map(hd => Right(new AuthRequest[A](user, hd, request)))
-      }
-    }
+    futUser.semiFlatMap { user =>
+      implicit val service = users.service
+      HeaderData.of(request).map(hd => new AuthRequest[A](user, hd, request))
+    }.toRight(onUnauthorized(request, ec)).leftSemiFlatMap(identity).value
   }
 
   def projectAction(author: String, slug: String)(implicit  modelService: ModelService, ec: ExecutionContext, asyncCacheApi: AsyncCacheApi, db: JdbcBackend#DatabaseDef) = new ActionRefiner[OreRequest, ProjectRequest] {
@@ -233,20 +229,16 @@ trait Actions extends Calls with ActionHelpers {
     def refine[A](request: OreRequest[A]) = maybeProjectRequest(request, Actions.this.projects.withPluginId(pluginId))
   }
 
-  private def maybeProjectRequest[A](r: OreRequest[A], project: Future[Option[Project]])(implicit modelService: ModelService,
+  private def maybeProjectRequest[A](r: OreRequest[A], project: OptionT[Future, Project])(implicit modelService: ModelService,
                  asyncCacheApi: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext): Future[Either[Result, ProjectRequest[A]]] = {
     implicit val request = r
-    val pr = project.flatMap {
-      case None => Future.successful(None)
-      case Some(p) => processProject(p, request.data.currentUser)
-    }
-    pr.flatMap {
-      case None => Future.successful(Left(notFound))
-      case Some(p) =>
-        toProjectRequest(p) { case (data, scoped) =>
-          Right(new ProjectRequest[A](data, scoped, r))
-        }
-    }
+    project.flatMap { p =>
+      processProject(p, request.data.currentUser)
+    }.semiFlatMap { p =>
+      toProjectRequest(p) { case (data, scoped) =>
+        new ProjectRequest[A](data, scoped, r)
+      }
+    }.toRight(notFound).value
   }
 
   private def toProjectRequest[T](project: Project)(f: (ProjectData, ScopedProjectData) => T)(implicit request: OreRequest[_],
@@ -258,20 +250,22 @@ trait Actions extends Calls with ActionHelpers {
     }
   }
 
-  private def processProject(project: Project, user: Option[User])(implicit ec: ExecutionContext) : Future[Option[Project]] = {
+  private def processProject(project: Project, user: Option[User])(implicit ec: ExecutionContext) : OptionT[Future, Project] = {
     if (project.visibility == VisibilityTypes.Public || project.visibility == VisibilityTypes.New) {
-      Future.successful(Some(project))
+      OptionT.pure[Future](project)
     } else {
       if (user.isDefined) {
-        Future.firstCompletedOf(Seq())
-        for {
-          check1 <- canEditAndNeedChangeOrApproval(project, user)
-          check2 <- user.get can HideProjects in GlobalScope
-        } yield {
-          if (check1 || check2) Some(project) else None
-        }
+        val check1 = canEditAndNeedChangeOrApproval(project, user)
+        val check2 = user.get can HideProjects in GlobalScope
+
+        OptionT(
+          FutureUtils.raceBoolean(check1, check2).map {
+            case true => Some(project)
+            case false => None
+          }
+        )
       } else {
-        Future.successful(None)
+        OptionT.none[Future, Project]
       }
     }
   }
@@ -284,26 +278,21 @@ trait Actions extends Calls with ActionHelpers {
     }
   }
 
-  def authedProjectActionImpl(project: Future[Option[Project]])(implicit  modelService: ModelService, ec: ExecutionContext,
+  def authedProjectActionImpl(project: OptionT[Future, Project])(implicit  modelService: ModelService, ec: ExecutionContext,
             asyncCacheApi: AsyncCacheApi, db: JdbcBackend#DatabaseDef) = new ActionRefiner[AuthRequest, AuthedProjectRequest] {
 
     def executionContext = ec
 
-    def refine[A](request: AuthRequest[A]) = project.flatMap { p =>
+    def refine[A](request: AuthRequest[A]) = {
       implicit val r = request
 
-      p match {
-        case None => Future.successful(Left(notFound))
-        case Some(pr) =>
-          val processed = processProject(pr, Some(request.user))
-          processed.flatMap {
-            case None => Future.successful(Left(notFound))
-            case Some(p) =>
-              toProjectRequest(p) { case (data, scoped) =>
-                Right(new AuthedProjectRequest[A](data, scoped, request))
-              }
+      project.flatMap { pr =>
+        processProject(pr, Some(request.user)).semiFlatMap { p =>
+          toProjectRequest(p) { case (data, scoped) =>
+            new AuthedProjectRequest[A](data, scoped, request)
           }
-      }
+        }
+      }.toRight(notFound).value
     }
   }
 
@@ -320,7 +309,7 @@ trait Actions extends Calls with ActionHelpers {
 
     def refine[A](request: OreRequest[A]) = {
       implicit val r = request
-      getOrga(request, organization).flatMap {
+      getOrga(request, organization).value.flatMap {
         maybeOrgaRequest(_) { case (data, scoped) =>
           new OrganizationRequest[A](data, scoped, request)
         }
@@ -335,7 +324,7 @@ trait Actions extends Calls with ActionHelpers {
     def refine[A](request: AuthRequest[A]) = {
       implicit val r = request
 
-      getOrga(request, organization).flatMap {
+      getOrga(request, organization).value.flatMap {
         maybeOrgaRequest(_) { case (data, scoped) =>
           new AuthedOrganizationRequest[A](data, scoped, request)
         }
@@ -351,25 +340,19 @@ trait Actions extends Calls with ActionHelpers {
       case Some(orga) =>
         for {
           (data, scoped) <- OrganizationData.of(orga) zip
-                            ScopedOrganizationData.of(request.data.currentUser, orga)
-        } yield {
-          Right(f(data, scoped))
-        }
+            ScopedOrganizationData.of(request.data.currentUser, orga)
+        } yield Right(f(data, scoped))
     }
   }
 
   def getOrga(request: OreRequest[_], organization: String)(implicit modelService: ModelService, ec: ExecutionContext,
-          asyncCacheApi: AsyncCacheApi, db: JdbcBackend#DatabaseDef): Future[Option[Organization]] = {
+          asyncCacheApi: AsyncCacheApi, db: JdbcBackend#DatabaseDef): OptionT[Future, Organization] = {
     this.organizations.withName(organization)
   }
 
   def getUserData(request: OreRequest[_], userName: String)(implicit modelService: ModelService, ec: ExecutionContext,
-          asyncCacheApi: AsyncCacheApi, db: JdbcBackend#DatabaseDef): Future[Option[UserData]] = {
-    this.users.withName(userName).flatMap {
-      case None => Future.successful(None)
-      case Some(user) =>
-        UserData.of(request, user).map(Some(_))
-    }
+          asyncCacheApi: AsyncCacheApi, db: JdbcBackend#DatabaseDef): OptionT[Future, UserData] = {
+    this.users.withName(userName).semiFlatMap(user => UserData.of(request, user))
   }
 
 }

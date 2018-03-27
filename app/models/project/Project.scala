@@ -3,9 +3,12 @@ package models.project
 import java.sql.Timestamp
 import java.time.Instant
 
-import _root_.util.StringUtils
+import _root_.util.{StringUtils, OptionT}
 import _root_.util.StringUtils._
+import _root_.util.instances.future._
+
 import com.google.common.base.Preconditions._
+
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl._
@@ -33,9 +36,7 @@ import play.api.libs.json._
 import play.twirl.api.Html
 import slick.lifted
 import slick.lifted.{Rep, TableQuery}
-
 import scala.concurrent.{ExecutionContext, Future}
-
 /**
   * Represents an Ore package.
   *
@@ -285,7 +286,7 @@ case class Project(override val id: Option[Int] = None,
     * @return Project settings
     */
   def settings(implicit ec: ExecutionContext): Future[ProjectSettings]
-  = this.service.access[ProjectSettings](classOf[ProjectSettings]).find(_.projectId === this.id.get).map(_.get)
+  = this.service.access[ProjectSettings](classOf[ProjectSettings]).find(_.projectId === this.id.get).getOrElse(throw new NoSuchElementException("Get on None"))
 
   /**
     * Sets this [[Project]]'s [[ProjectSettings]].
@@ -326,12 +327,10 @@ case class Project(override val id: Option[Int] = None,
     this._visibility = visibility
     if (isDefined) update(ModelKeys.Visibility)
 
-    val cnt = lastVisibilityChange.flatMap {
-      case Some(vc) =>
+    val cnt = lastVisibilityChange.fold(0) { vc =>
         vc.setResolvedAt(Timestamp.from(Instant.now()))
         vc.setResolvedById(creator)
-        Future.successful(0)
-      case None => Future.successful(0)
+        0
     }
     cnt.flatMap { _ =>
       val change = VisibilityChange(None, Some(Timestamp.from(Instant.now())), Some(creator), this.id.get, comment, None, None, visibility.id)
@@ -345,8 +344,10 @@ case class Project(override val id: Option[Int] = None,
   def visibilityChanges = this.schema.getChildren[VisibilityChange](classOf[VisibilityChange], this)
   def visibilityChangesByDate(implicit ec: ExecutionContext) = visibilityChanges.all.map(_.toSeq.sortWith(byCreationDate))
   def byCreationDate(first: VisibilityChange, second: VisibilityChange) = first.createdAt.getOrElse(Timestamp.from(Instant.MIN)).getTime < second.createdAt.getOrElse(Timestamp.from(Instant.MIN)).getTime
-  def lastVisibilityChange(implicit ec: ExecutionContext): Future[Option[VisibilityChange]] = visibilityChanges.all.map(_.toSeq.filter(cr => !cr.isResolved).sortWith(byCreationDate).headOption)
-  def lastChangeRequest(implicit ec: ExecutionContext): Future[Option[VisibilityChange]] = visibilityChanges.all.map(_.toSeq.filter(cr => cr.visibility == VisibilityTypes.NeedsChanges.id).sortWith(byCreationDate).lastOption)
+  def lastVisibilityChange(implicit ec: ExecutionContext): OptionT[Future, VisibilityChange] =
+    OptionT(visibilityChanges.all.map(_.toSeq.filter(cr => !cr.isResolved).sortWith(byCreationDate).headOption))
+  def lastChangeRequest(implicit ec: ExecutionContext): OptionT[Future, VisibilityChange] =
+    OptionT(visibilityChanges.all.map(_.toSeq.filter(cr => cr.visibility == VisibilityTypes.NeedsChanges.id).sortWith(byCreationDate).lastOption))
 
   /**
     * Returns the last time this [[Project]] was updated.
@@ -486,7 +487,8 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Recommended version
     */
-  def recommendedVersion(implicit ec: ExecutionContext): Future[Version] = this.versions.get(this.recommendedVersionId.get).map(_.get)
+  def recommendedVersion(implicit ec: ExecutionContext): Future[Version] =
+    this.versions.get(this.recommendedVersionId.get).getOrElse(throw new NoSuchElementException("Get on None"))
 
   /**
     * Updates this project's recommended version.
@@ -513,7 +515,7 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Project home page
     */
-  def homePage: Page = Defined {
+  def homePage(implicit ec: ExecutionContext): Page = Defined {
     val page = new Page(this.id.get, Page.HomeName, Page.Template(this.name, Page.HomeMessage), false, -1)
     this.service.await(page.schema.getOrInsert(page)).get
   }
@@ -532,7 +534,7 @@ case class Project(override val id: Option[Int] = None,
     * @param name   Page name
     * @return       Page with name or new name if it doesn't exist
     */
-  def getOrCreatePage(name: String, parentId: Int = -1, content: Option[String] = None): Future[Page] = Defined {
+  def getOrCreatePage(name: String, parentId: Int = -1, content: Option[String] = None)(implicit ec: ExecutionContext): Future[Page] = Defined {
     checkNotNull(name, "null name", "")
     val c = content match {
       case None => Page.Template(name, Page.HomeMessage)
@@ -550,13 +552,13 @@ case class Project(override val id: Option[Int] = None,
     *
     * @return Root pages of project
     */
-  def rootPages: Future[Seq[Page]] = {
+  def rootPages(implicit ec: ExecutionContext): Future[Seq[Page]] = {
     this.service.access[Page](classOf[Page]).sorted(_.name, p => p.projectId === this.id.get && p.parentId === -1)
   }
 
   def logger(implicit ec: ExecutionContext): Future[ProjectLog] = {
     val loggers = this.service.access[ProjectLog](classOf[ProjectLog])
-    loggers.find(_.projectId === this.id.get).flatMap {
+    loggers.find(_.projectId === this.id.get).value.flatMap {
       case None => loggers.add(ProjectLog(projectId = this.id.get))
       case Some(l) => Future.successful(l)
     }

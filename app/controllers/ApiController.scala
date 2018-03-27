@@ -8,8 +8,10 @@ import controllers.sugar.Bakery
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.ProjectApiKeyTable
+import util.instances.future._
 import form.OreForms
 import javax.inject.Inject
+
 import models.api.ProjectApiKey
 import models.user.User
 import ore.permission.EditApiKeys
@@ -28,9 +30,7 @@ import play.api.mvc._
 import security.CryptoUtils
 import security.spauth.SingleSignOnConsumer
 import slick.lifted.Compiled
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Ore API (v1)
@@ -46,7 +46,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
                                     implicit override val bakery: Bakery,
                                     implicit override val cache: AsyncCacheApi,
                                     implicit override val sso: SingleSignOnConsumer,
-                                    implicit override val messagesApi: MessagesApi)
+                                    implicit override val messagesApi: MessagesApi)(implicit val ec: ExecutionContext)
                                     extends OreBaseController {
 
   import writes._
@@ -227,8 +227,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
 
                 for {
                   user <- projectData.project.owner.user
-                  orga <- user.toMaybeOrganization
-                  owner <- orga.map(_.owner.user).getOrElse(Future.successful(user))
+                  owner <- user.toMaybeOrganization.semiFlatMap(_.owner.user).getOrElse(user)
                   result <- upload(owner)
                 } yield {
                   result
@@ -244,7 +243,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
 
   def listPages(version: String, pluginId: String, parentId: Option[Int]) = Action.async {
     version match {
-      case "v1" => this.api.getPages(pluginId, parentId).map(ApiResult)
+      case "v1" => this.api.getPages(pluginId, parentId).value.map(ApiResult)
       case _ => Future.successful(NotFound)
     }
   }
@@ -288,7 +287,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
     */
   def listTags(version: String, plugin: String, versionName: String) = Action.async {
     version match {
-      case "v1" => this.api.getTags(plugin, versionName).map(ApiResult)
+      case "v1" => this.api.getTags(plugin, versionName).value.map(ApiResult)
       case _ => Future.successful(NotFound)
     }
   }

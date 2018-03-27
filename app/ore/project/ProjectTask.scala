@@ -2,11 +2,14 @@ package ore.project
 
 import java.sql.Timestamp
 import java.time.Instant
+
 import javax.inject.{Inject, Singleton}
+
+import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
+
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
@@ -17,7 +20,7 @@ import ore.OreConfig
   * Task that is responsible for publishing New projects
   */
 @Singleton
-class ProjectTask @Inject()(models: ModelService, actorSystem: ActorSystem, config: OreConfig) extends Runnable {
+class ProjectTask @Inject()(models: ModelService, actorSystem: ActorSystem, config: OreConfig)(implicit ec: ExecutionContext) extends Runnable {
 
   val Logger = play.api.Logger("ProjectTask")
   val interval = this.config.projects.get[FiniteDuration]("check-interval")

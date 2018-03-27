@@ -1,10 +1,10 @@
 package discourse
 
+import scala.concurrent.ExecutionContext
+
 import akka.actor.Scheduler
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.ProjectBase
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.FiniteDuration
 
 /**
@@ -13,7 +13,7 @@ import scala.concurrent.duration.FiniteDuration
 class RecoveryTask(scheduler: Scheduler,
                    retryRate: FiniteDuration,
                    api: OreDiscourseApi,
-                   projects: ProjectBase) extends Runnable {
+                   projects: ProjectBase)(implicit ec: ExecutionContext) extends Runnable {
 
   val Logger = this.api.Logger
 

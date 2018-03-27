@@ -4,16 +4,18 @@ import java.util.concurrent.TimeoutException
 
 import com.google.common.base.Preconditions._
 import javax.inject.Inject
+
 import ore.OreConfig
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import util.WSUtils.parseJson
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+
+import _root_.util.{EitherT, OptionT}
+import _root_.util.instances.future._
 
 /**
   * Interfaces with the SpongeAuth Web API
@@ -48,7 +50,7 @@ trait SpongeAuthApi {
   def createUser(username: String,
                  email: String,
                  password: String,
-                 verified: Boolean = false): Future[Either[String, SpongeUser]]
+                 verified: Boolean = false)(implicit ec: ExecutionContext): EitherT[Future, String, SpongeUser]
   = doCreateUser(username, email, password, verified)
 
   /**
@@ -59,14 +61,14 @@ trait SpongeAuthApi {
     * @param verified True if should bypass email verification
     * @return         Newly created user
     */
-  def createDummyUser(username: String, email: String, verified: Boolean = false): Future[Either[String, SpongeUser]]
+  def createDummyUser(username: String, email: String, verified: Boolean = false)(implicit ec: ExecutionContext): EitherT[Future, String, SpongeUser]
   = doCreateUser(username, email, null, verified, dummy = true)
 
   private def doCreateUser(username: String,
                            email: String,
                            password: String,
                            verified: Boolean = false,
-                           dummy: Boolean = false): Future[Either[String, SpongeUser]] = {
+                           dummy: Boolean = false)(implicit ec: ExecutionContext): EitherT[Future, String, SpongeUser] = {
     checkNotNull(username, "null username", "")
     checkNotNull(email, "null email", "")
     var params = Map(
@@ -86,10 +88,10 @@ trait SpongeAuthApi {
     * @param username Username to lookup
     * @return         User with username
     */
-  def getUser(username: String): Future[Option[SpongeUser]] = {
+  def getUser(username: String)(implicit ec: ExecutionContext): OptionT[Future, SpongeUser] = {
     checkNotNull(username, "null username", "")
     val url = route("/api/users/" + username) + s"?apiKey=$apiKey"
-    readUser(this.ws.url(url).withRequestTimeout(timeout).get()).map(_.right.toOption)
+    readUser(this.ws.url(url).withRequestTimeout(timeout).get()).toOption
   }
 
   /**
@@ -98,28 +100,28 @@ trait SpongeAuthApi {
     * @param username Username to lookup
     * @return         Deleted user
     */
-  def deleteUser(username: String): Future[Either[String, SpongeUser]] = {
+  def deleteUser(username: String)(implicit ec: ExecutionContext): EitherT[Future, String, SpongeUser] = {
     checkNotNull(username, "null username", "")
     val url = route("/api/users") + s"?username=$username&apiKey=$apiKey"
     readUser(this.ws.url(url).withRequestTimeout(timeout).delete())
   }
 
-  private def readUser(response: Future[WSResponse], nullable: Boolean = false): Future[Either[String, SpongeUser]] = {
-    response.map(parseJson(_, Logger)).map(_.map { json =>
-      val obj = json.as[JsObject]
-      if (obj.keys.contains("error"))
-        Left((obj \ "error").as[String])
-      else
-        Right(obj.as[SpongeUser])
-    } getOrElse {
-      Left("error.spongeauth.parse")
-    }) recover {
-      case toe: TimeoutException =>
-        Left("error.spongeauth.connect")
-      case e =>
-        Logger.error("An unexpected error occured while handling a response", e)
-        Left("error.spongeauth.unexpected")
-    }
+  private def readUser(response: Future[WSResponse], nullable: Boolean = false)(implicit ec: ExecutionContext): EitherT[Future, String, SpongeUser] = {
+    EitherT(
+      OptionT(response.map(parseJson(_, Logger))).map { json =>
+        val obj = json.as[JsObject]
+        if (obj.keys.contains("error"))
+          Left((obj \ "error").as[String])
+        else
+          Right(obj.as[SpongeUser])
+      }.getOrElse(Left("error.spongeauth.parse")).recover {
+        case toe: TimeoutException =>
+          Left("error.spongeauth.connect")
+        case e =>
+          Logger.error("An unexpected error occured while handling a response", e)
+          Left("error.spongeauth.unexpected")
+      }
+    )
   }
 
   private def route(route: String) = this.url + route

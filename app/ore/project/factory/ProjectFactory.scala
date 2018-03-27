@@ -5,11 +5,13 @@ import java.nio.file.StandardCopyOption
 
 import akka.actor.ActorSystem
 import com.google.common.base.Preconditions._
+
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.{ProjectBase, UserBase}
 import discourse.OreDiscourseApi
 import javax.inject.Inject
+
 import models.project.TagColors.TagColor
 import models.project._
 import models.user.role.ProjectRole
@@ -23,16 +25,18 @@ import ore.project.factory.TagAlias.ProjectTag
 import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload, ProjectFiles}
 import ore.user.notification.NotificationTypes
 import org.spongepowered.plugin.meta.PluginMetadata
+
 import play.api.cache.SyncCacheApi
 import play.api.i18n.{Lang, MessagesApi}
 import security.pgp.PGPVerifier
 import util.StringUtils._
-
+import util.instances.future._
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 import scala.util.Try
+
+import util.OptionT
 
 /**
   * Manages the project and version creation pipeline.
@@ -106,7 +110,7 @@ trait ProjectFactory {
 
   def processSubsequentPluginUpload(uploadData: PluginUpload,
                                     owner: User,
-                                    project: Project): Future[Either[String, PendingVersion]] = {
+                                    project: Project)(implicit ec: ExecutionContext): Future[Either[String, PendingVersion]] = {
     val plugin = this.processPluginUpload(uploadData, owner)
     if (!plugin.meta.get.getId.equals(project.pluginId))
       return Future.successful(Left("error.version.invalidPluginId"))
@@ -252,7 +256,7 @@ trait ProjectFactory {
     * @return         New Project
     * @throws         IllegalArgumentException if the project already exists
     */
-  def createProject(pending: PendingProject): Future[Project] = {
+  def createProject(pending: PendingProject)(implicit ec: ExecutionContext): Future[Project] = {
     val project = pending.underlying
 
     val checks = for {
@@ -303,7 +307,7 @@ trait ProjectFactory {
     * @param color    Channel color
     * @return         New channel
     */
-  def createChannel(project: Project, name: String, color: Color, nonReviewed: Boolean): Future[Channel] = {
+  def createChannel(project: Project, name: String, color: Color, nonReviewed: Boolean)(implicit ec: ExecutionContext): Future[Channel] = {
     checkNotNull(project, "null project", "")
     checkArgument(project.isDefined, "undefined project", "")
     checkNotNull(name, "null name", "")
@@ -326,7 +330,7 @@ trait ProjectFactory {
     * @param pending  PendingVersion
     * @return         New version
     */
-  def createVersion(pending: PendingVersion): Future[(Version, Channel, Seq[ProjectTag])] = {
+  def createVersion(pending: PendingVersion)(implicit ec: ExecutionContext): Future[(Version, Channel, Seq[ProjectTag])] = {
     val project = pending.project
 
     val pendingVersion = pending.underlying
@@ -361,8 +365,8 @@ trait ProjectFactory {
     for {
       channel <- channel
       newVersion <- newVersion
-      spongeTag <- addTags(newVersion, SpongeApiId, "Sponge", TagColors.Sponge)
-      forgeTag <- addTags(newVersion, ForgeId, "Forge", TagColors.Forge)
+      spongeTag <- addTags(newVersion, SpongeApiId, "Sponge", TagColors.Sponge).value
+      forgeTag <- addTags(newVersion, ForgeId, "Forge", TagColors.Forge).value
     } yield {
       val tags = spongeTag ++ forgeTag
 
@@ -381,18 +385,15 @@ trait ProjectFactory {
     }
   }
 
-  private def addTags(newVersion: Version, dependencyName: String, tagName: String, tagColor: TagColor): Future[Option[ProjectTag]] = {
+  private def addTags(newVersion: Version, dependencyName: String, tagName: String, tagColor: TagColor)(implicit ec: ExecutionContext): OptionT[Future, ProjectTag] = {
     val dependenciesMatchingName = newVersion.dependencies.filter(_.pluginId == dependencyName)
-    dependenciesMatchingName.headOption match {
-      case None => Future.successful(None)
-      case Some(dep) =>
-        if (!dependencyVersionRegex.pattern.matcher(dep.version).matches())
-          Future.successful(None)
-        else {
-          val tagToAdd = for {
-            tagsWithVersion <- service.access(classOf[ProjectTag])
-              .filter(t => t.name === tagName && t.data === dep.version)
-          } yield {
+    OptionT.fromOption[Future](dependenciesMatchingName.headOption)
+      .filter(dep => dependencyVersionRegex.pattern.matcher(dep.version).matches())
+      .semiFlatMap { dep =>
+        val tagToAdd = for {
+          tagsWithVersion <- service.access(classOf[ProjectTag])
+            .filter(t => t.name === tagName && t.data === dep.version)
+          tag <- {
             if (tagsWithVersion.isEmpty) {
               val tag = Tag(
                 _versionIds = List(newVersion.id.get),
@@ -410,20 +411,19 @@ trait ProjectFactory {
               Future.successful(tag)
             }
           }
-          tagToAdd.flatten.map { tag =>
-            newVersion.addTag(tag)
-            Some(tag)
-          }
+        } yield tag
+
+        tagToAdd.map { tag =>
+          newVersion.addTag(tag)
+          tag
         }
     }
   }
 
 
-  private def getOrCreateChannel(pending: PendingVersion, project: Project) = {
-    project.channels.find(equalsIgnoreCase(_.name, pending.channelName)) flatMap {
-      case Some(existing) => Future.successful(existing)
-      case None => createChannel(project, pending.channelName, pending.channelColor, nonReviewed = false)
-    }
+  private def getOrCreateChannel(pending: PendingVersion, project: Project)(implicit ec: ExecutionContext) = {
+    project.channels.find(equalsIgnoreCase(_.name, pending.channelName))
+      .getOrElseF(createChannel(project, pending.channelName, pending.channelColor, nonReviewed = false))
   }
 
   private def uploadPlugin(project: Project, channel: Channel, plugin: PluginFile, version: Version): Try[Unit] = Try {

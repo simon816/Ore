@@ -15,6 +15,9 @@ import slick.lifted.TableQuery
 
 import scala.concurrent.{ExecutionContext, Future}
 
+import util.syntax._
+import util.instances.future._
+
 /**
   * Holds ProjetData that is the same for all users
   */
@@ -78,39 +81,47 @@ object ProjectData {
   def of[A](project: Project)(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext): Future[ProjectData] = {
 
     implicit val userBase = project.userBase
-    for {
-      settings <- project.settings
-      projectOwner <- project.owner.user
 
-      ownerRole <- project.owner.headRole
-      versions <- project.versions.size
-      members <- members(project)
+    val flagsFut = project.flags.all
+    val flagUsersFut = flagsFut.flatMap(flags => Future.sequence(flags.map(_.user)))
+    val flagResolvedFut = flagsFut.flatMap(flags => Future.sequence(flags.map(flag => flag.userBase.get(flag.resolvedBy.getOrElse(-1)).value)))
 
-      logSize <- project.logger.flatMap(_.entries.size)
-      flags <- project.flags.all
-      flagUsers <- Future.sequence(flags.map(_.user))
-      flagResolved <- Future.sequence(flags.map(flag => flag.userBase.get(flag.resolvedBy.getOrElse(-1))))
-      lastVisibilityChange <- project.lastVisibilityChange
-      lastVisibilityChangeUser <- if (lastVisibilityChange.isEmpty) Future.successful("Unknown")
-      else lastVisibilityChange.get.created.map(_.map(_.name).getOrElse("Unknown"))
-    } yield {
-      val noteCount = project.getNotes().size
-      val flagData = flags zip flagUsers zip flagResolved map { case ((fl, user), resolved) =>
-        (fl, user.name, resolved.map(_.username))
-      }
+    val lastVisibilityChangeFut = project.lastVisibilityChange.value
+    val lastVisibilityChangeUserFut = lastVisibilityChangeFut.flatMap { lastVisibilityChange =>
+      if (lastVisibilityChange.isEmpty) Future.successful("Unknown") else lastVisibilityChange.get.created.fold("Unknown")(_.name)
+    }
 
-      new ProjectData(
-        project,
-        projectOwner,
-        ownerRole,
-        versions,
-        settings,
-        members.sortBy(_._1.roleType.trust).reverse,
-        logSize,
-        flagData.toSeq,
-        noteCount,
-        lastVisibilityChange,
-        lastVisibilityChangeUser)
+    (
+      project.settings,
+      project.owner.user,
+      project.owner.headRole,
+      project.versions.size,
+      members(project),
+      project.logger.flatMap(_.entries.size),
+      flagsFut,
+      flagUsersFut,
+      flagResolvedFut,
+      lastVisibilityChangeFut,
+      lastVisibilityChangeUserFut
+    ).parMapN {
+      case (settings, projectOwner, ownerRole, versions, members, logSize, flags, flagUsers, flagResolved, lastVisibilityChange, lastVisibilityChangeUser) =>
+        val noteCount = project.getNotes().size
+        val flagData = flags zip flagUsers zip flagResolved map { case ((fl, user), resolved) =>
+          (fl, user.name, resolved.map(_.username))
+        }
+
+        new ProjectData(
+          project,
+          projectOwner,
+          ownerRole,
+          versions,
+          settings,
+          members.sortBy(_._1.roleType.trust).reverse,
+          logSize,
+          flagData.toSeq,
+          noteCount,
+          lastVisibilityChange,
+          lastVisibilityChangeUser)
     }
   }
 

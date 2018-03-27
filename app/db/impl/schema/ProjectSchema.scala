@@ -9,9 +9,9 @@ import models.user.User
 import ore.Platforms.Platform
 import ore.project.Categories.Category
 import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
+import scala.concurrent.{ExecutionContext, Future}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import util.OptionT
 
 /**
   * Project related queries
@@ -24,7 +24,7 @@ class ProjectSchema(override val service: ModelService, implicit val users: User
     *
     * @return Project authors
     */
-  def distinctAuthors: Future[Seq[User]] = {
+  def distinctAuthors(implicit ec: ExecutionContext): Future[Seq[User]] = {
     service.DB.db.run {
       (for (project <- this.baseQuery) yield project.userId).distinct.result
     } flatMap { userIds =>
@@ -78,10 +78,10 @@ class ProjectSchema(override val service: ModelService, implicit val users: User
     * @return Projects matching criteria
     */
   def collect(filter: Project#T => Rep[Boolean], sort: ProjectSortingStrategy,
-              limit: Int, offset: Int): Future[Seq[Project]]
+              limit: Int, offset: Int)(implicit ec: ExecutionContext): Future[Seq[Project]]
   = this.service.collect[Project](this.modelClass, filter, Option(sort).map(_.fn).orNull, limit, offset)
 
-  override def like(model: Project): Future[Option[Project]] = {
+  override def like(model: Project)(implicit ec: ExecutionContext): OptionT[Future, Project] = {
     this.service.find[Project](this.modelClass, p => p.ownerName.toLowerCase === model.ownerName.toLowerCase
       && p.name.toLowerCase === model.name.toLowerCase)
   }

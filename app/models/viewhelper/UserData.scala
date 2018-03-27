@@ -13,6 +13,8 @@ import slick.lifted.TableQuery
 import db.impl.OrePostgresDriver.api._
 import scala.concurrent.{ExecutionContext, Future}
 
+import util.syntax._
+
 // TODO separate Scoped UserData
 
 case class UserData(headerData: HeaderData,
@@ -86,16 +88,16 @@ object UserData {
     if (currentUser.isEmpty) Future.successful((Map.empty, Map.empty))
     else {
       val user = currentUser.get
-      for {
-        orga <- user.toMaybeOrganization
-        viewActivity <- user can ViewActivity in user map ((ViewActivity, _))
-        reviewFlags <- user can ReviewFlags in user map ((ReviewFlags, _))
-        reviewProjects <- user can ReviewProjects in user map ((ReviewProjects, _))
-        editSettings <- user can EditSettings in orga map ((EditSettings, _))
-      } yield {
-        val userPerms: Map[Permission, Boolean] = Seq(viewActivity, reviewFlags, reviewProjects).toMap
-        val orgaPerms: Map[Permission, Boolean] = Seq(editSettings).toMap
-        (userPerms, orgaPerms)
+      val viewActivityFut = user can ViewActivity in user map ((ViewActivity, _))
+      val reviewFlagsFut = user can ReviewFlags in user map ((ReviewFlags, _))
+      val reviewProjectsFut = user can ReviewProjects in user map ((ReviewProjects, _))
+      val editSettingsFut = user.toMaybeOrganization.value.flatMap(orga => user can EditSettings in orga map ((EditSettings, _)))
+
+      (viewActivityFut, reviewFlagsFut, reviewProjectsFut, editSettingsFut).parMapN {
+        case (viewActivity, reviewFlags, reviewProjects, editSettings) =>
+          val userPerms: Map[Permission, Boolean] = Seq(viewActivity, reviewFlags, reviewProjects).toMap
+          val orgaPerms: Map[Permission, Boolean] = Seq(editSettings).toMap
+          (userPerms, orgaPerms)
       }
     }
   }

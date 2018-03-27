@@ -9,9 +9,10 @@ import javax.inject.{Inject, Singleton}
 import javax.mail.Message.RecipientType
 import javax.mail.Session
 import javax.mail.internet.{InternetAddress, MimeMessage}
-import play.api.Configuration
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
+
+import play.api.Configuration
 import scala.concurrent.duration._
 
 /**
@@ -52,7 +53,7 @@ trait Mailer extends Runnable {
   /**
     * Configures, initializes, and starts this Mailer.
     */
-  def start() = {
+  def start()(implicit ec: ExecutionContext) = {
     Security.addProvider(new Provider)
     val props = System.getProperties
     for (prop <- this.properties.keys)
@@ -104,7 +105,7 @@ trait Mailer extends Runnable {
 }
 
 @Singleton
-final class SpongeMailer @Inject()(config: Configuration, actorSystem: ActorSystem) extends Mailer {
+final class SpongeMailer @Inject()(config: Configuration, actorSystem: ActorSystem)(implicit ec: ExecutionContext) extends Mailer {
 
   private val conf = config.get[Configuration]("mail")
 

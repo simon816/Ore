@@ -8,6 +8,7 @@ import db.impl.{ProjectTableMain, VersionTable}
 import discourse.OreDiscourseApi
 import form.OreForms
 import javax.inject.Inject
+
 import mail.{EmailFactory, Mailer}
 import models.user.{SignOn, User}
 import models.viewhelper.{OrganizationData, ScopedOrganizationData}
@@ -23,9 +24,8 @@ import play.api.i18n.MessagesApi
 import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
 import views.{html => views}
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import util.instances.future._
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Controller for general user actions.
@@ -42,7 +42,7 @@ class Users @Inject()(fakeUser: FakeUser,
                       implicit override val env: OreEnv,
                       implicit override val config: OreConfig,
                       implicit override val cache: AsyncCacheApi,
-                      implicit override val service: ModelService) extends OreBaseController {
+                      implicit override val service: ModelService)(implicit val ec: ExecutionContext) extends OreBaseController {
 
   private val baseUrl = this.config.app.get[String]("baseUrl")
 
@@ -76,17 +76,16 @@ class Users @Inject()(fakeUser: FakeUser,
       Future.successful(redirectToSso(this.sso.getLoginUrl(this.baseUrl + "/login", nonce)))
     } else {
       // Redirected from SpongeSSO, decode SSO payload and convert to Ore user
-      this.sso.authenticate(sso.get, sig.get)(isNonceValid) flatMap {
-        case None =>
-          Future.successful(Redirect(ShowHome).withError("error.loginFailed"))
-        case Some(spongeUser) =>
-          // Complete authentication
-          User.fromSponge(spongeUser).flatMap(this.users.getOrCreate).flatMap { user =>
-            user.pullForumData().flatMap(_.pullSpongeData()).flatMap { u =>
-              this.redirectBack(request.flash.get("url").getOrElse("/"), u)
-            }
-          }
-      }
+      this.sso.authenticate(sso.get, sig.get)(isNonceValid).semiFlatMap { spongeUser =>
+        // Complete authentication
+        for {
+          fromSponge <- User.fromSponge(spongeUser)
+          getOrCreate <- this.users.getOrCreate(fromSponge)
+          pulledForum <- getOrCreate.pullForumData()   //TODO These two pull methods at the moment just return this at the end.
+          pulledSponge <- pulledForum.pullSpongeData() //Should their results be ignored and getOrCreate be used from there on?
+          result <- this.redirectBack(request.flash.get("url").getOrElse("/"), pulledSponge)
+        } yield result
+      }.getOrElse(Redirect(ShowHome).withError("error.loginFailed"))
     }
   }
 
@@ -133,27 +132,25 @@ class Users @Inject()(fakeUser: FakeUser,
     val pageSize = this.config.users.get[Int]("project-page-size")
     val p = page.getOrElse(1)
     val offset = (p - 1) * pageSize
-    this.users.withName(username).flatMap {
-      case None => Future.successful(notFound)
-      case Some(user) =>
-        for {
-          // TODO include orga projects?
-          projectSeq <- service.DB.db.run(queryUserProjects(user).drop(offset).take(pageSize).result)
-          tags <- Future.sequence(projectSeq.map(_._2.tags))
-          userData <- getUserData(request, username)
-          starred <- user.starred()
-          starredRv <- Future.sequence(starred.map(_.recommendedVersion))
-          orga <- getOrga(request, username)
-          orgaData <- OrganizationData.of(orga)
-          scopedOrgaData <- ScopedOrganizationData.of(request.currentUser, orga)
-        } yield {
-          val data = projectSeq zip tags map { case ((p, v), tags) =>
-            (p, user, v, tags)
-          }
-          val starredData = starred zip starredRv
-          Ok(views.users.projects(userData.get, orgaData.flatMap(a => scopedOrgaData.map(b => (a, b))), data, starredData, p))
+    this.users.withName(username).semiFlatMap { user =>
+      for {
+        // TODO include orga projects?
+        projectSeq <- service.DB.db.run(queryUserProjects(user).drop(offset).take(pageSize).result)
+        tags <- Future.sequence(projectSeq.map(_._2.tags))
+        userData <- getUserData(request, username).value
+        starred <- user.starred()
+        starredRv <- Future.sequence(starred.map(_.recommendedVersion))
+        orga <- getOrga(request, username).value
+        orgaData <- OrganizationData.of(orga).value
+        scopedOrgaData <- ScopedOrganizationData.of(request.currentUser, orga).value
+      } yield {
+        val data = projectSeq zip tags map { case ((p, v), tags) =>
+          (p, user, v, tags)
         }
-    }
+        val starredData = starred zip starredRv
+        Ok(views.users.projects(userData.get, orgaData.flatMap(a => scopedOrgaData.map(b => (a, b))), data, starredData, p))
+      }
+    }.getOrElse(notFound)
   }
 
   private def queryUserProjects(user: User) = {
@@ -185,16 +182,14 @@ class Users @Inject()(fakeUser: FakeUser,
   def saveTagline(username: String) = UserAction(username).async { implicit request =>
     val tagline = this.forms.UserTagline.bindFromRequest.get.trim
     val maxLen = this.config.users.get[Int]("max-tagline-len")
-    this.users.withName(username).map {
-      case None => NotFound
-      case Some(user) =>
-        if (tagline.length > maxLen) {
-          Redirect(ShowUser(user)).flashing("error" -> this.messagesApi("error.tagline.tooLong", maxLen))
-        } else {
-          user.setTagline(tagline)
-          Redirect(ShowUser(user))
-        }
-    }
+    this.users.withName(username).map { user =>
+      if (tagline.length > maxLen) {
+        Redirect(ShowUser(user)).flashing("error" -> this.messagesApi("error.tagline.tooLong", maxLen))
+      } else {
+        user.setTagline(tagline)
+        Redirect(ShowUser(user))
+      }
+    }.getOrElse(NotFound)
   }
 
   /**
@@ -329,12 +324,10 @@ class Users @Inject()(fakeUser: FakeUser,
     * @return   Ok if marked as read, NotFound if notification does not exist
     */
   def markNotificationRead(id: Int) = Authenticated.async { implicit request =>
-    request.user.notifications.get(id) map {
-      case None => notFound
-      case Some(notification) =>
-        notification.setRead(read = true)
-        Ok
-    }
+    request.user.notifications.get(id).map { notification =>
+      notification.setRead(read = true)
+      Ok
+    }.getOrElse(notFound)
   }
 
   /**

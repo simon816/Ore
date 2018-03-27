@@ -10,6 +10,7 @@ import db.impl.access.UserBase
 import models.project.Project
 import ore.StatTracker._
 import ore.permission.scope.ProjectScope
+import util.instances.future._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -53,7 +54,7 @@ object ProjectView {
     implicit val r = request.request
     checkNotNull(request, "null request", "")
     checkNotNull(users, "null user base", "")
-    users.current.map { _.flatMap(_.id) } map { userId =>
+    users.current.subflatMap(_.id).value.map { userId =>
       val view = ProjectView(
         modelId = request.data.project.id.get,
         address = InetString(remoteAddress),

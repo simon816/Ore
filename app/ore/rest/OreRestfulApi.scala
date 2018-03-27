@@ -8,6 +8,7 @@ import db.impl._
 import db.impl.access.{ProjectBase, UserBase}
 import db.impl.schema.{ProjectSchema, ProjectTag}
 import javax.inject.Inject
+
 import models.project._
 import models.user.User
 import models.user.role.ProjectRole
@@ -18,7 +19,8 @@ import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.libs.json.Json.{obj, toJson}
 import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
 import util.StringUtils._
-
+import util.OptionT
+import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -242,6 +244,7 @@ trait OreRestfulApi {
 
     val limited = filtered.drop(offset.getOrElse(0)).take(lim)
 
+    //TODO: Why is this an Option again?
     for {
       data <- service.DB.db.run(limited.result) // Get Project Version Channel and AuthorName
       vTags <- service.DB.db.run(queryVersionTags(data.map(_._3)).result).map { p => p.groupBy(_._1) mapValues (_.map(_._2)) }
@@ -300,23 +303,21 @@ trait OreRestfulApi {
     * @param parentId Optional parent ID filter
     * @return         List of project pages
     */
-  def getPages(pluginId: String, parentId: Option[Int])(implicit ec: ExecutionContext): Future[Option[JsValue]] = {
-    this.projects.withPluginId(pluginId).flatMap {
-      case None => Future.successful(None)
-      case Some(project) =>
+  def getPages(pluginId: String, parentId: Option[Int])(implicit ec: ExecutionContext): OptionT[Future, JsValue] = {
+    this.projects.withPluginId(pluginId).semiFlatMap { project =>
         for {
           pages <- project.pages.sorted(_.name)
         } yield {
           val seq = if (parentId.isDefined) pages.filter(_.parentId == parentId.get) else pages
           val pageById = pages.map(p => (p.id.get, p)).toMap
-          Some(toJson(seq.map(page => obj(
+          toJson(seq.map(page => obj(
             "createdAt" -> page.createdAt,
             "id" -> page.id,
             "name" -> page.name,
             "parentId" -> page.parentId,
             "slug" -> page.slug,
             "fullSlug" -> page.fullSlug(pageById.get(page.parentId))
-          ))))
+          )))
         }
     }
   }
@@ -390,9 +391,7 @@ trait OreRestfulApi {
     for {
       user <- service.DB.db.run(queryOneUser.result)
       json <- writeUsers(user)
-    } yield {
-      json.headOption
-    }
+    } yield json.headOption
   }
 
   /**
@@ -402,18 +401,15 @@ trait OreRestfulApi {
     * @param version  Version name
     * @return         Tags on the Version
     */
-  def getTags(pluginId: String, version: String)(implicit ec: ExecutionContext): Future[Option[JsValue]] = {
-    this.projects.withPluginId(pluginId).flatMap {
-      case None => Future.successful(None)
-      case Some(project) => project.versions.find(equalsIgnoreCase(_.versionString, version)).flatMap {
-        case None => Future.successful(None)
-        case Some(v) =>
-          v.tags.map { tags =>
-            Some(obj(
-              "pluginId" -> pluginId,
-              "version" -> version,
-              "tags" -> tags.map(toJson(_))))
-          }
+  def getTags(pluginId: String, version: String)(implicit ec: ExecutionContext): OptionT[Future, JsValue] = {
+    this.projects.withPluginId(pluginId).flatMap { project =>
+      project.versions.find(equalsIgnoreCase(_.versionString, version)).semiFlatMap { v =>
+        v.tags.map { tags =>
+          obj(
+            "pluginId" -> pluginId,
+            "version" -> version,
+            "tags" -> tags.map(toJson(_))): JsValue
+        }
       }
     }
   }

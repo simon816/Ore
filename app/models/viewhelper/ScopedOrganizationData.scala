@@ -5,8 +5,10 @@ import models.user.{Organization, User}
 import ore.permission.{Permission, _}
 import play.api.cache.AsyncCacheApi
 import slick.jdbc.JdbcBackend
-
 import scala.concurrent.{ExecutionContext, Future}
+
+import util.OptionT
+import util.instances.future._
 
 case class ScopedOrganizationData(permissions: Map[Permission, Boolean] = Map.empty)
 
@@ -32,10 +34,7 @@ object ScopedOrganizationData {
   }
 
   def of[A](currentUser: Option[User], orga: Option[Organization])(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext,
-                                                                   service: ModelService): Future[Option[ScopedOrganizationData]] = {
-    orga match {
-      case None => Future.successful(None)
-      case Some(o) => of(currentUser, o).map(Some(_))
-    }
+                                                                   service: ModelService): OptionT[Future, ScopedOrganizationData] = {
+    OptionT.fromOption[Future](orga).semiFlatMap(of(currentUser, _))
   }
 }

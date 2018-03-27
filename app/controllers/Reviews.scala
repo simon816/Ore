@@ -10,6 +10,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl._
 import form.OreForms
 import javax.inject.Inject
+
 import models.admin.{Message, Review}
 import models.project.{Project, Version}
 import models.user.{Notification, User}
@@ -24,9 +25,8 @@ import security.spauth.SingleSignOnConsumer
 import slick.lifted.{Rep, TableQuery}
 import util.DataHelper
 import views.{html => views}
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import util.instances.future._
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Controller for handling Review related actions.
@@ -39,7 +39,7 @@ final class Reviews @Inject()(data: DataHelper,
                               implicit override val env: OreEnv,
                               implicit override val cache: AsyncCacheApi,
                               implicit override val config: OreConfig,
-                              implicit override val service: ModelService)
+                              implicit override val service: ModelService)(implicit val ec: ExecutionContext)
                               extends OreBaseController {
 
   def showReviews(author: String, slug: String, versionString: String) = {
@@ -52,8 +52,8 @@ final class Reviews @Inject()(data: DataHelper,
           version.mostRecentReviews.flatMap { reviews =>
             val unfinished = reviews.filter(r => r.createdAt.isDefined && r.endedAt.isEmpty).sorted(Review.ordering2).headOption
             Future.sequence(reviews.map { r =>
-              r.userBase.get(r.userId).map { u =>
-                (r, u.map(_.name))
+              r.userBase.get(r.userId).map(_.name).value.map { u =>
+                (r, u)
               }
             }) map { rv =>
               //implicit val m = messagesApi.preferred(request)
@@ -99,13 +99,11 @@ final class Reviews @Inject()(data: DataHelper,
     Authenticated andThen PermissionAction[AuthRequest](ReviewProjects) async { implicit request =>
       withProjectAsync(author, slug) { implicit project =>
         withVersionAsync(versionString) { version =>
-          version.mostRecentUnfinishedReview.map {
-            case None => NotFound
-            case Some(review) =>
-              review.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "stop"))
-              review.setEnded(Some(Timestamp.from(Instant.now())))
-              Redirect(routes.Reviews.showReviews(author, slug, versionString))
-          }
+          version.mostRecentUnfinishedReview.map { review =>
+            review.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "stop"))
+            review.setEnded(Timestamp.from(Instant.now()))
+            Redirect(routes.Reviews.showReviews(author, slug, versionString))
+          }.getOrElse(NotFound)
         }
       }
     }
@@ -115,17 +113,15 @@ final class Reviews @Inject()(data: DataHelper,
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) async { implicit request =>
       withProjectAsync(author, slug) { implicit project =>
         withVersionAsync(versionString) { version =>
-          version.mostRecentUnfinishedReview.flatMap {
-            case None => Future.successful(NotFound)
-            case Some(review) =>
-              for {
-                (_, _) <- review.setEnded(Some(Timestamp.from(Instant.now()))) zip
-                // send notification that review happened
-                          sendReviewNotification(project, version, request.user)
-              } yield {
-                Redirect(routes.Reviews.showReviews(author, slug, versionString))
-              }
-          }
+          version.mostRecentUnfinishedReview.semiFlatMap { review =>
+            for {
+              (_, _) <- review.setEnded(Timestamp.from(Instant.now())) zip
+                        // send notification that review happened
+                        sendReviewNotification(project, version, request.user)
+            } yield {
+              Redirect(routes.Reviews.showReviews(author, slug, versionString))
+            }
+          }.getOrElse(NotFound)
         }
       }
     }
@@ -189,14 +185,12 @@ final class Reviews @Inject()(data: DataHelper,
       withProjectAsync(author, slug) { implicit project =>
         withVersionAsync(versionString) { version =>
           // Close old review
-          val closeOldReview = version.mostRecentUnfinishedReview.flatMap {
-            case None => Future.successful(true)
-            case Some(oldreview) =>
-              for {
-                (_, _) <- oldreview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "takeover")) zip
-                          oldreview.setEnded(Some(Timestamp.from(Instant.now())))
-              } yield {}
-          }
+          val closeOldReview = version.mostRecentUnfinishedReview.semiFlatMap { oldreview =>
+            for {
+              (_, _) <- oldreview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "takeover")) zip
+                        oldreview.setEnded(Timestamp.from(Instant.now()))
+            } yield {}
+          }.getOrElse(())
 
           // Then make new one
           for {
@@ -213,13 +207,11 @@ final class Reviews @Inject()(data: DataHelper,
   def editReview(author: String, slug: String, versionString: String, reviewId: Int) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       withProjectAsync(author, slug) { implicit project =>
-          withVersionAsync(versionString) { version =>
-            version.reviewById(reviewId).map {
-              case None => NotFound
-              case Some(review) =>
-                review.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim))
-                Ok("Review" + review)
-            }
+        withVersionAsync(versionString) { version =>
+          version.reviewById(reviewId).map { review =>
+            review.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim))
+            Ok("Review" + review)
+          }.getOrElse(NotFound)
         }
       }
     }
@@ -229,18 +221,13 @@ final class Reviews @Inject()(data: DataHelper,
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       withProjectAsync(author, slug) { implicit project =>
         withVersionAsync(versionString) { version =>
-          version.mostRecentUnfinishedReview.flatMap {
-            case None => Future.successful(Ok("Review"))
-            case Some(recentReview) =>
-              users.current.flatMap {
-                case None => Future.successful(1)
-                case Some(currentUser) =>
-                  if (recentReview.userId == currentUser.userId) {
-                    recentReview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim))
-                  } else Future.successful(0)
-
-              }.map( _ => Ok("Review"))
-          }
+          version.mostRecentUnfinishedReview.semiFlatMap { recentReview =>
+            users.current.semiFlatMap { currentUser =>
+              if (recentReview.userId == currentUser.userId) {
+                recentReview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim))
+              } else Future.successful(0)
+            }.getOrElse(1).map( _ => Ok("Review"))
+          }.getOrElse(Ok("Review"))
         }
       }
     }

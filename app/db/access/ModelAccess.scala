@@ -7,6 +7,8 @@ import slick.lifted.ColumnOrdered
 
 import scala.concurrent.{ExecutionContext, Future}
 
+import util.OptionT
+
 /**
   * Provides simple, synchronous, access to a ModelTable.
   */
@@ -20,7 +22,7 @@ class ModelAccess[M <: Model](val service: ModelService,
     * @param id   ID to lookup
     * @return     Model with ID or None if not found
     */
-  def get(id: Int): Future[Option[M]] = this.service.get[M](this.modelClass, id, this.baseFilter.fn)
+  def get(id: Int)(implicit ec: ExecutionContext): OptionT[Future, M] = this.service.get[M](this.modelClass, id, this.baseFilter.fn)
 
   /**
     * Returns a set of Models that have an ID that is in the specified Int set.
@@ -102,7 +104,7 @@ class ModelAccess[M <: Model](val service: ModelService,
     * @param filter Filter to use
     * @return       Model matching filter, if any
     */
-  def find(filter: M#T => Rep[Boolean]): Future[Option[M]] = this.service.find[M](this.modelClass, (this.baseFilter && filter).fn)
+  def find(filter: M#T => Rep[Boolean])(implicit ec: ExecutionContext): OptionT[Future, M] = this.service.find[M](this.modelClass, (this.baseFilter && filter).fn)
 
   /**
     * Returns a sorted Seq by the specified [[ColumnOrdered]].
@@ -114,14 +116,14 @@ class ModelAccess[M <: Model](val service: ModelService,
     * @return         Sorted models
     */
   def sorted(ordering: M#T => ColumnOrdered[_], filter: M#T => Rep[Boolean] = null, limit: Int = -1,
-             offset: Int = -1): Future[Seq[M]]
+             offset: Int = -1)(implicit ec: ExecutionContext): Future[Seq[M]]
   = this.service.sorted[M](this.modelClass, ordering, (this.baseFilter && filter).fn, limit, offset)
 
   /**
     * Same as sorted but with multiple orderings
     */
   def sortedMultipleOrders(orderings: M#T => List[ColumnOrdered[_]], filter: M#T => Rep[Boolean] = null, limit: Int = -1,
-             offset: Int = -1): Future[Seq[M]]
+             offset: Int = -1)(implicit ec: ExecutionContext): Future[Seq[M]]
   = this.service.sortedMultipleOrders[M](this.modelClass, orderings, (this.baseFilter && filter).fn, limit, offset)
 
   /**
@@ -132,7 +134,7 @@ class ModelAccess[M <: Model](val service: ModelService,
     * @param offset Amount to drop
     * @return       Filtered models
     */
-  def filter(filter: M#T => Rep[Boolean], limit: Int = -1, offset: Int = -1): Future[Seq[M]]
+  def filter(filter: M#T => Rep[Boolean], limit: Int = -1, offset: Int = -1)(implicit ec: ExecutionContext): Future[Seq[M]]
   = this.service.filter[M](this.modelClass, (this.baseFilter && filter).fn, limit, offset)
 
   /**
@@ -143,7 +145,7 @@ class ModelAccess[M <: Model](val service: ModelService,
     * @param offset Amount to drop
     * @return       Filtered models
     */
-  def filterNot(filter: M#T => Rep[Boolean], limit: Int = -1, offset: Int = -1): Future[Seq[M]] = this.filter(!filter(_), limit, offset)
+  def filterNot(filter: M#T => Rep[Boolean], limit: Int = -1, offset: Int = -1)(implicit ec: ExecutionContext): Future[Seq[M]] = this.filter(!filter(_), limit, offset)
 
   /**
     * Returns a Seq of this set.

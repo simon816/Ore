@@ -6,6 +6,7 @@ import java.sql.Timestamp
 import java.util.Date
 
 import com.google.common.base.Preconditions._
+
 import db.impl.OrePostgresDriver.api._
 import db.impl.{PageTable, ProjectTableMain, VersionTable}
 import db.{ModelBase, ModelService}
@@ -14,9 +15,9 @@ import models.project.{Channel, Project, Version}
 import ore.project.io.ProjectFiles
 import ore.{OreConfig, OreEnv}
 import slick.lifted.TableQuery
-import util.FileUtils
+import util.{FileUtils, OptionT}
 import util.StringUtils._
-
+import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ProjectBase(override val service: ModelService,
@@ -55,7 +56,7 @@ class ProjectBase(override val service: ModelService,
     *
     * @return Stale projects
     */
-  def stale: Future[Seq[Project]]
+  def stale(implicit ec: ExecutionContext): Future[Seq[Project]]
   = this.filter(_.lastUpdated > new Timestamp(new Date().getTime - this.config.projects.get[Int]("staleAge")))
 
   /**
@@ -65,7 +66,7 @@ class ProjectBase(override val service: ModelService,
     * @param name   Project name
     * @return       Project with name
     */
-  def withName(owner: String, name: String): Future[Option[Project]]
+  def withName(owner: String, name: String)(implicit ec: ExecutionContext): OptionT[Future, Project]
   = this.find(p => p.ownerName.toLowerCase === owner.toLowerCase && p.name.toLowerCase === name.toLowerCase)
 
   /**
@@ -75,7 +76,7 @@ class ProjectBase(override val service: ModelService,
     * @param slug   URL slug
     * @return       Project if found, None otherwise
     */
-  def withSlug(owner: String, slug: String): Future[Option[Project]]
+  def withSlug(owner: String, slug: String)(implicit ec: ExecutionContext): OptionT[Future, Project]
   = this.find(p => p.ownerName.toLowerCase === owner.toLowerCase && p.slug.toLowerCase === slug.toLowerCase)
 
   /**
@@ -84,14 +85,14 @@ class ProjectBase(override val service: ModelService,
     * @param pluginId Plugin ID
     * @return         Project if found, None otherwise
     */
-  def withPluginId(pluginId: String): Future[Option[Project]] = this.find(equalsIgnoreCase(_.pluginId, pluginId))
+  def withPluginId(pluginId: String)(implicit ec: ExecutionContext): OptionT[Future, Project] = this.find(equalsIgnoreCase(_.pluginId, pluginId))
 
   /**
     * Returns true if the Project's desired slug is available.
     *
     * @return True if slug is available
     */
-  def isNamespaceAvailable(owner: String, slug: String)(implicit ec: ExecutionContext): Future[Boolean] = withSlug(owner, slug).map(_.isEmpty)
+  def isNamespaceAvailable(owner: String, slug: String)(implicit ec: ExecutionContext): Future[Boolean] = withSlug(owner, slug).isEmpty
 
   /**
     * Returns true if the specified project exists.
@@ -99,7 +100,7 @@ class ProjectBase(override val service: ModelService,
     * @param project  Project to check
     * @return         True if exists
     */
-  def exists(project: Project)(implicit ec: ExecutionContext): Future[Boolean] = this.withName(project.ownerName, project.name).map(_.isDefined)
+  def exists(project: Project)(implicit ec: ExecutionContext): Future[Boolean] = this.withName(project.ownerName, project.name).isDefined
 
   /**
     * Saves any pending icon that has been uploaded for the specified [[Project]].
@@ -225,7 +226,7 @@ class ProjectBase(override val service: ModelService,
     *
     * @param project Project to delete
     */
-  def delete(project: Project) = {
+  def delete(project: Project)(implicit ec: ExecutionContext) = {
     FileUtils.deleteDirectory(this.fileManager.getProjectDir(project.ownerName, project.name))
     if (project.topicId != -1)
       this.forums.deleteProjectTopic(project)
