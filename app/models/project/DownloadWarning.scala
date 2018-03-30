@@ -12,6 +12,8 @@ import db.impl.table.ModelKeys._
 import models.project.DownloadWarning.COOKIE
 import play.api.mvc.Cookie
 
+import scala.concurrent.{ExecutionContext, Future}
+
 /**
   * Represents an instance of a warning that a client has landed on. Warnings
   * will expire and are associated with a certain inet address.
@@ -55,9 +57,9 @@ case class DownloadWarning(override val id: Option[Int] = None,
     *
     * @return Download
     */
-  def download: Option[UnsafeDownload] = {
+  def download(implicit ec: ExecutionContext): Future[Option[UnsafeDownload]] = {
     if (this._downloadId == -1)
-      None
+      Future.successful(None)
     else
       this.service.access[UnsafeDownload](classOf[UnsafeDownload]).get(this._downloadId)
   }
@@ -67,7 +69,7 @@ case class DownloadWarning(override val id: Option[Int] = None,
     *
     * @param download Download warning was for
     */
-  def download_=(download: UnsafeDownload) = Defined {
+  def setDownload(download: UnsafeDownload) = Defined {
     checkNotNull(download, "null download", "")
     checkArgument(download.isDefined, "undefined download", "")
     this._downloadId = download.id.get

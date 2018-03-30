@@ -2,16 +2,15 @@ package mail
 
 import java.security.Security
 import java.util.Date
+
+import akka.actor.{ActorSystem, Scheduler}
+import com.sun.net.ssl.internal.ssl.Provider
 import javax.inject.{Inject, Singleton}
 import javax.mail.Message.RecipientType
 import javax.mail.Session
 import javax.mail.internet.{InternetAddress, MimeMessage}
-
-import akka.actor.{ActorSystem, Scheduler}
-import com.sun.net.ssl.internal.ssl.Provider
 import play.api.Configuration
 
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
@@ -94,10 +93,12 @@ trait Mailer extends Runnable {
     * Sends all queued [[Email]]s.
     */
   def run() = {
-    log(s"Sending ${this.queue.size} queued emails...")
-    this.queue.foreach(send)
-    this.queue = Seq.empty
-    log("Done.")
+    if (queue.nonEmpty) {
+      log(s"Sending ${this.queue.size} queued emails...")
+      this.queue.foreach(send)
+      this.queue = Seq.empty
+      log("Done.")
+    }
   }
 
 }
