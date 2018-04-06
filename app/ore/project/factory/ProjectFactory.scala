@@ -36,7 +36,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 import scala.util.Try
 
-import util.OptionT
+import util.{EitherT, OptionT}
 
 /**
   * Manages the project and version creation pipeline.
@@ -110,26 +110,25 @@ trait ProjectFactory {
 
   def processSubsequentPluginUpload(uploadData: PluginUpload,
                                     owner: User,
-                                    project: Project)(implicit ec: ExecutionContext): Future[Either[String, PendingVersion]] = {
+                                    project: Project)(implicit ec: ExecutionContext): EitherT[Future, String, PendingVersion] = {
     val plugin = this.processPluginUpload(uploadData, owner)
     if (!plugin.meta.get.getId.equals(project.pluginId))
-      return Future.successful(Left("error.version.invalidPluginId"))
-    val version = for {
-      (channels, settings) <- project.channels.all zip
-                              project.settings
-    } yield {
-      this.startVersion(plugin, project, settings, channels.head.name)
-    }
-    version.flatMap { version =>
-      val model = version.underlying
-      model.exists.map { exists =>
-        if (exists && this.config.projects.get[Boolean]("file-validate"))
-          Left("error.version.duplicate")
-        else {
-          version.cache()
-          Right(version)
+      EitherT.leftT("error.version.invalidPluginId")
+    else {
+      EitherT(
+        for {
+          (channels, settings) <- project.channels.all zip project.settings
+          version = this.startVersion(plugin, project, settings, channels.head.name)
+          modelExists <- version.underlying.exists
+        } yield {
+          if(modelExists && this.config.projects.get[Boolean]("file-validate"))
+            Left("error.version.duplicate")
+          else {
+            version.cache()
+            Right(version)
+          }
         }
-      }
+      )
     }
   }
 

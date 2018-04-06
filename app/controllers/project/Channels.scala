@@ -16,6 +16,9 @@ import views.html.projects.{channels => views}
 import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
+import util.EitherT
+import util.syntax._
+
 /**
   * Controller for handling Channel related actions.
   */
@@ -106,32 +109,31 @@ class Channels @Inject()(forms: OreForms,
     */
   def delete(author: String, slug: String, channelName: String) = ChannelEditAction(author, slug).async { implicit request =>
     implicit val data = request.data
-    data.project.channels.all.flatMap { channels =>
-      if (channels.size == 1) {
-        Future.successful(Redirect(self.showList(author, slug)).withError("error.channel.last"))
-      } else {
-        channels.find(c => c.name.equals(channelName)) match {
-          case None => Future.successful(NotFound)
-          case Some(channel) =>
-            for {
-              nonEmpty <- channel.versions.nonEmpty
-              channelCount <- Future.sequence(channels.map(_.versions.nonEmpty)).map(l => l.count(_ == true))
-            } yield {
-              if (nonEmpty && channelCount == 1) {
-                Redirect(self.showList(author, slug)).withError("error.channel.lastNonEmpty")
-              } else {
-                val reviewedChannels = channels.filter(!_.isNonReviewed)
-                if (!channel.isNonReviewed && reviewedChannels.size <= 1 && reviewedChannels.contains(channel)) {
-                  Redirect(self.showList(author, slug)).withError("error.channel.lastReviewed")
-                } else {
-                  this.projects.deleteChannel(channel)
-                  Redirect(self.showList(author, slug))
-                }
-              }
+    EitherT.right[Status](data.project.channels.all)
+      .filterOrElse(_.size == 1, Redirect(self.showList(author, slug)).withError("error.channel.last"))
+      .flatMap { channels =>
+        EitherT.fromEither[Future](channels.find(c => c.name.equals(channelName)).toRight(NotFound))
+          .semiFlatMap { channel =>
+            (channel.versions.nonEmpty, Future.sequence(channels.map(_.versions.nonEmpty)).map(l => l.count(_ == true))).parMapN {
+              (nonEmpty, channelCount) => (nonEmpty, channelCount, channel)
             }
-
-        }
-      }
-    }
+          }
+          .filterOrElse(
+            { case (nonEmpty, channelCount, _) => nonEmpty && channelCount == 1},
+            Redirect(self.showList(author, slug)).withError("error.channel.lastNonEmpty")
+          )
+          .map(_._3)
+          .filterOrElse(
+            channel => {
+              val reviewedChannels = channels.filter(!_.isNonReviewed)
+              !channel.isNonReviewed && reviewedChannels.size <= 1 && reviewedChannels.contains(channel)
+            },
+            Redirect(self.showList(author, slug)).withError("error.channel.lastReviewed")
+          )
+          .map { channel =>
+            this.projects.deleteChannel(channel)
+            Redirect(self.showList(author, slug))
+          }
+      }.merge
   }
 }

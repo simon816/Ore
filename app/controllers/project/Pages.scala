@@ -45,6 +45,7 @@ class Pages @Inject()(forms: OreForms,
     * @return Tuple: Optional Page, true if using legacy fallback
     */
   def withPage(project: Project, page: String): Future[(Option[Page], Boolean)] = {
+    //TODO: Can the return type here be changed to OptionT[Future (Page, Boolean)]?
     val parts = page.split("/")
     if (parts.size == 2) {
       project.pages

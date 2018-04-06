@@ -13,9 +13,10 @@ import play.api.cache.AsyncCacheApi
 import play.api.mvc.Request
 import slick.jdbc.JdbcBackend
 import slick.lifted.TableQuery
-
 import scala.concurrent.{ExecutionContext, Future}
 
+import models.viewhelper.HeaderData.perms
+import util.OptionT
 import util.syntax._
 
 /**
@@ -64,17 +65,14 @@ object HeaderData {
   def cacheKey(user: User) = s"""user${user.id.get}"""
 
   def of[A](request: Request[A])(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext, service: ModelService): Future[HeaderData] = {
-    request.cookies.get("_oretoken") match {
-      case None => Future.successful(unAuthenticated)
-      case Some(cookie) =>
-        getSessionUser(cookie.value).flatMap {
-          case None => Future.successful(unAuthenticated)
-          case Some(user) =>
-            user.service = service
-            user.organizationBase = service.getModelBase(classOf[OrganizationBase])
-            getHeaderData(user)
-        }
-    }
+    OptionT.fromOption[Future](request.cookies.get("_oretoken"))
+      .flatMap(cookie => getSessionUser(cookie.value))
+      .semiFlatMap { user =>
+        user.service = service
+        user.organizationBase = service.getModelBase(classOf[OrganizationBase])
+        getHeaderData(user)
+      }
+      .getOrElse(unAuthenticated)
   }
 
   private def getSessionUser(token: String)(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef) = {
@@ -88,10 +86,8 @@ object HeaderData {
       (s, u)
     }
 
-    db.run(query.result.headOption).map {
-      case None => None
-      case Some((session, user)) =>
-        if (session.hasExpired) None else Some(user)
+    OptionT(db.run(query.result.headOption)).collect {
+      case (session, user) if !session.hasExpired => user
     }
   }
 
@@ -121,21 +117,22 @@ object HeaderData {
 
   private def getHeaderData(user: User)(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef) = {
 
-    for {
-      perms <- perms(Some(user))
-      hasNotice <- user.hasNotice
-      unreadNotif <- user.notifications.filterNot(_.read).map(_.nonEmpty)
-      unresolvedFlags <- user.flags.filterNot(_.isResolved).map(_.nonEmpty)
-      hasProjectApprovals <- projectApproval(user)
-      hasReviewQueue <- if (perms(ReviewProjects)) reviewQueue() else Future.successful(false)
-    } yield {
+    perms(Some(user)).flatMap { perms =>
+      (
+        user.hasNotice,
+        user.notifications.filterNot(_.read).map(_.nonEmpty),
+        user.flags.filterNot(_.isResolved).map(_.nonEmpty),
+        projectApproval(user),
+        if (perms(ReviewProjects)) reviewQueue() else Future.successful(false)
+      ).parMapN { (hasNotice, unreadNotif, unresolvedFlags, hasProjectApprovals, hasReviewQueue) =>
         HeaderData(Some(user),
-        perms,
-        hasNotice,
-        unreadNotif,
-        unresolvedFlags,
-        hasProjectApprovals,
-        hasReviewQueue)
+          perms,
+          hasNotice,
+          unreadNotif,
+          unresolvedFlags,
+          hasProjectApprovals,
+          hasReviewQueue)
+      }
     }
   }
 

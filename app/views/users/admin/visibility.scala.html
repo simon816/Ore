@@ -7,8 +7,8 @@
 @* visChange2 is users.get(project.lastVisibilityChange.get.createdBy.getOrElse(1)).map(_.username) *@
 @* visChange4 is users.get(lastVisibilityChange.get.createdBy.getOrElse(1)).map(_.username) *@
 @import ore.permission.Permission
-@(needsApproval: Seq[(Project, Map[Permission, Boolean], Option[VisibilityChange], Option[String], Option[VisibilityChange], Option[String])],
- waitingProjects: Seq[(Project, Option[VisibilityChange], Option[VisibilityChange], Option[String])])(implicit messages: Messages, request: OreRequest[_], config: OreConfig)
+@(needsApproval: Seq[(Project, Map[Permission, Boolean], Option[VisibilityChange], String, Option[VisibilityChange], String)],
+ waitingProjects: Seq[(Project, VisibilityChange, Option[VisibilityChange], String)])(implicit messages: Messages, request: OreRequest[_], config: OreConfig)
 
 @projectRoutes = @{controllers.project.routes.Projects}
 
@@ -36,12 +36,12 @@
                             </li>
                         }
                         @needsApproval.map { case (project, projectPerms, lastChangeRequest, lastChangeRequester, lastVisibilityChange, lastVisibilityChanger) =>
-                            @if(lastChangeRequest.isDefined) {
-                                <li data-flag-id="@project.id.get" class="list-group-item">
-                                    <div class="row">
-                                        <div class="col-xs-12 col-md-8">
+                            <li data-flag-id="@project.id.get" class="list-group-item">
+                                <div class="row">
+                                    <div class="col-xs-12 col-md-8">
+                                        @if(lastChangeRequest.isDefined) {
                                             <span class="description">
-                                                <strong>@lastChangeRequester.getOrElse("Unknown")</strong>
+                                                <strong>@lastChangeRequester</strong>
                                                 <span class="minor"> requested changes on </span>
                                                 <a href="@projectRoutes.show(project.ownerName, project.slug)">
                                                     @project.ownerName/<strong>@project.slug</strong>
@@ -51,21 +51,10 @@
                                                 <strong>Requests:</strong>
                                                 @lastChangeRequest.get.renderComment()
                                             </p>
-                                        </div>
-                                        <div class="col-xs-12 col-md-4">
-                                            <span class="pull-right btn-group-sm">
-                                                @projects.helper.btnHide(project, projectPerms, request.data.currentUser.get)
-                                            </span>
-                                        </div>
-                                    </div>
-                                </li>
-                            } else {
-                                <li data-flag-id="@project.id.get" class="list-group-item">
-                                    <div class="row">
-                                        <div class="col-xs-12 col-md-8">
+                                        } else {
                                             <span class="description">
                                                 @if(lastVisibilityChange.isDefined) {
-                                                    <strong>@lastVisibilityChanger.getOrElse("Unknown")</strong>
+                                                    <strong>@lastVisibilityChanger</strong>
                                                 } else {
                                                     <strong>Unknown</strong>
                                                 }
@@ -77,15 +66,15 @@
                                             <p>
                                                 <strong>No requests specified</strong>
                                             </p>
-                                        </div>
-                                        <div class="col-xs-12 col-md-4">
-                                            <span class="pull-right btn-group-sm">
-                                            @projects.helper.btnHide(project, projectPerms, request.data.currentUser.get)
-                                            </span>
-                                        </div>
+                                        }
                                     </div>
-                                </li>
-                            }
+                                    <div class="col-xs-12 col-md-4">
+                                        <span class="pull-right btn-group-sm">
+                                        @projects.helper.btnHide(project, projectPerms, request.data.currentUser.get)
+                                        </span>
+                                    </div>
+                                </div>
+                            </li>
                         }
                     </ul>
                 </div>
@@ -110,25 +99,23 @@
                             </li>
                         }
                         @waitingProjects.map { case (project, lastChangeRequest, lastVisibilityChange, lastVisibilityChanger) =>
-                            @if(lastChangeRequest.isDefined) {
-                                <li data-flag-id="@project.id.get" class="list-group-item">
-                                    <div class="row">
-                                        <div class="col-xs-12">
-                                            <span class="description">
-                                                <strong>@lastVisibilityChanger.getOrElse("Unknown")</strong>
-                                                <span class="minor"> requested changes on </span>
-                                                <a href="@projectRoutes.show(project.ownerName, project.slug)">
-                                                    @project.ownerName/<strong>@project.slug</strong>
-                                                </a>
-                                            </span>
-                                            <p>
-                                                <strong>Requests:</strong>
-                                                @lastChangeRequest.get.renderComment()
-                                            </p>
-                                        </div>
+                            <li data-flag-id="@project.id.get" class="list-group-item">
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <span class="description">
+                                            <strong>@lastVisibilityChanger</strong>
+                                            <span class="minor"> requested changes on </span>
+                                            <a href="@projectRoutes.show(project.ownerName, project.slug)">
+                                                @project.ownerName/<strong>@project.slug</strong>
+                                            </a>
+                                        </span>
+                                        <p>
+                                            <strong>Requests:</strong>
+                                            @lastChangeRequest.renderComment()
+                                        </p>
                                     </div>
-                                </li>
-                            }
+                                </div>
+                            </li>
                         }
                     </ul>
                 </div>

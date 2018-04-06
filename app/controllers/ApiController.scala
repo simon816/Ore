@@ -9,6 +9,7 @@ import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.ProjectApiKeyTable
 import util.instances.future._
+import _root_.util.EitherT
 import form.OreForms
 import javax.inject.Inject
 
@@ -17,7 +18,7 @@ import models.user.User
 import ore.permission.EditApiKeys
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
-import ore.project.factory.ProjectFactory
+import ore.project.factory.{PendingVersion, ProjectFactory}
 import ore.project.io.{InvalidPluginFileException, PluginUpload, ProjectFiles}
 import ore.rest.ProjectApiKeyTypes._
 import ore.rest.{OreRestfulApi, OreWrites}
@@ -181,60 +182,44 @@ final class ApiController @Inject()(api: OreRestfulApi,
             val compiled = Compiled(queryApiKey _)
 
             val apiKeyExists: Future[Boolean] = this.service.DB.db.run(compiled(Deployment, formData.apiKey, projectData.project.id.get).result)
-            val dep = for {
-              (apiKey, versionExists) <- apiKeyExists zip
-                                         projectData.project.versions.exists(_.versionString === name)
-            } yield {
-              if (!apiKey) Future.successful(Unauthorized(error("apiKey", "api.deploy.invalidKey")))
-              else if (versionExists) Future.successful(BadRequest(error("versionName", "api.deploy.versionExists")))
-              else {
 
-                def upload(user: User): Future[Result] = {
+            EitherT.liftF(apiKeyExists)
+              .filterOrElse(apiKey => !apiKey, Unauthorized(error("apiKey", "api.deploy.invalidKey")))
+              .semiFlatMap(_ => projectData.project.versions.exists(_.versionString === name))
+              .filterOrElse(identity, BadRequest(error("versionName", "api.deploy.versionExists")))
+              .semiFlatMap(_ => projectData.project.owner.user)
+              .semiFlatMap(user => user.toMaybeOrganization.semiFlatMap(_.owner.user).getOrElse(user))
+              .flatMap { owner =>
 
-                 val pending = Right(user).flatMap { user =>
-                    this.factory.getUploadError(user)
-                      .map(err => BadRequest(error("user", err)))
-                      .toLeft(PluginUpload.bindFromRequest())
-                  } flatMap {
-                    case None => Left(BadRequest(error("files", "error.noFile")))
-                    case Some(uploadData) => Right(uploadData)
-                  } match {
-                    case Left(err) => Future.successful(Left(err))
-                    case Right(data) =>
-                      try {
-                        this.factory.processSubsequentPluginUpload(data, user, projectData.project).map {
-                          case Left(err) => Left(BadRequest(error("upload", err)))
-                          case Right(pv) => Right(pv)
-                        }
-                      } catch {
-                        case e: InvalidPluginFileException =>
-                          Future.successful(Left(BadRequest(error("upload", e.getMessage))))
-                      }
+                val pluginUpload = this.factory.getUploadError(owner)
+                  .map(err => BadRequest(error("user", err)))
+                  .toLeft(PluginUpload.bindFromRequest())
+                  .flatMap(_.toRight(BadRequest(error("files", "error.noFile"))))
+
+                EitherT.fromEither[Future](pluginUpload).flatMap { data =>
+                  //TODO: We should get rid of this try
+                  try {
+                    this.factory
+                      .processSubsequentPluginUpload(data, owner, projectData.project)
+                      .leftMap(err => BadRequest(error("upload", err)))
                   }
-                  pending flatMap {
-                    case Left(err) => Future.successful(err)
-                    case Right(pendingVersion) =>
-                      pendingVersion.createForumPost = formData.createForumPost
-                      pendingVersion.channelName = formData.channel.name
-                      formData.changelog.foreach(pendingVersion.underlying.setDescription)
-                      pendingVersion.complete().map { newVersion =>
-                        if (formData.recommended)
-                          projectData.project.setRecommendedVersion(newVersion._1)
-                        Created(api.writeVersion(newVersion._1, projectData.project, newVersion._2, None, newVersion._3))
-                      }
+                  catch {
+                    case e: InvalidPluginFileException =>
+                      EitherT.leftT[Future, PendingVersion](BadRequest(error("upload", e.getMessage)))
                   }
-                }
-
-                for {
-                  user <- projectData.project.owner.user
-                  owner <- user.toMaybeOrganization.semiFlatMap(_.owner.user).getOrElse(user)
-                  result <- upload(owner)
-                } yield {
-                  result
                 }
               }
-            }
-            dep.flatten
+              .semiFlatMap { pendingVersion =>
+                pendingVersion.createForumPost = formData.createForumPost
+                pendingVersion.channelName = formData.channel.name
+                formData.changelog.foreach(pendingVersion.underlying.setDescription)
+                pendingVersion.complete()
+              }
+              .map { case (newVersion, channel, tags) =>
+                if (formData.recommended)
+                  projectData.project.setRecommendedVersion(newVersion)
+                Created(api.writeVersion(newVersion, projectData.project, channel, None, tags))
+              }.merge
           }
         )
       case _ => Future.successful(NotFound)

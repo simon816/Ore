@@ -558,10 +558,7 @@ case class Project(override val id: Option[Int] = None,
 
   def logger(implicit ec: ExecutionContext): Future[ProjectLog] = {
     val loggers = this.service.access[ProjectLog](classOf[ProjectLog])
-    loggers.find(_.projectId === this.id.get).value.flatMap {
-      case None => loggers.add(ProjectLog(projectId = this.id.get))
-      case Some(l) => Future.successful(l)
-    }
+    loggers.find(_.projectId === this.id.get).getOrElseF(loggers.add(ProjectLog(projectId = this.id.get)))
   }
 
   /**

@@ -20,7 +20,7 @@ import models.project._
 import models.viewhelper.{ProjectData, VersionData}
 import ore.permission.{EditVersions, ReviewProjects}
 import ore.project.factory.TagAlias.ProjectTag
-import ore.project.factory.{PendingProject, ProjectFactory}
+import ore.project.factory.{PendingProject, PendingVersion, ProjectFactory}
 import ore.project.io.DownloadTypes._
 import ore.project.io.{DownloadTypes, InvalidPluginFileException, PluginFile, PluginUpload}
 import ore.{OreConfig, OreEnv, StatTracker}
@@ -219,28 +219,27 @@ class Versions @Inject()(stats: StatTracker,
   def upload(author: String, slug: String) = VersionEditAction(author, slug).async { implicit request =>
     val call = self.showCreator(author, slug)
     val user = request.user
-    this.factory.getUploadError(user) match {
-      case Some(error) =>
-        Future.successful(Redirect(call).withError(error))
-      case None =>
-        PluginUpload.bindFromRequest() match {
-          case None =>
-            Future.successful(Redirect(call).withError("error.noFile"))
-          case Some(uploadData) =>
-            try {
-              this.factory.processSubsequentPluginUpload(uploadData, user, request.data.project).map(_.fold(
-                err => Redirect(call).withError(err),
-                version => {
-                  version.underlying.setAuthorId(user.id.getOrElse(-1))
-                  Redirect(self.showCreatorWithMeta(request.data.project.ownerName, slug, version.underlying.versionString))
-                }
-              ))
-            } catch {
-              case e: InvalidPluginFileException =>
-                Future.successful(Redirect(call).withError(Option(e.getMessage).getOrElse("")))
-            }
-        }
-    }
+
+    val uploadData = this.factory.getUploadError(user)
+      .map(error => Redirect(call).withError(error))
+      .toLeft(())
+      .flatMap(_ => PluginUpload.bindFromRequest().toRight(Redirect(call).withError("error.noFile")))
+
+    EitherT.fromEither[Future](uploadData).flatMap { data =>
+      //TODO: We should get rid of this try
+      try {
+        this.factory
+          .processSubsequentPluginUpload(data, user, request.data.project)
+          .leftMap(err => Redirect(call).withError(err))
+      }
+      catch {
+        case e: InvalidPluginFileException =>
+          EitherT.leftT[Future, PendingVersion](Redirect(call).withError(Option(e.getMessage).getOrElse("")))
+      }
+    }.map { pendingVersion =>
+      pendingVersion.underlying.setAuthorId(user.id.getOrElse(-1))
+      Redirect(self.showCreatorWithMeta(request.data.project.ownerName, slug, pendingVersion.underlying.versionString))
+    }.merge
   }
 
   /**
@@ -424,11 +423,10 @@ class Versions @Inject()(stats: StatTracker,
       if (passed)
         _sendVersion(project, version)
       else
-       Future.successful(
-        Redirect(self.showDownloadConfirm(
-          project.ownerName, project.slug, version.name, Some(UploadedFile.id), api = Some(false))))
+        Future.successful(
+          Redirect(self.showDownloadConfirm(
+            project.ownerName, project.slug, version.name, Some(UploadedFile.id), api = Some(false))))
     }
-
   }
 
   private def checkConfirmation(project: Project,

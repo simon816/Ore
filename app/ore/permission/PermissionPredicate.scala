@@ -53,8 +53,9 @@ case class PermissionPredicate(user: User, not: Boolean = false) {
     private def checkProjectPerm(project: Project): Future[Boolean] = {
       val orgTest = project.service
         .getModelBase(classOf[OrganizationBase])
-        .get(project.ownerId).value
-        .flatMap(_.fold(Future.successful(false))(_.scope.test(user, p)))
+        .get(project.ownerId)
+        .fold(Future.successful(false))(_.scope.test(user, p))
+        .flatten
 
       val projectTest = project.scope.test(user, p)
 

@@ -76,6 +76,7 @@ object ProjectData {
       lastVisibilityChange,
       lastVisibilityChangeUser)
 
+    //TODO: Why Future here?
     Future.successful(data)
   }
   def of[A](project: Project)(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext): Future[ProjectData] = {

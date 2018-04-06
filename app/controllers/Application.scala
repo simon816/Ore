@@ -518,10 +518,10 @@ final class Application @Inject()(data: DataHelper,
     }
     yield {
       val needsApproval = projectApprovals zip perms zip lastChangeRequests zip lastChangeRequesters zip lastVisibilityChanges zip lastVisibilityChangers map { case (((((a,b),c),d),e),f) =>
-        (a,b,c,d.map(_.name),e,f.map(_.name))
+        (a,b,c,d.fold("Unknown")(_.name),e,f.fold("Unknown")(_.name))
       }
-      val waitingProjects = projectChanges zip projectChangeRequests zip projectVisibilityChanges zip projectVisibilityChangers map { case (((a,b), c), d) =>
-        (a,b,c,d.map(_.name))
+      val waitingProjects = projectChanges zip projectChangeRequests.flatten zip projectVisibilityChanges zip projectVisibilityChangers map { case (((a,b), c), d) =>
+        (a,b,c,d.fold("Unknown")(_.name))
       }
 
       Ok(views.users.admin.visibility(needsApproval, waitingProjects))

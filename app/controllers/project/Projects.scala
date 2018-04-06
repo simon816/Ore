@@ -30,6 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import util.OptionT
 import util.instances.future._
+import util.syntax._
 
 /**
   * Controller for handling Project related actions.
@@ -116,8 +117,7 @@ class Projects @Inject()(stats: StatTracker,
         Future.successful(Redirect(self.showCreator()))
       case Some(pending) =>
         for {
-          orgas <- request.user.organizations.all
-          owner <- pending.underlying.owner.user
+          (orgas, owner) <- request.user.organizations.all zip pending.underlying.owner.user
           createOrga <- Future.sequence(orgas.map(orga => owner can CreateProject in orga))
         } yield {
           val createdOrgas = orgas zip createOrga filter (_._2) map (_._1)
@@ -152,11 +152,11 @@ class Projects @Inject()(stats: StatTracker,
                 implicit val currentUser = request.user
 
                 val authors = pendingProject.file.meta.get.getAuthors.asScala
-                for {
-                  users <- Future.sequence(authors.filterNot(_.equals(currentUser.username)).map(this.users.withName(_).value))
-                  registered <- this.forums.countUsers(authors.toList)
-                  owner <- pendingProject.underlying.owner.user
-                } yield {
+                (
+                  Future.sequence(authors.filterNot(_.equals(currentUser.username)).map(this.users.withName(_).value)),
+                  this.forums.countUsers(authors.toList),
+                  pendingProject.underlying.owner.user
+                ).parMapN { (users, registered, owner) =>
                   Ok(views.invite(owner, pendingProject, users.flatten.toList, registered))
                 }
               }

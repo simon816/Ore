@@ -35,24 +35,11 @@ trait TChannelData {
     * @return         Either the new channel or an error message
     */
   def addTo(project: Project)(implicit ec: ExecutionContext): EitherT[Future, String, Channel] = {
-    EitherT(
-      project.channels.all.flatMap { channels =>
-        if (channels.size >= config.projects.get[Int]("max-channels")) {
-          Future.successful(Left("A project may only have up to five channels."))
-        } else {
-          channels.find(_.name.equalsIgnoreCase(this.channelName)) match {
-            case Some(_) =>
-              Future.successful(Left("A channel with that name already exists."))
-            case None => channels.find(_.color.equals(this.color)) match {
-              case Some(_) =>
-                Future.successful(Left("A channel with that color already exists."))
-              case None =>
-                this.factory.createChannel(project, this.channelName, this.color, this.nonReviewed).map(Right(_))
-            }
-          }
-        }
-      }
-    )
+    EitherT.liftF(project.channels.all)
+      .filterOrElse(_.size >= config.projects.get[Int]("max-channels"), "A project may only have up to five channels.")
+      .filterOrElse(_.exists(_.name.equalsIgnoreCase(this.channelName)), "A channel with that name already exists.")
+      .filterOrElse(_.exists(_.color == this.color), "A channel with that color already exists.")
+      .semiFlatMap(_ => this.factory.createChannel(project, this.channelName, this.color, this.nonReviewed))
   }
 
   /**
