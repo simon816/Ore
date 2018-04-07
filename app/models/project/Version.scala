@@ -159,6 +159,11 @@ case class Version(override val id: Option[Int] = None,
     update(ReviewerId)
   }
 
+  def setReviewerId(reviewer: Int) = Defined {
+    this._reviewerId = reviewer
+    update(ReviewerId)
+  }
+
   def approvedAt: Option[Timestamp] = this._approvedAt
 
   def setApprovedAt(approvedAt: Timestamp) = Defined {
