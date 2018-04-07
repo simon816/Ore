@@ -192,6 +192,7 @@ POST    /:author/:slug/versions/:version/reviews/approve            @controllers
 POST    /:author/:slug/versions/:version/reviews/takeover           @controllers.Reviews.takeoverReview(author, slug, version)
 POST    /:author/:slug/versions/:version/reviews/addmessage         @controllers.Reviews.addMessage(author, slug, version)
 POST    /:author/:slug/versions/:version/reviews/edit/:review       @controllers.Reviews.editReview(author, slug, version, review: Int)
+POST    /:author/:slug/versions/:version/reviews/reopen             @controllers.Reviews.reopenReview(author, slug, version)
 
 
 # ---------- Other ----------

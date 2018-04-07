@@ -101,8 +101,8 @@ case class Review(override val id: Option[Int] = None,
     * @param time
     * @return
     */
-  def setEnded(time: Timestamp): Future[Int] = {
-    this.endedAt = Some(time)
+  def setEnded(time: Option[Timestamp]): Future[Int] = {
+    this.endedAt = time
     update(EndedAt)
   }
 
