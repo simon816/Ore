@@ -102,7 +102,7 @@ class Versions @Inject()(stats: StatTracker,
         val oldDescription = version.description.getOrElse("")
         val newDescription = this.forms.VersionDescription.bindFromRequest.get.trim
         version.setDescription(newDescription)
-        UserActionLogger.log(UserActionContexts.VERSION, version.id.getOrElse(-1), UserActions.VERSION_EDITED_DESCRIPTION, newDescription, oldDescription)
+        UserActionLogger.log(request.request, UserActionContexts.VERSION, version.id.getOrElse(-1), UserActions.VERSION_EDITED_DESCRIPTION, newDescription, oldDescription)
         Redirect(self.show(author, slug, versionString))
       }
     }
@@ -122,7 +122,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val data = request.data
       implicit val p = data.project
       withVersion(versionString) { version =>
-        UserActionLogger.log(UserActionContexts.VERSION, version.id.getOrElse(-1), UserActions.VERSION_SET_AS_RECOMMENDED, "recommended version", "listed version")
+        UserActionLogger.log(request.request, UserActionContexts.VERSION, version.id.getOrElse(-1), UserActions.VERSION_SET_AS_RECOMMENDED, "recommended version", "listed version")
         data.project.setRecommendedVersion(version)
         Redirect(self.show(author, slug, versionString))
       }
@@ -144,7 +144,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val r = request.request
       implicit val p = project.project
       withVersion(versionString) { version =>
-        UserActionLogger.log(UserActionContexts.VERSION, version.id.getOrElse(-1), UserActions.VERSION_APPROVED, "approved", "unapproved")
+        UserActionLogger.log(request.request, UserActionContexts.VERSION, version.id.getOrElse(-1), UserActions.VERSION_APPROVED, "approved", "unapproved")
         version.setReviewed(reviewed = true)
         version.setReviewer(request.user)
         version.setApprovedAt(this.service.theTime)
@@ -349,7 +349,7 @@ class Versions @Inject()(stats: StatTracker,
                               project.setRecommendedVersion(newVersion._1)
                             addUnstableTag(newVersion._1, versionData.unstable)
 
-                            UserActionLogger.log(UserActionContexts.VERSION, newVersion._1.id.getOrElse(-1), UserActions.VERSION_UPLOADED, "published", "null")
+                            UserActionLogger.log(request, UserActionContexts.VERSION, newVersion._1.id.getOrElse(-1), UserActions.VERSION_UPLOADED, "published", "null")
 
                             Redirect(self.show(author, slug, versionString))
                           }
@@ -360,7 +360,7 @@ class Versions @Inject()(stats: StatTracker,
                 case Some(pendingProject) =>
                   // Found a pending project, create it with first version
                   pendingProject.complete.map { created =>
-                    UserActionLogger.log(UserActionContexts.PROJECT, created._1.id.getOrElse(-1), UserActions.PROJECT_CREATED, "created", "null")
+                    UserActionLogger.log(request, UserActionContexts.PROJECT, created._1.id.getOrElse(-1), UserActions.PROJECT_CREATED, "created", "null")
                     addUnstableTag(created._2, versionData.unstable)
                     Redirect(ShowProject(author, slug))
                   }
@@ -412,7 +412,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val p = data.project
       withVersion(versionString) { version =>
         this.projects.deleteVersion(version)
-        UserActionLogger.log(UserActionContexts.VERSION, version.id.getOrElse(-1), UserActions.VERSION_DELETED, "null", "")
+        UserActionLogger.log(request.request, UserActionContexts.VERSION, version.id.getOrElse(-1), UserActions.VERSION_DELETED, "null", "")
         Redirect(self.showList(author, slug, None, None))
       }
     }

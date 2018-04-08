@@ -160,9 +160,7 @@ class Pages @Inject()(forms: OreForms,
                 data.project.pages.find(equalsIgnoreCase(_.slug, parts(0))).flatMap { parent =>
                   val parentId = parent.flatMap(_.id).getOrElse(-1)
                   val pageName = pageData.name.getOrElse(parts(1))
-                  users.current.map { user =>
-                    UserActionLogger.log(UserActionContexts.PROJECT, data.project.id.getOrElse(-1), UserActions.PROJECT_PAGE_EDITED, "", "") //todo data
-                  }
+                  UserActionLogger.log(request.request, UserActionContexts.PROJECT, data.project.id.getOrElse(-1), UserActions.PROJECT_PAGE_EDITED, "", "") //todo data
                   data.project.getOrCreatePage(pageName, parentId, pageData.content)
                 }
               } else {

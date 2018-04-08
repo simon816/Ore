@@ -66,11 +66,11 @@ object UserActionLogger {
 
   val Logger = play.api.Logger("Operations")
 
-  def log(context: String, contextId: Int, action: String, newState: String, oldState: String)(implicit service: ModelService, request: AuthRequest[_]){
+  def log(request: AuthRequest[_], context: String, contextId: Int, action: String, newState: String, oldState: String)(implicit service: ModelService){
     val address = StatTracker.remoteAddress(request.request)
     val user = request.user
 
-    Logger.info(s"${user.name}($address) executed the action '$action'. The context changed from '$oldState' to '$newState'")
+    Logger.info(s"${user.name}($address) executed the action '$action'. The state changed from '$oldState' to '$newState'")
 
     service.insert(UserAction(None, None, user.userId, InetString(address), context, contextId, action, newState, oldState))
   }
