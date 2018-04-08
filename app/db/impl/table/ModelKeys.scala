@@ -108,7 +108,7 @@ object ModelKeys {
 
   // Review
   val Comment               =   new StringKey[Review](_.comment, _.message)
-  val EndedAt               =   new TimestampKey[Review](_.endedAt, _.endedAt.get)
+  val EndedAt               =   new TimestampKey[Review](_.endedAt, _.endedAt.orNull)
 
   // VisibilityChange
   val ResolvedByVC          =   new IntKey[VisibilityChange](_.resolvedBy, _.resolvedBy.get)

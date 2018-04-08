@@ -76,6 +76,25 @@ final class Reviews @Inject()(data: DataHelper,
     }
   }
 
+  def reopenReview(author: String, slug: String, versionString: String) = {
+    (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) async { implicit request =>
+      withProjectAsync(author, slug) { implicit project =>
+        withVersionAsync(versionString) { version =>
+          version.mostRecentReviews.map(_.headOption).map {
+            case None => NotFound
+            case Some(review) =>
+              version.setReviewed(false)
+              version.setApprovedAt(null)
+              version.setReviewerId(-1)
+              review.setEnded(None)
+              review.addMessage(Message("Reopened the review", System.currentTimeMillis(), "start"))
+              Redirect(routes.Reviews.showReviews(author, slug, versionString))
+          }
+        }
+      }
+    }
+  }
+
   def stopReview(author: String, slug: String, versionString: String) = {
     Authenticated andThen PermissionAction[AuthRequest](ReviewProjects) async { implicit request =>
       withProjectAsync(author, slug) { implicit project =>
@@ -84,7 +103,7 @@ final class Reviews @Inject()(data: DataHelper,
             case None => NotFound
             case Some(review) =>
               review.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "stop"))
-              review.setEnded(Timestamp.from(Instant.now()))
+              review.setEnded(Some(Timestamp.from(Instant.now())))
               Redirect(routes.Reviews.showReviews(author, slug, versionString))
           }
         }
@@ -100,7 +119,7 @@ final class Reviews @Inject()(data: DataHelper,
             case None => Future.successful(NotFound)
             case Some(review) =>
               for {
-                (_, _) <- review.setEnded(Timestamp.from(Instant.now())) zip
+                (_, _) <- review.setEnded(Some(Timestamp.from(Instant.now()))) zip
                 // send notification that review happened
                           sendReviewNotification(project, version, request.user)
               } yield {
@@ -175,7 +194,7 @@ final class Reviews @Inject()(data: DataHelper,
             case Some(oldreview) =>
               for {
                 (_, _) <- oldreview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "takeover")) zip
-                          oldreview.setEnded(Timestamp.from(Instant.now()))
+                          oldreview.setEnded(Some(Timestamp.from(Instant.now())))
               } yield {}
           }
 
