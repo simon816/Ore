@@ -7,7 +7,7 @@ import db.{ModelFilter, ModelService}
 import form.OreForms
 import javax.inject.Inject
 import models.project.{Page, Project}
-import models.user.UserActionLogger
+import models.user.{UserActionContexts, UserActionLogger, UserActions}
 import ore.permission.EditPages
 import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.cache.AsyncCacheApi
@@ -161,7 +161,7 @@ class Pages @Inject()(forms: OreForms,
                   val parentId = parent.flatMap(_.id).getOrElse(-1)
                   val pageName = pageData.name.getOrElse(parts(1))
                   users.current.map { user =>
-                    UserActionLogger.log(user.get, s"Edited page $page in $author/$slug")
+                    UserActionLogger.log(UserActionContexts.PROJECT, data.project.id.getOrElse(-1), UserActions.PROJECT_PAGE_EDITED, "", "") //todo data
                   }
                   data.project.getOrCreatePage(pageName, parentId, pageData.content)
                 }

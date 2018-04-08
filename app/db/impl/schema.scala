@@ -380,7 +380,11 @@ class UserActionLogTable(tag: RowTag) extends ModelTable[UserAction](tag, "user_
 
   def userId = column[Int]("user_id")
   def address = column[InetString]("address")
+  def context = column[String]("context")
+  def contextId = column[Int]("context_id")
   def action = column[String]("action")
+  def newState = column[String]("new_state")
+  def oldState = column[String]("old_state")
 
-  override def * = (id.?, createdAt.?, userId, address, action) <> (UserAction.tupled, UserAction.unapply)
+  override def * = (id.?, createdAt.?, userId, address, context, contextId, action, newState, oldState) <> (UserAction.tupled, UserAction.unapply)
 }

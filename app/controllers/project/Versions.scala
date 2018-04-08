@@ -5,7 +5,6 @@ import java.nio.file.{Files, StandardCopyOption}
 import java.sql.Timestamp
 import java.util.{Date, UUID}
 
-import _root_.views.html.helper
 import com.github.tminglei.slickpg.InetString
 import controllers.OreBaseController
 import controllers.sugar.Bakery
@@ -18,7 +17,6 @@ import javax.inject.Inject
 import models.project._
 import models.viewhelper.{ProjectData, VersionData}
 import ore.permission.{EditVersions, ReviewProjects}
-import ore.project.factory.TagAlias.ProjectTag
 import ore.project.factory.{PendingProject, ProjectFactory}
 import ore.project.io.DownloadTypes._
 import ore.project.io.{DownloadTypes, InvalidPluginFileException, PluginFile, PluginUpload}
@@ -30,11 +28,10 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.filters.csrf.CSRF
 import security.spauth.SingleSignOnConsumer
-import util.JavaUtils.autoClose
 import util.StringUtils._
 import views.html.projects.{versions => views}
 import _root_.views.html.helper
-import models.user.UserActionLogger
+import models.user.{UserActionContexts, UserActionLogger, UserActions}
 import ore.project.factory.TagAlias.ProjectTag
 import util.JavaUtils.autoClose
 
@@ -102,10 +99,10 @@ class Versions @Inject()(stats: StatTracker,
       implicit val data = request.data
       implicit val p = data.project
       withVersion(versionString) { version =>
-        users.current.map { user =>
-          UserActionLogger.log(user.get, s"Edited description of $author/$slug version ${version.name}")
-        }
-        version.setDescription(this.forms.VersionDescription.bindFromRequest.get.trim)
+        val oldDescription = version.description.getOrElse("")
+        val newDescription = this.forms.VersionDescription.bindFromRequest.get.trim
+        version.setDescription(newDescription)
+        UserActionLogger.log(UserActionContexts.VERSION, version.id.getOrElse(-1), UserActions.VERSION_EDITED_DESCRIPTION, newDescription, oldDescription)
         Redirect(self.show(author, slug, versionString))
       }
     }
@@ -125,9 +122,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val data = request.data
       implicit val p = data.project
       withVersion(versionString) { version =>
-        users.current.map { user =>
-          UserActionLogger.log(user.get, s"Set the Recommended Version of $author/$slug to ${version.name}")
-        }
+        UserActionLogger.log(UserActionContexts.VERSION, version.id.getOrElse(-1), UserActions.VERSION_SET_AS_RECOMMENDED, "recommended version", "listed version")
         data.project.setRecommendedVersion(version)
         Redirect(self.show(author, slug, versionString))
       }
@@ -149,9 +144,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val r = request.request
       implicit val p = project.project
       withVersion(versionString) { version =>
-        users.current.map { user =>
-          UserActionLogger.log(user.get, s"Approved version ${version.name} of $author/$slug")
-        }
+        UserActionLogger.log(UserActionContexts.VERSION, version.id.getOrElse(-1), UserActions.VERSION_APPROVED, "approved", "unapproved")
         version.setReviewed(reviewed = true)
         version.setReviewer(request.user)
         version.setApprovedAt(this.service.theTime)
@@ -241,10 +234,6 @@ class Versions @Inject()(stats: StatTracker,
               this.factory.processSubsequentPluginUpload(uploadData, user, request.data.project).map(_.fold(
                 err => Redirect(call).withError(err),
                 version => {
-                  users.current.map { user =>
-                    UserActionLogger.log(user.get, s"Uploaded ${version.underlying.name} to $author/$slug" +
-                      s" (File: ${uploadData.pluginFileName}, Sig: ${uploadData.signatureFileName})")
-                  }
                   version.underlying.setAuthorId(user.id.getOrElse(-1))
                   Redirect(self.showCreatorWithMeta(request.data.project.ownerName, slug, version.underlying.versionString))
                 }
@@ -359,6 +348,9 @@ class Versions @Inject()(stats: StatTracker,
                             if (versionData.recommended)
                               project.setRecommendedVersion(newVersion._1)
                             addUnstableTag(newVersion._1, versionData.unstable)
+
+                            UserActionLogger.log(UserActionContexts.VERSION, newVersion._1.id.getOrElse(-1), UserActions.VERSION_UPLOADED, "published", "null")
+
                             Redirect(self.show(author, slug, versionString))
                           }
                         }
@@ -368,9 +360,7 @@ class Versions @Inject()(stats: StatTracker,
                 case Some(pendingProject) =>
                   // Found a pending project, create it with first version
                   pendingProject.complete.map { created =>
-                    users.current.map { user =>
-                      UserActionLogger.log(user.get, s"Published version $versionString for $author/$slug")
-                    }
+                    UserActionLogger.log(UserActionContexts.PROJECT, created._1.id.getOrElse(-1), UserActions.PROJECT_CREATED, "created", "null")
                     addUnstableTag(created._2, versionData.unstable)
                     Redirect(ShowProject(author, slug))
                   }
@@ -422,9 +412,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val p = data.project
       withVersion(versionString) { version =>
         this.projects.deleteVersion(version)
-        users.current.map { user =>
-          UserActionLogger.log(user.get, s"Deleted version $versionString from $author/$slug")
-        }
+        UserActionLogger.log(UserActionContexts.VERSION, version.id.getOrElse(-1), UserActions.VERSION_DELETED, "null", "")
         Redirect(self.showList(author, slug, None, None))
       }
     }
