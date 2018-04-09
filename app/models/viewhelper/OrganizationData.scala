@@ -32,7 +32,8 @@ object OrganizationData {
     implicit val users = orga.userBase
     for {
       role <- orga.owner.headRole
-      memberRoles <- orga.memberships.members.flatMap(m => Future.sequence(m.map(_.headRole)))
+      members <- orga.memberships.members
+      memberRoles <- Future.sequence(members.map(_.headRole))
       memberUser <- Future.sequence(memberRoles.map(_.user))
     } yield {
       val members = memberRoles zip memberUser

@@ -25,6 +25,7 @@ import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
 import views.{html => views}
 import util.instances.future._
+import util.syntax._
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -290,29 +291,21 @@ class Users @Inject()(fakeUser: FakeUser,
 
       // Get visible notifications
       val nFilter: NotificationFilter = notificationFilter
-        .map(str => NotificationFilters.values
-          .find(_.name.equalsIgnoreCase(str))
-          .getOrElse(NotificationFilters.Unread))
+        .flatMap(str => NotificationFilters.values.find(_.name.equalsIgnoreCase(str)))
         .getOrElse(NotificationFilters.Unread)
 
-      nFilter(user.notifications).flatMap { l =>
-        Future.sequence(l.map(notif => notif.origin.map((notif, _))))
-      } flatMap { notifications =>
-        // Get visible invites
-        val iFilter: InviteFilter = inviteFilter
-          .map(str => InviteFilters.values
-            .find(_.name.equalsIgnoreCase(str))
-            .getOrElse(InviteFilters.All))
-          .getOrElse(InviteFilters.All)
+      val iFilter: InviteFilter = inviteFilter
+        .flatMap(str => InviteFilters.values.find(_.name.equalsIgnoreCase(str)))
+        .getOrElse(InviteFilters.All)
 
-        iFilter(user).flatMap { invites =>
-          Future.sequence(invites.map {invite => invite.subject.map((invite, _))})
-        } map { invites =>
-          Ok(views.users.notifications(
-            notifications,
-            invites,
-            nFilter, iFilter))
-        }
+      val notificationsFut = nFilter(user.notifications).flatMap(l => Future.sequence(l.map(notif => notif.origin.map((notif, _)))))
+      val invitesFut = iFilter(user).flatMap(invites => Future.sequence(invites.map {invite => invite.subject.map((invite, _))}))
+
+      (notificationsFut, invitesFut).parMapN { (notifications, invites) =>
+        Ok(views.users.notifications(
+          notifications,
+          invites,
+          nFilter, iFilter))
       }
     }
   }

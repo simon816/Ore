@@ -129,22 +129,21 @@ class ProjectBase(override val service: ModelService,
     val newName = compact(name)
     val newSlug = slugify(newName)
     checkArgument(this.config.isValidProjectName(name), "invalid name", "")
-    val future = for {
+    for {
       isAvailable <- this.isNamespaceAvailable(project.ownerName, newSlug)
-    } yield {
-      checkArgument(isAvailable, "slug not available", "")
-    }
-    future.flatMap { _ =>
-      this.fileManager.renameProject(project.ownerName, project.name, newName)
-      project.setName(newName)
-      project.setSlug(newSlug)
+      _ = checkArgument(isAvailable, "slug not available", "")
+      res <- {
+        this.fileManager.renameProject(project.ownerName, project.name, newName)
+        project.setName(newName)
+        project.setSlug(newSlug)
 
-      // Project's name alter's the topic title, update it
-      if (project.topicId != -1 && this.forums.isEnabled)
-        this.forums.updateProjectTopic(project)
-      else
-        Future.successful(false)
-    }
+        // Project's name alter's the topic title, update it
+        if (project.topicId != -1 && this.forums.isEnabled)
+          this.forums.updateProjectTopic(project)
+        else
+          Future.successful(false)
+      }
+    } yield res
   }
 
   /**

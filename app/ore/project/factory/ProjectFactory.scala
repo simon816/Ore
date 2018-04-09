@@ -312,15 +312,11 @@ trait ProjectFactory {
     checkNotNull(name, "null name", "")
     checkArgument(this.config.isValidChannelName(name), "invalid name", "")
     checkNotNull(color, "null color", "")
-    val checks = for {
+    for {
       channelCount <- project.channels.size
-    } yield {
-      checkState(channelCount < this.config.projects.get[Int]("max-channels"), "channel limit reached", "")
-    }
-
-    checks.flatMap { _ =>
-      this.service.access[Channel](classOf[Channel]).add(new Channel(name, color, project.id.get))
-    }
+      _ = checkState(channelCount < this.config.projects.get[Int]("max-channels"), "channel limit reached", "")
+      channel <- this.service.access[Channel](classOf[Channel]).add(new Channel(name, color, project.id.get))
+    } yield channel
   }
 
   /**
@@ -334,36 +330,27 @@ trait ProjectFactory {
 
     val pendingVersion = pending.underlying
 
-    val channel = for {
+    for {
       // Create channel if not exists
       (channel, exists) <- getOrCreateChannel(pending, project) zip pendingVersion.exists
-    } yield {
-      if (exists && this.config.projects.get[Boolean]("file-validate"))
-        throw new IllegalArgumentException("Version already exists.")
-      channel
-    }
-
-    // Create version
-    val newVersion = channel.flatMap { channel =>
-      val newVersion = Version(
-        versionString = pendingVersion.versionString,
-        dependencyIds = pendingVersion.dependencyIds,
-        _description = pendingVersion.description,
-        assets = pendingVersion.assets,
-        projectId = project.id.get,
-        channelId = channel.id.get,
-        fileSize = pendingVersion.fileSize,
-        hash = pendingVersion.hash,
-        _authorId = pendingVersion.authorId,
-        fileName = pendingVersion.fileName,
-        signatureFileName = pendingVersion.signatureFileName
-      )
-      this.service.access[Version](classOf[Version]).add(newVersion)
-    }
-
-    for {
-      channel <- channel
-      newVersion <- newVersion
+      _ = if (exists && this.config.projects.get[Boolean]("file-validate")) throw new IllegalArgumentException("Version already exists.")
+      // Create version
+      newVersion <- {
+        val newVersion = Version(
+          versionString = pendingVersion.versionString,
+          dependencyIds = pendingVersion.dependencyIds,
+          _description = pendingVersion.description,
+          assets = pendingVersion.assets,
+          projectId = project.id.get,
+          channelId = channel.id.get,
+          fileSize = pendingVersion.fileSize,
+          hash = pendingVersion.hash,
+          _authorId = pendingVersion.authorId,
+          fileName = pendingVersion.fileName,
+          signatureFileName = pendingVersion.signatureFileName
+        )
+        this.service.access[Version](classOf[Version]).add(newVersion)
+      }
       spongeTag <- addTags(newVersion, SpongeApiId, "Sponge", TagColors.Sponge).value
       forgeTag <- addTags(newVersion, ForgeId, "Forge", TagColors.Forge).value
     } yield {

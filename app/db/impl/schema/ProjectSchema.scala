@@ -25,11 +25,10 @@ class ProjectSchema(override val service: ModelService, implicit val users: User
     * @return Project authors
     */
   def distinctAuthors(implicit ec: ExecutionContext): Future[Seq[User]] = {
-    service.DB.db.run {
-      (for (project <- this.baseQuery) yield project.userId).distinct.result
-    } flatMap { userIds =>
-      this.users.in(userIds.toSet)
-    } map(_.toSeq)
+    for {
+      userIds <- service.DB.db.run(this.baseQuery.map(_.userId).distinct.result)
+      inIds <- this.users.in(userIds.toSet)
+    } yield inIds.toSeq
   }
 
   /**

@@ -342,13 +342,13 @@ final class Application @Inject()(data: DataHelper,
     * @return Boolean
     */
   def sortActivities(o1: Object, o2: Object): Boolean = {
-    var o1Time: Long = 0
-    var o2Time: Long = 0
-    if (o1.isInstanceOf[Review]) {
-      o1Time = o1.asInstanceOf[Review].endedAt.getOrElse(Timestamp.from(Instant.EPOCH)).getTime
+    val o1Time: Long = o1 match {
+      case review: Review => review.endedAt.getOrElse(Timestamp.from(Instant.EPOCH)).getTime
+      case _ => 0
     }
-    if (o2.isInstanceOf[Flag]) {
-      o2Time = o2.asInstanceOf[Flag].resolvedAt.getOrElse(Timestamp.from(Instant.EPOCH)).getTime
+    val o2Time: Long = o2 match {
+      case flag: Flag => flag.resolvedAt.getOrElse(Timestamp.from(Instant.EPOCH)).getTime
+      case _ => 0
     }
     o1Time > o2Time
   }

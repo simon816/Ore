@@ -65,23 +65,18 @@ class OrganizationBase(override val service: ModelService,
       // are just normal users with additional information. Adding the
       // Organization global role signifies that this User is an Organization
       // and should be treated as such.
-      org
-        .toUser
-        .getOrElse(throw new IllegalStateException("User not created"))
-        .map { userOrg =>
-          userOrg.pullForumData().flatMap(_.pullSpongeData())
-          userOrg.setGlobalRoles(userOrg.globalRoles + RoleTypes.Organization)
-          userOrg
-        }
-        .flatMap { _ =>
-          // Add the owner
+      for {
+        userOrg <- org.toUser.getOrElse(throw new IllegalStateException("User not created"))
+        _ <- userOrg.pullForumData()
+        _ <- userOrg.pullSpongeData()
+        _ <- userOrg.setGlobalRoles(userOrg.globalRoles + RoleTypes.Organization)
+        _ <- // Add the owner
           org.memberships.addRole(OrganizationRole(
             userId = ownerId,
             organizationId = org.id.get,
             _roleType = RoleTypes.OrganizationOwner,
             _isAccepted = true))
-        }
-        .flatMap { _ =>
+        _ <- {
           // Invite the User members that the owner selected during creation.
           Logger.info("Inviting members...")
 
@@ -96,10 +91,10 @@ class OrganizationBase(override val service: ModelService,
             }
           })
         }
-        .map { _ =>
-          Logger.info("<SUCCESS> " + org)
-          org
-        }
+      } yield {
+        Logger.info("<SUCCESS> " + org)
+        org
+      }
     }
   }
 

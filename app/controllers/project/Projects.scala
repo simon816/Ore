@@ -166,17 +166,16 @@ class Projects @Inject()(stats: StatTracker,
   }
 
   private def orgasUserCanUploadTo(user: User): Future[Set[Int]] = {
-    user.organizations.all.flatMap { all =>
-
-      Future.sequence(all.map { org =>
-        user can CreateProject in org map { perm =>
-          (org.id.get, perm)
-        }
-      }) map {
-        _.filter(_._2).map(_._1) // Filter by can Create Project
-      } map {
-        _ + user.id.get // Add self
+    for {
+      all <- user.organizations.all
+      canCreate <- Future.traverse(all)(org => user can CreateProject in org map { perm => (org.id.get, perm)})
+    } yield {
+      // Filter by can Create Project
+      val others = canCreate.collect {
+        case (id, perm) if perm => id
       }
+
+      others + user.id.get // Add self
     }
   }
 
@@ -257,15 +256,16 @@ class Projects @Inject()(stats: StatTracker,
           Future.successful(BadRequest)
         else {
           // Do forum post and display errors to user if any
-          val poster = OptionT.fromOption[Future](formData.poster)
-            .flatMap(posterName => this.users.requestPermission(request.user, posterName, PostAsOrganization))
-            .getOrElse(request.user)
-          val errors = poster.flatMap { post =>
-            this.forums.postDiscussionReply(data.project, post, formData.content)
-          }
-          errors.map { errList =>
+          for {
+            poster <- {
+              OptionT.fromOption[Future](formData.poster)
+                .flatMap(posterName => this.users.requestPermission(request.user, posterName, PostAsOrganization))
+                .getOrElse(request.user)
+            }
+            errors <- this.forums.postDiscussionReply(data.project, poster, formData.content)
+          } yield {
             val result = Redirect(self.showDiscussion(author, slug))
-            if (errList.nonEmpty) result.withError(errList.head) else result
+            if (errors.nonEmpty) result.withError(errors.head) else result
           }
         }
       }
