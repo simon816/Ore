@@ -258,18 +258,13 @@ trait ProjectFactory {
   def createProject(pending: PendingProject)(implicit ec: ExecutionContext): Future[Project] = {
     val project = pending.underlying
 
-    val checks = for {
+    for {
       (exists, available) <- this.projects.exists(project) zip
                              this.projects.isNamespaceAvailable(project.ownerName, project.slug)
-    } yield {
-      checkArgument(!exists, "project already exists", "")
-      checkArgument(available, "slug not available", "")
-      checkArgument(this.config.isValidProjectName(pending.underlying.name), "invalid name", "")
-    }
-
-    // Create the project and it's settings
-    for {
-      _ <- checks
+      _ = checkArgument(!exists, "project already exists", "")
+      _ = checkArgument(available, "slug not available", "")
+      _ = checkArgument(this.config.isValidProjectName(pending.underlying.name), "invalid name", "")
+      // Create the project and it's settings
       newProject <- this.projects.add(pending.underlying)
     } yield {
       newProject.updateSettings(pending.settings)
@@ -376,7 +371,7 @@ trait ProjectFactory {
     OptionT.fromOption[Future](dependenciesMatchingName.headOption)
       .filter(dep => dependencyVersionRegex.pattern.matcher(dep.version).matches())
       .semiFlatMap { dep =>
-        val tagToAdd = for {
+        for {
           tagsWithVersion <- service.access(classOf[ProjectTag])
             .filter(t => t.name === tagName && t.data === dep.version)
           tag <- {
@@ -397,9 +392,7 @@ trait ProjectFactory {
               Future.successful(tag)
             }
           }
-        } yield tag
-
-        tagToAdd.map { tag =>
+        } yield {
           newVersion.addTag(tag)
           tag
         }

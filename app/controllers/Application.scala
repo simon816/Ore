@@ -382,15 +382,14 @@ final class Application @Inject()(data: DataHelper,
         ORDER BY days ASC""".as[(String, String)])
     }
 
-    for {
-      reviews         <- last10DaysCountQuery("project_version_reviews", "ended_at")
-      uploads         <- last10DaysCountQuery("project_versions", "created_at")
-      totalDownloads  <- last10DaysCountQuery("project_version_downloads", "created_at")
-      unsafeDownloads <- last10DaysCountQuery("project_version_unsafe_downloads", "created_at")
-      flagsOpen       <- last10DaysTotalOpen("project_flags", "created_at", "resolved_at")
-      flagsClosed     <- last10DaysCountQuery("project_flags", "resolved_at")
-    }
-    yield {
+    (
+      last10DaysCountQuery("project_version_reviews", "ended_at"),
+      last10DaysCountQuery("project_versions", "created_at"),
+      last10DaysCountQuery("project_version_downloads", "created_at"),
+      last10DaysCountQuery("project_version_unsafe_downloads", "created_at"),
+      last10DaysTotalOpen("project_flags", "created_at", "resolved_at"),
+      last10DaysCountQuery("project_flags", "resolved_at")
+    ).parMapN { (reviews, uploads, totalDownloads, unsafeDownloads, flagsOpen, flagsClosed) =>
       Ok(views.users.admin.stats(reviews, uploads, totalDownloads, unsafeDownloads, flagsOpen, flagsClosed))
     }
   }

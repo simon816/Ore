@@ -78,13 +78,12 @@ trait OreRestfulApi {
 
     val query = filteredProjects(offset, lim)
 
-    val all = for {
+    for {
       projects <- service.DB.db.run(query.result)
       json <- writeProjects(projects)
     } yield {
-      json.map(_._2)
+      toJson(json.map(_._2))
     }
-    all.map(toJson(_))
   }
 
   private def getMembers(projects: Seq[Int]) = {
