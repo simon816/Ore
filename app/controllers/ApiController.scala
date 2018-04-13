@@ -211,6 +211,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
                     case Right(pendingVersion) =>
                       pendingVersion.createForumPost = formData.createForumPost
                       pendingVersion.channelName = formData.channel.name
+                      formData.changelog.foreach(pendingVersion.underlying.setDescription)
                       pendingVersion.complete().map { newVersion =>
                         if (formData.recommended)
                           projectData.project.setRecommendedVersion(newVersion._1)
