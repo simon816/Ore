@@ -168,15 +168,8 @@ $(function() {
         }
     });
 
-    $(".unsafe-link-back").click(function () {
+    $(".link-go-back").click(function () {
         window.history.back();
-    });
-
-    $(".unsafe-link-continue").click(function () {
-        var remote = $(".unsafe-link-continue").data("remote");
-
-        location.replace(location.href);
-        location.replace(remote);
     });
 });
 
