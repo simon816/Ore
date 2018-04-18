@@ -595,10 +595,8 @@ class Projects @Inject()(stats: StatTracker,
       implicit val r = request.request
       val project = request.data.project
       for {
-        changes <- project.visibilityChangesByDate
-        changedBy <- Future.sequence(changes.map(_.created.value))
-        logger <- project.logger
-        logs <- logger.entries.all
+        (changes, logger) <- (project.visibilityChangesByDate, project.logger).parTupled
+        (changedBy, logs) <- (Future.sequence(changes.map(_.created.value)), logger.entries.all).parTupled
       } yield {
         val visChanges = changes zip changedBy
         Ok(views.log(project, visChanges, logs.toSeq))

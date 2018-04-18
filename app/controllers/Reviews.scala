@@ -115,7 +115,7 @@ final class Reviews @Inject()(data: DataHelper,
         withVersionAsync(versionString) { version =>
           version.mostRecentUnfinishedReview.semiFlatMap { review =>
             for {
-              (_, _) <- review.setEnded(Timestamp.from(Instant.now())) zip
+              (_, _) <- review.setEnded(Some(Timestamp.from(Instant.now()))) zip
                         // send notification that review happened
                         sendReviewNotification(project, version, request.user)
             } yield {

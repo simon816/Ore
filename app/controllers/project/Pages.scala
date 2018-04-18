@@ -16,6 +16,7 @@ import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
 import views.html.projects.{pages => views}
 import util.instances.future._
+import util.syntax._
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -106,8 +107,10 @@ class Pages @Inject()(forms: OreForms,
       (name, parentId) <- if (parts.size != 2) Future.successful((parts(0), -1)) else {
         data.project.pages.find(equalsIgnoreCase(_.slug, parts(0))).subflatMap(_.id).getOrElse(-1).map((parts(1), _))
       }
-      p <- data.project.pages.find(equalsIgnoreCase(_.slug, name)).getOrElseF(data.project.getOrCreatePage(name, parentId))
-      pages <- projects.queryProjectPages(data.project)
+      (p, pages) <- (
+        data.project.pages.find(equalsIgnoreCase(_.slug, name)).getOrElseF(data.project.getOrCreatePage(name, parentId)),
+        projects.queryProjectPages(data.project)
+      ).parTupled
     } yield {
       val pageCount = pages.size + pages.map(_._2.size).sum
       val parentPage = pages.collectFirst { case (pp, page) if page.contains(p) => pp }

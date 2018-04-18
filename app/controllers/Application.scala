@@ -217,8 +217,10 @@ final class Application @Inject()(data: DataHelper,
   def showFlags() = FlagAction.async { implicit request =>
     for {
       flags <- this.service.access[Flag](classOf[Flag]).filterNot(_.isResolved)
-      users <- Future.sequence(flags.map(_.user))
-      projects <- Future.sequence(flags.map(_.project))
+      futUsers = Future.sequence(flags.map(_.user))
+      futProjects = Future.sequence(flags.map(_.project))
+      users <- futUsers
+      projects <- futProjects
       perms <- Future.sequence(projects.map { project =>
         val perms = VisibilityTypes.values.map(_.permission).map { perm =>
           request.user can perm in project map (value => (perm, value))
@@ -250,16 +252,15 @@ final class Application @Inject()(data: DataHelper,
   }
 
   def showHealth() = (Authenticated andThen PermissionAction[AuthRequest](ViewHealth)) async { implicit request =>
-
-    for {
-      noTopicProjects <- projects.filter(p => p.topicId === -1 || p.postId === -1)
-      topicDirtyProjects <- projects.filter(_.isTopicDirty)
-      staleProjects <- projects.stale
-      notPublic <- projects.filterNot(_.visibility === VisibilityTypes.Public)
-      missingFileProjects <- projects.missingFile.flatMap { v =>
+    (
+      projects.filter(p => p.topicId === -1 || p.postId === -1),
+      projects.filter(_.isTopicDirty),
+      projects.stale,
+      projects.filterNot(_.visibility === VisibilityTypes.Public),
+      projects.missingFile.flatMap { v =>
         Future.sequence(v.map { v => v.project.map(p => (v, p)) })
       }
-    } yield {
+    ).parMapN { (noTopicProjects, topicDirtyProjects, staleProjects, notPublic, missingFileProjects) =>
       Ok(views.users.admin.health(noTopicProjects, topicDirtyProjects, staleProjects, notPublic, missingFileProjects))
     }
   }
@@ -399,13 +400,19 @@ final class Application @Inject()(data: DataHelper,
   def userAdmin(user: String) = UserAdminAction.async { implicit request =>
     this.users.withName(user).semiFlatMap { u =>
       for {
-        userData <- getUserData(request, user).value
         isOrga <- u.isOrganization
-        projectRoles <- if (isOrga) Future.successful(Seq.empty) else u.projectRoles.all
-        projects <- Future.sequence(projectRoles.map(_.project))
-        orga <- if (isOrga) getOrga(request, user).value else Future.successful(None)
-        orgaData <- OrganizationData.of(orga).value
-        scopedOrgaData <- ScopedOrganizationData.of(Some(request.user), orga).value
+        (projectRoles, orga) <- {
+          if (isOrga)
+            (Future.successful(Seq.empty), getOrga(request, user).value).parTupled
+          else
+            (u.projectRoles.all, Future.successful(None)).parTupled
+        }
+        (userData, projects, orgaData, scopedOrgaData) <- (
+          getUserData(request, user).value,
+          Future.sequence(projectRoles.map(_.project)),
+          OrganizationData.of(orga).value,
+          ScopedOrganizationData.of(Some(request.user), orga).value
+        ).parTupled
       } yield {
         val pr = projects zip projectRoles
         Ok(views.users.admin.userAdmin(userData.get, orgaData, pr.toSeq))
@@ -484,16 +491,17 @@ final class Application @Inject()(data: DataHelper,
     val projectSchema = this.service.getSchema(classOf[ProjectSchema])
 
     for {
-      projectApprovals <- projectSchema.collect(ModelFilter[Project](_.visibility === VisibilityTypes.NeedsApproval).fn, ProjectSortingStrategies.Default, -1, 0)
-      lastChangeRequests <- Future.sequence(projectApprovals.map(_.lastChangeRequest.value))
-      lastVisibilityChanges <- Future.sequence(projectApprovals.map(_.lastVisibilityChange.value))
+      (projectApprovals, projectChanges) <- (
+        projectSchema.collect(ModelFilter[Project](_.visibility === VisibilityTypes.NeedsApproval).fn, ProjectSortingStrategies.Default, -1, 0),
+        projectSchema.collect(ModelFilter[Project](_.visibility === VisibilityTypes.NeedsChanges).fn, ProjectSortingStrategies.Default, -1, 0)
+      ).parTupled
+      (lastChangeRequests, lastVisibilityChanges, projectVisibilityChanges) <- (
+        Future.sequence(projectApprovals.map(_.lastChangeRequest.value)),
+        Future.sequence(projectApprovals.map(_.lastVisibilityChange.value)),
+        Future.sequence(projectChanges.map(_.lastVisibilityChange.value))
+      ).parTupled
 
-      projectChanges <- projectSchema.collect(ModelFilter[Project](_.visibility === VisibilityTypes.NeedsChanges).fn, ProjectSortingStrategies.Default, -1, 0)
-      projectVisibilityChanges <- Future.sequence(projectChanges.map(_.lastVisibilityChange.value))
-
-      (
-        perms, lastChangeRequesters, lastVisibilityChangers, projectChangeRequests, projectVisibilityChangers
-      ) <- (
+      (perms, lastChangeRequesters, lastVisibilityChangers, projectChangeRequests, projectVisibilityChangers) <- (
         Future.sequence(projectApprovals.map { project =>
           val perms = VisibilityTypes.values.map(_.permission).map { perm =>
             request.user can perm in project map (value => (perm, value))

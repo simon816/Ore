@@ -533,10 +533,10 @@ class Versions @Inject()(stats: StatTracker,
                 CSRF.getToken.get.value) + "\n")
                 .withHeaders("Content-Disposition" -> "inline; filename=\"README.txt\""))
             } else {
-              for {
-                warn <- warning
-                nonReviewed <- version.channel.map(_.isNonReviewed)
-              } yield MultipleChoices(views.unsafeDownload(data.project, version, nonReviewed , dlType, token)).withCookies(warn.cookie)
+              (warning, version.channel.map(_.isNonReviewed)).parMapN { (warn, nonReviewed) =>
+                MultipleChoices(views.unsafeDownload(data.project, version, nonReviewed, dlType, token))
+                  .withCookies(warn.cookie)
+              }
             }
           }
         }

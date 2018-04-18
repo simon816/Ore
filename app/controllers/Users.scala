@@ -137,13 +137,15 @@ class Users @Inject()(fakeUser: FakeUser,
       for {
         // TODO include orga projects?
         projectSeq <- service.DB.db.run(queryUserProjects(user).drop(offset).take(pageSize).result)
-        tags <- Future.sequence(projectSeq.map(_._2.tags))
-        userData <- getUserData(request, username).value
         starred <- user.starred()
-        starredRv <- Future.sequence(starred.map(_.recommendedVersion))
         orga <- getOrga(request, username).value
-        orgaData <- OrganizationData.of(orga).value
-        scopedOrgaData <- ScopedOrganizationData.of(request.currentUser, orga).value
+        (tags, userData, starredRv, orgaData, scopedOrgaData) <- (
+          Future.sequence(projectSeq.map(_._2.tags)),
+          getUserData(request, username).value,
+          Future.sequence(starred.map(_.recommendedVersion)),
+          OrganizationData.of(orga).value,
+          ScopedOrganizationData.of(request.currentUser, orga).value
+        ).parTupled
       } yield {
         val data = projectSeq zip tags map { case ((p, v), tags) =>
           (p, user, v, tags)
