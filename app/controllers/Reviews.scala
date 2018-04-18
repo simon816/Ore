@@ -26,6 +26,7 @@ import slick.lifted.{Rep, TableQuery}
 import util.DataHelper
 import views.{html => views}
 import util.instances.future._
+import util.syntax._
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -114,11 +115,11 @@ final class Reviews @Inject()(data: DataHelper,
       withProjectAsync(author, slug) { implicit project =>
         withVersionAsync(versionString) { version =>
           version.mostRecentUnfinishedReview.semiFlatMap { review =>
-            for {
-              (_, _) <- review.setEnded(Some(Timestamp.from(Instant.now()))) zip
-                        // send notification that review happened
-                        sendReviewNotification(project, version, request.user)
-            } yield {
+            (
+              review.setEnded(Some(Timestamp.from(Instant.now()))),
+              // send notification that review happened
+              sendReviewNotification(project, version, request.user)
+            ).parMapN { (_, _) =>
               Redirect(routes.Reviews.showReviews(author, slug, versionString))
             }
           }.getOrElse(NotFound)
@@ -186,17 +187,18 @@ final class Reviews @Inject()(data: DataHelper,
         withVersionAsync(versionString) { version =>
           // Close old review
           val closeOldReview = version.mostRecentUnfinishedReview.semiFlatMap { oldreview =>
-            for {
-              (_, _) <- oldreview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "takeover")) zip
-                        oldreview.setEnded(Some(Timestamp.from(Instant.now())))
-            } yield {}
+            (
+              oldreview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "takeover")),
+              oldreview.setEnded(Some(Timestamp.from(Instant.now()))),
+              this.service.insert(Review(Some(1), Some(Timestamp.from(Instant.now())), version.id.get, request.user.id.get, None, ""))
+            ).parMapN { (_, _, _) => () }
           }.getOrElse(())
 
           // Then make new one
-          for {
-            (_, _) <- closeOldReview zip
-                      this.service.insert(Review(Some(1), Some(Timestamp.from(Instant.now())), version.id.get, request.user.id.get, None, ""))
-          } yield {
+          (
+            closeOldReview,
+            this.service.insert(Review(Some(1), Some(Timestamp.from(Instant.now())), version.id.get, request.user.id.get, None, ""))
+          ).parMapN { (_, _) =>
             Redirect(routes.Reviews.showReviews(author, slug, versionString))
           }
         }

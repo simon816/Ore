@@ -31,6 +31,7 @@ import play.api.i18n.{Lang, MessagesApi}
 import security.pgp.PGPVerifier
 import util.StringUtils._
 import util.instances.future._
+import util.syntax._
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
@@ -117,7 +118,7 @@ trait ProjectFactory {
     else {
       EitherT(
         for {
-          (channels, settings) <- project.channels.all zip project.settings
+          (channels, settings) <- (project.channels.all, project.settings).parTupled
           version = this.startVersion(plugin, project, settings, channels.head.name)
           modelExists <- version.underlying.exists
         } yield {
@@ -259,8 +260,10 @@ trait ProjectFactory {
     val project = pending.underlying
 
     for {
-      (exists, available) <- this.projects.exists(project) zip
-                             this.projects.isNamespaceAvailable(project.ownerName, project.slug)
+      (exists, available) <- (
+        this.projects.exists(project),
+        this.projects.isNamespaceAvailable(project.ownerName, project.slug)
+      ).parTupled
       _ = checkArgument(!exists, "project already exists", "")
       _ = checkArgument(available, "slug not available", "")
       _ = checkArgument(this.config.isValidProjectName(pending.underlying.name), "invalid name", "")
@@ -327,7 +330,7 @@ trait ProjectFactory {
 
     for {
       // Create channel if not exists
-      (channel, exists) <- getOrCreateChannel(pending, project) zip pendingVersion.exists
+      (channel, exists) <- (getOrCreateChannel(pending, project), pendingVersion.exists).parTupled
       _ = if (exists && this.config.projects.get[Boolean]("file-validate")) throw new IllegalArgumentException("Version already exists.")
       // Create version
       newVersion <- {

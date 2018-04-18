@@ -117,7 +117,7 @@ class Projects @Inject()(stats: StatTracker,
         Future.successful(Redirect(self.showCreator()))
       case Some(pending) =>
         for {
-          (orgas, owner) <- request.user.organizations.all zip pending.underlying.owner.user
+          (orgas, owner) <- (request.user.organizations.all, pending.underlying.owner.user).parTupled
           createOrga <- Future.sequence(orgas.map(orga => owner can CreateProject in orga))
         } yield {
           val createdOrgas = orgas zip createOrga filter (_._2) map (_._1)

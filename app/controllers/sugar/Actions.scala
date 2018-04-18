@@ -23,6 +23,7 @@ import scala.language.higherKinds
 
 import util.{FutureUtils, OptionT}
 import util.instances.future._
+import util.syntax._
 
 /**
   * A set of actions used by Ore.
@@ -243,11 +244,7 @@ trait Actions extends Calls with ActionHelpers {
 
   private def toProjectRequest[T](project: Project)(f: (ProjectData, ScopedProjectData) => T)(implicit request: OreRequest[_],
                     modelService: ModelService, ec: ExecutionContext, asyncCacheApi: AsyncCacheApi, db: JdbcBackend#DatabaseDef) = {
-    for {
-      (data, scoped) <- ProjectData.of(project) zip ScopedProjectData.of(request.data.currentUser, project)
-    } yield {
-      f(data, scoped)
-    }
+    (ProjectData.of(project), ScopedProjectData.of(request.data.currentUser, project)).parMapN(f)
   }
 
   private def processProject(project: Project, user: Option[User])(implicit ec: ExecutionContext) : OptionT[Future, Project] = {
@@ -338,10 +335,8 @@ trait Actions extends Calls with ActionHelpers {
     maybeOrga match {
       case None => Future.successful(Left(notFound))
       case Some(orga) =>
-        for {
-          (data, scoped) <- OrganizationData.of(orga) zip
-            ScopedOrganizationData.of(request.data.currentUser, orga)
-        } yield Right(f(data, scoped))
+        val rf = Function.untupled(f.tupled.andThen(Right.apply))
+        (OrganizationData.of(orga), ScopedOrganizationData.of(request.data.currentUser, orga)).parMapN(rf)
     }
   }
 
