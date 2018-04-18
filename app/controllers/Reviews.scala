@@ -188,7 +188,7 @@ final class Reviews @Inject()(data: DataHelper,
           val closeOldReview = version.mostRecentUnfinishedReview.semiFlatMap { oldreview =>
             for {
               (_, _) <- oldreview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "takeover")) zip
-                        oldreview.setEnded(Timestamp.from(Instant.now()))
+                        oldreview.setEnded(Some(Timestamp.from(Instant.now())))
             } yield {}
           }.getOrElse(())
 
