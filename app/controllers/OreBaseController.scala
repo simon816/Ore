@@ -17,6 +17,8 @@ import util.StringUtils._
 import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
+import util.EitherT
+
 /**
   * Represents a Secured base Controller for this application.
   */
@@ -45,38 +47,43 @@ abstract class OreBaseController(implicit val env: OreEnv,
   implicit def ec: ExecutionContext
 
   /**
-    * Executes the given function with the specified result or returns a
-    * NotFound if not found.
+    * Gets a project with the specified author and slug, or returns a notFound.
     *
     * @param author   Project author
     * @param slug     Project slug
-    * @param fn       Function to execute
     * @param request  Incoming request
-    * @return         NotFound or function result
+    * @return         NotFound or project
     */
-  def withProject(author: String, slug: String)(fn: Project => Result)(implicit request: OreRequest[_]): Future[Result]
-  = this.projects.withSlug(author, slug).map(fn).getOrElse(notFound)
-
-  def withProjectAsync(author: String, slug: String)(fn: Project => Future[Result])(implicit request: OreRequest[_]): Future[Result]
-  = this.projects.withSlug(author, slug).semiFlatMap(fn).getOrElse(NotFound)
+  def withProject(author: String, slug: String)(implicit request: OreRequest[_]): EitherT[Future, Result, Project]
+  = this.projects.withSlug(author, slug).toRight(notFound)
 
   /**
-    * Executes the given function with the specified result or returns a
-    * NotFound if not found.
+    * Gets a project with the specified versionString, or returns a notFound.
     *
-    * @param versionString  VersionString
-    * @param fn             Function to execute
-    * @param request        Incoming request
     * @param project        Project to get version from
+    * @param versionString  VersionString
+    * @param request        Incoming request
     * @return               NotFound or function result
     */
-  def withVersion(versionString: String)(fn: Version => Result)
-                 (implicit request: OreRequest[_], project: Project): Future[Result]
-  = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).map(fn).getOrElse(notFound)
+  def withVersion(project: Project, versionString: String)
+                 (implicit request: OreRequest[_]): EitherT[Future, Result, Version]
+  = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).toRight(notFound)
 
-  def withVersionAsync(versionString: String)(fn: Version => Future[Result])
-                 (implicit request: OreRequest[_], project: Project): Future[Result]
-  = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).semiFlatMap(fn).getOrElse(notFound)
+  /**
+    * Gets a version with the specified author, project slug and version string
+    * or returns a notFound.
+    *
+    * @param author         Project author
+    * @param slug           Project slug
+    * @param versionString  VersionString
+    * @param request        Incoming request
+    * @return               NotFound or project
+    */
+  def withProjectVersion(author: String, slug: String, versionString: String)(implicit request: OreRequest[_]): EitherT[Future, Result, Version]
+  = for {
+    project <- withProject(author, slug)
+    version <- withVersion(project, versionString)
+  } yield version
 
   def OreAction = Action andThen oreAction
 

@@ -72,19 +72,14 @@ class Versions @Inject()(stats: StatTracker,
     * @return Version view
     */
   def show(author: String, slug: String, versionString: String) = ProjectAction(author, slug) async { request =>
-    implicit val data = request.data
     implicit val r = request.request
-    implicit val p = data.project
-    withVersionAsync(versionString) { version =>
-      for {
-        data <- VersionData.of(request, version)
-        response <- this.stats.projectViewed(request) { request =>
-          Ok(views.view(data, request.scoped))
-        }
-      } yield {
-        response
-      }
-    }
+    val res = for {
+      version <- withVersion(request.data.project, versionString)
+      data <- EitherT.right[Result](VersionData.of(request, version))
+      response <- EitherT.right[Result](this.stats.projectViewed(request)(request => Ok(views.view(data, request.scoped))))
+    } yield response
+
+    res.merge
   }
 
   /**
@@ -98,12 +93,10 @@ class Versions @Inject()(stats: StatTracker,
   def saveDescription(author: String, slug: String, versionString: String) = {
     VersionEditAction(author, slug).async { request =>
       implicit val r = request.request
-      implicit val data = request.data
-      implicit val p = data.project
-      withVersion(versionString) { version =>
+      withVersion(request.data.project, versionString).map { version =>
         version.setDescription(this.forms.VersionDescription.bindFromRequest.get.trim)
         Redirect(self.show(author, slug, versionString))
-      }
+      }.merge
     }
   }
 
@@ -118,12 +111,10 @@ class Versions @Inject()(stats: StatTracker,
   def setRecommended(author: String, slug: String, versionString: String) = {
     VersionEditAction(author, slug).async { implicit request =>
       implicit val r = request.request
-      implicit val data = request.data
-      implicit val p = data.project
-      withVersion(versionString) { version =>
-        data.project.setRecommendedVersion(version)
+      withVersion(request.data.project, versionString).map { version =>
+        request.data.project.setRecommendedVersion(version)
         Redirect(self.show(author, slug, versionString))
-      }
+      }.merge
     }
   }
 
@@ -138,15 +129,13 @@ class Versions @Inject()(stats: StatTracker,
   def approve(author: String, slug: String, versionString: String) = {
     (AuthedProjectAction(author, slug, requireUnlock = true)
       andThen ProjectPermissionAction(ReviewProjects)).async { implicit request =>
-      implicit val project = request.data
       implicit val r = request.request
-      implicit val p = project.project
-      withVersion(versionString) { version =>
+      withVersion(request.data.project, versionString).map { version =>
         version.setReviewed(reviewed = true)
         version.setReviewer(request.user)
         version.setApprovedAt(this.service.theTime)
         Redirect(self.show(author, slug, versionString))
-      }
+      }.merge
     }
   }
 
@@ -386,13 +375,12 @@ class Versions @Inject()(stats: StatTracker,
     */
   def delete(author: String, slug: String, versionString: String) = {
     VersionEditAction(author, slug).async { implicit request =>
-      implicit val data = request.data
       implicit val r = request.request
-      implicit val p = data.project
-      withVersion(versionString) { version =>
+      implicit val p = request.data.project
+      withVersion(p, versionString).map { version =>
         this.projects.deleteVersion(version)
         Redirect(self.showList(author, slug, None, None))
-      }
+      }.merge
     }
   }
 
@@ -406,12 +394,11 @@ class Versions @Inject()(stats: StatTracker,
     */
   def download(author: String, slug: String, versionString: String, token: Option[String]) = {
     ProjectAction(author, slug).async { implicit request =>
-      implicit val project = request.data
-      implicit val p: Project = project.project
+      val project = request.data.project
       implicit val r = request.request
-      withVersionAsync(versionString) { version =>
-        sendVersion(project.project, version, token)
-      }
+      withVersion(project, versionString).semiFlatMap { version =>
+        sendVersion(project, version, token)
+      }.merge
     }
   }
 
@@ -484,13 +471,12 @@ class Versions @Inject()(stats: StatTracker,
                           api: Option[Boolean]) = {
     ProjectAction(author, slug).async { request =>
       val dlType = downloadType.flatMap(i => DownloadTypes.values.find(_.id == i)).getOrElse(DownloadTypes.UploadedFile)
-      implicit val data = request.data
-      implicit val p = data.project
       implicit val r = request.request
-      withVersionAsync(target) { version =>
-        if (version.isReviewed)
-          Future.successful(Redirect(ShowProject(author, slug)))
-        else {
+      val project = request.data.project
+
+      withVersion(project, target)
+        .filterOrElse(_.isReviewed, Redirect(ShowProject(author, slug)))
+        .semiFlatMap { version =>
           // generate a unique "warning" object to ensure the user has landed
           // on the warning before downloading
           val token = UUID.randomUUID().toString
@@ -510,7 +496,7 @@ class Versions @Inject()(stats: StatTracker,
               MultipleChoices(Json.obj(
                 "message" -> this.messagesApi("version.download.confirm.body.api").split('\n'),
                 "post" ->  self.confirmDownload(author, slug, target, Some(dlType.id), token).absoluteURL(),
-                "url" -> self.downloadJarById(p.pluginId, version.name, Some(token)).absoluteURL(),
+                "url" -> self.downloadJarById(project.pluginId, version.name, Some(token)).absoluteURL(),
                 "token" -> token)
               )
             }
@@ -534,43 +520,36 @@ class Versions @Inject()(stats: StatTracker,
                 .withHeaders("Content-Disposition" -> "inline; filename=\"README.txt\""))
             } else {
               (warning, version.channel.map(_.isNonReviewed)).parMapN { (warn, nonReviewed) =>
-                MultipleChoices(views.unsafeDownload(data.project, version, nonReviewed, dlType, token))
+                MultipleChoices(views.unsafeDownload(project, version, nonReviewed, dlType, token))
                   .withCookies(warn.cookie)
               }
             }
           }
-        }
-      }
+        }.merge
     }
   }
 
   def confirmDownload(author: String, slug: String, target: String, downloadType: Option[Int], token: String) = {
     ProjectAction(author, slug) async { request =>
-      implicit val data = request.data
-      implicit val p = data.project
       implicit val r: OreRequest[_] = request.request
-      withVersionAsync(target) { version =>
-        if (version.isReviewed)
-          Future.successful(Redirect(ShowProject(author, slug)))
-        else {
-          confirmDownload0(version.id.get, downloadType, token).value.map {
-            case None => Redirect(ShowProject(author, slug))
-            case Some(dl) =>
-              dl.downloadType match {
-                case UploadedFile =>
-                  Redirect(self.download(author, slug, target, Some(token)))
-                case JarFile =>
-                  Redirect(self.downloadJar(author, slug, target, Some(token)))
-                case SignatureFile =>
-                  // Note: Shouldn't get here in the first place since sig files
-                  // don't need confirmation, but added as a failsafe.
-                  Redirect(self.downloadSignature(author, slug, target))
-                case _ =>
-                  throw new Exception("unknown download type: " + downloadType)
-              }
+      withVersion(request.data.project, target)
+        .filterOrElse(_.isReviewed, Redirect(ShowProject(author, slug)))
+        .flatMap(version => confirmDownload0(version.id.get, downloadType, token).toRight(Redirect(ShowProject(author, slug))))
+        .map { dl =>
+          dl.downloadType match {
+            case UploadedFile =>
+              Redirect(self.download(author, slug, target, Some(token)))
+            case JarFile =>
+              Redirect(self.downloadJar(author, slug, target, Some(token)))
+            case SignatureFile =>
+              // Note: Shouldn't get here in the first place since sig files
+              // don't need confirmation, but added as a failsafe.
+              Redirect(self.downloadSignature(author, slug, target))
+            case _ =>
+              throw new Exception("unknown download type: " + downloadType)
           }
         }
-      }
+        .merge
     }
   }
 
@@ -638,11 +617,9 @@ class Versions @Inject()(stats: StatTracker,
     */
   def downloadJar(author: String, slug: String, versionString: String, token: Option[String]) = {
     ProjectAction(author, slug).async { implicit request =>
-      implicit val data = request.data
-      implicit val project = data.project
+      val project = request.data.project
       implicit val r = request.request
-      withVersionAsync(versionString)(version =>
-        sendJar(project, version, token))
+      withVersion(project, versionString).semiFlatMap(version => sendJar(project, version, token)).merge
     }
   }
 
@@ -711,21 +688,17 @@ class Versions @Inject()(stats: StatTracker,
     * @param versionString  Version name
     * @return               Sent file
     */
-  def downloadJarById(pluginId: String, versionString: String, token: Option[String]) = {
+  def downloadJarById(pluginId: String, versionString: String, optToken: Option[String]) = {
     ProjectAction(pluginId).async { implicit request =>
-      implicit val data = request.data
-      implicit val p = data.project
+      val project = request.data.project
       implicit val r = request.request
-      withVersionAsync(versionString) { version =>
-        if (token.isDefined) {
-          request.headers
-          confirmDownload0(version.id.get, Some(JarFile.id), token.get)(request.request).value.flatMap { _ =>
-            sendJar(data.project, version, token, api = true)
+      withVersion(project, versionString).semiFlatMap { version =>
+        optToken.map { token =>
+          confirmDownload0(version.id.get, Some(JarFile.id), token)(request.request).value.flatMap { _ =>
+            sendJar(project, version, optToken, api = true)
           }
-        } else {
-          sendJar(data.project, version, token, api = true)
-        }
-      }
+        }.getOrElse(sendJar(project, version, optToken, api = true))
+      }.merge
     }
   }
 
@@ -755,10 +728,9 @@ class Versions @Inject()(stats: StatTracker,
     */
   def downloadSignature(author: String, slug: String, versionString: String) = {
     ProjectAction(author, slug).async { implicit request =>
-      implicit val data = request.data
-      implicit val project = data.project
+      val project = request.data.project
       implicit val r = request.request
-      withVersion(versionString)(sendSignatureFile(_, project))
+      withVersion(project, versionString).map(sendSignatureFile(_, project)).merge
     }
   }
 
@@ -770,10 +742,9 @@ class Versions @Inject()(stats: StatTracker,
     * @return               Sent file
     */
   def downloadSignatureById(pluginId: String, versionString: String) = ProjectAction(pluginId).async { implicit request =>
-    implicit val data = request.data
-    implicit val project = data.project
+    val project = request.data.project
     implicit val r = request.request
-    withVersion(versionString)(sendSignatureFile(_, project))
+    withVersion(project, versionString).map(sendSignatureFile(_, project)).merge
   }
 
   /**

@@ -23,11 +23,13 @@ import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
 import slick.lifted.{Rep, TableQuery}
-import util.DataHelper
+import util.{DataHelper, EitherT}
 import views.{html => views}
 import util.instances.future._
 import util.syntax._
 import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.mvc.Result
 
 /**
   * Controller for handling Review related actions.
@@ -46,85 +48,86 @@ final class Reviews @Inject()(data: DataHelper,
   def showReviews(author: String, slug: String, versionString: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects) andThen ProjectAction(author, slug)).async { request =>
       implicit val r = request.request
-      implicit val data = request.data
-      implicit val p = data.project
+      implicit val p = request.data.project
 
-      withVersionAsync(versionString) { implicit version =>
-          version.mostRecentReviews.flatMap { reviews =>
-            val unfinished = reviews.filter(r => r.createdAt.isDefined && r.endedAt.isEmpty).sorted(Review.ordering2).headOption
-            Future.sequence(reviews.map { r =>
-              r.userBase.get(r.userId).map(_.name).value.map { u =>
-                (r, u)
-              }
-            }) map { rv =>
-              //implicit val m = messagesApi.preferred(request)
-              Ok(views.users.admin.reviews(unfinished, rv))
+      val res = for {
+        version <- withVersion(p, versionString)
+        reviews <- EitherT.right[Result](version.mostRecentReviews)
+        rv <- EitherT.right[Result](
+          Future.traverse(reviews) { r =>
+            r.userBase.get(r.userId).map(_.name).value.map { u =>
+              (r, u)
             }
           }
-        }
+        )
+      } yield {
+        val unfinished = reviews.filter(r => r.createdAt.isDefined && r.endedAt.isEmpty).sorted(Review.ordering2).headOption
+        Ok(views.users.admin.reviews(unfinished, rv))
       }
+
+      res.merge
   }
 
   def createReview(author: String, slug: String, versionString: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) async { implicit request =>
-      withProjectAsync(author, slug) { implicit project =>
-        withVersion(versionString) { implicit version =>
-          val review = new Review(Some(1), Some(Timestamp.from(Instant.now())), version.id.get, request.user.id.get, None, "")
-          this.service.insert(review)
-          Redirect(routes.Reviews.showReviews(author, slug, versionString))
-        }
-      }
+      withProjectVersion(author, slug, versionString).map { version =>
+        val review = new Review(Some(1), Some(Timestamp.from(Instant.now())), version.id.get, request.user.id.get, None, "")
+        this.service.insert(review)
+        Redirect(routes.Reviews.showReviews(author, slug, versionString))
+      }.merge
     }
   }
 
   def reopenReview(author: String, slug: String, versionString: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) async { implicit request =>
-      withProjectAsync(author, slug) { implicit project =>
-        withVersionAsync(versionString) { version =>
-          version.mostRecentReviews.map(_.headOption).map {
-            case None => NotFound
-            case Some(review) =>
-              version.setReviewed(false)
-              version.setApprovedAt(null)
-              version.setReviewerId(-1)
-              review.setEnded(None)
-              review.addMessage(Message("Reopened the review", System.currentTimeMillis(), "start"))
-              Redirect(routes.Reviews.showReviews(author, slug, versionString))
-          }
-        }
+      val res = for {
+        version <- withProjectVersion(author, slug, versionString)
+        review <- EitherT.fromOptionF(version.mostRecentReviews.map(_.headOption), notFound)
+      } yield {
+        version.setReviewed(false)
+        version.setApprovedAt(null)
+        version.setReviewerId(-1)
+        review.setEnded(None)
+        review.addMessage(Message("Reopened the review", System.currentTimeMillis(), "start"))
+        Redirect(routes.Reviews.showReviews(author, slug, versionString))
       }
+
+      res.merge
     }
   }
 
   def stopReview(author: String, slug: String, versionString: String) = {
     Authenticated andThen PermissionAction[AuthRequest](ReviewProjects) async { implicit request =>
-      withProjectAsync(author, slug) { implicit project =>
-        withVersionAsync(versionString) { version =>
-          version.mostRecentUnfinishedReview.map { review =>
-            review.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "stop"))
-            review.setEnded(Timestamp.from(Instant.now()))
-            Redirect(routes.Reviews.showReviews(author, slug, versionString))
-          }.getOrElse(NotFound)
-        }
+      val res = for {
+        version <- withProjectVersion(author, slug, versionString)
+        review <- version.mostRecentUnfinishedReview.toRight(notFound)
+      } yield {
+        review.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "stop"))
+        review.setEnded(Some(Timestamp.from(Instant.now())))
+        Redirect(routes.Reviews.showReviews(author, slug, versionString))
       }
+
+      res.merge
     }
   }
 
   def approveReview(author: String, slug: String, versionString: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) async { implicit request =>
-      withProjectAsync(author, slug) { implicit project =>
-        withVersionAsync(versionString) { version =>
-          version.mostRecentUnfinishedReview.semiFlatMap { review =>
-            (
-              review.setEnded(Some(Timestamp.from(Instant.now()))),
-              // send notification that review happened
-              sendReviewNotification(project, version, request.user)
-            ).parMapN { (_, _) =>
-              Redirect(routes.Reviews.showReviews(author, slug, versionString))
-            }
-          }.getOrElse(NotFound)
+      val res = for {
+        project <- withProject(author, slug)
+        version <- withVersion(project, versionString)
+        review <- version.mostRecentUnfinishedReview.toRight(notFound)
+      } yield {
+        (
+          review.setEnded(Some(Timestamp.from(Instant.now()))),
+          // send notification that review happened
+          sendReviewNotification(project, version, request.user)
+        ).parMapN { (_, _) =>
+          Redirect(routes.Reviews.showReviews(author, slug, versionString))
         }
       }
+
+      res.merge
     }
   }
 
@@ -183,55 +186,59 @@ final class Reviews @Inject()(data: DataHelper,
 
   def takeoverReview(author: String, slug: String, versionString: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
-      withProjectAsync(author, slug) { implicit project =>
-        withVersionAsync(versionString) { version =>
-          // Close old review
-          val closeOldReview = version.mostRecentUnfinishedReview.semiFlatMap { oldreview =>
-            (
-              oldreview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "takeover")),
-              oldreview.setEnded(Some(Timestamp.from(Instant.now()))),
-              this.service.insert(Review(Some(1), Some(Timestamp.from(Instant.now())), version.id.get, request.user.id.get, None, ""))
-            ).parMapN { (_, _, _) => () }
-          }.getOrElse(())
-
-          // Then make new one
+      val res = for {
+        version <- withProjectVersion(author, slug, versionString)
+      } yield {
+        // Close old review
+        val closeOldReview = version.mostRecentUnfinishedReview.semiFlatMap { oldreview =>
           (
-            closeOldReview,
+            oldreview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "takeover")),
+            oldreview.setEnded(Some(Timestamp.from(Instant.now()))),
             this.service.insert(Review(Some(1), Some(Timestamp.from(Instant.now())), version.id.get, request.user.id.get, None, ""))
-          ).parMapN { (_, _) =>
-            Redirect(routes.Reviews.showReviews(author, slug, versionString))
-          }
+          ).parMapN { (_, _, _) => () }
+        }.getOrElse(())
+
+        // Then make new one
+        (
+          closeOldReview,
+          this.service.insert(Review(Some(1), Some(Timestamp.from(Instant.now())), version.id.get, request.user.id.get, None, ""))
+        ).parMapN { (_, _) =>
+          Redirect(routes.Reviews.showReviews(author, slug, versionString))
         }
       }
+
+      res.merge
     }
   }
 
   def editReview(author: String, slug: String, versionString: String, reviewId: Int) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
-      withProjectAsync(author, slug) { implicit project =>
-        withVersionAsync(versionString) { version =>
-          version.reviewById(reviewId).map { review =>
-            review.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim))
-            Ok("Review" + review)
-          }.getOrElse(NotFound)
-        }
+      val res = for {
+        version <- withProjectVersion(author, slug, versionString)
+        review  <- version.reviewById(reviewId).toRight(notFound)
+      } yield {
+        review.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim))
+        Ok("Review" + review)
       }
+
+      res.merge
     }
   }
 
   def addMessage(author: String, slug: String, versionString: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
-      withProjectAsync(author, slug) { implicit project =>
-        withVersionAsync(versionString) { version =>
-          version.mostRecentUnfinishedReview.semiFlatMap { recentReview =>
-            users.current.semiFlatMap { currentUser =>
-              if (recentReview.userId == currentUser.userId) {
-                recentReview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim))
-              } else Future.successful(0)
-            }.getOrElse(1).map( _ => Ok("Review"))
-          }.getOrElse(Ok("Review"))
+      val ret = for {
+        version <- withProjectVersion(author, slug, versionString)
+        recentReview <- version.mostRecentUnfinishedReview.toRight(Ok("Review"))
+        currentUser <- users.current.toRight(Ok("Review"))
+        _ <- {
+          if (recentReview.userId == currentUser.userId) {
+            EitherT.right[Result](recentReview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim)))
+          } else EitherT.rightT[Future, Result](0)
         }
-      }
+      } yield Ok("Review")
+
+      ret.merge
     }
   }
 }
