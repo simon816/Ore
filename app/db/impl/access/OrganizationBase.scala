@@ -71,7 +71,7 @@ class OrganizationBase(override val service: ModelService,
         userOrg <- org.toUser.getOrElse(throw new IllegalStateException("User not created"))
         _ <- userOrg.pullForumData()
         _ <- userOrg.pullSpongeData()
-        _ <- userOrg.setGlobalRoles(userOrg.globalRoles + RoleTypes.Organization)
+        _ = userOrg.setGlobalRoles(userOrg.globalRoles + RoleTypes.Organization)
         _ <- // Add the owner
           org.memberships.addRole(OrganizationRole(
             userId = ownerId,

@@ -8,6 +8,7 @@ import ore.permission.scope.ScopeSubject
 import scala.concurrent.{ExecutionContext, Future}
 
 import util.FutureUtils
+import util.instances.future._
 
 /**
   * Permission wrapper used for chaining permission checks.

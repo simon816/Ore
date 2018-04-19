@@ -305,7 +305,7 @@ class Versions @Inject()(stats: StatTracker,
               this.factory.getPendingProject(author, slug) match {
                 case None =>
                   // No pending project, create version for existing project
-                  withProjectAsync(author, slug) { project =>
+                  getProject(author, slug).semiFlatMap { project =>
                     project.channels
                       .find(equalsIgnoreCase(_.name, pendingVersion.channelName))
                       .toRight(versionData.addTo(project).value)
@@ -325,7 +325,7 @@ class Versions @Inject()(stats: StatTracker,
                       }
                       .leftMap(error => Redirect(self.showCreatorWithMeta(author, slug, versionString)).withError(error))
                       .merge
-                  }
+                  }.merge
                 case Some(pendingProject) =>
                   // Found a pending project, create it with first version
                   pendingProject.complete.map { created =>

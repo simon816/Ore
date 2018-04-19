@@ -17,6 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import models.viewhelper.HeaderData.perms
 import util.functional.OptionT
+import util.instances.future._
 import util.syntax._
 
 /**

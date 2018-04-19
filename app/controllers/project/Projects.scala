@@ -658,11 +658,11 @@ class Projects @Inject()(stats: StatTracker,
     */
   def showNotes(author: String, slug: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewFlags)).async { implicit request =>
-      withProjectAsync(author, slug) { project =>
+      getProject(author, slug).semiFlatMap { project =>
         Future.sequence(project.getNotes().map(note => users.get(note.user).value.map(user => (note, user)))) map { notes =>
           Ok(views.admin.notes(project, notes))
         }
-      }
+      }.merge
     }
   }
 

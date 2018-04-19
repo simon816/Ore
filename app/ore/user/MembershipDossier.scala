@@ -74,8 +74,8 @@ trait MembershipDossier {
       user <- role.user
       exists <- this.roles.exists(_.userId === user.id.get)
       _ <- if(!exists) addMember(user) else Future.successful(user)
-      _ <- this.roleAccess.add(role)
-    } yield ()
+      ret <- this.roleAccess.add(role)
+    } yield ret
   }
 
   /**
