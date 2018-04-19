@@ -16,7 +16,7 @@ import views.html.projects.{channels => views}
 import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
-import util.EitherT
+import util.functional.EitherT
 import util.syntax._
 
 /**

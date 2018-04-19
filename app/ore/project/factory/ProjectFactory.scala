@@ -37,7 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 import scala.util.Try
 
-import util.{EitherT, OptionT}
+import util.functional.{EitherT, OptionT}
 
 /**
   * Manages the project and version creation pipeline.

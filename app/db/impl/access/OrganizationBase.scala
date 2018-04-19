@@ -10,9 +10,11 @@ import ore.user.notification.NotificationTypes
 import play.api.cache.AsyncCacheApi
 import play.api.i18n.{Lang, MessagesApi}
 import security.spauth.SpongeAuthApi
-import util.{EitherT, OptionT, StringUtils}
+import util.StringUtils
 import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
+
+import util.functional.{EitherT, OptionT}
 
 class OrganizationBase(override val service: ModelService,
                        forums: OreDiscourseApi,

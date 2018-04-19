@@ -16,7 +16,7 @@ import slick.lifted.TableQuery
 import scala.concurrent.{ExecutionContext, Future}
 
 import models.viewhelper.HeaderData.perms
-import util.OptionT
+import util.functional.OptionT
 import util.syntax._
 
 /**

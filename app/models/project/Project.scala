@@ -3,10 +3,10 @@ package models.project
 import java.sql.Timestamp
 import java.time.Instant
 
-import _root_.util.{StringUtils, OptionT}
+import _root_.util.StringUtils
 import _root_.util.StringUtils._
 import _root_.util.instances.future._
-
+import _root_.util.functional.OptionT
 import com.google.common.base.Preconditions._
 
 import db.access.ModelAccess

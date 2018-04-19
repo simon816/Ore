@@ -19,9 +19,11 @@ import models.user.User
 import ore.permission.scope.ProjectScope
 import ore.project.Dependency
 import play.twirl.api.Html
-import util.{FileUtils, OptionT}
+import util.FileUtils
 import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
+
+import util.functional.OptionT
 
 /**
   * Represents a single version of a Project.

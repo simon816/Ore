@@ -6,7 +6,7 @@ import db.{ModelSchema, ModelService}
 import models.user.User
 import scala.concurrent.{ExecutionContext, Future}
 
-import util.OptionT
+import util.functional.OptionT
 
 /**
   * User related queries.

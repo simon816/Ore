@@ -21,7 +21,8 @@ import slick.jdbc.JdbcBackend
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.higherKinds
 
-import util.{FutureUtils, OptionT}
+import util.FutureUtils
+import util.functional.OptionT
 import util.instances.future._
 import util.syntax._
 

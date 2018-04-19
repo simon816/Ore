@@ -28,9 +28,10 @@ import ore.OreConfig
 import ore.permission.scope.ProjectScope
 import play.twirl.api.Html
 import util.StringUtils._
-import util.OptionT
 import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
+
+import util.functional.OptionT
 
 /**
   * Represents a documentation page within a project.

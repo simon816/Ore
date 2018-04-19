@@ -23,13 +23,14 @@ import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
 import slick.lifted.{Rep, TableQuery}
-import util.{DataHelper, EitherT}
+import util.DataHelper
 import views.{html => views}
 import util.instances.future._
 import util.syntax._
 import scala.concurrent.{ExecutionContext, Future}
 
 import play.api.mvc.Result
+import util.functional.EitherT
 
 /**
   * Controller for handling Review related actions.
@@ -45,13 +46,13 @@ final class Reviews @Inject()(data: DataHelper,
                               implicit override val service: ModelService)(implicit val ec: ExecutionContext)
                               extends OreBaseController {
 
-  def showReviews(author: String, slug: String, versionString: String) = {
+  def showReviews(author: String, slug: String, versionString: String) =
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects) andThen ProjectAction(author, slug)).async { request =>
       implicit val r = request.request
       implicit val p = request.data.project
 
       val res = for {
-        version <- withVersion(p, versionString)
+        version <- getVersion(p, versionString)
         reviews <- EitherT.right[Result](version.mostRecentReviews)
         rv <- EitherT.right[Result](
           Future.traverse(reviews) { r =>
@@ -70,7 +71,7 @@ final class Reviews @Inject()(data: DataHelper,
 
   def createReview(author: String, slug: String, versionString: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) async { implicit request =>
-      withProjectVersion(author, slug, versionString).map { version =>
+      getProjectVersion(author, slug, versionString).map { version =>
         val review = new Review(Some(1), Some(Timestamp.from(Instant.now())), version.id.get, request.user.id.get, None, "")
         this.service.insert(review)
         Redirect(routes.Reviews.showReviews(author, slug, versionString))
@@ -81,7 +82,7 @@ final class Reviews @Inject()(data: DataHelper,
   def reopenReview(author: String, slug: String, versionString: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) async { implicit request =>
       val res = for {
-        version <- withProjectVersion(author, slug, versionString)
+        version <- getProjectVersion(author, slug, versionString)
         review <- EitherT.fromOptionF(version.mostRecentReviews.map(_.headOption), notFound)
       } yield {
         version.setReviewed(false)
@@ -99,7 +100,7 @@ final class Reviews @Inject()(data: DataHelper,
   def stopReview(author: String, slug: String, versionString: String) = {
     Authenticated andThen PermissionAction[AuthRequest](ReviewProjects) async { implicit request =>
       val res = for {
-        version <- withProjectVersion(author, slug, versionString)
+        version <- getProjectVersion(author, slug, versionString)
         review <- version.mostRecentUnfinishedReview.toRight(notFound)
       } yield {
         review.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "stop"))
@@ -114,8 +115,8 @@ final class Reviews @Inject()(data: DataHelper,
   def approveReview(author: String, slug: String, versionString: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) async { implicit request =>
       val res = for {
-        project <- withProject(author, slug)
-        version <- withVersion(project, versionString)
+        project <- getProject(author, slug)
+        version <- getVersion(project, versionString)
         review <- version.mostRecentUnfinishedReview.toRight(notFound)
       } yield {
         (
@@ -187,7 +188,7 @@ final class Reviews @Inject()(data: DataHelper,
   def takeoverReview(author: String, slug: String, versionString: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       val res = for {
-        version <- withProjectVersion(author, slug, versionString)
+        version <- getProjectVersion(author, slug, versionString)
       } yield {
         // Close old review
         val closeOldReview = version.mostRecentUnfinishedReview.semiFlatMap { oldreview =>
@@ -214,7 +215,7 @@ final class Reviews @Inject()(data: DataHelper,
   def editReview(author: String, slug: String, versionString: String, reviewId: Int) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       val res = for {
-        version <- withProjectVersion(author, slug, versionString)
+        version <- getProjectVersion(author, slug, versionString)
         review  <- version.reviewById(reviewId).toRight(notFound)
       } yield {
         review.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim))
@@ -228,7 +229,7 @@ final class Reviews @Inject()(data: DataHelper,
   def addMessage(author: String, slug: String, versionString: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       val ret = for {
-        version <- withProjectVersion(author, slug, versionString)
+        version <- getProjectVersion(author, slug, versionString)
         recentReview <- version.mostRecentUnfinishedReview.toRight(Ok("Review"))
         currentUser <- users.current.toRight(Ok("Review"))
         _ <- {

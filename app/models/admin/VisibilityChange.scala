@@ -11,7 +11,7 @@ import models.user.User
 import play.twirl.api.Html
 import scala.concurrent.{ExecutionContext, Future}
 
-import util.OptionT
+import util.functional.OptionT
 import util.instances.future._
 
 case class VisibilityChange(override val id: Option[Int] = None,

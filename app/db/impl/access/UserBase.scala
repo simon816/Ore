@@ -17,7 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import ore.permission.role
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
-import util.OptionT
+import util.functional.OptionT
 import util.instances.future._
 
 /**

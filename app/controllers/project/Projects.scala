@@ -28,7 +28,7 @@ import db.impl.OrePostgresDriver.api._
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-import util.OptionT
+import util.functional.OptionT
 import util.instances.future._
 import util.syntax._
 
@@ -613,7 +613,7 @@ class Projects @Inject()(stats: StatTracker,
     */
   def delete(author: String, slug: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](HardRemoveProject)).async { implicit request =>
-      withProject(author, slug).map { project =>
+      getProject(author, slug).map { project =>
         this.projects.delete(project)
         Redirect(ShowHome).withSuccess(this.messagesApi("project.deleted", project.name))
       }.merge
@@ -644,7 +644,7 @@ class Projects @Inject()(stats: StatTracker,
   def showFlags(author: String, slug: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewFlags)) andThen ProjectAction(author, slug) async { request =>
       implicit val r = request.request
-      withProject(author, slug).map { project =>
+      getProject(author, slug).map { project =>
         Ok(views.admin.flags(request.data))
       }.merge
     }
@@ -668,7 +668,7 @@ class Projects @Inject()(stats: StatTracker,
 
   def addMessage(author: String, slug: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
-      withProject(author, slug).map { project =>
+      getProject(author, slug).map { project =>
         project.addNote(Note(this.forms.NoteDescription.bindFromRequest.get.trim, request.user.userId))
         Ok("Review")
       }.merge

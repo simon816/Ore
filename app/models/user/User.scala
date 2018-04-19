@@ -31,7 +31,7 @@ import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.Breaks._
 
-import util.OptionT
+import util.functional.OptionT
 
 /**
   * Represents a Sponge user.

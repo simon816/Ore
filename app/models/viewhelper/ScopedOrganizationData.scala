@@ -7,7 +7,7 @@ import play.api.cache.AsyncCacheApi
 import slick.jdbc.JdbcBackend
 import scala.concurrent.{ExecutionContext, Future}
 
-import util.OptionT
+import util.functional.OptionT
 import util.instances.future._
 
 case class ScopedOrganizationData(permissions: Map[Permission, Boolean] = Map.empty)

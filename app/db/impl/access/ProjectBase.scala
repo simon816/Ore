@@ -15,10 +15,12 @@ import models.project.{Channel, Project, Version}
 import ore.project.io.ProjectFiles
 import ore.{OreConfig, OreEnv}
 import slick.lifted.TableQuery
-import util.{FileUtils, OptionT}
+import util.FileUtils
 import util.StringUtils._
 import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
+
+import util.functional.OptionT
 
 class ProjectBase(override val service: ModelService,
                   env: OreEnv,

@@ -37,7 +37,7 @@ import util.syntax._
 import views.html.projects.{versions => views}
 import scala.concurrent.{ExecutionContext, Future}
 
-import util.{EitherT, OptionT}
+import util.functional.{EitherT, OptionT}
 import util.instances.future._
 
 /**
@@ -74,7 +74,7 @@ class Versions @Inject()(stats: StatTracker,
   def show(author: String, slug: String, versionString: String) = ProjectAction(author, slug) async { request =>
     implicit val r = request.request
     val res = for {
-      version <- withVersion(request.data.project, versionString)
+      version <- getVersion(request.data.project, versionString)
       data <- EitherT.right[Result](VersionData.of(request, version))
       response <- EitherT.right[Result](this.stats.projectViewed(request)(request => Ok(views.view(data, request.scoped))))
     } yield response
@@ -93,7 +93,7 @@ class Versions @Inject()(stats: StatTracker,
   def saveDescription(author: String, slug: String, versionString: String) = {
     VersionEditAction(author, slug).async { request =>
       implicit val r = request.request
-      withVersion(request.data.project, versionString).map { version =>
+      getVersion(request.data.project, versionString).map { version =>
         version.setDescription(this.forms.VersionDescription.bindFromRequest.get.trim)
         Redirect(self.show(author, slug, versionString))
       }.merge
@@ -111,7 +111,7 @@ class Versions @Inject()(stats: StatTracker,
   def setRecommended(author: String, slug: String, versionString: String) = {
     VersionEditAction(author, slug).async { implicit request =>
       implicit val r = request.request
-      withVersion(request.data.project, versionString).map { version =>
+      getVersion(request.data.project, versionString).map { version =>
         request.data.project.setRecommendedVersion(version)
         Redirect(self.show(author, slug, versionString))
       }.merge
@@ -130,7 +130,7 @@ class Versions @Inject()(stats: StatTracker,
     (AuthedProjectAction(author, slug, requireUnlock = true)
       andThen ProjectPermissionAction(ReviewProjects)).async { implicit request =>
       implicit val r = request.request
-      withVersion(request.data.project, versionString).map { version =>
+      getVersion(request.data.project, versionString).map { version =>
         version.setReviewed(reviewed = true)
         version.setReviewer(request.user)
         version.setApprovedAt(this.service.theTime)
@@ -377,7 +377,7 @@ class Versions @Inject()(stats: StatTracker,
     VersionEditAction(author, slug).async { implicit request =>
       implicit val r = request.request
       implicit val p = request.data.project
-      withVersion(p, versionString).map { version =>
+      getVersion(p, versionString).map { version =>
         this.projects.deleteVersion(version)
         Redirect(self.showList(author, slug, None, None))
       }.merge
@@ -396,7 +396,7 @@ class Versions @Inject()(stats: StatTracker,
     ProjectAction(author, slug).async { implicit request =>
       val project = request.data.project
       implicit val r = request.request
-      withVersion(project, versionString).semiFlatMap { version =>
+      getVersion(project, versionString).semiFlatMap { version =>
         sendVersion(project, version, token)
       }.merge
     }
@@ -473,8 +473,7 @@ class Versions @Inject()(stats: StatTracker,
       val dlType = downloadType.flatMap(i => DownloadTypes.values.find(_.id == i)).getOrElse(DownloadTypes.UploadedFile)
       implicit val r = request.request
       val project = request.data.project
-
-      withVersion(project, target)
+      getVersion(project, target)
         .filterOrElse(_.isReviewed, Redirect(ShowProject(author, slug)))
         .semiFlatMap { version =>
           // generate a unique "warning" object to ensure the user has landed
@@ -532,7 +531,7 @@ class Versions @Inject()(stats: StatTracker,
   def confirmDownload(author: String, slug: String, target: String, downloadType: Option[Int], token: String) = {
     ProjectAction(author, slug) async { request =>
       implicit val r: OreRequest[_] = request.request
-      withVersion(request.data.project, target)
+      getVersion(request.data.project, target)
         .filterOrElse(_.isReviewed, Redirect(ShowProject(author, slug)))
         .flatMap(version => confirmDownload0(version.id.get, downloadType, token).toRight(Redirect(ShowProject(author, slug))))
         .map { dl =>
@@ -619,7 +618,7 @@ class Versions @Inject()(stats: StatTracker,
     ProjectAction(author, slug).async { implicit request =>
       val project = request.data.project
       implicit val r = request.request
-      withVersion(project, versionString).semiFlatMap(version => sendJar(project, version, token)).merge
+      getVersion(project, versionString).semiFlatMap(version => sendJar(project, version, token)).merge
     }
   }
 
@@ -692,7 +691,7 @@ class Versions @Inject()(stats: StatTracker,
     ProjectAction(pluginId).async { implicit request =>
       val project = request.data.project
       implicit val r = request.request
-      withVersion(project, versionString).semiFlatMap { version =>
+      getVersion(project, versionString).semiFlatMap { version =>
         optToken.map { token =>
           confirmDownload0(version.id.get, Some(JarFile.id), token)(request.request).value.flatMap { _ =>
             sendJar(project, version, optToken, api = true)
@@ -730,7 +729,7 @@ class Versions @Inject()(stats: StatTracker,
     ProjectAction(author, slug).async { implicit request =>
       val project = request.data.project
       implicit val r = request.request
-      withVersion(project, versionString).map(sendSignatureFile(_, project)).merge
+      getVersion(project, versionString).map(sendSignatureFile(_, project)).merge
     }
   }
 
@@ -744,7 +743,7 @@ class Versions @Inject()(stats: StatTracker,
   def downloadSignatureById(pluginId: String, versionString: String) = ProjectAction(pluginId).async { implicit request =>
     val project = request.data.project
     implicit val r = request.request
-    withVersion(project, versionString).map(sendSignatureFile(_, project)).merge
+    getVersion(project, versionString).map(sendSignatureFile(_, project)).merge
   }
 
   /**

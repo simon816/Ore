@@ -5,7 +5,7 @@ import db.{ModelFilter, ModelSchema, ModelService}
 import models.statistic.StatEntry
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
-import util.OptionT
+import util.functional.OptionT
 import util.instances.future._
 
 /**

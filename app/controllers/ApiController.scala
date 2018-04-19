@@ -9,7 +9,6 @@ import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.ProjectApiKeyTable
 import util.instances.future._
-import _root_.util.EitherT
 import form.OreForms
 import javax.inject.Inject
 
@@ -26,6 +25,7 @@ import ore.{OreConfig, OreEnv}
 import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesApi
 import util.StatusZ
+import util.functional.EitherT
 import play.api.libs.json._
 import play.api.mvc._
 import security.CryptoUtils

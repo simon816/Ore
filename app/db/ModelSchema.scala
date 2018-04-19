@@ -6,7 +6,7 @@ import db.table.{AssociativeTable, ModelAssociation, ModelTable}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
-import util.OptionT
+import util.functional.OptionT
 import util.instances.future._
 
 /**

@@ -19,9 +19,10 @@ import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.libs.json.Json.{obj, toJson}
 import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
 import util.StringUtils._
-import util.OptionT
 import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
+
+import util.functional.OptionT
 
 /**
   * The Ore API

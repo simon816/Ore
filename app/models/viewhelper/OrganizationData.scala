@@ -9,7 +9,7 @@ import play.api.cache.AsyncCacheApi
 import slick.jdbc.JdbcBackend
 import scala.concurrent.{ExecutionContext, Future}
 
-import util.OptionT
+import util.functional.OptionT
 import util.instances.future._
 
 case class OrganizationData(joinable: Organization,

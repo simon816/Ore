@@ -8,7 +8,6 @@ import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
-import util.OptionT
 import util.instances.future._
 import form.project.ProjectSettingsForm
 import models.user.Notification
@@ -23,6 +22,8 @@ import play.api.i18n.{Lang, MessagesApi}
 import slick.lifted.TableQuery
 import util.StringUtils._
 import scala.concurrent.{ExecutionContext, Future}
+
+import util.functional.OptionT
 
 /**
   * Represents a [[Project]]'s settings.

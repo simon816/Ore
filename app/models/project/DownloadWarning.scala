@@ -14,7 +14,7 @@ import models.project.DownloadWarning.COOKIE
 import play.api.mvc.Cookie
 import scala.concurrent.{ExecutionContext, Future}
 
-import util.OptionT
+import util.functional.OptionT
 import util.instances.future._
 
 /**

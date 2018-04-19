@@ -4,10 +4,9 @@ import db.ModelFilter.IdFilter
 import db.impl.OrePostgresDriver.api._
 import db.{Model, ModelFilter, ModelService}
 import slick.lifted.ColumnOrdered
-
 import scala.concurrent.{ExecutionContext, Future}
 
-import util.OptionT
+import util.functional.OptionT
 
 /**
   * Provides simple, synchronous, access to a ModelTable.

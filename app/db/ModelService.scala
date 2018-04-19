@@ -7,7 +7,6 @@ import db.ModelAction._
 import db.ModelFilter.IdFilter
 import db.access.ModelAccess
 import db.table.{MappedType, ModelTable}
-import util.OptionT
 import slick.ast.{AnonSymbol, Ref, SortBy}
 import slick.basic.DatabaseConfig
 import slick.jdbc.{JdbcProfile, JdbcType}
@@ -16,6 +15,8 @@ import slick.util.ConstArray
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success, Try}
+
+import util.functional.OptionT
 
 /**
   * Represents a service that creates, deletes, and manipulates Models.

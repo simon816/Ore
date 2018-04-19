@@ -28,10 +28,11 @@ import play.api.Logger
 import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
-import util.{DataHelper, OptionT}
+import util.DataHelper
 import views.{html => views}
 import scala.concurrent.{ExecutionContext, Future}
 
+import util.functional.OptionT
 import util.syntax._
 import util.instances.future._
 

@@ -14,7 +14,7 @@ import play.api.libs.ws.{WSClient, WSResponse}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
-import _root_.util.{EitherT, OptionT}
+import _root_.util.functional.{EitherT, OptionT}
 import _root_.util.instances.future._
 
 /**

@@ -6,7 +6,7 @@ import ore.OreConfig
 import ore.project.factory.ProjectFactory
 import scala.concurrent.{ExecutionContext, Future}
 
-import util.{EitherT, OptionT}
+import util.functional.{EitherT, OptionT}
 
 /**
   * Represents submitted [[Channel]] data.

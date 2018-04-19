@@ -17,7 +17,7 @@ import util.StringUtils._
 import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
-import util.EitherT
+import util.functional.EitherT
 
 /**
   * Represents a Secured base Controller for this application.
@@ -54,7 +54,7 @@ abstract class OreBaseController(implicit val env: OreEnv,
     * @param request  Incoming request
     * @return         NotFound or project
     */
-  def withProject(author: String, slug: String)(implicit request: OreRequest[_]): EitherT[Future, Result, Project]
+  def getProject(author: String, slug: String)(implicit request: OreRequest[_]): EitherT[Future, Result, Project]
   = this.projects.withSlug(author, slug).toRight(notFound)
 
   /**
@@ -65,7 +65,7 @@ abstract class OreBaseController(implicit val env: OreEnv,
     * @param request        Incoming request
     * @return               NotFound or function result
     */
-  def withVersion(project: Project, versionString: String)
+  def getVersion(project: Project, versionString: String)
                  (implicit request: OreRequest[_]): EitherT[Future, Result, Version]
   = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).toRight(notFound)
 
@@ -79,10 +79,10 @@ abstract class OreBaseController(implicit val env: OreEnv,
     * @param request        Incoming request
     * @return               NotFound or project
     */
-  def withProjectVersion(author: String, slug: String, versionString: String)(implicit request: OreRequest[_]): EitherT[Future, Result, Version]
+  def getProjectVersion(author: String, slug: String, versionString: String)(implicit request: OreRequest[_]): EitherT[Future, Result, Version]
   = for {
-    project <- withProject(author, slug)
-    version <- withVersion(project, versionString)
+    project <- getProject(author, slug)
+    version <- getVersion(project, versionString)
   } yield version
 
   def OreAction = Action andThen oreAction

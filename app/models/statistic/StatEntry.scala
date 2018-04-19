@@ -9,10 +9,11 @@ import db.Model
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
 import db.impl.table.StatTable
-import util.OptionT
 import util.instances.future._
 import models.user.User
 import scala.concurrent.{ExecutionContext, Future}
+
+import util.functional.OptionT
 
 /**
   * Represents a statistic entry in a StatTable.
