@@ -25,7 +25,9 @@ import ore.{OreConfig, OreEnv}
 import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesApi
 import util.StatusZ
-import util.functional.EitherT
+import util.functional.{EitherT, OptionT, Id}
+import util.instances.future._
+import util.syntax._
 import play.api.libs.json._
 import play.api.mvc._
 import security.CryptoUtils
@@ -85,46 +87,37 @@ final class ApiController @Inject()(api: OreRestfulApi,
     }
   }
 
-  def createKey(version: String, pluginId: String) = {
+  def createKey(version: String, pluginId: String) =
     (Action andThen AuthedProjectActionById(pluginId) andThen ProjectPermissionAction(EditApiKeys)) async { implicit request =>
-      val data = request.data
-      this.forms.ProjectApiKeyCreate.bindFromRequest().fold( _ => Future.successful(BadRequest),
-        {
-          case keyType@Deployment =>
-            this.projectApiKeys.exists(k => k.projectId === data.project.id.get && k.keyType === keyType)
-              .flatMap { exists =>
-                if (exists) Future.successful(BadRequest)
-                else {
-                  this.projectApiKeys.add(ProjectApiKey(
-                    projectId = data.project.id.get,
-                    keyType = keyType,
-                    value = UUID.randomUUID().toString.replace("-", ""))).map { pak =>
-                    Created(Json.toJson(pak))
-                  }
-                }
-              }
+      val projectId = request.data.project.id.get
+      val res = for {
+        keyType <- bindFormOptionT[Future](this.forms.ProjectApiKeyCreate)
+        if keyType == Deployment
+        exists <- OptionT.liftF(this.projectApiKeys.exists(k => k.projectId === projectId && k.keyType === keyType))
+        if !exists
+        pak <- OptionT.liftF(
+          this.projectApiKeys.add(ProjectApiKey(
+            projectId = projectId,
+            keyType = keyType,
+            value = UUID.randomUUID().toString.replace("-", "")))
+        )
+      } yield Created(Json.toJson(pak))
 
-          case _ => Future.successful(BadRequest)
-        }
-      )
+      res.getOrElse(BadRequest)
     }
-  }
 
-  def revokeKey(version: String, pluginId: String) = {
+  def revokeKey(version: String, pluginId: String) =
     (AuthedProjectActionById(pluginId) andThen ProjectPermissionAction(EditApiKeys)) { implicit request =>
-      this.forms.ProjectApiKeyRevoke.bindFromRequest().fold(
-        _ => BadRequest,
-        key => {
-          if (key.projectId != request.data.project.id.get)
-            BadRequest
-          else {
-            key.remove()
-            Ok
-          }
-        }
-      )
+      val res = for {
+        key <- bindFormOptionT[Id](this.forms.ProjectApiKeyRevoke)
+        if key.projectId == request.data.project.id.get
+      } yield {
+        key.remove()
+        Ok
+      }
+
+      res.getOrElse(BadRequest)
     }
-  }
 
   /**
     * Returns a JSON view of Versions meeting the specified criteria.
@@ -165,63 +158,60 @@ final class ApiController @Inject()(api: OreRestfulApi,
     version match {
       case "v1" =>
         val projectData = request.data
-        this.forms.VersionDeploy.bindFromRequest().fold(
-          hasErrors => Future.successful(BadRequest(Json.obj("errors" -> hasErrors.errorsAsJson))),
-          formData => {
 
-            val apiKeyTable = TableQuery[ProjectApiKeyTable]
-            def queryApiKey(deployment: Rep[ProjectApiKeyType], key: Rep[String], pId: Rep[Int]) = {
-              val query = for {
-                k <- apiKeyTable if k.value === key && k.projectId === pId && k.keyType === deployment
-              } yield {
-                k.id
-              }
-              query.exists
+        bindFormEitherT[Future](this.forms.VersionDeploy)(hasErrors => BadRequest(Json.obj("errors" -> hasErrors.errorsAsJson))).flatMap { formData =>
+          val apiKeyTable = TableQuery[ProjectApiKeyTable]
+          def queryApiKey(deployment: Rep[ProjectApiKeyType], key: Rep[String], pId: Rep[Int]) = {
+            val query = for {
+              k <- apiKeyTable if k.value === key && k.projectId === pId && k.keyType === deployment
+            } yield {
+              k.id
             }
+            query.exists
+          }
 
-            val compiled = Compiled(queryApiKey _)
+          val compiled = Compiled(queryApiKey _)
 
-            val apiKeyExists: Future[Boolean] = this.service.DB.db.run(compiled(Deployment, formData.apiKey, projectData.project.id.get).result)
+          val apiKeyExists: Future[Boolean] = this.service.DB.db.run(compiled(Deployment, formData.apiKey, projectData.project.id.get).result)
 
-            EitherT.liftF(apiKeyExists)
-              .filterOrElse(apiKey => !apiKey, Unauthorized(error("apiKey", "api.deploy.invalidKey")))
-              .semiFlatMap(_ => projectData.project.versions.exists(_.versionString === name))
-              .filterOrElse(identity, BadRequest(error("versionName", "api.deploy.versionExists")))
-              .semiFlatMap(_ => projectData.project.owner.user)
-              .semiFlatMap(user => user.toMaybeOrganization.semiFlatMap(_.owner.user).getOrElse(user))
-              .flatMap { owner =>
+          EitherT.liftF(apiKeyExists)
+            .filterOrElse(apiKey => !apiKey, Unauthorized(error("apiKey", "api.deploy.invalidKey")))
+            .semiFlatMap(_ => projectData.project.versions.exists(_.versionString === name))
+            .filterOrElse(identity, BadRequest(error("versionName", "api.deploy.versionExists")))
+            .semiFlatMap(_ => projectData.project.owner.user)
+            .semiFlatMap(user => user.toMaybeOrganization.semiFlatMap(_.owner.user).getOrElse(user))
+            .flatMap { owner =>
 
-                val pluginUpload = this.factory.getUploadError(owner)
-                  .map(err => BadRequest(error("user", err)))
-                  .toLeft(PluginUpload.bindFromRequest())
-                  .flatMap(_.toRight(BadRequest(error("files", "error.noFile"))))
+              val pluginUpload = this.factory.getUploadError(owner)
+                .map(err => BadRequest(error("user", err)))
+                .toLeft(PluginUpload.bindFromRequest())
+                .flatMap(_.toRight(BadRequest(error("files", "error.noFile"))))
 
-                EitherT.fromEither[Future](pluginUpload).flatMap { data =>
-                  //TODO: We should get rid of this try
-                  try {
-                    this.factory
-                      .processSubsequentPluginUpload(data, owner, projectData.project)
-                      .leftMap(err => BadRequest(error("upload", err)))
-                  }
-                  catch {
-                    case e: InvalidPluginFileException =>
-                      EitherT.leftT[Future, PendingVersion](BadRequest(error("upload", e.getMessage)))
-                  }
+              EitherT.fromEither[Future](pluginUpload).flatMap { data =>
+                //TODO: We should get rid of this try
+                try {
+                  this.factory
+                    .processSubsequentPluginUpload(data, owner, projectData.project)
+                    .leftMap(err => BadRequest(error("upload", err)))
+                }
+                catch {
+                  case e: InvalidPluginFileException =>
+                    EitherT.leftT[Future, PendingVersion](BadRequest(error("upload", e.getMessage)))
                 }
               }
-              .semiFlatMap { pendingVersion =>
-                pendingVersion.createForumPost = formData.createForumPost
-                pendingVersion.channelName = formData.channel.name
-                formData.changelog.foreach(pendingVersion.underlying.setDescription)
-                pendingVersion.complete()
-              }
-              .map { case (newVersion, channel, tags) =>
-                if (formData.recommended)
-                  projectData.project.setRecommendedVersion(newVersion)
-                Created(api.writeVersion(newVersion, projectData.project, channel, None, tags))
-              }.merge
-          }
-        )
+            }
+            .semiFlatMap { pendingVersion =>
+              pendingVersion.createForumPost = formData.createForumPost
+              pendingVersion.channelName = formData.channel.name
+              formData.changelog.foreach(pendingVersion.underlying.setDescription)
+              pendingVersion.complete()
+            }
+            .map { case (newVersion, channel, tags) =>
+              if (formData.recommended)
+                projectData.project.setRecommendedVersion(newVersion)
+              Created(api.writeVersion(newVersion, projectData.project, channel, None, tags))
+            }
+        }.merge
       case _ => Future.successful(NotFound)
     }
   }

@@ -84,4 +84,10 @@ object OptionT {
   }
 
   def liftF[F[_], A](fa: F[A])(implicit F: Functor[F]): OptionT[F, A] = OptionT(fa.map(Some(_)))
+
+  implicit def optionTMonad[F[_]: Monad]: Monad[({type λ[A] = OptionT[F, A]})#λ] = new Monad[({type λ[A] = OptionT[F, A]})#λ] {
+    override def flatMap[A, B](fa: OptionT[F, A])(f: A => OptionT[F, B]): OptionT[F, B] = fa.flatMap(f)
+    override def pure[A](a: A): OptionT[F, A] = OptionT.pure[F](a)
+    override def map[A, B](fa: OptionT[F, A])(f: A => B): OptionT[F, B] = fa.map(f)
+  }
 }

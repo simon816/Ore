@@ -93,10 +93,15 @@ class Versions @Inject()(stats: StatTracker,
   def saveDescription(author: String, slug: String, versionString: String) = {
     VersionEditAction(author, slug).async { request =>
       implicit val r = request.request
-      getVersion(request.data.project, versionString).map { version =>
-        version.setDescription(this.forms.VersionDescription.bindFromRequest.get.trim)
+      val res = for {
+        version <- getVersion(request.data.project, versionString)
+        description <- bindFormEitherT[Future](this.forms.VersionDescription)(_ => BadRequest)
+      } yield {
+        version.setDescription(description.trim)
         Redirect(self.show(author, slug, versionString))
-      }.merge
+      }
+
+      res.merge
     }
   }
 

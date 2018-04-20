@@ -146,4 +146,10 @@ object EitherT {
     def apply[E, A](test: Boolean, right: => A, left: => E)(implicit F: Applicative[F]): EitherT[F, E, A] =
       EitherT(F.pure(Either.cond(test, right, left)))
   }
+
+  implicit def eitherTMonad[F[_]: Monad, L]: Monad[({type λ[R] = EitherT[F, L, R]})#λ] = new Monad[({type λ[B] = EitherT[F, L, B]})#λ] {
+    override def flatMap[A, B](fa: EitherT[F, L, A])(f: A => EitherT[F, L, B]): EitherT[F, L, B] = fa.flatMap(f)
+    override def pure[A](a: A): EitherT[F, L, A] = EitherT.pure[F, L](a)
+    override def map[A, B](fa: EitherT[F, L, A])(f: A => B): EitherT[F, L, B] = fa.map(f)
+  }
 }

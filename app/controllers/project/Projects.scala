@@ -28,7 +28,8 @@ import db.impl.OrePostgresDriver.api._
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-import util.functional.OptionT
+import play.api.mvc.Result
+import util.functional.{EitherT, Id, OptionT}
 import util.instances.future._
 import util.syntax._
 
@@ -188,14 +189,16 @@ class Projects @Inject()(stats: StatTracker,
     * @return Redirection to project page if successful
     */
   def showFirstVersionCreator(author: String, slug: String) = UserLock() { implicit request =>
-    this.factory.getPendingProject(author, slug) match {
-      case None =>
-        Redirect(self.showCreator())
-      case Some(pendingProject) =>
-        pendingProject.roles = this.forms.ProjectMemberRoles.bindFromRequest.get.build()
-        val pendingVersion = pendingProject.pendingVersion
-        Redirect(routes.Versions.showCreatorWithMeta(author, slug, pendingVersion.underlying.versionString))
+    val res = for {
+      pendingProject <- EitherT.fromOption[Id](this.factory.getPendingProject(author, slug), Redirect(self.showCreator()))
+      roles <- bindFormEitherT[Id](this.forms.ProjectMemberRoles)(_ => BadRequest)
+    } yield {
+      pendingProject.roles = roles.build()
+      val pendingVersion = pendingProject.pendingVersion
+      Redirect(routes.Versions.showCreatorWithMeta(author, slug, pendingVersion.underlying.versionString))
     }
+
+    res.merge
   }
 
   /**
@@ -487,10 +490,15 @@ class Projects @Inject()(stats: StatTracker,
     * @param slug   Project slug
     */
   def removeMember(author: String, slug: String) = SettingsEditAction(author, slug).async { implicit request =>
-    this.users.withName(this.forms.ProjectMemberRemove.bindFromRequest.get.trim).map { user =>
+    val res = for {
+      name <- bindFormOptionT[Future](this.forms.ProjectMemberRemove)
+      user <- this.users.withName(name)
+    } yield {
       request.data.project.memberships.removeMember(user)
       Redirect(self.showSettings(author, slug))
-    }.getOrElse(BadRequest)
+    }
+
+    res.getOrElse(BadRequest)
   }
 
   /**
@@ -523,15 +531,16 @@ class Projects @Inject()(stats: StatTracker,
     * @return Project homepage
     */
   def rename(author: String, slug: String) = SettingsEditAction(author, slug).async { implicit request =>
-    val newName = compact(this.forms.ProjectRename.bindFromRequest.get)
-    projects.isNamespaceAvailable(author, slugify(newName)).flatMap {
-      case false => Future.successful(Redirect(self.showSettings(author, slug)).withError("error.nameUnavailable"))
-      case true =>
-        val data = request.data
-        this.projects.rename(data.project, newName).map { _ =>
-          Redirect(self.show(author, data.project.slug))
-        }
-    }
+    val project = request.data.project
+
+    val res = for {
+      newName <- bindFormEitherT[Future](this.forms.ProjectRename)(_ => BadRequest).map(compact)
+      available <- EitherT.right[Result](projects.isNamespaceAvailable(author, slugify(newName)))
+      _ <- EitherT.cond[Future](available, (), Redirect(self.showSettings(author, slug)).withError("error.nameUnavailable"))
+      _ <- EitherT.right[Result](this.projects.rename(project, newName))
+    } yield Redirect(self.show(author, project.slug))
+
+    res.merge
   }
 
   /**
@@ -668,10 +677,15 @@ class Projects @Inject()(stats: StatTracker,
 
   def addMessage(author: String, slug: String) = {
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
-      getProject(author, slug).map { project =>
-        project.addNote(Note(this.forms.NoteDescription.bindFromRequest.get.trim, request.user.userId))
+      val res = for {
+        project <- getProject(author, slug)
+        description <- bindFormEitherT[Future](this.forms.NoteDescription)(_ => BadRequest)
+      } yield {
+        project.addNote(Note(description.trim, request.user.userId))
         Ok("Review")
-      }.merge
+      }
+
+      res.merge
     }
   }
 }

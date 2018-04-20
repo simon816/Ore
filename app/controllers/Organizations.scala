@@ -17,6 +17,8 @@ import views.{html => views}
 import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
+import util.functional.Id
+
 /**
   * Controller for handling Organization based actions.
   */
@@ -67,15 +69,12 @@ class Organizations @Inject()(forms: OreForms,
       else if (!this.config.orgs.get[Boolean]("enabled"))
         Future.successful(Redirect(failCall).withError("error.org.disabled"))
       else {
-        this.forms.OrganizationCreate.bindFromRequest().fold(
-          hasErrors => Future.successful(FormError(failCall, hasErrors)),
-          formData => {
-            this.organizations.create(formData.name, user.id.get, formData.build()).bimap(
-              error => Redirect(failCall).withError(error),
-              organization => Redirect(routes.Users.showProjects(organization.name, None))
-            ).merge
-          }
-        )
+        bindFormEitherT[Future](this.forms.OrganizationCreate)(hasErrors => FormError(failCall, hasErrors)).flatMap { formData =>
+          this.organizations.create(formData.name, user.id.get, formData.build()).bimap(
+            error => Redirect(failCall).withError(error),
+            organization => Redirect(routes.Users.showProjects(organization.name, None))
+          )
+        }.merge
       }
     }
   }
@@ -127,10 +126,15 @@ class Organizations @Inject()(forms: OreForms,
     * @return             Redirect to Organization page
     */
   def removeMember(organization: String) = EditOrganizationAction(organization).async { implicit request =>
-    this.users.withName(this.forms.OrganizationMemberRemove.bindFromRequest.get.trim).map { user =>
+    val res = for {
+      name <- bindFormOptionT[Future](this.forms.OrganizationMemberRemove)
+      user <- this.users.withName(name)
+    } yield {
       request.data.orga.memberships.removeMember(user)
       Redirect(ShowUser(organization))
-    }.getOrElse(BadRequest)
+    }
+
+    res.getOrElse(BadRequest)
   }
 
   /**
@@ -140,8 +144,10 @@ class Organizations @Inject()(forms: OreForms,
     * @return             Redirect to Organization page
     */
   def updateMembers(organization: String) = EditOrganizationAction(organization) { implicit request =>
-    this.forms.OrganizationUpdateMembers.bindFromRequest.get.saveTo(request.data.orga)
-    Redirect(ShowUser(organization))
+    bindFormOptionT[Id](this.forms.OrganizationUpdateMembers).map { update =>
+      update.saveTo(request.data.orga)
+      Redirect(ShowUser(organization))
+    }.getOrElse(BadRequest)
   }
 
 }

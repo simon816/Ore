@@ -64,15 +64,12 @@ class Channels @Inject()(forms: OreForms,
     * @return Redirect to view of channels
     */
   def create(author: String, slug: String) = ChannelEditAction(author, slug).async { implicit request =>
-    this.forms.ChannelEdit.bindFromRequest.fold(
-      hasErrors => Future.successful(Redirect(self.showList(author, slug)).withError(hasErrors.errors.head.message)),
-      channelData => {
-        channelData.addTo(request.data.project).fold(
-          error => Redirect(self.showList(author, slug)).withError(error),
-          _ => Redirect(self.showList(author, slug))
-        )
-      }
-    )
+    val res = for {
+      channelData <- bindFormEitherT[Future](this.forms.ChannelEdit)(hasErrors => Redirect(self.showList(author, slug)).withError(hasErrors.errors.head.message))
+      _ <- channelData.addTo(request.data.project).leftMap(error => Redirect(self.showList(author, slug)).withError(error))
+    } yield Redirect(self.showList(author, slug))
+
+    res.merge
   }
 
   /**
@@ -84,18 +81,12 @@ class Channels @Inject()(forms: OreForms,
     * @return View of channels
     */
   def save(author: String, slug: String, channelName: String) = ChannelEditAction(author, slug).async { implicit request =>
-    implicit val data = request.data
-    this.forms.ChannelEdit.bindFromRequest.fold(
-      hasErrors =>
-        Future.successful(Redirect(self.showList(author, slug)).withError(hasErrors.errors.head.message)),
-      channelData => {
-        implicit val p = data.project
-        channelData.saveTo(channelName).cata(
-          Redirect(self.showList(author, slug)),
-          error => Redirect(self.showList(author, slug)).withError(error)
-        )
-      }
-    )
+    val res = for {
+      channelData <- bindFormEitherT[Future](this.forms.ChannelEdit)(hasErrors => Redirect(self.showList(author, slug)).withError(hasErrors.errors.head.message))
+      _ <- channelData.saveTo(channelName).toLeft(()).leftMap(error => Redirect(self.showList(author, slug)).withError(error))
+    } yield Redirect(self.showList(author, slug))
+
+    res.merge
   }
 
   /**

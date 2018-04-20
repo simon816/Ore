@@ -16,8 +16,11 @@ import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
 import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.higherKinds
 
-import util.functional.EitherT
+import controllers.OreBaseController.{BindFormEitherTPartiallyApplied, BindFormOptionTPartiallyApplied}
+import play.api.data.Form
+import util.functional.{EitherT, Functor, OptionT}
 
 /**
   * Represents a Secured base Controller for this application.
@@ -84,6 +87,10 @@ abstract class OreBaseController(implicit val env: OreEnv,
     project <- getProject(author, slug)
     version <- getVersion(project, versionString)
   } yield version
+
+  def bindFormEitherT[F[_]] = new BindFormEitherTPartiallyApplied[F]
+
+  def bindFormOptionT[F[_]] = new BindFormOptionTPartiallyApplied[F]
 
   def OreAction = Action andThen oreAction
 
@@ -169,4 +176,16 @@ abstract class OreBaseController(implicit val env: OreEnv,
   def VerifiedAction(username: String, sso: Option[String], sig: Option[String])
   = UserAction(username) andThen verifiedAction(sso, sig)
 
+}
+object OreBaseController {
+
+  final class BindFormEitherTPartiallyApplied[F[_]](val b: Boolean = true) extends AnyVal {
+    def apply[A, B](form: Form[B])(left: Form[B] => A)(implicit F: Functor[F], request: Request[_]): EitherT[F, A, B] =
+      form.bindFromRequest().fold(left.andThen(EitherT.leftT[F, B](_)), EitherT.rightT[F, A](_))
+  }
+
+  final class BindFormOptionTPartiallyApplied[F[_]](val b: Boolean = true) extends AnyVal {
+    def apply[A](form: Form[A])(implicit F: Functor[F], request: Request[_]): OptionT[F, A] =
+      form.bindFromRequest().fold(_ => OptionT.none[F, A], OptionT.some[F](_))
+  }
 }

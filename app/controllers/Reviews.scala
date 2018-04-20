@@ -103,8 +103,9 @@ final class Reviews @Inject()(data: DataHelper,
       val res = for {
         version <- getProjectVersion(author, slug, versionString)
         review <- version.mostRecentUnfinishedReview.toRight(notFound)
+        message <- bindFormEitherT[Future](this.forms.ReviewDescription)(_ => BadRequest)
       } yield {
-        review.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "stop"))
+        review.addMessage(Message(message.trim, System.currentTimeMillis(), "stop"))
         review.setEnded(Some(Timestamp.from(Instant.now())))
         Redirect(routes.Reviews.showReviews(author, slug, versionString))
       }
@@ -191,11 +192,12 @@ final class Reviews @Inject()(data: DataHelper,
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       val ret = for {
         version <- getProjectVersion(author, slug, versionString)
+        message <- bindFormEitherT[Future](this.forms.ReviewDescription)(_ => BadRequest)
         res <- {
           // Close old review
           val closeOldReview = version.mostRecentUnfinishedReview.semiFlatMap { oldreview =>
             (
-              oldreview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim, System.currentTimeMillis(), "takeover")),
+              oldreview.addMessage(Message(message.trim, System.currentTimeMillis(), "takeover")),
               oldreview.setEnded(Some(Timestamp.from(Instant.now()))),
               this.service.insert(Review(Some(1), Some(Timestamp.from(Instant.now())), version.id.get, request.user.id.get, None, ""))
             ).parMapN { (_, _, _) => () }
@@ -221,8 +223,9 @@ final class Reviews @Inject()(data: DataHelper,
       val res = for {
         version <- getProjectVersion(author, slug, versionString)
         review  <- version.reviewById(reviewId).toRight(notFound)
+        message <- bindFormEitherT[Future](this.forms.ReviewDescription)(_ => BadRequest)
       } yield {
-        review.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim))
+        review.addMessage(Message(message.trim))
         Ok("Review" + review)
       }
 
@@ -236,9 +239,10 @@ final class Reviews @Inject()(data: DataHelper,
         version <- getProjectVersion(author, slug, versionString)
         recentReview <- version.mostRecentUnfinishedReview.toRight(Ok("Review"))
         currentUser <- users.current.toRight(Ok("Review"))
+        message <- bindFormEitherT[Future](this.forms.ReviewDescription)(_ => BadRequest)
         _ <- {
           if (recentReview.userId == currentUser.userId) {
-            EitherT.right[Result](recentReview.addMessage(Message(this.forms.ReviewDescription.bindFromRequest.get.trim)))
+            EitherT.right[Result](recentReview.addMessage(Message(message.trim)))
           } else EitherT.rightT[Future, Result](0)
         }
       } yield Ok("Review")

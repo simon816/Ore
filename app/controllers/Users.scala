@@ -183,16 +183,21 @@ class Users @Inject()(fakeUser: FakeUser,
     * @return           View of user page
     */
   def saveTagline(username: String) = UserAction(username).async { implicit request =>
-    val tagline = this.forms.UserTagline.bindFromRequest.get.trim
     val maxLen = this.config.users.get[Int]("max-tagline-len")
-    this.users.withName(username).map { user =>
+
+    val res = for {
+      user <- this.users.withName(username).toRight(NotFound)
+      tagline <- bindFormEitherT[Future](this.forms.UserTagline)(_ => BadRequest)
+    } yield {
       if (tagline.length > maxLen) {
         Redirect(ShowUser(user)).flashing("error" -> this.messagesApi("error.tagline.tooLong", maxLen))
       } else {
         user.setTagline(tagline)
         Redirect(ShowUser(user))
       }
-    }.getOrElse(NotFound)
+    }
+
+    res.merge
   }
 
   /**
