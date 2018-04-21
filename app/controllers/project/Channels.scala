@@ -16,6 +16,7 @@ import views.html.projects.{channels => views}
 import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
+import models.project.Project
 import util.functional.EitherT
 import util.syntax._
 
@@ -81,6 +82,8 @@ class Channels @Inject()(forms: OreForms,
     * @return View of channels
     */
   def save(author: String, slug: String, channelName: String) = ChannelEditAction(author, slug).async { implicit request =>
+    implicit val project: Project = request.data.project
+
     val res = for {
       channelData <- bindFormEitherT[Future](this.forms.ChannelEdit)(hasErrors => Redirect(self.showList(author, slug)).withError(hasErrors.errors.head.message))
       _ <- channelData.saveTo(channelName).toLeft(()).leftMap(error => Redirect(self.showList(author, slug)).withError(error))

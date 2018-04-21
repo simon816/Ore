@@ -20,7 +20,7 @@ import scala.language.higherKinds
 
 import controllers.OreBaseController.{BindFormEitherTPartiallyApplied, BindFormOptionTPartiallyApplied}
 import play.api.data.Form
-import util.functional.{EitherT, Functor, OptionT}
+import util.functional.{EitherT, Functor, Monad, OptionT}
 
 /**
   * Represents a Secured base Controller for this application.
@@ -180,12 +180,12 @@ abstract class OreBaseController(implicit val env: OreEnv,
 object OreBaseController {
 
   final class BindFormEitherTPartiallyApplied[F[_]](val b: Boolean = true) extends AnyVal {
-    def apply[A, B](form: Form[B])(left: Form[B] => A)(implicit F: Functor[F], request: Request[_]): EitherT[F, A, B] =
+    def apply[A, B](form: Form[B])(left: Form[B] => A)(implicit F: Monad[F], request: Request[_]): EitherT[F, A, B] =
       form.bindFromRequest().fold(left.andThen(EitherT.leftT[F, B](_)), EitherT.rightT[F, A](_))
   }
 
   final class BindFormOptionTPartiallyApplied[F[_]](val b: Boolean = true) extends AnyVal {
-    def apply[A](form: Form[A])(implicit F: Functor[F], request: Request[_]): OptionT[F, A] =
+    def apply[A](form: Form[A])(implicit F: Monad[F], request: Request[_]): OptionT[F, A] =
       form.bindFromRequest().fold(_ => OptionT.none[F, A], OptionT.some[F](_))
   }
 }

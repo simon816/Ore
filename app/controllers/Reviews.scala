@@ -103,7 +103,7 @@ final class Reviews @Inject()(data: DataHelper,
       val res = for {
         version <- getProjectVersion(author, slug, versionString)
         review <- version.mostRecentUnfinishedReview.toRight(notFound)
-        message <- bindFormEitherT[Future](this.forms.ReviewDescription)(_ => BadRequest)
+        message <- bindFormEitherT[Future](this.forms.ReviewDescription)(_ => BadRequest: Result)
       } yield {
         review.addMessage(Message(message.trim, System.currentTimeMillis(), "stop"))
         review.setEnded(Some(Timestamp.from(Instant.now())))
@@ -223,7 +223,7 @@ final class Reviews @Inject()(data: DataHelper,
       val res = for {
         version <- getProjectVersion(author, slug, versionString)
         review  <- version.reviewById(reviewId).toRight(notFound)
-        message <- bindFormEitherT[Future](this.forms.ReviewDescription)(_ => BadRequest)
+        message <- bindFormEitherT[Future](this.forms.ReviewDescription)(_ => BadRequest: Result)
       } yield {
         review.addMessage(Message(message.trim))
         Ok("Review" + review)

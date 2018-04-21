@@ -191,7 +191,7 @@ class Projects @Inject()(stats: StatTracker,
   def showFirstVersionCreator(author: String, slug: String) = UserLock() { implicit request =>
     val res = for {
       pendingProject <- EitherT.fromOption[Id](this.factory.getPendingProject(author, slug), Redirect(self.showCreator()))
-      roles <- bindFormEitherT[Id](this.forms.ProjectMemberRoles)(_ => BadRequest)
+      roles <- bindFormEitherT[Id](this.forms.ProjectMemberRoles)(_ => BadRequest: Result)
     } yield {
       pendingProject.roles = roles.build()
       val pendingVersion = pendingProject.pendingVersion
@@ -679,7 +679,7 @@ class Projects @Inject()(stats: StatTracker,
     (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       val res = for {
         project <- getProject(author, slug)
-        description <- bindFormEitherT[Future](this.forms.NoteDescription)(_ => BadRequest)
+        description <- bindFormEitherT[Future](this.forms.NoteDescription)(_ => BadRequest: Result)
       } yield {
         project.addNote(Note(description.trim, request.user.userId))
         Ok("Review")

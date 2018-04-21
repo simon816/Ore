@@ -95,7 +95,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val r = request.request
       val res = for {
         version <- getVersion(request.data.project, versionString)
-        description <- bindFormEitherT[Future](this.forms.VersionDescription)(_ => BadRequest)
+        description <- bindFormEitherT[Future](this.forms.VersionDescription)(_ => BadRequest: Result)
       } yield {
         version.setDescription(description.trim)
         Redirect(self.show(author, slug, versionString))
