@@ -5,3 +5,4 @@ trait AllInstances
     with OptionInstances
     with EitherInstances
     with DBIOInstances
+    with SeqInstances

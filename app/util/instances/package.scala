@@ -7,4 +7,5 @@ package object instances {
   object option extends OptionInstances
   object either extends EitherInstances
   object dbio extends DBIOInstances
+  object seq extends SeqInstances
 }
