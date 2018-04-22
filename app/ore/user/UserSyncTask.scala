@@ -4,8 +4,8 @@ import akka.actor.ActorSystem
 import db.ModelService
 import db.impl.access.UserBase
 import javax.inject.{Inject, Singleton}
-
 import ore.OreConfig
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 

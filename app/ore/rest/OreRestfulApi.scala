@@ -8,7 +8,6 @@ import db.impl._
 import db.impl.access.{ProjectBase, UserBase}
 import db.impl.schema.{ProjectSchema, ProjectTag}
 import javax.inject.Inject
-
 import models.project._
 import models.user.User
 import models.user.role.ProjectRole

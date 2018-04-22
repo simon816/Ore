@@ -8,9 +8,6 @@ import db.impl.OrePostgresDriver.api._
 import form.organization.{OrganizationAvatarUpdate, OrganizationMembersUpdate, OrganizationRoleSetBuilder}
 import form.project._
 import javax.inject.Inject
-
-import scala.concurrent.ExecutionContext
-
 import models.api.ProjectApiKey
 import models.project.{Channel, Page}
 import models.project.Page._
@@ -23,6 +20,8 @@ import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 import play.api.data.{Form, FormError}
+
+import scala.concurrent.ExecutionContext
 import scala.util.Try
 
 /**

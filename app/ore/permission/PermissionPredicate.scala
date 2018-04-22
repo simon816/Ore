@@ -5,6 +5,7 @@ import models.project.Project
 import models.user.User
 import ore.permission.role.RoleTypes
 import ore.permission.scope.ScopeSubject
+
 import scala.concurrent.{ExecutionContext, Future}
 
 import util.FutureUtils

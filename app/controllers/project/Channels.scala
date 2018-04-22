@@ -5,7 +5,6 @@ import controllers.sugar.Bakery
 import db.ModelService
 import form.OreForms
 import javax.inject.Inject
-
 import ore.permission.EditChannels
 import ore.project.factory.ProjectFactory
 import ore.{OreConfig, OreEnv}
@@ -108,15 +107,15 @@ class Channels @Inject()(forms: OreForms,
       .flatMap { channels =>
         EitherT.fromEither[Future](channels.find(c => c.name.equals(channelName)).toRight(NotFound))
           .semiFlatMap { channel =>
-            (channel.versions.nonEmpty, Future.sequence(channels.map(_.versions.nonEmpty)).map(l => l.count(_ == true))).parMapN {
-              (nonEmpty, channelCount) => (nonEmpty, channelCount, channel)
-            }
+            (channel.versions.nonEmpty, Future.sequence(channels.map(_.versions.nonEmpty)).map(l => l.count(_ == true)))
+              .parTupled
+              .tupleRight(channel)
           }
           .filterOrElse(
-            { case (nonEmpty, channelCount, _) => nonEmpty && channelCount == 1},
+            { case ((nonEmpty, channelCount), _) => nonEmpty && channelCount == 1},
             Redirect(self.showList(author, slug)).withError("error.channel.lastNonEmpty")
           )
-          .map(_._3)
+          .map(_._2)
           .filterOrElse(
             channel => {
               val reviewedChannels = channels.filter(!_.isNonReviewed)

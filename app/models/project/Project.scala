@@ -8,7 +8,6 @@ import _root_.util.StringUtils._
 import _root_.util.instances.future._
 import _root_.util.functional.OptionT
 import com.google.common.base.Preconditions._
-
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl._
@@ -36,7 +35,9 @@ import play.api.libs.json._
 import play.twirl.api.Html
 import slick.lifted
 import slick.lifted.{Rep, TableQuery}
+
 import scala.concurrent.{ExecutionContext, Future}
+
 /**
   * Represents an Ore package.
   *

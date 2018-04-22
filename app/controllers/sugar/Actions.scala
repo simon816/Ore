@@ -18,6 +18,7 @@ import play.api.mvc.Results.{Redirect, Unauthorized}
 import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
 import slick.jdbc.JdbcBackend
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.higherKinds
 

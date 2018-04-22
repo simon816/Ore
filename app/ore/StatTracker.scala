@@ -8,12 +8,12 @@ import db.ModelService
 import db.impl.access.{ProjectBase, UserBase}
 import db.impl.schema.StatSchema
 import javax.inject.Inject
-
 import models.project.Version
 import models.statistic.{ProjectView, VersionDownload}
 import ore.StatTracker.COOKIE_NAME
 import play.api.cache.AsyncCacheApi
 import play.api.mvc.{RequestHeader, Result}
+
 import scala.concurrent.{ExecutionContext, Future}
 
 /**

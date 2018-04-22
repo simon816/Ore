@@ -10,7 +10,6 @@ import db.ModelService
 import discourse.OreDiscourseApi
 import form.OreForms
 import javax.inject.Inject
-
 import models.project.{Note, VisibilityTypes}
 import models.user.User
 import ore.permission._

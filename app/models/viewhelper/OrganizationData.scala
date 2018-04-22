@@ -7,6 +7,7 @@ import ore.organization.OrganizationMember
 import ore.permission._
 import play.api.cache.AsyncCacheApi
 import slick.jdbc.JdbcBackend
+
 import scala.concurrent.{ExecutionContext, Future}
 
 import util.functional.OptionT

@@ -3,7 +3,6 @@ package models.user
 import java.sql.Timestamp
 
 import com.google.common.base.Preconditions._
-
 import db.{ModelFilter, Named}
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
@@ -21,17 +20,16 @@ import ore.permission.scope._
 import ore.user.Prompts.Prompt
 import ore.user.UserOwned
 import org.spongepowered.play.discourse.model.DiscourseUser
-
 import play.api.mvc.Request
 import security.pgp.PGPPublicKeyInfo
 import security.spauth.SpongeUser
 import slick.lifted.{QueryBase, TableQuery}
 import util.StringUtils._
 import util.instances.future._
+import util.functional.OptionT
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.Breaks._
-
-import util.functional.OptionT
 
 /**
   * Represents a Sponge user.

@@ -5,13 +5,11 @@ import java.nio.file.StandardCopyOption
 
 import akka.actor.ActorSystem
 import com.google.common.base.Preconditions._
-
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.{ProjectBase, UserBase}
 import discourse.OreDiscourseApi
 import javax.inject.Inject
-
 import models.project.TagColors.TagColor
 import models.project._
 import models.user.role.ProjectRole
@@ -25,19 +23,18 @@ import ore.project.factory.TagAlias.ProjectTag
 import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload, ProjectFiles}
 import ore.user.notification.NotificationTypes
 import org.spongepowered.plugin.meta.PluginMetadata
-
 import play.api.cache.SyncCacheApi
 import play.api.i18n.{Lang, MessagesApi}
 import security.pgp.PGPVerifier
 import util.StringUtils._
+import util.functional.{EitherT, OptionT}
 import util.instances.future._
 import util.syntax._
+
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 import scala.util.Try
-
-import util.functional.{EitherT, OptionT}
 
 /**
   * Manages the project and version creation pipeline.

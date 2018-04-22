@@ -8,11 +8,11 @@ import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
 import models.project.Page
 import models.user.User
-import play.twirl.api.Html
-import scala.concurrent.{ExecutionContext, Future}
-
 import util.functional.OptionT
 import util.instances.future._
+import play.twirl.api.Html
+
+import scala.concurrent.{ExecutionContext, Future}
 
 case class VisibilityChange(override val id: Option[Int] = None,
                             override val createdAt: Option[Timestamp] = None,

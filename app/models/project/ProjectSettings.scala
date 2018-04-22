@@ -21,9 +21,8 @@ import play.api.cache.AsyncCacheApi
 import play.api.i18n.{Lang, MessagesApi}
 import slick.lifted.TableQuery
 import util.StringUtils._
-import scala.concurrent.{ExecutionContext, Future}
 
-import util.functional.OptionT
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Represents a [[Project]]'s settings.

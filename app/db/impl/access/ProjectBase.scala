@@ -6,7 +6,6 @@ import java.sql.Timestamp
 import java.util.Date
 
 import com.google.common.base.Preconditions._
-
 import db.impl.OrePostgresDriver.api._
 import db.impl.{PageTable, ProjectTableMain, VersionTable}
 import db.{ModelBase, ModelService}

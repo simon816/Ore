@@ -10,7 +10,6 @@ import db.impl.OrePostgresDriver.api._
 import db.impl._
 import form.OreForms
 import javax.inject.Inject
-
 import models.admin.{Message, Review}
 import models.project.{Project, Version}
 import models.user.{Notification, User}
@@ -21,16 +20,16 @@ import ore.user.notification.NotificationTypes
 import ore.{OreConfig, OreEnv}
 import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesApi
+import play.api.mvc.Result
 import security.spauth.SingleSignOnConsumer
 import slick.lifted.{Rep, TableQuery}
 import util.DataHelper
 import views.{html => views}
 import util.instances.future._
 import util.syntax._
-import scala.concurrent.{ExecutionContext, Future}
-
-import play.api.mvc.Result
 import util.functional.EitherT
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Controller for handling Review related actions.
@@ -55,11 +54,7 @@ final class Reviews @Inject()(data: DataHelper,
         version <- getVersion(p, versionString)
         reviews <- EitherT.right[Result](version.mostRecentReviews)
         rv <- EitherT.right[Result](
-          Future.traverse(reviews) { r =>
-            r.userBase.get(r.userId).map(_.name).value.map { u =>
-              (r, u)
-            }
-          }
+          Future.traverse(reviews)(r => r.userBase.get(r.userId).map(_.name).value.tupleLeft(r))
         )
       } yield {
         val unfinished = reviews.filter(r => r.createdAt.isDefined && r.endedAt.isEmpty).sorted(Review.ordering2).headOption
@@ -120,16 +115,14 @@ final class Reviews @Inject()(data: DataHelper,
         project <- getProject(author, slug)
         version <- getVersion(project, versionString)
         review <- version.mostRecentUnfinishedReview.toRight(notFound)
-        res <- EitherT.right[Result](
+        _ <- EitherT.right[Result](
           (
             review.setEnded(Some(Timestamp.from(Instant.now()))),
             // send notification that review happened
             sendReviewNotification(project, version, request.user)
-          ).parMapN { (_, _) =>
-            Redirect(routes.Reviews.showReviews(author, slug, versionString))
-          }
+          ).parTupled
         )
-      } yield res
+      } yield Redirect(routes.Reviews.showReviews(author, slug, versionString))
 
       ret.merge
     }
@@ -193,7 +186,7 @@ final class Reviews @Inject()(data: DataHelper,
       val ret = for {
         version <- getProjectVersion(author, slug, versionString)
         message <- bindFormEitherT[Future](this.forms.ReviewDescription)(_ => BadRequest)
-        res <- {
+        _ <- {
           // Close old review
           val closeOldReview = version.mostRecentUnfinishedReview.semiFlatMap { oldreview =>
             (
@@ -207,12 +200,10 @@ final class Reviews @Inject()(data: DataHelper,
           val result = (
             closeOldReview,
             this.service.insert(Review(Some(1), Some(Timestamp.from(Instant.now())), version.id.get, request.user.id.get, None, ""))
-          ).parMapN { (_, _) =>
-            Redirect(routes.Reviews.showReviews(author, slug, versionString))
-          }
+          ).parTupled
           EitherT.right[Result](result)
         }
-      } yield res
+      } yield Redirect(routes.Reviews.showReviews(author, slug, versionString))
 
       ret.merge
     }

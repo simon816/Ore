@@ -9,10 +9,9 @@ import javax.inject.{Inject, Singleton}
 import javax.mail.Message.RecipientType
 import javax.mail.Session
 import javax.mail.internet.{InternetAddress, MimeMessage}
+import play.api.Configuration
 
 import scala.concurrent.ExecutionContext
-
-import play.api.Configuration
 import scala.concurrent.duration._
 
 /**

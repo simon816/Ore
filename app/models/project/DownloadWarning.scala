@@ -4,18 +4,17 @@ import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 import com.google.common.base.Preconditions._
-
 import controllers.sugar.Bakery
 import db.Expirable
 import db.impl.DownloadWarningsTable
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
 import models.project.DownloadWarning.COOKIE
-import play.api.mvc.Cookie
-import scala.concurrent.{ExecutionContext, Future}
-
 import util.functional.OptionT
 import util.instances.future._
+import play.api.mvc.Cookie
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Represents an instance of a warning that a client has landed on. Warnings

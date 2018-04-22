@@ -2,14 +2,11 @@ package ore.project
 
 import java.sql.Timestamp
 import java.time.Instant
-
 import javax.inject.{Inject, Singleton}
-
-import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 import scala.concurrent.duration._
-
+import scala.concurrent.ExecutionContext
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}

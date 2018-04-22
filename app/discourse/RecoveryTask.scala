@@ -1,10 +1,10 @@
 package discourse
 
-import scala.concurrent.ExecutionContext
-
 import akka.actor.Scheduler
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.ProjectBase
+
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 
 /**

@@ -12,6 +12,7 @@ import ore.permission.Permission
 import play.api.mvc.Request
 import security.spauth.SpongeAuthApi
 import util.StringUtils._
+
 import scala.concurrent.{ExecutionContext, Future}
 
 import ore.permission.role

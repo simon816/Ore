@@ -20,7 +20,7 @@ import scala.language.higherKinds
 
 import controllers.OreBaseController.{BindFormEitherTPartiallyApplied, BindFormOptionTPartiallyApplied}
 import play.api.data.Form
-import util.functional.{EitherT, Functor, Monad, OptionT}
+import util.functional.{EitherT, Monad, OptionT}
 
 /**
   * Represents a Secured base Controller for this application.

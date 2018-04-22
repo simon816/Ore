@@ -5,7 +5,6 @@ import db.ModelService
 import discourse.OreDiscourseApi
 import form.OreForms
 import javax.inject.Inject
-
 import ore.permission.EditSettings
 import ore.rest.OreWrites
 import ore.user.MembershipDossier._
@@ -15,9 +14,9 @@ import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
 import views.{html => views}
 import util.instances.future._
-import scala.concurrent.{ExecutionContext, Future}
-
 import util.functional.Id
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Controller for handling Organization based actions.

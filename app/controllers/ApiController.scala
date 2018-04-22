@@ -8,10 +8,8 @@ import controllers.sugar.Bakery
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import db.impl.ProjectApiKeyTable
-import util.instances.future._
 import form.OreForms
 import javax.inject.Inject
-
 import models.api.ProjectApiKey
 import models.user.User
 import ore.permission.EditApiKeys
@@ -27,12 +25,12 @@ import play.api.i18n.MessagesApi
 import util.StatusZ
 import util.functional.{EitherT, OptionT, Id}
 import util.instances.future._
-import util.syntax._
 import play.api.libs.json._
 import play.api.mvc._
 import security.CryptoUtils
 import security.spauth.SingleSignOnConsumer
 import slick.lifted.Compiled
+
 import scala.concurrent.{ExecutionContext, Future}
 
 /**

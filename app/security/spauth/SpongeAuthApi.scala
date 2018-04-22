@@ -4,18 +4,17 @@ import java.util.concurrent.TimeoutException
 
 import com.google.common.base.Preconditions._
 import javax.inject.Inject
-
 import ore.OreConfig
+import util.WSUtils.parseJson
+import util.functional.{EitherT, OptionT}
+import util.instances.future._
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
-import util.WSUtils.parseJson
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
-
-import _root_.util.functional.{EitherT, OptionT}
-import _root_.util.instances.future._
 
 /**
   * Interfaces with the SpongeAuth Web API

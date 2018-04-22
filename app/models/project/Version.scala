@@ -4,7 +4,6 @@ import java.sql.Timestamp
 import java.time.Instant
 
 import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
-
 import db.ModelService
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
@@ -21,9 +20,9 @@ import ore.project.Dependency
 import play.twirl.api.Html
 import util.FileUtils
 import util.instances.future._
-import scala.concurrent.{ExecutionContext, Future}
-
 import util.functional.OptionT
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Represents a single version of a Project.

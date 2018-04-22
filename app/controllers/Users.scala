@@ -8,7 +8,6 @@ import db.impl.{ProjectTableMain, VersionTable}
 import discourse.OreDiscourseApi
 import form.OreForms
 import javax.inject.Inject
-
 import mail.{EmailFactory, Mailer}
 import models.user.{SignOn, User}
 import models.viewhelper.{OrganizationData, ScopedOrganizationData}
@@ -26,6 +25,7 @@ import security.spauth.SingleSignOnConsumer
 import views.{html => views}
 import util.instances.future._
 import util.syntax._
+
 import scala.concurrent.{ExecutionContext, Future}
 
 /**

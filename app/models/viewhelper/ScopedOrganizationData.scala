@@ -5,6 +5,7 @@ import models.user.{Organization, User}
 import ore.permission.{Permission, _}
 import play.api.cache.AsyncCacheApi
 import slick.jdbc.JdbcBackend
+
 import scala.concurrent.{ExecutionContext, Future}
 
 import util.functional.OptionT

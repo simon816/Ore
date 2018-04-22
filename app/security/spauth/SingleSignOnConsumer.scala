@@ -8,17 +8,15 @@ import java.util.Base64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
-
 import org.apache.commons.codec.binary.Hex
-
 import play.api.Configuration
 import play.api.http.Status
 import play.api.libs.ws.WSClient
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
-
 import util.functional.OptionT
 import util.instances.future._
+
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
   * Manages authentication to Sponge services.

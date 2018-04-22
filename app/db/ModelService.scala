@@ -12,6 +12,7 @@ import slick.basic.DatabaseConfig
 import slick.jdbc.{JdbcProfile, JdbcType}
 import slick.lifted.{ColumnOrdered, WrappingQuery}
 import slick.util.ConstArray
+
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success, Try}

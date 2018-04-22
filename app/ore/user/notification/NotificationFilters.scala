@@ -3,6 +3,7 @@ package ore.user.notification
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import models.user.Notification
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 

@@ -13,12 +13,11 @@ import play.api.cache.AsyncCacheApi
 import play.api.mvc.Request
 import slick.jdbc.JdbcBackend
 import slick.lifted.TableQuery
-import scala.concurrent.{ExecutionContext, Future}
-
-import models.viewhelper.HeaderData.perms
 import util.functional.OptionT
 import util.instances.future._
 import util.syntax._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Holds global user specific data - When a User is not authenticated a dummy is used

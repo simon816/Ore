@@ -4,10 +4,10 @@ import models.project.{Channel, Project}
 import ore.Colors.Color
 import ore.OreConfig
 import ore.project.factory.ProjectFactory
-import scala.concurrent.{ExecutionContext, Future}
-
 import util.functional.{EitherT, OptionT}
 import util.instances.future._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Represents submitted [[Channel]] data.

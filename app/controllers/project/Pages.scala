@@ -6,7 +6,6 @@ import db.impl.OrePostgresDriver.api._
 import db.{ModelFilter, ModelService}
 import form.OreForms
 import javax.inject.Inject
-
 import models.project.{Page, Project}
 import ore.permission.EditPages
 import ore.{OreConfig, OreEnv, StatTracker}

@@ -2,7 +2,6 @@ package controllers
 
 import java.sql.Timestamp
 import java.time.Instant
-
 import javax.inject.Inject
 
 import controllers.sugar.Bakery
@@ -29,12 +28,12 @@ import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
 import util.DataHelper
-import views.{html => views}
-import scala.concurrent.{ExecutionContext, Future}
-
 import util.functional.OptionT
 import util.syntax._
 import util.instances.future._
+import views.{html => views}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Main entry point for application.
@@ -218,10 +217,7 @@ final class Application @Inject()(data: DataHelper,
   def showFlags() = FlagAction.async { implicit request =>
     for {
       flags <- this.service.access[Flag](classOf[Flag]).filterNot(_.isResolved)
-      futUsers = Future.sequence(flags.map(_.user))
-      futProjects = Future.sequence(flags.map(_.project))
-      users <- futUsers
-      projects <- futProjects
+      (users, projects) <- (Future.sequence(flags.map(_.user)), Future.sequence(flags.map(_.project))).parTupled
       perms <- Future.sequence(projects.map { project =>
         val perms = VisibilityTypes.values.map(_.permission).map { perm =>
           request.user can perm in project map (value => (perm, value))
@@ -444,11 +440,9 @@ final class Application @Inject()(data: DataHelper,
               role.setAccepted((json \ "accepted").as[Boolean])
               Ok
             }
-            case "deleteRole" => modelAccess.get(id).map { role =>
-              if (role.roleType.isAssignable) {
-                role.remove()
-                Ok
-              } else BadRequest
+            case "deleteRole" => modelAccess.get(id).filter(_.roleType.isAssignable).map { role =>
+              role.remove()
+              Ok
             }
           }
         }
@@ -525,7 +519,7 @@ final class Application @Inject()(data: DataHelper,
       val needsApproval = projectApprovals zip perms zip lastChangeRequests zip lastChangeRequesters zip lastVisibilityChanges zip lastVisibilityChangers map { case (((((a,b),c),d),e),f) =>
         (a,b,c,d.fold("Unknown")(_.name),e,f.fold("Unknown")(_.name))
       }
-      val waitingProjects = projectChanges zip projectChangeRequests.flatten zip projectVisibilityChanges zip projectVisibilityChangers map { case (((a,b), c), d) =>
+      val waitingProjects = projectChanges zip projectChangeRequests zip projectVisibilityChanges zip projectVisibilityChangers map { case (((a,b), c), d) =>
         (a,b,c,d.fold("Unknown")(_.name))
       }
 

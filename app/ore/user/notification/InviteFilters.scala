@@ -2,6 +2,7 @@ package ore.user.notification
 
 import models.user.User
 import models.user.role.RoleModel
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 

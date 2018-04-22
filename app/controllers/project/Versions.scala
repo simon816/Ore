@@ -6,7 +6,6 @@ import java.sql.Timestamp
 import java.util.{Date, UUID}
 
 import com.github.tminglei.slickpg.InetString
-
 import controllers.OreBaseController
 import controllers.sugar.Bakery
 import controllers.sugar.Requests.{OreRequest, ProjectRequest}
@@ -15,7 +14,6 @@ import db.impl.OrePostgresDriver.api._
 import discourse.OreDiscourseApi
 import form.OreForms
 import javax.inject.Inject
-
 import models.project._
 import models.viewhelper.{ProjectData, VersionData}
 import ore.permission.{EditVersions, ReviewProjects}
@@ -244,34 +242,31 @@ class Versions @Inject()(stats: StatTracker,
     * @param versionString Version name
     * @return Version create view
     */
-  def showCreatorWithMeta(author: String, slug: String, versionString: String) = {
+  def showCreatorWithMeta(author: String, slug: String, versionString: String) =
     UserLock(ShowProject(author, slug)).async { implicit request =>
-      //TODO: Does order matter here. If not, the code could be rewritten a bit clearer
       val success = OptionT.fromOption[Future](this.factory.getPendingVersion(author, slug, versionString))
-        .flatMap { pendingVersion =>
-          // Get pending version
-          pendingOrReal(author, slug).semiFlatMap {
-            case pending: PendingProject =>
-              ProjectData.of(request, pending).map(data =>
-                Ok(views.create(data, data.settings.forumSync, Some(pendingVersion), None, showFileControls = false)))
-            case real: Project =>
-              (real.channels.toSeq, ProjectData.of(real)).parMapN { case (channels, data) =>
-                Ok(views
-                  .create(data, data.settings.forumSync, Some(pendingVersion), Some(channels), showFileControls = true))
-              }
-          }
+        // Get pending version
+        .flatMap(pendingVersion => pendingOrReal(author, slug).map(pendingVersion -> _))
+        .semiFlatMap {
+          case (pendingVersion, Left(pending)) =>
+            ProjectData.of(request, pending)
+              .map(data => (None, data, pendingVersion))
+          case (pendingVersion, Right(real)) =>
+            (real.channels.toSeq, ProjectData.of(real))
+              .parMapN((channels, data) => (Some(channels), data, pendingVersion))
+        }
+        .map { case (channels, data, pendingVersion) =>
+          Ok(views.create(data, data.settings.forumSync, Some(pendingVersion), channels, showFileControls = channels.isDefined))
         }
 
       success.getOrElse(Redirect(self.showCreator(author, slug)))
     }
-  }
 
-  private def pendingOrReal(author: String, slug: String): OptionT[Future, Any] = {
+  private def pendingOrReal(author: String, slug: String): OptionT[Future, Either[PendingProject, Project]] = {
     // Returns either a PendingProject or existing Project
-    this.projects.withSlug(author, slug) transform {
-      case None => this.factory.getPendingProject(author, slug)
-      case Some(project) => Some(project)
-    }
+    this.projects.withSlug(author, slug)
+      .map[Either[PendingProject, Project]](Right.apply)
+      .orElse(OptionT.fromOption[Future](this.factory.getPendingProject(author, slug)).map(Left.apply))
   }
 
   /**
@@ -310,11 +305,11 @@ class Versions @Inject()(stats: StatTracker,
               this.factory.getPendingProject(author, slug) match {
                 case None =>
                   // No pending project, create version for existing project
-                  getProject(author, slug).semiFlatMap { project =>
+                  getProject(author, slug).flatMap { project =>
                     project.channels
                       .find(equalsIgnoreCase(_.name, pendingVersion.channelName))
-                      .toRight(versionData.addTo(project).value)
-                      .leftFlatMap(EitherT.apply)
+                      .toRight(versionData.addTo(project))
+                      .leftFlatMap(identity)
                       .semiFlatMap { _ =>
                         // Update description
                         versionData.content.foreach { content =>
@@ -329,7 +324,6 @@ class Versions @Inject()(stats: StatTracker,
                         }
                       }
                       .leftMap(error => Redirect(self.showCreatorWithMeta(author, slug, versionString)).withError(error))
-                      .merge
                   }.merge
                 case Some(pendingProject) =>
                   // Found a pending project, create it with first version
