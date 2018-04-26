@@ -79,12 +79,12 @@ class Users @Inject()(fakeUser: FakeUser,
       // Redirected from SpongeSSO, decode SSO payload and convert to Ore user
       this.sso.authenticate(sso.get, sig.get)(isNonceValid).semiFlatMap { spongeUser =>
         // Complete authentication
+        val fromSponge = User.fromSponge(spongeUser)
         for {
-          fromSponge <- User.fromSponge(spongeUser)
-          getOrCreate <- this.users.getOrCreate(fromSponge)
-          pulledForum <- getOrCreate.pullForumData()   //TODO These two pull methods at the moment just return this at the end.
-          pulledSponge <- pulledForum.pullSpongeData() //Should their results be ignored and getOrCreate be used from there on?
-          result <- this.redirectBack(request.flash.get("url").getOrElse("/"), pulledSponge)
+          user <- this.users.getOrCreate(fromSponge)
+          _ <- user.pullForumData()
+          _ <- user.pullSpongeData()
+          result <- this.redirectBack(request.flash.get("url").getOrElse("/"), user)
         } yield result
       }.getOrElse(Redirect(ShowHome).withError("error.loginFailed"))
     }

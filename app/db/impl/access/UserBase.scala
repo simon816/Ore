@@ -45,7 +45,7 @@ class UserBase(override val service: ModelService,
     */
   def withName(username: String)(implicit ec: ExecutionContext): OptionT[Future, User] = {
     this.find(equalsIgnoreCase(_.name, username)).orElse {
-      this.auth.getUser(username).semiFlatMap(User.fromSponge).semiFlatMap(getOrCreate)
+      this.auth.getUser(username).map(User.fromSponge).semiFlatMap(getOrCreate)
     }
   }
 

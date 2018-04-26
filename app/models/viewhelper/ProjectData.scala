@@ -49,7 +49,7 @@ object ProjectData {
 
   def cacheKey(project: Project) = "project" + project.id.get
 
-  def of[A](request: OreRequest[A], project: PendingProject)(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext): Future[ProjectData] = {
+  def of[A](request: OreRequest[A], project: PendingProject)(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext): ProjectData = {
 
     val projectOwner = request.data.currentUser.get
 
@@ -76,9 +76,9 @@ object ProjectData {
       lastVisibilityChange,
       lastVisibilityChangeUser)
 
-    //TODO: Why Future here?
-    Future.successful(data)
+    data
   }
+
   def of[A](project: Project)(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext): Future[ProjectData] = {
 
     implicit val userBase = project.userBase

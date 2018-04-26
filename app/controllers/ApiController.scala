@@ -130,7 +130,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
   def listVersions(version: String, pluginId: String, channels: Option[String],
                    limit: Option[Int], offset: Option[Int]) = Action.async {
     version match {
-      case "v1" => this.api.getVersionList(pluginId, channels, limit, offset).map(ApiResult)
+      case "v1" => this.api.getVersionList(pluginId, channels, limit, offset).map(Some.apply).map(ApiResult)
       case _ => Future.successful(NotFound)
     }
   }

@@ -249,8 +249,7 @@ class Versions @Inject()(stats: StatTracker,
         .flatMap(pendingVersion => pendingOrReal(author, slug).map(pendingVersion -> _))
         .semiFlatMap {
           case (pendingVersion, Left(pending)) =>
-            ProjectData.of(request, pending)
-              .map(data => (None, data, pendingVersion))
+            Future.successful((None, ProjectData.of(request, pending), pendingVersion))
           case (pendingVersion, Right(real)) =>
             (real.channels.toSeq, ProjectData.of(real))
               .parMapN((channels, data) => (Some(channels), data, pendingVersion))

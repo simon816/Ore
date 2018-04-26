@@ -87,22 +87,19 @@ class Organizations @Inject()(forms: OreForms,
     */
   def setInviteStatus(id: Int, status: String) = Authenticated.async { implicit request =>
     val user = request.user
-    user.organizationRoles.get(id).semiFlatMap { role =>
-      //TODO: Why access the organization when it's only used for one of the statuses?
-      role.organization.map { orga =>
-        status match {
-          case STATUS_DECLINE =>
-            orga.memberships.removeRole(role)
-            Ok
-          case STATUS_ACCEPT =>
-            role.setAccepted(true)
-            Ok
-          case STATUS_UNACCEPT =>
-            role.setAccepted(false)
-            Ok
-          case _ =>
-            BadRequest
-        }
+    user.organizationRoles.get(id).map { role =>
+      status match {
+        case STATUS_DECLINE =>
+          role.organization.foreach(_.memberships.removeRole(role))
+          Ok
+        case STATUS_ACCEPT =>
+          role.setAccepted(true)
+          Ok
+        case STATUS_UNACCEPT =>
+          role.setAccepted(false)
+          Ok
+        case _ =>
+          BadRequest
       }
     }.getOrElse(notFound)
   }

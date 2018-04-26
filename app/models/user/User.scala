@@ -362,41 +362,37 @@ case class User(override val id: Option[Int] = None,
     * non-missing mutable fields.
     *
     * @param user User to fill with
-    * @return     This user
     */
-  def fill(user: DiscourseUser): Future[User] = {
-    if (user == null)
-      return Future.successful(this)
-    this.setUsername(user.username)
-    user.createdAt.foreach(this.setJoinDate)
-    user.email.foreach(this.setEmail)
-    user.fullName.foreach(this.setFullName)
-    user.avatarTemplate.foreach(this.setAvatarUrl)
-    this.setGlobalRoles(user.groups
-      .flatMap(group => RoleTypes.values.find(_.roleId == group.id).map(_.asInstanceOf[RoleType]))
-      .toSet[RoleType])
-    Future.successful(this)
+  def fill(user: DiscourseUser): Unit = {
+    if (user != null) {
+      this.setUsername(user.username)
+      user.createdAt.foreach(this.setJoinDate)
+      user.email.foreach(this.setEmail)
+      user.fullName.foreach(this.setFullName)
+      user.avatarTemplate.foreach(this.setAvatarUrl)
+      this.setGlobalRoles(user.groups
+        .flatMap(group => RoleTypes.values.find(_.roleId == group.id).map(_.asInstanceOf[RoleType]))
+        .toSet[RoleType])
+    }
   }
 
   /**
     * Fills this User with the information SpongeUser provides.
     *
     * @param user Sponge User
-    * @return     This user
     */
-  def fill(user: SpongeUser)(implicit config: OreConfig): Future[User] = {
-    if (user == null)
-      return Future.successful(this)
-    this.setUsername(user.username)
-    this.setEmail(user.email)
-    user.avatarUrl.map { url =>
-      if (!url.startsWith("http")) {
-        val baseUrl = config.security.get[String]("api.url")
-        baseUrl + url
-      } else
-        url
-    }.foreach(this.setAvatarUrl(_))
-    Future.successful(this)
+  def fill(user: SpongeUser)(implicit config: OreConfig): Unit = {
+    if (user != null) {
+      this.setUsername(user.username)
+      this.setEmail(user.email)
+      user.avatarUrl.map { url =>
+        if (!url.startsWith("http")) {
+          val baseUrl = config.security.get[String]("api.url")
+          baseUrl + url
+        } else
+          url
+      }.foreach(this.setAvatarUrl)
+    }
   }
 
   /**
@@ -404,9 +400,9 @@ case class User(override val id: Option[Int] = None,
     *
     * @return This user
     */
-  def pullForumData()(implicit ec: ExecutionContext): Future[User] = {
+  def pullForumData()(implicit ec: ExecutionContext): Future[Unit] = {
     // Exceptions are ignored
-    OptionT(this.forums.fetchUser(this.name).recover{case _: Exception => None}).semiFlatMap(fill).getOrElse(this)
+    OptionT(this.forums.fetchUser(this.name).recover{case _: Exception => None}).cata((), fill)
   }
 
   /**
@@ -414,8 +410,8 @@ case class User(override val id: Option[Int] = None,
     *
     * @return This user
     */
-  def pullSpongeData()(implicit ec: ExecutionContext): Future[User] = {
-    this.auth.getUser(this.name).semiFlatMap(fill).getOrElse(throw new Exception("user doesn't exist on SpongeAuth?"))
+  def pullSpongeData()(implicit ec: ExecutionContext): Future[Unit] = {
+    this.auth.getUser(this.name).cata((), fill)
   }
 
   /**
@@ -601,18 +597,26 @@ object User {
   /**
     * Creates a new [[User]] from the specified [[DiscourseUser]].
     *
-    * @param user User to convert
-    * @return     Ore User
+    * @param toConvert User to convert
+    * @return          Ore User
     */
   @deprecated("use fromSponge instead", "Oct 14, 2016, 1:45 PM PDT")
-  def fromDiscourse(user: DiscourseUser)(implicit ec: ExecutionContext) = User().fill(user).map(_.copy(id = Some(user.id)))
+  def fromDiscourse(toConvert: DiscourseUser)(implicit ec: ExecutionContext): User = {
+    val user = User()
+    user.fill(toConvert)
+    user.copy(id = Some(toConvert.id))
+  }
 
   /**
     * Create a new [[User]] from the specified [[SpongeUser]].
     *
-    * @param user User to convert
-    * @return     Ore user
+    * @param toConvert User to convert
+    * @return          Ore user
     */
-  def fromSponge(user: SpongeUser)(implicit config: OreConfig, ec: ExecutionContext) = User().fill(user).map(_.copy(id = Some(user.id)))
+  def fromSponge(toConvert: SpongeUser)(implicit config: OreConfig, ec: ExecutionContext): User = {
+    val user = User()
+    user.fill(toConvert)
+    user.copy(id = Some(toConvert.id))
+  }
 
 }

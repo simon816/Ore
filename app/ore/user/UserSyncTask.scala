@@ -36,7 +36,8 @@ final class UserSyncTask @Inject()(models: ModelService, actorSystem: ActorSyste
     this.models.getModelBase(classOf[UserBase]).all.map { users =>
       Logger.info(s"Synchronizing ${users.size} users with external site data...")
       Future.sequence(users.map { user =>
-        user.pullForumData().flatMap(_.pullSpongeData())
+        user.pullForumData()
+        user.pullSpongeData()
       }).map { _ =>
         Logger.info("Done")
       }

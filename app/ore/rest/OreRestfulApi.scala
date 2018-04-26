@@ -224,7 +224,7 @@ trait OreRestfulApi {
     * @return         JSON list of versions
     */
   def getVersionList(pluginId: String, channels: Option[String],
-                     limit: Option[Int], offset: Option[Int])(implicit ec: ExecutionContext): Future[Option[JsValue]] = {
+                     limit: Option[Int], offset: Option[Int])(implicit ec: ExecutionContext): Future[JsValue] = {
 
     val filtered = channels.map { chan =>
       queryVersions.filter { case (p, v, vId, c, uName) =>
@@ -243,7 +243,6 @@ trait OreRestfulApi {
 
     val limited = filtered.drop(offset.getOrElse(0)).take(lim)
 
-    //TODO: Why is this an Option again?
     for {
       data <- service.DB.db.run(limited.result) // Get Project Version Channel and AuthorName
       vTags <- service.DB.db.run(queryVersionTags(data.map(_._3)).result).map { p => p.groupBy(_._1) mapValues (_.map(_._2)) }
@@ -251,7 +250,7 @@ trait OreRestfulApi {
       val list = data.map { case (p, v, vId, c, uName) =>
         writeVersion(v, p, c, uName, vTags.getOrElse(vId, Seq.empty))
       }
-      Some(toJson(list))
+      toJson(list)
     }
   }
 
