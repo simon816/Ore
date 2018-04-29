@@ -12,7 +12,7 @@ application {
 
     # Add a dot at the start of the url to trust all subdomains
     trustedUrlHosts     =   [ ".spongepowered.org" ]
-    
+
     fakeUser {
         enabled    =   false
         id         =   -1
@@ -29,8 +29,7 @@ play {
     evolutions.autocommit              =   false
     evolutions.db.default.autoApply    =   true
     ws.timeout.connection              =   10000ms
-    filters.headers.contentSecurityPolicy = "default-src 'self'; script-src 'self' '%NONCE-SOURCE%' https://forums.spongepowered.org https://forums-cdn.spongepowered.org https://www.google-analytics.com/analytics.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://forums-cdn.spongepowered.org; img-src 'self' https:; font-src 'self' https://fonts.gstatic.com; frame-src https://forums.spongepowered.org; frame-ancestors 'none'; block-all-mixed-content"
-    filters.headers.contentSecurityPolicy = ${?CONTENT_SECURITY_POLICY}
+    filters.headers.contentSecurityPolicy = null
     filters.enabled                   += "filters.MimeKeyedCspFilter"
     filters.csrf.body.bufferSize       =   1000000
 
@@ -77,14 +76,14 @@ ore {
     # Used in /admin/seed route. Run "gradle build" in OreTestPlugin before using that route
     test-plugin = "OreTestPlugin/build/libs/ore-test-plugin-dev-SNAPSHOT.jar"
     caching = true
-    
+
     channels {
         max-name-len = 15
         name-regex = "^[a-zA-Z0-9]+$"
         color-default = 7
         name-default = "Release"
     }
-    
+
     pages {
         home.name = "Home"
         home.message = "Welcome to your new project!"
@@ -93,7 +92,7 @@ ore {
         page.max-len = 75000
         name.max-len = 255
     }
-    
+
     projects {
         max-name-len = 25
         max-pages = 50
@@ -108,7 +107,7 @@ ore {
         check-interval = 300000ms                  // 1 hour (millis)
         draft-expire = 86400000                  // 1 day (millis)
     }
-    
+
     users {
         stars-per-page = 5
         max-tagline-len = 100
@@ -116,7 +115,7 @@ ore {
         project-page-size = 5
         syncRate = 10800000
     }
-    
+
     orgs {
         enabled = true
         passwordLength = 60
@@ -180,7 +179,7 @@ discourse {
     baseUrl           =   "https://forums.spongepowered.org"
     embed.retryRate   =   60000ms
     embed.categorySlug = ore
-    
+
     api {
         enabled       =   true
         key           =   "changeme"
@@ -265,6 +264,12 @@ filters {
                 "https://forums.spongepowered.org"
             ]
             frame-ancestors = [
+                "none"
+            ]
+            base-uri = [
+                "none"
+            ]
+            object-src = [
                 "none"
             ]
             block-all-mixed-content = []
