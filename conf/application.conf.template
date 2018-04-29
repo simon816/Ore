@@ -30,7 +30,7 @@ play {
     evolutions.db.default.autoApply    =   true
     ws.timeout.connection              =   10000ms
     filters.headers.contentSecurityPolicy = null
-    filters.enabled                   += "filters.MimeKeyedCspFilter"
+    filters.enabled                    =  ${play.filters.enabled} ["security.NonceFilter", "filters.MimeKeyedCspFilter"]
     filters.csrf.body.bufferSize       =   1000000
 
     http {
