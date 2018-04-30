@@ -17,8 +17,8 @@ case class UserAction(override val id: Option[Int] = None,
                       private val _context: String,
                       private val _context_id: Int,
                       private val _action: String,
-                      private val _new_state: String,
-                      private val _old_state: String
+                      private val _newState: String,
+                      private val _oldState: String
                      )
   extends OreModel(id, createdAt)
     with UserOwned {
@@ -33,6 +33,10 @@ case class UserAction(override val id: Option[Int] = None,
   def address: InetString = _address
 
   def action: String = _action
+
+  def oldState = _oldState
+
+  def newState = _newState
 
 }
 
@@ -60,7 +64,6 @@ object UserActionContexts extends Enumeration {
   val PROJECT = "Project"
   val VERSION = "Version"
 }
-
 
 object UserActionLogger {
 

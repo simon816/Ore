@@ -1,0 +1,58 @@
+@import java.sql.Timestamp
+@import java.time.Instant
+
+@import controllers.sugar.Requests.OreRequest
+@import models.user.UserAction
+@import ore.OreConfig
+@import util.StringUtils._
+@(actions: Seq[UserAction])(implicit messages: Messages, request: OreRequest[_], config: OreConfig)
+
+@bootstrap.layout(messages("admin.log.title")) {
+
+    <div class="container" style="margin-top: 90px">
+        <div class="row">
+            <div class="col-md-12  header-flags">
+                <div class="clearfix">
+                    <h1 class="pull-left">@messages("admin.log.title")</h1>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title pull-left">@messages("admin.log.title")</h4>
+                        <div class="clearfix"></div>
+                    </div>
+                    <table class="table table-condensed setting-no-border table-review-log">
+                        <tbody>
+                            <tr>
+                                <td><b>#</b></td>
+                                <td><b>User</b></td>
+                                <td><b>IP Address</b></td>
+                                <td><b>Time</b></td>
+                                <td><b>Action</b></td>
+                                <td><b>Old State</b></td>
+                                <td><b>New State</b></td>
+                            </tr>
+                            @if(actions.isEmpty) {
+                                <tr><td><b>No activities founds</b></td></tr>
+                            }
+                            @actions.zipWithIndex.map { case (action, index) =>
+                                <tr>
+                                    <td>@index</td>
+                                    <td>@action.userId</td>
+                                    <td>@action.address</td>
+                                    <td>@prettifyDateAndTime(action.createdAt.getOrElse(Timestamp.from(Instant.EPOCH)))</td>
+                                    <td>@action.action</td>
+                                    <td>@action.oldState</td>
+                                    <td>@action.newState</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}

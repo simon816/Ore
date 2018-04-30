@@ -14,6 +14,7 @@ import db.{ModelFilter, ModelSchema, ModelService}
 import form.OreForms
 import models.admin.Review
 import models.project._
+import models.user.UserAction
 import models.user.role._
 import models.viewhelper.{HeaderData, OrganizationData, ProjectData, ScopedOrganizationData}
 import ore.Platforms.Platform
@@ -394,6 +395,17 @@ final class Application @Inject()(data: DataHelper,
     }
     yield {
       Ok(views.users.admin.stats(reviews, uploads, totalDownloads, unsafeDownloads, flagsOpen, flagsClosed))
+    }
+  }
+
+  def showLog() = (Authenticated andThen PermissionAction[AuthRequest](ViewLogs)).async { implicit request =>
+    val limit = 50
+    val page = request.getQueryString("page").map(_.toInt).getOrElse(0)
+    val offset = page * limit
+    for {
+      actions <- service.access[UserAction](classOf[UserAction]).filter(u => true, limit, offset)
+    } yield {
+      Ok(views.users.admin.log(actions))
     }
   }
 

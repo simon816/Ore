@@ -9,7 +9,7 @@ GET     /*path/                                                     @controllers
 GET     /admin/user/:user                                           @controllers.Application.userAdmin(user)
 POST    /admin/user/:user/update                                    @controllers.Application.updateUser(user)
 #GET     /admin/reset                                                @controllers.Application.reset()
-GET     /admin/seed                                                 @controllers.Application.seed(users: Int ?= 200, projects: Int ?= 1, versions: Int ?= 2, channels: Int ?= 2)
+#GET     /admin/seed                                                 @controllers.Application.seed(users: Int ?= 200, projects: Int ?= 1, versions: Int ?= 2, channels: Int ?= 2)
 #GET     /admin/migrate                                              @controllers.Application.migrate()
 GET     /admin/approval/versions                                    @controllers.Application.showQueue()
 GET     /admin/approval/projects                                    @controllers.Application.showProjectVisibility()
@@ -18,6 +18,7 @@ GET     /admin/flags/:id/resolve/:resolved                          @controllers
 GET     /admin/health                                               @controllers.Application.showHealth()
 GET     /admin/activities/:user                                     @controllers.Application.showActivities(user: String)
 GET     /admin/stats                                                @controllers.Application.showStats()
+GET     /admin/log                                                  @controllers.Application.showLog()
 
 GET     /statusz                                                    @controllers.ApiController.showStatusZ()
 

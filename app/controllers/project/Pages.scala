@@ -160,7 +160,6 @@ class Pages @Inject()(forms: OreForms,
                 data.project.pages.find(equalsIgnoreCase(_.slug, parts(0))).flatMap { parent =>
                   val parentId = parent.flatMap(_.id).getOrElse(-1)
                   val pageName = pageData.name.getOrElse(parts(1))
-                  UserActionLogger.log(request.request, UserActionContexts.PROJECT, data.project.id.getOrElse(-1), UserActions.PROJECT_PAGE_EDITED, "", "") //todo data
                   data.project.getOrCreatePage(pageName, parentId, pageData.content)
                 }
               } else {
@@ -168,7 +167,12 @@ class Pages @Inject()(forms: OreForms,
                 data.project.getOrCreatePage(pageName, parentId, pageData.content)
               }
               created flatMap { createdPage =>
-                createdPage.setContents(pageData.content.getOrElse(createdPage.contents))
+                if (pageData.content.isDefined) {
+                  val oldPage = createdPage.contents
+                  val newPage = pageData.content.get
+                  UserActionLogger.log(request.request, UserActionContexts.PROJECT, data.project.id.getOrElse(-1), UserActions.PROJECT_PAGE_EDITED, oldPage, newPage)
+                  createdPage.setContents(newPage)
+                } else Future.successful(createdPage)
               } map { _ =>
                 Redirect(self.show(author, slug, page))
               }
