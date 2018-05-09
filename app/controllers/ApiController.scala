@@ -25,6 +25,7 @@ import play.api.i18n.MessagesApi
 import util.StatusZ
 import util.functional.{EitherT, OptionT, Id}
 import util.instances.future._
+import util.syntax._
 import play.api.libs.json._
 import play.api.mvc._
 import security.CryptoUtils
@@ -280,53 +281,41 @@ final class ApiController @Inject()(api: OreRestfulApi,
   def showStatusZ = Action(Ok(this.status.json))
 
   def syncSso() = Action.async { implicit request =>
-    this.forms.SyncSso.bindFromRequest.fold(
-      hasErrors => Future.successful(BadRequest(Json.obj("errors" -> hasErrors.errorsAsJson))),
-      success = formData => {
-        val sso = formData._1
-        val sig = formData._2
-        val apiKey = formData._3
+    val confApiKey = this.config.security.get[String]("sso.apikey")
+    val confSecret = this.config.security.get[String]("sso.secret")
 
-
-        val confApiKey = this.config.security.get[String]("sso.apikey")
-        val confSecret = this.config.security.get[String]("sso.secret")
-
-        if (apiKey != confApiKey) {
-          Future.successful(BadRequest("API Key not valid"))
-        } else if (CryptoUtils.hmac_sha256(confSecret, sso.getBytes("UTF-8")) != sig) {
-          Future.successful(BadRequest("Signature not matched"))
-        } else {
-          val query = Uri.Query(Base64.getMimeDecoder.decode(sso))
-
-          val external_id = query.get("external_id")
+    bindFormEitherT[Future](this.forms.SyncSso)(hasErrors => BadRequest(Json.obj("errors" -> hasErrors.errorsAsJson)))
+      .filterOrElse(_._3 == confApiKey, BadRequest("API Key not valid")) //_3 is apiKey
+      .filterOrElse(
+        { case (sso, sig, _) => CryptoUtils.hmac_sha256(confSecret, sso.getBytes("UTF-8")) == sig},
+        BadRequest("Signature not matched")
+      )
+      .map(t => Uri.Query(Base64.getMimeDecoder.decode(t._1))) //_1 is sso
+      .semiFlatMap(q => this.users.get(q.get("external_id").get.toInt).value.tupleLeft(q))
+      .map { case (query, optUser) =>
+        optUser.foreach { user =>
           val email = query.get("email")
           val username = query.get("username")
           val name = query.get("name")
           val avatar_url = query.get("avatar_url")
           val add_groups = query.get("add_groups")
 
-          this.users.get(external_id.get.toInt).map { optUser =>
-            if (optUser.isDefined) {
-              val user = optUser.get
-
-              email.foreach(user.setEmail)
-              username.foreach(user.setUsername)
-              name.foreach(user.setFullName)
-              avatar_url.foreach(user.setAvatarUrl)
-              add_groups.foreach(groups =>
-                user.setGlobalRoles(
-                    if(groups.trim == "")
-                      Set.empty
-                    else
-                      groups.split(",").map(group => RoleTypes.withInternalName(group)).toSet[RoleType]
-                )
-              )
-            }
-
-            Ok(Json.obj("status" -> "success"))
+          email.foreach(user.setEmail)
+          username.foreach(user.setUsername)
+          name.foreach(user.setFullName)
+          avatar_url.foreach(user.setAvatarUrl)
+          add_groups.foreach { groups =>
+            user.setGlobalRoles(
+              if (groups.trim == "")
+                Set.empty
+              else
+                groups.split(",").map(group => RoleTypes.withInternalName(group)).toSet[RoleType]
+            )
           }
+
         }
-      }
-    )
+
+        Ok(Json.obj("status" -> "success"))
+      }.merge
   }
 }
