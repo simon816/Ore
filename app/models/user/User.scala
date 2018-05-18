@@ -338,7 +338,7 @@ case class User(override val id: Option[Int] = None,
     val starsPerPage = this.config.users.get[Int]("stars-per-page")
     val limit = if (page < 1) -1 else starsPerPage
     val offset = (page - 1) * starsPerPage
-    val filter = ModelFilter[Project](_.visibility === VisibilityTypes.Public) +|| ModelFilter[Project](_.visibility === VisibilityTypes.New)
+    val filter = VisibilityTypes.isPublicFilter
     this.schema.getAssociation[ProjectStarsTable, Project](classOf[ProjectStarsTable], this)
       .sorted(ordering = _.name, filter = filter.fn, limit = limit, offset = offset)
   }
