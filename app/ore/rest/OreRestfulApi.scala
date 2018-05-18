@@ -187,18 +187,12 @@ trait OreRestfulApi {
     val tableVersion = TableQuery[VersionTable]
     val tableChannels = TableQuery[ChannelTable]
 
-    val allProjects = for {
+    for {
       p <- tableProject
       v <- tableVersion if p.recommendedVersionId === v.id
       c <- tableChannels if v.channelId === c.id
-    } yield {
-      (p, v, c)
-    }
-
-    allProjects.filter { case (p, v, c) =>
-      p.visibility =!= VisibilityTypes.SoftDelete &&
-      p.visibility =!= VisibilityTypes.NeedsChanges
-    }
+      if VisibilityTypes.isPublicFilter.fn(p)
+    } yield (p, v, c)
   }
 
   /**
