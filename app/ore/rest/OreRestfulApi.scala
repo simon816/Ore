@@ -191,7 +191,7 @@ trait OreRestfulApi {
       p <- tableProject
       v <- tableVersion if p.recommendedVersionId === v.id
       c <- tableChannels if v.channelId === c.id
-      if VisibilityTypes.isPublicFilter.fn(p)
+      if VisibilityTypes.isPublicFilter[Project].fn(p)
     } yield (p, v, c)
   }
 

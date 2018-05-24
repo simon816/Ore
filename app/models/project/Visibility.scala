@@ -18,9 +18,9 @@ object VisibilityTypes extends Enumeration {
 
   def isPublic(visibility: Visibility): Boolean = visibility == Public || visibility == New
 
-  val isPublicFilter: ModelFilter[Hideable] =
-    ModelFilter[Hideable](_.visibility === Public) +||
-      ModelFilter[Hideable](_.visibility === New)
+  def isPublicFilter[H <: Hideable]: ModelFilter[H] =
+    ModelFilter[H](_.visibility === Public) +||
+      ModelFilter[H](_.visibility === New)
 
   def withId(id: Int): Visibility = {
     this.apply(id).asInstanceOf[Visibility]
