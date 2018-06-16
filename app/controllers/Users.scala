@@ -134,7 +134,7 @@ class Users @Inject()(fakeUser: FakeUser,
     val p = page.getOrElse(1)
     val offset = (p - 1) * pageSize
     this.users.withName(username).flatMap {
-      case None => Future.successful(NotFound)
+      case None => Future.successful(notFound)
       case Some(user) =>
         for {
           // TODO include orga projects?
