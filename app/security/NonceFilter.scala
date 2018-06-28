@@ -29,11 +29,15 @@ class NonceFilter @Inject() (implicit val mat: Materializer) extends Filter {
 
   private val random = new SecureRandom()
 
-  override def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
+  override def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
     val nonce = generateNonce
     next(request.addAttr(NonceFilter.NonceKey, nonce)).map { result =>
-      result.withHeaders("Content-Security-Policy" -> result.header.headers("Content-Security-Policy")
-        .replace("%NONCE-SOURCE%", s"nonce-$nonce"))
+      if(result.header.headers.contains("Content-Security-Policy")) {
+        result.withHeaders("Content-Security-Policy" -> result.header.headers("Content-Security-Policy")
+          .replace("%NONCE-SOURCE%", s"nonce-$nonce"))
+      }
+
+      result
     }
   }
 

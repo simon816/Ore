@@ -145,6 +145,6 @@ trait OreModelConfig extends ModelService with OreDBOs {
 
   val ProjectApiKeySchema = new ModelSchema[ProjectApiKey](this, classOf[ProjectApiKey], TableQuery[ProjectApiKeyTable])
 
-  val UserActionLogSchema = new ModelSchema[UserAction](this, classOf[UserAction], TableQuery[UserActionLogTable])
+  val UserActionLogSchema = new ModelSchema[LoggedActionModel](this, classOf[LoggedActionModel], TableQuery[LoggedActionTable])
 
 }

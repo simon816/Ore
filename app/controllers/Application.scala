@@ -14,7 +14,7 @@ import db.{ModelFilter, ModelSchema, ModelService}
 import form.OreForms
 import models.admin.Review
 import models.project._
-import models.user.UserAction
+import models.user.LoggedActionModel
 import models.user.role._
 import models.viewhelper.{HeaderData, OrganizationData, ProjectData, ScopedOrganizationData}
 import ore.Platforms.Platform
@@ -403,7 +403,7 @@ final class Application @Inject()(data: DataHelper,
     val page = request.getQueryString("page").map(_.toInt).getOrElse(0)
     val offset = page * limit
     for {
-      actions <- service.access[UserAction](classOf[UserAction]).filter(u => true, limit, offset)
+      actions <- service.access[LoggedActionModel](classOf[LoggedActionModel]).filter(u => true, limit, offset)
     } yield {
       Ok(views.users.admin.log(actions))
     }

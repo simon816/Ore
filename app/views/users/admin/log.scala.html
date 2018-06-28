@@ -2,10 +2,10 @@
 @import java.time.Instant
 
 @import controllers.sugar.Requests.OreRequest
-@import models.user.UserAction
+@import models.user.LoggedActionModel
 @import ore.OreConfig
 @import util.StringUtils._
-@(actions: Seq[UserAction])(implicit messages: Messages, request: OreRequest[_], config: OreConfig)
+@(actions: Seq[LoggedActionModel])(implicit messages: Messages, request: OreRequest[_], config: OreConfig)
 
 @bootstrap.layout(messages("admin.log.title")) {
 

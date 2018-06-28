@@ -7,7 +7,7 @@ import db.{ModelFilter, ModelService}
 import form.OreForms
 import javax.inject.Inject
 import models.project.{Page, Project}
-import models.user.{UserActionContexts, UserActionLogger, UserActions}
+import models.user.{LoggedActionContext, UserActionLogger, LoggedAction}
 import ore.permission.EditPages
 import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.cache.AsyncCacheApi
@@ -170,7 +170,7 @@ class Pages @Inject()(forms: OreForms,
                 if (pageData.content.isDefined) {
                   val oldPage = createdPage.contents
                   val newPage = pageData.content.get
-                  UserActionLogger.log(request.request, UserActionContexts.PROJECT, data.project.id.getOrElse(-1), UserActions.PROJECT_PAGE_EDITED, oldPage, newPage)
+                  UserActionLogger.log(request.request, LoggedAction.ProjectPageEdited, data.project.id.getOrElse(-1), oldPage, newPage)
                   createdPage.setContents(newPage)
                 } else Future.successful(createdPage)
               } map { _ =>
