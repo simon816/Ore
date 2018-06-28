@@ -40,8 +40,9 @@ sealed abstract class LoggedActionContext(val value: Int) extends IntEnumEntry
 
 object LoggedActionContext extends IntEnum[LoggedActionContext] {
 
-  case object Project extends LoggedActionContext(0)
-  case object Version extends LoggedActionContext(1)
+  case object Project     extends LoggedActionContext(0)
+  case object Version     extends LoggedActionContext(1)
+  case object ProjectPage extends LoggedActionContext(2)
 
   val values = findValues
 
@@ -58,7 +59,7 @@ case object LoggedAction extends IntEnum[LoggedAction] {
   case object ProjectSettingsChanged    extends LoggedAction(4, "ProjectSettingsChanged", LoggedActionContext.Project, "The project settings were changed")
   case object ProjectMemberRemoved      extends LoggedAction(5, "ProjectMemberRemoved", LoggedActionContext.Project, "A Member was removed from the project")
   case object ProjectIconChanged        extends LoggedAction(6, "ProjectIconChanged", LoggedActionContext.Project, "The project icon was changed")
-  case object ProjectPageEdited         extends LoggedAction(7, "ProjectPageEdited", LoggedActionContext.Project, "A project page got edited")
+  case object ProjectPageEdited         extends LoggedAction(7, "ProjectPageEdited", LoggedActionContext.ProjectPage, "A project page got edited")
 
   case object VersionDeleted            extends LoggedAction(8, "VersionDeleted", LoggedActionContext.Version, "The version was deleted")
   case object VersionUploaded           extends LoggedAction(9, "VersionUploaded", LoggedActionContext.Version, "A new version was uploaded")
