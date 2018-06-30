@@ -84,8 +84,8 @@ class Channels @Inject()(forms: OreForms,
     implicit val project: Project = request.data.project
 
     val res = for {
-      channelData <- bindFormEitherT[Future](this.forms.ChannelEdit)(hasErrors => Redirect(self.showList(author, slug)).withError(hasErrors.errors.head.message))
-      _ <- channelData.saveTo(channelName).toLeft(()).leftMap(error => Redirect(self.showList(author, slug)).withError(error))
+      channelData <- bindFormEitherT[Future](this.forms.ChannelEdit)(hasErrors => Redirect(self.showList(author, slug)).withErrors(hasErrors.errors.flatMap(_.messages)))
+      _ <- channelData.saveTo(channelName).leftMap(errors => Redirect(self.showList(author, slug)).withErrors(errors))
     } yield Redirect(self.showList(author, slug))
 
     res.merge
@@ -103,30 +103,26 @@ class Channels @Inject()(forms: OreForms,
   def delete(author: String, slug: String, channelName: String) = ChannelEditAction(author, slug).async { implicit request =>
     implicit val data = request.data
     EitherT.right[Status](data.project.channels.all)
-      .filterOrElse(_.size == 1, Redirect(self.showList(author, slug)).withError("error.channel.last"))
+      .filterOrElse(_.size != 1, Redirect(self.showList(author, slug)).withError("error.channel.last"))
       .flatMap { channels =>
-        EitherT.fromEither[Future](channels.find(c => c.name.equals(channelName)).toRight(NotFound))
+        EitherT.fromEither[Future](channels.find(_.name == channelName).toRight(NotFound))
           .semiFlatMap { channel =>
-            (channel.versions.nonEmpty, Future.sequence(channels.map(_.versions.nonEmpty)).map(l => l.count(_ == true)))
+            (channel.versions.isEmpty, Future.traverse(channels.toSeq)(_.versions.nonEmpty).map(_.count(identity)))
               .parTupled
               .tupleRight(channel)
           }
           .filterOrElse(
-            { case ((nonEmpty, channelCount), _) => nonEmpty && channelCount == 1},
+            { case ((emptyChannel, nonEmptyChannelCount), _) =>
+              emptyChannel || nonEmptyChannelCount > 1},
             Redirect(self.showList(author, slug)).withError("error.channel.lastNonEmpty")
           )
           .map(_._2)
           .filterOrElse(
-            channel => {
-              val reviewedChannels = channels.filter(!_.isNonReviewed)
-              !channel.isNonReviewed && reviewedChannels.size <= 1 && reviewedChannels.contains(channel)
-            },
+            channel => channel.isNonReviewed || channels.count(_.isReviewed) > 1,
             Redirect(self.showList(author, slug)).withError("error.channel.lastReviewed")
           )
-          .map { channel =>
-            this.projects.deleteChannel(channel)
-            Redirect(self.showList(author, slug))
-          }
+          .semiFlatMap(channel => this.projects.deleteChannel(channel))
+          .map(_ => Redirect(self.showList(author, slug)))
       }.merge
   }
 }

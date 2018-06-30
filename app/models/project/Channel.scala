@@ -2,6 +2,8 @@ package models.project
 
 import java.sql.Timestamp
 
+import scala.concurrent.Future
+
 import com.google.common.base.Preconditions._
 import db.Named
 import db.impl.ChannelTable
@@ -76,12 +78,15 @@ case class Channel(override val id: Option[Int] = None,
     update(ModelKeys.Color)
   }
 
+  def isReviewed: Boolean = !this._isNonReviewed
+
   def isNonReviewed: Boolean = this._isNonReviewed
 
   def setNonReviewed(isNonReviewed: Boolean) = {
     this._isNonReviewed = isNonReviewed
     if (isDefined)
       update(IsNonReviewed)
+    else Future.unit
   }
 
   /**

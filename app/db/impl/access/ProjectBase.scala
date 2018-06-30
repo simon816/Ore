@@ -158,7 +158,7 @@ class ProjectBase(override val service: ModelService,
       _ = checkArgument(project.id.get == channel.projectId, "invalid project id", "")
       channels <- project.channels.all
       noVersion <- channel.versions.isEmpty
-      nonEmptyChannels <- Future.sequence(channels.map(_.versions.nonEmpty)).map(_.count(_ == true))
+      nonEmptyChannels <- Future.traverse(channels.toSeq)(_.versions.nonEmpty).map(_.count(identity))
       _ = checkArgument(channels.size > 1, "only one channel", "")
       _ = checkArgument(noVersion || nonEmptyChannels > 1, "last non-empty channel", "")
       reviewedChannels = channels.filter(!_.isNonReviewed)

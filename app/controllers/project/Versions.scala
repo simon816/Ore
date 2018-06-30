@@ -420,26 +420,24 @@ class Versions @Inject()(stats: StatTracker,
                                (implicit req: ProjectRequest[_]): Future[Boolean] = {
     if (version.isReviewed)
       return Future.successful(true)
+
     // check for confirmation
-    req.cookies.get(DownloadWarning.COOKIE).map(_.value).orElse(token) match {
-      case None =>
-        // unconfirmed
-        Future.successful(false)
-      case Some(tkn) =>
+    OptionT
+      .fromOption[Future](req.cookies.get(DownloadWarning.COOKIE).map(_.value).orElse(token))
+      .flatMap { tkn =>
         this.warnings.find { warn =>
           (warn.token === tkn) &&
             (warn.versionId === version.id.get) &&
             (warn.address === InetString(StatTracker.remoteAddress)) &&
             warn.isConfirmed
-        } exists {
-          warn =>
-            if (!warn.hasExpired) true
-            else {
-              warn.remove()
-              false
-            }
         }
-    }
+      }.exists { warn =>
+        if (!warn.hasExpired) true
+        else {
+          warn.remove()
+          false
+        }
+      }
   }
 
   private def _sendVersion(project: Project, version: Version)(implicit req: ProjectRequest[_]): Future[Result] = {
@@ -472,7 +470,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val r = request.request
       val project = request.data.project
       getVersion(project, target)
-        .filterOrElse(_.isReviewed, Redirect(ShowProject(author, slug)))
+        .filterOrElse(v => !v.isReviewed, Redirect(ShowProject(author, slug)))
         .semiFlatMap { version =>
           // generate a unique "warning" object to ensure the user has landed
           // on the warning before downloading
@@ -530,7 +528,7 @@ class Versions @Inject()(stats: StatTracker,
     ProjectAction(author, slug) async { request =>
       implicit val r: OreRequest[_] = request.request
       getVersion(request.data.project, target)
-        .filterOrElse(_.isReviewed, Redirect(ShowProject(author, slug)))
+        .filterOrElse(v => !v.isReviewed, Redirect(ShowProject(author, slug)))
         .flatMap(version => confirmDownload0(version.id.get, downloadType, token).toRight(Redirect(ShowProject(author, slug))))
         .map { dl =>
           dl.downloadType match {
