@@ -15,9 +15,9 @@ import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
 import views.html.projects.{pages => views}
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import util.instances.future._
+import util.syntax._
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Controller for handling Page related actions.
@@ -30,7 +30,7 @@ class Pages @Inject()(forms: OreForms,
                       implicit override val messagesApi: MessagesApi,
                       implicit override val env: OreEnv,
                       implicit override val config: OreConfig,
-                      implicit override val service: ModelService)
+                      implicit override val service: ModelService)(implicit val ec: ExecutionContext)
                       extends OreBaseController {
 
   private val self = controllers.project.routes.Pages
@@ -46,17 +46,20 @@ class Pages @Inject()(forms: OreForms,
     * @return Tuple: Optional Page, true if using legacy fallback
     */
   def withPage(project: Project, page: String): Future[(Option[Page], Boolean)] = {
+    //TODO: Can the return type here be changed to OptionT[Future (Page, Boolean)]?
     val parts = page.split("/")
     if (parts.size == 2) {
-      project.pages.find(equalsIgnoreCase(_.slug, parts(0))).map {
-        _.flatMap(_.id).getOrElse(-1)
-      } flatMap { parentId =>
-        project.pages.filter(equalsIgnoreCase(_.slug, parts(1))).map(seq => seq.find(_.parentId == parentId)).map((_, false))
-      }
+      project.pages
+        .find(equalsIgnoreCase(_.slug, parts(0)))
+        .subflatMap(_.id)
+        .getOrElse(-1)
+        .flatMap { parentId =>
+          project.pages.filter(equalsIgnoreCase(_.slug, parts(1))).map(seq => seq.find(_.parentId == parentId)).map((_, false))
+        }
     } else {
-      project.pages.find((ModelFilter[Page](_.slug === parts(0)) +&& ModelFilter[Page](_.parentId === -1)).fn).flatMap {
+      project.pages.find((ModelFilter[Page](_.slug === parts(0)) +&& ModelFilter[Page](_.parentId === -1)).fn).value.flatMap {
         case Some(r) => Future.successful((Some(r), false))
-        case None => project.pages.find(ModelFilter[Page](_.slug === parts(0)).fn).map((_, true))
+        case None => project.pages.find(ModelFilter[Page](_.slug === parts(0)).fn).value.map((_, true))
       }
     }
   }
@@ -99,25 +102,19 @@ class Pages @Inject()(forms: OreForms,
     implicit val r = request.request
     val data = request.data
     val parts = pageName.split("/")
-    val p = if (parts.size != 2) Future.successful((parts(0), -1))
-    else {
-      data.project.pages.find(equalsIgnoreCase(_.slug, parts(0))).map(_.flatMap(_.id).getOrElse(-1))
-        .map((parts(1), _))
-    }
-    p.flatMap {
-      case (name, parentId) =>
-        data.project.pages.find(equalsIgnoreCase(_.slug, name)).flatMap {
-          case Some(page) => Future.successful(page)
-          case None =>
-            data.project.getOrCreatePage(name, parentId)
-        }
-    } flatMap { p =>
-      projects.queryProjectPages(data.project) map { pages =>
-        val pageCount = pages.size + pages.map(_._2.size).sum
-        val parentPage = if (pages.contains(p)) None
-        else pages.collectFirst { case (pp, page) if page.contains(p) => pp }
-        Ok(views.view(data, request.scoped, pages, p, parentPage, pageCount, editorOpen = true))
+
+    for {
+      (name, parentId) <- if (parts.size != 2) Future.successful((parts(0), -1)) else {
+        data.project.pages.find(equalsIgnoreCase(_.slug, parts(0))).subflatMap(_.id).getOrElse(-1).map((parts(1), _))
       }
+      (p, pages) <- (
+        data.project.pages.find(equalsIgnoreCase(_.slug, name)).getOrElseF(data.project.getOrCreatePage(name, parentId)),
+        projects.queryProjectPages(data.project)
+      ).parTupled
+    } yield {
+      val pageCount = pages.size + pages.map(_._2.size).sum
+      val parentPage = pages.collectFirst { case (pp, page) if page.contains(p) => pp }
+      Ok(views.view(data, request.scoped, pages, p, parentPage, pageCount, editorOpen = true))
     }
   }
 
@@ -157,8 +154,7 @@ class Pages @Inject()(forms: OreForms,
               val parts = page.split("/")
 
               val created = if (parts.size == 2) {
-                data.project.pages.find(equalsIgnoreCase(_.slug, parts(0))).flatMap { parent =>
-                  val parentId = parent.flatMap(_.id).getOrElse(-1)
+                data.project.pages.find(equalsIgnoreCase(_.slug, parts(0))).subflatMap(_.id).getOrElse(-1).flatMap { parentId =>
                   val pageName = pageData.name.getOrElse(parts(1))
                   data.project.getOrCreatePage(pageName, parentId, pageData.content)
                 }

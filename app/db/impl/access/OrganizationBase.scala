@@ -11,8 +11,10 @@ import play.api.cache.AsyncCacheApi
 import play.api.i18n.{Lang, MessagesApi}
 import security.spauth.SpongeAuthApi
 import util.StringUtils
-
+import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
+
+import util.functional.{EitherT, OptionT}
 
 class OrganizationBase(override val service: ModelService,
                        forums: OreDiscourseApi,
@@ -35,7 +37,7 @@ class OrganizationBase(override val service: ModelService,
     * @param ownerId  User ID of the organization owner
     * @return         New organization if successful, None otherwise
     */
-  def create(name: String, ownerId: Int, members: Set[OrganizationRole])(implicit cache: AsyncCacheApi, ec: ExecutionContext): Future[Either[String, Organization]] = {
+  def create(name: String, ownerId: Int, members: Set[OrganizationRole])(implicit cache: AsyncCacheApi, ec: ExecutionContext): EitherT[Future, String, Organization] = {
     Logger.info("Creating Organization...")
     Logger.info("Name     : " + name)
     Logger.info("Owner ID : " + ownerId)
@@ -48,38 +50,35 @@ class OrganizationBase(override val service: ModelService,
     Logger.info("Creating on SpongeAuth...")
     val dummyEmail = name + '@' + this.config.orgs.get[String]("dummyEmailDomain")
     val spongeResult = this.auth.createDummyUser(name, dummyEmail, verified = true)
+
     // Check for error
-    spongeResult flatMap {
-      case Left(err) =>
-        Logger.info("<FAILURE> " + err)
-        Future.successful(Left(err))
-      case Right(spongeUser) =>
-        Logger.info("<SUCCESS> " + spongeUser)
-        // Next we will create the Organization on Ore itself. This contains a
-        // reference to the Sponge user ID, the organization's username and a
-        // reference to the User owner of the organization.
-        Logger.info("Creating on Ore...")
-        this.add(Organization(id = Some(spongeUser.id), username = name, _ownerId = ownerId)).map(Right(_))
-    } flatMap {
-      case Left(err) => Future.successful(Left(err))
-      case Right(org) =>
-        // Every organization model has a regular User companion. Organizations
-        // are just normal users with additional information. Adding the
-        // Organization global role signifies that this User is an Organization
-        // and should be treated as such.
-        org.toUser.map {
-          case None => throw new IllegalStateException("User not created")
-          case Some(userOrg) => userOrg.pullForumData().flatMap(_.pullSpongeData())
-            userOrg.setGlobalRoles(userOrg.globalRoles + RoleTypes.Organization)
-            userOrg
-        } flatMap { orga =>
-          // Add the owner
+    spongeResult.leftMap { err =>
+      Logger.info("<FAILURE> " + err)
+      err
+    }.semiFlatMap { spongeUser =>
+      Logger.info("<SUCCESS> " + spongeUser)
+      // Next we will create the Organization on Ore itself. This contains a
+      // reference to the Sponge user ID, the organization's username and a
+      // reference to the User owner of the organization.
+      Logger.info("Creating on Ore...")
+      this.add(Organization(id = Some(spongeUser.id), username = name, _ownerId = ownerId))
+    }.semiFlatMap { org =>
+      // Every organization model has a regular User companion. Organizations
+      // are just normal users with additional information. Adding the
+      // Organization global role signifies that this User is an Organization
+      // and should be treated as such.
+      for {
+        userOrg <- org.toUser.getOrElse(throw new IllegalStateException("User not created"))
+        _ <- userOrg.pullForumData()
+        _ <- userOrg.pullSpongeData()
+        _ = userOrg.setGlobalRoles(userOrg.globalRoles + RoleTypes.Organization)
+        _ <- // Add the owner
           org.memberships.addRole(OrganizationRole(
             userId = ownerId,
             organizationId = org.id.get,
             _roleType = RoleTypes.OrganizationOwner,
             _isAccepted = true))
-        } flatMap { _ =>
+        _ <- {
           // Invite the User members that the owner selected during creation.
           Logger.info("Inviting members...")
 
@@ -92,12 +91,12 @@ class OrganizationBase(override val service: ModelService,
                 message = this.messages("notification.organization.invite", role.roleType.title, org.username)
               ))
             }
-          }
-          )
-        } map { _ =>
-          Logger.info("<SUCCESS> " + org)
-          Right(org)
+          })
         }
+      } yield {
+        Logger.info("<SUCCESS> " + org)
+        org
+      }
     }
   }
 
@@ -107,6 +106,6 @@ class OrganizationBase(override val service: ModelService,
     * @param name Organization name
     * @return     Organization with name if exists, None otherwise
     */
-  def withName(name: String): Future[Option[Organization]] = this.find(StringUtils.equalsIgnoreCase(_.name, name))
+  def withName(name: String)(implicit ec: ExecutionContext): OptionT[Future, Organization] = this.find(StringUtils.equalsIgnoreCase(_.name, name))
 
 }

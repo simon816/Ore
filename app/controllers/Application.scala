@@ -29,10 +29,12 @@ import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
 import util.DataHelper
+import util.functional.OptionT
+import util.syntax._
+import util.instances.future._
 import views.{html => views}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Main entry point for application.
@@ -45,7 +47,7 @@ final class Application @Inject()(data: DataHelper,
                                   implicit override val env: OreEnv,
                                   implicit override val config: OreConfig,
                                   implicit override val cache: AsyncCacheApi,
-                                  implicit override val service: ModelService)
+                                  implicit override val service: ModelService)(implicit val ec: ExecutionContext)
                                   extends OreBaseController {
 
   private def FlagAction = Authenticated andThen PermissionAction[AuthRequest](ReviewFlags)
@@ -216,8 +218,7 @@ final class Application @Inject()(data: DataHelper,
   def showFlags() = FlagAction.async { implicit request =>
     for {
       flags <- this.service.access[Flag](classOf[Flag]).filterNot(_.isResolved)
-      users <- Future.sequence(flags.map(_.user))
-      projects <- Future.sequence(flags.map(_.project))
+      (users, projects) <- (Future.sequence(flags.map(_.user)), Future.sequence(flags.map(_.project))).parTupled
       perms <- Future.sequence(projects.map { project =>
         val perms = VisibilityTypes.values.map(_.permission).map { perm =>
           request.user can perm in project map (value => (perm, value))
@@ -240,27 +241,24 @@ final class Application @Inject()(data: DataHelper,
     * @return         Ok
     */
   def setFlagResolved(flagId: Int, resolved: Boolean) = FlagAction.async { implicit request =>
-    this.service.access[Flag](classOf[Flag]).get(flagId) flatMap {
-      case None => Future.successful(NotFound)
-      case Some(flag) =>
-        users.current.map { user =>
-          flag.setResolved(resolved, user)
-          Ok
-        }
-    }
+    this.service.access[Flag](classOf[Flag]).get(flagId).semiFlatMap { flag =>
+      users.current.value.map { user =>
+        flag.setResolved(resolved, user)
+        Ok
+      }
+    }.getOrElse(NotFound)
   }
 
   def showHealth() = (Authenticated andThen PermissionAction[AuthRequest](ViewHealth)) async { implicit request =>
-
-    for {
-      noTopicProjects <- projects.filter(p => p.topicId === -1 || p.postId === -1)
-      topicDirtyProjects <- projects.filter(_.isTopicDirty)
-      staleProjects <- projects.stale
-      notPublic <- projects.filterNot(_.visibility === VisibilityTypes.Public)
-      missingFileProjects <- projects.missingFile.flatMap { v =>
+    (
+      projects.filter(p => p.topicId === -1 || p.postId === -1),
+      projects.filter(_.isTopicDirty),
+      projects.stale,
+      projects.filterNot(_.visibility === VisibilityTypes.Public),
+      projects.missingFile.flatMap { v =>
         Future.sequence(v.map { v => v.project.map(p => (v, p)) })
       }
-    } yield {
+    ).parMapN { (noTopicProjects, topicDirtyProjects, staleProjects, notPublic, missingFileProjects) =>
       Ok(views.users.admin.health(noTopicProjects, topicDirtyProjects, staleProjects, notPublic, missingFileProjects))
     }
   }
@@ -311,31 +309,29 @@ final class Application @Inject()(data: DataHelper,
     * Show the activities page for a user
     */
   def showActivities(user: String) = (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) async { implicit request =>
-    this.users.withName(user).flatMap {
-      case None => Future.successful(NotFound)
-      case Some(u) =>
-        val activities: Future[Seq[(Object, Option[Project])]] = u.id match {
-          case None => Future.successful(Seq.empty)
-          case Some(id) =>
-            val reviews = this.service.access[Review](classOf[Review])
-              .filter(_.userId === id)
-              .map(_.take(20).map { review => review ->
-                this.service.access[Version](classOf[Version]).filter(_.id === review.versionId).flatMap { version =>
-                  this.projects.find(_.id === version.head.projectId)
-                }
-              })
-            val flags = this.service.access[Flag](classOf[Flag])
-              .filter(_.resolvedBy === id)
-              .map(_.take(20).map(flag => flag -> this.projects.find(_.id === flag.projectId)))
+    this.users.withName(user).semiFlatMap { u =>
+      val activities: Future[Seq[(Object, Option[Project])]] = u.id match {
+        case None => Future.successful(Seq.empty)
+        case Some(id) =>
+          val reviews = this.service.access[Review](classOf[Review])
+            .filter(_.userId === id)
+            .map(_.take(20).map { review => review ->
+              this.service.access[Version](classOf[Version]).filter(_.id === review.versionId).flatMap { version =>
+                this.projects.find(_.id === version.head.projectId).value
+              }
+            })
+          val flags = this.service.access[Flag](classOf[Flag])
+            .filter(_.resolvedBy === id)
+            .map(_.take(20).map(flag => flag -> this.projects.find(_.id === flag.projectId).value))
 
-            val allActivities = reviews.flatMap(r => flags.map(_ ++ r))
+          val allActivities = reviews.flatMap(r => flags.map(_ ++ r))
 
-            allActivities.flatMap(Future.traverse(_) {
-              case (k, fv) => fv.map(k -> _)
-            }.map(_.sortWith(sortActivities)))
-        }
-        activities.map(a => Ok(views.users.admin.activity(u, a)))
-    }
+          allActivities.flatMap(Future.traverse(_) {
+            case (k, fv) => fv.map(k -> _)
+          }.map(_.sortWith(sortActivities)))
+      }
+      activities.map(a => Ok(views.users.admin.activity(u, a)))
+    }.getOrElse(NotFound)
   }
 
   /**
@@ -345,13 +341,13 @@ final class Application @Inject()(data: DataHelper,
     * @return Boolean
     */
   def sortActivities(o1: Object, o2: Object): Boolean = {
-    var o1Time: Long = 0
-    var o2Time: Long = 0
-    if (o1.isInstanceOf[Review]) {
-      o1Time = o1.asInstanceOf[Review].endedAt.getOrElse(Timestamp.from(Instant.EPOCH)).getTime
+    val o1Time: Long = o1 match {
+      case review: Review => review.endedAt.getOrElse(Timestamp.from(Instant.EPOCH)).getTime
+      case _ => 0
     }
-    if (o2.isInstanceOf[Flag]) {
-      o2Time = o2.asInstanceOf[Flag].resolvedAt.getOrElse(Timestamp.from(Instant.EPOCH)).getTime
+    val o2Time: Long = o2 match {
+      case flag: Flag => flag.resolvedAt.getOrElse(Timestamp.from(Instant.EPOCH)).getTime
+      case _ => 0
     }
     o1Time > o2Time
   }
@@ -385,15 +381,14 @@ final class Application @Inject()(data: DataHelper,
         ORDER BY days ASC""".as[(String, String)])
     }
 
-    for {
-      reviews         <- last10DaysCountQuery("project_version_reviews", "ended_at")
-      uploads         <- last10DaysCountQuery("project_versions", "created_at")
-      totalDownloads  <- last10DaysCountQuery("project_version_downloads", "created_at")
-      unsafeDownloads <- last10DaysCountQuery("project_version_unsafe_downloads", "created_at")
-      flagsOpen       <- last10DaysTotalOpen("project_flags", "created_at", "resolved_at")
-      flagsClosed     <- last10DaysCountQuery("project_flags", "resolved_at")
-    }
-    yield {
+    (
+      last10DaysCountQuery("project_version_reviews", "ended_at"),
+      last10DaysCountQuery("project_versions", "created_at"),
+      last10DaysCountQuery("project_version_downloads", "created_at"),
+      last10DaysCountQuery("project_version_unsafe_downloads", "created_at"),
+      last10DaysTotalOpen("project_flags", "created_at", "resolved_at"),
+      last10DaysCountQuery("project_flags", "resolved_at")
+    ).parMapN { (reviews, uploads, totalDownloads, unsafeDownloads, flagsOpen, flagsClosed) =>
       Ok(views.users.admin.stats(reviews, uploads, totalDownloads, unsafeDownloads, flagsOpen, flagsClosed))
     }
   }
@@ -412,102 +407,84 @@ final class Application @Inject()(data: DataHelper,
   def UserAdminAction = Authenticated andThen PermissionAction[AuthRequest](UserAdmin)
 
   def userAdmin(user: String) = UserAdminAction.async { implicit request =>
-    this.users.withName(user).flatMap {
-      case None => Future.successful(notFound)
-      case Some(u) =>
-        for {
-          userData <- getUserData(request, user)
-          isOrga <- u.isOrganization
-          projectRoles <- if (isOrga) Future.successful(Seq.empty) else u.projectRoles.all
-          projects <- Future.sequence(projectRoles.map(_.project))
-          orga <- if (isOrga) getOrga(request, user) else Future.successful(None)
-          orgaData <- OrganizationData.of(orga)
-          scopedOrgaData <- ScopedOrganizationData.of(Some(request.user), orga)
-        } yield {
-          val pr = projects zip projectRoles
-          Ok(views.users.admin.userAdmin(userData.get, orgaData, pr.toSeq))
+    this.users.withName(user).semiFlatMap { u =>
+      for {
+        isOrga <- u.isOrganization
+        (projectRoles, orga) <- {
+          if (isOrga)
+            (Future.successful(Seq.empty), getOrga(request, user).value).parTupled
+          else
+            (u.projectRoles.all, Future.successful(None)).parTupled
         }
-    }
+        (userData, projects, orgaData, scopedOrgaData) <- (
+          getUserData(request, user).value,
+          Future.sequence(projectRoles.map(_.project)),
+          OrganizationData.of(orga).value,
+          ScopedOrganizationData.of(Some(request.user), orga).value
+        ).parTupled
+      } yield {
+        val pr = projects zip projectRoles
+        Ok(views.users.admin.userAdmin(userData.get, orgaData, pr.toSeq))
+      }
+    }.getOrElse(notFound)
   }
 
   def updateUser(userName: String) = UserAdminAction.async { implicit request =>
-    this.users.withName(userName).flatMap {
-      case None => Future.successful(NotFound)
-      case Some(user) =>
-        this.forms.UserAdminUpdate.bindFromRequest.fold(
-          _ => Future.successful(BadRequest),
-          { case (thing, action, data) =>
+    this.users.withName(userName).map { user =>
+      bindFormOptionT[Future](this.forms.UserAdminUpdate).flatMap { case (thing, action, data) =>
+        import play.api.libs.json._
+        val json = Json.parse(data)
 
-            import play.api.libs.json._
-            val json = Json.parse(data)
+        def updateRoleTable[M <: RoleModel](modelAccess: ModelAccess[M], allowedType: Class[_ <: Role], ownerType: RoleTypes.RoleType, transferOwner: M => Future[Int]) = {
+          val id = (json \ "id").as[Int]
+          action match {
+            case "setRole" => modelAccess.get(id).map { role =>
+              val roleType = RoleTypes.withId((json \ "role").as[Int])
+              if (roleType == ownerType) {
+                transferOwner(role)
+                Ok
+              } else if (roleType.roleClass == allowedType && roleType.isAssignable) {
+                role.setRoleType(roleType)
+                Ok
+              } else BadRequest
+            }
+            case "setAccepted" => modelAccess.get(id).map { role =>
+              role.setAccepted((json \ "accepted").as[Boolean])
+              Ok
+            }
+            case "deleteRole" => modelAccess.get(id).filter(_.roleType.isAssignable).map { role =>
+              role.remove()
+              Ok
+            }
+          }
+        }
 
-            def updateRoleTable[M <: RoleModel](modelAccess: ModelAccess[M], allowedType: Class[_ <: Role], ownerType: RoleTypes.RoleType, transferOwner: M => Future[Int]) = {
-              val id = (json \ "id").as[Int]
-              val status = action match {
-                case "setRole" => modelAccess.get(id).map {
-                  case None => BadRequest
-                  case Some(role) =>
-                    val roleType = RoleTypes.withId((json \ "role").as[Int])
-                    if (roleType == ownerType) {
-                      transferOwner(role)
-                      Ok
-                    } else if (roleType.roleClass == allowedType && roleType.isAssignable) {
-                      role.setRoleType(roleType)
-                      Ok
-                    } else BadRequest
-                }
-                case "setAccepted" => modelAccess.get(id).map {
-                  case None => BadRequest
-                  case Some(role) =>
-                    role.setAccepted((json \ "accepted").as[Boolean])
-                    Ok
-                }
-                case "deleteRole" => modelAccess.get(id).map {
-                  case None => BadRequest
-                  case Some(role) =>
-                    if (role.roleType.isAssignable) {
-                      role.remove()
-                      Ok
-                    } else BadRequest
-                }
+        def transferOrgOwner(r: OrganizationRole) = {
+          r.organization.flatMap { orga =>
+            orga.transferOwner(orga.memberships.newMember(r.userId))
+          }
+        }
+
+        val isOrga = OptionT.liftF(user.isOrganization)
+        thing match {
+          case "orgRole" =>
+            isOrga.filterNot(identity).flatMap { _ =>
+              updateRoleTable(user.organizationRoles, classOf[OrganizationRole], RoleTypes.OrganizationOwner, transferOrgOwner)
+            }
+          case "memberRole" =>
+            isOrga.filter(identity).flatMap { _ =>
+              OptionT.liftF(user.toOrganization).flatMap { orga =>
+                updateRoleTable(orga.memberships.roles, classOf[OrganizationRole], RoleTypes.OrganizationOwner, transferOrgOwner)
               }
-              status
             }
-
-            def transferOrgOwner(r: OrganizationRole) = {
-              r.organization.flatMap { orga =>
-                orga.transferOwner(orga.memberships.newMember(r.userId))
-              }
+          case "projectRole" =>
+            isOrga.filterNot(identity).flatMap { _ =>
+              updateRoleTable(user.projectRoles, classOf[ProjectRole], RoleTypes.ProjectOwner, (r: ProjectRole) => r.project.flatMap(p => p.transferOwner(p.memberships.newMember(r.userId))))
             }
-
-            val isOrga = user.isOrganization
-            thing match {
-              case "orgRole" =>
-                isOrga.flatMap {
-                  case true => Future.successful(BadRequest)
-                  case false =>
-                    updateRoleTable(user.organizationRoles, classOf[OrganizationRole], RoleTypes.OrganizationOwner, transferOrgOwner)
-                }
-              case "memberRole" =>
-                isOrga.flatMap {
-                  case false => Future.successful(BadRequest)
-                  case true =>
-                    user.toOrganization.flatMap { orga =>
-                      updateRoleTable(orga.memberships.roles, classOf[OrganizationRole], RoleTypes.OrganizationOwner, transferOrgOwner)
-                    }
-                }
-              case "projectRole" =>
-                isOrga.flatMap {
-                  case true => Future.successful(BadRequest)
-                  case false =>
-                    updateRoleTable(user.projectRoles, classOf[ProjectRole], RoleTypes.ProjectOwner,
-                    (r: ProjectRole) => r.project.flatMap(p => p.transferOwner(p.memberships.newMember(r.userId))))
-                }
-              case _ => Future.successful(BadRequest)
-            }
-
-          })
-    }
+          case _ => OptionT.none[Future, Status]
+        }
+      }
+    }.semiFlatMap(_.getOrElse(BadRequest)).getOrElse(NotFound)
   }
 
   /**
@@ -518,39 +495,44 @@ final class Application @Inject()(data: DataHelper,
     val projectSchema = this.service.getSchema(classOf[ProjectSchema])
 
     for {
-      projectApprovals <- projectSchema.collect(ModelFilter[Project](_.visibility === VisibilityTypes.NeedsApproval).fn, ProjectSortingStrategies.Default, -1, 0)
-      perms <- Future.sequence(projectApprovals.map { project =>
-        val perms = VisibilityTypes.values.map(_.permission).map { perm =>
-          request.user can perm in project map (value => (perm, value))
-        }
-        Future.sequence(perms).map(_.toMap)
-      })
-      lastChangeRequests <- Future.sequence(projectApprovals.map(_.lastChangeRequest))
-      lastChangeRequesters <- Future.sequence(lastChangeRequests.map {
-                                case None => Future.successful(None)
-                                case Some(lcr) => lcr.created
-                              })
-      lastVisibilityChanges <- Future.sequence(projectApprovals.map(_.lastVisibilityChange))
-      lastVisibilityChangers <- Future.sequence(lastVisibilityChanges.map {
-                                  case None => Future.successful(None)
-                                  case Some(lcr) => lcr.created
-                                })
+      (projectApprovals, projectChanges) <- (
+        projectSchema.collect(ModelFilter[Project](_.visibility === VisibilityTypes.NeedsApproval).fn, ProjectSortingStrategies.Default, -1, 0),
+        projectSchema.collect(ModelFilter[Project](_.visibility === VisibilityTypes.NeedsChanges).fn, ProjectSortingStrategies.Default, -1, 0)
+      ).parTupled
+      (lastChangeRequests, lastVisibilityChanges, projectVisibilityChanges) <- (
+        Future.sequence(projectApprovals.map(_.lastChangeRequest.value)),
+        Future.sequence(projectApprovals.map(_.lastVisibilityChange.value)),
+        Future.sequence(projectChanges.map(_.lastVisibilityChange.value))
+      ).parTupled
 
-      projectChanges <- projectSchema.collect(ModelFilter[Project](_.visibility === VisibilityTypes.NeedsChanges).fn, ProjectSortingStrategies.Default, -1, 0)
-      projectChangeRequests <- Future.sequence(projectChanges.map(_.lastChangeRequest))
-      projectVisibilityChanges <- Future.sequence(projectChanges.map(_.lastVisibilityChange))
-      projectVisibilityChangers <- Future.sequence(projectVisibilityChanges.map {
-        case None => Future.successful(None)
-        case Some(lcr) => lcr.created
-      })
-
+      (perms, lastChangeRequesters, lastVisibilityChangers, projectChangeRequests, projectVisibilityChangers) <- (
+        Future.sequence(projectApprovals.map { project =>
+          val perms = VisibilityTypes.values.map(_.permission).map { perm =>
+            request.user can perm in project map (value => (perm, value))
+          }
+          Future.sequence(perms).map(_.toMap)
+        }),
+        Future.sequence(lastChangeRequests.map {
+          case None => Future.successful(None)
+          case Some(lcr) => lcr.created.value
+        }),
+        Future.sequence(lastVisibilityChanges.map {
+          case None => Future.successful(None)
+          case Some(lcr) => lcr.created.value
+        }),
+        Future.sequence(projectChanges.map(_.lastChangeRequest.value)),
+        Future.sequence(projectVisibilityChanges.map {
+          case None => Future.successful(None)
+          case Some(lcr) => lcr.created.value
+        })
+      ).parTupled
     }
     yield {
       val needsApproval = projectApprovals zip perms zip lastChangeRequests zip lastChangeRequesters zip lastVisibilityChanges zip lastVisibilityChangers map { case (((((a,b),c),d),e),f) =>
-        (a,b,c,d.map(_.name),e,f.map(_.name))
+        (a,b,c,d.fold("Unknown")(_.name),e,f.fold("Unknown")(_.name))
       }
       val waitingProjects = projectChanges zip projectChangeRequests zip projectVisibilityChanges zip projectVisibilityChangers map { case (((a,b), c), d) =>
-        (a,b,c,d.map(_.name))
+        (a,b,c,d.fold("Unknown")(_.name))
       }
 
       Ok(views.users.admin.visibility(needsApproval, waitingProjects))

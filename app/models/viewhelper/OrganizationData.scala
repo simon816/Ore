@@ -10,6 +10,8 @@ import slick.jdbc.JdbcBackend
 
 import scala.concurrent.{ExecutionContext, Future}
 
+import util.functional.OptionT
+import util.instances.future._
 
 case class OrganizationData(joinable: Organization,
                             ownerRole: OrganizationRole,
@@ -31,7 +33,8 @@ object OrganizationData {
     implicit val users = orga.userBase
     for {
       role <- orga.owner.headRole
-      memberRoles <- orga.memberships.members.flatMap(m => Future.sequence(m.map(_.headRole)))
+      members <- orga.memberships.members
+      memberRoles <- Future.sequence(members.map(_.headRole))
       memberUser <- Future.sequence(memberRoles.map(_.user))
     } yield {
       val members = memberRoles zip memberUser
@@ -41,10 +44,7 @@ object OrganizationData {
 
 
   def of[A](orga: Option[Organization])(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext,
-                                        service: ModelService): Future[Option[OrganizationData]] = {
-    orga match {
-      case None => Future.successful(None)
-      case Some(o) => of(o).map(Some(_))
-    }
+                                        service: ModelService): OptionT[Future, OrganizationData] = {
+    OptionT.fromOption[Future](orga).semiFlatMap(of)
   }
 }

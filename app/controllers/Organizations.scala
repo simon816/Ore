@@ -13,9 +13,10 @@ import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesApi
 import security.spauth.SingleSignOnConsumer
 import views.{html => views}
+import util.instances.future._
+import util.functional.Id
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Controller for handling Organization based actions.
@@ -29,7 +30,7 @@ class Organizations @Inject()(forms: OreForms,
                               implicit override val config: OreConfig,
                               implicit override val service: ModelService,
                               implicit override val cache: AsyncCacheApi,
-                              implicit override val messagesApi: MessagesApi) extends OreBaseController {
+                              implicit override val messagesApi: MessagesApi)(implicit val ec: ExecutionContext) extends OreBaseController {
 
   private def EditOrganizationAction(organization: String)
   = AuthedOrganizationAction(organization, requireUnlock = true) andThen OrganizationPermissionAction(EditSettings)
@@ -67,16 +68,12 @@ class Organizations @Inject()(forms: OreForms,
       else if (!this.config.orgs.get[Boolean]("enabled"))
         Future.successful(Redirect(failCall).withError("error.org.disabled"))
       else {
-        this.forms.OrganizationCreate.bindFromRequest().fold(
-          hasErrors => Future.successful(FormError(failCall, hasErrors)),
-          formData => {
-            this.organizations.create(formData.name, user.id.get, formData.build()) map {
-              case Left(error) => Redirect(failCall).withError(error)
-              case Right(organization) =>
-                Redirect(routes.Users.showProjects(organization.name, None))
-            }
-          }
-        )
+        bindFormEitherT[Future](this.forms.OrganizationCreate)(hasErrors => FormError(failCall, hasErrors)).flatMap { formData =>
+          this.organizations.create(formData.name, user.id.get, formData.build()).bimap(
+            error => Redirect(failCall).withError(error),
+            organization => Redirect(routes.Users.showProjects(organization.name, None))
+          )
+        }.merge
       }
     }
   }
@@ -90,26 +87,21 @@ class Organizations @Inject()(forms: OreForms,
     */
   def setInviteStatus(id: Int, status: String) = Authenticated.async { implicit request =>
     val user = request.user
-    user.organizationRoles.get(id).flatMap {
-      case None => Future.successful(notFound)
-      case Some(role) =>
-        role.organization.map { orga =>
-          status match {
-            case STATUS_DECLINE =>
-              orga.memberships.removeRole(role)
-              Ok
-            case STATUS_ACCEPT =>
-              role.setAccepted(true)
-              Ok
-            case STATUS_UNACCEPT =>
-              role.setAccepted(false)
-              Ok
-            case _ =>
-              BadRequest
-          }
-        }
-
-    }
+    user.organizationRoles.get(id).map { role =>
+      status match {
+        case STATUS_DECLINE =>
+          role.organization.foreach(_.memberships.removeRole(role))
+          Ok
+        case STATUS_ACCEPT =>
+          role.setAccepted(true)
+          Ok
+        case STATUS_UNACCEPT =>
+          role.setAccepted(false)
+          Ok
+        case _ =>
+          BadRequest
+      }
+    }.getOrElse(notFound)
   }
 
   /**
@@ -130,12 +122,15 @@ class Organizations @Inject()(forms: OreForms,
     * @return             Redirect to Organization page
     */
   def removeMember(organization: String) = EditOrganizationAction(organization).async { implicit request =>
-    this.users.withName(this.forms.OrganizationMemberRemove.bindFromRequest.get.trim).map {
-      case None => BadRequest
-      case Some(user) =>
-        request.data.orga.memberships.removeMember(user)
-        Redirect(ShowUser(organization))
+    val res = for {
+      name <- bindFormOptionT[Future](this.forms.OrganizationMemberRemove)
+      user <- this.users.withName(name)
+    } yield {
+      request.data.orga.memberships.removeMember(user)
+      Redirect(ShowUser(organization))
     }
+
+    res.getOrElse(BadRequest)
   }
 
   /**
@@ -145,8 +140,10 @@ class Organizations @Inject()(forms: OreForms,
     * @return             Redirect to Organization page
     */
   def updateMembers(organization: String) = EditOrganizationAction(organization) { implicit request =>
-    this.forms.OrganizationUpdateMembers.bindFromRequest.get.saveTo(request.data.orga)
-    Redirect(ShowUser(organization))
+    bindFormOptionT[Id](this.forms.OrganizationUpdateMembers).map { update =>
+      update.saveTo(request.data.orga)
+      Redirect(ShowUser(organization))
+    }.getOrElse(BadRequest)
   }
 
 }

@@ -18,27 +18,27 @@ libraryDependencies ++= Seq(
   "com.typesafe.play"     %%  "play-slick"              %   "3.0.3",
   "com.typesafe.play"     %%  "play-slick-evolutions"   %   "3.0.3",
   "org.postgresql"        %   "postgresql"              %   "42.2.2",
-  "com.github.tminglei"   %%  "slick-pg"                %   "0.16.0",
-  "io.sentry"             %   "sentry-logback"          %   "1.7.2",
+  "com.github.tminglei"   %%  "slick-pg"                %   "0.16.2",
+  "io.sentry"             %   "sentry-logback"          %   "1.7.5",
   "org.bouncycastle"      %   "bcprov-jdk15on"          %   "1.59",
   "org.bouncycastle"      %   "bcpkix-jdk15on"          %   "1.59",
   "org.bouncycastle"      %   "bcpg-jdk15on"            %   "1.59",
   "javax.mail"            %   "mail"                    %   "1.4.7",
   "com.beachape"          %%  "enumeratum"              %   "1.5.13",
 
-  "com.vladsch.flexmark"  % "flexmark"                       %  "0.32.20",
-  "com.vladsch.flexmark"  % "flexmark-ext-autolink"          %  "0.32.20",
-  "com.vladsch.flexmark"  % "flexmark-ext-anchorlink"        %  "0.32.20",
-  "com.vladsch.flexmark"  % "flexmark-ext-gfm-strikethrough" %  "0.32.20",
-  "com.vladsch.flexmark"  % "flexmark-ext-gfm-tasklist"      %  "0.32.20",
-  "com.vladsch.flexmark"  % "flexmark-ext-tables"            %  "0.32.20",
-  "com.vladsch.flexmark"  % "flexmark-ext-typographic"       %  "0.32.20",
-  "com.vladsch.flexmark"  % "flexmark-ext-wikilink"          %  "0.32.20",
+  "com.vladsch.flexmark"  % "flexmark"                       %  "0.34.0",
+  "com.vladsch.flexmark"  % "flexmark-ext-autolink"          %  "0.34.0",
+  "com.vladsch.flexmark"  % "flexmark-ext-anchorlink"        %  "0.34.0",
+  "com.vladsch.flexmark"  % "flexmark-ext-gfm-strikethrough" %  "0.34.0",
+  "com.vladsch.flexmark"  % "flexmark-ext-gfm-tasklist"      %  "0.34.0",
+  "com.vladsch.flexmark"  % "flexmark-ext-tables"            %  "0.34.0",
+  "com.vladsch.flexmark"  % "flexmark-ext-typographic"       %  "0.34.0",
+  "com.vladsch.flexmark"  % "flexmark-ext-wikilink"          %  "0.34.0",
 
   "org.webjars"       % "jquery"       % "2.2.4",
   "org.webjars"       % "font-awesome" % "4.7.0",
   "org.webjars.bower" % "filesize"     % "3.5.6",
-  "org.webjars.bower" % "momentjs"     % "2.22.0"
+  "org.webjars.bower" % "momentjs"     % "2.22.2"
 )
 
 unmanagedResourceDirectories in Test +=  (baseDirectory.value / "target/web/public/test")

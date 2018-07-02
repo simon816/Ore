@@ -12,10 +12,11 @@ import org.apache.commons.codec.binary.Hex
 import play.api.Configuration
 import play.api.http.Status
 import play.api.libs.ws.WSClient
+import util.functional.OptionT
+import util.instances.future._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
   * Manages authentication to Sponge services.
@@ -39,7 +40,7 @@ trait SingleSignOnConsumer {
     *
     * @return True if available
     */
-  def isAvailable: Boolean = Await.result(this.ws.url(this.loginUrl).get().map(_.status == Status.OK).recover {
+  def isAvailable(implicit ec: ExecutionContext): Boolean = Await.result(this.ws.url(this.loginUrl).get().map(_.status == Status.OK).recover {
     case _: Exception => false
   }, this.timeout)
 
@@ -105,13 +106,13 @@ trait SingleSignOnConsumer {
     *                       marks the nonce as invalid so it cannot be used again
     * @return               [[SpongeUser]] if successful
     */
-  def authenticate(payload: String, sig: String)(isNonceValid: String => Future[Boolean]): Future[Option[SpongeUser]] = {
+  def authenticate(payload: String, sig: String)(isNonceValid: String => Future[Boolean])(implicit ec: ExecutionContext): OptionT[Future, SpongeUser] = {
     Logger.info("Authenticating SSO payload...")
     Logger.info(payload)
     Logger.info("Signed with : " + sig)
     if (!hmac_sha256(payload.getBytes(this.CharEncoding)).equals(sig)) {
       Logger.info("<FAILURE> Could not verify payload against signature.")
-      return Future.successful(None)
+      return OptionT.none[Future, SpongeUser]
     }
 
     // decode payload
@@ -142,10 +143,10 @@ trait SingleSignOnConsumer {
 
     if (externalId == -1 || username == null || email == null || nonce == null) {
       Logger.info("<FAILURE> Incomplete payload.")
-      return Future.successful(None)
+      return OptionT.none[Future, SpongeUser]
     }
 
-    isNonceValid(nonce).map {
+    OptionT.liftF(isNonceValid(nonce)).subflatMap {
       case false =>
         Logger.info("<FAILURE> Invalid nonce.")
         None

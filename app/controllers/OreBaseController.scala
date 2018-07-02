@@ -14,9 +14,13 @@ import play.api.i18n.{I18nSupport, Lang}
 import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
+import util.instances.future._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.language.higherKinds
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import controllers.OreBaseController.{BindFormEitherTPartiallyApplied, BindFormOptionTPartiallyApplied}
+import play.api.data.Form
+import util.functional.{EitherT, Monad, OptionT}
 
 /**
   * Represents a Secured base Controller for this application.
@@ -42,39 +46,50 @@ abstract class OreBaseController(implicit val env: OreEnv,
 
   override def notFound(implicit request: OreRequest[_]) = NotFound(views.html.errors.notFound())
 
+  implicit def ec: ExecutionContext
+
   /**
-    * Executes the given function with the specified result or returns a
-    * NotFound if not found.
+    * Gets a project with the specified author and slug, or returns a notFound.
     *
     * @param author   Project author
     * @param slug     Project slug
-    * @param fn       Function to execute
     * @param request  Incoming request
-    * @return         NotFound or function result
+    * @return         NotFound or project
     */
-  def withProject(author: String, slug: String)(fn: Project => Result)(implicit request: OreRequest[_]): Future[Result]
-  = this.projects.withSlug(author, slug).map(_.map(fn).getOrElse(notFound))
-
-  def withProjectAsync(author: String, slug: String)(fn: Project => Future[Result])(implicit request: OreRequest[_]): Future[Result]
-  = this.projects.withSlug(author, slug).flatMap(_.map(fn).getOrElse(Future.successful(NotFound)))
+  def getProject(author: String, slug: String)(implicit request: OreRequest[_]): EitherT[Future, Result, Project]
+  = this.projects.withSlug(author, slug).toRight(notFound)
 
   /**
-    * Executes the given function with the specified result or returns a
-    * NotFound if not found.
+    * Gets a project with the specified versionString, or returns a notFound.
     *
-    * @param versionString  VersionString
-    * @param fn             Function to execute
-    * @param request        Incoming request
     * @param project        Project to get version from
+    * @param versionString  VersionString
+    * @param request        Incoming request
     * @return               NotFound or function result
     */
-  def withVersion(versionString: String)(fn: Version => Result)
-                 (implicit request: OreRequest[_], project: Project): Future[Result]
-  = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).map(_.map(fn).getOrElse(notFound))
+  def getVersion(project: Project, versionString: String)
+                 (implicit request: OreRequest[_]): EitherT[Future, Result, Version]
+  = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).toRight(notFound)
 
-  def withVersionAsync(versionString: String)(fn: Version => Future[Result])
-                 (implicit request: OreRequest[_], project: Project): Future[Result]
-  = project.versions.find(equalsIgnoreCase[VersionTable](_.versionString, versionString)).flatMap(_.map(fn).getOrElse(Future.successful(notFound)))
+  /**
+    * Gets a version with the specified author, project slug and version string
+    * or returns a notFound.
+    *
+    * @param author         Project author
+    * @param slug           Project slug
+    * @param versionString  VersionString
+    * @param request        Incoming request
+    * @return               NotFound or project
+    */
+  def getProjectVersion(author: String, slug: String, versionString: String)(implicit request: OreRequest[_]): EitherT[Future, Result, Version]
+  = for {
+    project <- getProject(author, slug)
+    version <- getVersion(project, versionString)
+  } yield version
+
+  def bindFormEitherT[F[_]] = new BindFormEitherTPartiallyApplied[F]
+
+  def bindFormOptionT[F[_]] = new BindFormOptionTPartiallyApplied[F]
 
   def OreAction = Action andThen oreAction
 
@@ -160,4 +175,16 @@ abstract class OreBaseController(implicit val env: OreEnv,
   def VerifiedAction(username: String, sso: Option[String], sig: Option[String])
   = UserAction(username) andThen verifiedAction(sso, sig)
 
+}
+object OreBaseController {
+
+  final class BindFormEitherTPartiallyApplied[F[_]](val b: Boolean = true) extends AnyVal {
+    def apply[A, B](form: Form[B])(left: Form[B] => A)(implicit F: Monad[F], request: Request[_]): EitherT[F, A, B] =
+      form.bindFromRequest().fold(left.andThen(EitherT.leftT[F, B](_)), EitherT.rightT[F, A](_))
+  }
+
+  final class BindFormOptionTPartiallyApplied[F[_]](val b: Boolean = true) extends AnyVal {
+    def apply[A](form: Form[A])(implicit F: Monad[F], request: Request[_]): OptionT[F, A] =
+      form.bindFromRequest().fold(_ => OptionT.none[F, A], OptionT.some[F](_))
+  }
 }

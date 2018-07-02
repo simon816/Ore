@@ -27,10 +27,12 @@ import play.api.cache.SyncCacheApi
 import play.api.i18n.{Lang, MessagesApi}
 import security.pgp.PGPVerifier
 import util.StringUtils._
+import util.functional.{EitherT, OptionT}
+import util.instances.future._
+import util.syntax._
 
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 import scala.util.Try
 
@@ -106,26 +108,25 @@ trait ProjectFactory {
 
   def processSubsequentPluginUpload(uploadData: PluginUpload,
                                     owner: User,
-                                    project: Project): Future[Either[String, PendingVersion]] = {
+                                    project: Project)(implicit ec: ExecutionContext): EitherT[Future, String, PendingVersion] = {
     val plugin = this.processPluginUpload(uploadData, owner)
     if (!plugin.meta.get.getId.equals(project.pluginId))
-      return Future.successful(Left("error.version.invalidPluginId"))
-    val version = for {
-      (channels, settings) <- project.channels.all zip
-                              project.settings
-    } yield {
-      this.startVersion(plugin, project, settings, channels.head.name)
-    }
-    version.flatMap { version =>
-      val model = version.underlying
-      model.exists.map { exists =>
-        if (exists && this.config.projects.get[Boolean]("file-validate"))
-          Left("error.version.duplicate")
-        else {
-          version.cache()
-          Right(version)
+      EitherT.leftT("error.version.invalidPluginId")
+    else {
+      EitherT(
+        for {
+          (channels, settings) <- (project.channels.all, project.settings).parTupled
+          version = this.startVersion(plugin, project, settings, channels.head.name)
+          modelExists <- version.underlying.exists
+        } yield {
+          if(modelExists && this.config.projects.get[Boolean]("file-validate"))
+            Left("error.version.duplicate")
+          else {
+            version.cache()
+            Right(version)
+          }
         }
-      }
+      )
     }
   }
 
@@ -252,21 +253,18 @@ trait ProjectFactory {
     * @return         New Project
     * @throws         IllegalArgumentException if the project already exists
     */
-  def createProject(pending: PendingProject): Future[Project] = {
+  def createProject(pending: PendingProject)(implicit ec: ExecutionContext): Future[Project] = {
     val project = pending.underlying
 
-    val checks = for {
-      (exists, available) <- this.projects.exists(project) zip
-                             this.projects.isNamespaceAvailable(project.ownerName, project.slug)
-    } yield {
-      checkArgument(!exists, "project already exists", "")
-      checkArgument(available, "slug not available", "")
-      checkArgument(this.config.isValidProjectName(pending.underlying.name), "invalid name", "")
-    }
-
-    // Create the project and it's settings
     for {
-      _ <- checks
+      (exists, available) <- (
+        this.projects.exists(project),
+        this.projects.isNamespaceAvailable(project.ownerName, project.slug)
+      ).parTupled
+      _ = checkArgument(!exists, "project already exists", "")
+      _ = checkArgument(available, "slug not available", "")
+      _ = checkArgument(this.config.isValidProjectName(pending.underlying.name), "invalid name", "")
+      // Create the project and it's settings
       newProject <- this.projects.add(pending.underlying)
     } yield {
       newProject.updateSettings(pending.settings)
@@ -303,21 +301,17 @@ trait ProjectFactory {
     * @param color    Channel color
     * @return         New channel
     */
-  def createChannel(project: Project, name: String, color: Color, nonReviewed: Boolean): Future[Channel] = {
+  def createChannel(project: Project, name: String, color: Color, nonReviewed: Boolean)(implicit ec: ExecutionContext): Future[Channel] = {
     checkNotNull(project, "null project", "")
     checkArgument(project.isDefined, "undefined project", "")
     checkNotNull(name, "null name", "")
     checkArgument(this.config.isValidChannelName(name), "invalid name", "")
     checkNotNull(color, "null color", "")
-    val checks = for {
+    for {
       channelCount <- project.channels.size
-    } yield {
-      checkState(channelCount < this.config.projects.get[Int]("max-channels"), "channel limit reached", "")
-    }
-
-    checks.flatMap { _ =>
-      this.service.access[Channel](classOf[Channel]).add(new Channel(name, color, project.id.get))
-    }
+      _ = checkState(channelCount < this.config.projects.get[Int]("max-channels"), "channel limit reached", "")
+      channel <- this.service.access[Channel](classOf[Channel]).add(new Channel(name, color, project.id.get))
+    } yield channel
   }
 
   /**
@@ -326,43 +320,34 @@ trait ProjectFactory {
     * @param pending  PendingVersion
     * @return         New version
     */
-  def createVersion(pending: PendingVersion): Future[(Version, Channel, Seq[ProjectTag])] = {
+  def createVersion(pending: PendingVersion)(implicit ec: ExecutionContext): Future[(Version, Channel, Seq[ProjectTag])] = {
     val project = pending.project
 
     val pendingVersion = pending.underlying
 
-    val channel = for {
-      // Create channel if not exists
-      (channel, exists) <- getOrCreateChannel(pending, project) zip pendingVersion.exists
-    } yield {
-      if (exists && this.config.projects.get[Boolean]("file-validate"))
-        throw new IllegalArgumentException("Version already exists.")
-      channel
-    }
-
-    // Create version
-    val newVersion = channel.flatMap { channel =>
-      val newVersion = Version(
-        versionString = pendingVersion.versionString,
-        dependencyIds = pendingVersion.dependencyIds,
-        _description = pendingVersion.description,
-        assets = pendingVersion.assets,
-        projectId = project.id.get,
-        channelId = channel.id.get,
-        fileSize = pendingVersion.fileSize,
-        hash = pendingVersion.hash,
-        _authorId = pendingVersion.authorId,
-        fileName = pendingVersion.fileName,
-        signatureFileName = pendingVersion.signatureFileName
-      )
-      this.service.access[Version](classOf[Version]).add(newVersion)
-    }
-
     for {
-      channel <- channel
-      newVersion <- newVersion
-      spongeTag <- addTags(newVersion, SpongeApiId, "Sponge", TagColors.Sponge)
-      forgeTag <- addTags(newVersion, ForgeId, "Forge", TagColors.Forge)
+      // Create channel if not exists
+      (channel, exists) <- (getOrCreateChannel(pending, project), pendingVersion.exists).parTupled
+      _ = if (exists && this.config.projects.get[Boolean]("file-validate")) throw new IllegalArgumentException("Version already exists.")
+      // Create version
+      newVersion <- {
+        val newVersion = Version(
+          versionString = pendingVersion.versionString,
+          dependencyIds = pendingVersion.dependencyIds,
+          _description = pendingVersion.description,
+          assets = pendingVersion.assets,
+          projectId = project.id.get,
+          channelId = channel.id.get,
+          fileSize = pendingVersion.fileSize,
+          hash = pendingVersion.hash,
+          _authorId = pendingVersion.authorId,
+          fileName = pendingVersion.fileName,
+          signatureFileName = pendingVersion.signatureFileName
+        )
+        this.service.access[Version](classOf[Version]).add(newVersion)
+      }
+      spongeTag <- addTags(newVersion, SpongeApiId, "Sponge", TagColors.Sponge).value
+      forgeTag <- addTags(newVersion, ForgeId, "Forge", TagColors.Forge).value
     } yield {
       val tags = spongeTag ++ forgeTag
 
@@ -381,18 +366,15 @@ trait ProjectFactory {
     }
   }
 
-  private def addTags(newVersion: Version, dependencyName: String, tagName: String, tagColor: TagColor): Future[Option[ProjectTag]] = {
+  private def addTags(newVersion: Version, dependencyName: String, tagName: String, tagColor: TagColor)(implicit ec: ExecutionContext): OptionT[Future, ProjectTag] = {
     val dependenciesMatchingName = newVersion.dependencies.filter(_.pluginId == dependencyName)
-    dependenciesMatchingName.headOption match {
-      case None => Future.successful(None)
-      case Some(dep) =>
-        if (!dependencyVersionRegex.pattern.matcher(dep.version).matches())
-          Future.successful(None)
-        else {
-          val tagToAdd = for {
-            tagsWithVersion <- service.access(classOf[ProjectTag])
-              .filter(t => t.name === tagName && t.data === dep.version)
-          } yield {
+    OptionT.fromOption[Future](dependenciesMatchingName.headOption)
+      .filter(dep => dependencyVersionRegex.pattern.matcher(dep.version).matches())
+      .semiFlatMap { dep =>
+        for {
+          tagsWithVersion <- service.access(classOf[ProjectTag])
+            .filter(t => t.name === tagName && t.data === dep.version)
+          tag <- {
             if (tagsWithVersion.isEmpty) {
               val tag = Tag(
                 _versionIds = List(newVersion.id.get),
@@ -410,20 +392,17 @@ trait ProjectFactory {
               Future.successful(tag)
             }
           }
-          tagToAdd.flatten.map { tag =>
-            newVersion.addTag(tag)
-            Some(tag)
-          }
+        } yield {
+          newVersion.addTag(tag)
+          tag
         }
     }
   }
 
 
-  private def getOrCreateChannel(pending: PendingVersion, project: Project) = {
-    project.channels.find(equalsIgnoreCase(_.name, pending.channelName)) flatMap {
-      case Some(existing) => Future.successful(existing)
-      case None => createChannel(project, pending.channelName, pending.channelColor, nonReviewed = false)
-    }
+  private def getOrCreateChannel(pending: PendingVersion, project: Project)(implicit ec: ExecutionContext) = {
+    project.channels.find(equalsIgnoreCase(_.name, pending.channelName))
+      .getOrElseF(createChannel(project, pending.channelName, pending.channelColor, nonReviewed = false))
   }
 
   private def uploadPlugin(project: Project, channel: Channel, plugin: PluginFile, version: Version): Try[Unit] = Try {

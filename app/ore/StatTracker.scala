@@ -14,8 +14,7 @@ import ore.StatTracker.COOKIE_NAME
 import play.api.cache.AsyncCacheApi
 import play.api.mvc.{RequestHeader, Result}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Helper class for handling tracking of statistics.
@@ -36,7 +35,8 @@ trait StatTracker {
     *
     * @param request Request to view the project
     */
-  def projectViewed(projectRequest: ProjectRequest[_])(f: ProjectRequest[_] => Result)(implicit cache: AsyncCacheApi, request: OreRequest[_]): Future[Result] = {
+  def projectViewed(projectRequest: ProjectRequest[_])(f: ProjectRequest[_] => Result)(implicit cache: AsyncCacheApi, request: OreRequest[_],
+      ec: ExecutionContext): Future[Result] = {
     ProjectView.bindFromRequest(projectRequest).map { statEntry =>
       this.viewSchema.record(statEntry).andThen {
         case recorded => if (recorded.get) {
@@ -55,7 +55,8 @@ trait StatTracker {
     * @param version Version to check downloads for
     * @param request Request to download the version
     */
-  def versionDownloaded(version: Version)(f: ProjectRequest[_] => Result)(implicit cache: AsyncCacheApi,request: ProjectRequest[_]): Future[Result] = {
+  def versionDownloaded(version: Version)(f: ProjectRequest[_] => Result)(implicit cache: AsyncCacheApi,request: ProjectRequest[_],
+      ec: ExecutionContext): Future[Result] = {
     VersionDownload.bindFromRequest(version).map { statEntry =>
       this.downloadSchema.record(statEntry).andThen {
         case recorded => if (recorded.get) {

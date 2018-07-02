@@ -9,6 +9,7 @@ import db.impl.VersionDownloadsTable
 import db.impl.access.UserBase
 import models.project.Version
 import ore.StatTracker._
+import util.instances.future._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -52,8 +53,7 @@ object VersionDownload {
     checkArgument(version.isDefined, "undefined version", "")
     checkNotNull(request, "null request", "")
     checkNotNull(users, "null user base", "")
-    users.current.map { user =>
-      val userId = user.flatMap(_.id)
+    users.current.subflatMap(_.id).value.map { userId =>
       val dl = VersionDownload(
         modelId = version.id.get,
         address = InetString(remoteAddress),

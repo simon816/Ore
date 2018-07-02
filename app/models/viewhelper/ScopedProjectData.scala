@@ -7,6 +7,8 @@ import play.api.cache.AsyncCacheApi
 
 import scala.concurrent.{ExecutionContext, Future}
 
+import util.syntax._
+
 /**
   * Holds ProjectData that is specific to a user
   */
@@ -16,23 +18,22 @@ object ScopedProjectData {
 
   def of(currentUser: Option[User], project: Project)(implicit ec: ExecutionContext, cache: AsyncCacheApi): Future[ScopedProjectData] = {
     currentUser.map { user =>
-      for {
-        projectOwner <- project.owner.user
-        orgaOwner <- projectOwner.toMaybeOrganization
+      (
+        project.owner.user.flatMap(_.toMaybeOrganization.value).flatMap(orgaOwner => user can PostAsOrganization in orgaOwner),
 
-        canPostAsOwnerOrga <- user can PostAsOrganization in orgaOwner
-        uProjectFlags <- user.hasUnresolvedFlagFor(project)
-        starred <- project.stars.contains(user)
-        watching <- project.watchers.contains(user)
+        user.hasUnresolvedFlagFor(project),
+        project.stars.contains(user),
+        project.watchers.contains(user),
 
-        editPages <- user can EditPages in project map ((EditPages, _))
-        editSettings <- user can EditSettings in project map ((EditSettings, _))
-        editChannels <- user can EditChannels in project map ((EditChannels, _))
-        editVersions <- user can EditVersions in project map ((EditVersions, _))
-        visibilities <- Future.sequence(VisibilityTypes.values.map(_.permission).map(p => user can p in project map ((p, _))))
-      } yield {
-        val perms = visibilities + editPages + editSettings + editChannels + editVersions
-        ScopedProjectData(canPostAsOwnerOrga, uProjectFlags, starred, watching, perms.toMap)
+        user can EditPages in project map ((EditPages, _)),
+        user can EditSettings in project map ((EditSettings, _)),
+        user can EditChannels in project map ((EditChannels, _)),
+        user can EditVersions in project map ((EditVersions, _)),
+        Future.sequence(VisibilityTypes.values.map(_.permission).map(p => user can p in project map ((p, _))))
+      ).parMapN {
+        case (canPostAsOwnerOrga, uProjectFlags, starred, watching, editPages, editSettings, editChannels, editVersions, visibilities) =>
+          val perms = visibilities + editPages + editSettings + editChannels + editVersions
+          ScopedProjectData(canPostAsOwnerOrga, uProjectFlags, starred, watching, perms.toMap)
       }
     } getOrElse Future.successful(noScope)
   }

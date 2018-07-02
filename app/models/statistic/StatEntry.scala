@@ -8,9 +8,11 @@ import db.Model
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
 import db.impl.table.StatTable
+import util.instances.future._
+import util.functional.OptionT
 import models.user.User
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Represents a statistic entry in a StatTable.
@@ -41,11 +43,8 @@ abstract class StatEntry[Subject <: Model](override val id: Option[Int] = None,
     *
     * @return User of entry
     */
-  def user: Future[Option[User]] = {
-    this._userId match {
-      case None => Future.successful(None)
-      case Some(id) => this.userBase.get(id)
-    }
+  def user(implicit ec: ExecutionContext): OptionT[Future, User] = {
+    OptionT.fromOption[Future](this._userId).flatMap(this.userBase.get(_))
   }
 
   def userId = _userId

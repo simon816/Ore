@@ -8,7 +8,6 @@ import javax.inject.Inject
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc.{Filter, RequestHeader, Result}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object NonceFilter {
@@ -29,7 +28,8 @@ class NonceFilter @Inject() (implicit val mat: Materializer) extends Filter {
 
   private val random = new SecureRandom()
 
-  override def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
+  override def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
+    import mat.executionContext
     val nonce = generateNonce
     next(request.addAttr(NonceFilter.NonceKey, nonce)).map { result =>
       if(result.header.headers.contains("Content-Security-Policy")) {

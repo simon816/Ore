@@ -8,6 +8,7 @@ import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
 import ore.user.UserOwned
 import ore.user.notification.NotificationTypes.NotificationType
+import util.instances.future._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -41,7 +42,8 @@ case class Notification(override val id: Option[Int] = None,
     *
     * @return User from which this originated from
     */
-  def origin(implicit ec: ExecutionContext): Future[User] = this.userBase.get(this.originId).map(_.get)
+  def origin(implicit ec: ExecutionContext): Future[User] =
+    this.userBase.get(this.originId).getOrElse(throw new NoSuchElementException("Get on None"))
 
   /**
     * Returns true if this notification has been read.
