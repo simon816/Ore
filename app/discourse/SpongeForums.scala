@@ -7,6 +7,7 @@ import javax.inject.{Inject, Singleton}
 import ore.{OreConfig, OreEnv}
 import play.api.libs.ws.WSClient
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 /**
@@ -33,6 +34,7 @@ class SpongeForums @Inject()(env: OreEnv,
   override val topicTemplatePath: Path = this.env.conf.resolve("discourse/project_topic.md")
   override val versionReleasePostTemplatePath: Path = this.env.conf.resolve("discourse/version_post.md")
   override val scheduler = this.actorSystem.scheduler
+  override val bootstrapExecutionContext: ExecutionContext = this.actorSystem.dispatcher
   override val retryRate = this.conf.get[FiniteDuration]("embed.retryRate")
 
 }

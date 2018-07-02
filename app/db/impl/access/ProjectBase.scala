@@ -16,8 +16,10 @@ import ore.{OreConfig, OreEnv}
 import slick.lifted.TableQuery
 import util.FileUtils
 import util.StringUtils._
-
+import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
+
+import util.functional.OptionT
 
 class ProjectBase(override val service: ModelService,
                   env: OreEnv,
@@ -55,7 +57,7 @@ class ProjectBase(override val service: ModelService,
     *
     * @return Stale projects
     */
-  def stale: Future[Seq[Project]]
+  def stale(implicit ec: ExecutionContext): Future[Seq[Project]]
   = this.filter(_.lastUpdated > new Timestamp(new Date().getTime - this.config.projects.get[Int]("staleAge")))
 
   /**
@@ -65,7 +67,7 @@ class ProjectBase(override val service: ModelService,
     * @param name   Project name
     * @return       Project with name
     */
-  def withName(owner: String, name: String): Future[Option[Project]]
+  def withName(owner: String, name: String)(implicit ec: ExecutionContext): OptionT[Future, Project]
   = this.find(p => p.ownerName.toLowerCase === owner.toLowerCase && p.name.toLowerCase === name.toLowerCase)
 
   /**
@@ -75,7 +77,7 @@ class ProjectBase(override val service: ModelService,
     * @param slug   URL slug
     * @return       Project if found, None otherwise
     */
-  def withSlug(owner: String, slug: String): Future[Option[Project]]
+  def withSlug(owner: String, slug: String)(implicit ec: ExecutionContext): OptionT[Future, Project]
   = this.find(p => p.ownerName.toLowerCase === owner.toLowerCase && p.slug.toLowerCase === slug.toLowerCase)
 
   /**
@@ -84,14 +86,14 @@ class ProjectBase(override val service: ModelService,
     * @param pluginId Plugin ID
     * @return         Project if found, None otherwise
     */
-  def withPluginId(pluginId: String): Future[Option[Project]] = this.find(equalsIgnoreCase(_.pluginId, pluginId))
+  def withPluginId(pluginId: String)(implicit ec: ExecutionContext): OptionT[Future, Project] = this.find(equalsIgnoreCase(_.pluginId, pluginId))
 
   /**
     * Returns true if the Project's desired slug is available.
     *
     * @return True if slug is available
     */
-  def isNamespaceAvailable(owner: String, slug: String)(implicit ec: ExecutionContext): Future[Boolean] = withSlug(owner, slug).map(_.isEmpty)
+  def isNamespaceAvailable(owner: String, slug: String)(implicit ec: ExecutionContext): Future[Boolean] = withSlug(owner, slug).isEmpty
 
   /**
     * Returns true if the specified project exists.
@@ -99,7 +101,7 @@ class ProjectBase(override val service: ModelService,
     * @param project  Project to check
     * @return         True if exists
     */
-  def exists(project: Project)(implicit ec: ExecutionContext): Future[Boolean] = this.withName(project.ownerName, project.name).map(_.isDefined)
+  def exists(project: Project)(implicit ec: ExecutionContext): Future[Boolean] = this.withName(project.ownerName, project.name).isDefined
 
   /**
     * Saves any pending icon that has been uploaded for the specified [[Project]].
@@ -128,22 +130,21 @@ class ProjectBase(override val service: ModelService,
     val newName = compact(name)
     val newSlug = slugify(newName)
     checkArgument(this.config.isValidProjectName(name), "invalid name", "")
-    val future = for {
+    for {
       isAvailable <- this.isNamespaceAvailable(project.ownerName, newSlug)
-    } yield {
-      checkArgument(isAvailable, "slug not available", "")
-    }
-    future.flatMap { _ =>
-      this.fileManager.renameProject(project.ownerName, project.name, newName)
-      project.setName(newName)
-      project.setSlug(newSlug)
+      _ = checkArgument(isAvailable, "slug not available", "")
+      res <- {
+        this.fileManager.renameProject(project.ownerName, project.name, newName)
+        project.setName(newName)
+        project.setSlug(newSlug)
 
-      // Project's name alter's the topic title, update it
-      if (project.topicId != -1 && this.forums.isEnabled)
-        this.forums.updateProjectTopic(project)
-      else
-        Future.successful(false)
-    }
+        // Project's name alter's the topic title, update it
+        if (project.topicId != -1 && this.forums.isEnabled)
+          this.forums.updateProjectTopic(project)
+        else
+          Future.successful(false)
+      }
+    } yield res
   }
 
   /**
@@ -152,30 +153,24 @@ class ProjectBase(override val service: ModelService,
     * @param context Project context
     */
   def deleteChannel(channel: Channel)(implicit context: Project = null, ec: ExecutionContext): Future[Unit] = {
-    val project = if (context != null) Future.successful(context) else channel.project
-    project.map { project =>
-      checkArgument(project.id.get == channel.projectId, "invalid project id", "")
-      val checks = for {
-        channels <- project.channels.all
-        noVersion <- channel.versions.isEmpty
-        nonEmptyChannels <- Future.sequence(channels.map(_.versions.nonEmpty)).map(_.count(_ == true))
-      } yield {
-        checkArgument(channels.size > 1, "only one channel", "")
-        checkArgument(noVersion || nonEmptyChannels > 1, "last non-empty channel", "")
-        val reviewedChannels = channels.filter(!_.isNonReviewed)
-        checkArgument(channel.isNonReviewed || reviewedChannels.size > 1 || !reviewedChannels.contains(channel),
-          "last reviewed channel", "")
-      }
-      for {
-        _ <- checks
-        _ <- channel.remove()
-        versions <- channel.versions.all
-      } yield {
-        versions.foreach { version =>
-          val versionFolder = this.fileManager.getVersionDir(project.ownerName, project.name, version.name)
-          FileUtils.deleteDirectory(versionFolder)
-          version.remove()
-        }
+    for {
+      project <- if (context != null) Future.successful(context) else channel.project
+      _ = checkArgument(project.id.get == channel.projectId, "invalid project id", "")
+      channels <- project.channels.all
+      noVersion <- channel.versions.isEmpty
+      nonEmptyChannels <- Future.traverse(channels.toSeq)(_.versions.nonEmpty).map(_.count(identity))
+      _ = checkArgument(channels.size > 1, "only one channel", "")
+      _ = checkArgument(noVersion || nonEmptyChannels > 1, "last non-empty channel", "")
+      reviewedChannels = channels.filter(!_.isNonReviewed)
+      _ = checkArgument(channel.isNonReviewed || reviewedChannels.size > 1 || !reviewedChannels.contains(channel),
+        "last reviewed channel", "")
+      _ <- channel.remove()
+      versions <- channel.versions.all
+    } yield {
+      versions.foreach { version =>
+        val versionFolder = this.fileManager.getVersionDir(project.ownerName, project.name, version.name)
+        FileUtils.deleteDirectory(versionFolder)
+        version.remove()
       }
     }
   }
@@ -186,26 +181,14 @@ class ProjectBase(override val service: ModelService,
     * @param project Project context
     */
   def deleteVersion(version: Version)(implicit project: Project = null, ec: ExecutionContext) = {
-    val checks = for {
+    for {
       proj <-  if (project != null) Future.successful(project) else version.project
       size <- proj.versions.size
-    } yield {
-      checkArgument(size > 1, "only one version", "")
-      checkArgument(proj.id.get == version.projectId, "invalid context id", "")
-      proj
-    }
-
-    val rcUpdate = for {
-      proj <- checks
+      _ = checkArgument(size > 1, "only one version", "")
+      _ = checkArgument(proj.id.get == version.projectId, "invalid context id", "")
       rv <- proj.recommendedVersion
       projects <- proj.versions.sorted(_.createdAt.desc) // TODO optimize: only query one version
-    } yield {
-      if (version.equals(rv)) proj.setRecommendedVersion(projects.filterNot(_.equals(version)).head)
-      proj
-    }
-
-    val channelCleanup = for {
-      proj <- rcUpdate
+      _ = if (version.equals(rv)) proj.setRecommendedVersion(projects.filterNot(_.equals(version)).head)
       channel <- version.channel
       noVersions <- channel.versions.isEmpty
       _ <- {
@@ -225,7 +208,7 @@ class ProjectBase(override val service: ModelService,
     *
     * @param project Project to delete
     */
-  def delete(project: Project) = {
+  def delete(project: Project)(implicit ec: ExecutionContext) = {
     FileUtils.deleteDirectory(this.fileManager.getProjectDir(project.ownerName, project.name))
     if (project.topicId != -1)
       this.forums.deleteProjectTopic(project)

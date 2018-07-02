@@ -12,11 +12,14 @@ import ore.permission.Permission
 import play.api.mvc.Request
 import security.spauth.SpongeAuthApi
 import util.StringUtils._
+
 import scala.concurrent.{ExecutionContext, Future}
 
 import ore.permission.role
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
+import util.functional.OptionT
+import util.instances.future._
 
 /**
   * Represents a central location for all Users.
@@ -40,13 +43,9 @@ class UserBase(override val service: ModelService,
     * @param username Username of user
     * @return User if found, None otherwise
     */
-  def withName(username: String)(implicit ec: ExecutionContext): Future[Option[User]] = {
-    this.find(equalsIgnoreCase(_.name, username)).flatMap {
-      case Some(u) => Future.successful(Some(u))
-      case None => this.auth.getUser(username) flatMap {
-        case None => Future.successful(None)
-        case Some(u) => User.fromSponge(u).flatMap(getOrCreate).map(Some(_))
-      }
+  def withName(username: String)(implicit ec: ExecutionContext): OptionT[Future, User] = {
+    this.find(equalsIgnoreCase(_.name, username)).orElse {
+      this.auth.getUser(username).map(User.fromSponge).semiFlatMap(getOrCreate)
     }
   }
 
@@ -59,21 +58,12 @@ class UserBase(override val service: ModelService,
     *
     * @return the requested user
     */
-  def requestPermission(user: User, name: String, perm: Permission)(implicit ec: ExecutionContext): Future[Option[User]] = {
-    this.withName(name).flatMap {
-      case None => Future.successful(None) // Name not found
-      case Some(toCheck) =>
-      if (user.equals(toCheck)) Future.successful(Some(user)) // Same user
-      else {
-        // TODO remove double DB access for orga check
-        toCheck.isOrganization.flatMap {
-          case false => Future.successful(None) // Not an orga
-          case true => toCheck.toOrganization.flatMap { orga =>
-            user can perm in orga map { perm =>
-              if (perm) Some(toCheck) // Has Orga perm
-              else None // Has not Orga perm
-            }
-          }
+  def requestPermission(user: User, name: String, perm: Permission)(implicit ec: ExecutionContext): OptionT[Future, User] = {
+    this.withName(name).flatMap { toCheck =>
+      if(user == toCheck) OptionT.pure[Future](user) // Same user
+      else toCheck.toMaybeOrganization.flatMap { orga =>
+        OptionT.liftF(user can perm in orga).collect {
+          case true => toCheck // Has Orga perm
         }
       }
     }
@@ -153,7 +143,7 @@ class UserBase(override val service: ModelService,
     *
     * @return     Found or new User
     */
-  def getOrCreate(user: User): Future[User] = user.schema(this.service).getOrInsert(user)
+  def getOrCreate(user: User)(implicit ec: ExecutionContext): Future[User] = user.schema(this.service).getOrInsert(user)
 
   /**
     * Creates a new [[Session]] for the specified [[User]].
@@ -177,15 +167,14 @@ class UserBase(override val service: ModelService,
     * @param token  Token of session
     * @return       Session if found and has not expired
     */
-  private def getSession(token: String)(implicit ec: ExecutionContext): Future[Option[Session]] =
-    this.service.access[Session](classOf[Session]).find(_.token === token).map { _.flatMap { session =>
+  private def getSession(token: String)(implicit ec: ExecutionContext): OptionT[Future, Session] =
+    this.service.access[Session](classOf[Session]).find(_.token === token).subflatMap { session =>
       if (session.hasExpired) {
         session.remove()
         None
-      } else
-        Some(session)
+      } else Some(session)
     }
-  }
+
 
   /**
     * Returns the currently authenticated User.c
@@ -193,14 +182,10 @@ class UserBase(override val service: ModelService,
     * @param session  Current session
     * @return         Authenticated user, if any, None otherwise
     */
-  def current(implicit session: Request[_], ec: ExecutionContext): Future[Option[User]] = {
-    session.cookies.get("_oretoken") match {
-      case None => Future.successful(None)
-      case Some(cookie) => getSession(cookie.value).flatMap {
-          case None => Future.successful(None)
-          case Some(s) => s.user
-      }
-    }
+  def current(implicit session: Request[_], ec: ExecutionContext): OptionT[Future, User] = {
+    OptionT.fromOption[Future](session.cookies.get("_oretoken"))
+      .flatMap(cookie => getSession(cookie.value))
+      .flatMap(_.user)
   }
 
 }

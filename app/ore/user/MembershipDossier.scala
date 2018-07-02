@@ -70,13 +70,12 @@ trait MembershipDossier {
     * @param role Role to add
     */
   def addRole(role: RoleType)(implicit ec: ExecutionContext) = {
-    role.user.flatMap { user =>
-      this.roles.exists(_.userId === user.id.get).flatMap { exists =>
-        if (!exists) addMember(user) else Future.successful(user)
-      } flatMap { _ =>
-        this.roleAccess.add(role)
-      }
-    }
+    for {
+      user <- role.user
+      exists <- this.roles.exists(_.userId === user.id.get)
+      _ <- if(!exists) addMember(user) else Future.successful(user)
+      ret <- this.roleAccess.add(role)
+    } yield ret
   }
 
   /**
@@ -101,16 +100,12 @@ trait MembershipDossier {
     * @param role Role to remove
     */
   def removeRole(role: RoleType)(implicit ec: ExecutionContext) = {
-    val checks = for {
+    for {
       _ <- this.roleAccess.remove(role)
       user   <- role.user
       exists <- this.roles.exists(_.userId === user.id.get)
-    } yield {
-      (exists, user)
-    }
-    checks.flatMap {
-      case (exists, user) => if (!exists) removeMember(user) else Future.successful(0)
-    }
+      _ <- if(!exists) removeMember(user) else Future.successful(0)
+    } yield ()
   }
 
   /**

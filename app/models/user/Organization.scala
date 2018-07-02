@@ -87,19 +87,19 @@ case class Organization(override val id: Option[Int] = None,
 
   override def transferOwner(member: OrganizationMember)(implicit ec: ExecutionContext): Future[Int] = {
     // Down-grade current owner to "Admin"
-    this.owner.user.flatMap { owner =>
-      this.memberships.getRoles(owner).map { roles =>
-        roles.filter(_.roleType == RoleTypes.OrganizationOwner)
-             .foreach(_.setRoleType(RoleTypes.OrganizationAdmin))
-      }
-    } flatMap { _ =>
-      member.user.flatMap { memberUser =>
-        this.memberships.getRoles(memberUser).map { memberRoles =>
-          memberRoles.foreach(_.setRoleType(RoleTypes.OrganizationOwner))
-        } flatMap { _ =>
-          this.setOwner(memberUser)
-        }
-      }
+    for {
+      owner <- this.owner.user
+      roles <- this.memberships.getRoles(owner)
+      memberUser <- member.user
+      memberRoles <- this.memberships.getRoles(memberUser)
+      setOwner <- this.setOwner(memberUser)
+    } yield {
+      roles.filter(_.roleType == RoleTypes.OrganizationOwner)
+        .foreach(_.setRoleType(RoleTypes.OrganizationAdmin))
+
+      memberRoles.foreach(_.setRoleType(RoleTypes.OrganizationOwner))
+
+      setOwner
     }
   }
 

@@ -8,6 +8,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.ProjectLogTable
 import db.impl.model.OreModel
 import ore.project.ProjectOwned
+import util.instances.future._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -43,17 +44,17 @@ case class ProjectLog(override val id: Option[Int] = None,
     val entries = this.service.access[ProjectLogEntry](
       classOf[ProjectLogEntry], ModelFilter[ProjectLogEntry](_.logId === this.id.get))
     val tag = "error"
-    entries.find(e => e.message === message && e.tag === tag).flatMap(_.map { entry =>
+    entries.find(e => e.message === message && e.tag === tag).map { entry =>
       entry.setOoccurrences(entry.occurrences + 1)
       entry.setLastOccurrence(this.service.theTime)
-      Future.successful(entry)
-    } getOrElse {
+      entry
+    }.getOrElseF {
       entries.add(ProjectLogEntry(
         logId = this.id.get,
         tag = tag,
         message = message,
         _lastOccurrence = this.service.theTime))
-    })
+    }
   }
 
   def copyWith(id: Option[Int], theTime: Option[Timestamp]) = this.copy(id = id, createdAt = theTime)

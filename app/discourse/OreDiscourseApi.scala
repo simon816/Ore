@@ -10,9 +10,8 @@ import models.user.User
 import org.spongepowered.play.discourse.DiscourseApi
 import util.StringUtils._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
 /**
@@ -45,6 +44,9 @@ trait OreDiscourseApi extends DiscourseApi {
 
   private var recovery: RecoveryTask = _
 
+  //This executionContext should only be used in start() which is called from Bootstrap
+  def bootstrapExecutionContext: ExecutionContext
+
   /**
     * Initializes and starts this API instance.
     */
@@ -54,7 +56,7 @@ trait OreDiscourseApi extends DiscourseApi {
       return
     }
     checkNotNull(this.projects, "projects are null", "")
-    this.recovery = new RecoveryTask(this.scheduler, this.retryRate, this, this.projects)
+    this.recovery = new RecoveryTask(this.scheduler, this.retryRate, this, this.projects)(bootstrapExecutionContext)
     this.recovery.start()
     Logger.info("Discourse API initialized.")
   }
@@ -65,7 +67,7 @@ trait OreDiscourseApi extends DiscourseApi {
     * @param project Project to create topic for.
     * @return        True if successful
     */
-  def createProjectTopic(project: Project): Future[Boolean] = {
+  def createProjectTopic(project: Project)(implicit ec: ExecutionContext): Future[Boolean] = {
     if (!this.isEnabled)
       return Future.successful(true)
     checkArgument(project.id.isDefined, "undefined project", "")
@@ -124,7 +126,7 @@ trait OreDiscourseApi extends DiscourseApi {
     * @param project  Project to update topic for
     * @return         True if successful
     */
-  def updateProjectTopic(project: Project): Future[Boolean] = {
+  def updateProjectTopic(project: Project)(implicit ec: ExecutionContext): Future[Boolean] = {
     if (!this.isEnabled)
       return Future.successful(true)
     checkArgument(project.id.isDefined, "undefined project", "")
@@ -206,7 +208,7 @@ trait OreDiscourseApi extends DiscourseApi {
     * @param content  Post content
     * @return         List of errors Discourse returns
     */
-  def postDiscussionReply(project: Project, user: User, content: String): Future[List[String]] = {
+  def postDiscussionReply(project: Project, user: User, content: String)(implicit ec: ExecutionContext): Future[List[String]] = {
     if (!this.isEnabled) {
       Logger.warn("Tried to post discussion with API disabled?") // Shouldn't be reachable
       return Future.successful(List.empty)
@@ -230,7 +232,7 @@ trait OreDiscourseApi extends DiscourseApi {
     * @param version Version of project
     * @return
     */
-  def postVersionRelease(project: Project, version: Version, content: Option[String]): Future[List[String]] = {
+  def postVersionRelease(project: Project, version: Version, content: Option[String])(implicit ec: ExecutionContext): Future[List[String]] = {
     if (!this.isEnabled)
       return Future.successful(List.empty)
     checkArgument(project.id.isDefined, "undefined project", "")
@@ -255,7 +257,7 @@ trait OreDiscourseApi extends DiscourseApi {
     * @param project  Project to delete topic for
     * @return         True if deleted
     */
-  def deleteProjectTopic(project: Project): Future[Boolean] = {
+  def deleteProjectTopic(project: Project)(implicit ec: ExecutionContext): Future[Boolean] = {
     if (!this.isEnabled)
       return Future.successful(true)
     checkArgument(project.id.isDefined, "undefined project", "")
@@ -290,7 +292,7 @@ trait OreDiscourseApi extends DiscourseApi {
     * @param users  Users to check
     * @return       Amount on discourse
     */
-  def countUsers(users: List[String]): Future[Int] = {
+  def countUsers(users: List[String])(implicit ec: ExecutionContext): Future[Int] = {
     if (!this.isEnabled)
       return Future.successful(0)
     var futures: Seq[Future[Boolean]] = Seq.empty
@@ -311,7 +313,7 @@ trait OreDiscourseApi extends DiscourseApi {
     def projectTitle(project: Project) = project.name + project.description.map(d => s" - $d").getOrElse("")
 
     /** Generates the content for a project topic. */
-    def projectTopic(project: Project) = readAndFormatFile(
+    def projectTopic(project: Project)(implicit ec: ExecutionContext) = readAndFormatFile(
       OreDiscourseApi.this.topicTemplatePath,
       project.name,
       OreDiscourseApi.this.baseUrl + '/' + project.url,

@@ -13,6 +13,9 @@ import play.api.cache.AsyncCacheApi
 import play.api.mvc.Request
 import slick.jdbc.JdbcBackend
 import slick.lifted.TableQuery
+import util.functional.OptionT
+import util.instances.future._
+import util.syntax._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -62,17 +65,14 @@ object HeaderData {
   def cacheKey(user: User) = s"""user${user.id.get}"""
 
   def of[A](request: Request[A])(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext, service: ModelService): Future[HeaderData] = {
-    request.cookies.get("_oretoken") match {
-      case None => Future.successful(unAuthenticated)
-      case Some(cookie) =>
-        getSessionUser(cookie.value).flatMap {
-          case None => Future.successful(unAuthenticated)
-          case Some(user) =>
-            user.service = service
-            user.organizationBase = service.getModelBase(classOf[OrganizationBase])
-            getHeaderData(user)
-        }
-    }
+    OptionT.fromOption[Future](request.cookies.get("_oretoken"))
+      .flatMap(cookie => getSessionUser(cookie.value))
+      .semiFlatMap { user =>
+        user.service = service
+        user.organizationBase = service.getModelBase(classOf[OrganizationBase])
+        getHeaderData(user)
+      }
+      .getOrElse(unAuthenticated)
   }
 
   private def getSessionUser(token: String)(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef) = {
@@ -86,10 +86,8 @@ object HeaderData {
       (s, u)
     }
 
-    db.run(query.result.headOption).map {
-      case None => None
-      case Some((session, user)) =>
-        if (session.hasExpired) None else Some(user)
+    OptionT(db.run(query.result.headOption)).collect {
+      case (session, user) if !session.hasExpired => user
     }
   }
 
@@ -119,21 +117,22 @@ object HeaderData {
 
   private def getHeaderData(user: User)(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef) = {
 
-    for {
-      perms <- perms(Some(user))
-      hasNotice <- user.hasNotice
-      unreadNotif <- user.notifications.filterNot(_.read).map(_.nonEmpty)
-      unresolvedFlags <- user.flags.filterNot(_.isResolved).map(_.nonEmpty)
-      hasProjectApprovals <- projectApproval(user)
-      hasReviewQueue <- if (perms(ReviewProjects)) reviewQueue() else Future.successful(false)
-    } yield {
+    perms(Some(user)).flatMap { perms =>
+      (
+        user.hasNotice,
+        user.notifications.filterNot(_.read).map(_.nonEmpty),
+        user.flags.filterNot(_.isResolved).map(_.nonEmpty),
+        projectApproval(user),
+        if (perms(ReviewProjects)) reviewQueue() else Future.successful(false)
+      ).parMapN { (hasNotice, unreadNotif, unresolvedFlags, hasProjectApprovals, hasReviewQueue) =>
         HeaderData(Some(user),
-        perms,
-        hasNotice,
-        unreadNotif,
-        unresolvedFlags,
-        hasProjectApprovals,
-        hasReviewQueue)
+          perms,
+          hasNotice,
+          unreadNotif,
+          unresolvedFlags,
+          hasProjectApprovals,
+          hasReviewQueue)
+      }
     }
   }
 
@@ -142,20 +141,20 @@ object HeaderData {
     if (currentUser.isEmpty) Future.successful(noPerms)
     else {
       val user = currentUser.get
-      for {
-        reviewFlags       <- user can ReviewFlags in GlobalScope map ((ReviewFlags, _))
-        reviewVisibility  <- user can ReviewVisibility in GlobalScope map ((ReviewVisibility, _))
-        reviewProjects    <- user can ReviewProjects in GlobalScope map ((ReviewProjects, _))
-        viewStats         <- user can ViewStats in GlobalScope map ((ViewStats, _))
-        viewHealth        <- user can ViewHealth in GlobalScope map ((ViewHealth, _))
-        viewLogs          <- user can ViewLogs in GlobalScope map ((ViewLogs, _))
-        hideProjects      <- user can HideProjects in GlobalScope map ((HideProjects, _))
-        hardRemoveProject <- user can HardRemoveProject in GlobalScope map ((HardRemoveProject, _))
-        userAdmin         <- user can UserAdmin in GlobalScope map ((UserAdmin, _))
-        hideProjects      <- user can HideProjects in GlobalScope map ((HideProjects, _))
-      } yield {
-        val perms = Seq(reviewFlags, reviewVisibility, reviewProjects, viewStats, viewHealth, viewLogs, hideProjects, hardRemoveProject, userAdmin, hideProjects)
-        perms toMap
+      (
+        user can ReviewFlags in GlobalScope map ((ReviewFlags, _)),
+        user can ReviewVisibility in GlobalScope map ((ReviewVisibility, _)),
+        user can ReviewProjects in GlobalScope map ((ReviewProjects, _)),
+        user can ViewStats in GlobalScope map ((ViewStats, _)),
+        user can ViewHealth in GlobalScope map ((ViewHealth, _)),
+        user can ViewLogs in GlobalScope map ((ViewLogs, _)),
+        user can HideProjects in GlobalScope map ((HideProjects, _)),
+        user can HardRemoveProject in GlobalScope map ((HardRemoveProject, _)),
+        user can UserAdmin in GlobalScope map ((UserAdmin, _)),
+      ).parMapN {
+        case (reviewFlags, reviewVisibility, reviewProjects, viewStats, viewHealth, viewLogs, hideProjects, hardRemoveProject, userAdmin) =>
+          val perms = Seq(reviewFlags, reviewVisibility, reviewProjects, viewStats, viewHealth, viewLogs, hideProjects, hardRemoveProject, userAdmin)
+          perms.toMap
       }
     }
   }

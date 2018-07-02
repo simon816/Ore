@@ -23,9 +23,10 @@ import play.api.i18n.MessagesApi
 import play.api.mvc._
 import security.spauth.SingleSignOnConsumer
 import views.{html => views}
+import util.instances.future._
+import util.syntax._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Controller for general user actions.
@@ -42,7 +43,7 @@ class Users @Inject()(fakeUser: FakeUser,
                       implicit override val env: OreEnv,
                       implicit override val config: OreConfig,
                       implicit override val cache: AsyncCacheApi,
-                      implicit override val service: ModelService) extends OreBaseController {
+                      implicit override val service: ModelService)(implicit val ec: ExecutionContext) extends OreBaseController {
 
   private val baseUrl = this.config.app.get[String]("baseUrl")
 
@@ -76,17 +77,16 @@ class Users @Inject()(fakeUser: FakeUser,
       Future.successful(redirectToSso(this.sso.getLoginUrl(this.baseUrl + "/login", nonce)))
     } else {
       // Redirected from SpongeSSO, decode SSO payload and convert to Ore user
-      this.sso.authenticate(sso.get, sig.get)(isNonceValid) flatMap {
-        case None =>
-          Future.successful(Redirect(ShowHome).withError("error.loginFailed"))
-        case Some(spongeUser) =>
-          // Complete authentication
-          User.fromSponge(spongeUser).flatMap(this.users.getOrCreate).flatMap { user =>
-            user.pullForumData().flatMap(_.pullSpongeData()).flatMap { u =>
-              this.redirectBack(request.flash.get("url").getOrElse("/"), u)
-            }
-          }
-      }
+      this.sso.authenticate(sso.get, sig.get)(isNonceValid).semiFlatMap { spongeUser =>
+        // Complete authentication
+        val fromSponge = User.fromSponge(spongeUser)
+        for {
+          user <- this.users.getOrCreate(fromSponge)
+          _ <- user.pullForumData()
+          _ <- user.pullSpongeData()
+          result <- this.redirectBack(request.flash.get("url").getOrElse("/"), user)
+        } yield result
+      }.getOrElse(Redirect(ShowHome).withError("error.loginFailed"))
     }
   }
 
@@ -133,27 +133,27 @@ class Users @Inject()(fakeUser: FakeUser,
     val pageSize = this.config.users.get[Int]("project-page-size")
     val p = page.getOrElse(1)
     val offset = (p - 1) * pageSize
-    this.users.withName(username).flatMap {
-      case None => Future.successful(notFound)
-      case Some(user) =>
-        for {
-          // TODO include orga projects?
-          projectSeq <- service.DB.db.run(queryUserProjects(user).drop(offset).take(pageSize).result)
-          tags <- Future.sequence(projectSeq.map(_._2.tags))
-          userData <- getUserData(request, username)
-          starred <- user.starred()
-          starredRv <- Future.sequence(starred.map(_.recommendedVersion))
-          orga <- getOrga(request, username)
-          orgaData <- OrganizationData.of(orga)
-          scopedOrgaData <- ScopedOrganizationData.of(request.currentUser, orga)
-        } yield {
-          val data = projectSeq zip tags map { case ((p, v), tags) =>
-            (p, user, v, tags)
-          }
-          val starredData = starred zip starredRv
-          Ok(views.users.projects(userData.get, orgaData.flatMap(a => scopedOrgaData.map(b => (a, b))), data, starredData, p))
+    this.users.withName(username).semiFlatMap { user =>
+      for {
+        // TODO include orga projects?
+        projectSeq <- service.DB.db.run(queryUserProjects(user).drop(offset).take(pageSize).result)
+        starred <- user.starred()
+        orga <- getOrga(request, username).value
+        (tags, userData, starredRv, orgaData, scopedOrgaData) <- (
+          Future.sequence(projectSeq.map(_._2.tags)),
+          getUserData(request, username).value,
+          Future.sequence(starred.map(_.recommendedVersion)),
+          OrganizationData.of(orga).value,
+          ScopedOrganizationData.of(request.currentUser, orga).value
+        ).parTupled
+      } yield {
+        val data = projectSeq zip tags map { case ((p, v), tags) =>
+          (p, user, v, tags)
         }
-    }
+        val starredData = starred zip starredRv
+        Ok(views.users.projects(userData.get, orgaData.flatMap(a => scopedOrgaData.map(b => (a, b))), data, starredData, p))
+      }
+    }.getOrElse(notFound)
   }
 
   private def queryUserProjects(user: User) = {
@@ -183,18 +183,21 @@ class Users @Inject()(fakeUser: FakeUser,
     * @return           View of user page
     */
   def saveTagline(username: String) = UserAction(username).async { implicit request =>
-    val tagline = this.forms.UserTagline.bindFromRequest.get.trim
     val maxLen = this.config.users.get[Int]("max-tagline-len")
-    this.users.withName(username).map {
-      case None => NotFound
-      case Some(user) =>
-        if (tagline.length > maxLen) {
-          Redirect(ShowUser(user)).flashing("error" -> this.messagesApi("error.tagline.tooLong", maxLen))
-        } else {
-          user.setTagline(tagline)
-          Redirect(ShowUser(user))
-        }
+
+    val res = for {
+      user <- this.users.withName(username).toRight(NotFound)
+      tagline <- bindFormEitherT[Future](this.forms.UserTagline)(_ => BadRequest)
+    } yield {
+      if (tagline.length > maxLen) {
+        Redirect(ShowUser(user)).flashing("error" -> this.messagesApi("error.tagline.tooLong", maxLen))
+      } else {
+        user.setTagline(tagline)
+        Redirect(ShowUser(user))
+      }
     }
+
+    res.merge
   }
 
   /**
@@ -295,29 +298,21 @@ class Users @Inject()(fakeUser: FakeUser,
 
       // Get visible notifications
       val nFilter: NotificationFilter = notificationFilter
-        .map(str => NotificationFilters.values
-          .find(_.name.equalsIgnoreCase(str))
-          .getOrElse(NotificationFilters.Unread))
+        .flatMap(str => NotificationFilters.values.find(_.name.equalsIgnoreCase(str)))
         .getOrElse(NotificationFilters.Unread)
 
-      nFilter(user.notifications).flatMap { l =>
-        Future.sequence(l.map(notif => notif.origin.map((notif, _))))
-      } flatMap { notifications =>
-        // Get visible invites
-        val iFilter: InviteFilter = inviteFilter
-          .map(str => InviteFilters.values
-            .find(_.name.equalsIgnoreCase(str))
-            .getOrElse(InviteFilters.All))
-          .getOrElse(InviteFilters.All)
+      val iFilter: InviteFilter = inviteFilter
+        .flatMap(str => InviteFilters.values.find(_.name.equalsIgnoreCase(str)))
+        .getOrElse(InviteFilters.All)
 
-        iFilter(user).flatMap { invites =>
-          Future.sequence(invites.map {invite => invite.subject.map((invite, _))})
-        } map { invites =>
-          Ok(views.users.notifications(
-            notifications,
-            invites,
-            nFilter, iFilter))
-        }
+      val notificationsFut = nFilter(user.notifications).flatMap(l => Future.sequence(l.map(notif => notif.origin.map((notif, _)))))
+      val invitesFut = iFilter(user).flatMap(invites => Future.sequence(invites.map {invite => invite.subject.map((invite, _))}))
+
+      (notificationsFut, invitesFut).parMapN { (notifications, invites) =>
+        Ok(views.users.notifications(
+          notifications,
+          invites,
+          nFilter, iFilter))
       }
     }
   }
@@ -329,12 +324,10 @@ class Users @Inject()(fakeUser: FakeUser,
     * @return   Ok if marked as read, NotFound if notification does not exist
     */
   def markNotificationRead(id: Int) = Authenticated.async { implicit request =>
-    request.user.notifications.get(id) map {
-      case None => notFound
-      case Some(notification) =>
-        notification.setRead(read = true)
-        Ok
-    }
+    request.user.notifications.get(id).map { notification =>
+      notification.setRead(read = true)
+      Ok
+    }.getOrElse(notFound)
   }
 
   /**

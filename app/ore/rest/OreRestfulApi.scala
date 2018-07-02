@@ -18,8 +18,10 @@ import ore.project.{Categories, ProjectSortingStrategies}
 import play.api.libs.json.Json.{obj, toJson}
 import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
 import util.StringUtils._
-
+import util.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
+
+import util.functional.OptionT
 
 /**
   * The Ore API
@@ -76,13 +78,12 @@ trait OreRestfulApi {
 
     val query = filteredProjects(offset, lim)
 
-    val all = for {
+    for {
       projects <- service.DB.db.run(query.result)
       json <- writeProjects(projects)
     } yield {
-      json.map(_._2)
+      toJson(json.map(_._2))
     }
-    all.map(toJson(_))
   }
 
   private def getMembers(projects: Seq[Int]) = {
@@ -223,7 +224,7 @@ trait OreRestfulApi {
     * @return         JSON list of versions
     */
   def getVersionList(pluginId: String, channels: Option[String],
-                     limit: Option[Int], offset: Option[Int])(implicit ec: ExecutionContext): Future[Option[JsValue]] = {
+                     limit: Option[Int], offset: Option[Int])(implicit ec: ExecutionContext): Future[JsValue] = {
 
     val filtered = channels.map { chan =>
       queryVersions.filter { case (p, v, vId, c, uName) =>
@@ -249,7 +250,7 @@ trait OreRestfulApi {
       val list = data.map { case (p, v, vId, c, uName) =>
         writeVersion(v, p, c, uName, vTags.getOrElse(vId, Seq.empty))
       }
-      Some(toJson(list))
+      toJson(list)
     }
   }
 
@@ -300,23 +301,21 @@ trait OreRestfulApi {
     * @param parentId Optional parent ID filter
     * @return         List of project pages
     */
-  def getPages(pluginId: String, parentId: Option[Int])(implicit ec: ExecutionContext): Future[Option[JsValue]] = {
-    this.projects.withPluginId(pluginId).flatMap {
-      case None => Future.successful(None)
-      case Some(project) =>
+  def getPages(pluginId: String, parentId: Option[Int])(implicit ec: ExecutionContext): OptionT[Future, JsValue] = {
+    this.projects.withPluginId(pluginId).semiFlatMap { project =>
         for {
           pages <- project.pages.sorted(_.name)
         } yield {
           val seq = if (parentId.isDefined) pages.filter(_.parentId == parentId.get) else pages
           val pageById = pages.map(p => (p.id.get, p)).toMap
-          Some(toJson(seq.map(page => obj(
+          toJson(seq.map(page => obj(
             "createdAt" -> page.createdAt,
             "id" -> page.id,
             "name" -> page.name,
             "parentId" -> page.parentId,
             "slug" -> page.slug,
             "fullSlug" -> page.fullSlug(pageById.get(page.parentId))
-          ))))
+          )))
         }
     }
   }
@@ -390,9 +389,7 @@ trait OreRestfulApi {
     for {
       user <- service.DB.db.run(queryOneUser.result)
       json <- writeUsers(user)
-    } yield {
-      json.headOption
-    }
+    } yield json.headOption
   }
 
   /**
@@ -402,18 +399,15 @@ trait OreRestfulApi {
     * @param version  Version name
     * @return         Tags on the Version
     */
-  def getTags(pluginId: String, version: String)(implicit ec: ExecutionContext): Future[Option[JsValue]] = {
-    this.projects.withPluginId(pluginId).flatMap {
-      case None => Future.successful(None)
-      case Some(project) => project.versions.find(equalsIgnoreCase(_.versionString, version)).flatMap {
-        case None => Future.successful(None)
-        case Some(v) =>
-          v.tags.map { tags =>
-            Some(obj(
-              "pluginId" -> pluginId,
-              "version" -> version,
-              "tags" -> tags.map(toJson(_))))
-          }
+  def getTags(pluginId: String, version: String)(implicit ec: ExecutionContext): OptionT[Future, JsValue] = {
+    this.projects.withPluginId(pluginId).flatMap { project =>
+      project.versions.find(equalsIgnoreCase(_.versionString, version)).semiFlatMap { v =>
+        v.tags.map { tags =>
+          obj(
+            "pluginId" -> pluginId,
+            "version" -> version,
+            "tags" -> tags.map(toJson(_))): JsValue
+        }
       }
     }
   }

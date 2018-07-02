@@ -25,8 +25,9 @@ import security.pgp.PGPPublicKeyInfo
 import security.spauth.SpongeUser
 import slick.lifted.{QueryBase, TableQuery}
 import util.StringUtils._
+import util.instances.future._
+import util.functional.OptionT
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.Breaks._
 
@@ -284,7 +285,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Highest level of trust
     */
-  def trustIn(scope: Scope = GlobalScope): Future[Trust] = Defined {
+  def trustIn(scope: Scope = GlobalScope)(implicit ec: ExecutionContext): Future[Trust] = Defined {
     scope match {
       case GlobalScope =>
         Future.successful(this.globalRoles.map(_.trust).toList.sorted.lastOption.getOrElse(Default))
@@ -334,7 +335,7 @@ case class User(override val id: Option[Int] = None,
     * @param page Page of user stars
     * @return     Projects user has starred
     */
-  def starred(page: Int = -1): Future[Seq[Project]] = Defined {
+  def starred(page: Int = -1)(implicit ec: ExecutionContext): Future[Seq[Project]] = Defined {
     val starsPerPage = this.config.users.get[Int]("stars-per-page")
     val limit = if (page < 1) -1 else starsPerPage
     val offset = (page - 1) * starsPerPage
@@ -348,23 +349,12 @@ case class User(override val id: Option[Int] = None,
     *
     * @return True if currently authenticated user
     */
-  def isCurrent(implicit request: Request[_]): Future[Boolean] = {
+  def isCurrent(implicit request: Request[_], ec: ExecutionContext): Future[Boolean] = {
     checkNotNull(request, "null request", "")
-    this.service.getModelBase(classOf[UserBase]).current.flatMap {
-      case None => Future.successful(false)
-      case Some(user) =>
-        if (user.equals(this)) Future.successful(true)
-        else {
-          this.isOrganization.flatMap {
-            case false => Future.successful(false)
-            case true => this.toOrganization.flatMap { orga =>
-              orga.owner.user
-            } map { orgaOwner =>
-              orgaOwner.equals(user)
-            }
-          }
-      }
-    }
+    this.service.getModelBase(classOf[UserBase]).current.semiFlatMap { user =>
+      if(user == this) Future.successful(true)
+      else this.toMaybeOrganization.semiFlatMap(_.owner.user).contains(user)
+    }.exists(identity)
   }
 
   /**
@@ -372,41 +362,37 @@ case class User(override val id: Option[Int] = None,
     * non-missing mutable fields.
     *
     * @param user User to fill with
-    * @return     This user
     */
-  def fill(user: DiscourseUser): Future[User] = {
-    if (user == null)
-      return Future.successful(this)
-    this.setUsername(user.username)
-    user.createdAt.foreach(this.setJoinDate)
-    user.email.foreach(this.setEmail)
-    user.fullName.foreach(this.setFullName)
-    user.avatarTemplate.foreach(this.setAvatarUrl)
-    this.setGlobalRoles(user.groups
-      .flatMap(group => RoleTypes.values.find(_.roleId == group.id).map(_.asInstanceOf[RoleType]))
-      .toSet[RoleType])
-    Future.successful(this)
+  def fill(user: DiscourseUser): Unit = {
+    if (user != null) {
+      this.setUsername(user.username)
+      user.createdAt.foreach(this.setJoinDate)
+      user.email.foreach(this.setEmail)
+      user.fullName.foreach(this.setFullName)
+      user.avatarTemplate.foreach(this.setAvatarUrl)
+      this.setGlobalRoles(user.groups
+        .flatMap(group => RoleTypes.values.find(_.roleId == group.id).map(_.asInstanceOf[RoleType]))
+        .toSet[RoleType])
+    }
   }
 
   /**
     * Fills this User with the information SpongeUser provides.
     *
     * @param user Sponge User
-    * @return     This user
     */
-  def fill(user: SpongeUser)(implicit config: OreConfig): Future[User] = {
-    if (user == null)
-      return Future.successful(this)
-    this.setUsername(user.username)
-    this.setEmail(user.email)
-    user.avatarUrl.map { url =>
-      if (!url.startsWith("http")) {
-        val baseUrl = config.security.get[String]("api.url")
-        baseUrl + url
-      } else
-        url
-    }.foreach(this.setAvatarUrl(_))
-    Future.successful(this)
+  def fill(user: SpongeUser)(implicit config: OreConfig): Unit = {
+    if (user != null) {
+      this.setUsername(user.username)
+      this.setEmail(user.email)
+      user.avatarUrl.map { url =>
+        if (!url.startsWith("http")) {
+          val baseUrl = config.security.get[String]("api.url")
+          baseUrl + url
+        } else
+          url
+      }.foreach(this.setAvatarUrl)
+    }
   }
 
   /**
@@ -414,9 +400,9 @@ case class User(override val id: Option[Int] = None,
     *
     * @return This user
     */
-  def pullForumData(): Future[User] = {
+  def pullForumData()(implicit ec: ExecutionContext): Future[Unit] = {
     // Exceptions are ignored
-    this.forums.fetchUser(this.name).recover{case _: Exception => None}.flatMap(_.map(fill).getOrElse(Future.successful(this)))
+    OptionT(this.forums.fetchUser(this.name).recover{case _: Exception => None}).cata((), fill)
   }
 
   /**
@@ -424,8 +410,8 @@ case class User(override val id: Option[Int] = None,
     *
     * @return This user
     */
-  def pullSpongeData(): Future[User] = {
-    this.auth.getUser(this.name).flatMap(_.map(fill).getOrElse(Future.failed(new Exception("user doesn't exist on SpongeAuth?"))))
+  def pullSpongeData()(implicit ec: ExecutionContext): Future[Unit] = {
+    this.auth.getUser(this.name).cata((), fill)
   }
 
   /**
@@ -441,7 +427,7 @@ case class User(override val id: Option[Int] = None,
     * @param name   Name of project
     * @return       Owned project, if any, None otherwise
     */
-  def getProject(name: String)(implicit ec: ExecutionContext): Future[Option[Project]] = this.projects.find(equalsIgnoreCase(_.name, name))
+  def getProject(name: String)(implicit ec: ExecutionContext): OptionT[Future, Project] = this.projects.find(equalsIgnoreCase(_.name, name))
 
   /**
     * Returns a [[ModelAccess]] of [[ProjectRole]]s.
@@ -477,7 +463,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return True if organization
     */
-  def isOrganization: Future[Boolean] = Defined {
+  def isOrganization(implicit ec: ExecutionContext): Future[Boolean] = Defined {
     this.service.getModelBase(classOf[OrganizationBase]).exists(_.id === this.id.get)
   }
 
@@ -486,12 +472,12 @@ case class User(override val id: Option[Int] = None,
     *
     * @return Organization
     */
-  def toOrganization: Future[Organization] = Defined {
-    this.service.getModelBase(classOf[OrganizationBase]).get(this.id.get).map(
-      _.getOrElse(throw new IllegalStateException("user is not an organization")))
+  def toOrganization(implicit ec: ExecutionContext): Future[Organization] = Defined {
+    this.service.getModelBase(classOf[OrganizationBase]).get(this.id.get)
+      .getOrElse(throw new IllegalStateException("user is not an organization"))
   }
 
-  def toMaybeOrganization: Future[Option[Organization]] = Defined {
+  def toMaybeOrganization(implicit ec: ExecutionContext): OptionT[Future, Organization] = Defined {
     this.service.getModelBase(classOf[OrganizationBase]).get(this.id.get)
   }
 
@@ -508,7 +494,7 @@ case class User(override val id: Option[Int] = None,
     * @param project Project to update status on
     * @param watching True if watching
     */
-  def setWatching(project: Project, watching: Boolean) = {
+  def setWatching(project: Project, watching: Boolean)(implicit ec: ExecutionContext) = {
     checkNotNull(project, "null project", "")
     checkArgument(project.isDefined, "undefined project", "")
     val contains = this.watching.contains(project)
@@ -532,7 +518,7 @@ case class User(override val id: Option[Int] = None,
     * @param project  Project to check
     * @return         True if has pending flag on Project
     */
-  def hasUnresolvedFlagFor(project: Project): Future[Boolean] = {
+  def hasUnresolvedFlagFor(project: Project)(implicit ec: ExecutionContext): Future[Boolean] = {
     checkNotNull(project, "null project", "")
     checkArgument(project.isDefined, "undefined project", "")
     this.flags.exists(f => f.projectId === project.id.get && !f.isResolved)
@@ -551,7 +537,7 @@ case class User(override val id: Option[Int] = None,
     * @param notification Notification to send
     * @return Future result
     */
-  def sendNotification(notification: Notification) = {
+  def sendNotification(notification: Notification)(implicit ec: ExecutionContext) = {
     checkNotNull(notification, "null notification", "")
     this.config.debug("Sending notification: " + notification, -1)
     this.service.access[Notification](classOf[Notification]).add(notification.copy(userId = this.id.get))
@@ -562,7 +548,7 @@ case class User(override val id: Option[Int] = None,
     *
     * @return True if has unread notifications
     */
-  def hasNotice: Future[Boolean] = Defined {
+  def hasNotice(implicit ec: ExecutionContext): Future[Boolean] = Defined {
     val flags = this.service.access[Flag](classOf[Flag])
     val versions = this.service.access[Version](classOf[Version])
 
@@ -611,18 +597,26 @@ object User {
   /**
     * Creates a new [[User]] from the specified [[DiscourseUser]].
     *
-    * @param user User to convert
-    * @return     Ore User
+    * @param toConvert User to convert
+    * @return          Ore User
     */
   @deprecated("use fromSponge instead", "Oct 14, 2016, 1:45 PM PDT")
-  def fromDiscourse(user: DiscourseUser) = User().fill(user).map(_.copy(id = Some(user.id)))
+  def fromDiscourse(toConvert: DiscourseUser)(implicit ec: ExecutionContext): User = {
+    val user = User()
+    user.fill(toConvert)
+    user.copy(id = Some(toConvert.id))
+  }
 
   /**
     * Create a new [[User]] from the specified [[SpongeUser]].
     *
-    * @param user User to convert
-    * @return     Ore user
+    * @param toConvert User to convert
+    * @return          Ore user
     */
-  def fromSponge(user: SpongeUser)(implicit config: OreConfig) = User().fill(user).map(_.copy(id = Some(user.id)))
+  def fromSponge(toConvert: SpongeUser)(implicit config: OreConfig, ec: ExecutionContext): User = {
+    val user = User()
+    user.fill(toConvert)
+    user.copy(id = Some(toConvert.id))
+  }
 
 }

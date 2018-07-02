@@ -19,6 +19,8 @@ import ore.permission.scope.ProjectScope
 import ore.project.Dependency
 import play.twirl.api.Html
 import util.FileUtils
+import util.instances.future._
+import util.functional.OptionT
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -74,7 +76,8 @@ case class Version(override val id: Option[Int] = None,
     *
     * @return Channel
     */
-  def channel(implicit ec: ExecutionContext): Future[Channel] = this.service.access[Channel](classOf[Channel]).get(this.channelId).map(_.get)
+  def channel(implicit ec: ExecutionContext): Future[Channel] =
+    this.service.access[Channel](classOf[Channel]).get(this.channelId).getOrElse(throw new NoSuchElementException("None of Option"))
 
   /**
     * Returns the channel this version belongs to from the specified collection
@@ -140,7 +143,7 @@ case class Version(override val id: Option[Int] = None,
 
   def authorId: Int = this._authorId
 
-  def author: Future[Option[User]] = this.userBase.get(this._authorId)
+  def author(implicit ec: ExecutionContext): OptionT[Future, User] = this.userBase.get(this._authorId)
 
   def setAuthorId(authorId: Int) = {
     this._authorId = authorId
@@ -152,7 +155,7 @@ case class Version(override val id: Option[Int] = None,
 
   def reviewerId: Int = this._reviewerId
 
-  def reviewer: Future[Option[User]] = this.userBase.get(this._reviewerId)
+  def reviewer(implicit ec: ExecutionContext): OptionT[Future, User] = this.userBase.get(this._reviewerId)
 
   def setReviewer(reviewer: User) = Defined {
     this._reviewerId = reviewer.id.get
@@ -274,9 +277,9 @@ case class Version(override val id: Option[Int] = None,
   def byCreationDate(first: Review, second: Review) = first.createdAt.getOrElse(Timestamp.from(Instant.MIN)).getTime < second.createdAt.getOrElse(Timestamp.from(Instant.MIN)).getTime
   def reviewEntries = this.schema.getChildren[Review](classOf[Review], this)
   def unfinishedReviews(implicit ec: ExecutionContext): Future[Seq[Review]] = reviewEntries.all.map(_.toSeq.filter(rev => rev.createdAt.isDefined && rev.endedAt.isEmpty).sortWith(byCreationDate))
-  def mostRecentUnfinishedReview(implicit ec: ExecutionContext): Future[Option[Review]] = unfinishedReviews.map(_.headOption)
+  def mostRecentUnfinishedReview(implicit ec: ExecutionContext): OptionT[Future, Review] = OptionT(unfinishedReviews.map(_.headOption))
   def mostRecentReviews(implicit ec: ExecutionContext): Future[Seq[Review]] = reviewEntries.toSeq.map(_.sortWith(byCreationDate))
-  def reviewById(id: Int): Future[Option[Review]] = reviewEntries.find(equalsInt[ReviewTable](_.id, id))
+  def reviewById(id: Int)(implicit ec: ExecutionContext): OptionT[Future, Review] = reviewEntries.find(equalsInt[ReviewTable](_.id, id))
   def equalsInt[T <: Table[_]](int1: T => Rep[Int], int2: Int): T => Rep[Boolean] = int1(_) === int2
 
 }

@@ -10,6 +10,8 @@ import db.impl.DownloadWarningsTable
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
 import models.project.DownloadWarning.COOKIE
+import util.functional.OptionT
+import util.instances.future._
 import play.api.mvc.Cookie
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -57,9 +59,9 @@ case class DownloadWarning(override val id: Option[Int] = None,
     *
     * @return Download
     */
-  def download(implicit ec: ExecutionContext): Future[Option[UnsafeDownload]] = {
+  def download(implicit ec: ExecutionContext): OptionT[Future, UnsafeDownload] = {
     if (this._downloadId == -1)
-      Future.successful(None)
+      OptionT.none[Future, UnsafeDownload]
     else
       this.service.access[UnsafeDownload](classOf[UnsafeDownload]).get(this._downloadId)
   }
