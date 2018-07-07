@@ -32,6 +32,9 @@ play {
     filters.headers.contentSecurityPolicy = null
     filters.enabled                    =  ${play.filters.enabled} ["security.NonceFilter", "filters.MimeKeyedCspFilter"]
     filters.csrf.body.bufferSize       =   1000000
+    filters.hosts {
+        allowed = [".spongepowered.org", "localhost:9000"]
+    }
 
     http {
         secret.key                       =   "changeme"
