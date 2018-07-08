@@ -31,12 +31,39 @@ trait ActionHelpers {
   implicit final class SpongeResult(result: Result) {
 
     /**
+      * Adds an alert message to the result.
+      *
+      * @param tpe    Alert type
+      * @param alert  Alert message
+      * @return       Result with error
+      */
+    def withAlert(tpe: String, alert: String): Result = result.flashing(tpe -> alert)
+
+    /**
+      * Adds one or more alerts messages to the result.
+      *
+      * @param tpe    Alert type
+      * @param alerts  Alert messages
+      * @return        Result with alerts
+      */
+    //TODO: Use NEL[String] if we get the type
+    def withAlerts(tpe: String, alerts: Seq[String]): Result = alerts match {
+      case Seq()       => result
+      case Seq(single) => withAlert(tpe, single)
+      case multiple    =>
+        val flash = multiple.zipWithIndex
+          .map { case (e, i) => s"$tpe-$i" -> e } :+ (s"$tpe-num" -> multiple.size.toString)
+
+        result.flashing(flash: _*)
+    }
+
+    /**
       * Adds an error message to the result.
       *
       * @param error  Error message
       * @return       Result with error
       */
-    def withError(error: String) = result.flashing("error" -> error)
+    def withError(error: String): Result = withAlert("error", error)
 
     /**
       * Adds one or more errors messages to the result.
@@ -44,13 +71,7 @@ trait ActionHelpers {
       * @param errors  Error messages
       * @return        Result with errors
       */
-    //TODO: Use NEL[String] if we get the type
-    def withErrors(errors: Seq[String])(implicit messages: Messages): Result = errors match {
-      case Seq()       => result
-      case Seq(single) => withError(messages(single))
-      case multiple    =>
-        result.flashing("error" -> multiple.map(s => messages(s)).mkString("• ", "<br>• ", ""), "error-israw" -> "true")
-    }
+    def withErrors(errors: Seq[String]): Result = withAlerts("error", errors)
 
     /**
       * Adds a success message to the result.
@@ -58,7 +79,15 @@ trait ActionHelpers {
       * @param message  Success message
       * @return         Result with message
       */
-    def withSuccess(message: String) = result.flashing("success" -> message)
+    def withSuccess(message: String): Result = withAlert("success", message)
+
+    /**
+      * Adds one or more success messages to the result.
+      *
+      * @param errors  Success messages
+      * @return        Result with message
+      */
+    def withSuccesses(errors: Seq[String]): Result = withAlerts("success", errors)
 
   }
 
