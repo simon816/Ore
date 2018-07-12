@@ -298,7 +298,7 @@ class Versions @Inject()(stats: StatTracker,
             hasErrors => {
               // Invalid channel
               val call = self.showCreatorWithMeta(author, slug, versionString)
-              Future.successful(Redirect(call).withError(hasErrors.errors.flatMap(_.messages)))
+              Future.successful(Redirect(call).withErrors(hasErrors.errors.flatMap(_.messages)))
             },
 
             versionData => {
