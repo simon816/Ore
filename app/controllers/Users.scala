@@ -210,7 +210,7 @@ class Users @Inject()(fakeUser: FakeUser,
   def savePgpPublicKey(username: String) = UserAction(username) { implicit request =>
     this.forms.UserPgpPubKey.bindFromRequest.fold(
       hasErrors =>
-        Redirect(ShowUser(username)).withError(hasErrors.errors.head.message),
+        Redirect(ShowUser(username)).withFormErrors(hasErrors.errors),
       keySubmission => {
         val keyInfo = keySubmission.info
         val user = request.user

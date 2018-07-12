@@ -2,10 +2,9 @@ package controllers.sugar
 
 import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
 
-import play.api.data.Form
-import play.api.i18n.Messages
+import play.api.data.{Form, FormError}
 import play.api.mvc.Results.Redirect
-import play.api.mvc.{Call, Result}
+import play.api.mvc.{Call, Flash, Result}
 
 /**
   * A helper class for some common functions of controllers.
@@ -24,8 +23,8 @@ trait ActionHelpers {
     checkNotNull(call, "null call", "")
     checkNotNull(form, "null form", "")
     checkArgument(form.errors.nonEmpty, "no errors", "")
-    val firstError = form.errors.head
-    Redirect(call).flashing("error" -> (firstError.message + '.' + firstError.key))
+    val errors = form.errors.map(e => s"${e.message}.${e.key}")
+    Redirect(call).withErrors(errors)
   }
 
   implicit final class SpongeResult(result: Result) {
@@ -37,7 +36,10 @@ trait ActionHelpers {
       * @param alert  Alert message
       * @return       Result with error
       */
-    def withAlert(tpe: String, alert: String): Result = result.flashing(tpe -> alert)
+    def withAlert(tpe: String, alert: String): Result = {
+      val flash = result.newFlash.fold(Flash(Map(tpe -> alert)))(f => Flash(f.data + (tpe -> alert)))
+      result.flashing(flash)
+    }
 
     /**
       * Adds one or more alerts messages to the result.
@@ -51,10 +53,12 @@ trait ActionHelpers {
       case Seq()       => result
       case Seq(single) => withAlert(tpe, single)
       case multiple    =>
-        val flash = multiple.zipWithIndex
+        val newValues = multiple.zipWithIndex
           .map { case (e, i) => s"$tpe-$i" -> e } :+ (s"$tpe-num" -> multiple.size.toString)
 
-        result.flashing(flash: _*)
+        val flash = result.newFlash.fold(Flash(newValues.toMap))(f => Flash(f.data ++ newValues))
+
+        result.flashing(flash)
     }
 
     /**
@@ -66,12 +70,20 @@ trait ActionHelpers {
     def withError(error: String): Result = withAlert("error", error)
 
     /**
-      * Adds one or more errors messages to the result.
+      * Adds one or more error messages to the result.
       *
       * @param errors  Error messages
       * @return        Result with errors
       */
     def withErrors(errors: Seq[String]): Result = withAlerts("error", errors)
+
+    /**
+      * Adds one or more form error messages to the result.
+      *
+      * @param errors  Error messages
+      * @return        Result with errors
+      */
+    def withFormErrors(errors: Seq[FormError]): Result = withAlerts("error", errors.flatMap(_.messages))
 
     /**
       * Adds a success message to the result.
