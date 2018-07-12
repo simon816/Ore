@@ -176,7 +176,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
           EitherT.liftF(apiKeyExists)
             .filterOrElse(apiKey => !apiKey, Unauthorized(error("apiKey", "api.deploy.invalidKey")))
             .semiFlatMap(_ => projectData.project.versions.exists(_.versionString === name))
-            .filterOrElse(identity, BadRequest(error("versionName", "api.deploy.versionExists")))
+            .filterOrElse(nameExists => !nameExists, BadRequest(error("versionName", "api.deploy.versionExists")))
             .semiFlatMap(_ => projectData.project.owner.user)
             .semiFlatMap(user => user.toMaybeOrganization.semiFlatMap(_.owner.user).getOrElse(user))
             .flatMap { owner =>
