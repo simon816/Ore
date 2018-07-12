@@ -12,6 +12,7 @@ POST    /admin/user/:user/update                                    @controllers
 #GET     /admin/seed                                                 @controllers.Application.seed(users: Int ?= 200, projects: Int ?= 1, versions: Int ?= 2, channels: Int ?= 2)
 #GET     /admin/migrate                                              @controllers.Application.migrate()
 GET     /admin/approval/versions                                    @controllers.Application.showQueue()
+GET     /admin/approval/versions/:page                              @controllers.Application.showQueueWithPage(page: Int)
 GET     /admin/approval/projects                                    @controllers.Application.showProjectVisibility()
 GET     /admin/flags                                                @controllers.Application.showFlags()
 GET     /admin/flags/:id/resolve/:resolved                          @controllers.Application.setFlagResolved(id: Int, resolved: Boolean)
@@ -19,6 +20,7 @@ GET     /admin/health                                               @controllers
 GET     /admin/activities/:user                                     @controllers.Application.showActivities(user: String)
 GET     /admin/stats                                                @controllers.Application.showStats()
 GET     /admin/log                                                  @controllers.Application.showLog()
+GET     /admin/log/:page                                            @controllers.Application.showLogWithPage(page: Int)
 
 GET     /statusz                                                    @controllers.ApiController.showStatusZ()
 

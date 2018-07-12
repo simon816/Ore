@@ -137,12 +137,17 @@ final class Application @Inject()(data: DataHelper,
     }
    }
 
+  def showQueue() = showQueueWithPage(0)
+
   /**
     * Shows the moderation queue for unreviewed versions.
     *
     * @return View of unreviewed versions.
     */
-  def showQueue() = (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
+  def showQueueWithPage(page: Int) = (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
+    // TODO: Pages
+    val limit = 50
+    val offset = page * limit
 
     val data = this.service.DB.db.run(queryQueue.result).flatMap { list =>
       service.DB.db.run(queryReviews(list.map(_._1.id.get)).result).map { reviewList =>
@@ -393,14 +398,16 @@ final class Application @Inject()(data: DataHelper,
     }
   }
 
-  def showLog() = (Authenticated andThen PermissionAction[AuthRequest](ViewLogs)).async { implicit request =>
+  def showLog() = showLogWithPage(0)
+
+  def showLogWithPage(page: Int) = (Authenticated andThen PermissionAction[AuthRequest](ViewLogs)).async { implicit request =>
     val limit = 50
-    val page = request.getQueryString("page").map(_.toInt).getOrElse(0)
     val offset = page * limit
     for {
       actions <- service.access[LoggedActionModel](classOf[LoggedActionModel]).filter(u => true, limit, offset)
+      size <- service.access[LoggedActionModel](classOf[LoggedActionModel]).size
     } yield {
-      Ok(views.users.admin.log(actions))
+      Ok(views.users.admin.log(actions, limit, offset, page, size))
     }
   }
 
