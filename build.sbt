@@ -24,6 +24,7 @@ libraryDependencies ++= Seq(
   "org.bouncycastle"      %   "bcpkix-jdk15on"          %   "1.59",
   "org.bouncycastle"      %   "bcpg-jdk15on"            %   "1.59",
   "javax.mail"            %   "mail"                    %   "1.4.7",
+  "com.beachape"          %%  "enumeratum"              %   "1.5.13",
 
   "com.vladsch.flexmark"  % "flexmark"                       %  "0.34.0",
   "com.vladsch.flexmark"  % "flexmark-ext-autolink"          %  "0.34.0",

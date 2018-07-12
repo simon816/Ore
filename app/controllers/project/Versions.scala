@@ -29,10 +29,13 @@ import play.api.libs.json.Json
 import play.api.mvc.{Request, Result}
 import play.filters.csrf.CSRF
 import security.spauth.SingleSignOnConsumer
-import util.JavaUtils.autoClose
 import util.StringUtils._
 import util.syntax._
 import views.html.projects.{versions => views}
+import _root_.views.html.helper
+import models.user.{UserActionLogger, LoggedAction}
+import ore.project.factory.TagAlias.ProjectTag
+import util.JavaUtils.autoClose
 import scala.concurrent.{ExecutionContext, Future}
 
 import util.functional.{EitherT, OptionT}
@@ -95,7 +98,10 @@ class Versions @Inject()(stats: StatTracker,
         version <- getVersion(request.data.project, versionString)
         description <- bindFormEitherT[Future](this.forms.VersionDescription)(_ => BadRequest: Result)
       } yield {
-        version.setDescription(description.trim)
+        val oldDescription = version.description.getOrElse("")
+        val newDescription = description.trim
+        version.setDescription(newDescription)
+        UserActionLogger.log(request.request, LoggedAction.VersionDescriptionEdited, version.id.getOrElse(-1), newDescription, oldDescription)
         Redirect(self.show(author, slug, versionString))
       }
 
@@ -116,6 +122,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val r = request.request
       getVersion(request.data.project, versionString).map { version =>
         request.data.project.setRecommendedVersion(version)
+        UserActionLogger.log(request.request, LoggedAction.VersionAsRecommended, version.id.getOrElse(-1), "recommended version", "listed version")
         Redirect(self.show(author, slug, versionString))
       }.merge
     }
@@ -137,6 +144,7 @@ class Versions @Inject()(stats: StatTracker,
         version.setReviewed(reviewed = true)
         version.setReviewer(request.user)
         version.setApprovedAt(this.service.theTime)
+        UserActionLogger.log(request.request, LoggedAction.VersionApproved, version.id.getOrElse(-1), "approved", "unapproved")
         Redirect(self.show(author, slug, versionString))
       }.merge
     }
@@ -319,6 +327,7 @@ class Versions @Inject()(stats: StatTracker,
                           if (versionData.recommended)
                             project.setRecommendedVersion(newVersion._1)
                           addUnstableTag(newVersion._1, versionData.unstable)
+                          UserActionLogger.log(request, LoggedAction.VersionUploaded, newVersion._1.id.getOrElse(-1), "published", "null")
                           Redirect(self.show(author, slug, versionString))
                         }
                       }
@@ -327,6 +336,7 @@ class Versions @Inject()(stats: StatTracker,
                 case Some(pendingProject) =>
                   // Found a pending project, create it with first version
                   pendingProject.complete.map { created =>
+                    UserActionLogger.log(request, LoggedAction.ProjectCreated, created._1.id.getOrElse(-1), "created", "null")
                     addUnstableTag(created._2, versionData.unstable)
                     Redirect(ShowProject(author, slug))
                   }
@@ -377,6 +387,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val p = request.data.project
       getVersion(p, versionString).map { version =>
         this.projects.deleteVersion(version)
+        UserActionLogger.log(request.request, LoggedAction.VersionDeleted, version.id.getOrElse(-1), "null", "")
         Redirect(self.showList(author, slug, None, None))
       }.merge
     }
