@@ -174,7 +174,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
           val apiKeyExists: Future[Boolean] = this.service.DB.db.run(compiled(Deployment, formData.apiKey, projectData.project.id.get).result)
 
           EitherT.liftF(apiKeyExists)
-            .filterOrElse(apiKey => !apiKey, Unauthorized(error("apiKey", "api.deploy.invalidKey")))
+            .filterOrElse(apiKey => apiKey, Unauthorized(error("apiKey", "api.deploy.invalidKey")))
             .semiFlatMap(_ => projectData.project.versions.exists(_.versionString === name))
             .filterOrElse(nameExists => !nameExists, BadRequest(error("versionName", "api.deploy.versionExists")))
             .semiFlatMap(_ => projectData.project.owner.user)
