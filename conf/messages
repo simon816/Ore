@@ -138,6 +138,7 @@ project.category                =   Category
 project.category.plural         =   Categories
 project.delete.title            =   Delete project
 project.delete.info             =   Are you sure you want to delete your Project? This action cannot be undone. Please explain why you want to delete it.
+project.delete.info.uniqueid    =   WARNING: You or anybody else will not be able to use the plugin ID "{0}" in the future if you continue. If you are deleting your project to recreate it, please do not delete your project and contact the Ore staff for help.
 project.download.recommend      =   Download the latest recommended version
 project.download.recommend.warn =   This project's recommended version has not been reviewed by our moderation staff and may not be safe for download.
 project.download.warn           =   This version has not been reviewed by our moderation staff and may not be safe for download.
