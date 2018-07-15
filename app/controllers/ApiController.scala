@@ -309,7 +309,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
               if (groups.trim == "")
                 Set.empty
               else
-                groups.split(",").map(group => RoleTypes.withInternalName(group)).toSet[RoleType]
+                groups.split(",").flatMap(group => RoleTypes.withInternalName(group)).toSet[RoleType]
             )
           }
 
