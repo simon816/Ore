@@ -1,0 +1,14 @@
+sudo: false
+notifications:
+  email: false
+
+language: scala
+jdk:
+  - oraclejdk8
+  - openjdk8
+
+scala:
+  - 2.12.6
+
+script:
+  - sbt ++$TRAVIS_SCALA_VERSION compile
