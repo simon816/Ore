@@ -7,6 +7,7 @@
 @import util.StringUtils._
 @import views.html.helper.{CSRF, form}
 @import views.html.utils.editor
+@import ore.permission.UploadVersions
 @(v: VersionData, sp: ScopedProjectData)(implicit messages: Messages, request: OreRequest[_], flash: Flash, config: OreConfig)
 
 @projectRoutes = @{controllers.project.routes.Projects}
@@ -85,7 +86,7 @@
                                 }
                             }
 
-                            @if(sp.perms(EditVersions)) {
+                            @if(sp.perms(UploadVersions)) {
                                 @if(v.p.versions == 1) {
                                     <a class="btn btn-danger" disabled data-toggle="tooltip" data-placement="top"
                                        title="@messages("version.delete.cannotLast")">
@@ -201,7 +202,7 @@
         </div>
     </div>
 
-    @if(sp.perms(EditVersions) && v.p.versions != 1) {
+    @if(sp.perms(UploadVersions) && v.p.versions != 1) {
         <div class="modal fade" id="modal-delete" tabindex="-1" role="dialog" aria-labelledby="label-delete">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
