@@ -16,7 +16,7 @@ import form.OreForms
 import javax.inject.Inject
 import models.project._
 import models.viewhelper.{ProjectData, VersionData}
-import ore.permission.{EditVersions, ReviewProjects}
+import ore.permission.{EditVersions, ReviewProjects, UploadVersions}
 import ore.project.factory.TagAlias.ProjectTag
 import ore.project.factory.{PendingProject, PendingVersion, ProjectFactory}
 import ore.project.io.DownloadTypes._
@@ -63,6 +63,9 @@ class Versions @Inject()(stats: StatTracker,
 
   private def VersionEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug, requireUnlock = true) andThen ProjectPermissionAction(EditVersions)
+
+  private def VersionUploadAction(author: String, slug: String)
+  = AuthedProjectAction(author, slug, requireUnlock = true) andThen ProjectPermissionAction(UploadVersions)
 
   /**
     * Shows the specified version view page.
@@ -201,7 +204,7 @@ class Versions @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return Version creation view
     */
-  def showCreator(author: String, slug: String) = VersionEditAction(author, slug).async { request =>
+  def showCreator(author: String, slug: String) = VersionUploadAction(author, slug).async { request =>
     val data = request.data
     implicit val r = request.request
     data.project.channels.all.map { channels =>
@@ -216,7 +219,7 @@ class Versions @Inject()(stats: StatTracker,
     * @param slug   Project slug
     * @return Version create page (with meta)
     */
-  def upload(author: String, slug: String) = VersionEditAction(author, slug).async { implicit request =>
+  def upload(author: String, slug: String) = VersionUploadAction(author, slug).async { implicit request =>
     val call = self.showCreator(author, slug)
     val user = request.user
 
