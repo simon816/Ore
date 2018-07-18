@@ -211,6 +211,7 @@ org.welcome         =   Welcome to your new organization! Start by changing your
 org.welcome.confirm =   Got it!
 org.users.add       =   Add User
 org.users.save      =   Save Users
+org.plural          =   Organizations
 
 version                         =   Version
 version.description             =   Description
@@ -280,6 +281,7 @@ user.tagline                =   Tagline
 user.tagline.info           =   Add a short tagline to let people know what you're about!
 user.tagline.edit           =   Edit tagline
 user.noStars                =   {0} has not starred any projects. :(
+user.noOrganizations        =   {0} is not part of any organizations. :(
 user.seeAll                 =   See all
 user.editAvatar             =   Edit avatar
 user.avatar.byUrl           =   Update by URL
