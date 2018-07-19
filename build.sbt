@@ -38,7 +38,8 @@ libraryDependencies ++= Seq(
   "org.webjars"       % "jquery"       % "2.2.4",
   "org.webjars"       % "font-awesome" % "4.7.0",
   "org.webjars.bower" % "filesize"     % "3.5.6",
-  "org.webjars.bower" % "momentjs"     % "2.22.2"
+  "org.webjars.bower" % "momentjs"     % "2.22.2",
+  "org.webjars.bowergithub.zenorocha" % "clipboard.js" % "2.0.1"
 )
 
 unmanagedResourceDirectories in Test +=  (baseDirectory.value / "target/web/public/test")
