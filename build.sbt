@@ -20,9 +20,9 @@ libraryDependencies ++= Seq(
   "org.postgresql"        %   "postgresql"              %   "42.2.2",
   "com.github.tminglei"   %%  "slick-pg"                %   "0.16.2",
   "io.sentry"             %   "sentry-logback"          %   "1.7.5",
-  "org.bouncycastle"      %   "bcprov-jdk15on"          %   "1.59",
-  "org.bouncycastle"      %   "bcpkix-jdk15on"          %   "1.59",
-  "org.bouncycastle"      %   "bcpg-jdk15on"            %   "1.59",
+  "org.bouncycastle"      %   "bcprov-jdk15on"          %   "1.60",
+  "org.bouncycastle"      %   "bcpkix-jdk15on"          %   "1.60",
+  "org.bouncycastle"      %   "bcpg-jdk15on"            %   "1.60",
   "javax.mail"            %   "mail"                    %   "1.4.7",
   "com.beachape"          %%  "enumeratum"              %   "1.5.13",
 
