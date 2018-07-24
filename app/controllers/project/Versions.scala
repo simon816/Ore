@@ -6,17 +6,19 @@ import java.sql.Timestamp
 import java.util.{Date, UUID}
 
 import com.github.tminglei.slickpg.InetString
+
 import controllers.OreBaseController
 import controllers.sugar.Bakery
-import controllers.sugar.Requests.{OreRequest, ProjectRequest}
+import controllers.sugar.Requests.{AuthRequest, OreRequest, ProjectRequest}
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
 import discourse.OreDiscourseApi
 import form.OreForms
 import javax.inject.Inject
+
 import models.project._
 import models.viewhelper.{ProjectData, VersionData}
-import ore.permission.{EditVersions, ReviewProjects, UploadVersions}
+import ore.permission.{EditSettings, EditVersions, HardRemoveProject, HardRemoveVersion, ReviewProjects, UploadVersions, ViewLogs}
 import ore.project.factory.TagAlias.ProjectTag
 import ore.project.factory.{PendingProject, PendingVersion, ProjectFactory}
 import ore.project.io.DownloadTypes._
@@ -26,7 +28,7 @@ import play.api.Logger
 import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Request, Result}
+import play.api.mvc.{AnyContent, Result, Request}
 import play.filters.csrf.CSRF
 import security.spauth.SingleSignOnConsumer
 import util.StringUtils._
@@ -40,6 +42,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import util.functional.{EitherT, OptionT}
 import util.instances.future._
+
+import db.impl.VersionTable
 
 /**
   * Controller for handling Version related actions.
@@ -161,38 +165,34 @@ class Versions @Inject()(stats: StatTracker,
     * @param channels Visible channels
     * @return View of project
     */
-  def showList(author: String, slug: String, channels: Option[String], page: Option[Int]) = {
+  def showList(author: String, slug: String, channels: Option[String]) = {
     ProjectAction(author, slug).async { request =>
       val data = request.data
       implicit val r = request.request
+
       data.project.channels.toSeq.flatMap { allChannels =>
-        var visibleNames: Option[Array[String]] = channels.map(_.toLowerCase.split(','))
-        val visible: Option[Array[Channel]] = visibleNames.map(_.map { name =>
-          allChannels.find(_.name.equalsIgnoreCase(name))
-        }).map(_.flatten)
+        val visibleNames = channels.fold(allChannels.map(_.name.toLowerCase))(_.toLowerCase.split(',').toSeq)
+        val visible = allChannels.filter(ch => visibleNames.contains(ch.name.toLowerCase))
+        val visibleIds = visible.map(_.id.get)
 
-        val visibleIds: Array[Int] = visible.map(_.map(_.id.get)).getOrElse(allChannels.map(_.id.get).toArray)
-
-        val pageSize = this.config.projects.get[Int]("init-version-load")
-        val p = page.getOrElse(1)
-        val futureVersions = data.project.versions.sorted(
-          ordering = _.createdAt.desc,
-          filter = _.channelId inSetBind visibleIds,
-          offset = pageSize * (p - 1),
-          limit = pageSize)
-
-        if (visibleNames.isDefined && visibleNames.get.toSet.equals(allChannels.map(_.name.toLowerCase).toSet)) {
-          visibleNames = None
+        def versionFilter(v: VersionTable): Rep[Boolean] = {
+          val inChannel = v.channelId inSetBind visibleIds
+          val isVisible =
+            if(r.data.globalPerm(ReviewProjects)) true: Rep[Boolean]
+            else v.visibility === VisibilityTypes.Public
+          inChannel && isVisible
         }
+
+        val futureVersionCount = data.project.versions.count(versionFilter)
+
+        val visibleNamesForView = if(visibleNames == allChannels.map(_.name.toLowerCase)) Nil else visibleNames
 
         for {
-          versions <- futureVersions
+          versionCount <- futureVersionCount
           r <- this.stats.projectViewed(request) { request =>
-            Ok(views.list(data, request.scoped, allChannels, versions, visibleNames, p))
+            Ok(views.list(data, request.scoped, allChannels, versionCount, visibleNamesForView))
           }
-        } yield {
-          r
-        }
+        } yield r
       }
     }
   }
@@ -385,14 +385,50 @@ class Versions @Inject()(stats: StatTracker,
     * @return Versions page
     */
   def delete(author: String, slug: String, versionString: String) = {
-    VersionEditAction(author, slug).async { implicit request =>
+    (Authenticated andThen PermissionAction[AuthRequest](HardRemoveVersion)).async { implicit request =>
       implicit val r = request.request
-      implicit val p = request.data.project
-      getVersion(p, versionString).map { version =>
+      getProjectVersion(author, slug, versionString).map { version =>
         this.projects.deleteVersion(version)
-        UserActionLogger.log(request.request, LoggedAction.VersionDeleted, version.id.getOrElse(-1), "null", "")
-        Redirect(self.showList(author, slug, None, None))
+        UserActionLogger.log(request, LoggedAction.VersionDeleted, version.id.getOrElse(-1), "null", "")
+        Redirect(self.showList(author, slug, None))
       }.merge
+    }
+  }
+
+  /**
+    * Soft deletes the specified version.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return Home page
+    */
+  def softDelete(author: String, slug: String, versionString: String) = VersionEditAction(author, slug).async { request =>
+    implicit val oreRequest: AuthRequest[AnyContent] = request.request
+    val project: Project = request.data.project
+    val res = for {
+      comment <- bindFormEitherT[Future](this.forms.NeedsChanges)(_ => BadRequest)
+      version <- getVersion(project, versionString)
+      _ <- EitherT.right[Result](this.projects.prepareDeleteVersion(version))
+      _ <- EitherT.right[Result](version.setVisibility(VisibilityTypes.SoftDelete, comment, request.user.id.get))
+    } yield Redirect(self.showList(author, slug, None))
+
+    res.merge
+  }
+
+  def showLog(author: String, slug: String, versionString: String) = {
+    (Authenticated andThen PermissionAction[AuthRequest](ViewLogs)) andThen ProjectAction(author, slug) async { request =>
+      implicit val r: OreRequest[AnyContent] = request.request
+      implicit val project: Project = request.data.project
+      val res = for {
+        version <- getVersion(project, versionString)
+        changes <- EitherT.right[Result](version.visibilityChangesByDate)
+        changedBy <- EitherT.right[Result](Future.sequence(changes.map(_.created.value)))
+      } yield {
+        val visChanges = changes zip changedBy
+        Ok(views.log(project, version, visChanges))
+      }
+
+      res.merge
     }
   }
 
