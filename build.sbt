@@ -13,7 +13,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq( ehcache , ws , specs2 % Test , guice )
 libraryDependencies ++= Seq(
-  "org.spongepowered"     %   "play-discourse"          %   "2.0.0",
+  "org.spongepowered"     %   "play-discourse"          %   "3.0",
   "org.spongepowered"     %   "plugin-meta"             %   "0.4.1",
   "com.typesafe.play"     %%  "play-slick"              %   "3.0.3",
   "com.typesafe.play"     %%  "play-slick-evolutions"   %   "3.0.3",
