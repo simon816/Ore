@@ -586,14 +586,15 @@ class Projects @Inject()(stats: StatTracker,
       val newVisibility = VisibilityTypes.withId(visibility)
       request.user can newVisibility.permission in GlobalScope flatMap { perm =>
         if (perm) {
-          val oldVisibility = request.data.project.visibility;
-
           val change = if (newVisibility.showModal) {
             val comment = this.forms.NeedsChanges.bindFromRequest.get.trim
             request.data.project.setVisibility(newVisibility, comment, request.user.id.get)
           } else {
             request.data.project.setVisibility(newVisibility, "", request.user.id.get)
           }
+
+          this.forums.changeTopicVisibility(request.data.project, VisibilityTypes.isPublic(newVisibility))
+
           UserActionLogger.log(request.request, LoggedAction.ProjectVisibilityChange, request.data.project.id.getOrElse(-1), newVisibility.nameKey, VisibilityTypes.NeedsChanges.nameKey)
           change.map(_ => Ok)
         } else {
@@ -675,6 +676,9 @@ class Projects @Inject()(stats: StatTracker,
     val data = request.data
     val comment = this.forms.NeedsChanges.bindFromRequest.get.trim
     data.project.setVisibility(VisibilityTypes.SoftDelete, comment, request.user.id.get).map { _ =>
+
+      this.forums.changeTopicVisibility(data.project, false)
+
       UserActionLogger.log(request.request, LoggedAction.ProjectVisibilityChange, data.project.id.getOrElse(-1), VisibilityTypes.SoftDelete.nameKey, data.project.visibility.nameKey)
       Redirect(ShowHome).withSuccess(request.messages.apply("project.deleted", data.project.name))
     }

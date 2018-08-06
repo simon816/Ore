@@ -179,9 +179,12 @@ slick.dbs.default {
 
 # Discourse SSO
 discourse {
-    baseUrl           =   "https://forums.spongepowered.org"
-    embed.retryRate   =   60000ms
-    embed.categorySlug = ore
+    baseUrl            =   "https://forums.spongepowered.org"
+    retryRate          =   60000ms
+    categoryDefault    =   -1
+    categoryDefault    =   ${?DISCOURSE_CATEGORY_OPEN}
+    categoryDeleted    =   -1
+    categoryDeleted    =   ${?DISCOURSE_CATEGORY_DELETED}
 
     api {
         enabled       =   true

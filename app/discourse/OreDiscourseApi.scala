@@ -5,7 +5,7 @@ import java.nio.file.Path
 import akka.actor.Scheduler
 import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
 import db.impl.access.ProjectBase
-import models.project.{Project, Version}
+import models.project.{Project, Version, VisibilityTypes}
 import models.user.User
 import org.spongepowered.play.discourse.DiscourseApi
 import util.StringUtils._
@@ -27,8 +27,12 @@ trait OreDiscourseApi extends DiscourseApi {
   var projects: ProjectBase = _
   var isEnabled = true
 
-  /** The category where projects are posted to */
-  val categorySlug: String
+  /** Username of admin account to move topics to secured categories */
+  val admin: String
+  /** The category where project topics are posted to */
+  val categoryDefault: Int
+  /** The category where deleted project topics are moved to */
+  val categoryDeleted: Int
   /** Path to project topic template */
   val topicTemplatePath: Path
   /** Path to version release template */
@@ -78,7 +82,7 @@ trait OreDiscourseApi extends DiscourseApi {
       poster = project.ownerName,
       title = title,
       content = content,
-      categorySlug = this.categorySlug
+      categoryId = Some(this.categoryDefault)
     ).andThen {
       case Success(errorsOrTopic) => errorsOrTopic match {
         case Left(errors) =>
@@ -112,7 +116,7 @@ trait OreDiscourseApi extends DiscourseApi {
           resultPromise.success(true)
       }
       case Failure(_) =>
-        // Discourse never received our request! Try again later.
+        // Something went wrong. Turn on debug mode to gez debug messages from play discourse for further investigations.
         Logger.info(s"Could not create project topic for project ${project.url}. Rescheduling...")
         resultPromise.success(false)
     }
@@ -164,7 +168,8 @@ trait OreDiscourseApi extends DiscourseApi {
     updateTopic(
       username = ownerName,
       topicId = topicId,
-      title = title
+      title = Some(title),
+      categoryId = None
     ).andThen {
       case Success(errors) =>
         if (errors.nonEmpty) {
@@ -251,6 +256,27 @@ trait OreDiscourseApi extends DiscourseApi {
     }
   }
 
+  def changeTopicVisibility(project: Project, isVisible: Boolean)(implicit ec: ExecutionContext): Future[Boolean] = {
+    if (!this.isEnabled)
+      return Future.successful(true)
+
+    checkArgument(project.id.isDefined, "undefined project", "")
+    checkArgument(project.topicId != -1, "undefined topic id", "")
+
+    val resultPromise: Promise[Boolean] = Promise()
+    updateTopic(this.admin, project.topicId, None, Some(if (isVisible) this.categoryDefault else this.categoryDeleted)).foreach { list =>
+      if(list.isEmpty) {
+        Logger.info(s"Successfully updated topic category for project: ${project.url}.")
+        resultPromise.success(true)
+      } else {
+        Logger.info(s"Couldn't hide topic for project: ${project.url}. Message: " + list.mkString(" | "))
+        resultPromise.success(false)
+      }
+    }
+
+    resultPromise.future
+  }
+
   /**
     * Delete's a [[Project]]'s forum topic.
     *
@@ -266,7 +292,7 @@ trait OreDiscourseApi extends DiscourseApi {
     def logFailure(): Unit = Logger.info(s"Couldn't delete topic for project: ${project.url}. Rescheduling...")
 
     val resultPromise: Promise[Boolean] = Promise()
-    deleteTopic(project.ownerName, project.topicId).andThen {
+    deleteTopic(this.admin, project.topicId).andThen {
       case Success(result) =>
         if(!result) {
           logFailure()
