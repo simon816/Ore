@@ -25,12 +25,15 @@
                 <div class="clearfix">
                     <h1 class="pull-left">@messages("admin.log.title")</h1>
                 </div>
-                <p>Legend:
-                    <span class="filter-user">Filter user</span>
-                    <span class="filter-project">Filter project</span>
-                    <span class="filter-version">Filter version</span>
-                    <span class="filter-page">Filter page</span>
-                </p>
+            </div>
+            <div class="col-md-6">
+                <h4>Legend:</h4>
+                <table class="table table-super-condensed">
+                    <tr><td class="filter-user">Filter User</td><td>@userFilter.getOrElse("-")</td></tr>
+                    <tr><td class="filter-project">Filter Project</td><td>@projectFilter.getOrElse("-")</td></tr>
+                    <tr><td class="filter-version">Filter Version</td><td>@versionFilter.getOrElse("-")</td></tr>
+                    <tr><td class="filter-page">Filter Page</td><td>@pageFilter.getOrElse("-")</td></tr>
+                </table>
             </div>
         </div>
         <div class="row">
