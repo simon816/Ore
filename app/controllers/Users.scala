@@ -120,8 +120,8 @@ class Users @Inject()(fakeUser: FakeUser,
     *
     * @return Home page
     */
-  def logOut(returnPath: Option[String]) = Action { implicit request =>
-    Redirect(this.baseUrl + returnPath.getOrElse(request.path)).clearingSession().flashing("noRedirect" -> "true")
+  def logOut() = Action { implicit request =>
+    Redirect(config.security.get[String]("api.url") + "/accounts/logout/").clearingSession().flashing("noRedirect" -> "true")
   }
 
   /**

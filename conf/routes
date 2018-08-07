@@ -69,7 +69,7 @@ GET     /                                                           @controllers
 GET     /linkout                                                    @controllers.Application.linkOut(remoteUrl: String)
 GET     /signup                                                     @controllers.Users.signUp()
 GET     /login                                                      @controllers.Users.logIn(sso: Option[String], sig: Option[String], returnUrl: Option[String])
-GET     /logout                                                     @controllers.Users.logOut(returnUrl: Option[String])
+GET     /logout                                                     @controllers.Users.logOut()
 POST    /verify                                                     @controllers.Users.verify(returnPath: Option[String])
 
 # ---------- Projects ----------
