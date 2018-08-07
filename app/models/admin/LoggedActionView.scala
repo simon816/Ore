@@ -21,15 +21,15 @@ case class LoggedActionViewModel(override val id: Option[Int] = None,
                              private val _uName: String,
                              private val _pId: Option[Int],
                              private val _pPluginId: Option[String],
-                             private val _pName: Option[String],
                              private val _pSlug: Option[String],
                              private val _pOwnerName: Option[String],
                              private val _pvId: Option[Int],
                              private val _pvVersionString: Option[String],
-                             private val _pvProjectId: Option[Int],
-                             private val _pvFileName: Option[String],
+                             private val _ppId: Option[Int],
+                             private val _ppSlug: Option[String],
                              private val _filterProject: Option[Int],
-                             private val _filterVersion: Option[Int]) extends OreModel(id, createdAt) with UserOwned {
+                             private val _filterVersion: Option[Int],
+                             private val _filterPage: Option[Int]) extends OreModel(id, createdAt) with UserOwned {
 
   override type T = LoggedActionViewTable
   override type M = LoggedActionViewModel
@@ -47,12 +47,13 @@ case class LoggedActionViewModel(override val id: Option[Int] = None,
   def uName: String = _uName
   def pId: Option[Int] = _pId
   def pPluginId: Option[String] = _pPluginId
-  def pName: Option[String] = _pName
   def pSlug: Option[String] = _pSlug
   def pOwnerName: Option[String] = _pOwnerName
   def pvId: Option[Int] = _pvId
   def pvVersionString: Option[String] = _pvVersionString
-  def pvProjectId: Option[Int] = _pvProjectId
-  def pvFileName: Option[String] = _pvFileName
+  def ppId: Option[Int] = _ppId
+  def ppSlug: Option[String] = _ppSlug
   def filterProject: Option[Int] = _filterProject
+  def filterVersion: Option[Int] = _filterVersion
+  def filterPage: Option[Int] = _filterPage
 }
