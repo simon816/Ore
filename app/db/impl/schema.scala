@@ -410,16 +410,17 @@ class LoggedActionViewTable(tag: RowTag) extends ModelTable[LoggedActionViewMode
   def uName              =   column[String]("u_name")
   def pId                =   column[Int]("p_id")
   def pPluginId          =   column[String]("p_plugin_id")
-  def pName              =   column[String]("p_name")
   def pSlug              =   column[String]("p_slug")
   def pOwnerName         =   column[String]("p_owner_name")
   def pvId               =   column[Int]("pv_id")
   def pvVersionString    =   column[String]("pv_version_string")
-  def pvProjectId        =   column[Int]("pv_project_id")
-  def pvFileName         =   column[String]("pv_file_name")
+  def ppId               =   column[Int]("pp_id")
+  def ppSlug             =   column[String]("pp_slug")
   def filterProject      =   column[Int]("filter_project")
   def filterVersion      =   column[Int]("filter_version")
+  def filterPage         =   column[Int]("filter_page")
 
-  override def * = (id.?, createdAt.?, userId, address, action, actionContext, actionContextId, newState, oldState, uId, uName,
-    pId.?, pPluginId.?, pName.?, pSlug.?, pOwnerName.?, pvId.?, pvVersionString.?, pvProjectId.?, pvFileName.?, filterProject.?, filterVersion.?) <> (LoggedActionViewModel.tupled, LoggedActionViewModel.unapply)
+  override def * = (id.?, createdAt.?, userId, address, action, actionContext, actionContextId, newState, oldState, uId,
+    uName, pId.?, pPluginId.?, pSlug.?, pOwnerName.?, pvId.?, pvVersionString.?, ppId.?, ppSlug.?,
+    filterProject.?, filterVersion.?, filterPage.?) <> (LoggedActionViewModel.tupled, LoggedActionViewModel.unapply)
 }

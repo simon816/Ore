@@ -400,7 +400,7 @@ final class Application @Inject()(data: DataHelper,
     }
   }
 
-  def showLog(page: Option[Int], userFilter: Option[Int], projectFilter: Option[Int], versionFilter: Option[Int]): Action[AnyContent] = (Authenticated andThen PermissionAction[AuthRequest](ViewLogs)).async { implicit request =>
+  def showLog(page: Option[Int], userFilter: Option[Int], projectFilter: Option[Int], versionFilter: Option[Int], pageFilter: Option[Int]): Action[AnyContent] = (Authenticated andThen PermissionAction[AuthRequest](ViewLogs)).async { implicit request =>
     val pageSize = 50
     val offset = page.getOrElse(0) * pageSize
 
@@ -409,7 +409,8 @@ final class Application @Inject()(data: DataHelper,
     val logQuery = queryLog.filter { case (action) =>
       (action.userId === userFilter).getOrElse(default) &&
       (action.filterProject === projectFilter).getOrElse(default) &&
-      (action.filterVersion === versionFilter).getOrElse(default)
+      (action.filterVersion === versionFilter).getOrElse(default) &&
+      (action.filterPage === pageFilter).getOrElse(default)
     }.sortBy { case (action) =>
       action.id.desc
     }.drop(offset).take(pageSize)
@@ -419,7 +420,7 @@ final class Application @Inject()(data: DataHelper,
       service.access[LoggedActionModel](classOf[LoggedActionModel]).size,
       request.currentUser.get can ViewIp in GlobalScope
     ).parMapN { (actions, size, canViewIP) =>
-      Ok(views.users.admin.log(actions, pageSize, offset, page.getOrElse(0), size, userFilter, projectFilter, versionFilter, canViewIP))
+      Ok(views.users.admin.log(actions, pageSize, offset, page.getOrElse(0), size, userFilter, projectFilter, versionFilter, pageFilter, canViewIP))
     }
   }
 
