@@ -1,6 +1,6 @@
 # --- !Ups
 
-UPDATE logged_actions SET action_context_id = -1 where action_context = 2;
+DELETE FROM logged_actions WHERE action_context = 2;
 
 DROP VIEW v_logged_actions;
 
@@ -29,7 +29,7 @@ SELECT
    pp.slug            as pp_slug,
    CASE
        WHEN (a.action_context = 0) THEN a.action_context_id         -- Project
-       WHEN (a.action_context = 1) THEN coalesce(pv.project_id, -1) -- Version
+       WHEN (a.action_context = 1) THEN COALESCE(pv.project_id, -1) -- Version
        WHEN (a.action_context = 2) THEN a.action_context_id         -- ProjectPage
        ELSE -1 -- Return -1 to allow filtering
    END as filter_project,
@@ -45,21 +45,13 @@ FROM logged_actions a
 LEFT OUTER JOIN users u ON a.user_id = u.id
 LEFT OUTER JOIN projects p ON
    CASE
-       WHEN a.action_context IN (0) AND a.action_context_id = p.id THEN 1 -- Join on action
-       WHEN a.action_context IN (1) AND (SELECT project_id FROM project_versions pvin WHERE pvin.id = a.action_context_id) = p.id THEN 1 -- Query for projectId from Version
-       WHEN a.action_context IN (2) AND (SELECT project_id FROM project_pages ppin WHERE ppin.id = a.action_context_id) = p.id THEN 1 -- Query for projectId from Page
+       WHEN a.action_context = 0 AND a.action_context_id = p.id THEN 1 -- Join on action
+       WHEN a.action_context = 1 AND (SELECT project_id FROM project_versions pvin WHERE pvin.id = a.action_context_id) = p.id THEN 1 -- Query for projectId from Version
+       WHEN a.action_context = 2 AND (SELECT project_id FROM project_pages ppin WHERE ppin.id = a.action_context_id) = p.id THEN 1 -- Query for projectId from Page
        ELSE 0
    END = 1
-LEFT OUTER JOIN project_versions pv ON
-   CASE
-       WHEN a.action_context IN (1) AND a.action_context_id = pv.id THEN 1
-       ELSE 0
-   END = 1
-LEFT OUTER JOIN project_pages pp ON
-   CASE
-       WHEN a.action_context IN (2) AND a.action_context_id = pp.id THEN 1
-       ELSE 0
-   END = 1
+LEFT OUTER JOIN project_versions pv ON (a.action_context = 1 AND a.action_context_id = pv.id)
+LEFT OUTER JOIN project_pages pp ON (a.action_context = 2 AND a.action_context_id = pp.id)
 ;
 # --- !Downs
 
