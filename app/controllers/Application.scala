@@ -401,7 +401,7 @@ final class Application @Inject()(data: DataHelper,
   }
 
   def showLog(oPage: Option[Int], userFilter: Option[Int], projectFilter: Option[Int], versionFilter: Option[Int], pageFilter: Option[Int]): Action[AnyContent] = (Authenticated andThen PermissionAction[AuthRequest](ViewLogs)).async { implicit request =>
-    val pageSize = 5
+    val pageSize = 50
     val page = oPage.getOrElse(1)
     val offset = (page - 1) * pageSize
 
