@@ -197,6 +197,7 @@ project.page.name               =   Page name
 project.page.name.info          =   Enter a title for your new page.
 project.page.parent             =   Parent page
 project.page.parent.info        =   Select a parent page (optional)
+project.manager                 =   Project Manager
 
 project.back = Go back
 

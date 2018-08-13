@@ -83,6 +83,7 @@ GET     /new/:author/:slug                                          @controllers
 POST    /new/:author/:slug/members                                  @controllers.project.Projects.showInvitationForm(author, slug)
 
 POST    /invite/:id/:status                                         @controllers.project.Projects.setInviteStatus(id: Int, status)
+POST    /invite/:id/:status/:behalf                                 @controllers.project.Projects.setInviteStatusOnBehalf(id: Int, status: String, behalf: String)
 
 POST    /pages/preview                                              @controllers.project.Pages.showPreview()
 
