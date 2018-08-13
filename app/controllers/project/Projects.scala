@@ -30,6 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import db.impl.{ProjectMembersTable, ProjectRoleTable}
 import models.user.role.ProjectRole
+import models.viewhelper.ScopedOrganizationData
 import ore.project.ProjectMember
 import ore.user.MembershipDossier
 import play.api.mvc.{Action, AnyContent, Result}
@@ -429,6 +430,53 @@ class Projects @Inject()(stats: StatTracker,
         }
       }
     }.getOrElse(NotFound)
+  }
+
+  /**
+    * Sets the status of a pending Project invite on behalf of the Organization
+    *
+    * @param id     Invite ID
+    * @param status Invite status
+    * @param behalf Behalf User
+    * @return       NotFound if invite doesn't exist, Ok otherwise
+    */
+  def setInviteStatusOnBehalf(id: Int, status: String, behalf: String): Action[AnyContent] = Authenticated.async { implicit request =>
+    val user = request.user
+    val res = for {
+      orga <- organizations.withName(behalf)
+      orgaUser <- users.withName(behalf)
+      role <- orgaUser.projectRoles.get(id)
+      scopedData <- OptionT.liftF(ScopedOrganizationData.of(Some(user), orga))
+      if scopedData.permissions.getOrElse(EditSettings, false)
+      project <- OptionT.liftF(role.project)
+    } yield {
+      val dossier: MembershipDossier {
+        type MembersTable = ProjectMembersTable
+
+        type MemberType = ProjectMember
+
+        type RoleTable = ProjectRoleTable
+
+        type ModelType = Project
+
+        type RoleType = ProjectRole
+      } = project.memberships
+      status match {
+        case STATUS_DECLINE =>
+          dossier.removeRole(role)
+          Ok
+        case STATUS_ACCEPT =>
+          role.setAccepted(true)
+          Ok
+        case STATUS_UNACCEPT =>
+          role.setAccepted(false)
+          Ok
+        case _ =>
+          BadRequest
+      }
+    }
+
+    res.getOrElse(NotFound)
   }
 
   /**
