@@ -63,6 +63,7 @@ case object LoggedAction extends IntEnum[LoggedAction] {
   case object ProjectMemberRemoved      extends LoggedAction(5, "ProjectMemberRemoved", LoggedActionContext.Project, "A Member was removed from the project")
   case object ProjectIconChanged        extends LoggedAction(6, "ProjectIconChanged", LoggedActionContext.Project, "The project icon was changed")
   case object ProjectPageEdited         extends LoggedAction(7, "ProjectPageEdited", LoggedActionContext.ProjectPage, "A project page got edited")
+  case object ProjectFlagResolved       extends LoggedAction(13, "ProjectFlagResolved", LoggedActionContext.Project, "The flag was resolved")
 
   case object VersionDeleted            extends LoggedAction(8, "VersionDeleted", LoggedActionContext.Version, "The version was deleted")
   case object VersionUploaded           extends LoggedAction(9, "VersionUploaded", LoggedActionContext.Version, "A new version was uploaded")

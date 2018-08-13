@@ -14,7 +14,7 @@ import db.{ModelFilter, ModelSchema, ModelService}
 import form.OreForms
 import models.admin.Review
 import models.project._
-import models.user.LoggedActionModel
+import models.user.{LoggedAction, LoggedActionModel, UserActionLogger}
 import models.user.role._
 import models.viewhelper.{HeaderData, OrganizationData, ProjectData, ScopedOrganizationData}
 import ore.Platforms.Platform
@@ -251,6 +251,9 @@ final class Application @Inject()(data: DataHelper,
     this.service.access[Flag](classOf[Flag]).get(flagId).semiFlatMap { flag =>
       users.current.value.map { user =>
         flag.setResolved(resolved, user)
+        flag.user.map { flagCreater =>
+          UserActionLogger.log(request, LoggedAction.ProjectFlagResolved, flag.projectId, s"Flag Resolved by ${user.fold("unknown")(_.name)}", s"Flagged by ${flagCreater.name}")
+        }
         Ok
       }
     }.getOrElse(NotFound)
