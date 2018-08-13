@@ -9,9 +9,8 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.ProjectApiKeyTable
 import form.OreForms
 import javax.inject.Inject
-
 import models.api.ProjectApiKey
-import models.user.User
+import models.user.{LoggedAction, User, UserActionLogger}
 import ore.permission.{EditApiKeys, ReviewProjects}
 import ore.permission.role.RoleTypes
 import ore.permission.role.RoleTypes.RoleType
@@ -104,7 +103,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
             value = UUID.randomUUID().toString.replace("-", "")))
         )
       } yield Created(Json.toJson(pak))
-
+      UserActionLogger.log(request.request, LoggedAction.ProjectSettingsChanged, projectId, s"${request.user.name} created a new ApiKey", "" )
       res.getOrElse(BadRequest)
     }
 
@@ -117,7 +116,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
         key.remove()
         Ok
       }
-
+      UserActionLogger.log(request.request, LoggedAction.ProjectSettingsChanged, request.data.project.id.get, s"${request.user.name} removed an ApiKey", "")
       res.getOrElse(BadRequest)
     }
 
