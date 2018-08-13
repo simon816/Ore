@@ -84,8 +84,6 @@ class Users @Inject()(fakeUser: FakeUser,
         val fromSponge = User.fromSponge(spongeUser)
         for {
           user <- this.users.getOrCreate(fromSponge)
-          _ <- user.pullForumData()
-          _ <- user.pullSpongeData()
           result <- this.redirectBack(request.flash.get("url").getOrElse("/"), user)
         } yield result
       }.getOrElse(Redirect(ShowHome).withError("error.loginFailed"))
