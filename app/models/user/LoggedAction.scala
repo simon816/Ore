@@ -46,6 +46,7 @@ object LoggedActionContext extends IntEnum[LoggedActionContext] {
   case object Project     extends LoggedActionContext(0)
   case object Version     extends LoggedActionContext(1)
   case object ProjectPage extends LoggedActionContext(2)
+  case object User        extends LoggedActionContext(3)
 
   val values: immutable.IndexedSeq[LoggedActionContext] = findValues
 
@@ -71,6 +72,9 @@ case object LoggedAction extends IntEnum[LoggedAction] {
   case object VersionAsRecommended      extends LoggedAction(11, "VersionAsRecommended", LoggedActionContext.Version, "The version was set as recommended version")
   case object VersionDescriptionEdited  extends LoggedAction(12, "VersionDescriptionEdited", LoggedActionContext.Version, "The version description was edited")
 
+  case object UserTaglineChanged        extends LoggedAction(14, "UserTaglineChanged", LoggedActionContext.User, "The users tagline changed")
+  case object UserPgpKeySaved           extends LoggedAction(15, "UserPgpKeySaved", LoggedActionContext.User, "The users saved a pgp public key")
+  case object UserPgpKeyRemoved         extends LoggedAction(16, "UserPgpKeyRemoved", LoggedActionContext.User, "The users removed a pgp public key")
   val values: immutable.IndexedSeq[LoggedAction] = findValues
 
 }

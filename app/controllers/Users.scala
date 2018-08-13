@@ -10,7 +10,7 @@ import discourse.OreDiscourseApi
 import form.OreForms
 import javax.inject.Inject
 import mail.{EmailFactory, Mailer}
-import models.user.{SignOn, User}
+import models.user.{LoggedAction, SignOn, User, UserActionLogger}
 import models.viewhelper.{OrganizationData, ScopedOrganizationData}
 import ore.permission.ReviewProjects
 import ore.rest.OreWrites
@@ -192,6 +192,7 @@ class Users @Inject()(fakeUser: FakeUser,
       if (tagline.length > maxLen) {
         Redirect(ShowUser(user)).flashing("error" -> request.messages.apply("error.tagline.tooLong", maxLen))
       } else {
+        UserActionLogger.log(request, LoggedAction.UserTaglineChanged, user.id.get, tagline, user.tagline.getOrElse("null"))
         user.setTagline(tagline)
         Redirect(ShowUser(user))
       }
@@ -220,6 +221,7 @@ class Users @Inject()(fakeUser: FakeUser,
 
         // Send email notification
         this.mailer.push(this.emails.create(user, this.emails.PgpUpdated))
+        UserActionLogger.log(request, LoggedAction.UserPgpKeySaved, user.id.get, "", "")
 
         Redirect(ShowUser(username)).flashing("pgp-updated" -> "true")
       }
@@ -241,6 +243,7 @@ class Users @Inject()(fakeUser: FakeUser,
       else {
         user.setPgpPubKey(null)
         user.setLastPgpPubKeyUpdate(this.service.theTime)
+        UserActionLogger.log(request, LoggedAction.UserPgpKeyRemoved, user.id.get, "", "")
         Redirect(ShowUser(username)).flashing("pgp-updated" -> "true")
       }
     }
