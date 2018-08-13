@@ -365,7 +365,7 @@ api.deploy.versionExists = A version of that name already exists.
 api.deploy.invalidKey = Invalid API key.
 api.deploy.channelNotFound = Channel not found.
 
-review.title = Reviews
+review.title = Review - {0} {1}
 review.start = Start review
 review.stop = Stop review
 review.takeover = Takeover review
