@@ -306,7 +306,7 @@ final class ApiController @Inject()(api: OreRestfulApi,
     val confApiKey = this.config.security.get[String]("sso.apikey")
     val confSecret = this.config.security.get[String]("sso.secret")
 
-    Logger.info("Sync Request received")
+    Logger.debug("Sync Request received")
 
     bindFormEitherT[Future](this.forms.SyncSso)(hasErrors => BadRequest(Json.obj("errors" -> hasErrors.errorsAsJson)))
       .filterOrElse(_._3 == confApiKey, BadRequest("API Key not valid")) //_3 is apiKey
@@ -316,11 +316,11 @@ final class ApiController @Inject()(api: OreRestfulApi,
       )
       .map(t => Uri.Query(Base64.getMimeDecoder.decode(t._1))) //_1 is sso
       .semiFlatMap{q =>
-        Logger.info("Sync Payload: " + q)
+        Logger.debug("Sync Payload: " + q)
         this.users.get(q.get("external_id").get.toInt).value.tupleLeft(q)
       }
       .map { case (query, optUser) =>
-        Logger.info("Sync user found: " + optUser.isDefined)
+        Logger.debug("Sync user found: " + optUser.isDefined)
         optUser.foreach { user =>
           val email = query.get("email")
           val username = query.get("username")

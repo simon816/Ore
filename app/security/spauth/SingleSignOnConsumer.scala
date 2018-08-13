@@ -112,18 +112,18 @@ trait SingleSignOnConsumer {
     * @return               [[SpongeUser]] if successful
     */
   def authenticate(payload: String, sig: String)(isNonceValid: String => Future[Boolean])(implicit ec: ExecutionContext): OptionT[Future, SpongeUser] = {
-    Logger.info("Authenticating SSO payload...")
-    Logger.info(payload)
-    Logger.info("Signed with : " + sig)
+    Logger.debug("Authenticating SSO payload...")
+    Logger.debug(payload)
+    Logger.debug("Signed with : " + sig)
     if (!hmac_sha256(payload.getBytes(this.CharEncoding)).equals(sig)) {
-      Logger.info("<FAILURE> Could not verify payload against signature.")
+      Logger.debug("<FAILURE> Could not verify payload against signature.")
       return OptionT.none[Future, SpongeUser]
     }
 
     // decode payload
     val query = Uri.Query(Base64.getMimeDecoder.decode(payload))
-    Logger.info("Decoded payload:")
-    Logger.info(query.toString())
+    Logger.debug("Decoded payload:")
+    Logger.debug(query.toString())
 
     // extract info
     val info = for {
@@ -140,10 +140,10 @@ trait SingleSignOnConsumer {
       .semiFlatMap { case (nonce, user) => isNonceValid(nonce).tupleRight(user)}
       .subflatMap {
         case (false, _) =>
-          Logger.info("<FAILURE> Invalid nonce.")
+          Logger.debug("<FAILURE> Invalid nonce.")
           None
         case (true, user) =>
-          Logger.info("<SUCCESS> " + user)
+          Logger.debug("<SUCCESS> " + user)
           Some(user)
       }
   }

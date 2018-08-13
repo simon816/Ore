@@ -236,7 +236,7 @@ class Users @Inject()(fakeUser: FakeUser,
     */
   def deletePgpPublicKey(username: String, sso: Option[String], sig: Option[String]): Action[AnyContent] = {
     VerifiedAction(username, sso, sig) { implicit request =>
-      Logger.info("Deleting public key for " + username)
+      Logger.debug("Deleting public key for " + username)
       val user = request.user
       if (user.pgpPubKey.isEmpty)
         BadRequest

@@ -145,8 +145,8 @@ case class ProjectSettings(override val id: Option[Int] = None,
     */
   //noinspection ComparingUnrelatedTypes
   def save(project: Project, formData: ProjectSettingsForm)(implicit cache: AsyncCacheApi, messages: MessagesApi, fileManager: ProjectFiles, ec: ExecutionContext): Future[_] = {
-    Logger.info("Saving project settings")
-    Logger.info(formData.toString)
+    Logger.debug("Saving project settings")
+    Logger.debug(formData.toString)
 
     project.setCategory(Categories.withName(formData.categoryName))
     project.setDescription(nullIfEmpty(formData.description))

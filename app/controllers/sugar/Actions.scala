@@ -69,7 +69,7 @@ trait Actions extends Calls with ActionHelpers {
 
     private def log(success: Boolean, request: ScopedRequest[_]): Unit = {
       val lang = if (success) "GRANTED" else "DENIED"
-      PermsLogger.info(s"<PERMISSION $lang> ${request.user.name}@${request.path.substring(1)}")
+      PermsLogger.debug(s"<PERMISSION $lang> ${request.user.name}@${request.path.substring(1)}")
     }
 
     def refine[A](request: ScopedRequest[A]): Future[Either[Result, R[A]]] = {
