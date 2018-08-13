@@ -40,7 +40,7 @@
             <div class="col-md-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4 class="panel-title pull-left">@messages("admin.log.title") &middot; Page #@{offset+1}</h4>
+                        <h4 class="panel-title pull-left">@messages("admin.log.title") &middot; Page #@page</h4>
                         <div class="clearfix"></div>
                     </div>
                     <div class="table-responsive">
@@ -63,7 +63,7 @@
                                 }
                                 @actions.zipWithIndex.map { case (action, index) =>
                                 <tr>
-                                    <td><b>@{offset + index}</b></td>
+                                    <td><b>@{offset + index + 1}</b></td>
                                     <td>
                                         <a href="@userRoutes.showProjects(action.uName, None)">@action.uName</a>
                                         <small class="filter-user">(<a href="@appRoutes.showLog(Some(page), Some(action.userId), projectFilter, versionFilter, pageFilter)">@action.userId</a>)</small>
@@ -121,11 +121,11 @@
                         </table>
                     </div>
                     <div class="panel-heading" style="display:block">
-                        @if(page >= 1) {
-                            <h4 class="panel-title pull-left"><a href="@appRoutes.showLog(Some(page-1), userFilter, projectFilter, versionFilter, pageFilter)">&leftarrow; @{page}</a></h4>
+                        @if(page > 1) {
+                            <h4 class="panel-title pull-left"><a href="@appRoutes.showLog(Some(page-1), userFilter, projectFilter, versionFilter, pageFilter)">&leftarrow; @{page - 1}</a></h4>
                         }
                         @if(offset + limit < size) {
-                            <h4 class="panel-title pull-right"><a href="@appRoutes.showLog(Some(page+1), userFilter, projectFilter, versionFilter, pageFilter)">@{page + 2} &rightarrow;</a></h4>
+                            <h4 class="panel-title pull-right"><a href="@appRoutes.showLog(Some(page+1), userFilter, projectFilter, versionFilter, pageFilter)">@{page + 1} &rightarrow;</a></h4>
                         }
                         <div class="clearfix"></div>
                     </div>

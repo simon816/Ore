@@ -400,9 +400,10 @@ final class Application @Inject()(data: DataHelper,
     }
   }
 
-  def showLog(page: Option[Int], userFilter: Option[Int], projectFilter: Option[Int], versionFilter: Option[Int], pageFilter: Option[Int]): Action[AnyContent] = (Authenticated andThen PermissionAction[AuthRequest](ViewLogs)).async { implicit request =>
-    val pageSize = 50
-    val offset = page.getOrElse(0) * pageSize
+  def showLog(oPage: Option[Int], userFilter: Option[Int], projectFilter: Option[Int], versionFilter: Option[Int], pageFilter: Option[Int]): Action[AnyContent] = (Authenticated andThen PermissionAction[AuthRequest](ViewLogs)).async { implicit request =>
+    val pageSize = 5
+    val page = oPage.getOrElse(1)
+    val offset = (page - 1) * pageSize
 
     val default = LiteralColumn(1) === LiteralColumn(1)
 
@@ -420,7 +421,7 @@ final class Application @Inject()(data: DataHelper,
       service.access[LoggedActionModel](classOf[LoggedActionModel]).size,
       request.currentUser.get can ViewIp in GlobalScope
     ).parMapN { (actions, size, canViewIP) =>
-      Ok(views.users.admin.log(actions, pageSize, offset, page.getOrElse(0), size, userFilter, projectFilter, versionFilter, pageFilter, canViewIP))
+      Ok(views.users.admin.log(actions, pageSize, offset, page, size, userFilter, projectFilter, versionFilter, pageFilter, canViewIP))
     }
   }
 
