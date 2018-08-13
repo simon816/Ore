@@ -11,7 +11,7 @@
 @projectRoutes = @{controllers.project.routes.Projects}
 @versionRoutes = @{controllers.project.routes.Versions}
 
-@bootstrap.layout(messages("review.title")) {
+@bootstrap.layout(messages("review.title", project.name, version.name)) {
     <script nonce="@nonce" type="text/javascript" src="@routes.Assets.at("javascripts/review.js")"></script>
     <script nonce="@nonce">versionPath = '@project.ownerName/@project.slug/versions/@version.name'</script>
 
