@@ -107,7 +107,7 @@ trait OreDiscourseApi extends DiscourseApi {
           project.setTopicId(topic.topicId)
           project.setPostId(topic.postId)
 
-          Logger.info(
+          Logger.debug(
             s"New project topic:\n" +
               s"Project: ${project.url}\n" +
               s"Topic ID: ${project.topicId}\n" +
@@ -117,7 +117,7 @@ trait OreDiscourseApi extends DiscourseApi {
       }
       case Failure(_) =>
         // Something went wrong. Turn on debug mode to gez debug messages from play discourse for further investigations.
-        Logger.info(s"Could not create project topic for project ${project.url}. Rescheduling...")
+        Logger.warn(s"Could not create project topic for project ${project.url}. Rescheduling...")
         resultPromise.success(false)
     }
 
@@ -160,7 +160,7 @@ trait OreDiscourseApi extends DiscourseApi {
     }
 
     def fail(message: String) = {
-      Logger.info(s"Couldn't update project topic for project ${project.url}: " + message)
+      Logger.warn(s"Couldn't update project topic for project ${project.url}: " + message)
       resultPromise.success(false)
     }
 
@@ -189,7 +189,7 @@ trait OreDiscourseApi extends DiscourseApi {
                 resultPromise.success(false)
               } else {
                 // Title and content updated!
-                Logger.info(s"Project topic updated for ${project.url}.")
+                Logger.debug(s"Project topic updated for ${project.url}.")
                 project.setTopicDirty(false)
                 resultPromise.success(true)
               }
@@ -266,10 +266,10 @@ trait OreDiscourseApi extends DiscourseApi {
     val resultPromise: Promise[Boolean] = Promise()
     updateTopic(this.admin, project.topicId, None, Some(if (isVisible) this.categoryDefault else this.categoryDeleted)).foreach { list =>
       if(list.isEmpty) {
-        Logger.info(s"Successfully updated topic category for project: ${project.url}.")
+        Logger.debug(s"Successfully updated topic category for project: ${project.url}.")
         resultPromise.success(true)
       } else {
-        Logger.info(s"Couldn't hide topic for project: ${project.url}. Message: " + list.mkString(" | "))
+        Logger.warn(s"Couldn't hide topic for project: ${project.url}. Message: " + list.mkString(" | "))
         resultPromise.success(false)
       }
     }
@@ -289,7 +289,7 @@ trait OreDiscourseApi extends DiscourseApi {
     checkArgument(project.id.isDefined, "undefined project", "")
     checkArgument(project.topicId != -1, "undefined topic id", "")
 
-    def logFailure(): Unit = Logger.info(s"Couldn't delete topic for project: ${project.url}. Rescheduling...")
+    def logFailure(): Unit = Logger.warn(s"Couldn't delete topic for project: ${project.url}. Rescheduling...")
 
     val resultPromise: Promise[Boolean] = Promise()
     deleteTopic(this.admin, project.topicId).andThen {
@@ -300,7 +300,7 @@ trait OreDiscourseApi extends DiscourseApi {
         } else {
           project.setTopicId(-1)
           project.setPostId(-1)
-          Logger.info(s"Successfully deleted project topic for: ${project.url}.")
+          Logger.debug(s"Successfully deleted project topic for: ${project.url}.")
           resultPromise.success(true)
         }
       case Failure(e) =>
