@@ -11,7 +11,7 @@
 @(u: UserData, o: Option[(OrganizationData, ScopedOrganizationData)], models: Seq[(Project, User, Version, Seq[Tag])], starred: Seq[(Project, Version)],
         page: Int)(implicit messages: Messages, flash: Flash, request: OreRequest[_], config: OreConfig)
 
-@users.view(u) {
+@users.view(u, o) {
 
     <div class="row">
         <div class="col-md-8">
