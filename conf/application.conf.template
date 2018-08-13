@@ -116,7 +116,6 @@ ore {
         max-tagline-len = 100
         author-page-size = 25
         project-page-size = 5
-        syncRate = 10800000
     }
 
     orgs {
