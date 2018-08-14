@@ -17,7 +17,7 @@ import models.user.{Notification, User}
 import ore.Colors.Color
 import ore.{OreConfig, OreEnv}
 import ore.permission.role.RoleTypes
-import ore.project.Dependency.{ForgeId, SpongeApiId}
+import ore.project.Dependency
 import ore.project.{NotifyWatchersTask, ProjectMember}
 import ore.project.factory.TagAlias.ProjectTag
 import ore.project.io.{InvalidPluginFileException, PluginFile, PluginUpload, ProjectFiles}
@@ -67,7 +67,7 @@ trait ProjectFactory {
     *
     * @param uploadData Upload data of request
     * @param owner      Upload owner
-    * @return           Loaded PluginFile
+    * @return Loaded PluginFile
     */
   def processPluginUpload(uploadData: PluginUpload, owner: User)(implicit messages: Messages): PluginFile = {
     val pluginFileName = uploadData.pluginFileName
@@ -121,7 +121,7 @@ trait ProjectFactory {
           version = this.startVersion(plugin, project, settings, channels.head.name)
           modelExists <- version.underlying.exists
         } yield {
-          if(modelExists && this.config.projects.get[Boolean]("file-validate"))
+          if (modelExists && this.config.projects.get[Boolean]("file-validate"))
             Left("error.version.duplicate")
           else {
             version.cache()
@@ -156,7 +156,7 @@ trait ProjectFactory {
     * Starts the construction process of a [[Project]].
     *
     * @param plugin First version file
-    * @return       PendingProject instance
+    * @return PendingProject instance
     */
   def startProject(plugin: PluginFile): PendingProject = {
     val metaData = checkMeta(plugin)
@@ -185,9 +185,9 @@ trait ProjectFactory {
   /**
     * Starts the construction process of a [[Version]].
     *
-    * @param plugin   Plugin file
-    * @param project  Parent project
-    * @return         PendingVersion instance
+    * @param plugin  Plugin file
+    * @param project Parent project
+    * @return PendingVersion instance
     */
   def startVersion(plugin: PluginFile, project: Project, settings: ProjectSettings, channelName: String): PendingVersion = {
     val metaData = checkMeta(plugin)
@@ -220,7 +220,7 @@ trait ProjectFactory {
       plugin = plugin,
       createForumPost = settings.forumSync,
       cacheApi = cacheApi
-      )
+    )
   }
 
   private def checkMeta(plugin: PluginFile): PluginMetadata
@@ -229,9 +229,9 @@ trait ProjectFactory {
   /**
     * Returns the PendingProject of the specified owner and name, if any.
     *
-    * @param owner  Project owner
-    * @param slug   Project slug
-    * @return       PendingProject if present, None otherwise
+    * @param owner Project owner
+    * @param slug  Project slug
+    * @return PendingProject if present, None otherwise
     */
   def getPendingProject(owner: String, slug: String): Option[PendingProject]
   = this.cacheApi.get[PendingProject](owner + '/' + slug)
@@ -240,10 +240,10 @@ trait ProjectFactory {
     * Returns the pending version for the specified owner, name, channel, and
     * version string.
     *
-    * @param owner    Name of owner
-    * @param slug     Project slug
-    * @param version  Name of version
-    * @return         PendingVersion, if present, None otherwise
+    * @param owner   Name of owner
+    * @param slug    Project slug
+    * @param version Name of version
+    * @return PendingVersion, if present, None otherwise
     */
   def getPendingVersion(owner: String, slug: String, version: String): Option[PendingVersion]
   = this.cacheApi.get[PendingVersion](owner + '/' + slug + '/' + version)
@@ -251,8 +251,8 @@ trait ProjectFactory {
   /**
     * Creates a new Project from the specified PendingProject
     *
-    * @param pending  PendingProject
-    * @return         New Project
+    * @param pending PendingProject
+    * @return New Project
     * @throws         IllegalArgumentException if the project already exists
     */
   def createProject(pending: PendingProject)(implicit ec: ExecutionContext): Future[Project] = {
@@ -273,16 +273,16 @@ trait ProjectFactory {
 
       // Invite members
       val dossier: MembershipDossier {
-  type MembersTable = ProjectMembersTable
+        type MembersTable = ProjectMembersTable
 
-  type MemberType = ProjectMember
+        type MemberType = ProjectMember
 
-  type RoleTable = ProjectRoleTable
+        type RoleTable = ProjectRoleTable
 
-  type ModelType = Project
+        type ModelType = Project
 
-  type RoleType = ProjectRole
-} = newProject.memberships
+        type RoleType = ProjectRole
+      } = newProject.memberships
       val owner = newProject.owner
       val ownerId = owner.userId
       val projectId = newProject.id.get
@@ -308,10 +308,10 @@ trait ProjectFactory {
   /**
     * Creates a new release channel for the specified [[Project]].
     *
-    * @param project  Project to create channel for
-    * @param name     Channel name
-    * @param color    Channel color
-    * @return         New channel
+    * @param project Project to create channel for
+    * @param name    Channel name
+    * @param color   Channel color
+    * @return New channel
     */
   def createChannel(project: Project, name: String, color: Color, nonReviewed: Boolean)(implicit ec: ExecutionContext): Future[Channel] = {
     checkNotNull(project, "null project", "")
@@ -329,8 +329,8 @@ trait ProjectFactory {
   /**
     * Creates a new version from the specified PendingVersion.
     *
-    * @param pending  PendingVersion
-    * @return         New version
+    * @param pending PendingVersion
+    * @return New version
     */
   def createVersion(pending: PendingVersion)(implicit ec: ExecutionContext): Future[(Version, Channel, Seq[ProjectTag])] = {
     val project = pending.project
@@ -358,11 +358,8 @@ trait ProjectFactory {
         )
         this.service.access[Version](classOf[Version]).add(newVersion)
       }
-      spongeTag <- addTags(newVersion, SpongeApiId, "Sponge", TagColors.Sponge).value
-      forgeTag <- addTags(newVersion, ForgeId, "Forge", TagColors.Forge).value
+      tags <- addDependencyTags(newVersion)
     } yield {
-      val tags = spongeTag ++ forgeTag
-
       // Notify watchers
       this.actorSystem.scheduler.scheduleOnce(Duration.Zero, NotifyWatchersTask(newVersion, project))
 
@@ -374,12 +371,30 @@ trait ProjectFactory {
         this.forums.postVersionRelease(project, newVersion, newVersion.description)
       }
 
-      (newVersion, channel, tags.toSeq)
+      tags.foreach(newVersion.addTag)
+      (newVersion, channel, tags)
     }
   }
 
-  private def addTags(newVersion: Version, dependencyName: String, tagName: String, tagColor: TagColor)(implicit ec: ExecutionContext): OptionT[Future, ProjectTag] = {
-    val dependenciesMatchingName = newVersion.dependencies.filter(_.pluginId == dependencyName)
+  private def addDependencyTags(version: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
+    for {
+      spongeForgeTag <- addTag(version, Dependency.SpongeForgeId, "SpongeForge", TagColors.Sponge).value
+      spongeVanillaTag <- addTag(version, Dependency.SpongeVanillaId, "SpongeVanilla", TagColors.Sponge).value
+      spongeTag <- addTag(version, Dependency.SpongeApiId, "Sponge", TagColors.Sponge).value
+      forgeTag <- addTag(version, Dependency.ForgeId, "Forge", TagColors.Forge).value
+    } yield {
+      if (spongeForgeTag.isDefined) {
+        Seq(spongeForgeTag.get)
+      } else if (spongeVanillaTag.isDefined) {
+        Seq(spongeVanillaTag.get)
+      } else {
+        (spongeTag ++ forgeTag).toSeq
+      }
+    }
+  }
+
+  private def addTag(newVersion: Version, dependencyName: String, tagName: String, tagColor: TagColor)(implicit ec: ExecutionContext): OptionT[Future, ProjectTag] = {
+    val dependenciesMatchingName = newVersion.dependencies.filter(_.pluginId.equalsIgnoreCase(dependencyName))
     OptionT.fromOption[Future](dependenciesMatchingName.headOption)
       .filter(dep => dependencyVersionRegex.pattern.matcher(dep.version).matches())
       .semiFlatMap { dep =>
@@ -405,10 +420,9 @@ trait ProjectFactory {
             }
           }
         } yield {
-          newVersion.addTag(tag)
           tag
         }
-    }
+      }
   }
 
 
@@ -445,4 +459,4 @@ class OreProjectFactory @Inject()(override val service: ModelService,
                                   override val forums: OreDiscourseApi,
                                   override val cacheApi: SyncCacheApi,
                                   override val actorSystem: ActorSystem)
-                                  extends ProjectFactory
+  extends ProjectFactory

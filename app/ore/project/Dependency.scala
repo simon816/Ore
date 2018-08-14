@@ -40,4 +40,8 @@ object Dependency {
     */
   val ForgeId: String = "forge"
 
+  val SpongeForgeId: String = "spongeforge"
+
+  val SpongeVanillaId: String = "spongevanilla"
+
 }
