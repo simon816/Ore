@@ -15,7 +15,7 @@ import models.project._
 import models.user.role.ProjectRole
 import models.user.{Notification, User}
 import ore.Colors.Color
-import ore.{OreConfig, OreEnv}
+import ore.{OreConfig, OreEnv, Platforms}
 import ore.permission.role.RoleTypes
 import ore.project.Dependency
 import ore.project.{NotifyWatchersTask, ProjectMember}
@@ -36,7 +36,6 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 import scala.util.Try
 import scala.util.matching.Regex
-
 import db.impl.{ProjectMembersTable, ProjectRoleTable}
 import ore.user.MembershipDossier
 
@@ -378,53 +377,15 @@ trait ProjectFactory {
 
   private def addDependencyTags(version: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
     for {
-      spongeForgeTag <- addTag(version, Dependency.SpongeForgeId, "SpongeForge", TagColors.Sponge).value
-      spongeVanillaTag <- addTag(version, Dependency.SpongeVanillaId, "SpongeVanilla", TagColors.Sponge).value
-      spongeTag <- addTag(version, Dependency.SpongeApiId, "Sponge", TagColors.Sponge).value
-      forgeTag <- addTag(version, Dependency.ForgeId, "Forge", TagColors.Forge).value
+      tags <- Future.sequence(Platforms.getPlatformGhostTags(version.dependencies).map(tag => tag.getFilledTag(service)))
     } yield {
-      if (spongeForgeTag.isDefined) {
-        Seq(spongeForgeTag.get)
-      } else if (spongeVanillaTag.isDefined) {
-        Seq(spongeVanillaTag.get)
-      } else {
-        (spongeTag ++ forgeTag).toSeq
-      }
+      tags.map(tag => {
+        tag.addVersionId(version.id.get)
+        version.addTag(tag)
+        tag
+      })
     }
   }
-
-  private def addTag(newVersion: Version, dependencyName: String, tagName: String, tagColor: TagColor)(implicit ec: ExecutionContext): OptionT[Future, ProjectTag] = {
-    val dependenciesMatchingName = newVersion.dependencies.filter(_.pluginId.equalsIgnoreCase(dependencyName))
-    OptionT.fromOption[Future](dependenciesMatchingName.headOption)
-      .filter(dep => dependencyVersionRegex.pattern.matcher(dep.version).matches())
-      .semiFlatMap { dep =>
-        for {
-          tagsWithVersion <- service.access(classOf[ProjectTag])
-            .filter(t => t.name === tagName && t.data === dep.version)
-          tag <- {
-            if (tagsWithVersion.isEmpty) {
-              val tag = Tag(
-                _versionIds = List(newVersion.id.get),
-                name = tagName,
-                data = dep.version,
-                color = tagColor
-              )
-              val newTag = service.access(classOf[ProjectTag]).add(tag)
-              newTag.map(newVersion.addTag)
-              newTag
-
-            } else {
-              val tag = tagsWithVersion.head
-              tag.addVersionId(newVersion.id.get)
-              Future.successful(tag)
-            }
-          }
-        } yield {
-          tag
-        }
-      }
-  }
-
 
   private def getOrCreateChannel(pending: PendingVersion, project: Project)(implicit ec: ExecutionContext) = {
     project.channels.find(equalsIgnoreCase(_.name, pending.channelName))

@@ -90,7 +90,6 @@ final class Application @Inject()(data: DataHelper,
                platform: Option[String]): Action[AnyContent] = OreAction async { implicit request =>
     // Get categories and sorting strategy
 
-
     val canHideProjects = request.data.globalPerm(HideProjects)
     val currentUserId = request.data.currentUser.flatMap(_.id).getOrElse(-1)
 

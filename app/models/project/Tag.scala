@@ -2,13 +2,16 @@ package models.project
 
 import java.sql.Timestamp
 
-import db.Named
+import db.impl.OrePostgresDriver.api._
 import db.impl.model.OreModel
 import db.impl.table.ModelKeys._
 import db.impl.{OrePostgresDriver, TagTable}
 import db.table.MappedType
+import db.{ModelService, Named}
 import models.project.TagColors.TagColor
 import slick.jdbc.JdbcType
+
+import scala.concurrent.{ExecutionContext, Future}
 
 case class Tag(override val id: Option[Int] = None,
                private var _versionIds: List[Int],
@@ -23,7 +26,7 @@ case class Tag(override val id: Option[Int] = None,
 
   def versionIds: List[Int] = this._versionIds
 
-  def addVersionId(versionId: Int) = {
+  def addVersionId(versionId: Int): Unit = {
     this._versionIds = this._versionIds :+ versionId
     if (isDefined) {
       update(TagVersionIds)
@@ -31,6 +34,27 @@ case class Tag(override val id: Option[Int] = None,
   }
 
   def copyWith(id: Option[Int], theTime: Option[Timestamp]): Tag = this.copy(id = id)
+
+  /**
+    * Used to convert a ghost tag to a normal tag
+    * @author phase
+    */
+  def getFilledTag(service: ModelService)(implicit ex: ExecutionContext): Future[Tag] = {
+    val access = service.access(classOf[Tag])
+    for {
+      tagsWithVersion <- access.filter(t => t.name === this.name && t.data === this.data)
+      tag <- {
+        if(tagsWithVersion.isEmpty) {
+          access.add(this)
+        } else {
+          Future.successful(tagsWithVersion.head)
+        }
+      }
+    } yield {
+      tag
+    }
+  }
+
 }
 
 object TagColors extends Enumeration {

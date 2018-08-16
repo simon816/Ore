@@ -188,7 +188,7 @@ case class Version(override val id: Option[Int] = None,
     if(isDefined) update(TagIds)
   }
 
-  def addTag(tag: Tag) = {
+  def addTag(tag: Tag): Unit = {
     this._tagIds = this._tagIds :+ tag.id.get
     if (isDefined) {
       update(TagIds)
