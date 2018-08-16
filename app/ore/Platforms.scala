@@ -14,8 +14,8 @@ import scala.language.implicitConversions
 object Platforms extends Enumeration {
 
   val Sponge = Platform(0, "Sponge", SpongeCategory, 0, Dependency.SpongeApiId, TagColors.Sponge)
-  val SpongeForge = Platform(2, "SpongeForge", SpongeCategory, 2, Dependency.SpongeForgeId, TagColors.Sponge)
-  val SpongeVanilla = Platform(3, "SpongeVanilla", SpongeCategory, 1, Dependency.SpongeVanillaId, TagColors.Sponge)
+  val SpongeForge = Platform(2, "SpongeForge", SpongeCategory, 1, Dependency.SpongeForgeId, TagColors.SpongeForge)
+  val SpongeVanilla = Platform(3, "SpongeVanilla", SpongeCategory, 1, Dependency.SpongeVanillaId, TagColors.SpongeVanilla)
   val Forge = Platform(1, "Forge", ForgeCategory, 0, Dependency.ForgeId, TagColors.Forge)
 
   case class Platform(override val id: Int,
@@ -36,7 +36,7 @@ object Platforms extends Enumeration {
     Platforms.values
       .filter(p => dependencyIds.contains(p.dependencyId))
       .groupBy[PlatformCategory](p => p.platformCategory)
-      .map(map => map._2.toList.maxBy(p => p.priority))
+      .flatMap(map => map._2.groupBy(p => p.priority).maxBy(_._1)._2)
       .map(p => p.asInstanceOf[Platform])
       .toList
   }
@@ -45,7 +45,7 @@ object Platforms extends Enumeration {
     Platforms.values
       .filter(p => dependencies.map(_.pluginId).contains(p.dependencyId))
       .groupBy[PlatformCategory](p => p.platformCategory)
-      .map(map => map._2.toList.maxBy(p => p.priority))
+      .flatMap(map => map._2.groupBy(p => p.priority).maxBy(_._1)._2)
       .map(p => p.toGhostTag(dependencies.find(d => d.pluginId == p.dependencyId).get.version))
       .toList
   }
