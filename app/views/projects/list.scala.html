@@ -58,7 +58,7 @@ Collection of all projects.
                             </div>
                             <div class="col-xs-12 col-sm-5 tags-line">
                                 @for(t <- rvTags) {
-                                    @projects.tag(t)
+                                    @projects.tag(t, rvTags.size)
                                 }
                             </div>
                         </div>

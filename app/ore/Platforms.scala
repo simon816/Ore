@@ -13,10 +13,12 @@ import scala.language.implicitConversions
   */
 object Platforms extends Enumeration {
 
-  val Sponge = Platform(0, "Sponge", SpongeCategory, 0, Dependency.SpongeApiId, TagColors.Sponge)
-  val SpongeForge = Platform(2, "SpongeForge", SpongeCategory, 1, Dependency.SpongeForgeId, TagColors.SpongeForge)
-  val SpongeVanilla = Platform(3, "SpongeVanilla", SpongeCategory, 1, Dependency.SpongeVanillaId, TagColors.SpongeVanilla)
-  val Forge = Platform(1, "Forge", ForgeCategory, 0, Dependency.ForgeId, TagColors.Forge)
+  val Sponge = Platform(0, "Sponge", SpongeCategory, 0, "spongeapi", TagColors.Sponge)
+  val SpongeForge = Platform(2, "SpongeForge", SpongeCategory, 2, "spongeforge", TagColors.SpongeForge)
+  val SpongeVanilla = Platform(3, "SpongeVanilla", SpongeCategory, 2, "spongevanilla", TagColors.SpongeVanilla)
+  val SpongeCommon = Platform(4, "SpongeCommon", SpongeCategory, 1, "sponge", TagColors.SpongeCommon)
+  val Lantern = Platform(5, "Lantern", SpongeCategory, 2, "lantern", TagColors.Lantern)
+  val Forge = Platform(1, "Forge", ForgeCategory, 0, "forge", TagColors.Forge)
 
   case class Platform(override val id: Int,
                       name: String,
