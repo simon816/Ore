@@ -202,11 +202,6 @@ case class Version(override val id: Option[Int] = None,
     }
   }
 
-
-  def isSpongePlugin(implicit ec: ExecutionContext): Future[Boolean] = tags.map(_.map(_.name).contains("Sponge"))
-
-  def isForgeMod(implicit ec: ExecutionContext): Future[Boolean] = tags.map(_.map(_.name).contains("Forge"))
-
   /**
     * Returns this Versions plugin dependencies.
     *

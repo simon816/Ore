@@ -65,8 +65,22 @@ object Platforms extends Enumeration {
   *
   * @author phase
   */
-sealed trait PlatformCategory
+sealed trait PlatformCategory {
+  val name: String
 
-case object SpongeCategory extends PlatformCategory
+  def getPlatforms: List[Platforms.Value] = {
+    Platforms.values.filter(p => p.platformCategory == this).toList
+  }
+}
 
-case object ForgeCategory extends PlatformCategory
+case object SpongeCategory extends PlatformCategory {
+  override val name = "Sponge Plugins"
+}
+
+case object ForgeCategory extends PlatformCategory {
+  override val name = "Forge Mods"
+}
+
+object PlatformCategory {
+  def getPlatformCategories: List[PlatformCategory] = List(SpongeCategory, ForgeCategory)
+}
