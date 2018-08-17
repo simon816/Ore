@@ -370,7 +370,6 @@ trait ProjectFactory {
         this.forums.postVersionRelease(project, newVersion, newVersion.description)
       }
 
-      tags.foreach(newVersion.addTag)
       (newVersion, channel, tags)
     }
   }
@@ -379,11 +378,11 @@ trait ProjectFactory {
     for {
       tags <- Future.sequence(Platforms.getPlatformGhostTags(version.dependencies).map(tag => tag.getFilledTag(service)))
     } yield {
-      tags.map(tag => {
+      tags.map { tag =>
         tag.addVersionId(version.id.get)
         version.addTag(tag)
         tag
-      })
+      }
     }
   }
 

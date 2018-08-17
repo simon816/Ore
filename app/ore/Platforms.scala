@@ -37,8 +37,8 @@ object Platforms extends Enumeration {
   def getPlatforms(dependencyIds: List[String]): List[Platform] = {
     Platforms.values
       .filter(p => dependencyIds.contains(p.dependencyId))
-      .groupBy[PlatformCategory](p => p.platformCategory)
-      .flatMap(map => map._2.groupBy(p => p.priority).maxBy(_._1)._2)
+      .groupBy(_.platformCategory)
+      .flatMap(_._2.groupBy(p => p.priority).maxBy(_._1)._2)
       .map(p => p.asInstanceOf[Platform])
       .toList
   }
@@ -46,8 +46,8 @@ object Platforms extends Enumeration {
   def getPlatformGhostTags(dependencies: List[Dependency]): List[Tag] = {
     Platforms.values
       .filter(p => dependencies.map(_.pluginId).contains(p.dependencyId))
-      .groupBy[PlatformCategory](p => p.platformCategory)
-      .flatMap(map => map._2.groupBy(p => p.priority).maxBy(_._1)._2)
+      .groupBy(_.platformCategory)
+      .flatMap(_._2.groupBy(p => p.priority).maxBy(_._1)._2)
       .map(p => p.toGhostTag(dependencies.find(d => d.pluginId == p.dependencyId).get.version))
       .toList
   }

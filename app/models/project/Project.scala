@@ -507,27 +507,27 @@ case class Project(override val id: Option[Int] = None,
   /**
     * Get a collection of tags that represent a project through its versions
     */
-  def tags(implicit ec: ExecutionContext, service: ModelService = null): Future[List[Tag]] = {
+  def tags(implicit ec: ExecutionContext, service: ModelService): Future[List[Tag]] = {
     schema(service)
     // get all the versions for the project
     this.service.access(classOf[Version]).filter(_.projectId === id.get).flatMap { versions =>
       val tagIds = versions.flatMap(_.tagIds).toSet.toList
       // get all the tags for all the versions
       this.service.access(classOf[Tag]).filter(t => t.id inSet tagIds).map { list =>
-        list.toSet.toList
+        list.distinct
           // get the latest tag from the versions
-          .groupBy[String](_.name)
-          .map(pair => {
-            pair._2.maxBy(
-              t => versions
-                .filter(_.tagIds.contains(t.id.get))
+          .groupBy(_.name)
+          .map { case (_, tags) =>
+            tags.maxBy { tag =>
+              versions
+                .filter(_.tagIds.contains(tag.id.get))
                 .filter(!_.isDeleted)
                 // get the latest version
-                .map(_.createdAt.getOrElse(Timestamp.from(Instant.MIN)).toInstant.toEpochMilli)
+                .map(_.createdAt.get.toInstant.toEpochMilli)
                 .max
-            )
+            }
           }
-          ).toList
+          .toList
       }
     }
   }

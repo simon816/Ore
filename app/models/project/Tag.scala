@@ -43,16 +43,12 @@ case class Tag(override val id: Option[Int] = None,
     val access = service.access(classOf[Tag])
     for {
       tagsWithVersion <- access.filter(t => t.name === this.name && t.data === this.data)
-      tag <- {
-        if(tagsWithVersion.isEmpty) {
-          access.add(this)
-        } else {
-          Future.successful(tagsWithVersion.head)
-        }
+      tag <- if (tagsWithVersion.isEmpty) {
+        access.add(this)
+      } else {
+        Future.successful(tagsWithVersion.head)
       }
-    } yield {
-      tag
-    }
+    } yield tag
   }
 
 }

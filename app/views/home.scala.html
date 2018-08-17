@@ -43,19 +43,6 @@ sorted according to different criteria.
     }
 }
 
-@platformOption = @{
-    platform.map(_.name)
-}
-
-@maybeActive(pform: Platform) = @{
-    platform.map { p =>
-        if (p.equals(pform))
-            "active"
-        else
-            ""
-    }
-}
-
 @bootstrap.layout(messages("general.title")) {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/home.js")"></script>
@@ -191,34 +178,34 @@ sorted according to different criteria.
                             orderingOption,
                             Some(page),
                             None, None)"
-                        class="list-group-item @if(platform.isEmpty) { active }">
+                        class="list-group-item @if(platform.isEmpty && platformCategory.isEmpty) { active }">
                             <strong>@messages("general.any")</strong>
                         </a>
 
-                        @for(platformCategory <- PlatformCategory.getPlatformCategories) {
+                        @for(pc <- PlatformCategory.getPlatformCategories) {
                             <a href="@routes.Application.showHome(
                                 categoryString,
                                 query,
                                 orderingOption,
                                 Some(page),
-                                Some(platformCategory.name),
+                                Some(pc.name),
                                 None)"
-                            class="list-group-item">
-                                <strong>@platformCategory.name</strong>
+                            class="list-group-item @if(platformCategory.map(_.name).getOrElse("") == pc.name) { active }">
+                                <strong>@pc.name</strong>
                             </a>
 
-                            @defining(platformCategory.getPlatforms) { platforms =>
+                            @defining(pc.getPlatforms) { platforms =>
                                 @if(platforms.size > 1) {
-                                    @for(platform <- platforms) {
+                                    @for(p <- platforms) {
                                         <a href="@routes.Application.showHome(
                                             categoryString,
                                             query,
                                             orderingOption,
                                             Some(page),
                                             None,
-                                            Some(platform.name))"
-                                        class="list-group-item">
-                                            &nbsp; @platform.name
+                                            Some(p.name))"
+                                        class="list-group-item @if(platform.map(_.name).getOrElse("") == p.name) { active }">
+                                            &nbsp;@p.name
                                         </a>
                                     }
                                 }

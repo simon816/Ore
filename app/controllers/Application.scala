@@ -98,8 +98,7 @@ final class Application @Inject()(data: DataHelper,
 
     // get the categories being queried
     val categoryPlatformNames: List[String] = pcat.toList.flatMap(_.getPlatforms.map(_.name))
-    val platformNames: List[String] = pform.map(_.name).toList.:::(categoryPlatformNames).map(_.toLowerCase)
-    println(platformNames)
+    val platformNames: List[String] = pform.map(_.name).toList ::: categoryPlatformNames map(_.toLowerCase)
 
     val categoryList: Seq[Category] = categories.fold(Categories.fromString(""))(s => Categories.fromString(s)).toSeq
     val q = query.fold("%")(qStr => s"%${qStr.toLowerCase}%")
@@ -112,7 +111,6 @@ final class Application @Inject()(data: DataHelper,
       tags <- service.DB.db.run(TableQuery[TagTable].filter(_.name.toLowerCase inSetBind platformNames).result)
       result <- {
         val versionIdsOnPlatform = tags.flatMap(_.versionIds.asInstanceOf[List[Long]]).map(_.toInt)
-        println(versionIdsOnPlatform)
 
         val projectQuery = queryProjectRV.filter { case (p, u, v) =>
           (LiteralColumn(true) === canHideProjects) ||
@@ -122,8 +120,8 @@ final class Application @Inject()(data: DataHelper,
         } filter { case (p, u, v) =>
           (LiteralColumn(0) === categoryList.length) || (p.category inSetBind categoryList)
         } filter { case (p, u, v) =>
-          if (platformNames.isEmpty) v.id === v.id
-          else v.id inSet versionIdsOnPlatform
+          if (platformNames.isEmpty) LiteralColumn(true)
+          else p.recommendedVersionId inSet versionIdsOnPlatform
         } filter { case (p, u, v) =>
           (p.name.toLowerCase like q) ||
             (p.description.toLowerCase like q) ||
@@ -136,10 +134,9 @@ final class Application @Inject()(data: DataHelper,
         def queryProjects(): Future[Seq[(Project, User, Version, List[Tag])]] = {
           for {
             projects <- service.DB.db.run(projectQuery.result)
-            tags <- Future.sequence(projects.map(_._1.tags))
+            tags <- Future.sequence(projects.map(_._3.tags))
           } yield {
             projects zip tags map { case ((p, u, v), t) =>
-              println("Application#showHome: " + p.name + " " + u.name + " " + v.name)
               (p, u, v, t)
             }
           }
