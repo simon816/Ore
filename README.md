@@ -9,10 +9,6 @@ Ore is written in Scala using the [Play](https://www.playframework.com/) framewo
 
 Running Ore is relatively simple.
 
-**With Activator**
-* Download and install the latest [Activator](https://www.lightbend.com/activator/download) distribution.
-* Execute `activator run` in the project root.
-
 **With SBT**
 * Download and install the latest [SBT](http://www.scala-sbt.org/download.html) version.
 * Execute `sbt run` in the project root.
