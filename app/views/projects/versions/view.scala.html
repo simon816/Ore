@@ -11,6 +11,7 @@
 @import ore.permission.ReviewFlags
 @import ore.permission.ViewLogs
 @import ore.Platforms
+@import ore.PlatformCategory
 @(v: VersionData, sp: ScopedProjectData)(implicit messages: Messages, request: OreRequest[_], flash: Flash, config: OreConfig)
 
 @projectRoutes = @{controllers.project.routes.Projects}
@@ -181,23 +182,15 @@
                         </div>
                         <ul class="list-group">
 
-                            @* TODO: map over platforms *@
-                            @v.v.dependencies.find(_.pluginId.equals(Platforms.Sponge.dependencyId)).map { spongeApi =>
-                                <li class="list-group-item">
-                                    <a href="https://www.spongepowered.org/downloads">
-                                        <strong>@messages("general.spongeApi")</strong>
-                                    </a>
-                                    <p class="version-string">@spongeApi.version</p>
-                                </li>
-                            }
-
-                            @v.v.dependencies.find(_.pluginId.equals(Platforms.Forge.dependencyId)).map { forge =>
-                                <li class="list-group-item">
-                                    <a href="http://files.minecraftforge.net">
-                                        <strong>@messages("general.forge")</strong>
-                                    </a>
-                                    <p class="version-string">@forge.version</p>
-                                </li>
+                            @for(platform <- PlatformCategory.getPlatformCategories.flatMap(_.getPlatforms)) {
+                                @v.v.dependencies.find(_.pluginId == platform.dependencyId).map { dependency =>
+                                    <li class="list-group-item">
+                                        <a href="@{platform.url}">
+                                            <strong>@{platform.name}</strong>
+                                        </a>
+                                        <p class="version-string">@dependency.version</p>
+                                    </li>
+                                }
                             }
 
                             @v.filteredDependencies.map { case (depend, project)=>

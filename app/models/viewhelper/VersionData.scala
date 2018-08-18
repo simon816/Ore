@@ -21,6 +21,10 @@ case class VersionData(p: ProjectData, v: Version, c: Channel,
 
   def fullSlug = s"""${p.fullSlug}/versions/${v.versionString}"""
 
+  /**
+    * Filters out platforms from the dependencies
+    * @return filtered dependencies
+    */
   def filteredDependencies: Seq[(Dependency, Option[Project])] = {
     dependencies.filterNot(d => Platforms.values.map(_.dependencyId).contains(d._1.pluginId))
   }
