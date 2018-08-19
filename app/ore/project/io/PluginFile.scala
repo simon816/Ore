@@ -23,8 +23,9 @@ import scala.util.control.Breaks._
 class PluginFile(private var _path: Path, val signaturePath: Path, val user: User) extends UserOwned {
 
   private val MetaFileName = "mcmod.info"
+  private val ManifestFileName = "META-INF/MANIFEST.MF"
 
-  private var _meta: Option[PluginMetadata] = None
+  private var _data: Option[PluginFileData] = None
   private var _md5: String = _
 
   /**
@@ -60,7 +61,7 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
     *
     * @return PluginMetadata if present, None otherwise
     */
-  def meta: Option[PluginMetadata] = this._meta
+  def data: Option[PluginFileData] = this._data
 
   /**
     * Returns an MD5 hash of this PluginFile.
@@ -78,58 +79,48 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
     *
     * TODO: More validation on PluginMetadata results (null checks, etc)
     *
-    * @return Result of parse
+    * @return Plugin metadata or an error message
     */
   @throws[InvalidPluginFileException]
-  def loadMeta()(implicit messages: Messages): PluginMetadata = {
+  def loadMeta()(implicit messages: Messages): Either[PluginFileData, String] = {
+    val fileNames = PluginFileData.getFileNames
+
     var jarIn: JarInputStream = null
     try {
       // Find plugin JAR
       jarIn = new JarInputStream(newJarStream)
 
+      var data = List[DataValue[_]]()
+
       // Find plugin meta file
       var entry: JarEntry = null
-      var metaFound: Boolean = false
-      breakable {
-        while ({ entry = jarIn.getNextJarEntry; entry } != null) {
-          if (entry.getName.equals(MetaFileName)) {
-            metaFound = true
-            break
-          }
+      while ({ entry = jarIn.getNextJarEntry; entry } != null) {
+        if (fileNames.contains(entry.getName)) {
+          data = data ::: PluginFileData.getData(entry.getName, jarIn)
         }
       }
 
-      if (!metaFound)
-        throw InvalidPluginFileException(messages("error.plugin.metaNotFound"))
+      // This won't be called if a plugin uses mixins but doesn't
+      // have a mcmod.info, but the check below will catch that
+      if (data.isEmpty)
+        return Right(messages("error.plugin.metaNotFound"))
 
-      // Read the meta file
-      val metaList = McModInfo.DEFAULT.read(jarIn).asScala.toList
-      if (metaList.isEmpty)
-        throw InvalidPluginFileException(messages("error.plugin.metaNotFound"))
+      val fileData = new PluginFileData(data)
 
-      // Parse plugin meta info
-      val meta = metaList.head
-
-      // check meta
-      def checkMeta(value: Any, field: String): Unit = {
-        if (value == null)
-          throw InvalidPluginFileException(messages("error.plugin.incomplete", field))
+      this._data = Some(fileData)
+      if(!fileData.isValidPlugin) {
+        return Right(messages("error.plugin.incomplete", "id or version"))
       }
-      checkMeta(meta.getName, "name")
-      checkMeta(meta.getVersion, "version")
 
-      this._meta = Some(meta)
-      meta
+      Left(fileData)
     } catch {
-      case pe: InvalidPluginFileException =>
-        throw pe
       case e: Exception =>
-        throw InvalidPluginFileException(cause = e)
+        Right(e.getMessage)
     } finally {
       if (jarIn != null)
         jarIn.close()
       else
-        throw InvalidPluginFileException(messages("error.plugin.unexpected"))
+        return Right(messages("error.plugin.unexpected"))
     }
   }
 

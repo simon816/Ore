@@ -229,16 +229,9 @@ class Versions @Inject()(stats: StatTracker,
       .flatMap(_ => PluginUpload.bindFromRequest().toRight(Redirect(call).withError("error.noFile")))
 
     EitherT.fromEither[Future](uploadData).flatMap { data =>
-      //TODO: We should get rid of this try
-      try {
-        this.factory
-          .processSubsequentPluginUpload(data, user, request.data.project)
-          .leftMap(err => Redirect(call).withError(err))
-      }
-      catch {
-        case e: InvalidPluginFileException =>
-          EitherT.leftT[Future, PendingVersion](Redirect(call).withErrors(Option(e.getMessage).toList))
-      }
+      this.factory
+        .processSubsequentPluginUpload(data, user, request.data.project)
+        .leftMap(err => Redirect(call).withError(err))
     }.map { pendingVersion =>
       pendingVersion.underlying.setAuthorId(user.id.getOrElse(-1))
       Redirect(self.showCreatorWithMeta(request.data.project.ownerName, slug, pendingVersion.underlying.versionString))
