@@ -39,12 +39,12 @@ case class PendingProject(projects: ProjectBase,
   val pendingVersion: PendingVersion = {
     val result = this.factory.startVersion(this.file, this.underlying, this.settings, this.channelName)
     result match {
-      case Left (version) =>
+      case Right (version) =>
         val model = version.underlying
         version.cache()
         version
         // TODO: not this crap
-      case Right (errorMessage) => throw new IllegalArgumentException(errorMessage)
+      case Left (errorMessage) => throw new IllegalArgumentException(errorMessage)
     }
   }
 

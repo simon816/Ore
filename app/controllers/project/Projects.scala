@@ -99,12 +99,12 @@ class Projects @Inject()(stats: StatTracker,
             try {
               val plugin = this.factory.processPluginUpload(uploadData, user)
               plugin match {
-                case Left(pluginFile) =>
+                case Right(pluginFile) =>
                   val project = this.factory.startProject(pluginFile)
                   project.cache()
                   val model = project.underlying
                   Redirect(self.showCreatorWithMeta(model.ownerName, model.slug))
-                case Right(errorMessage) =>
+                case Left(errorMessage) =>
                   Redirect(self.showCreator()).withError(errorMessage)
               }
             } catch {
@@ -162,7 +162,7 @@ class Projects @Inject()(stats: StatTracker,
                 this.cache.set(namespace + '/' + version.underlying.versionString, version)
                 implicit val currentUser: User = request.user
 
-                val authors = pendingProject.file.data.get.getAuthors
+                val authors = pendingProject.file.data.get.getAuthors.toList
                 (
                   Future.sequence(authors.filterNot(_.equals(currentUser.username)).map(this.users.withName(_).value)),
                   this.forums.countUsers(authors),

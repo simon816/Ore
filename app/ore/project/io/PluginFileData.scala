@@ -7,7 +7,7 @@ import com.google.gson.stream.JsonReader
 import models.project.{Tag, TagColors}
 import ore.project.Dependency
 
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * The metadata within a [[PluginFile]]
@@ -15,15 +15,15 @@ import scala.collection.mutable.ListBuffer
   * @author phase
   * @param data the data within a [[PluginFile]]
   */
-class PluginFileData(var data: List[DataValue[_]]) {
+class PluginFileData(data: Seq[DataValue[_]]) {
 
-  data = data.groupBy(_.key).flatMap { case (key, value) =>
+  val dataValues = data.groupBy(_.key).flatMap { case (key, value) =>
     // combine dependency lists that may come from different files
     if (value.size > 1 && value.head.isInstanceOf[DependencyDataValue]) {
-      val dependencies = value.flatMap(_.value.asInstanceOf[List[Dependency]])
-      List(DependencyDataValue(key, dependencies))
+      val dependencies = value.flatMap(_.value.asInstanceOf[Seq[Dependency]])
+      Seq(DependencyDataValue(key, dependencies))
     } else value
-  }.toList
+  }.toSeq
 
   def getId: Option[String] = {
     get[String]("id")
@@ -33,33 +33,33 @@ class PluginFileData(var data: List[DataValue[_]]) {
     get[String]("version")
   }
 
-  def getAuthors: List[String] = {
-    get[List[String]]("authors").getOrElse(List())
+  def getAuthors: Seq[String] = {
+    get[Seq[String]]("authors").getOrElse(Seq())
   }
 
-  def getDependencies: List[Dependency] = {
-    get[List[Dependency]]("dependencies").getOrElse(List())
+  def getDependencies: Seq[Dependency] = {
+    get[Seq[Dependency]]("dependencies").getOrElse(Seq())
   }
 
   def get[T](key: String): Option[T] = {
-    data.filter(_.key == key).filter(_.isInstanceOf[DataValue[T]]).map(_.asInstanceOf[DataValue[T]].value).headOption
+    dataValues.filter(_.key == key).filter(_.isInstanceOf[DataValue[T]]).map(_.asInstanceOf[DataValue[T]].value).headOption
   }
 
   def isValidPlugin: Boolean = {
-    data.exists(_.isInstanceOf[StringDataValue]) &&
-      data.exists(_.isInstanceOf[StringDataValue])
+    dataValues.exists(_.isInstanceOf[StringDataValue]) &&
+      dataValues.exists(_.isInstanceOf[StringDataValue])
   }
 
-  def getGhostTags: List[Tag] = {
-    val buffer = new ListBuffer[Tag]
+  def getGhostTags: Seq[Tag] = {
+    val buffer = new ArrayBuffer[Tag]
 
     if (containsMixins) {
       val mixinTag = Tag(None, List(), "Mixin", "", TagColors.Mixin)
       buffer += mixinTag
     }
 
-    println("PluginFileData#getGhostTags: " + buffer.toList)
-    buffer.toList
+    println("PluginFileData#getGhostTags: " + buffer)
+    buffer
   }
 
   /**
@@ -68,17 +68,17 @@ class PluginFileData(var data: List[DataValue[_]]) {
     * @return
     */
   def containsMixins: Boolean = {
-    data.exists(p => p.key == "MixinConfigs" && p.isInstanceOf[StringDataValue])
+    dataValues.exists(p => p.key == "MixinConfigs" && p.isInstanceOf[StringDataValue])
   }
 
 }
 
 object PluginFileData {
-  val fileTypes: List[FileType] = List(ModInfo, Manifest, ModToml)
+  val fileTypes: Seq[FileTypeHandler] = Seq(ModInfoHandler, ManifestHandler, ModTomlHandler)
 
-  def getFileNames: List[String] = fileTypes.map(_.fileName).distinct
+  def getFileNames: Seq[String] = fileTypes.map(_.fileName).distinct
 
-  def getData(fileName: String, stream: BufferedReader): List[DataValue[_]] = {
+  def getData(fileName: String, stream: BufferedReader): Seq[DataValue[_]] = {
     fileTypes.filter(_.fileName == fileName).flatMap(_.getData(stream))
   }
 
@@ -91,40 +91,43 @@ object PluginFileData {
   * @param value the value extracted from the file
   * @tparam T the type of the value
   */
-sealed class DataValue[T](val key: String, val value: T)
+sealed trait DataValue[T] {
+  val key: String
+  val value: T
+}
 
 /**
   * A data element that is a String, such as the plugin id or version
   *
   * @param value the value extracted from the file
   */
-case class StringDataValue(override val key: String, override val value: String)
-  extends DataValue[String](key, value)
+case class StringDataValue(key: String, value: String)
+  extends DataValue[String]
 
 /**
   * A data element that is a list of strings, such as an authors list
   *
   * @param value the value extracted from the file
   */
-case class StringListValue(override val key: String, override val value: List[String])
-  extends DataValue[List[String]](key, value)
+case class StringSeqValue(key: String, value: Seq[String])
+  extends DataValue[Seq[String]]
 
 /**
   * A data element that is a list of [[Dependency]]
   *
   * @param value the value extracted from the file
   */
-case class DependencyDataValue(override val key: String, override val value: List[Dependency])
-  extends DataValue[List[Dependency]](key, value)
+case class DependencyDataValue(key: String, value: Seq[Dependency])
+  extends DataValue[Seq[Dependency]]
 
-sealed abstract case class FileType(fileName: String) {
-  def getData(bufferedReader: BufferedReader): List[DataValue[_]]
+sealed abstract case class FileTypeHandler(fileName: String) {
+  def getData(bufferedReader: BufferedReader): Seq[DataValue[_]]
 }
 
-object ModInfo extends FileType("mcmod.info") {
-  override def getData(bufferedReader: BufferedReader): List[DataValue[_]] = {
+object ModInfoHandler extends FileTypeHandler("mcmod.info") {
+  override def getData(bufferedReader: BufferedReader): Seq[DataValue[_]] = {
 
-    val dataValues = new ListBuffer[DataValue[_]]
+    val dataValues = new ArrayBuffer[DataValue[_]]
 
     try {
       val parser = new JsonParser().parse(new JsonReader(bufferedReader))
@@ -147,18 +150,18 @@ object ModInfo extends FileType("mcmod.info") {
           dataValues += StringDataValue("url", modObject.get("url").getAsString)
 
         if (modObject.has("authors")) {
-          val authors = new ListBuffer[String]
+          val authors = new ArrayBuffer[String]
           val authorsJson = modObject.getAsJsonArray("authors")
           for (j <- 0 until authorsJson.size()) {
             val element = authorsJson.get(j)
             authors += element.getAsString
           }
-          dataValues += StringListValue("authors", authors.toList)
+          dataValues += StringSeqValue("authors", authors)
         }
 
         // collect dependencies
 
-        val dependencies = new ListBuffer[Dependency]
+        val dependencies = new ArrayBuffer[Dependency]
 
         if (modObject.has("requiredMods")) {
           val dependenciesJson = modObject.getAsJsonArray("requiredMods")
@@ -181,19 +184,19 @@ object ModInfo extends FileType("mcmod.info") {
           }
         }
 
-        dataValues += DependencyDataValue("dependencies", dependencies.toList)
+        dataValues += DependencyDataValue("dependencies", dependencies)
       }
     } catch {
       case e: Exception => e.printStackTrace()
     }
 
-    dataValues.toList
+    dataValues
   }
 }
 
-object Manifest extends FileType("META-INF/MANIFEST.MF") {
-  override def getData(bufferedReader: BufferedReader): List[DataValue[_]] = {
-    val dataValues = new ListBuffer[DataValue[_]]
+object ManifestHandler extends FileTypeHandler("META-INF/MANIFEST.MF") {
+  override def getData(bufferedReader: BufferedReader): Seq[DataValue[_]] = {
+    val dataValues = new ArrayBuffer[DataValue[_]]
 
     val lines = Stream.continually(bufferedReader.readLine()).takeWhile(_ != null)
     for (line <- lines) {
@@ -204,13 +207,13 @@ object Manifest extends FileType("META-INF/MANIFEST.MF") {
       }
     }
 
-    dataValues.toList
+    dataValues
   }
 }
 
-object ModToml extends FileType("mod.toml") {
-  override def getData(bufferedReader: BufferedReader): List[DataValue[_]] = {
+object ModTomlHandler extends FileTypeHandler("mod.toml") {
+  override def getData(bufferedReader: BufferedReader): Seq[DataValue[_]] = {
     // TODO: Get format from Forge once it has been decided on
-    List()
+    Seq()
   }
 }

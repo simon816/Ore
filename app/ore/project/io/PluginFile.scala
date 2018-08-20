@@ -12,6 +12,7 @@ import org.apache.commons.codec.digest.DigestUtils
 import play.api.i18n.Messages
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
 import scala.util.control.Breaks._
 
 /**
@@ -78,7 +79,7 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
     * @return Plugin metadata or an error message
     */
   @throws[InvalidPluginFileException]
-  def loadMeta()(implicit messages: Messages): Either[PluginFileData, String] = {
+  def loadMeta()(implicit messages: Messages): Either[String, PluginFileData] = {
     val fileNames = PluginFileData.getFileNames
 
     var jarIn: JarInputStream = null
@@ -86,17 +87,15 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
       // Find plugin JAR
       jarIn = new JarInputStream(newJarStream)
 
-      var data = List[DataValue[_]]()
+      var data = new ArrayBuffer[DataValue[_]]()
 
       // Find plugin meta file
-      var entry: JarEntry = null
-      while ( {
-        entry = jarIn.getNextJarEntry
-        entry
-      } != null) {
+      var entry: JarEntry = jarIn.getNextJarEntry
+      while (entry != null) {
         if (fileNames.contains(entry.getName)) {
-          data = data ::: PluginFileData.getData(entry.getName, new BufferedReader(new InputStreamReader(jarIn)))
+          data ++= PluginFileData.getData(entry.getName, new BufferedReader(new InputStreamReader(jarIn)))
         }
+        entry = jarIn.getNextJarEntry
       }
 
       // Mainfest file isn't read in the jar stream for whatever reason
@@ -107,7 +106,7 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
           val manifestLines = new BufferedReader(new StringReader(jarIn.getManifest.getMainAttributes.asScala
             .map(p => p._1.toString + ": " + p._2.toString).mkString("\n")))
 
-          data = data ::: PluginFileData.getData(JarFile.MANIFEST_NAME, manifestLines)
+          data ++= PluginFileData.getData(JarFile.MANIFEST_NAME, manifestLines)
         }
       }
 
@@ -115,24 +114,24 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
       // This won't be called if a plugin uses mixins but doesn't
       // have a mcmod.info, but the check below will catch that
       if (data.isEmpty)
-        return Right(messages("error.plugin.metaNotFound"))
+        return Left(messages("error.plugin.metaNotFound"))
 
       val fileData = new PluginFileData(data)
 
       this._data = Some(fileData)
       if(!fileData.isValidPlugin) {
-        return Right(messages("error.plugin.incomplete", "id or version"))
+        return Left(messages("error.plugin.incomplete", "id or version"))
       }
 
-      Left(fileData)
+      Right(fileData)
     } catch {
       case e: Exception =>
-        Right(e.getMessage)
+        Left(e.getMessage)
     } finally {
       if (jarIn != null)
         jarIn.close()
       else
-        return Right(messages("error.plugin.unexpected"))
+        return Left(messages("error.plugin.unexpected"))
     }
   }
 

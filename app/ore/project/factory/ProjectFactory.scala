@@ -206,7 +206,7 @@ trait ProjectFactory {
     val path = plugin.path
     val version = Version.Builder(this.service)
       .versionString(metaData.getVersion.get)
-      .dependencyIds(metaData.getDependencies.map(d => d.pluginId + ":" + d.version))
+      .dependencyIds(metaData.getDependencies.map(d => d.pluginId + ":" + d.version).toList)
       .description(metaData.get[String]("description").getOrElse(""))
       .projectId(project.id.getOrElse(-1)) // Version might be for an uncreated project
       .fileSize(path.toFile.length)
