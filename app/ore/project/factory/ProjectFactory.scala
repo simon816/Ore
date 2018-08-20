@@ -375,15 +375,12 @@ trait ProjectFactory {
   }
 
   private def addDependencyTags(version: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
-    for {
-      tags <- Future.sequence(Platforms.getPlatformGhostTags(version.dependencies).map(tag => tag.getFilledTag(service)))
-    } yield {
-      tags.map { tag =>
+    Future.sequence(Platforms.getPlatformGhostTags(version.dependencies).map(_.getFilledTag(service))).map(
+      _.map { tag =>
         tag.addVersionId(version.id.get)
         version.addTag(tag)
         tag
-      }
-    }
+      })
   }
 
   private def getOrCreateChannel(pending: PendingVersion, project: Project)(implicit ec: ExecutionContext) = {

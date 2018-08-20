@@ -46,7 +46,7 @@ object Platforms extends Enumeration {
 
   implicit def convert(v: Value): Platform = v.asInstanceOf[Platform]
 
-  def getPlatforms(dependencyIds: List[String]): List[Platform] = {
+  def getPlatforms(dependencyIds: Seq[String]): Seq[Platform] = {
     Platforms.values
       .filter(p => dependencyIds.contains(p.dependencyId))
       .groupBy(_.platformCategory)
@@ -55,7 +55,7 @@ object Platforms extends Enumeration {
       .toList
   }
 
-  def getPlatformGhostTags(dependencies: List[Dependency]): List[Tag] = {
+  def getPlatformGhostTags(dependencies: Seq[Dependency]): Seq[Tag] = {
     Platforms.values
       .filter(p => dependencies.map(_.pluginId).contains(p.dependencyId))
       .groupBy(_.platformCategory)
@@ -80,7 +80,7 @@ object Platforms extends Enumeration {
 sealed trait PlatformCategory {
   val name: String
 
-  def getPlatforms: List[Platforms.Value] = {
+  def getPlatforms: Seq[Platforms.Value] = {
     Platforms.values.filter(p => p.platformCategory == this).toList
   }
 }
@@ -94,5 +94,5 @@ case object ForgeCategory extends PlatformCategory {
 }
 
 object PlatformCategory {
-  def getPlatformCategories: List[PlatformCategory] = List(SpongeCategory, ForgeCategory)
+  def getPlatformCategories: Seq[PlatformCategory] = Seq(SpongeCategory, ForgeCategory)
 }
