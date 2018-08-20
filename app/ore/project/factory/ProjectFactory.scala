@@ -375,7 +375,11 @@ trait ProjectFactory {
   }
 
   private def addDependencyTags(version: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
-    Future.sequence(Platforms.getPlatformGhostTags(version.dependencies).map(_.getFilledTag(service))).map(
+    Future.sequence(
+      Platforms.getPlatformGhostTags(
+        // filter valid dependency versions
+        version.dependencies.filter(d => dependencyVersionRegex.pattern.matcher(d.version).matches())
+      ).map(_.getFilledTag(service))).map(
       _.map { tag =>
         tag.addVersionId(version.id.get)
         version.addTag(tag)
