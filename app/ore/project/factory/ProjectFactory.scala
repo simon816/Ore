@@ -64,7 +64,7 @@ trait ProjectFactory {
     * @param owner      Upload owner
     * @return Loaded PluginFile
     */
-  def processPluginUpload(uploadData: PluginUpload, owner: User)(implicit messages: Messages): Either[PluginFile, String] = {
+  def processPluginUpload(uploadData: PluginUpload, owner: User)(implicit messages: Messages): Either[String, PluginFile] = {
     val pluginFileName = uploadData.pluginFileName
     var signatureFileName = uploadData.signatureFileName
 
@@ -101,8 +101,8 @@ trait ProjectFactory {
     val plugin = new PluginFile(pluginPath, sigPath, owner)
     val result = plugin.loadMeta()
     result match {
-      case Left(_) => Left(plugin)
-      case Right(errorMessage) => Right(errorMessage)
+      case Right(_) => Right(plugin)
+      case Left(errorMessage) => Left(errorMessage)
     }
   }
 
@@ -110,7 +110,7 @@ trait ProjectFactory {
                                     owner: User,
                                     project: Project)(implicit ec: ExecutionContext, messages: Messages): EitherT[Future, String, PendingVersion] = {
     this.processPluginUpload(uploadData, owner) match {
-      case Left(plugin) => if (!plugin.data.flatMap(_.getId).contains(project.pluginId))
+      case Right(plugin) => if (!plugin.data.flatMap(_.getId).contains(project.pluginId))
         EitherT.leftT("error.version.invalidPluginId")
       else {
         EitherT(
@@ -118,24 +118,24 @@ trait ProjectFactory {
             (channels, settings) <- (project.channels.all, project.settings).parTupled
             version = this.startVersion(plugin, project, settings, channels.head.name)
             modelExists <- version match {
-              case Left(v) => v.underlying.exists
-              case Right(_) => Future.successful(false)
+              case Right(v) => v.underlying.exists
+              case Left(_) => Future.successful(false)
             }
           } yield {
             version match {
-              case Left(v) => if (modelExists && this.config.projects.get[Boolean]("file-validate"))
+              case Right(v) => if (modelExists && this.config.projects.get[Boolean]("file-validate"))
                 Left("error.version.duplicate")
               else {
                 v.cache()
                 Right(v)
               }
-              case Right(m) => Left(m)
+              case Left(m) => Left(m)
             }
 
           }
         )
       }
-      case Right(errorMessage) => new EitherT[Future, String, PendingVersion](Future.successful(Left[String, PendingVersion](errorMessage)))
+      case Left(errorMessage) => EitherT.leftT[Future, PendingVersion](errorMessage)
     }
 
   }
@@ -197,10 +197,10 @@ trait ProjectFactory {
     * @param project Parent project
     * @return PendingVersion instance
     */
-  def startVersion(plugin: PluginFile, project: Project, settings: ProjectSettings, channelName: String): Either[PendingVersion, String] = {
+  def startVersion(plugin: PluginFile, project: Project, settings: ProjectSettings, channelName: String): Either[String, PendingVersion] = {
     val metaData = checkMeta(plugin)
     if (!metaData.getId.contains(project.pluginId))
-      return Right("error.plugin.invalidPluginId")
+      return Left("error.plugin.invalidPluginId")
 
     // Create new pending version
     val path = plugin.path
@@ -216,7 +216,7 @@ trait ProjectFactory {
       .authorId(plugin.user.id.get)
       .build()
 
-    Left(PendingVersion(
+    Right(PendingVersion(
       projects = this.projects,
       factory = this,
       project = project,
@@ -391,27 +391,25 @@ trait ProjectFactory {
   }
 
   private def addMetadataTags(pluginFileData: Option[PluginFileData], version: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
-    for {
-      tags <- Future.sequence(pluginFileData.map(_.getGhostTags.map(_.getFilledTag(service))).toList.flatten)
-    } yield {
-      tags.map { tag =>
+    Future.sequence(pluginFileData.map(_.getGhostTags.map(_.getFilledTag(service))).toList.flatten).map(
+      _.map { tag =>
         tag.addVersionId(version.id.get)
         version.addTag(tag)
         tag
-      }
-    }
+      })
   }
 
   private def addDependencyTags(version: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
-    for {
-      tags <- Future.sequence(Platforms.getPlatformGhostTags(version.dependencies).map(_.getFilledTag(service)))
-    } yield {
-      tags.map { tag =>
+    Future.sequence(
+      Platforms.getPlatformGhostTags(
+        // filter valid dependency versions
+        version.dependencies.filter(d => dependencyVersionRegex.pattern.matcher(d.version).matches())
+      ).map(_.getFilledTag(service))).map(
+      _.map { tag =>
         tag.addVersionId(version.id.get)
         version.addTag(tag)
         tag
-      }
-    }
+      })
   }
 
   private def getOrCreateChannel(pending: PendingVersion, project: Project)(implicit ec: ExecutionContext) = {
