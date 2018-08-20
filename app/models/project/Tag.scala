@@ -63,7 +63,7 @@ object TagColors extends Enumeration {
   val SpongeVanilla = TagColor(5, "#50C888", "#FFFFFF")
   val SpongeCommon = TagColor(6, "#5d5dff", "#FFFFFF")
   val Lantern = TagColor(7, "#4EC1B4", "#FFFFFF")
-  val Mixin = TagColor(8, "#F4803D", "#FFFFFF")
+  val Mixin = TagColor(8, "#FFA500", "#333333")
 
   def withId(id: Int): TagColor = {
     this.apply(id).asInstanceOf[TagColor]

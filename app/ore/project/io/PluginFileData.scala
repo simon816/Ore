@@ -1,12 +1,11 @@
 package ore.project.io
 
-import java.io.{BufferedReader, InputStreamReader}
-import java.util.jar.JarInputStream
+import java.io.BufferedReader
 
 import com.google.gson.JsonParser
 import com.google.gson.stream.JsonReader
-import ore.project.Dependency
 import models.project.{Tag, TagColors}
+import ore.project.Dependency
 
 import scala.collection.mutable.ListBuffer
 
@@ -21,7 +20,7 @@ class PluginFileData(var data: List[DataValue[_]]) {
   data = data.groupBy(_.key).flatMap { case (key, value) =>
     // combine dependency lists that may come from different files
     if (value.size > 1 && value.head.isInstanceOf[DependencyDataValue]) {
-      val dependencies = value.map(_.value).fold[List[Dependency]](List()) { case (a, b) => a ::: b }
+      val dependencies = value.flatMap(_.value.asInstanceOf[List[Dependency]])
       List(DependencyDataValue(key, dependencies))
     } else value
   }.toList
@@ -59,6 +58,7 @@ class PluginFileData(var data: List[DataValue[_]]) {
       buffer += mixinTag
     }
 
+    println("PluginFileData#getGhostTags: " + buffer.toList)
     buffer.toList
   }
 
@@ -68,7 +68,7 @@ class PluginFileData(var data: List[DataValue[_]]) {
     * @return
     */
   def containsMixins: Boolean = {
-    data.exists(p => p.key == "MixinConfigs" && p.value.isInstanceOf[StringDataValue])
+    data.exists(p => p.key == "MixinConfigs" && p.isInstanceOf[StringDataValue])
   }
 
 }
@@ -78,8 +78,7 @@ object PluginFileData {
 
   def getFileNames: List[String] = fileTypes.map(_.fileName).distinct
 
-  def getData(fileName: String, jarInputStream: JarInputStream): List[DataValue[_]] = {
-    val stream = new BufferedReader(new InputStreamReader(jarInputStream))
+  def getData(fileName: String, stream: BufferedReader): List[DataValue[_]] = {
     fileTypes.filter(_.fileName == fileName).flatMap(_.getData(stream))
   }
 

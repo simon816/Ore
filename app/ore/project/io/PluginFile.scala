@@ -1,16 +1,17 @@
 package ore.project.io
 
-import java.io.{IOException, InputStream}
+import java.io._
 import java.nio.file.{Files, Path}
-import java.util.jar.{JarEntry, JarInputStream}
+import java.util.jar.{JarEntry, JarFile, JarInputStream}
 import java.util.zip.{ZipEntry, ZipFile}
 
 import com.google.common.base.Preconditions._
 import models.user.User
 import ore.user.UserOwned
 import org.apache.commons.codec.digest.DigestUtils
-
 import play.api.i18n.Messages
+
+import scala.collection.JavaConverters._
 import scala.util.control.Breaks._
 
 /**
@@ -89,11 +90,27 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
 
       // Find plugin meta file
       var entry: JarEntry = null
-      while ({ entry = jarIn.getNextJarEntry; entry } != null) {
+      while ( {
+        entry = jarIn.getNextJarEntry
+        entry
+      } != null) {
         if (fileNames.contains(entry.getName)) {
-          data = data ::: PluginFileData.getData(entry.getName, jarIn)
+          data = data ::: PluginFileData.getData(entry.getName, new BufferedReader(new InputStreamReader(jarIn)))
         }
       }
+
+      // Mainfest file isn't read in the jar stream for whatever reason
+      // so we need to use the java API
+      if (fileNames.contains(JarFile.MANIFEST_NAME)) {
+        val manifest = jarIn.getManifest
+        if (manifest != null) {
+          val manifestLines = new BufferedReader(new StringReader(jarIn.getManifest.getMainAttributes.asScala
+            .map(p => p._1.toString + ": " + p._2.toString).mkString("\n")))
+
+          data = data ::: PluginFileData.getData(JarFile.MANIFEST_NAME, manifestLines)
+        }
+      }
+
 
       // This won't be called if a plugin uses mixins but doesn't
       // have a mcmod.info, but the check below will catch that
