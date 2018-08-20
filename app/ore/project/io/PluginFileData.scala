@@ -6,6 +6,8 @@ import com.google.gson.JsonParser
 import com.google.gson.stream.JsonReader
 import models.project.{Tag, TagColors}
 import ore.project.Dependency
+import org.spongepowered.plugin.meta.McModInfo
+import scala.collection.JavaConverters._
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -74,7 +76,7 @@ class PluginFileData(data: Seq[DataValue[_]]) {
 }
 
 object PluginFileData {
-  val fileTypes: Seq[FileTypeHandler] = Seq(ModInfoHandler, ManifestHandler, ModTomlHandler)
+  val fileTypes: Seq[FileTypeHandler] = Seq(McModInfoHandler, ManifestHandler, ModTomlHandler)
 
   def getFileNames: Seq[String] = fileTypes.map(_.fileName).distinct
 
@@ -109,7 +111,7 @@ case class StringDataValue(key: String, value: String)
   *
   * @param value the value extracted from the file
   */
-case class StringSeqValue(key: String, value: Seq[String])
+case class StringListValue(key: String, value: Seq[String])
   extends DataValue[Seq[String]]
 
 /**
@@ -124,66 +126,29 @@ sealed abstract case class FileTypeHandler(fileName: String) {
   def getData(bufferedReader: BufferedReader): Seq[DataValue[_]]
 }
 
-object ModInfoHandler extends FileTypeHandler("mcmod.info") {
+object McModInfoHandler extends FileTypeHandler("mcmod.info") {
   override def getData(bufferedReader: BufferedReader): Seq[DataValue[_]] = {
-
     val dataValues = new ArrayBuffer[DataValue[_]]
-
     try {
-      val parser = new JsonParser().parse(new JsonReader(bufferedReader))
+      val info = McModInfo.DEFAULT.read(bufferedReader).asScala
+      if (info.size < 1) return Seq()
 
-      val modArray = parser.getAsJsonArray
-      for (i <- 0 until modArray.size()) {
-        val modObject = modArray.get(i).getAsJsonObject
+      val metadata = info.head
 
-        // collect members
-
-        if (modObject.has("modid"))
-          dataValues += StringDataValue("id", modObject.get("modid").getAsString)
-        if (modObject.has("name"))
-          dataValues += StringDataValue("name", modObject.get("name").getAsString)
-        if (modObject.has("version"))
-          dataValues += StringDataValue("version", modObject.get("version").getAsString)
-        if (modObject.has("description"))
-          dataValues += StringDataValue("description", modObject.get("description").getAsString)
-        if (modObject.has("url"))
-          dataValues += StringDataValue("url", modObject.get("url").getAsString)
-
-        if (modObject.has("authors")) {
-          val authors = new ArrayBuffer[String]
-          val authorsJson = modObject.getAsJsonArray("authors")
-          for (j <- 0 until authorsJson.size()) {
-            val element = authorsJson.get(j)
-            authors += element.getAsString
-          }
-          dataValues += StringSeqValue("authors", authors)
-        }
-
-        // collect dependencies
-
-        val dependencies = new ArrayBuffer[Dependency]
-
-        if (modObject.has("requiredMods")) {
-          val dependenciesJson = modObject.getAsJsonArray("requiredMods")
-          for (j <- 0 until dependenciesJson.size()) {
-            var dependencyId = ""
-            var dependencyVersion = ""
-
-            val dependencyJson = dependenciesJson.get(j)
-            val parts = dependencyJson.getAsString.split("@")
-            if (parts.nonEmpty) {
-              dependencyId = parts(0)
-            }
-            if (parts.length > 1) {
-              dependencyVersion = parts(1)
-            }
-
-            if (dependencyId != null && !dependencyId.isEmpty) {
-              dependencies += Dependency(dependencyId, dependencyVersion)
-            }
-          }
-        }
-
+      if (metadata.getId != null)
+        dataValues += StringDataValue("id", metadata.getId)
+      if (metadata.getVersion != null)
+        dataValues += StringDataValue("version", metadata.getVersion)
+      if (metadata.getName != null)
+        dataValues += StringDataValue("name", metadata.getName)
+      if (metadata.getDescription != null)
+        dataValues += StringDataValue("description", metadata.getDescription)
+      if (metadata.getUrl != null)
+        dataValues += StringDataValue("url", metadata.getUrl)
+      if (metadata.getAuthors != null)
+        dataValues += StringListValue("authors", metadata.getAuthors.asScala)
+      if (metadata.getDependencies != null) {
+        val dependencies = metadata.getDependencies.asScala.map(p => Dependency(p.getId, p.getVersion)).toSeq
         dataValues += DependencyDataValue("dependencies", dependencies)
       }
     } catch {
