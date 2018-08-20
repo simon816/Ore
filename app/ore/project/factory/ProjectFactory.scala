@@ -364,7 +364,7 @@ trait ProjectFactory {
         )
         this.service.access[Version](classOf[Version]).add(newVersion)
       }
-      tags <- addDependencyTags(newVersion)
+      tags <- addTags(pending, newVersion)
     } yield {
       // Notify watchers
       this.actorSystem.scheduler.scheduleOnce(Duration.Zero, NotifyWatchersTask(newVersion, project))
@@ -381,9 +381,30 @@ trait ProjectFactory {
     }
   }
 
+  private def addTags(pendingVersion: PendingVersion, newVersion: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
+    for {
+      metadataTags <- addMetadataTags(pendingVersion.plugin.data, newVersion)
+      dependencyTags <- addDependencyTags(newVersion)
+    } yield {
+      metadataTags ++ dependencyTags
+    }
+  }
+
+  private def addMetadataTags(pluginFileData: Option[PluginFileData], version: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
+    for {
+      tags <- Future.sequence(pluginFileData.map(_.getGhostTags.map(_.getFilledTag(service))).toList.flatten)
+    } yield {
+      tags.map { tag =>
+        tag.addVersionId(version.id.get)
+        version.addTag(tag)
+        tag
+      }
+    }
+  }
+
   private def addDependencyTags(version: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
     for {
-      tags <- Future.sequence(Platforms.getPlatformGhostTags(version.dependencies).map(tag => tag.getFilledTag(service)))
+      tags <- Future.sequence(Platforms.getPlatformGhostTags(version.dependencies).map(_.getFilledTag(service)))
     } yield {
       tags.map { tag =>
         tag.addVersionId(version.id.get)

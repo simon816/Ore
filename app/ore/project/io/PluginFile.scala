@@ -9,10 +9,8 @@ import com.google.common.base.Preconditions._
 import models.user.User
 import ore.user.UserOwned
 import org.apache.commons.codec.digest.DigestUtils
-import org.spongepowered.plugin.meta.{McModInfo, PluginMetadata}
 
 import play.api.i18n.Messages
-import scala.collection.JavaConverters._
 import scala.util.control.Breaks._
 
 /**
@@ -21,9 +19,6 @@ import scala.util.control.Breaks._
   * @param _path Path to uploaded file
   */
 class PluginFile(private var _path: Path, val signaturePath: Path, val user: User) extends UserOwned {
-
-  private val MetaFileName = "mcmod.info"
-  private val ManifestFileName = "META-INF/MANIFEST.MF"
 
   private var _data: Option[PluginFileData] = None
   private var _md5: String = _

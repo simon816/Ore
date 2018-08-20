@@ -1,12 +1,12 @@
 package ore.project.io
 
 import java.io.{BufferedReader, InputStreamReader}
-import java.util.jar.{JarEntry, JarInputStream}
+import java.util.jar.JarInputStream
 
-import com.google.gson.{JsonElement, JsonParser}
+import com.google.gson.JsonParser
 import com.google.gson.stream.JsonReader
 import ore.project.Dependency
-import org.spongepowered.plugin.meta.PluginMetadata
+import models.project.{Tag, TagColors}
 
 import scala.collection.mutable.ListBuffer
 
@@ -16,7 +16,15 @@ import scala.collection.mutable.ListBuffer
   * @author phase
   * @param data the data within a [[PluginFile]]
   */
-class PluginFileData(data: List[DataValue[_]]) {
+class PluginFileData(var data: List[DataValue[_]]) {
+
+  data = data.groupBy(_.key).flatMap { case (key, value) =>
+    // combine dependency lists that may come from different files
+    if (value.size > 1 && value.head.isInstanceOf[DependencyDataValue]) {
+      val dependencies = value.map(_.value).fold[List[Dependency]](List()) { case (a, b) => a ::: b }
+      List(DependencyDataValue(key, dependencies))
+    } else value
+  }.toList
 
   def getId: Option[String] = {
     get[String]("id")
@@ -41,6 +49,17 @@ class PluginFileData(data: List[DataValue[_]]) {
   def isValidPlugin: Boolean = {
     data.exists(_.isInstanceOf[StringDataValue]) &&
       data.exists(_.isInstanceOf[StringDataValue])
+  }
+
+  def getGhostTags: List[Tag] = {
+    val buffer = new ListBuffer[Tag]
+
+    if (containsMixins) {
+      val mixinTag = Tag(None, List(), "Mixin", "", TagColors.Mixin)
+      buffer += mixinTag
+    }
+
+    buffer.toList
   }
 
   /**
@@ -105,14 +124,11 @@ sealed abstract case class FileType(fileName: String) {
 
 object ModInfo extends FileType("mcmod.info") {
   override def getData(bufferedReader: BufferedReader): List[DataValue[_]] = {
-    //    val lines = Stream.continually(bufferedReader.readLine()).takeWhile(_ != null)
-    //    lines.foreach(println)
 
     val dataValues = new ListBuffer[DataValue[_]]
 
     try {
       val parser = new JsonParser().parse(new JsonReader(bufferedReader))
-      println(parser.toString)
 
       val modArray = parser.getAsJsonArray
       for (i <- 0 until modArray.size()) {
@@ -168,7 +184,6 @@ object ModInfo extends FileType("mcmod.info") {
 
         dataValues += DependencyDataValue("dependencies", dependencies.toList)
       }
-      println(dataValues.toList)
     } catch {
       case e: Exception => e.printStackTrace()
     }
@@ -178,9 +193,25 @@ object ModInfo extends FileType("mcmod.info") {
 }
 
 object Manifest extends FileType("META-INF/MANIFEST.MF") {
-  override def getData(bufferedReader: BufferedReader): List[DataValue[_]] = ???
+  override def getData(bufferedReader: BufferedReader): List[DataValue[_]] = {
+    val dataValues = new ListBuffer[DataValue[_]]
+
+    val lines = Stream.continually(bufferedReader.readLine()).takeWhile(_ != null)
+    for (line <- lines) {
+      // Check for Mixins
+      if (line.startsWith("MixinConfigs: ")) {
+        val mixinConfigs = line.split(": ")(1)
+        dataValues += StringDataValue("MixinConfigs", mixinConfigs)
+      }
+    }
+
+    dataValues.toList
+  }
 }
 
 object ModToml extends FileType("mod.toml") {
-  override def getData(bufferedReader: BufferedReader): List[DataValue[_]] = ???
+  override def getData(bufferedReader: BufferedReader): List[DataValue[_]] = {
+    // TODO: Get format from Forge once it has been decided on
+    List()
+  }
 }
