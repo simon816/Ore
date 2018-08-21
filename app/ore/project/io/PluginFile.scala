@@ -80,7 +80,7 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
     */
   @throws[InvalidPluginFileException]
   def loadMeta()(implicit messages: Messages): Either[String, PluginFileData] = {
-    val fileNames = PluginFileData.getFileNames
+    val fileNames = PluginFileData.fileNames
 
     var jarIn: JarInputStream = null
     try {

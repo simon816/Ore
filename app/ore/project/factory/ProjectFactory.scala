@@ -110,9 +110,9 @@ trait ProjectFactory {
                                     owner: User,
                                     project: Project)(implicit ec: ExecutionContext, messages: Messages): EitherT[Future, String, PendingVersion] = {
     this.processPluginUpload(uploadData, owner) match {
-      case Right(plugin) => if (!plugin.data.flatMap(_.getId).contains(project.pluginId))
+      case Right(plugin) if !plugin.data.flatMap(_.id).contains(project.pluginId) =>
         EitherT.leftT("error.version.invalidPluginId")
-      else {
+      case Right(plugin) =>
         EitherT(
           for {
             (channels, settings) <- (project.channels.all, project.settings).parTupled
@@ -134,7 +134,6 @@ trait ProjectFactory {
 
           }
         )
-      }
       case Left(errorMessage) => EitherT.leftT[Future, PendingVersion](errorMessage)
     }
 
@@ -172,7 +171,7 @@ trait ProjectFactory {
 
     // Start a new pending project
     val project = Project.Builder(this.service)
-      .pluginId(metaData.getId.get)
+      .pluginId(metaData.id.get)
       .ownerName(owner.name)
       .ownerId(owner.id.get)
       .name(metaData.get[String]("name").getOrElse("name not found"))
@@ -185,7 +184,7 @@ trait ProjectFactory {
       underlying = project,
       file = plugin,
       config = this.config,
-      channelName = this.config.getSuggestedNameForVersion(metaData.getVersion.get),
+      channelName = this.config.getSuggestedNameForVersion(metaData.version.get),
       cacheApi = this.cacheApi)
     pendingProject
   }
@@ -199,14 +198,14 @@ trait ProjectFactory {
     */
   def startVersion(plugin: PluginFile, project: Project, settings: ProjectSettings, channelName: String): Either[String, PendingVersion] = {
     val metaData = checkMeta(plugin)
-    if (!metaData.getId.contains(project.pluginId))
+    if (!metaData.id.contains(project.pluginId))
       return Left("error.plugin.invalidPluginId")
 
     // Create new pending version
     val path = plugin.path
     val version = Version.Builder(this.service)
-      .versionString(metaData.getVersion.get)
-      .dependencyIds(metaData.getDependencies.map(d => d.pluginId + ":" + d.version).toList)
+      .versionString(metaData.version.get)
+      .dependencyIds(metaData.dependencies.map(d => d.pluginId + ":" + d.version).toList)
       .description(metaData.get[String]("description").getOrElse(""))
       .projectId(project.id.getOrElse(-1)) // Version might be for an uncreated project
       .fileSize(path.toFile.length)
@@ -383,15 +382,17 @@ trait ProjectFactory {
 
   private def addTags(pendingVersion: PendingVersion, newVersion: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
     for {
-      metadataTags <- addMetadataTags(pendingVersion.plugin.data, newVersion)
-      dependencyTags <- addDependencyTags(newVersion)
+      (metadataTags, dependencyTags) <- (
+        addMetadataTags(pendingVersion.plugin.data, newVersion),
+        addDependencyTags(newVersion)
+      ).parTupled
     } yield {
       metadataTags ++ dependencyTags
     }
   }
 
   private def addMetadataTags(pluginFileData: Option[PluginFileData], version: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
-    Future.sequence(pluginFileData.map(_.getGhostTags.map(_.getFilledTag(service))).toList.flatten).map(
+    Future.sequence(pluginFileData.map(_.ghostTags.map(_.getFilledTag(service))).toList.flatten).map(
       _.map { tag =>
         tag.addVersionId(version.id.get)
         version.addTag(tag)

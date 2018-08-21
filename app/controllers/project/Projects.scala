@@ -162,7 +162,7 @@ class Projects @Inject()(stats: StatTracker,
                 this.cache.set(namespace + '/' + version.underlying.versionString, version)
                 implicit val currentUser: User = request.user
 
-                val authors = pendingProject.file.data.get.getAuthors.toList
+                val authors = pendingProject.file.data.get.authors.toList
                 (
                   Future.sequence(authors.filterNot(_.equals(currentUser.username)).map(this.users.withName(_).value)),
                   this.forums.countUsers(authors),

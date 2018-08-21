@@ -2,13 +2,11 @@ package ore.project.io
 
 import java.io.BufferedReader
 
-import com.google.gson.JsonParser
-import com.google.gson.stream.JsonReader
 import models.project.{Tag, TagColors}
 import ore.project.Dependency
 import org.spongepowered.plugin.meta.McModInfo
-import scala.collection.JavaConverters._
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -27,19 +25,19 @@ class PluginFileData(data: Seq[DataValue[_]]) {
     } else value
   }.toSeq
 
-  def getId: Option[String] = {
+  def id: Option[String] = {
     get[String]("id")
   }
 
-  def getVersion: Option[String] = {
+  def version: Option[String] = {
     get[String]("version")
   }
 
-  def getAuthors: Seq[String] = {
+  def authors: Seq[String] = {
     get[Seq[String]]("authors").getOrElse(Seq())
   }
 
-  def getDependencies: Seq[Dependency] = {
+  def dependencies: Seq[Dependency] = {
     get[Seq[Dependency]]("dependencies").getOrElse(Seq())
   }
 
@@ -52,7 +50,7 @@ class PluginFileData(data: Seq[DataValue[_]]) {
       dataValues.exists(_.isInstanceOf[StringDataValue])
   }
 
-  def getGhostTags: Seq[Tag] = {
+  def ghostTags: Seq[Tag] = {
     val buffer = new ArrayBuffer[Tag]
 
     if (containsMixins) {
@@ -78,7 +76,7 @@ class PluginFileData(data: Seq[DataValue[_]]) {
 object PluginFileData {
   val fileTypes: Seq[FileTypeHandler] = Seq(McModInfoHandler, ManifestHandler, ModTomlHandler)
 
-  def getFileNames: Seq[String] = fileTypes.map(_.fileName).distinct
+  def fileNames: Seq[String] = fileTypes.map(_.fileName).distinct
 
   def getData(fileName: String, stream: BufferedReader): Seq[DataValue[_]] = {
     fileTypes.filter(_.fileName == fileName).flatMap(_.getData(stream))
