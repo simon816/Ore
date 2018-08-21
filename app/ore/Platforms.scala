@@ -52,7 +52,7 @@ object Platforms extends Enumeration {
       .groupBy(_.platformCategory)
       .flatMap(_._2.groupBy(_.priority).maxBy(_._1)._2)
       .map(_.asInstanceOf[Platform])
-      .toList
+      .toSeq
   }
 
   def getPlatformGhostTags(dependencies: Seq[Dependency]): Seq[Tag] = {
@@ -61,7 +61,7 @@ object Platforms extends Enumeration {
       .groupBy(_.platformCategory)
       .flatMap(_._2.groupBy(_.priority).maxBy(_._1)._2)
       .map(p => p.toGhostTag(dependencies.find(_.pluginId == p.dependencyId).get.version))
-      .toList
+      .toSeq
   }
 
 }
@@ -81,7 +81,7 @@ sealed trait PlatformCategory {
   val name: String
 
   def getPlatforms: Seq[Platforms.Value] = {
-    Platforms.values.filter(p => p.platformCategory == this).toList
+    Platforms.values.filter(p => p.platformCategory == this).toSeq
   }
 }
 
