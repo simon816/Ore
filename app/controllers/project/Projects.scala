@@ -98,10 +98,15 @@ class Projects @Inject()(stats: StatTracker,
           case Some(uploadData) =>
             try {
               val plugin = this.factory.processPluginUpload(uploadData, user)
-              val project = this.factory.startProject(plugin)
-              project.cache()
-              val model = project.underlying
-              Redirect(self.showCreatorWithMeta(model.ownerName, model.slug))
+              plugin match {
+                case Right(pluginFile) =>
+                  val project = this.factory.startProject(pluginFile)
+                  project.cache()
+                  val model = project.underlying
+                  Redirect(self.showCreatorWithMeta(model.ownerName, model.slug))
+                case Left(errorMessage) =>
+                  Redirect(self.showCreator()).withError(errorMessage)
+              }
             } catch {
               case e: InvalidPluginFileException =>
                 Redirect(self.showCreator()).withErrors(Option(e.getMessage).toList)
@@ -157,13 +162,13 @@ class Projects @Inject()(stats: StatTracker,
                 this.cache.set(namespace + '/' + version.underlying.versionString, version)
                 implicit val currentUser: User = request.user
 
-                val authors = pendingProject.file.meta.get.getAuthors.asScala
+                val authors = pendingProject.file.data.get.authors.toList
                 (
                   Future.sequence(authors.filterNot(_.equals(currentUser.username)).map(this.users.withName(_).value)),
-                  this.forums.countUsers(authors.toList),
+                  this.forums.countUsers(authors),
                   pendingProject.underlying.owner.user
                 ).parMapN { (users, registered, owner) =>
-                  Ok(views.invite(owner, pendingProject, users.flatten.toList, registered))
+                  Ok(views.invite(owner, pendingProject, users.flatten, registered))
                 }
               }
             )

@@ -505,6 +505,34 @@ case class Project(override val id: Option[Int] = None,
   }
 
   /**
+    * Get a collection of tags that represent a project through its versions
+    */
+  def tags(implicit ec: ExecutionContext, service: ModelService): Future[Seq[Tag]] = {
+    schema(service)
+    // get all the versions for the project
+    this.service.access(classOf[Version]).filter(_.projectId === id.get).flatMap { versions =>
+      val tagIds = versions.flatMap(_.tagIds).distinct
+      // get all the tags for all the versions
+      this.service.access(classOf[Tag]).filter(t => t.id inSet tagIds).map { list =>
+        list.distinct
+          // get the latest tag from the versions
+          .groupBy(_.name)
+          .map { case (_, tags) =>
+            tags.maxBy { tag =>
+              versions
+                .filter(_.tagIds.contains(tag.id.get))
+                .filter(!_.isDeleted)
+                // get the latest version
+                .map(_.createdAt.get.toInstant.toEpochMilli)
+                .max
+            }
+          }
+          .toSeq
+      }
+    }
+  }
+
+  /**
     * Returns the pages in this Project.
     *
     * @return Pages in project

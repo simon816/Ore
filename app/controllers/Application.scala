@@ -2,41 +2,39 @@ package controllers
 
 import java.sql.Timestamp
 import java.time.Instant
-import javax.inject.Inject
 
 import controllers.sugar.Bakery
 import controllers.sugar.Requests.AuthRequest
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl._
-import db.impl.schema.{ProjectSchema, ReviewSchema, VersionSchema}
-import db.{ModelFilter, ModelSchema, ModelService}
+import db.impl.schema.ProjectSchema
+import db.{ModelFilter, ModelService}
 import form.OreForms
+import javax.inject.Inject
 import models.admin.Review
-import models.project._
-import models.user.{LoggedAction, LoggedActionModel, UserActionLogger}
+import models.project.{Tag, _}
 import models.user.role._
-import models.viewhelper.{HeaderData, OrganizationData, ProjectData, ScopedOrganizationData}
+import models.user.{LoggedAction, LoggedActionModel, User, UserActionLogger}
+import models.viewhelper.{HeaderData, OrganizationData, ScopedOrganizationData}
 import ore.Platforms.Platform
 import ore.permission._
 import ore.permission.role.{Role, RoleTypes}
 import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
-import ore.{OreConfig, OreEnv, Platforms}
-import play.api.Logger
+import ore.{OreConfig, OreEnv, PlatformCategory, Platforms}
 import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesApi
+import play.api.mvc.{Action, ActionBuilder, AnyContent}
 import security.spauth.SingleSignOnConsumer
 import util.DataHelper
 import util.functional.OptionT
-import util.syntax._
 import util.instances.future._
+import util.syntax._
 import views.{html => views}
 
 import scala.concurrent.{ExecutionContext, Future}
-
-import play.api.mvc.{Action, ActionBuilder, AnyContent}
 
 /**
   * Main entry point for application.
@@ -87,17 +85,20 @@ final class Application @Inject()(data: DataHelper,
                query: Option[String],
                sort: Option[Int],
                page: Option[Int],
+               platformCategory: Option[String],
                platform: Option[String]): Action[AnyContent] = OreAction async { implicit request =>
     // Get categories and sorting strategy
-
 
     val canHideProjects = request.data.globalPerm(HideProjects)
     val currentUserId = request.data.currentUser.flatMap(_.id).getOrElse(-1)
 
     val ordering = sort.flatMap(ProjectSortingStrategies.withId).getOrElse(ProjectSortingStrategies.Default)
-    // TODO platform filter is not implemented
+    val pcat = platformCategory.flatMap(p => PlatformCategory.getPlatformCategories.find(_.name.equalsIgnoreCase(p)))
     val pform = platform.flatMap(p => Platforms.values.find(_.name.equalsIgnoreCase(p)).map(_.asInstanceOf[Platform]))
-    // val platformFilter = pform.map(actions.platformFilter).getOrElse(ModelFilter.Empty)
+
+    // get the categories being queried
+    val categoryPlatformNames: List[String] = pcat.toList.flatMap(_.getPlatforms.map(_.name))
+    val platformNames: List[String] = pform.map(_.name).toList ::: categoryPlatformNames map(_.toLowerCase)
 
     val categoryList: Seq[Category] = categories.fold(Categories.fromString(""))(s => Categories.fromString(s)).toSeq
     val q = query.fold("%")(qStr => s"%${qStr.toLowerCase}%")
@@ -106,38 +107,50 @@ final class Application @Inject()(data: DataHelper,
     val p = page.getOrElse(1)
     val offset = (p - 1) * pageSize
 
-    val projectQuery = queryProjectRV filter { case (p, u, v) =>
-      (LiteralColumn(true) === canHideProjects) ||
-        (p.visibility === VisibilityTypes.Public) ||
-        (p.visibility === VisibilityTypes.New) ||
-        ((p.userId === currentUserId) && (p.visibility =!= VisibilityTypes.SoftDelete))
-    } filter { case (p, u, v) =>
-      (LiteralColumn(0) === categoryList.length) || (p.category inSetBind categoryList)
-    } filter {  case (p, u, v) =>
-      (p.name.toLowerCase like q) ||
-      (p.description.toLowerCase like q) ||
-      (p.ownerName.toLowerCase like q) ||
-      (p.pluginId.toLowerCase like q)
-    } sortBy { case (p, u, v) =>
-      ordering.fn(p)
-    } drop offset take pageSize
+    for {
+      tags <- service.DB.db.run(TableQuery[TagTable].filter(_.name.toLowerCase inSetBind platformNames).result)
+      result <- {
+        val versionIdsOnPlatform = tags.flatMap(_.versionIds.asInstanceOf[List[Long]]).map(_.toInt)
 
-    def queryProjects() = {
-      for {
-        projects <- service.DB.db.run(projectQuery.result)
-        tags <- Future.sequence(projects.map(_._3.tags))
-      } yield {
-        projects zip tags map { case ((p, u, v), t) =>
-          (p, u, v, t)
+        val projectQuery = queryProjectRV.filter { case (p, u, v) =>
+          (LiteralColumn(true) === canHideProjects) ||
+            (p.visibility === VisibilityTypes.Public) ||
+            (p.visibility === VisibilityTypes.New) ||
+            ((p.userId === currentUserId) && (p.visibility =!= VisibilityTypes.SoftDelete))
+        } filter { case (p, u, v) =>
+          (LiteralColumn(0) === categoryList.length) || (p.category inSetBind categoryList)
+        } filter { case (p, u, v) =>
+          if (platformNames.isEmpty) LiteralColumn(true)
+          else p.recommendedVersionId inSet versionIdsOnPlatform
+        } filter { case (p, u, v) =>
+          (p.name.toLowerCase like q) ||
+            (p.description.toLowerCase like q) ||
+            (p.ownerName.toLowerCase like q) ||
+            (p.pluginId.toLowerCase like q)
+        } sortBy { case (p, u, v) =>
+          ordering.fn(p)
+        } drop offset take pageSize
+
+        def queryProjects(): Future[Seq[(Project, User, Version, List[Tag])]] = {
+          for {
+            projects <- service.DB.db.run(projectQuery.result)
+            tags <- Future.sequence(projects.map(_._3.tags))
+          } yield {
+            projects zip tags map { case ((p, u, v), t) =>
+              (p, u, v, t)
+            }
+          }
+        }
+
+        queryProjects() map { data =>
+          val catList = if (categoryList.isEmpty || Categories.visible.toSet.equals(categoryList.toSet)) None else Some(categoryList)
+          Ok(views.home(data, catList, query.find(_.nonEmpty), p, ordering, pcat, pform))
         }
       }
+    } yield {
+      result
     }
-
-    queryProjects() map { data =>
-      val catList = if (categoryList.isEmpty || Categories.visible.toSet.equals(categoryList.toSet)) None else Some(categoryList)
-      Ok(views.home(data, catList, query.find(_.nonEmpty), p, ordering, pform))
-    }
-   }
+  }
 
   def showQueue(): Action[AnyContent] = showQueueWithPage(0)
 

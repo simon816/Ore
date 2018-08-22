@@ -234,8 +234,7 @@ class Versions @Inject()(stats: StatTracker,
         this.factory
           .processSubsequentPluginUpload(data, user, request.data.project)
           .leftMap(err => Redirect(call).withError(err))
-      }
-      catch {
+      } catch {
         case e: InvalidPluginFileException =>
           EitherT.leftT[Future, PendingVersion](Redirect(call).withErrors(Option(e.getMessage).toList))
       }
