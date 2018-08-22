@@ -386,11 +386,15 @@ class Versions @Inject()(stats: StatTracker,
   def delete(author: String, slug: String, versionString: String): Action[AnyContent] = {
     (Authenticated andThen PermissionAction[AuthRequest](HardRemoveVersion)).async { implicit request =>
       implicit val r: Request[AnyContent] = request.request
-      getProjectVersion(author, slug, versionString).map { version =>
+      val res = for {
+        comment <- bindFormEitherT[Future](this.forms.NeedsChanges)(_ => BadRequest)
+        version <- getProjectVersion(author, slug, versionString)
+      } yield {
         this.projects.deleteVersion(version)
-        UserActionLogger.log(request, LoggedAction.VersionDeleted, version.id.getOrElse(-1), "null", "")
+        UserActionLogger.log(request, LoggedAction.VersionDeleted, version.id.getOrElse(-1), s"Deleted: ${comment}", s"${version.visibility}")
         Redirect(self.showList(author, slug, None))
-      }.merge
+      }
+      res.merge
     }
   }
 
@@ -409,9 +413,34 @@ class Versions @Inject()(stats: StatTracker,
       version <- getVersion(project, versionString)
       _ <- EitherT.right[Result](this.projects.prepareDeleteVersion(version))
       _ <- EitherT.right[Result](version.setVisibility(VisibilityTypes.SoftDelete, comment, request.user.id.get))
-    } yield Redirect(self.showList(author, slug, None))
+    } yield {
+      UserActionLogger.log(oreRequest, LoggedAction.VersionDeleted, version.id.getOrElse(-1), s"SoftDelete: ${comment}", "")
+      Redirect(self.showList(author, slug, None))
+    }
 
     res.merge
+  }
+
+  /**
+    * Restore the specified version.
+    *
+    * @param author Project owner
+    * @param slug   Project slug
+    * @return Home page
+    */
+  def restore(author: String, slug: String, versionString: String): Action[AnyContent] = {
+    (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
+      implicit val oreRequest: Request[AnyContent] = request.request
+      val res = for {
+        comment <- bindFormEitherT[Future](this.forms.NeedsChanges)(_ => BadRequest)
+        version <- getProjectVersion(author, slug, versionString)
+        _ <- EitherT.right[Result](version.setVisibility(VisibilityTypes.Public, comment, request.user.id.get))
+      } yield {
+        UserActionLogger.log(request, LoggedAction.VersionDeleted, version.id.getOrElse(-1), s"Restore: ${comment}", "")
+        Redirect(self.showList(author, slug, None))
+      }
+      res.merge
+    }
   }
 
   def showLog(author: String, slug: String, versionString: String): Action[AnyContent] = {
