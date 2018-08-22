@@ -1,5 +1,7 @@
 package controllers.project
 
+import java.nio.charset.StandardCharsets
+
 import controllers.OreBaseController
 import controllers.sugar.{Bakery, Requests}
 import db.impl.OrePostgresDriver.api._
@@ -17,9 +19,10 @@ import util.StringUtils._
 import views.html.projects.{pages => views}
 import util.instances.future._
 import util.syntax._
-import scala.concurrent.{ExecutionContext, Future}
 
+import scala.concurrent.{ExecutionContext, Future}
 import play.api.mvc.{Action, AnyContent}
+import play.utils.UriEncoding
 
 /**
   * Controller for handling Page related actions.
@@ -49,7 +52,7 @@ class Pages @Inject()(forms: OreForms,
     */
   def withPage(project: Project, page: String): Future[(Option[Page], Boolean)] = {
     //TODO: Can the return type here be changed to OptionT[Future (Page, Boolean)]?
-    val parts = page.split("/")
+    val parts = UriEncoding.decodePathSegment(page, StandardCharsets.UTF_8).split("/")
     if (parts.size == 2) {
       project.pages
         .find(equalsIgnoreCase(_.slug, parts(0)))
