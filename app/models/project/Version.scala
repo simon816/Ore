@@ -208,7 +208,7 @@ case class Version(override val id: Option[Int] = None,
   def dependencies: List[Dependency] = {
     for (depend <- this.dependencyIds) yield {
       val data = depend.split(":")
-      Dependency(data(0), data(1))
+      Dependency(data(0), if (data.length > 1) data(1) else "")
     }
   }
 
