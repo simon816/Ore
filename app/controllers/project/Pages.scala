@@ -52,8 +52,9 @@ class Pages @Inject()(forms: OreForms,
     */
   def withPage(project: Project, page: String): Future[(Option[Page], Boolean)] = {
     //TODO: Can the return type here be changed to OptionT[Future (Page, Boolean)]?
-    val parts = UriEncoding.decodePathSegment(page, StandardCharsets.UTF_8).split("/")
-    if (parts.size == 2) {
+    val parts = page.split("/").map(page => UriEncoding.decodePathSegment(page, StandardCharsets.UTF_8))
+
+    if (parts.length == 2) {
       project.pages
         .find(equalsIgnoreCase(_.slug, parts(0)))
         .subflatMap(_.id)
