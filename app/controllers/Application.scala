@@ -422,7 +422,7 @@ final class Application @Inject()(data: DataHelper,
     val page = oPage.getOrElse(1)
     val offset = (page - 1) * pageSize
 
-    val default = LiteralColumn(1) === LiteralColumn(1)
+    val default = LiteralColumn(true)
 
     val logQuery = queryLog.filter { case (action) =>
       (action.userId === userFilter).getOrElse(default) &&

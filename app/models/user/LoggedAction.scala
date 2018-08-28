@@ -74,9 +74,9 @@ case object LoggedAction extends IntEnum[LoggedAction] {
   case object VersionDescriptionEdited  extends LoggedAction(12, "VersionDescriptionEdited", LoggedActionContext.Version, "The version description was edited")
   case object VersionNonReviewChanged   extends LoggedAction(17, "VersionNonReviewChanged", LoggedActionContext.Version, "If the review queue skip was changed")
 
-  case object UserTaglineChanged        extends LoggedAction(14, "UserTaglineChanged", LoggedActionContext.User, "The users tagline changed")
-  case object UserPgpKeySaved           extends LoggedAction(15, "UserPgpKeySaved", LoggedActionContext.User, "The users saved a pgp public key")
-  case object UserPgpKeyRemoved         extends LoggedAction(16, "UserPgpKeyRemoved", LoggedActionContext.User, "The users removed a pgp public key")
+  case object UserTaglineChanged        extends LoggedAction(14, "UserTaglineChanged", LoggedActionContext.User, "The user tagline changed")
+  case object UserPgpKeySaved           extends LoggedAction(15, "UserPgpKeySaved", LoggedActionContext.User, "The user saved a PGP Public Key")
+  case object UserPgpKeyRemoved         extends LoggedAction(16, "UserPgpKeyRemoved", LoggedActionContext.User, "The user removed a PGP Public Key")
   val values: immutable.IndexedSeq[LoggedAction] = findValues
 
 }

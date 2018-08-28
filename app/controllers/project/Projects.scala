@@ -712,7 +712,7 @@ class Projects @Inject()(stats: StatTracker,
     (Authenticated andThen PermissionAction[AuthRequest](HardRemoveProject)).async { implicit request =>
       getProject(author, slug).map { project =>
         this.projects.delete(project)
-        UserActionLogger.log(request, LoggedAction.ProjectVisibilityChange, project.id.getOrElse(-1), "null", project.visibility.nameKey)
+        UserActionLogger.log(request, LoggedAction.ProjectVisibilityChange, project.id.getOrElse(-1), "deleted", project.visibility.nameKey)
         Redirect(ShowHome).withSuccess(request.messages.apply("project.deleted", project.name))
       }.merge
     }
@@ -733,7 +733,7 @@ class Projects @Inject()(stats: StatTracker,
 
       this.forums.changeTopicVisibility(data.project, false)
 
-      UserActionLogger.log(request.request, LoggedAction.ProjectVisibilityChange, data.project.id.getOrElse(-1), oldVisibility, data.project.visibility.nameKey)
+      UserActionLogger.log(request.request, LoggedAction.ProjectVisibilityChange, data.project.id.getOrElse(-1), data.project.visibility.nameKey, oldVisibility)
       Redirect(ShowHome).withSuccess(request.messages.apply("project.deleted", data.project.name))
     }
   }
