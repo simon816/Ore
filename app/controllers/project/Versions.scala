@@ -108,7 +108,7 @@ class Versions @Inject()(stats: StatTracker,
         val oldDescription = version.description.getOrElse("")
         val newDescription = description.trim
         version.setDescription(newDescription)
-        UserActionLogger.log(request.request, LoggedAction.VersionDescriptionEdited, version.id.getOrElse(-1), newDescription, oldDescription)
+        UserActionLogger.log(request.request, LoggedAction.VersionDescriptionEdited, version.id.value, newDescription, oldDescription)
         Redirect(self.show(author, slug, versionString))
       }
 
@@ -129,7 +129,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val r: Requests.AuthRequest[AnyContent] = request.request
       getVersion(request.data.project, versionString).map { version =>
         request.data.project.setRecommendedVersion(version)
-        UserActionLogger.log(request.request, LoggedAction.VersionAsRecommended, version.id.getOrElse(-1), "recommended version", "listed version")
+        UserActionLogger.log(request.request, LoggedAction.VersionAsRecommended, version.id.value, "recommended version", "listed version")
         Redirect(self.show(author, slug, versionString))
       }.merge
     }
@@ -151,7 +151,7 @@ class Versions @Inject()(stats: StatTracker,
         version.setReviewed(reviewed = true)
         version.setReviewer(request.user)
         version.setApprovedAt(this.service.theTime)
-        UserActionLogger.log(request.request, LoggedAction.VersionApproved, version.id.getOrElse(-1), "approved", "unapproved")
+        UserActionLogger.log(request.request, LoggedAction.VersionApproved, version.id.value, "approved", "unapproved")
         Redirect(self.show(author, slug, versionString))
       }.merge
     }
@@ -173,7 +173,7 @@ class Versions @Inject()(stats: StatTracker,
       data.project.channels.toSeq.flatMap { allChannels =>
         val visibleNames = channels.fold(allChannels.map(_.name.toLowerCase))(_.toLowerCase.split(',').toSeq)
         val visible = allChannels.filter(ch => visibleNames.contains(ch.name.toLowerCase))
-        val visibleIds = visible.map(_.id.get)
+        val visibleIds = visible.map(_.id.value)
 
         def versionFilter(v: VersionTable): Rep[Boolean] = {
           val inChannel = v.channelId inSetBind visibleIds
@@ -239,7 +239,7 @@ class Versions @Inject()(stats: StatTracker,
           EitherT.leftT[Future, PendingVersion](Redirect(call).withErrors(Option(e.getMessage).toList))
       }
     }.map { pendingVersion =>
-      pendingVersion.underlying.setAuthorId(user.id.getOrElse(-1))
+      pendingVersion.underlying.setAuthorId(user.id.value)
       Redirect(self.showCreatorWithMeta(request.data.project.ownerName, slug, pendingVersion.underlying.versionString))
     }.merge
   }
@@ -329,7 +329,7 @@ class Versions @Inject()(stats: StatTracker,
                           if (versionData.recommended)
                             project.setRecommendedVersion(newVersion._1)
                           addUnstableTag(newVersion._1, versionData.unstable)
-                          UserActionLogger.log(request, LoggedAction.VersionUploaded, newVersion._1.id.getOrElse(-1), "published", "null")
+                          UserActionLogger.log(request, LoggedAction.VersionUploaded, newVersion._1.id.value, "published", "null")
                           Redirect(self.show(author, slug, versionString))
                         }
                       }
@@ -338,7 +338,7 @@ class Versions @Inject()(stats: StatTracker,
                 case Some(pendingProject) =>
                   // Found a pending project, create it with first version
                   pendingProject.complete.map { created =>
-                    UserActionLogger.log(request, LoggedAction.ProjectCreated, created._1.id.getOrElse(-1), "created", "null")
+                    UserActionLogger.log(request, LoggedAction.ProjectCreated, created._1.id.value, "created", "null")
                     addUnstableTag(created._2, versionData.unstable)
                     Redirect(ShowProject(author, slug))
                   }
@@ -355,7 +355,7 @@ class Versions @Inject()(stats: StatTracker,
         .filter(t => t.name === "Unstable" && t.data === "").map { tagsWithVersion =>
         if (tagsWithVersion.isEmpty) {
           val tag = Tag(
-            _versionIds = List(version.id.get),
+            _versionIds = List(version.id.value),
             name = "Unstable",
             data = "",
             color = TagColors.Unstable
@@ -368,7 +368,7 @@ class Versions @Inject()(stats: StatTracker,
           }
         } else {
           val tag = tagsWithVersion.head
-          tag.addVersionId(version.id.get)
+          tag.addVersionId(version.id.value)
           version.addTag(tag)
         }
       }
@@ -391,7 +391,7 @@ class Versions @Inject()(stats: StatTracker,
         version <- getProjectVersion(author, slug, versionString)
       } yield {
         this.projects.deleteVersion(version)
-        UserActionLogger.log(request, LoggedAction.VersionDeleted, version.id.getOrElse(-1), s"Deleted: ${comment}", s"${version.visibility}")
+        UserActionLogger.log(request, LoggedAction.VersionDeleted, version.id.value, s"Deleted: ${comment}", s"${version.visibility}")
         Redirect(self.showList(author, slug, None))
       }
       res.merge
@@ -412,9 +412,9 @@ class Versions @Inject()(stats: StatTracker,
       comment <- bindFormEitherT[Future](this.forms.NeedsChanges)(_ => BadRequest)
       version <- getVersion(project, versionString)
       _ <- EitherT.right[Result](this.projects.prepareDeleteVersion(version))
-      _ <- EitherT.right[Result](version.setVisibility(VisibilityTypes.SoftDelete, comment, request.user.id.get))
+      _ <- EitherT.right[Result](version.setVisibility(VisibilityTypes.SoftDelete, comment, request.user.id.value))
     } yield {
-      UserActionLogger.log(oreRequest, LoggedAction.VersionDeleted, version.id.getOrElse(-1), s"SoftDelete: ${comment}", "")
+      UserActionLogger.log(oreRequest, LoggedAction.VersionDeleted, version.id.value, s"SoftDelete: ${comment}", "")
       Redirect(self.showList(author, slug, None))
     }
 
@@ -434,9 +434,9 @@ class Versions @Inject()(stats: StatTracker,
       val res = for {
         comment <- bindFormEitherT[Future](this.forms.NeedsChanges)(_ => BadRequest)
         version <- getProjectVersion(author, slug, versionString)
-        _ <- EitherT.right[Result](version.setVisibility(VisibilityTypes.Public, comment, request.user.id.get))
+        _ <- EitherT.right[Result](version.setVisibility(VisibilityTypes.Public, comment, request.user.id.value))
       } yield {
-        UserActionLogger.log(request, LoggedAction.VersionDeleted, version.id.getOrElse(-1), s"Restore: ${comment}", "")
+        UserActionLogger.log(request, LoggedAction.VersionDeleted, version.id.value, s"Restore: ${comment}", "")
         Redirect(self.showList(author, slug, None))
       }
       res.merge
@@ -505,7 +505,7 @@ class Versions @Inject()(stats: StatTracker,
       .flatMap { tkn =>
         this.warnings.find { warn =>
           (warn.token === tkn) &&
-            (warn.versionId === version.id.get) &&
+            (warn.versionId === version.id.value) &&
             (warn.address === InetString(StatTracker.remoteAddress)) &&
             warn.isConfirmed
         }
@@ -562,7 +562,7 @@ class Versions @Inject()(stats: StatTracker,
           val warning = this.warnings.add(DownloadWarning(
             expiration = expiration,
             token = token,
-            versionId = version.id.get,
+            versionId = version.id.value,
             address = InetString(StatTracker.remoteAddress)))
 
           if (api.getOrElse(false)) {
@@ -608,7 +608,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val r: OreRequest[_] = request.request
       getVersion(request.data.project, target)
         .filterOrElse(v => !v.isReviewed, Redirect(ShowProject(author, slug)).withError("error.plugin.stateChanged"))
-        .flatMap(version => confirmDownload0(version.id.get, downloadType, token).toRight(Redirect(ShowProject(author, slug)).withError("error.plugin.noConfirmDownload")))
+        .flatMap(version => confirmDownload0(version.id.value, downloadType, token).toRight(Redirect(ShowProject(author, slug)).withError("error.plugin.noConfirmDownload")))
         .map { dl =>
           dl.downloadType match {
             case UploadedFile =>
@@ -655,7 +655,7 @@ class Versions @Inject()(stats: StatTracker,
         user <- this.users.current.value
         _ <- warn.setConfirmed()
         unsafeDownload <- downloads.add(UnsafeDownload(
-          userId = user.flatMap(_.id),
+          userId = user.map(_.id.value),
           address = addr,
           downloadType = dlType))
         _ <- warn.setDownload(unsafeDownload)
@@ -768,7 +768,7 @@ class Versions @Inject()(stats: StatTracker,
       implicit val r: OreRequest[AnyContent] = request.request
       getVersion(project, versionString).semiFlatMap { version =>
         optToken.map { token =>
-          confirmDownload0(version.id.get, Some(JarFile.id), token)(request.request).value.flatMap { _ =>
+          confirmDownload0(version.id.value, Some(JarFile.id), token)(request.request).value.flatMap { _ =>
             sendJar(project, version, optToken, api = true)
           }
         }.getOrElse(sendJar(project, version, optToken, api = true))
