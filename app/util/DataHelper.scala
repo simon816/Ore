@@ -94,7 +94,7 @@ final class DataHelper @Inject()(config: OreConfig,
                   this.versions.add(Version(
                     projectId = project.id.value,
                     versionString = versionNum.toString,
-                    channelId = channel.id.value,
+                    _channelId = channel.id.value,
                     fileSize = 1,
                     hash = "none",
                     _authorId = i,

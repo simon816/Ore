@@ -7,6 +7,10 @@ import db.ObjectId.Uninitialized
 sealed trait DbInitialized[A] {
   def value: A
   def unsafeToOption: Option[A]
+  override def toString: String = unsafeToOption match {
+    case Some(value) => value.toString
+    case None => "DbInitialized.Uninitialized"
+  }
 }
 
 sealed trait ObjectId extends DbInitialized[ObjectReference]

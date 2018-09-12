@@ -165,15 +165,16 @@ class ProjectBase(override val service: ModelService,
       reviewedChannels = channels.filter(!_.isNonReviewed)
       _ = checkArgument(channel.isNonReviewed || reviewedChannels.size > 1 || !reviewedChannels.contains(channel),
         "last reviewed channel", "")
-      _ <- channel.remove()
       versions <- channel.versions.all
-    } yield {
-      versions.foreach { version =>
-        val versionFolder = this.fileManager.getVersionDir(project.ownerName, project.name, version.name)
-        FileUtils.deleteDirectory(versionFolder)
-        version.remove()
+      _ <- Future.traverse(versions) { version =>
+        val otherChannels = channels.filter(_ != channel)
+        val newChannel =
+          if(channel.isNonReviewed) otherChannels.find(_.isNonReviewed).getOrElse(otherChannels.head)
+          else otherChannels.head
+        version.setChannel(newChannel.id.value)
       }
-    }
+      _ <- channel.remove()
+    } yield ()
   }
 
   def prepareDeleteVersion(version: Version)(implicit ec: ExecutionContext): Future[Project] =

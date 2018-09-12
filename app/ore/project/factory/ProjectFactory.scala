@@ -354,7 +354,7 @@ trait ProjectFactory {
           _description = pendingVersion.description,
           assets = pendingVersion.assets,
           projectId = project.id.value,
-          channelId = channel.id.value,
+          _channelId = channel.id.value,
           fileSize = pendingVersion.fileSize,
           hash = pendingVersion.hash,
           _authorId = pendingVersion.authorId,

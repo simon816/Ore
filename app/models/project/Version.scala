@@ -39,7 +39,7 @@ import models.project.VisibilityTypes.{Public, Visibility}
   * @param _description     User description of version
   * @param assets           Path to assets directory within plugin
   * @param projectId        ID of project this version belongs to
-  * @param channelId        ID of channel this version belongs to
+  * @param _channelId        ID of channel this version belongs to
   */
 case class Version(override val id: ObjectId = ObjectId.Uninitialized,
                    override val createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
@@ -47,7 +47,7 @@ case class Version(override val id: ObjectId = ObjectId.Uninitialized,
                    versionString: String,
                    dependencyIds: List[String] = List(),
                    assets: Option[String] = None,
-                   channelId: Int = -1,
+                   private var _channelId: Int = -1,
                    fileSize: Long,
                    hash: String,
                    private var _authorId: ObjectReference = -1,
@@ -86,6 +86,13 @@ case class Version(override val id: ObjectId = ObjectId.Uninitialized,
     */
   def channel(implicit ec: ExecutionContext): Future[Channel] =
     this.service.access[Channel](classOf[Channel]).get(this.channelId).getOrElse(throw new NoSuchElementException("None of Option"))
+
+  def channelId: ObjectReference = _channelId
+
+  def setChannel(channelId: Int): Future[AnyVal] = {
+    this._channelId = channelId
+    if(isDefined) update(ChannelId) else Future.unit
+  }
 
   /**
     * Returns the channel this version belongs to from the specified collection
