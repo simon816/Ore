@@ -129,10 +129,8 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
       * @return Trust of user
       */
     override def getTrust(user: User)(implicit ex: ExecutionContext): Future[Trust] = {
-      UserBase().service.DB.db.run(Project.roleForTrustQuery(id.value, user.id.value).result).map { l =>
-        val ordering: Ordering[ProjectRole] = Ordering.by(m => m.roleType.trust)
-        l.sorted(ordering).headOption.map(_.roleType.trust).getOrElse(Default)
-      }
+      service.DB.db.run(Project.roleForTrustQuery(id.value, user.id.value).result)
+        .map(l => if (l.isEmpty) Default else l.map(_.trust).max)
     }
 
     def clearRoles(user: User): Future[Int] = this.roleAccess.removeAll({ s => (s.userId === user.id.value) && (s.projectId === id.value) })
@@ -475,12 +473,11 @@ object Project {
     val memberTable = TableQuery[ProjectMembersTable]
     val roleTable = TableQuery[ProjectRoleTable]
 
-    for {
+    val q = for {
       m <- memberTable if m.projectId === projectId && m.userId === userId
       r <- roleTable if m.userId === r.userId && r.projectId === projectId
-    } yield {
-      r
-    }
+    } yield r.roleType
+    q.to[Set]
   }
 
   lazy val roleForTrustQuery = lifted.Compiled(queryRoleForTrust _)

@@ -49,17 +49,21 @@ case class HeaderData(currentUser: Option[User] = None,
 
 object HeaderData {
 
-  val noPerms: Map[Permission, Boolean] = Map(ReviewFlags -> false,
-                  ReviewVisibility -> false,
-                  ReviewProjects -> false,
-                  ViewStats -> false,
-                  ViewHealth -> false,
-                  ViewLogs -> false,
-                  HideProjects -> false,
-                  HardRemoveProject -> false,
-                  HardRemoveVersion -> false,
-                  UserAdmin -> false,
-                  HideProjects -> false)
+  private val globalPerms = Seq(
+    ReviewFlags,
+    ReviewVisibility,
+    ReviewProjects,
+    ViewStats,
+    ViewHealth,
+    ViewLogs,
+    HideProjects,
+    HardRemoveProject,
+    HardRemoveVersion,
+    UserAdmin,
+    HideProjects
+  )
+
+  val noPerms: Map[Permission, Boolean] = globalPerms.map(_ -> false).toMap
 
   val unAuthenticated: HeaderData = HeaderData(None, noPerms)
 
@@ -88,64 +92,47 @@ object HeaderData {
     }
   }
 
-  private def projectApproval(user: User)(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef): Future[Boolean] = {
+  private def projectApproval(user: User)(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef): Rep[Boolean] =
+    TableQuery[ProjectTableMain]
+      .filter(p => p.userId === user.id.value && p.visibility === VisibilityTypes.NeedsApproval)
+      .exists
 
-    val tableProject = TableQuery[ProjectTableMain]
-    val query = for {
-      p <- tableProject if p.userId === user.id.value && p.visibility === VisibilityTypes.NeedsApproval
-    } yield {
-      p
-    }
-    db.run(query.exists.result)
-  }
+  private def reviewQueue(implicit db: JdbcBackend#DatabaseDef): Rep[Boolean] =
+    TableQuery[VersionTable].filter(v => v.isReviewed === false).exists
 
-  private def reviewQueue()(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef) : Future[Boolean] = {
-    val tableVersion = TableQuery[VersionTable]
-
-    val query = for {
-      v <- tableVersion if v.isReviewed === false
-    } yield {
-      v
-    }
-
-    db.run(query.exists.result)
-
-  }
-
-  private def flagQueue()(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef) : Future[Boolean] = {
-    val tableFlags = TableQuery[FlagTable]
-
-    val query = for {
-      v <- tableFlags if v.isResolved === false
-    } yield {
-      v
-    }
-
-    db.run(query.exists.result)
-  }
+  private def flagQueue(implicit db: JdbcBackend#DatabaseDef): Rep[Boolean] =
+    TableQuery[FlagTable].filter(v => v.isResolved === false).exists
 
   private def getHeaderData(user: User)(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef, service: ModelService) = {
-
-    perms(Some(user)).flatMap { perms =>
-      (
-        user.hasNotice,
-        user.notifications.filterNot(_.read).map(_.nonEmpty),
-        flagQueue(),
+    (perms(user), user.hasNoticeQuery).parMapN { (perms, noticeQuery) =>
+      val query = Query.apply((
+        noticeQuery,
+        TableQuery[NotificationTable].filterNot(_.read).exists,
+        flagQueue,
         projectApproval(user),
+<<<<<<< master
         if (perms(ReviewProjects)) reviewQueue() else Future.successful(false)
       ).mapN { (hasNotice, unreadNotif, unresolvedFlags, hasProjectApprovals, hasReviewQueue) =>
+=======
+        if (perms(ReviewProjects)) reviewQueue else true.bind)
+      )
+
+      db.run(query.result.head).map { case (hasNotice, unreadNotif, unresolvedFlags, hasProjectApprovals, hasReviewQueue) =>
+>>>>>>> Improve performance in general, and especially on homepage
         HeaderData(Some(user),
           perms,
           hasNotice,
           unreadNotif,
           unresolvedFlags,
           hasProjectApprovals,
-          hasReviewQueue)
+          hasReviewQueue
+        )
       }
-    }
+    }.flatten
   }
 
 
+<<<<<<< master
   def perms(currentUser: Option[User])(implicit ec: ExecutionContext, service: ModelService): Future[Map[Permission, Boolean]] = {
     if (currentUser.isEmpty) Future.successful(noPerms)
     else {
@@ -169,4 +156,10 @@ object HeaderData {
     }
   }
 
+=======
+  def perms(user: User)(implicit ec: ExecutionContext, service: ModelService): Future[Map[Permission, Boolean]] =
+    user
+      .trustIn(GlobalScope)
+      .map(trust => globalPerms.map(perm => perm -> user.can(perm).withTrust(trust)).toMap)
+>>>>>>> Improve performance in general, and especially on homepage
 }

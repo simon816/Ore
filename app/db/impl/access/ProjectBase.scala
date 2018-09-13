@@ -230,14 +230,10 @@ class ProjectBase(implicit val service: ModelService,
     val tablePage = TableQuery[PageTable]
     val pagesQuery = for {
       (pp, p) <- tablePage joinLeft tablePage on (_.id === _.parentId)
-    } yield {
-      (pp, p)
-    }
-    val filtered = pagesQuery filter { case (pp, p) =>
-      pp.projectId === project.id.unsafeToOption && pp.parentId === -1
-    }
+      if pp.projectId === project.id.value && pp.parentId === -1
+    } yield (pp, p)
 
-    service.DB.db.run(filtered.result).map(_.groupBy(_._1)) map { grouped => // group by parent page
+    service.DB.db.run(pagesQuery.result).map(_.groupBy(_._1)) map { grouped => // group by parent page
       // Sort by key then lists too
       grouped.toSeq.sortBy(_._1.name).map { case (pp, p) =>
         (pp, p.flatMap(_._2).sortBy(_.name))
