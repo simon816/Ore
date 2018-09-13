@@ -29,6 +29,6 @@ CREATE TABLE projects_deleted (
   last_updated            TIMESTAMP NOT NULL DEFAULT now()
 );
 
-DROP INDEX user_session_token_idx;
-DROP INDEX page_slug_idx;
-DROP INDEX page_parent_id_idx;
+DROP INDEX IF EXISTS user_session_token_idx;
+DROP INDEX IF EXISTS page_slug_idx;
+DROP INDEX IF EXISTS page_parent_id_idx;
