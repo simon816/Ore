@@ -321,25 +321,11 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
   }
 
   /**
-    * Returns a query for if this User has any unread notifications.
+    * Returns a set of [[Prompt]]'s that have been read by this User.
+    *
+    * @return Prompts read by User
     */
-  def hasNoticeQuery(implicit ec: ExecutionContext, service: ModelService): Future[Rep[Boolean]] = Defined {
-    trustIn(GlobalScope).map { trust =>
-      val hasFlags = this.can(ReviewFlags).withTrust(trust)
-      val hasReview = this.can(ReviewProjects).withTrust(trust)
-
-      val nonResolvedFlags = TableQuery[FlagTable].filterNot(_.isResolved).exists
-      val versionsToReview = for {
-        version <- TableQuery[VersionTable] if !version.isReviewed && version.visibility =!= VisibilityTypes.SoftDelete
-        channel <- TableQuery[ChannelTable] if channel.id === version.channelId && !channel.isNonReviewed
-      } yield channel
-      val unreadNotifications = TableQuery[NotificationTable].filterNot(!_.read).exists
-
-      (hasFlags.bind && nonResolvedFlags) ||
-        (hasReview.bind && versionsToReview.exists) ||
-        unreadNotifications
-    }
-  }
+  def readPrompts: Set[Prompt] = this._readPrompts.toSet
 
   /**
     * Marks a [[Prompt]] as read by this User.

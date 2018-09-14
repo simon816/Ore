@@ -15,7 +15,6 @@ import slick.jdbc.JdbcBackend
 import slick.lifted.TableQuery
 import cats.data.OptionT
 import cats.instances.future._
-import cats.syntax.all._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -92,7 +91,7 @@ object HeaderData {
     }
   }
 
-  private def projectApproval(user: User)(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef): Rep[Boolean] =
+  private def projectApproval(user: User) =
     TableQuery[ProjectTableMain]
       .filter(p => p.userId === user.id.value && p.visibility === VisibilityTypes.NeedsApproval)
       .exists
@@ -100,66 +99,33 @@ object HeaderData {
   private def reviewQueue(implicit db: JdbcBackend#DatabaseDef): Rep[Boolean] =
     TableQuery[VersionTable].filter(v => v.isReviewed === false).exists
 
-  private def flagQueue(implicit db: JdbcBackend#DatabaseDef): Rep[Boolean] =
-    TableQuery[FlagTable].filter(v => v.isResolved === false).exists
+  private val flagQueue: Rep[Boolean] = TableQuery[FlagTable].filter(_.isResolved === false).exists
 
   private def getHeaderData(user: User)(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef, service: ModelService) = {
-    (perms(user), user.hasNoticeQuery).parMapN { (perms, noticeQuery) =>
+    perms(user).flatMap { perms =>
       val query = Query.apply((
-        noticeQuery,
-        TableQuery[NotificationTable].filterNot(_.read).exists,
-        flagQueue,
-        projectApproval(user),
-<<<<<<< master
-        if (perms(ReviewProjects)) reviewQueue() else Future.successful(false)
-      ).mapN { (hasNotice, unreadNotif, unresolvedFlags, hasProjectApprovals, hasReviewQueue) =>
-=======
-        if (perms(ReviewProjects)) reviewQueue else true.bind)
-      )
+        TableQuery[NotificationTable].filter(n => n.userId === user.id.value && !n.read).exists,
+        if(perms(ReviewFlags)) flagQueue else false.bind,
+        if(perms(ReviewVisibility)) projectApproval(user) else false.bind,
+        if (perms(ReviewProjects)) reviewQueue else false.bind
+      ))
 
-      db.run(query.result.head).map { case (hasNotice, unreadNotif, unresolvedFlags, hasProjectApprovals, hasReviewQueue) =>
->>>>>>> Improve performance in general, and especially on homepage
+      db.run(query.result.head).map { case (unreadNotif, unresolvedFlags, hasProjectApprovals, hasReviewQueue) =>
         HeaderData(Some(user),
           perms,
-          hasNotice,
+          unreadNotif || unresolvedFlags || hasProjectApprovals || hasReviewQueue,
           unreadNotif,
           unresolvedFlags,
           hasProjectApprovals,
           hasReviewQueue
         )
       }
-    }.flatten
-  }
-
-
-<<<<<<< master
-  def perms(currentUser: Option[User])(implicit ec: ExecutionContext, service: ModelService): Future[Map[Permission, Boolean]] = {
-    if (currentUser.isEmpty) Future.successful(noPerms)
-    else {
-      val user = currentUser.get
-      (
-        user can ReviewFlags in GlobalScope map ((ReviewFlags, _)),
-        user can ReviewVisibility in GlobalScope map ((ReviewVisibility, _)),
-        user can ReviewProjects in GlobalScope map ((ReviewProjects, _)),
-        user can ViewStats in GlobalScope map ((ViewStats, _)),
-        user can ViewHealth in GlobalScope map ((ViewHealth, _)),
-        user can ViewLogs in GlobalScope map ((ViewLogs, _)),
-        user can HideProjects in GlobalScope map ((HideProjects, _)),
-        user can HardRemoveProject in GlobalScope map ((HardRemoveProject, _)),
-        user can HardRemoveVersion in GlobalScope map ((HardRemoveProject, _)),
-        user can UserAdmin in GlobalScope map ((UserAdmin, _)),
-      ).mapN {
-        case (reviewFlags, reviewVisibility, reviewProjects, viewStats, viewHealth, viewLogs, hideProjects, hardRemoveProject, hardRemoveVersion, userAdmin) =>
-          val perms = Seq(reviewFlags, reviewVisibility, reviewProjects, viewStats, viewHealth, viewLogs, hideProjects, hardRemoveProject, hardRemoveVersion, userAdmin)
-          perms.toMap
-      }
     }
   }
 
-=======
+
   def perms(user: User)(implicit ec: ExecutionContext, service: ModelService): Future[Map[Permission, Boolean]] =
     user
       .trustIn(GlobalScope)
       .map(trust => globalPerms.map(perm => perm -> user.can(perm).withTrust(trust)).toMap)
->>>>>>> Improve performance in general, and especially on homepage
 }
