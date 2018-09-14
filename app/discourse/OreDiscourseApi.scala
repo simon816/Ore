@@ -4,15 +4,19 @@ import java.nio.file.Path
 
 import akka.actor.Scheduler
 import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
+
 import db.impl.access.ProjectBase
 import models.project.{Project, Version, VisibilityTypes}
 import models.user.User
 import org.spongepowered.play.discourse.DiscourseApi
-import util.StringUtils._
 
+import util.StringUtils._
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
+
+import db.ModelService
+import ore.OreConfig
 
 /**
   * An implementation of [[DiscourseApi]] suited to Ore's needs.
@@ -48,8 +52,10 @@ trait OreDiscourseApi extends DiscourseApi {
 
   private var recovery: RecoveryTask = _
 
-  //This executionContext should only be used in start() which is called from Bootstrap
+  //This executionContext, and modelService should only be used in start() which is called from Bootstrap
   def bootstrapExecutionContext: ExecutionContext
+  def bootstrapService: ModelService
+  def bootstrapConfig: OreConfig
 
   /**
     * Initializes and starts this API instance.
@@ -60,7 +66,7 @@ trait OreDiscourseApi extends DiscourseApi {
       return
     }
     checkNotNull(this.projects, "projects are null", "")
-    this.recovery = new RecoveryTask(this.scheduler, this.retryRate, this, this.projects)(bootstrapExecutionContext)
+    this.recovery = new RecoveryTask(this.scheduler, this.retryRate, this)(bootstrapExecutionContext, bootstrapService, bootstrapConfig)
     this.recovery.start()
     Logger.info("Discourse API initialized.")
   }
@@ -71,57 +77,51 @@ trait OreDiscourseApi extends DiscourseApi {
     * @param project Project to create topic for.
     * @return        True if successful
     */
-  def createProjectTopic(project: Project)(implicit ec: ExecutionContext): Future[Boolean] = {
+  def createProjectTopic(project: Project)(implicit ec: ExecutionContext, service: ModelService, config: OreConfig): Future[Project] = {
     if (!this.isEnabled)
-      return Future.successful(true)
+      return Future.successful(project)
     checkArgument(project.isDefined, "undefined project", "")
     val content = this.templates.projectTopic(project)
     val title = this.templates.projectTitle(project)
-    val resultPromise: Promise[Boolean] = Promise()
+
     createTopic(
       poster = project.ownerName,
       title = title,
       content = content,
       categoryId = Some(this.categoryDefault)
-    ).andThen {
-      case Success(errorsOrTopic) => errorsOrTopic match {
-        case Left(errors) =>
-          // Request went through but Discourse responded with errors
-          // Don't schedule a retry because this will just keep happening
-          val message = "Request to create project topic was successful but Discourse responded with errors:\n" +
-            s"Project: ${project.url}\n" +
-            s"Title: $title\n" +
-            s"Content: $content\n" +
-            s"Errors: ${errors.toString}"
-          Logger.warn(message)
-          project.logger.map(_.err(message))
-        case Right(topic) =>
-          // Topic created!
-          // Catch some unexpected cases (should never happen)
-          if (!topic.isTopic)
-            throw new RuntimeException("project post isn't topic?")
-          if (topic.username != project.ownerName)
-            throw new RuntimeException("project post user isn't owner?")
+    ).flatMap {
+      case Left(errors) =>
+        // Request went through but Discourse responded with errors
+        // Don't schedule a retry because this will just keep happening
+        val message =
+          s"""|Request to create project topic was successful but Discourse responded with errors:
+              |Project: ${project.url}
+              |Title: $title
+              |Content: $content
+              |Errors: ${errors.toString}""".stripMargin
+        Logger.warn(message)
+        project.logger.flatMap(_.err(message)).map(_ => project)
+      case Right(topic) =>
+        // Topic created!
+        // Catch some unexpected cases (should never happen)
+        if (!topic.isTopic)
+          throw new RuntimeException("project post isn't topic?")
+        if (topic.username != project.ownerName)
+          throw new RuntimeException("project post user isn't owner?")
 
-          // Update the post and topic id in the project
-          project.setTopicId(topic.topicId)
-          project.setPostId(topic.postId)
+        Logger.debug(
+          s"""|New project topic:
+              |Project: ${project.url}
+              |Topic ID: ${topic.topicId}
+              |Post ID: ${topic.postId}""".stripMargin)
 
-          Logger.debug(
-            s"New project topic:\n" +
-              s"Project: ${project.url}\n" +
-              s"Topic ID: ${project.topicId}\n" +
-              s"Post ID: ${project.postId}")
-
-          resultPromise.success(true)
-      }
-      case Failure(_) =>
-        // Something went wrong. Turn on debug mode to gez debug messages from play discourse for further investigations.
-        Logger.warn(s"Could not create project topic for project ${project.url}. Rescheduling...")
-        resultPromise.success(false)
-    }
-
-    resultPromise.future
+        // Update the post and topic id in the project
+        service.update(project.copy(topicId = topic.topicId, postId = topic.postId))
+    }.transform(identity, e => {
+      // Something went wrong. Turn on debug mode to gez debug messages from play discourse for further investigations.
+      Logger.warn(s"Could not create project topic for project ${project.url}. Rescheduling...")
+      e
+    })
   }
 
   /**
@@ -130,7 +130,7 @@ trait OreDiscourseApi extends DiscourseApi {
     * @param project  Project to update topic for
     * @return         True if successful
     */
-  def updateProjectTopic(project: Project)(implicit ec: ExecutionContext): Future[Boolean] = {
+  def updateProjectTopic(project: Project)(implicit ec: ExecutionContext, service: ModelService, config: OreConfig): Future[Boolean] = {
     if (!this.isEnabled)
       return Future.successful(true)
     checkArgument(project.isDefined, "undefined project", "")
@@ -144,7 +144,7 @@ trait OreDiscourseApi extends DiscourseApi {
     val ownerName = project.ownerName
 
     // Set flag so that if we are interrupted we will remember to do it later
-    project.setTopicDirty(true)
+    service.update(project.copy(isTopicDirty = true))
 
     // A promise for our final result
     val resultPromise: Promise[Boolean] = Promise()
@@ -190,7 +190,7 @@ trait OreDiscourseApi extends DiscourseApi {
               } else {
                 // Title and content updated!
                 Logger.debug(s"Project topic updated for ${project.url}.")
-                project.setTopicDirty(false)
+                service.update(project.copy(isTopicDirty = false))
                 resultPromise.success(true)
               }
             case Failure(e) =>
@@ -237,7 +237,7 @@ trait OreDiscourseApi extends DiscourseApi {
     * @param version Version of project
     * @return
     */
-  def postVersionRelease(project: Project, version: Version, content: Option[String])(implicit ec: ExecutionContext): Future[List[String]] = {
+  def postVersionRelease(project: Project, version: Version, content: Option[String])(implicit ec: ExecutionContext, service: ModelService): Future[List[String]] = {
     if (!this.isEnabled)
       return Future.successful(List.empty)
     checkArgument(project.isDefined, "undefined project", "")
@@ -283,7 +283,7 @@ trait OreDiscourseApi extends DiscourseApi {
     * @param project  Project to delete topic for
     * @return         True if deleted
     */
-  def deleteProjectTopic(project: Project)(implicit ec: ExecutionContext): Future[Boolean] = {
+  def deleteProjectTopic(project: Project)(implicit ec: ExecutionContext, service: ModelService): Future[Boolean] = {
     if (!this.isEnabled)
       return Future.successful(true)
     checkArgument(project.isDefined, "undefined project", "")
@@ -298,10 +298,8 @@ trait OreDiscourseApi extends DiscourseApi {
           logFailure()
           resultPromise.success(false)
         } else {
-          project.setTopicId(-1)
-          project.setPostId(-1)
           Logger.debug(s"Successfully deleted project topic for: ${project.url}.")
-          resultPromise.success(true)
+          resultPromise.completeWith(service.update(project.copy(topicId = -1, postId = -1)).map(_ => true))
         }
       case Failure(e) =>
         logFailure()
@@ -339,7 +337,7 @@ trait OreDiscourseApi extends DiscourseApi {
     def projectTitle(project: Project): String = project.name + project.description.map(d => s" - $d").getOrElse("")
 
     /** Generates the content for a project topic. */
-    def projectTopic(project: Project)(implicit ec: ExecutionContext): String = readAndFormatFile(
+    def projectTopic(project: Project)(implicit ec: ExecutionContext, config: OreConfig, service: ModelService): String = readAndFormatFile(
       OreDiscourseApi.this.topicTemplatePath,
       project.name,
       OreDiscourseApi.this.baseUrl + '/' + project.url,
