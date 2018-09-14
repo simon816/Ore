@@ -1,20 +1,19 @@
 package form.project
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import cats.data.{EitherT, NonEmptyList => NEL}
+import cats.instances.future._
+import db.ModelService
 import models.project.{Channel, Project}
 import ore.Colors.Color
 import ore.OreConfig
 import ore.project.factory.ProjectFactory
-import util.functional.{EitherT, OptionT}
-import util.instances.future._
-import util.syntax._
-import util.StringUtils._
-import scala.concurrent.{ExecutionContext, Future}
-
-import db.ModelService
 
 /**
   * Represents submitted [[Channel]] data.
   */
+//TODO: Return Use Validated for the values in here
 trait TChannelData {
 
   val config: OreConfig
@@ -40,10 +39,10 @@ trait TChannelData {
     */
   def addTo(project: Project)(implicit ec: ExecutionContext, service: ModelService): EitherT[Future, String, Channel] = {
     EitherT.liftF(project.channels.all)
-      .filterOrElse(_.size <= config.projects.get[Int]("max-channels"), "A project may only have up to five channels.")
-      .filterOrElse(_.forall(ch => !ch.name.equalsIgnoreCase(this.channelName)), "A channel with that name already exists.")
-      .filterOrElse(_.forall(_.color != this.color), "A channel with that color already exists.")
-      .semiFlatMap(_ => this.factory.createChannel(project, this.channelName, this.color, this.nonReviewed))
+      .ensure("A project may only have up to five channels.")(_.size <= config.projects.get[Int]("max-channels"))
+      .ensure("A channel with that name already exists.")(_.forall(ch => !ch.name.equalsIgnoreCase(this.channelName)))
+      .ensure("A channel with that color already exists.")(_.forall(_.color != this.color))
+      .semiflatMap(_ => this.factory.createChannel(project, this.channelName, this.color, this.nonReviewed))
   }
 
   /**
@@ -54,8 +53,7 @@ trait TChannelData {
     * @param project  Project of channel
     * @return         Error, if any
     */
-  //TODO: Return NEL[String] if we get the type
-  def saveTo(oldName: String)(implicit project: Project, ec: ExecutionContext, service: ModelService): EitherT[Future, List[String], Unit] = {
+  def saveTo(oldName: String)(implicit project: Project, ec: ExecutionContext, service: ModelService): EitherT[Future, NEL[String], Unit] = {
     EitherT.liftF(project.channels.all).flatMap { allChannels =>
       val (channelChangeSet, channels) = allChannels.partition(_.name.equalsIgnoreCase(oldName))
       val channel = channelChangeSet.toSeq.head
@@ -63,21 +61,20 @@ trait TChannelData {
       val e1 = if(channels.exists(_.color == this.color)) List("error.channel.duplicateColor") else Nil
       val e2 = if(channels.exists(_.name.equalsIgnoreCase(this.channelName))) List("error.channel.duplicateName") else Nil
       val e3 = if(nonReviewed && channels.count(_.isReviewed) < 1) List("error.channel.minOneReviewed") else Nil
-      val errors = e1 ::: e2 ::: e3
 
-      if(errors.nonEmpty) {
-        EitherT.leftT[Future, Unit](errors)
-      }
-      else {
-        val effect = service.update(
-          channel.copy(
-            name = channelName,
-            color = color,
-            isNonReviewed = nonReviewed
+      NEL.fromList(e1 ::: e2 ::: e3) match {
+        case Some(errors) => EitherT.leftT[Future, Unit](errors)
+        case None =>
+          val effect = service.update(
+            channel.copy(
+              name = channelName,
+              color = color,
+              isNonReviewed = nonReviewed
+            )
           )
-        )
 
-        EitherT.right[List[String]](effect).map(_ => ())
+          //TODO: Replace this with void once IntelliJ understands it
+          EitherT.right[NEL[String]](effect).map(_ => ())
       }
     }
   }

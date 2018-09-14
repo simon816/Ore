@@ -10,10 +10,10 @@ import play.api.cache.AsyncCacheApi
 import play.api.i18n.{Lang, MessagesApi}
 import security.spauth.SpongeAuthApi
 import util.StringUtils
-import util.instances.future._
+import cats.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
-import util.functional.{EitherT, OptionT}
+import cats.data.{EitherT, NonEmptyList, OptionT}
 
 class OrganizationBase(implicit val service: ModelService,
                        config: OreConfig,
@@ -50,14 +50,14 @@ class OrganizationBase(implicit val service: ModelService,
     spongeResult.leftMap { err =>
       Logger.debug("<FAILURE> " + err)
       err
-    }.semiFlatMap { spongeUser =>
+    }.semiflatMap { spongeUser =>
       Logger.debug("<SUCCESS> " + spongeUser)
       // Next we will create the Organization on Ore itself. This contains a
       // reference to the Sponge user ID, the organization's username and a
       // reference to the User owner of the organization.
       Logger.info("Creating on Ore...")
       this.add(Organization(id = ObjectId(spongeUser.id), username = name, ownerId = ownerId))
-    }.semiFlatMap { org =>
+    }.semiflatMap { org =>
       // Every organization model has a regular User companion. Organizations
       // are just normal users with additional information. Adding the
       // Organization global role signifies that this User is an Organization
@@ -81,7 +81,7 @@ class OrganizationBase(implicit val service: ModelService,
               user.sendNotification(Notification(
                 originId = org.id.value,
                 notificationType = NotificationTypes.OrganizationInvite,
-                messageArgs = List("notification.organization.invite", role.roleType.title, org.username)
+                messageArgs = NonEmptyList.of("notification.organization.invite", role.roleType.title, org.username)
               ))
             }
           })

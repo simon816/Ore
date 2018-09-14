@@ -24,15 +24,13 @@ import ore.project.{NotifyWatchersTask, ProjectMember}
 import ore.user.MembershipDossier
 import ore.user.notification.NotificationTypes
 import ore.{OreConfig, OreEnv, Platforms}
-
 import play.api.cache.SyncCacheApi
 import play.api.i18n.Messages
 import security.pgp.PGPVerifier
 import util.StringUtils._
-import util.functional.EitherT
-import util.instances.future._
-import util.syntax._
-
+import cats.data.{EitherT, NonEmptyList}
+import cats.instances.future._
+import cats.syntax.all._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -117,7 +115,7 @@ trait ProjectFactory {
       case Right(plugin) =>
         EitherT(
           for {
-            (channels, settings) <- (project.channels.all, project.settings).parTupled
+            (channels, settings) <- (project.channels.all, project.settings).tupled
             version = this.startVersion(plugin, project, settings, channels.head.name)
             modelExists <- version match {
               case Right(v) => v.underlying.exists
@@ -272,7 +270,7 @@ trait ProjectFactory {
       (exists, available) <- (
         this.projects.exists(project),
         this.projects.isNamespaceAvailable(project.ownerName, project.slug)
-      ).parTupled
+      ).tupled
       _ = checkArgument(!exists, "project already exists", "")
       _ = checkArgument(available, "slug not available", "")
       _ = checkArgument(this.config.isValidProjectName(pending.underlying.name), "invalid name", "")
@@ -299,7 +297,7 @@ trait ProjectFactory {
               user.sendNotification(Notification(
                 originId = ownerId,
                 notificationType = NotificationTypes.ProjectInvite,
-                messageArgs = List("notification.project.invite", role.roleType.title, project.name)
+                messageArgs = NonEmptyList.of("notification.project.invite", role.roleType.title, project.name)
               ))
           }
         }
@@ -344,7 +342,7 @@ trait ProjectFactory {
 
     for {
       // Create channel if not exists
-      (channel, exists) <- (getOrCreateChannel(pending, project), pendingVersion.exists).parTupled
+      (channel, exists) <- (getOrCreateChannel(pending, project), pendingVersion.exists).tupled
       _ = if (exists && this.config.projects.get[Boolean]("file-validate")) throw new IllegalArgumentException("Version already exists.")
       // Create version
       newVersion <- {
@@ -380,7 +378,7 @@ trait ProjectFactory {
       (metadataTags, dependencyTags) <- (
         addMetadataTags(pendingVersion.plugin.data, newVersion),
         addDependencyTags(newVersion)
-      ).parTupled
+      ).tupled
     } yield {
       metadataTags ++ dependencyTags
     }
