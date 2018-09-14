@@ -91,7 +91,7 @@ class Pages @Inject()(forms: OreForms,
     val data = request.data
     implicit val r: Requests.OreRequest[AnyContent] = request.request
 
-    withPage(data.project, page).semiFlatMap {
+    withPage(data.project, page).semiflatMap {
       case (p, b) =>
         projects.queryProjectPages(data.project).flatMap { pages =>
           val pageCount = pages.size + pages.map(_._2.size).sum

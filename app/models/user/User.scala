@@ -321,13 +321,6 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
   }
 
   /**
-    * Returns a set of [[Prompt]]'s that have been read by this User.
-    *
-    * @return Prompts read by User
-    */
-  def readPrompts: Set[Prompt] = this._readPrompts.toSet
-
-  /**
     * Marks a [[Prompt]] as read by this User.
     *
     * @param prompt Prompt to mark as read
