@@ -353,6 +353,7 @@ trait OreRestfulApi {
   }
 
   def writeUsers(userList: Seq[User])(implicit ec: ExecutionContext): Future[Seq[JsObject]] = {
+    implicit def config: OreConfig = this.config
 
     val query = queryProjectRV.filter {
       case (p, v, c) => p.userId inSetBind userList.map(_.id.value) // query all projects with given users
@@ -371,6 +372,7 @@ trait OreRestfulApi {
           "username"        ->  user.name,
           "roles"           ->  user.globalRoles.map(_.title),
           "starred"         ->  toJson(stars.getOrElse(user.id.value, Seq.empty)),
+          "avatarUrl"       ->  user.avatarUrl,
           "projects"        ->  toJson(projectsByUser.getOrElse(user.id.value, Nil))
         )
       }
