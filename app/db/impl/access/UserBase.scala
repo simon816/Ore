@@ -12,13 +12,14 @@ import ore.permission.Permission
 import play.api.mvc.Request
 import security.spauth.SpongeAuthApi
 import util.StringUtils._
-
 import scala.concurrent.{ExecutionContext, Future}
 
+import db.impl.{ProjectTableMain, UserTable}
 import ore.permission.role
 import ore.permission.role.RoleType
 import cats.data.OptionT
 import cats.instances.future._
+import slick.lifted.ColumnOrdered
 
 /**
   * Represents a central location for all Users.
@@ -76,26 +77,40 @@ class UserBase(implicit val service: ModelService, config: OreConfig)
   def getAuthors(ordering: String = UserOrdering.Projects, page: Int = 1)(implicit ec: ExecutionContext): Future[Seq[(User, Int)]] = {
     // determine ordering
     val (sort, reverse) = if (ordering.startsWith("-")) (ordering.substring(1), false) else (ordering, true)
+    val pageSize = this.config.users.get[Int]("author-page-size")
+    val offset = (page - 1) * pageSize
 
-    // TODO page and order should be done in Database!
-    // get authors
-    this.service.getSchema(classOf[ProjectSchema]).distinctAuthors.map { users =>
-      sort match { // Sort
-        case UserOrdering.Projects => users.sortBy(u => (service.await(u.projects.size).get, u.name))
-        case UserOrdering.JoinDate => users.sortBy(u => (u.joinDate.getOrElse(u.createdAt.value), u.name))
-        case UserOrdering.UserName => users.sortBy(_.name)
-        case UserOrdering.Role => users.sortBy(_.globalRoles.toList.sortBy(_.trust).headOption.map(_.trust.level).getOrElse(-1))
-        case _ => users.sortBy(u => (service.await(u.projects.size).get, u.name))
+    if(sort != UserOrdering.Role) {
+      val baseQuery = for {
+        project <- TableQuery[ProjectTableMain]
+        user <- TableQuery[UserTable] if project.userId === user.id
+      } yield (user, TableQuery[ProjectTableMain].filter(_.userId === user.id).length)
+
+      def ordered[A](a: ColumnOrdered[A]) = if(reverse) a.desc else a.asc
+
+      //TODO Page in database
+      val query = sort match {
+        case UserOrdering.JoinDate => baseQuery.sortBy(user => (ordered(user._1.joinDate), ordered(user._1.createdAt)))
+        case UserOrdering.UserName => baseQuery.sortBy(user => ordered(user._1.name))
+        case UserOrdering.Projects | _ => baseQuery.sortBy(user => ordered(user._2))
       }
-    } map { users => // Reverse?
-      if (reverse) users.reverse else users
-    } map { users =>
-      // get page slice
-      val pageSize = this.config.users.get[Int]("author-page-size")
-      val offset = (page - 1) * pageSize
-      users.slice(offset, offset + pageSize)
-    } flatMap { users =>
-      Future.sequence(users.map(u => u.projects.size.map((u, _))))
+
+      service.DB.db.run(query.distinct.result).map(_.slice(offset, offset + pageSize))
+    }
+    else {
+      // TODO page and order should be done in Database!
+      // get authors
+      this.service.getSchema(classOf[ProjectSchema]).distinctAuthors.map { users =>
+        users.sortBy(_.globalRoles.sortBy(_.trust).headOption.map(_.trust.level).getOrElse(-1))
+      } map { users => // Reverse?
+        if (reverse) users.reverse else users
+      } map { users =>
+        // get page slice
+        val offset = (page - 1) * pageSize
+        users.slice(offset, offset + pageSize)
+      } flatMap { users =>
+        Future.sequence(users.map(u => u.projects.size.map((u, _))))
+      }
     }
   }
 

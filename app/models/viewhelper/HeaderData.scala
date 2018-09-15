@@ -15,7 +15,6 @@ import slick.jdbc.JdbcBackend
 import slick.lifted.TableQuery
 import cats.data.OptionT
 import cats.instances.future._
-import cats.syntax.all._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -49,17 +48,21 @@ case class HeaderData(currentUser: Option[User] = None,
 
 object HeaderData {
 
-  val noPerms: Map[Permission, Boolean] = Map(ReviewFlags -> false,
-                  ReviewVisibility -> false,
-                  ReviewProjects -> false,
-                  ViewStats -> false,
-                  ViewHealth -> false,
-                  ViewLogs -> false,
-                  HideProjects -> false,
-                  HardRemoveProject -> false,
-                  HardRemoveVersion -> false,
-                  UserAdmin -> false,
-                  HideProjects -> false)
+  private val globalPerms = Seq(
+    ReviewFlags,
+    ReviewVisibility,
+    ReviewProjects,
+    ViewStats,
+    ViewHealth,
+    ViewLogs,
+    HideProjects,
+    HardRemoveProject,
+    HardRemoveVersion,
+    UserAdmin,
+    HideProjects
+  )
+
+  val noPerms: Map[Permission, Boolean] = globalPerms.map(_ -> false).toMap
 
   val unAuthenticated: HeaderData = HeaderData(None, noPerms)
 
@@ -88,85 +91,41 @@ object HeaderData {
     }
   }
 
-  private def projectApproval(user: User)(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef): Future[Boolean] = {
+  private def projectApproval(user: User) =
+    TableQuery[ProjectTableMain]
+      .filter(p => p.userId === user.id.value && p.visibility === VisibilityTypes.NeedsApproval)
+      .exists
 
-    val tableProject = TableQuery[ProjectTableMain]
-    val query = for {
-      p <- tableProject if p.userId === user.id.value && p.visibility === VisibilityTypes.NeedsApproval
-    } yield {
-      p
-    }
-    db.run(query.exists.result)
-  }
+  private def reviewQueue(implicit db: JdbcBackend#DatabaseDef): Rep[Boolean] =
+    TableQuery[VersionTable].filter(v => v.isReviewed === false).exists
 
-  private def reviewQueue()(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef) : Future[Boolean] = {
-    val tableVersion = TableQuery[VersionTable]
-
-    val query = for {
-      v <- tableVersion if v.isReviewed === false
-    } yield {
-      v
-    }
-
-    db.run(query.exists.result)
-
-  }
-
-  private def flagQueue()(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef) : Future[Boolean] = {
-    val tableFlags = TableQuery[FlagTable]
-
-    val query = for {
-      v <- tableFlags if v.isResolved === false
-    } yield {
-      v
-    }
-
-    db.run(query.exists.result)
-  }
+  private val flagQueue: Rep[Boolean] = TableQuery[FlagTable].filter(_.isResolved === false).exists
 
   private def getHeaderData(user: User)(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef, service: ModelService) = {
+    perms(user).flatMap { perms =>
+      val query = Query.apply((
+        TableQuery[NotificationTable].filter(n => n.userId === user.id.value && !n.read).exists,
+        if(perms(ReviewFlags)) flagQueue else false.bind,
+        if(perms(ReviewVisibility)) projectApproval(user) else false.bind,
+        if (perms(ReviewProjects)) reviewQueue else false.bind
+      ))
 
-    perms(Some(user)).flatMap { perms =>
-      (
-        user.hasNotice,
-        user.notifications.filterNot(_.read).map(_.nonEmpty),
-        flagQueue(),
-        projectApproval(user),
-        if (perms(ReviewProjects)) reviewQueue() else Future.successful(false)
-      ).mapN { (hasNotice, unreadNotif, unresolvedFlags, hasProjectApprovals, hasReviewQueue) =>
+      db.run(query.result.head).map { case (unreadNotif, unresolvedFlags, hasProjectApprovals, hasReviewQueue) =>
         HeaderData(Some(user),
           perms,
-          hasNotice,
+          unreadNotif || unresolvedFlags || hasProjectApprovals || hasReviewQueue,
           unreadNotif,
           unresolvedFlags,
           hasProjectApprovals,
-          hasReviewQueue)
+          hasReviewQueue
+        )
       }
     }
   }
 
 
-  def perms(currentUser: Option[User])(implicit ec: ExecutionContext, service: ModelService): Future[Map[Permission, Boolean]] = {
-    if (currentUser.isEmpty) Future.successful(noPerms)
-    else {
-      val user = currentUser.get
-      (
-        user can ReviewFlags in GlobalScope map ((ReviewFlags, _)),
-        user can ReviewVisibility in GlobalScope map ((ReviewVisibility, _)),
-        user can ReviewProjects in GlobalScope map ((ReviewProjects, _)),
-        user can ViewStats in GlobalScope map ((ViewStats, _)),
-        user can ViewHealth in GlobalScope map ((ViewHealth, _)),
-        user can ViewLogs in GlobalScope map ((ViewLogs, _)),
-        user can HideProjects in GlobalScope map ((HideProjects, _)),
-        user can HardRemoveProject in GlobalScope map ((HardRemoveProject, _)),
-        user can HardRemoveVersion in GlobalScope map ((HardRemoveProject, _)),
-        user can UserAdmin in GlobalScope map ((UserAdmin, _)),
-      ).mapN {
-        case (reviewFlags, reviewVisibility, reviewProjects, viewStats, viewHealth, viewLogs, hideProjects, hardRemoveProject, hardRemoveVersion, userAdmin) =>
-          val perms = Seq(reviewFlags, reviewVisibility, reviewProjects, viewStats, viewHealth, viewLogs, hideProjects, hardRemoveProject, hardRemoveVersion, userAdmin)
-          perms.toMap
-      }
-    }
-  }
-
+  def perms(user: User)(implicit ec: ExecutionContext, service: ModelService): Future[Map[Permission, Boolean]] =
+    user
+      .trustIn(GlobalScope)
+      .map(trust => globalPerms.map(perm => perm -> user.can(perm).withTrust(trust)).toMap)
 }

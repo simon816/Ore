@@ -75,12 +75,8 @@ case class Organization(id: ObjectId = ObjectId.Uninitialized,
       * @param user User to get trust of
       * @return Trust of user
       */
-    override def getTrust(user: User)(implicit ex: ExecutionContext): Future[Trust] = {
-      UserBase().service.DB.db.run(Organization.roleForTrustQuery(id.value, user.id.value).result).map { l =>
-        l.sortBy(_.roleType.trust).headOption.map(_.roleType.trust).getOrElse(Default)
-      }
-    }
-
+    override def getTrust(user: User)(implicit ex: ExecutionContext): Future[Trust] =
+      Organization.getTrust(user.id.value, id.value)
   }
 
   /**
@@ -131,8 +127,17 @@ object Organization {
     for {
       m <- memberTable if m.organizationId === orgId && m.userId === userId
       r <- roleTable if m.userId === r.userId && r.organizationId === orgId
-    } yield {
-      r
-    }
+    } yield r.roleType
+  }
+
+  /**
+    * Returns the highest level of [[ore.permission.role.Trust]] this user has.
+    *
+    * @param user User to get trust of
+    * @return Trust of user
+    */
+  def getTrust(userId: ObjectReference, orgId: ObjectReference)(implicit ex: ExecutionContext, service: ModelService): Future[Trust] = {
+    service.DB.db.run(Organization.roleForTrustQuery(orgId, userId).result)
+      .map(_.sortBy(_.trust).headOption.map(_.trust).getOrElse(Default))
   }
 }

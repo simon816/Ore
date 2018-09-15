@@ -69,7 +69,6 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     * here.
     */
   val can: PermissionPredicate = PermissionPredicate(this)
-  val cannot: PermissionPredicate = PermissionPredicate(this, not = true)
 
   def avatarUrl(implicit config: OreConfig): String = config.security.get[String]("api.avatarUrl").format(this.name)
 
@@ -109,6 +108,14 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
       .sortBy(_.rank).headOption
   }
 
+  private def biggestRole(roles: Set[Role]): Trust = biggestRoleTpe(roles.map(_.roleType))
+
+  private def biggestRoleTpe(roles: Set[RoleType]): Trust =
+    if(roles.isEmpty) Default
+    else roles.map(_.trust).max
+
+  private def globalTrust = biggestRoleTpe(globalRoles.toSet)
+
   /**
     * Returns this User's highest level of Trust.
     *
@@ -116,43 +123,38 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     */
   def trustIn(scope: Scope = GlobalScope)(implicit ec: ExecutionContext, service: ModelService): Future[Trust] = Defined {
     scope match {
-      case GlobalScope =>
-        Future.successful(this.globalRoles.map(_.trust).sorted.lastOption.getOrElse(Default))
+      case GlobalScope          => Future.successful(globalTrust)
       case pScope: ProjectScope =>
-        service.DB.db.run(Project.roleForTrustQuery(pScope.projectId, this.id.value).result).map { projectRoles =>
-          projectRoles.sortBy(_.roleType.trust).headOption.map(_.roleType.trust).getOrElse(Default)
-        } flatMap { userTrust =>
-          if (!userTrust.equals(Default)) {
-            Future.successful(userTrust)
-          } else {
+        val projectRoles = service.DB.db.run(Project.roleForTrustQuery(pScope.projectId, this.id.value).result)
 
-            val projectTable = TableQuery[ProjectTableMain]
-            val projectMembersTable = TableQuery[ProjectMembersTable]
-            val orgaTable = TableQuery[OrganizationTable]
+        val projectTrust = projectRoles
+          .map(biggestRoleTpe)
+          .flatMap { userTrust =>
+            if (userTrust != Default) {
+              Future.successful(userTrust)
+            } else {
 
-            val memberTable = TableQuery[OrganizationMembersTable]
-            val roleTable = TableQuery[OrganizationRoleTable]
+              val projectMembersTable = TableQuery[ProjectMembersTable]
+              val orgaTable = TableQuery[OrganizationTable]
 
-            // TODO review permission logic
-            val query = for {
-              p <- projectTable if p.id === pScope.projectId
-              pm <- projectMembersTable if p.id === pm.projectId // Join members of project
-              o <- orgaTable if pm.userId == o.userId // Filter out non organizations
-              m <- memberTable if m.organizationId === o.id
-              r <- roleTable if m.userId === r.userId && r.organizationId === o.id
-            } yield {
-              r.roleType
+              val memberTable = TableQuery[OrganizationMembersTable]
+              val roleTable = TableQuery[OrganizationRoleTable]
+
+              // TODO review permission logic
+              val query = for {
+                pm <- projectMembersTable if pm.projectId === pScope.projectId // Join members of project
+                o <- orgaTable if pm.userId == o.userId // Filter out non organizations
+                m <- memberTable if m.organizationId === o.id
+                r <- roleTable if m.userId === r.userId && r.organizationId === o.id
+              } yield r.roleType
+
+              service.DB.db.run(query.to[Set].result).map(biggestRoleTpe)
             }
-
-            service.DB.db.run(query.result).map { l =>
-              l.collectFirst { // Find first non default trust
-                case u if u.trust != Default => u.trust
-              }.getOrElse(Default)
-            }
-          }
         }
+
+        projectTrust.map(Set(_, globalTrust).max)
       case oScope: OrganizationScope =>
-        oScope.organization.flatMap(o => o.memberships.getTrust(this))
+        Organization.getTrust(id.value, oScope.organizationId).map(Set(_, globalTrust).max)
       case _ =>
         throw new RuntimeException("unknown scope: " + scope)
     }
@@ -316,29 +318,6 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     checkNotNull(notification, "null notification", "")
     config.debug("Sending notification: " + notification, -1)
     service.access[Notification](classOf[Notification]).add(notification.copy(userId = this.id.value))
-  }
-
-  /**
-    * Returns true if this User has any unread notifications.
-    *
-    * @return True if has unread notifications
-    */
-  def hasNotice(implicit ec: ExecutionContext, service: ModelService): Future[Boolean] = Defined {
-    val flags = service.access[Flag](classOf[Flag])
-    val versions = service.access[Version](classOf[Version])
-
-    for {
-      hasFlags <- this can ReviewFlags in GlobalScope
-      hasReview <- this can ReviewProjects in GlobalScope
-      resolvedFlags <- flags.filterNot(_.isResolved)
-      reviewedVersions <- versions.filterNot(_.isReviewed)
-      channels <- Future.sequence(reviewedVersions.map(_.channel))
-      notifications <- this.notifications.filterNot(_.read)
-    } yield {
-      (hasFlags && resolvedFlags.nonEmpty) ||
-        (hasReview && !channels.forall(_.isNonReviewed)) ||
-        notifications.nonEmpty
-    }
   }
 
   /**

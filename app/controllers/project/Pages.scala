@@ -10,7 +10,7 @@ import form.OreForms
 import javax.inject.Inject
 
 import models.project.{Page, Project}
-import models.user.{LoggedAction, LoggedActionContext, UserActionLogger}
+import models.user.{LoggedAction, UserActionLogger}
 import ore.permission.EditPages
 import ore.{OreConfig, OreEnv, StatTracker}
 import play.api.cache.AsyncCacheApi
@@ -20,8 +20,11 @@ import util.StringUtils._
 import views.html.projects.{pages => views}
 import cats.instances.future._
 import cats.syntax.all._
+import cats.data.OptionT
 
 import scala.concurrent.{ExecutionContext, Future}
+
+import db.impl.PageTable
 import play.api.mvc.{Action, AnyContent}
 import play.utils.UriEncoding
 
@@ -46,6 +49,17 @@ class Pages @Inject()(forms: OreForms,
   private def PageEditAction(author: String, slug: String)
   = AuthedProjectAction(author, slug, requireUnlock = true) andThen ProjectPermissionAction(EditPages)
 
+  private val childPageQuery = {
+    def childPageQueryFunction(parentSlug: Rep[String], childSlug: Rep[String]) = {
+      val q = TableQuery[PageTable]
+      val parentPages = q.filter(_.slug.toLowerCase === parentSlug.toLowerCase).map(_.id)
+      val childPage = q.filter(page => (page.parentId in parentPages) && page.slug.toLowerCase === childSlug.toLowerCase)
+      childPage.take(1)
+    }
+
+    Compiled(childPageQueryFunction _)
+  }
+
   /**
     * Return the best guess of the page
     *
@@ -53,22 +67,15 @@ class Pages @Inject()(forms: OreForms,
     * @param page
     * @return Tuple: Optional Page, true if using legacy fallback
     */
-  def withPage(project: Project, page: String): Future[(Option[Page], Boolean)] = {
+  def withPage(project: Project, page: String): OptionT[Future, (Page, Boolean)] = {
     //TODO: Can the return type here be changed to OptionT[Future (Page, Boolean)]?
     val parts = page.split("/").map(page => UriEncoding.decodePathSegment(page, StandardCharsets.UTF_8))
 
     if (parts.length == 2) {
-      project.pages
-        .find(equalsIgnoreCase(_.slug, parts(0)))
-        .fold(0)(_.id.value)
-        .flatMap { parentId =>
-          project.pages.filter(equalsIgnoreCase(_.slug, parts(1))).map(seq => seq.find(_.parentId == parentId)).map((_, false))
-        }
+      OptionT(service.DB.db.run(childPageQuery((parts(0), parts(1))).result).map(_.headOption)).map(_ -> false)
     } else {
-      project.pages.find((ModelFilter[Page](_.slug === parts(0)) +&& ModelFilter[Page](_.parentId === -1)).fn).value.flatMap {
-        case Some(r) => Future.successful((Some(r), false))
-        case None => project.pages.find(ModelFilter[Page](_.slug === parts(0)).fn).value.map((_, true))
-      }
+      project.pages.find(p => p.slug.toLowerCase === parts(0).toLowerCase && p.parentId === -1).map(_ -> false)
+          .orElse(project.pages.find(_.slug.toLowerCase === parts(0).toLowerCase).map(_ -> true))
     }
   }
 
@@ -84,17 +91,16 @@ class Pages @Inject()(forms: OreForms,
     val data = request.data
     implicit val r: Requests.OreRequest[AnyContent] = request.request
 
-    withPage(data.project, page).flatMap {
-      case (None, _) => Future.successful(notFound)
-      case (Some(p), b) =>
-        projects.queryProjectPages(data.project) flatMap { pages =>
+    withPage(data.project, page).semiflatMap {
+      case (p, b) =>
+        projects.queryProjectPages(data.project).flatMap { pages =>
           val pageCount = pages.size + pages.map(_._2.size).sum
-          val parentPage = if (pages.map(_._1).contains(p)) None
-          else pages.collectFirst { case (pp, subPage) if subPage.contains(p) => pp }
+          val parentPage =
+            if (pages.map(_._1).contains(p)) None
+            else pages.collectFirst { case (pp, subPage) if subPage.contains(p) => pp }
           this.stats.projectViewed(request)(_ => Ok(views.view(data, request.scoped, pages, p, parentPage, pageCount, b)))
-
         }
-    }
+    }.getOrElse(notFound)
   }
 
   /**
@@ -195,11 +201,10 @@ class Pages @Inject()(forms: OreForms,
     */
   def delete(author: String, slug: String, page: String): Action[AnyContent] = PageEditAction(author, slug).async { implicit request =>
     val data = request.data
-    withPage(data.project, page).map { optionPage =>
-      if (optionPage._1.isDefined)
-        this.service.access[Page](classOf[Page]).remove(optionPage._1.get)
-
-      Redirect(routes.Projects.show(author, slug))
+    withPage(data.project, page).value.flatMap { optionPage =>
+      optionPage
+        .fold(Future.unit)(_._1.remove().void)
+        .as(Redirect(routes.Projects.show(author, slug)))
     }
   }
 

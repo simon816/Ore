@@ -63,7 +63,7 @@ final class Application @Inject()(data: DataHelper,
     Ok(views.linkout(remoteUrl))
   }
 
-  private def queryProjectRV = {
+  private val queryProjectRV = {
     val tableProject = TableQuery[ProjectTableMain]
     val tableVersion = TableQuery[VersionTable]
     val userTable = TableQuery[UserTable]
@@ -72,9 +72,7 @@ final class Application @Inject()(data: DataHelper,
       p <- tableProject
       v <- tableVersion if p.recommendedVersionId === v.id
       u <- userTable if p.userId === u.id
-    } yield {
-      (p, u, v)
-    }
+    } yield (p, u, v)
   }
 
   /**
@@ -108,48 +106,41 @@ final class Application @Inject()(data: DataHelper,
     val p = page.getOrElse(1)
     val offset = (p - 1) * pageSize
 
-    for {
-      tags <- service.DB.db.run(TableQuery[TagTable].filter(_.name.toLowerCase inSetBind platformNames).result)
-      result <- {
-        val versionIdsOnPlatform = tags.flatMap(_.versionIds.asInstanceOf[List[Long]]).map(_.toInt)
+    val versionIdsOnPlatform = TableQuery[TagTable].filter(_.name.toLowerCase inSetBind platformNames).map(_.versionIds.unnest)
 
-        val projectQuery = queryProjectRV.filter { case (p, u, v) =>
-          (LiteralColumn(true) === canHideProjects) ||
-            (p.visibility === VisibilityTypes.Public) ||
-            (p.visibility === VisibilityTypes.New) ||
-            ((p.userId === currentUserId) && (p.visibility =!= VisibilityTypes.SoftDelete))
-        } filter { case (p, u, v) =>
-          (LiteralColumn(0) === categoryList.length) || (p.category inSetBind categoryList)
-        } filter { case (p, u, v) =>
-          if (platformNames.isEmpty) LiteralColumn(true)
-          else p.recommendedVersionId inSet versionIdsOnPlatform
-        } filter { case (p, u, v) =>
-          (p.name.toLowerCase like q) ||
-            (p.description.toLowerCase like q) ||
-            (p.ownerName.toLowerCase like q) ||
-            (p.pluginId.toLowerCase like q)
-        } sortBy { case (p, u, v) =>
-          ordering.fn(p)
-        } drop offset take pageSize
+    //noinspection ScalaUnnecessaryParentheses
+    val dbQueryRaw = for {
+      (project, user, version) <- queryProjectRV
+      if canHideProjects.bind ||
+        (project.visibility === VisibilityTypes.Public) ||
+        (project.visibility === VisibilityTypes.New) ||
+        ((project.userId === currentUserId) && (project.visibility =!= VisibilityTypes.SoftDelete))
+      if (if (platformNames.isEmpty) true.bind else project.recommendedVersionId in versionIdsOnPlatform)
+      if (if(categoryList.isEmpty) true.bind else project.category inSetBind categoryList)
+      if (project.name.toLowerCase like q) ||
+        (project.description.toLowerCase like q) ||
+        (project.ownerName.toLowerCase like q) ||
+        (project.pluginId.toLowerCase like q)
+    } yield (project, user, version)
+    val projectQuery = dbQueryRaw
+      .sortBy(t => ordering.fn(t._1))
+      .drop(offset)
+      .take(pageSize)
 
-        def queryProjects(): Future[Seq[(Project, User, Version, List[Tag])]] = {
-          for {
-            projects <- service.DB.db.run(projectQuery.result)
-            tags <- Future.sequence(projects.map(_._3.tags))
-          } yield {
-            projects zip tags map { case ((p, u, v), t) =>
-              (p, u, v, t)
-            }
-          }
-        }
-
-        queryProjects() map { data =>
-          val catList = if (categoryList.isEmpty || Categories.visible.toSet.equals(categoryList.toSet)) None else Some(categoryList)
-          Ok(views.home(data, catList, query.find(_.nonEmpty), p, ordering, pcat, pform))
+    def queryProjects: Future[Seq[(Project, User, Version, List[Tag])]] = {
+      for {
+        projects <- service.DB.db.run(projectQuery.result)
+        tags <- Future.sequence(projects.map(_._3.tags))
+      } yield {
+        projects zip tags map { case ((p, u, v), t) =>
+          (p, u, v, t)
         }
       }
-    } yield {
-      result
+    }
+
+    queryProjects.map { data =>
+      val catList = if (categoryList.isEmpty || Categories.visible.toSet.equals(categoryList.toSet)) None else Some(categoryList)
+      Ok(views.home(data, catList, query.find(_.nonEmpty), p, ordering, pcat, pform))
     }
   }
 
