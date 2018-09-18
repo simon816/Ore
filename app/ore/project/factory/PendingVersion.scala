@@ -12,7 +12,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import db.ObjectId
 
-package object TagAlias {
+object TagAlias {
   type ProjectTag = models.project.Tag
 }
 

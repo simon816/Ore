@@ -70,7 +70,7 @@
                                     </div>
                                     <div class="col-xs-12 col-md-4">
                                         <span class="pull-right btn-group-sm">
-                                        @projects.helper.btnHide(project, projectPerms, request.data.currentUser.get)
+                                        @projects.helper.btnHide(project, projectPerms)
                                         </span>
                                     </div>
                                 </div>
@@ -98,7 +98,7 @@
                                 <p>No projects found.</p>
                             </li>
                         }
-                        @waitingProjects.map { case (project, lastChangeRequest, lastVisibilityChange, lastVisibilityChanger) =>
+                        @waitingProjects.map { case (project, lastChangeRequest, _, lastVisibilityChanger) =>
                             @lastChangeRequest.map { lastRequest =>
                                 <li data-flag-id="@project.id.value" class="list-group-item">
                                     <div class="row">

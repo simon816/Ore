@@ -8,8 +8,7 @@
 @import models.user.User
 @import ore.OreConfig
 @import util.StringUtils._
-@(project: Project, visibilityChanges: Seq[(ProjectVisibilityChange, Option[User])],
-        logs: Seq[ProjectLogEntry])(implicit messages: Messages, request: OreRequest[_], config: OreConfig)
+@(project: Project, logs: Seq[ProjectLogEntry])(implicit messages: Messages, request: OreRequest[_], config: OreConfig)
 
 @projectRoutes = @{controllers.project.routes.Projects}
 

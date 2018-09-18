@@ -18,15 +18,7 @@ import javax.inject.Inject
 
 import models.project._
 import models.viewhelper.{ProjectData, VersionData}
-import ore.permission.{
-  EditSettings,
-  EditVersions,
-  HardRemoveProject,
-  HardRemoveVersion,
-  ReviewProjects,
-  UploadVersions,
-  ViewLogs
-}
+import ore.permission.{EditSettings, EditVersions, HardRemoveProject, HardRemoveVersion, ReviewProjects, UploadVersions, ViewLogs}
 import ore.project.factory.TagAlias.ProjectTag
 import ore.project.factory.{PendingProject, PendingVersion, ProjectFactory}
 import ore.project.io.DownloadTypes._
@@ -50,15 +42,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.{EitherT, OptionT}
 import cats.instances.future._
-import db.impl.VersionTable
-
+import db.impl.schema.VersionTable
 /**
   * Controller for handling Version related actions.
   */
 class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFactory)(
     implicit val ec: ExecutionContext,
     auth: SpongeAuthApi,
-    forums: OreDiscourseApi,
     bakery: Bakery,
     sso: SingleSignOnConsumer,
     cache: AsyncCacheApi,
@@ -462,14 +452,13 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
     */
   def delete(author: String, slug: String, versionString: String): Action[AnyContent] = {
     Authenticated.andThen(PermissionAction[AuthRequest](HardRemoveVersion)).async { implicit request =>
-      implicit val r: Request[AnyContent] = request.request
       val res = for {
         comment <- bindFormEitherT[Future](this.forms.NeedsChanges)(_ => BadRequest)
         version <- getProjectVersion(author, slug, versionString)
       } yield {
         projects.deleteVersion(version)
         UserActionLogger
-          .log(request, LoggedAction.VersionDeleted, version.id.value, s"Deleted: ${comment}", s"${version.visibility}")
+          .log(request, LoggedAction.VersionDeleted, version.id.value, s"Deleted: $comment", s"${version.visibility}")
         Redirect(self.showList(author, slug, None))
       }
       res.merge
@@ -493,7 +482,7 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
         _       <- EitherT.right[Result](projects.prepareDeleteVersion(version))
         _       <- EitherT.right[Result](version.setVisibility(VisibilityTypes.SoftDelete, comment, request.user.id.value))
       } yield {
-        UserActionLogger.log(oreRequest, LoggedAction.VersionDeleted, version.id.value, s"SoftDelete: ${comment}", "")
+        UserActionLogger.log(oreRequest, LoggedAction.VersionDeleted, version.id.value, s"SoftDelete: $comment", "")
         Redirect(self.showList(author, slug, None))
       }
 
@@ -509,13 +498,12 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
     */
   def restore(author: String, slug: String, versionString: String): Action[AnyContent] = {
     Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
-      implicit val oreRequest: Request[AnyContent] = request.request
       val res = for {
         comment <- bindFormEitherT[Future](this.forms.NeedsChanges)(_ => BadRequest)
         version <- getProjectVersion(author, slug, versionString)
         _       <- EitherT.right[Result](version.setVisibility(VisibilityTypes.Public, comment, request.user.id.value))
       } yield {
-        UserActionLogger.log(request, LoggedAction.VersionDeleted, version.id.value, s"Restore: ${comment}", "")
+        UserActionLogger.log(request, LoggedAction.VersionDeleted, version.id.value, s"Restore: $comment", "")
         Redirect(self.showList(author, slug, None))
       }
       res.merge
@@ -523,7 +511,7 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
   }
 
   def showLog(author: String, slug: String, versionString: String): Action[AnyContent] = {
-    (Authenticated.andThen(PermissionAction[AuthRequest](ViewLogs))).andThen(ProjectAction(author, slug)).async {
+    Authenticated.andThen(PermissionAction[AuthRequest](ViewLogs)).andThen(ProjectAction(author, slug)).async {
       request =>
         implicit val r: OreRequest[AnyContent] = request.request
         implicit val project: Project          = request.data.project
@@ -561,7 +549,7 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
   private def sendVersion(project: Project, version: Version, token: Option[String])(
       implicit req: ProjectRequest[_]
   ): Future[Result] = {
-    checkConfirmation(project, version, token).flatMap { passed =>
+    checkConfirmation(version, token).flatMap { passed =>
       if (passed)
         _sendVersion(project, version)
       else
@@ -579,7 +567,7 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
     }
   }
 
-  private def checkConfirmation(project: Project, version: Version, token: Option[String])(
+  private def checkConfirmation(version: Version, token: Option[String])(
       implicit req: ProjectRequest[_]
   ): Future[Boolean] = {
     if (version.isReviewed)
@@ -667,7 +655,7 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
           )
 
           if (api.getOrElse(false)) {
-            warning.map { warn =>
+            warning.as {
               MultipleChoices(
                 Json.obj(
                   "message" -> this.messagesApi("version.download.confirm.body.api").split('\n'),
@@ -825,7 +813,7 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
     if (project.visibility == VisibilityTypes.SoftDelete) {
       return Future.successful(NotFound)
     }
-    checkConfirmation(project, version, token).flatMap { passed =>
+    checkConfirmation(version, token).flatMap { passed =>
       if (!passed)
         Future.successful(
           Redirect(
@@ -957,7 +945,6 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
     */
   def downloadRecommendedSignature(author: String, slug: String): Action[AnyContent] =
     ProjectAction(author, slug).async { implicit request =>
-      implicit val data: ProjectData         = request.data
       implicit val r: OreRequest[AnyContent] = request.request
       request.data.project.recommendedVersion.map(sendSignatureFile(_, request.data.project))
     }

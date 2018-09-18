@@ -1,11 +1,12 @@
 package models.user.role
 
 import db.{Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
-import db.impl.OrganizationRoleTable
 import ore.Visitable
 import ore.permission.role.RoleType
 import ore.permission.scope.OrganizationScope
 import scala.concurrent.{ExecutionContext, Future}
+
+import db.impl.schema.OrganizationRoleTable
 
 /**
   * Represents a [[RoleModel]] within an [[models.user.Organization]].

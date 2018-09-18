@@ -42,7 +42,7 @@ class MimeKeyedCspFilter @Inject()(implicit val mat: Materializer, ec: Execution
       case _                       => None
     }
 
-  override def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
+  override def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
     next(request).map { result =>
       val contentType = result.header.headers.get(CONTENT_TYPE) match {
         case ct @ Some(_) => ct

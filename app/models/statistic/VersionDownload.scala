@@ -4,13 +4,13 @@ import com.github.tminglei.slickpg.InetString
 import com.google.common.base.Preconditions._
 
 import controllers.sugar.Requests.ProjectRequest
-import db.impl.VersionDownloadsTable
 import db.impl.access.UserBase
 import models.project.Version
 import ore.StatTracker._
 import cats.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
+import db.impl.schema.VersionDownloadsTable
 import db.{ObjectId, ObjectReference, ObjectTimestamp}
 import security.spauth.SpongeAuthApi
 

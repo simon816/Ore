@@ -8,7 +8,6 @@ import com.google.common.base.Preconditions._
 
 import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import db.impl.{ProjectMembersTable, ProjectRoleTable}
 import db.impl.access.ProjectBase
 import discourse.OreDiscourseApi
 import javax.inject.Inject
@@ -35,6 +34,8 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 import scala.util.matching.Regex
+
+import db.impl.schema.{ProjectMembersTable, ProjectRoleTable}
 
 /**
   * Manages the project and version creation pipeline.
@@ -333,7 +334,7 @@ trait ProjectFactory {
     * @param color   Channel color
     * @return New channel
     */
-  def createChannel(project: Project, name: String, color: Color, nonReviewed: Boolean)(
+  def createChannel(project: Project, name: String, color: Color)(
       implicit ec: ExecutionContext
   ): Future[Channel] = {
     checkNotNull(project, "null project", "")
@@ -386,7 +387,7 @@ trait ProjectFactory {
       tags <- addTags(pending, newVersion)
       // Notify watchers
       _ = this.actorSystem.scheduler.scheduleOnce(Duration.Zero, NotifyWatchersTask(newVersion, project))
-      _ <- Future.fromTry(uploadPlugin(project, channel, pending.plugin, newVersion))
+      _ <- Future.fromTry(uploadPlugin(project, pending.plugin, newVersion))
       _ <- if (project.topicId.isDefined && pending.createForumPost)
         this.forums.postVersionRelease(project, newVersion, newVersion.description).void
       else
@@ -436,9 +437,9 @@ trait ProjectFactory {
   private def getOrCreateChannel(pending: PendingVersion, project: Project)(implicit ec: ExecutionContext) =
     project.channels
       .find(equalsIgnoreCase(_.name, pending.channelName))
-      .getOrElseF(createChannel(project, pending.channelName, pending.channelColor, nonReviewed = false))
+      .getOrElseF(createChannel(project, pending.channelName, pending.channelColor))
 
-  private def uploadPlugin(project: Project, channel: Channel, plugin: PluginFile, version: Version): Try[Unit] = Try {
+  private def uploadPlugin(project: Project, plugin: PluginFile, version: Version): Try[Unit] = Try {
     val oldPath    = plugin.path
     val oldSigPath = plugin.signaturePath
 

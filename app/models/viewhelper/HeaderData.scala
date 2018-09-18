@@ -16,8 +16,9 @@ import slick.lifted.TableQuery
 import cats.data.OptionT
 import cats.instances.future._
 import org.slf4j.MDC
-
 import scala.concurrent.{ExecutionContext, Future}
+
+import db.impl.schema.{FlagTable, NotificationTable, ProjectTableMain, SessionTable, UserTable, VersionTable}
 
 /**
   * Holds global user specific data - When a User is not authenticated a dummy is used
@@ -70,8 +71,7 @@ object HeaderData {
   def cacheKey(user: User) = s"""user${user.id.value}"""
 
   def of[A](request: Request[A])(
-      implicit cache: AsyncCacheApi,
-      db: JdbcBackend#DatabaseDef,
+      implicit db: JdbcBackend#DatabaseDef,
       ec: ExecutionContext,
       service: ModelService
   ): Future[HeaderData] =
@@ -102,7 +102,7 @@ object HeaderData {
       .filter(p => p.userId === user.id.value && p.visibility === VisibilityTypes.NeedsApproval)
       .exists
 
-  private def reviewQueue(implicit db: JdbcBackend#DatabaseDef): Rep[Boolean] =
+  private def reviewQueue: Rep[Boolean] =
     TableQuery[VersionTable].filter(v => v.isReviewed === false).exists
 
   private val flagQueue: Rep[Boolean] = TableQuery[FlagTable].filter(_.isResolved === false).exists

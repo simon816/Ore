@@ -4,7 +4,6 @@ import com.github.tminglei.slickpg.InetString
 import com.google.common.base.Preconditions._
 
 import controllers.sugar.Requests.ProjectRequest
-import db.impl.ProjectViewsTable
 import db.impl.access.UserBase
 import models.project.Project
 import ore.StatTracker._
@@ -13,6 +12,7 @@ import cats.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
 import controllers.sugar.Requests
+import db.impl.schema.ProjectViewsTable
 import db.{ObjectId, ObjectReference, ObjectTimestamp}
 import security.spauth.SpongeAuthApi
 

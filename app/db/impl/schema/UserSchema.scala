@@ -1,7 +1,6 @@
 package db.impl.schema
 
 import db.impl.OrePostgresDriver.api._
-import db.impl.UserTable
 import db.{ModelSchema, ModelService}
 import models.user.User
 import scala.concurrent.{ExecutionContext, Future}

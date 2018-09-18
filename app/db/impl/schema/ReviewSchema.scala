@@ -1,7 +1,6 @@
 package db.impl.schema
 
 import db.impl.OrePostgresDriver.api._
-import db.impl.ReviewTable
 import db.{ModelSchema, ModelService}
 import models.admin.Review
 

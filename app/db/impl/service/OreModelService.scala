@@ -20,7 +20,6 @@ import scala.concurrent.duration._
 class OreModelService @Inject()(
     override val env: OreEnv,
     override val config: OreConfig,
-    override val messages: MessagesApi,
     db: DatabaseConfigProvider
 ) extends ModelService
     with OreModelConfig {

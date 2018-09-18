@@ -24,7 +24,7 @@ object NotificationFilters extends Enumeration {
       filter: Notification#T => Rep[Boolean]
   ) extends super.Val(i, name) {
 
-    def apply(notifications: ModelAccess[Notification])(implicit ec: ExecutionContext): Future[Seq[Notification]] =
+    def apply(notifications: ModelAccess[Notification]): Future[Seq[Notification]] =
       notifications.filter(this.filter)
 
   }

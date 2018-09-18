@@ -22,8 +22,8 @@ Ore uses the linter built into scalac.
 Note that Ore also has other rules which are not covered by either linter yet listed bellow.
 * All public members should have an explicit type.
 * All implicit values should have an explicit type.
-* **(FUTURE)** When using Kind projector, `λ` should be used over `Lambda`. IntelliJ has an inspection + quick fix that can do this job for you automatically when you use kind projector.
-* **(FUTURE)** All models that are stored in the database should also have a doobie test which tests statements to create, select, update, and delete the model.
+* When using Kind projector, `λ` should be used over `Lambda`. IntelliJ has an inspection + quick fix that can do this job for you automatically when you use kind projector.
+* All models that are stored in the database should also have a doobie test which tests statements to create, select, update, and delete the model.
 
 ## Import formatting
 Imports should be formatted like so.

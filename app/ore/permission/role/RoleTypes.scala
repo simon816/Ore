@@ -1,5 +1,7 @@
 package ore.permission.role
 
+import scala.collection.immutable
+
 import db.impl.OrePostgresDriver
 import db.table.MappedType
 import enumeratum.values.{StringEnum, StringEnumEntry}
@@ -87,6 +89,6 @@ object RoleType extends StringEnum[RoleType] {
   object OrganizationSupport
       extends RoleType("Organization_Support", -8, classOf[OrganizationRole], Default, "Support", Transparent)
 
-  lazy val values = findValues
+  lazy val values: immutable.IndexedSeq[RoleType] = findValues
 
 }

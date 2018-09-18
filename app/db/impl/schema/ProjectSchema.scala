@@ -39,10 +39,10 @@ class ProjectSchema(override val service: ModelService, implicit val users: User
   def searchFilter(query: String): ModelFilter[Project] = {
     val q = '%' + query.toLowerCase + '%'
     ModelFilter[Project] { p =>
-      (p.name.toLowerCase.like(q)) ||
-      (p.description.toLowerCase.like(q)) ||
-      (p.ownerName.toLowerCase.like(q)) ||
-      (p.pluginId.toLowerCase.like(q))
+      p.name.toLowerCase.like(q) ||
+      p.description.toLowerCase.like(q) ||
+      p.ownerName.toLowerCase.like(q) ||
+      p.pluginId.toLowerCase.like(q)
     }
   }
 
@@ -52,8 +52,9 @@ class ProjectSchema(override val service: ModelService, implicit val users: User
     * @param platform Platform to filter
     * @return Model filter
     */
-  def platformFilter(platform: Platform): ModelFilter[Project] = ModelFilter[Project] { project =>
+  def platformFilter(platform: Platform): ModelFilter[Project] = ModelFilter[Project] { _ =>
     // TODO Filtering based on Tags
+    identity(platform)
     true
   }
 
@@ -75,8 +76,11 @@ class ProjectSchema(override val service: ModelService, implicit val users: User
     * @param offset Result set offset
     * @return Projects matching criteria
     */
-  def collect(filter: Project#T => Rep[Boolean], sort: ProjectSortingStrategy, limit: Int, offset: Int)(
-      implicit ec: ExecutionContext
+  def collect(
+      filter: Project#T => Rep[Boolean],
+      sort: ProjectSortingStrategy,
+      limit: Int,
+      offset: Int
   ): Future[Seq[Project]] =
     this.service.collect[Project](this.modelClass, filter, Option(sort).map(_.fn).orNull, limit, offset)
 

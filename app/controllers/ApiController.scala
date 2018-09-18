@@ -7,7 +7,6 @@ import controllers.sugar.Bakery
 import db.{ModelService, ObjectReference}
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
-import db.impl.ProjectApiKeyTable
 import form.OreForms
 import javax.inject.Inject
 
@@ -34,6 +33,8 @@ import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
 import slick.lifted.Compiled
 import scala.concurrent.{ExecutionContext, Future}
 
+import db.impl.schema.ProjectApiKeyTable
+
 /**
   * Ore API (v1)
   */
@@ -52,7 +53,6 @@ final class ApiController @Inject()(
     cache: AsyncCacheApi,
     auth: SpongeAuthApi,
     sso: SingleSignOnConsumer,
-    messagesApi: MessagesApi
 ) extends OreBaseController {
 
   import writes._
@@ -98,51 +98,60 @@ final class ApiController @Inject()(
   }
 
   def createKey(version: String, pluginId: String): Action[AnyContent] =
-    (Action.andThen(AuthedProjectActionById(pluginId)).andThen(ProjectPermissionAction(EditApiKeys))).async {
+    Action.andThen(AuthedProjectActionById(pluginId)).andThen(ProjectPermissionAction(EditApiKeys)).async {
       implicit request =>
-        val projectId = request.data.project.id.value
-        val res = for {
-          keyType <- bindFormOptionT[Future](this.forms.ProjectApiKeyCreate)
-          if keyType == Deployment
-          exists <- OptionT.liftF(this.projectApiKeys.exists(k => k.projectId === projectId && k.keyType === keyType))
-          if !exists
-          pak <- OptionT.liftF(
-            this.projectApiKeys.add(
-              ProjectApiKey(
-                projectId = projectId,
-                keyType = keyType,
-                value = UUID.randomUUID().toString.replace("-", "")
+        version match {
+          case "v1" =>
+            val projectId = request.data.project.id.value
+            val res = for {
+              keyType <- bindFormOptionT[Future](this.forms.ProjectApiKeyCreate)
+              if keyType == Deployment
+              exists <- OptionT
+                .liftF(this.projectApiKeys.exists(k => k.projectId === projectId && k.keyType === keyType))
+              if !exists
+              pak <- OptionT.liftF(
+                this.projectApiKeys.add(
+                  ProjectApiKey(
+                    projectId = projectId,
+                    keyType = keyType,
+                    value = UUID.randomUUID().toString.replace("-", "")
+                  )
+                )
               )
+            } yield Created(Json.toJson(pak))
+            UserActionLogger.log(
+              request.request,
+              LoggedAction.ProjectSettingsChanged,
+              projectId,
+              s"${request.user.name} created a new ApiKey",
+              ""
             )
-          )
-        } yield Created(Json.toJson(pak))
-        UserActionLogger.log(
-          request.request,
-          LoggedAction.ProjectSettingsChanged,
-          projectId,
-          s"${request.user.name} created a new ApiKey",
-          ""
-        )
-        res.getOrElse(BadRequest)
+            res.getOrElse(BadRequest)
+          case _ => Future.successful(NotFound)
+        }
     }
 
   def revokeKey(version: String, pluginId: String): Action[AnyContent] =
     AuthedProjectActionById(pluginId).andThen(ProjectPermissionAction(EditApiKeys)) { implicit request =>
-      val res = for {
-        key <- bindFormOptionT[Id](this.forms.ProjectApiKeyRevoke)
-        if key.projectId == request.data.project.id.value
-      } yield {
-        key.remove()
-        Ok
+      version match {
+        case "v1" =>
+          val res = for {
+            key <- bindFormOptionT[Id](this.forms.ProjectApiKeyRevoke)
+            if key.projectId == request.data.project.id.value
+          } yield {
+            key.remove()
+            Ok
+          }
+          UserActionLogger.log(
+            request.request,
+            LoggedAction.ProjectSettingsChanged,
+            request.data.project.id.value,
+            s"${request.user.name} removed an ApiKey",
+            ""
+          )
+          res.getOrElse(BadRequest)
+        case _ => NotFound
       }
-      UserActionLogger.log(
-        request.request,
-        LoggedAction.ProjectSettingsChanged,
-        request.data.project.id.value,
-        s"${request.user.name} removed an ApiKey",
-        ""
-      )
-      res.getOrElse(BadRequest)
     }
 
   /**
@@ -360,7 +369,7 @@ final class ApiController @Inject()(
     bindFormEitherT[Future](this.forms.SyncSso)(hasErrors => BadRequest(Json.obj("errors" -> hasErrors.errorsAsJson)))
       .ensure(BadRequest("API Key not valid"))(_._3 == confApiKey) //_3 is apiKey
       .ensure(BadRequest("Signature not matched"))(
-        { case (sso, sig, _) => CryptoUtils.hmac_sha256(confSecret, sso.getBytes("UTF-8")) == sig }
+        { case (ssoStr, sig, _) => CryptoUtils.hmac_sha256(confSecret, ssoStr.getBytes("UTF-8")) == sig }
       )
       .map(t => Uri.Query(Base64.getMimeDecoder.decode(t._1))) //_1 is sso
       .semiflatMap { q =>

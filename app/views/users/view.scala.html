@@ -15,7 +15,7 @@
 
 @canEditOrgSettings = @{
     u.isOrga &&
-    o.exists { case (orgData, scopedData) =>
+    o.exists { case (_, scopedData) =>
         scopedData.permissions.getOrElse(EditSettings, false)
     }
 }
@@ -138,7 +138,7 @@
 
                 <!-- Roles -->
                 <ul class="user-roles">
-                    @defining(u.user.globalRoles.toList.sortBy(_.trust).lastOption) { roleOpt =>
+                    @defining(u.user.globalRoles.sortBy(_.trust).lastOption) { roleOpt =>
                         @roleOpt.map { role =>
                             <li class="user-role channel" style="background-color: @role.color.hex">@role.title</li>
                         }

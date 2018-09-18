@@ -74,7 +74,7 @@ trait SingleSignOnConsumer {
   def getVerifyUrl(returnUrl: String, nonce: String): String = getUrl(returnUrl, this.verifyUrl, nonce)
 
   private def getUrl(returnUrl: String, baseUrl: String, nonce: String) = {
-    val payload    = generatePayload(returnUrl, baseUrl, nonce)
+    val payload    = generatePayload(returnUrl, nonce)
     val sig        = generateSignature(payload)
     val urlEncoded = URLEncoder.encode(payload, this.CharEncoding)
     baseUrl + "?sso=" + urlEncoded + "&sig=" + sig
@@ -87,7 +87,7 @@ trait SingleSignOnConsumer {
     * @param baseUrl    Base URL
     * @return           New payload
     */
-  def generatePayload(returnUrl: String, baseUrl: String, nonce: String): String = {
+  def generatePayload(returnUrl: String, nonce: String): String = {
     val payload = "return_sso_url=" + returnUrl + "&nonce=" + nonce
     new String(Base64.getEncoder.encode(payload.getBytes(this.CharEncoding)))
   }

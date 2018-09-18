@@ -14,7 +14,6 @@ Versions page within Project overview.
         versionCount: Int,
         visibleChannels: Seq[String])(implicit messages: Messages, request: OreRequest[_], flash: Flash, config: OreConfig)
 
-@pageSize = @{ config.projects.get[Int]("init-version-load") }
 @projectRoutes = @{ controllers.project.routes.Projects }
 @versionRoutes = @{ controllers.project.routes.Versions }
 @channelRoutes = @{ controllers.project.routes.Channels }

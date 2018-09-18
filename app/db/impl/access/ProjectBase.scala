@@ -8,7 +8,6 @@ import java.util.Date
 import com.google.common.base.Preconditions._
 
 import db.impl.OrePostgresDriver.api._
-import db.impl.{PageTable, ProjectTableMain, VersionTable}
 import db.{ModelBase, ModelService}
 import discourse.OreDiscourseApi
 import models.project.{Channel, Page, Project, Version, VisibilityTypes}
@@ -21,6 +20,7 @@ import cats.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.OptionT
+import db.impl.schema.{PageTable, ProjectTableMain, VersionTable}
 
 class ProjectBase(implicit val service: ModelService, env: OreEnv, config: OreConfig) extends ModelBase[Project] {
 
@@ -58,7 +58,7 @@ class ProjectBase(implicit val service: ModelService, env: OreEnv, config: OreCo
     *
     * @return Stale projects
     */
-  def stale(implicit ec: ExecutionContext): Future[Seq[Project]] =
+  def stale: Future[Seq[Project]] =
     this.filter(_.lastUpdated > new Timestamp(new Date().getTime - this.config.projects.get[Int]("staleAge")))
 
   /**

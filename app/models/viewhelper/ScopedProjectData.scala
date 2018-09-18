@@ -20,7 +20,7 @@ object ScopedProjectData {
   def of(
       currentUser: Option[User],
       project: Project
-  )(implicit ec: ExecutionContext, cache: AsyncCacheApi, service: ModelService): Future[ScopedProjectData] = {
+  )(implicit ec: ExecutionContext, service: ModelService): Future[ScopedProjectData] = {
     currentUser
       .map { user =>
         (

@@ -12,7 +12,6 @@
 
 @orgRoles = @{RoleType.values.filter(r => r.roleClass == classOf[OrganizationRole] && (r.isAssignable || r == RoleType.OrganizationOwner))}
 @projectRoles = @{RoleType.values.filter(r => r.roleClass == classOf[ProjectRole] && (r.isAssignable || r == RoleType.ProjectOwner))}
-@globalRoles = @{RoleType.values.filter(r => r.roleClass == classOf[GlobalRole] && r.isAssignable)}
 
 @panel(title: String, size: Int = 12)(content: Html) = {
     <div class="col-md-@size">

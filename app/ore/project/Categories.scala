@@ -1,5 +1,7 @@
 package ore.project
 
+import scala.language.implicitConversions
+
 import db.impl.OrePostgresDriver
 import db.table.MappedType
 import slick.jdbc.JdbcType
@@ -40,7 +42,7 @@ object Categories extends Enumeration {
       try {
         id = Integer.parseInt(idStr)
       } catch {
-        case nfe: NumberFormatException => ;
+        case _: NumberFormatException => ;
         case e: Exception               => throw e
       }
       if (id >= 0 && id < Categories.values.size) {

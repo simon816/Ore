@@ -13,7 +13,7 @@ import db.access.{ModelAccess, ModelAssociationAccess}
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.model.common.{Describable, Downloadable, Hideable}
-import db.impl.schema.ProjectSchema
+import db.impl.schema.{ProjectMembersTable, ProjectRoleTable, ProjectSchema, ProjectStarsTable, ProjectTable, ProjectWatchersTable}
 import db.{Model, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
 import models.admin.{ProjectLog, ProjectVisibilityChange}
 import models.api.ProjectApiKey
@@ -449,7 +449,7 @@ case class Project(
     *
     * @return Root pages of project
     */
-  def rootPages(implicit ec: ExecutionContext, service: ModelService): Future[Seq[Page]] =
+  def rootPages(implicit service: ModelService): Future[Seq[Page]] =
     service.access[Page](classOf[Page]).sorted(_.name, p => p.projectId === this.id.value && p.parentId === -1L)
 
   def logger(implicit ec: ExecutionContext, service: ModelService): Future[ProjectLog] = {

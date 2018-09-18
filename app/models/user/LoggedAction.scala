@@ -6,11 +6,12 @@ import com.github.tminglei.slickpg.InetString
 
 import controllers.sugar.Requests.AuthRequest
 import db.{Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
-import db.impl.LoggedActionTable
 import enumeratum.values.{IntEnum, IntEnumEntry}
 import ore.StatTracker
 import ore.user.UserOwned
 import scala.concurrent.{ExecutionContext, Future}
+
+import db.impl.schema.LoggedActionTable
 
 case class LoggedActionModel(
     id: ObjectId = ObjectId.Uninitialized,
@@ -133,7 +134,7 @@ object UserActionLogger {
       actionContextId: ObjectReference,
       newState: String,
       oldState: String
-  )(implicit service: ModelService, ex: ExecutionContext): Future[LoggedActionModel] =
+  )(implicit service: ModelService): Future[LoggedActionModel] =
     service.insert(
       LoggedActionModel(
         ObjectId.Uninitialized,

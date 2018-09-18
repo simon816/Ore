@@ -89,7 +89,7 @@ Documentation page within Project overview.
                                     @Page.homeName
                                 </a>
                             </li>
-                            @rootPages.filterNot(_._1.name.equals(Page.homeName)).map { case (pg, children) =>
+                            @rootPages.filter(_._1.name != Page.homeName).map { case (pg, children) =>
                                 <li class="list-group-item">
                                     @if(children.nonEmpty) {
                                         @if(!page.parentId.contains(pg.id.value)) {

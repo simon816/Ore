@@ -12,10 +12,6 @@ import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole}
 import models.user._
 
-package object schema {
-  type ProjectTag = models.project.Tag
-}
-
 trait OreModelConfig extends ModelService with OreDBOs {
 
   val projectWatchers = new ModelAssociation[ProjectWatchersTable](

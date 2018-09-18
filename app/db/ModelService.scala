@@ -110,7 +110,7 @@ trait ModelService {
     * @param action   Action to run
     * @return         Processed result
     */
-  def doAction[R](action: DBIO[R])(implicit ec: ExecutionContext): Future[R] = DB.db.run(action)
+  def doAction[R](action: DBIO[R]): Future[R] = DB.db.run(action)
 
   /**
     * Returns a new ModelAccess to access a ModelTable synchronously.
@@ -129,7 +129,7 @@ trait ModelService {
     * @param model  Model to create
     * @return       Newly created model
     */
-  def insert[M <: Model](model: M)(implicit ec: ExecutionContext): Future[M] = {
+  def insert[M <: Model](model: M): Future[M] = {
     val toInsert = model.copyWith(ObjectId.Uninitialized, ObjectTimestamp(theTime)).asInstanceOf[M]
     val models   = newAction[M](model.getClass)
     doAction {
@@ -243,8 +243,10 @@ trait ModelService {
     * @tparam M         Model type
     * @return           Seq of models in ID set
     */
-  def in[M <: Model](modelClass: Class[M], ids: Set[ObjectReference], filter: M#T => Rep[Boolean] = null)(
-      implicit ec: ExecutionContext
+  def in[M <: Model](
+      modelClass: Class[M],
+      ids: Set[ObjectReference],
+      filter: M#T => Rep[Boolean] = null
   ): Future[Seq[M]] = this.filter[M](modelClass, (ModelFilter[M](_.id.inSetBind(ids)) && filter).fn)
 
   /**
@@ -260,7 +262,7 @@ trait ModelService {
       sort: M#T => ColumnOrdered[_] = null,
       limit: Int = -1,
       offset: Int = -1
-  )(implicit ec: ExecutionContext): Future[Seq[M]] = {
+  ): Future[Seq[M]] = {
     var query = newAction[M](modelClass)
     if (filter != null) query = query.filter(filter)
     if (sort != null) query = query.sortBy(sort)
@@ -278,7 +280,7 @@ trait ModelService {
       sort: M#T => List[ColumnOrdered[_]] = null,
       limit: Int = -1,
       offset: Int = -1
-  )(implicit ec: ExecutionContext): Future[Seq[M]] = {
+  ): Future[Seq[M]] = {
     var query = newAction[M](modelClass)
     if (filter != null) query = query.filter(filter)
     if (sort != null) {
@@ -304,8 +306,11 @@ trait ModelService {
     * @tparam M     Model
     * @return       Filtered models
     */
-  def filter[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean], limit: Int = -1, offset: Int = -1)(
-      implicit ec: ExecutionContext
+  def filter[M <: Model](
+      modelClass: Class[M],
+      filter: M#T => Rep[Boolean],
+      limit: Int = -1,
+      offset: Int = -1
   ): Future[Seq[M]] = collect(modelClass, filter, null.asInstanceOf[M#T => ColumnOrdered[_]], limit, offset)
 
   /**
@@ -324,7 +329,7 @@ trait ModelService {
       filter: M#T => Rep[Boolean] = null,
       limit: Int = -1,
       offset: Int = -1
-  )(implicit ec: ExecutionContext): Future[Seq[M]] = collect(modelClass, filter, sort, limit, offset)
+  ): Future[Seq[M]] = collect(modelClass, filter, sort, limit, offset)
 
   /**
     * Same as sorted but with multiple sorts
@@ -335,6 +340,6 @@ trait ModelService {
       filter: M#T => Rep[Boolean] = null,
       limit: Int = -1,
       offset: Int = -1
-  )(implicit ec: ExecutionContext): Future[Seq[M]] = collectMultipleSorts(modelClass, filter, sorts, limit, offset)
+  ): Future[Seq[M]] = collectMultipleSorts(modelClass, filter, sorts, limit, offset)
 
 }

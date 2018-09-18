@@ -169,6 +169,9 @@ class ModelSchema[M <: Model](
     * @param model  Model to find
     * @return       Model if found
     */
-  def like(model: M)(implicit ec: ExecutionContext): OptionT[Future, M] = OptionT.none[Future, M]
+  def like(model: M)(implicit ec: ExecutionContext): OptionT[Future, M] = {
+    identity(model)
+    OptionT.none[Future, M]
+  }
 
 }

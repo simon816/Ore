@@ -20,9 +20,7 @@ object ScopedOrganizationData {
   def cacheKey(orga: Organization, user: User) = s"""organization${orga.id.value}foruser${user.id.value}"""
 
   def of[A](currentUser: Option[User], orga: Organization)(
-      implicit cache: AsyncCacheApi,
-      db: JdbcBackend#DatabaseDef,
-      ec: ExecutionContext,
+      implicit ec: ExecutionContext,
       service: ModelService
   ): Future[ScopedOrganizationData] = {
     if (currentUser.isEmpty) Future.successful(noScope)
@@ -38,9 +36,7 @@ object ScopedOrganizationData {
   }
 
   def of[A](currentUser: Option[User], orga: Option[Organization])(
-      implicit cache: AsyncCacheApi,
-      db: JdbcBackend#DatabaseDef,
-      ec: ExecutionContext,
+      implicit ec: ExecutionContext,
       service: ModelService
   ): OptionT[Future, ScopedOrganizationData] =
     OptionT.fromOption[Future](orga).semiflatMap(of(currentUser, _))

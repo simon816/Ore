@@ -10,7 +10,7 @@ import play.api.{Configuration, Environment}
 import security.spauth.{SingleSignOnConsumer, SpongeAuth, SpongeAuthApi, SpongeSingleSignOnConsumer}
 
 /** The Ore Module */
-class Module(environment: Environment, configuration: Configuration) extends AbstractModule {
+class Module extends AbstractModule {
 
   def configure(): Unit = {
     bind(classOf[OreRestfulApi]).to(classOf[OreRestfulServer])

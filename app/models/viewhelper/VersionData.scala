@@ -38,9 +38,7 @@ case class VersionData(
 
 object VersionData {
   def of[A](request: ProjectRequest[A], version: Version)(
-      implicit cache: AsyncCacheApi,
-      db: JdbcBackend#DatabaseDef,
-      ec: ExecutionContext,
+      implicit ec: ExecutionContext,
       service: ModelService
   ): Future[VersionData] = {
     val depsFut = Future.sequence(version.dependencies.map(dep => dep.project.value.map((dep, _))))

@@ -11,6 +11,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import discourse.OreDiscourseApi
 
+import cats.syntax.all._
+import cats.instances.future._
+
 /**
   * Represents a Project with an uploaded plugin that has not yet been
   * created.
@@ -43,11 +46,12 @@ case class PendingProject(
     } yield (updatedProject, newVersion._1)
   }
 
-  def cancel()(implicit ec: ExecutionContext, forums: OreDiscourseApi) = {
+  def cancel()(implicit ec: ExecutionContext, forums: OreDiscourseApi): Future[Unit] = {
     free()
     this.file.delete()
     if (this.underlying.isDefined)
-      this.projects.delete(this.underlying)
+      this.projects.delete(this.underlying).as(())
+    else Future.unit
   }
 
   override def key: String = this.underlying.ownerName + '/' + this.underlying.slug

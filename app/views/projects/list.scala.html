@@ -7,7 +7,7 @@ Collection of all projects.
 @import ore.OreConfig
 @import ore.project.Categories
 @import views.html.utils
-@(models: Seq[(Project, User, Version, Seq[Tag])], page: Int, pageSize: Int, call: Int => Call)(implicit messages: Messages, flash: Flash, config: OreConfig)
+@(models: Seq[(Project, User, Version, Seq[Tag])], page: Int, pageSize: Int, call: Int => Call)(implicit config: OreConfig)
 
 @projectRoutes = @{
     controllers.project.routes.Projects

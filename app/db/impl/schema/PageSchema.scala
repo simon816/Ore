@@ -1,7 +1,6 @@
 package db.impl.schema
 
 import db.impl.OrePostgresDriver.api._
-import db.impl.PageTable
 import db.{ModelSchema, ModelService}
 import models.project.Page
 import scala.concurrent.{ExecutionContext, Future}

@@ -21,8 +21,6 @@ sorted according to different criteria.
         sort: ProjectSortingStrategy, platformCategory: Option[PlatformCategory], platform: Option[Platform])(implicit messages: Messages, flash: Flash,
         request: OreRequest[_], config: OreConfig)
 
-@projectRoutes = @{controllers.project.routes.Projects}
-
 @randomSponsor = @{
     val logos: Seq[Configuration] = config.sponge.get[Seq[Configuration]]("sponsors")
 

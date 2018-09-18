@@ -2,13 +2,12 @@ package models.user
 
 import java.sql.Timestamp
 
-import db.impl.SessionTable
 import db.impl.access.UserBase
-
 import scala.concurrent.{ExecutionContext, Future}
 
 import security.spauth.SpongeAuthApi
 import cats.data.OptionT
+import db.impl.schema.SessionTable
 import db.{Expirable, Model, ObjectId, ObjectTimestamp}
 
 /**

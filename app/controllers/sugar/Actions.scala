@@ -220,7 +220,6 @@ trait Actions extends Calls with ActionHelpers {
 
   def oreAction(
       implicit ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef
   ): ActionTransformer[Request, OreRequest] = new ActionTransformer[Request, OreRequest] {
     def executionContext: ExecutionContext = ec
@@ -236,7 +235,6 @@ trait Actions extends Calls with ActionHelpers {
 
   def authAction(
       implicit ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef
   ): ActionRefiner[Request, AuthRequest] = new ActionRefiner[Request, AuthRequest] {
     def executionContext: ExecutionContext = ec
@@ -248,7 +246,6 @@ trait Actions extends Calls with ActionHelpers {
 
   private def maybeAuthRequest[A](request: Request[A], futUser: OptionT[Future, User])(
       implicit ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef
   ): Future[Either[Result, AuthRequest[A]]] =
     futUser
@@ -261,7 +258,6 @@ trait Actions extends Calls with ActionHelpers {
 
   def projectAction(author: String, slug: String)(
       implicit ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef
   ): ActionRefiner[OreRequest, ProjectRequest] = new ActionRefiner[OreRequest, ProjectRequest] {
     def executionContext: ExecutionContext = ec
@@ -272,7 +268,6 @@ trait Actions extends Calls with ActionHelpers {
 
   def projectAction(pluginId: String)(
       implicit ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef
   ): ActionRefiner[OreRequest, ProjectRequest] = new ActionRefiner[OreRequest, ProjectRequest] {
     def executionContext: ExecutionContext = ec
@@ -283,7 +278,6 @@ trait Actions extends Calls with ActionHelpers {
 
   private def maybeProjectRequest[A](r: OreRequest[A], project: OptionT[Future, Project])(
       implicit
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef,
       ec: ExecutionContext
   ): Future[Either[Result, ProjectRequest[A]]] = {
@@ -309,7 +303,6 @@ trait Actions extends Calls with ActionHelpers {
       implicit
       request: OreRequest[_],
       ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef
   ) =
     (ProjectData.of(project), ScopedProjectData.of(request.data.currentUser, project)).mapN(f)
@@ -346,7 +339,6 @@ trait Actions extends Calls with ActionHelpers {
 
   def authedProjectActionImpl(project: OptionT[Future, Project])(
       implicit ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef
   ): ActionRefiner[AuthRequest, AuthedProjectRequest] = new ActionRefiner[AuthRequest, AuthedProjectRequest] {
 
@@ -371,19 +363,16 @@ trait Actions extends Calls with ActionHelpers {
 
   def authedProjectAction(author: String, slug: String)(
       implicit ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef
   ): ActionRefiner[AuthRequest, AuthedProjectRequest] = authedProjectActionImpl(projects.withSlug(author, slug))
 
   def authedProjectActionById(pluginId: String)(
       implicit ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef
   ): ActionRefiner[AuthRequest, AuthedProjectRequest] = authedProjectActionImpl(projects.withPluginId(pluginId))
 
   def organizationAction(organization: String)(
       implicit ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef
   ): ActionRefiner[OreRequest, OrganizationRequest] = new ActionRefiner[OreRequest, OrganizationRequest] {
 
@@ -391,7 +380,7 @@ trait Actions extends Calls with ActionHelpers {
 
     def refine[A](request: OreRequest[A]): Future[Either[Result, OrganizationRequest[A]]] = {
       implicit val r: OreRequest[A] = request
-      getOrga(request, organization).value.flatMap {
+      getOrga(organization).value.flatMap {
         maybeOrgaRequest(_) {
           case (data, scoped) =>
             new OrganizationRequest[A](data, scoped, request)
@@ -402,7 +391,6 @@ trait Actions extends Calls with ActionHelpers {
 
   def authedOrganizationAction(organization: String)(
       implicit ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef
   ): ActionRefiner[AuthRequest, AuthedOrganizationRequest] = new ActionRefiner[AuthRequest, AuthedOrganizationRequest] {
     def executionContext: ExecutionContext = ec
@@ -410,7 +398,7 @@ trait Actions extends Calls with ActionHelpers {
     def refine[A](request: AuthRequest[A]): Future[Either[Result, AuthedOrganizationRequest[A]]] = {
       implicit val r: AuthRequest[A] = request
 
-      getOrga(request, organization).value.flatMap {
+      getOrga(organization).value.flatMap {
         maybeOrgaRequest(_) {
           case (data, scoped) =>
             new AuthedOrganizationRequest[A](data, scoped, request)
@@ -423,32 +411,26 @@ trait Actions extends Calls with ActionHelpers {
   private def maybeOrgaRequest[T](maybeOrga: Option[Organization])(f: (OrganizationData, ScopedOrganizationData) => T)(
       implicit request: OreRequest[_],
       ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef
   ) = {
     maybeOrga match {
       case None => Future.successful(Left(notFound))
-      case Some(orga) => {
-
+      case Some(orga) =>
         MDC.put("currentOrgaId", orga.id.toString)
         MDC.put("currentOrgaName", orga.name)
 
         val rf = Function.untupled(f.tupled.andThen(Right.apply))
         (OrganizationData.of(orga), ScopedOrganizationData.of(request.data.currentUser, orga)).mapN(rf)
-      }
     }
   }
 
-  def getOrga(request: OreRequest[_], organization: String)(
+  def getOrga(organization: String)(
       implicit ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
-      db: JdbcBackend#DatabaseDef
   ): OptionT[Future, Organization] =
     organizations.withName(organization)
 
   def getUserData(request: OreRequest[_], userName: String)(
       implicit ec: ExecutionContext,
-      asyncCacheApi: AsyncCacheApi,
       db: JdbcBackend#DatabaseDef
   ): OptionT[Future, UserData] =
     users.withName(userName).semiflatMap(user => UserData.of(request, user))

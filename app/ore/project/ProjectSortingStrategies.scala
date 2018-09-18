@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import db.ObjectReference
 import db.impl.OrePostgresDriver.api._
-import db.impl.ProjectTable
+import db.impl.schema.ProjectTable
 import models.project.Project
 import slick.lifted.ColumnOrdered
 

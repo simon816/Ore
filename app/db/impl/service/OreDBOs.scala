@@ -11,10 +11,9 @@ trait OreDBOs extends ModelService {
 
   val env: OreEnv
   val config: OreConfig
-  val messages: MessagesApi
 
   val Users         = new UserBase()(this, this.config)
   val Projects      = new ProjectBase()(this, this.env, this.config)
-  val Organizations = new OrganizationBase()(this, this.config, this.messages)
+  val Organizations = new OrganizationBase()(this, this.config)
 
 }

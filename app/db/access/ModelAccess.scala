@@ -88,7 +88,10 @@ class ModelAccess[M <: Model](
     * @param model Model to add
     * @return New model
     */
-  def add(model: M)(implicit ec: ExecutionContext): Future[M] = this.service.insert(model)
+  def add(model: M)(implicit ec: ExecutionContext): Future[M] = {
+    identity(ec)
+    this.service.insert(model)
+  }
 
   /**
     * Updates an existing model.
@@ -131,8 +134,11 @@ class ModelAccess[M <: Model](
     * @param offset   Amount to drop
     * @return         Sorted models
     */
-  def sorted(ordering: M#T => ColumnOrdered[_], filter: M#T => Rep[Boolean] = null, limit: Int = -1, offset: Int = -1)(
-      implicit ec: ExecutionContext
+  def sorted(
+      ordering: M#T => ColumnOrdered[_],
+      filter: M#T => Rep[Boolean] = null,
+      limit: Int = -1,
+      offset: Int = -1
   ): Future[Seq[M]] = this.service.sorted[M](this.modelClass, ordering, (this.baseFilter && filter).fn, limit, offset)
 
   /**
@@ -143,7 +149,7 @@ class ModelAccess[M <: Model](
       filter: M#T => Rep[Boolean] = null,
       limit: Int = -1,
       offset: Int = -1
-  )(implicit ec: ExecutionContext): Future[Seq[M]] =
+  ): Future[Seq[M]] =
     this.service.sortedMultipleOrders[M](this.modelClass, orderings, (this.baseFilter && filter).fn, limit, offset)
 
   /**
@@ -154,9 +160,8 @@ class ModelAccess[M <: Model](
     * @param offset Amount to drop
     * @return       Filtered models
     */
-  def filter(filter: M#T => Rep[Boolean], limit: Int = -1, offset: Int = -1)(
-      implicit ec: ExecutionContext
-  ): Future[Seq[M]] = this.service.filter[M](this.modelClass, (this.baseFilter && filter).fn, limit, offset)
+  def filter(filter: M#T => Rep[Boolean], limit: Int = -1, offset: Int = -1): Future[Seq[M]] =
+    this.service.filter[M](this.modelClass, (this.baseFilter && filter).fn, limit, offset)
 
   /**
     * Filters this set by the opposite of the given function.
@@ -166,9 +171,8 @@ class ModelAccess[M <: Model](
     * @param offset Amount to drop
     * @return       Filtered models
     */
-  def filterNot(filter: M#T => Rep[Boolean], limit: Int = -1, offset: Int = -1)(
-      implicit ec: ExecutionContext
-  ): Future[Seq[M]] = this.filter(!filter(_), limit, offset)
+  def filterNot(filter: M#T => Rep[Boolean], limit: Int = -1, offset: Int = -1): Future[Seq[M]] =
+    this.filter(!filter(_), limit, offset)
 
   /**
     * Counts how many elements in this set fulfill some predicate.

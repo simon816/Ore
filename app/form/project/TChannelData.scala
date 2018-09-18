@@ -45,7 +45,7 @@ trait TChannelData {
       .ensure("A project may only have up to five channels.")(_.size <= config.projects.get[Int]("max-channels"))
       .ensure("A channel with that name already exists.")(_.forall(ch => !ch.name.equalsIgnoreCase(this.channelName)))
       .ensure("A channel with that color already exists.")(_.forall(_.color != this.color))
-      .semiflatMap(_ => this.factory.createChannel(project, this.channelName, this.color, this.nonReviewed))
+      .semiflatMap(_ => this.factory.createChannel(project, this.channelName, this.color))
   }
 
   /**

@@ -47,7 +47,7 @@ trait Mailer extends Runnable {
   /** Pending emails */
   var queue: Seq[Email] = Seq.empty
 
-  var suppressLogger = false
+  val suppressLogger = false
   val Logger         = play.api.Logger("Mailer")
 
   private var session: Session = _

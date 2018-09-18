@@ -4,7 +4,7 @@ import java.sql.Timestamp
 import java.util.{Date, UUID}
 
 import db.impl.OrePostgresDriver.api._
-import db.impl.schema.{ProjectSchema, UserSchema}
+import db.impl.schema.{ProjectSchema, ProjectTableMain, UserSchema, UserTable}
 import db.{ModelBase, ModelService, ObjectId, ObjectTimestamp}
 import models.user.{Session, User}
 import ore.OreConfig
@@ -14,7 +14,6 @@ import security.spauth.SpongeAuthApi
 import util.StringUtils._
 import scala.concurrent.{ExecutionContext, Future}
 
-import db.impl.{ProjectTableMain, UserTable}
 import ore.permission.role
 import ore.permission.role.RoleType
 import cats.data.OptionT
@@ -126,9 +125,7 @@ class UserBase(implicit val service: ModelService, config: OreConfig) extends Mo
   /**
     * Returns a page of [[User]]s that have Ore staff roles.
     */
-  def getStaff(ordering: String = UserOrdering.Role, page: Int = 1)(
-      implicit ec: ExecutionContext
-  ): Future[Seq[User]] = {
+  def getStaff(ordering: String = UserOrdering.Role, page: Int = 1): Future[Seq[User]] = {
     // determine ordering
     val (sort, reverse)            = if (ordering.startsWith("-")) (ordering.substring(1), false) else (ordering, true)
     val staffRoles: List[RoleType] = List(RoleType.OreAdmin, RoleType.OreMod)

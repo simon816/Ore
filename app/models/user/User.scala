@@ -28,6 +28,7 @@ import cats.syntax.all._
 import cats.data.OptionT
 import scala.concurrent.{ExecutionContext, Future}
 
+import db.impl.schema.{OrganizationMembersTable, OrganizationRoleTable, OrganizationTable, ProjectMembersTable, ProjectStarsTable, ProjectWatchersTable, UserTable}
 import play.api.i18n.Lang
 
 /**
@@ -110,8 +111,6 @@ case class User(
       .sortBy(_.rank)
       .headOption
 
-  private def biggestRole(roles: Set[Role]): Trust = biggestRoleTpe(roles.map(_.roleType))
-
   private def biggestRoleTpe(roles: Set[RoleType]): Trust =
     if (roles.isEmpty) Default
     else roles.map(_.trust).max
@@ -171,7 +170,7 @@ case class User(
     */
   def starred(
       page: Int = -1
-  )(implicit ec: ExecutionContext, config: OreConfig, service: ModelService): Future[Seq[Project]] = Defined {
+  )(implicit config: OreConfig, service: ModelService): Future[Seq[Project]] = Defined {
     val starsPerPage = config.users.get[Int]("stars-per-page")
     val limit        = if (page < 1) -1 else starsPerPage
     val offset       = (page - 1) * starsPerPage
@@ -206,7 +205,7 @@ case class User(
     *
     * @param user Sponge User
     */
-  def copyFromSponge(user: SpongeUser)(implicit config: OreConfig): User = {
+  def copyFromSponge(user: SpongeUser): User = {
     copy(
       id = ObjectId(user.id),
       name = user.username,
@@ -375,6 +374,6 @@ object User {
     * @param toConvert User to convert
     * @return Ore user
     */
-  def fromSponge(toConvert: SpongeUser)(implicit config: OreConfig): User =
+  def fromSponge(toConvert: SpongeUser): User =
     User().copyFromSponge(toConvert)
 }

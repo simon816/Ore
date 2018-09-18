@@ -27,9 +27,7 @@ class ErrorHandler @Inject()(
     with I18nSupport {
 
   override def onProdServerError(request: RequestHeader, exception: UsefulException): Future[Result] = {
-    implicit val session: Session           = request.session
     implicit val requestImpl: RequestHeader = request
-    implicit val headerData: HeaderData     = HeaderData() // Empty HeaderData on error
 
     Future.successful {
       if (exception.cause.isInstanceOf[TimeoutException])
@@ -40,9 +38,7 @@ class ErrorHandler @Inject()(
   }
 
   override def onNotFound(request: RequestHeader, message: String): Future[Result] = {
-    implicit val session: Session           = request.session
     implicit val requestImpl: RequestHeader = request
-    implicit val headerData: HeaderData     = HeaderData() // Empty HeaderData on error
 
     Future.successful(NotFound(views.html.errors.notFound()))
   }

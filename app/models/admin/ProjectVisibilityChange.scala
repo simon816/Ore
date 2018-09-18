@@ -3,13 +3,11 @@ package models.admin
 import java.sql.Timestamp
 
 import db.ObjectReference
-
 import db.{Model, ObjectId, ObjectTimestamp}
 import models.project.Page
 import play.twirl.api.Html
-
-import db.impl.ProjectVisibilityChangeTable
 import db.impl.model.common.VisibilityChange
+import db.impl.schema.ProjectVisibilityChangeTable
 import ore.OreConfig
 
 case class ProjectVisibilityChange(

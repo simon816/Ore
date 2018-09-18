@@ -3,8 +3,8 @@ package models.admin
 import java.sql.Timestamp
 
 import db.{Model, ObjectId, ObjectReference, ObjectTimestamp}
-import db.impl.VersionVisibilityChangeTable
 import db.impl.model.common.VisibilityChange
+import db.impl.schema.VersionVisibilityChangeTable
 import models.project.Page
 import ore.OreConfig
 import play.twirl.api.Html

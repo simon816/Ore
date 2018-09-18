@@ -3,9 +3,8 @@ package models.admin
 import com.github.tminglei.slickpg.InetString
 
 import db.ObjectReference
-
+import db.impl.schema.LoggedActionViewTable
 import db.{Model, ObjectId, ObjectTimestamp}
-import db.impl.LoggedActionViewTable
 import models.user.{LoggedAction, LoggedActionContext}
 import ore.user.UserOwned
 

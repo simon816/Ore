@@ -1,12 +1,10 @@
 package models.user.role
-
-import db.impl.RoleTable
 import ore.Visitable
 import ore.permission.role.Role
 import ore.permission.role.RoleType
-
 import scala.concurrent.{ExecutionContext, Future}
 
+import db.impl.schema.RoleTable
 import db.{Model, ModelService}
 
 /**

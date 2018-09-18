@@ -18,8 +18,7 @@ import com.vladsch.flexmark.util.options.MutableDataSet
 
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
-import db.impl.PageTable
-import db.impl.schema.PageSchema
+import db.impl.schema.{PageSchema, PageTable}
 import db.{Model, ModelFilter, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
 import ore.OreConfig
 import ore.permission.scope.ProjectScope

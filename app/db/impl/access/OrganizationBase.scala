@@ -15,7 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.{EitherT, NonEmptyList, OptionT}
 
-class OrganizationBase(implicit val service: ModelService, config: OreConfig, messages: MessagesApi)
+class OrganizationBase(implicit val service: ModelService, config: OreConfig)
     extends ModelBase[Organization] {
 
   override val modelClass: Class[Organization] = classOf[Organization]
@@ -34,7 +34,7 @@ class OrganizationBase(implicit val service: ModelService, config: OreConfig, me
       name: String,
       ownerId: ObjectReference,
       members: Set[OrganizationRole]
-  )(implicit cache: AsyncCacheApi, ec: ExecutionContext, auth: SpongeAuthApi): EitherT[Future, String, Organization] = {
+  )(implicit ec: ExecutionContext, auth: SpongeAuthApi): EitherT[Future, String, Organization] = {
     Logger.debug("Creating Organization...")
     Logger.debug("Name     : " + name)
     Logger.debug("Owner ID : " + ownerId)
@@ -46,7 +46,7 @@ class OrganizationBase(implicit val service: ModelService, config: OreConfig, me
     // By default we use "<org>@ore.spongepowered.org".
     Logger.debug("Creating on SpongeAuth...")
     val dummyEmail   = name + '@' + this.config.orgs.get[String]("dummyEmailDomain")
-    val spongeResult = auth.createDummyUser(name, dummyEmail, verified = true)
+    val spongeResult = auth.createDummyUser(name, dummyEmail)
 
     // Check for error
     spongeResult

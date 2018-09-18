@@ -2,9 +2,8 @@ package models.admin
 
 import java.sql.Timestamp
 
+import db.impl.schema.ProjectLogEntryTable
 import db.{Model, ObjectId, ObjectReference, ObjectTimestamp}
-import db.impl.ProjectLogEntryTable
-
 /**
   * Represents an entry in a [[ProjectLog]].
   *

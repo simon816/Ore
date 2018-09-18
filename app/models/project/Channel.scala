@@ -1,8 +1,8 @@
 package models.project
 
 import db.access.ModelAccess
+import db.impl.schema.ChannelTable
 import db.{Model, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
-import db.impl.ChannelTable
 import ore.Colors._
 import ore.permission.scope.ProjectScope
 

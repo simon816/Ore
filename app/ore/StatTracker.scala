@@ -38,9 +38,7 @@ trait StatTracker {
     * @param request Request to view the project
     */
   def projectViewed(projectRequest: ProjectRequest[_])(f: ProjectRequest[_] => Result)(
-      implicit cache: AsyncCacheApi,
-      request: OreRequest[_],
-      ec: ExecutionContext,
+      implicit ec: ExecutionContext,
       auth: SpongeAuthApi
   ): Future[Result] = {
     ProjectView.bindFromRequest(projectRequest).flatMap { statEntry =>
@@ -63,8 +61,7 @@ trait StatTracker {
     * @param request Request to download the version
     */
   def versionDownloaded(version: Version)(f: ProjectRequest[_] => Result)(
-      implicit cache: AsyncCacheApi,
-      request: ProjectRequest[_],
+      implicit request: ProjectRequest[_],
       ec: ExecutionContext,
       auth: SpongeAuthApi
   ): Future[Result] = {

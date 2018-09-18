@@ -22,6 +22,7 @@ import util.StringUtils._
 import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.NonEmptyList
+import db.impl.schema.{NotificationTable, ProjectMembersTable, ProjectRoleTable, ProjectSettingsTable, UserTable}
 import db.{Model, ModelService}
 import ore.user.MembershipDossier
 import db.{ObjectId, ObjectReference, ObjectTimestamp}
@@ -62,9 +63,7 @@ case class ProjectSettings(
     */
   //noinspection ComparingUnrelatedTypes
   def save(project: Project, formData: ProjectSettingsForm)(
-      implicit cache: AsyncCacheApi,
-      messages: MessagesApi,
-      fileManager: ProjectFiles,
+      implicit fileManager: ProjectFiles,
       ec: ExecutionContext,
       service: ModelService
   ): Future[(Project, ProjectSettings)] = {

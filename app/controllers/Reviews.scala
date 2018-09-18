@@ -31,15 +31,16 @@ import cats.syntax.all._
 import cats.data.{EitherT, NonEmptyList}
 import scala.concurrent.{ExecutionContext, Future}
 
+import db.impl.schema.{NotificationTable, OrganizationMembersTable, OrganizationRoleTable, OrganizationTable, UserTable}
+
 /**
   * Controller for handling Review related actions.
   */
-final class Reviews @Inject()(data: DataHelper, forms: OreForms)(
+final class Reviews @Inject()(forms: OreForms)(
     implicit val ec: ExecutionContext,
     bakery: Bakery,
     auth: SpongeAuthApi,
     sso: SingleSignOnConsumer,
-    messagesApi: MessagesApi,
     env: OreEnv,
     cache: AsyncCacheApi,
     config: OreConfig,
@@ -68,7 +69,7 @@ final class Reviews @Inject()(data: DataHelper, forms: OreForms)(
     }
 
   def createReview(author: String, slug: String, versionString: String): Action[AnyContent] = {
-    (Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects))).async { implicit request =>
+    Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       getProjectVersion(author, slug, versionString).map { version =>
         val review = new Review(
           ObjectId.Uninitialized,
@@ -85,7 +86,7 @@ final class Reviews @Inject()(data: DataHelper, forms: OreForms)(
   }
 
   def reopenReview(author: String, slug: String, versionString: String): Action[AnyContent] = {
-    (Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects))).async { implicit request =>
+    Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       val res = for {
         version <- getProjectVersion(author, slug, versionString)
         review  <- EitherT.fromOptionF(version.mostRecentReviews.map(_.headOption), notFound)
@@ -127,7 +128,7 @@ final class Reviews @Inject()(data: DataHelper, forms: OreForms)(
   }
 
   def approveReview(author: String, slug: String, versionString: String): Action[AnyContent] = {
-    (Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects))).async { implicit request =>
+    Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       val ret = for {
         project <- getProject(author, slug)
         version <- getVersion(project, versionString)

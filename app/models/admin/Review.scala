@@ -3,8 +3,7 @@ package models.admin
 import java.sql.Timestamp
 
 import db.{Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
-import db.impl.ReviewTable
-import db.impl.schema.ReviewSchema
+import db.impl.schema.{ReviewSchema, ReviewTable}
 import models.project.{Page, Project, Version}
 import ore.OreConfig
 import play.api.libs.functional.syntax._

@@ -1,32 +1,22 @@
-package db.impl
+package db.impl.schema
 
 import java.sql.Timestamp
 
 import com.github.tminglei.slickpg.InetString
 
 import cats.data.NonEmptyList
-import db.{ObjectId, ObjectReference, ObjectTimestamp}
 import db.impl.OrePostgresDriver.api._
-import db.impl.schema._
 import db.impl.table.StatTable
 import db.impl.table.common.{DescriptionColumn, DownloadsColumn, VisibilityChangeColumns, VisibilityColumn}
 import db.table.{AssociativeTable, ModelTable, NameColumn}
+import db.{ObjectId, ObjectReference}
 import models.admin._
 import models.api.ProjectApiKey
 import models.project.TagColors.TagColor
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
-import models.user.{
-  LoggedAction,
-  LoggedActionContext,
-  LoggedActionModel,
-  Notification,
-  Organization,
-  SignOn,
-  User,
-  Session => DbSession
-}
+import models.user.{LoggedAction, LoggedActionContext, LoggedActionModel, Notification, Organization, SignOn, User, Session => DbSession}
 import ore.Colors.Color
 import ore.permission.role.RoleType
 import ore.project.Categories.Category
@@ -36,60 +26,12 @@ import ore.rest.ProjectApiKeyTypes.ProjectApiKeyType
 import ore.user.Prompts.Prompt
 import ore.user.notification.NotificationTypes.NotificationType
 import play.api.i18n.Lang
-import shapeless._
-import nat._
-import syntax.std.function._
-import syntax.std.tuple._
-import ops.function._
-import ops.hlist._
 
 /*
  * Database schema definitions. Changes must be first applied as an evolutions
  * SQL script in "conf/evolutions/default", then here, then in the associated
  * model.
  */
-
-// Alias Slick's Tag type because we have our own Tag type
-package object schema {
-  type RowTag     = slick.lifted.Tag
-  type ProjectTag = models.project.Tag
-
-  def convertApply[F, Rest <: HList, R](f: F)(
-      implicit toHList: FnToProduct.Aux[F, ObjectId :: ObjectTimestamp :: Rest => R],
-      fromHList: FnFromProduct[Option[ObjectReference] :: Option[Timestamp] :: Rest => R]
-  ): fromHList.Out = {
-    val objHListFun: ObjectId :: ObjectTimestamp :: Rest => R = toHList(f)
-    val optHListFun: Option[ObjectReference] :: Option[Timestamp] :: Rest => R = {
-      case id :: time :: rest =>
-        objHListFun(ObjectId.unsafeFromOption(id) :: ObjectTimestamp.unsafeFromOption(time) :: rest)
-    }
-    val normalFun: fromHList.Out = fromHList.apply(optHListFun)
-
-    normalFun
-  }
-
-  def convertUnapply[P <: Product, A, Repr <: HList, Rest <: HList](f: A => Option[P])(
-      implicit
-      fromTuple: Generic.Aux[P, Repr],
-      at0: At.Aux[Repr, _0, ObjectId],
-      at1: At.Aux[Repr, _1, ObjectTimestamp],
-      drop2: Drop.Aux[Repr, _2, Rest],
-      toTuple: Tupler[Option[ObjectReference] :: Option[Timestamp] :: Rest]
-  ): A => Option[toTuple.Out] = a => {
-    val optProd: Option[P] = f(a)
-    val mappedOptProd: Option[toTuple.Out] = optProd.map { prod =>
-      val repr: Repr            = fromTuple.to(prod)
-      val id: ObjectId          = at0(repr)
-      val time: ObjectTimestamp = at1(repr)
-      val rest: Rest            = drop2(repr)
-      val newGen
-        : Option[ObjectReference] :: Option[Timestamp] :: Rest = id.unsafeToOption :: time.unsafeToOption :: rest
-      toTuple(newGen)
-    }
-
-    mappedOptProd
-  }
-}
 
 trait ProjectTable
     extends ModelTable[Project]

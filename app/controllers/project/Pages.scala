@@ -21,10 +21,9 @@ import views.html.projects.{pages => views}
 import cats.instances.future._
 import cats.syntax.all._
 import cats.data.OptionT
-
-import db.impl.PageTable
 import scala.concurrent.{ExecutionContext, Future}
 
+import db.impl.schema.PageTable
 import play.api.mvc.{Action, AnyContent}
 import play.utils.UriEncoding
 
@@ -36,7 +35,6 @@ class Pages @Inject()(forms: OreForms, stats: StatTracker)(
     bakery: Bakery,
     cache: AsyncCacheApi,
     sso: SingleSignOnConsumer,
-    messagesApi: MessagesApi,
     env: OreEnv,
     config: OreConfig,
     service: ModelService,

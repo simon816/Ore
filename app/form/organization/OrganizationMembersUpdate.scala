@@ -10,7 +10,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.NonEmptyList
 import db.{ModelService, ObjectReference}
-import db.impl.{OrganizationMembersTable, OrganizationRoleTable}
+import db.impl.schema.{OrganizationMembersTable, OrganizationRoleTable}
 import ore.OreConfig
 import ore.organization.OrganizationMember
 import ore.user.MembershipDossier
@@ -32,9 +32,7 @@ case class OrganizationMembersUpdate(
 
   //noinspection ComparingUnrelatedTypes
   def saveTo(organization: Organization)(
-      implicit cache: AsyncCacheApi,
-      ex: ExecutionContext,
-      messages: MessagesApi,
+      implicit ex: ExecutionContext,
       service: ModelService,
       config: OreConfig
   ): Unit = {

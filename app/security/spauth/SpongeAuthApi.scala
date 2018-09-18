@@ -52,9 +52,9 @@ trait SpongeAuthApi {
     * @param verified True if should bypass email verification
     * @return         Newly created user
     */
-  def createUser(username: String, email: String, password: String, verified: Boolean = false)(
+  def createUser(username: String, email: String, password: String)(
       implicit ec: ExecutionContext
-  ): EitherT[Future, String, SpongeUser] = doCreateUser(username, email, password, verified)
+  ): EitherT[Future, String, SpongeUser] = doCreateUser(username, email, password)
 
   /**
     * Creates a "dummy" user that cannot log in and has no password.
@@ -64,15 +64,14 @@ trait SpongeAuthApi {
     * @param verified True if should bypass email verification
     * @return         Newly created user
     */
-  def createDummyUser(username: String, email: String, verified: Boolean = false)(
+  def createDummyUser(username: String, email: String)(
       implicit ec: ExecutionContext
-  ): EitherT[Future, String, SpongeUser] = doCreateUser(username, email, null, verified, dummy = true)
+  ): EitherT[Future, String, SpongeUser] = doCreateUser(username, email, null, dummy = true)
 
   private def doCreateUser(
       username: String,
       email: String,
       password: String,
-      verified: Boolean = false,
       dummy: Boolean = false
   )(implicit ec: ExecutionContext): EitherT[Future, String, SpongeUser] = {
     checkNotNull(username, "null username", "")
@@ -81,7 +80,7 @@ trait SpongeAuthApi {
       "api-key"  -> Seq(this.apiKey),
       "username" -> Seq(username),
       "email"    -> Seq(email),
-      "verified" -> Seq(verified.toString),
+      "verified" -> Seq(false.toString),
       "dummy"    -> Seq(dummy.toString)
     )
     if (password != null)
@@ -113,7 +112,7 @@ trait SpongeAuthApi {
     readUser(this.ws.url(url).withRequestTimeout(timeout).delete())
   }
 
-  private def readUser(response: Future[WSResponse], nullable: Boolean = false)(
+  private def readUser(response: Future[WSResponse])(
       implicit ec: ExecutionContext
   ): EitherT[Future, String, SpongeUser] = {
     EitherT(
@@ -127,7 +126,7 @@ trait SpongeAuthApi {
         }
         .getOrElse(Left("error.spongeauth.parse"))
         .recover {
-          case toe: TimeoutException =>
+          case _: TimeoutException =>
             Left("error.spongeauth.connect")
           case e =>
             Logger.error("An unexpected error occured while handling a response", e)

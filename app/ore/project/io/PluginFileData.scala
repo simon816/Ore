@@ -18,7 +18,7 @@ import db.ObjectId
   */
 class PluginFileData(data: Seq[DataValue[_]]) {
 
-  val dataValues = data
+  private val dataValues = data
     .groupBy(_.key)
     .flatMap {
       case (key, value) =>

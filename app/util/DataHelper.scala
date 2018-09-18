@@ -20,12 +20,10 @@ import scala.concurrent.{ExecutionContext, Future}
   * Typically for testing.
   */
 final class DataHelper @Inject()(
-    implicit config: OreConfig,
-    statusZ: StatusZ,
+    implicit statusZ: StatusZ,
     service: ModelService,
     factory: ProjectFactory,
-    forums: OreDiscourseApi,
-    cacheApi: SyncCacheApi
+    forums: OreDiscourseApi
 ) {
 
   private val projects                       = ProjectBase.fromService(service)
@@ -81,7 +79,7 @@ final class DataHelper @Inject()(
       Logger.info(Math.ceil(i.toDouble / users.toDouble * 100D).toInt.toString + "%")
       this.users.add(User(id = ObjectId(i), name = s"User-$i")).map { user =>
         // Create some projects
-        for (j <- 0 until projects) {
+        for (_ <- 0 until projects) {
           val pluginId = s"plugin$projectNum"
           this.projects
             .add(

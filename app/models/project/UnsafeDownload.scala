@@ -2,8 +2,8 @@ package models.project
 
 import com.github.tminglei.slickpg.InetString
 
+import db.impl.schema.UnsafeDownloadsTable
 import db.{Model, ObjectId, ObjectReference, ObjectTimestamp}
-import db.impl.UnsafeDownloadsTable
 import ore.project.io.DownloadTypes.DownloadType
 
 /**

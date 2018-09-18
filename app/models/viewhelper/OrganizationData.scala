@@ -15,6 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import slick.lifted.TableQuery
 import cats.data.OptionT
 import cats.instances.future._
+import db.impl.schema.{ProjectRoleTable, ProjectTableMain}
 
 case class OrganizationData(
     joinable: Organization,
@@ -33,8 +34,7 @@ object OrganizationData {
   def cacheKey(orga: Organization): String = "organization" + orga.id.value
 
   def of[A](orga: Organization)(
-      implicit cache: AsyncCacheApi,
-      db: JdbcBackend#DatabaseDef,
+      implicit db: JdbcBackend#DatabaseDef,
       ec: ExecutionContext,
       service: ModelService
   ): Future[OrganizationData] = {
@@ -62,8 +62,7 @@ object OrganizationData {
   }
 
   def of[A](orga: Option[Organization])(
-      implicit cache: AsyncCacheApi,
-      db: JdbcBackend#DatabaseDef,
+      implicit db: JdbcBackend#DatabaseDef,
       ec: ExecutionContext,
       service: ModelService
   ): OptionT[Future, OrganizationData] =

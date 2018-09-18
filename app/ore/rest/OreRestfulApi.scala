@@ -6,7 +6,7 @@ import db.{ModelService, ObjectReference}
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.access.ProjectBase
-import db.impl.schema.{ProjectSchema, ProjectTag}
+import db.impl.schema.{ChannelTable, ProjectRoleTable, ProjectSchema, ProjectStarsTable, ProjectTableMain, ProjectTag, TagTable, UserTable, VersionTable}
 import javax.inject.Inject
 
 import models.project._
@@ -52,7 +52,6 @@ trait OreRestfulApi {
       limit: Option[Int],
       offset: Option[Int]
   )(implicit ec: ExecutionContext): Future[JsValue] = {
-    val queries                     = this.service.getSchema(classOf[ProjectSchema])
     val cats: Option[Seq[Category]] = categories.map(Categories.fromString).map(_.toSeq)
     val ordering                    = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
 
@@ -61,12 +60,12 @@ trait OreRestfulApi {
 
     def filteredProjects(offset: Option[Int], lim: Int) = {
       val query = queryProjectRV.filter {
-        case (p, v, c) =>
+        case (p, _, _) =>
           val query = "%" + q.map(_.toLowerCase).getOrElse("") + "%"
-          (p.name.toLowerCase.like(query)) ||
-          (p.description.toLowerCase.like(query)) ||
-          (p.ownerName.toLowerCase.like(query)) ||
-          (p.pluginId.toLowerCase.like(query))
+          p.name.toLowerCase.like(query) ||
+          p.description.toLowerCase.like(query) ||
+          p.ownerName.toLowerCase.like(query) ||
+          p.pluginId.toLowerCase.like(query)
       }
       //categories.map(_.toSeq).map { cats =>
       val filtered = cats
@@ -205,7 +204,7 @@ trait OreRestfulApi {
     val tableTags    = TableQuery[TagTable]
     val tableVersion = TableQuery[VersionTable]
     for {
-      v <- tableVersion if (v.id.inSetBind(versions)) && v.visibility === VisibilityTypes.Public
+      v <- tableVersion if v.id.inSetBind(versions) && v.visibility === VisibilityTypes.Public
       t <- tableTags if t.id === v.tagIds.any
     } yield {
       (v.id, t)
@@ -233,7 +232,7 @@ trait OreRestfulApi {
     */
   def getProject(pluginId: String)(implicit ec: ExecutionContext): Future[Option[JsValue]] = {
     val query = queryProjectRV.filter {
-      case (p, v, c) => p.pluginId === pluginId
+      case (p, _, _) => p.pluginId === pluginId
     }
     for {
       project <- service.DB.db.run(query.result.headOption)
@@ -262,14 +261,14 @@ trait OreRestfulApi {
     val filtered = channels
       .map { chan =>
         queryVersions(onlyPublic).filter {
-          case (p, v, vId, c, uName) =>
+          case (_, _, _, c, _) =>
             // Only allow versions in the specified channels or all if none specified
             c.name.toLowerCase.inSetBind(chan.toLowerCase.split(","))
         }
       }
       .getOrElse(queryVersions(onlyPublic))
       .filter {
-        case (p, v, vId, c, uName) =>
+        case (p, _, _, _, _) =>
           p.pluginId.toLowerCase === pluginId.toLowerCase
       }
       .sortBy {
@@ -306,7 +305,7 @@ trait OreRestfulApi {
   def getVersion(pluginId: String, name: String)(implicit ec: ExecutionContext): Future[Option[JsValue]] = {
 
     val filtered = queryVersions().filter {
-      case (p, v, vId, c, uName) =>
+      case (p, v, _, _, _) =>
         p.pluginId.toLowerCase === pluginId.toLowerCase &&
           v.versionString.toLowerCase === name.toLowerCase
     }
@@ -410,7 +409,7 @@ trait OreRestfulApi {
     implicit def config: OreConfig = this.config
 
     val query = queryProjectRV.filter {
-      case (p, v, c) => p.userId.inSetBind(userList.map(_.id.value)) // query all projects with given users
+      case (p, _, _) => p.userId.inSetBind(userList.map(_.id.value)) // query all projects with given users
     }
 
     for {

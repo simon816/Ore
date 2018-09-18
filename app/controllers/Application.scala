@@ -8,7 +8,7 @@ import controllers.sugar.Requests.AuthRequest
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl._
-import db.impl.schema.ProjectSchema
+import db.impl.schema.{ChannelTable, LoggedActionViewTable, ProjectSchema, ProjectTableMain, ReviewTable, TagTable, UserTable, VersionTable}
 import db.{ModelFilter, ModelService, ObjectReference}
 import form.OreForms
 import javax.inject.Inject
@@ -39,12 +39,11 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * Main entry point for application.
   */
-final class Application @Inject()(data: DataHelper, forms: OreForms)(
+final class Application @Inject()(dataHelper: DataHelper, forms: OreForms)(
     implicit val ec: ExecutionContext,
     auth: SpongeAuthApi,
     bakery: Bakery,
     sso: SingleSignOnConsumer,
-    messagesApi: MessagesApi,
     env: OreEnv,
     config: OreConfig,
     cache: AsyncCacheApi,
@@ -59,7 +58,6 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
     * @return External link page
     */
   def linkOut(remoteUrl: String) = OreAction { implicit request =>
-    implicit val headerData: HeaderData = request.data
     Ok(views.linkout(remoteUrl))
   }
 
@@ -105,8 +103,8 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
     val q                           = query.fold("%")(qStr => s"%${qStr.toLowerCase}%")
 
     val pageSize = this.config.projects.get[Int]("init-load")
-    val p        = page.getOrElse(1)
-    val offset   = (p - 1) * pageSize
+    val pageNum  = page.getOrElse(1)
+    val offset   = (pageNum - 1) * pageSize
 
     val versionIdsOnPlatform =
       TableQuery[TagTable].filter(_.name.toLowerCase.inSetBind(platformNames)).map(_.versionIds.unnest)
@@ -145,23 +143,18 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
     queryProjects.map { data =>
       val catList =
         if (categoryList.isEmpty || Categories.visible.toSet.equals(categoryList.toSet)) None else Some(categoryList)
-      Ok(views.home(data, catList, query.find(_.nonEmpty), p, ordering, pcat, pform))
+      Ok(views.home(data, catList, query.find(_.nonEmpty), pageNum, ordering, pcat, pform))
     }
   }
-
-  def showQueue(): Action[AnyContent] = showQueueWithPage(0)
 
   /**
     * Shows the moderation queue for unreviewed versions.
     *
     * @return View of unreviewed versions.
     */
-  def showQueueWithPage(page: Int): Action[AnyContent] =
+  def showQueue(): Action[AnyContent] =
     Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       // TODO: Pages
-      val limit  = 50
-      val offset = page * limit
-
       val data = this.service.DB.db
         .run(queryQueue.result)
         .flatMap { list =>
@@ -262,7 +255,7 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
       })
     } yield {
       val data = flags.zip(users).zip(projects).zip(perms).map {
-        case ((((flag, user), project), perm)) =>
+        case (((flag, user), project), perm) =>
           (flag, user, project, perm)
       }
       Ok(views.users.admin.flags(data))
@@ -298,7 +291,7 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
         .getOrElse(NotFound)
   }
 
-  def showHealth(): Action[AnyContent] = (Authenticated.andThen(PermissionAction[AuthRequest](ViewHealth))).async {
+  def showHealth(): Action[AnyContent] = Authenticated.andThen(PermissionAction[AuthRequest](ViewHealth)).async {
     implicit request =>
       (
         projects.filter(p => p.topicId === -1 || p.postId === -1),
@@ -328,7 +321,7 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
     */
   def reset(): Action[AnyContent] = Authenticated.andThen(PermissionAction[AuthRequest](ResetOre)) { implicit request =>
     this.config.checkDebug()
-    this.data.reset()
+    this.dataHelper.reset()
     cache.removeAll()
     Redirect(ShowHome).withNewSession
   }
@@ -341,7 +334,7 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
   def seed(users: Long, projects: Int, versions: Int, channels: Int): Action[AnyContent] = {
     Authenticated.andThen(PermissionAction[AuthRequest](SeedOre)) { implicit request =>
       this.config.checkDebug()
-      this.data.seed(users, projects, versions, channels)
+      this.dataHelper.seed(users, projects, versions, channels)
       cache.removeAll()
       Redirect(ShowHome).withNewSession
     }
@@ -354,7 +347,7 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
     */
   def migrate(): Action[AnyContent] = Authenticated.andThen(PermissionAction[AuthRequest](MigrateOre)) {
     implicit request =>
-      this.data.migrate()
+      this.dataHelper.migrate()
       Redirect(ShowHome)
   }
 
@@ -362,7 +355,7 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
     * Show the activities page for a user
     */
   def showActivities(user: String): Action[AnyContent] =
-    (Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects))).async { implicit request =>
+    Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       users
         .withName(user)
         .semiflatMap { u =>
@@ -472,19 +465,15 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
     val default = LiteralColumn(true)
 
     val logQuery = queryLog
-      .filter {
-        case (action) =>
-          (action.userId === userFilter).getOrElse(default) &&
-            (action.filterProject === projectFilter).getOrElse(default) &&
-            (action.filterVersion === versionFilter).getOrElse(default) &&
-            (action.filterPage === pageFilter).getOrElse(default) &&
-            (action.filterAction === actionFilter).getOrElse(default) &&
-            (action.filterSubject === subjectFilter).getOrElse(default)
+      .filter { action =>
+        (action.userId === userFilter).getOrElse(default) &&
+        (action.filterProject === projectFilter).getOrElse(default) &&
+        (action.filterVersion === versionFilter).getOrElse(default) &&
+        (action.filterPage === pageFilter).getOrElse(default) &&
+        (action.filterAction === actionFilter).getOrElse(default) &&
+        (action.filterSubject === subjectFilter).getOrElse(default)
       }
-      .sortBy {
-        case (action) =>
-          action.id.desc
-      }
+      .sortBy(_.id.desc)
       .drop(offset)
       .take(pageSize)
 
@@ -516,9 +505,9 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
     val tableLoggedAction = TableQuery[LoggedActionViewTable]
 
     for {
-      (action) <- tableLoggedAction
+      action <- tableLoggedAction
     } yield {
-      (action)
+      action
     }
   }
 
@@ -533,15 +522,14 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
           isOrga <- u.toMaybeOrganization.isDefined
           (projectRoles, orga) <- {
             if (isOrga)
-              (Future.successful(Seq.empty), getOrga(request, user).value).tupled
+              (Future.successful(Seq.empty), getOrga(user).value).tupled
             else
               (u.projectRoles.all, Future.successful(None)).tupled
           }
-          (userData, projects, orgaData, scopedOrgaData) <- (
+          (userData, projects, orgaData) <- (
             getUserData(request, user).value,
             Future.sequence(projectRoles.map(_.project)),
-            OrganizationData.of(orga).value,
-            ScopedOrganizationData.of(Some(request.user), orga).value
+            OrganizationData.of(orga).value
           ).tupled
         } yield {
           val pr = projects.zip(projectRoles)
@@ -598,7 +586,6 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
                 .flatMap(orga => orga.transferOwner(orga.memberships.newMember(r.userId)))
                 .as(r)
 
-            val isOrga = OptionT.liftF(user.toMaybeOrganization.isDefined)
             thing match {
               case "orgRole" =>
                 OptionT.liftF(user.toMaybeOrganization.isEmpty).filter(identity).flatMap { _ =>
@@ -646,7 +633,7 @@ final class Application @Inject()(data: DataHelper, forms: OreForms)(
     * @return Show page
     */
   def showProjectVisibility(): Action[AnyContent] =
-    (Authenticated.andThen(PermissionAction[AuthRequest](ReviewVisibility))).async { implicit request =>
+    Authenticated.andThen(PermissionAction[AuthRequest](ReviewVisibility)).async { implicit request =>
       val projectSchema = this.service.getSchema(classOf[ProjectSchema])
 
       for {

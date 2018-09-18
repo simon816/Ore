@@ -90,7 +90,7 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
       // Find plugin JAR
       jarIn = new JarInputStream(newJarStream)
 
-      var data = new ArrayBuffer[DataValue[_]]()
+      val data = new ArrayBuffer[DataValue[_]]()
 
       // Find plugin meta file
       var entry: JarEntry = jarIn.getNextJarEntry

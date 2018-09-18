@@ -3,7 +3,6 @@ package models.viewhelper
 import controllers.routes
 import controllers.sugar.Requests.OreRequest
 import db.ModelService
-import db.impl.{OrganizationRoleTable, OrganizationTable, UserTable}
 import models.user.role.OrganizationRole
 import models.user.{Organization, User}
 import ore.permission._
@@ -16,6 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import play.api.mvc.Call
 import cats.syntax.all._
 import cats.instances.future._
+import db.impl.schema.{OrganizationRoleTable, OrganizationTable, UserTable}
 
 // TODO separate Scoped UserData
 
@@ -72,8 +72,7 @@ object UserData {
   }
 
   def of[A](request: OreRequest[A], user: User)(
-      implicit cache: AsyncCacheApi,
-      db: JdbcBackend#DatabaseDef,
+      implicit db: JdbcBackend#DatabaseDef,
       ec: ExecutionContext,
       service: ModelService
   ): Future[UserData] = {

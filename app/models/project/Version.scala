@@ -9,8 +9,7 @@ import db.{Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl.model.common.{Describable, Downloadable, Hideable}
-import db.impl.schema.VersionSchema
-import db.impl.{ReviewTable, VersionTable}
+import db.impl.schema.{ReviewTable, VersionSchema, VersionTable}
 import models.admin.{Review, VersionVisibilityChange}
 import models.statistic.VersionDownload
 import models.user.User
@@ -253,7 +252,7 @@ case class Version(
     reviewEntries.toSeq.map(_.sortWith(byCreationDate))
   def reviewById(id: ObjectReference)(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, Review] =
     reviewEntries.find(equalsLong[ReviewTable](_.id, id))
-  def equalsLong[T <: Table[_]](int1: T => Rep[Long], int2: Long): T => Rep[Boolean] = int1(_) === int2
+  def equalsLong[A <: Table[_]](int1: A => Rep[Long], int2: Long): A => Rep[Boolean] = int1(_) === int2
 
 }
 

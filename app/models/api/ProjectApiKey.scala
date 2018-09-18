@@ -1,7 +1,7 @@
 package models.api
 
+import db.impl.schema.ProjectApiKeyTable
 import db.{Model, ObjectId, ObjectReference, ObjectTimestamp}
-import db.impl.ProjectApiKeyTable
 import ore.project.ProjectOwned
 import ore.rest.ProjectApiKeyTypes.ProjectApiKeyType
 

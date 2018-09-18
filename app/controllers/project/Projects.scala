@@ -30,7 +30,6 @@ import db.impl.OrePostgresDriver.api._
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-import db.impl.{ProjectMembersTable, ProjectRoleTable}
 import models.user.role.ProjectRole
 import models.viewhelper.ScopedOrganizationData
 import ore.project.ProjectMember
@@ -40,13 +39,13 @@ import cats.data.{EitherT, OptionT}
 import cats.Id
 import cats.instances.future._
 import cats.syntax.all._
+import db.impl.schema.{ProjectMembersTable, ProjectRoleTable}
 
 /**
   * Controller for handling Project related actions.
   */
 class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFactory)(
     implicit val ec: ExecutionContext,
-    syncCache: SyncCacheApi,
     cache: AsyncCacheApi,
     bakery: Bakery,
     sso: SingleSignOnConsumer,
@@ -689,8 +688,8 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
     * @return         Ok
     */
   def setVisible(author: String, slug: String, visibility: Int): Action[AnyContent] = {
-    (AuthedProjectAction(author, slug, requireUnlock = true)
-      .andThen(ProjectPermissionAction(HideProjects)))
+    AuthedProjectAction(author, slug, requireUnlock = true)
+      .andThen(ProjectPermissionAction(HideProjects))
       .async { implicit request =>
         val newVisibility = VisibilityTypes.withId(visibility)
         (request.user.can(newVisibility.permission) in GlobalScope).flatMap { perm =>
@@ -763,16 +762,15 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
   }
 
   def showLog(author: String, slug: String): Action[AnyContent] = {
-    (Authenticated.andThen(PermissionAction[AuthRequest](ViewLogs))).andThen(ProjectAction(author, slug)).async {
+    Authenticated.andThen(PermissionAction[AuthRequest](ViewLogs)).andThen(ProjectAction(author, slug)).async {
       request =>
         implicit val r: Requests.OreRequest[AnyContent] = request.request
         val project                                     = request.data.project
         for {
-          (changes, logger) <- (project.visibilityChangesByDate, project.logger).tupled
-          (changedBy, logs) <- (Future.sequence(changes.map(_.created.value)), logger.entries.all).tupled
+          logger <- project.logger
+          logs <- logger.entries.all
         } yield {
-          val visChanges = changes.zip(changedBy)
-          Ok(views.log(project, visChanges, logs.toSeq))
+          Ok(views.log(project, logs.toSeq))
         }
     }
   }
@@ -811,7 +809,7 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
       val comment       = this.forms.NeedsChanges.bindFromRequest.get.trim
       val oldVisibility = data.project.visibility.nameKey
       data.project.setVisibility(VisibilityTypes.SoftDelete, comment, request.user.id.value).map { _ =>
-        this.forums.changeTopicVisibility(data.project, false)
+        this.forums.changeTopicVisibility(data.project, isVisible = false)
 
         UserActionLogger.log(
           request.request,
@@ -831,12 +829,10 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
     * @param slug   Project slug
     */
   def showFlags(author: String, slug: String): Action[AnyContent] = {
-    (Authenticated.andThen(PermissionAction[AuthRequest](ReviewFlags))).andThen(ProjectAction(author, slug)).async {
+    Authenticated.andThen(PermissionAction[AuthRequest](ReviewFlags)).andThen(ProjectAction(author, slug)) {
       request =>
         implicit val r: Requests.OreRequest[AnyContent] = request.request
-        getProject(author, slug).map { project =>
-          Ok(views.admin.flags(request.data))
-        }.merge
+        Ok(views.admin.flags(request.data))
     }
   }
 

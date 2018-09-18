@@ -5,7 +5,6 @@ import controllers.sugar.Requests.AuthRequest
 import db.{ModelService, ObjectReference}
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase.UserOrdering
-import db.impl.{ProjectTableMain, VersionTable}
 import discourse.OreDiscourseApi
 import form.OreForms
 import javax.inject.Inject
@@ -31,6 +30,7 @@ import cats.syntax.all._
 import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.EitherT
+import db.impl.schema.{ProjectTableMain, VersionTable}
 
 /**
   * Controller for general user actions.
@@ -38,8 +38,6 @@ import cats.data.EitherT
 class Users @Inject()(
     fakeUser: FakeUser,
     forms: OreForms,
-    forums: OreDiscourseApi,
-    writes: OreWrites,
     mailer: Mailer,
     emails: EmailFactory
 )(
@@ -143,8 +141,8 @@ class Users @Inject()(
     */
   def showProjects(username: String, page: Option[Int]): Action[AnyContent] = OreAction.async { implicit request =>
     val pageSize = this.config.users.get[Int]("project-page-size")
-    val p        = page.getOrElse(1)
-    val offset   = (p - 1) * pageSize
+    val pageNum  = page.getOrElse(1)
+    val offset   = (pageNum - 1) * pageSize
     users
       .withName(username)
       .semiflatMap { user =>
@@ -152,8 +150,8 @@ class Users @Inject()(
           // TODO include orga projects?
           projectSeq <- service.DB.db.run(queryUserProjects(user).drop(offset).take(pageSize).result)
           starred    <- user.starred()
-          orga       <- getOrga(request, username).value
-          (tags, userData, starredRv, orgaData, scopedOrgaData) <- (
+          orga       <- getOrga(username).value
+          (tagsSeq, userData, starredRv, orgaData, scopedOrgaData) <- (
             Future.sequence(projectSeq.map(_._2.tags)),
             getUserData(request, username).value,
             Future.sequence(starred.map(_.recommendedVersion)),
@@ -161,7 +159,7 @@ class Users @Inject()(
             ScopedOrganizationData.of(request.currentUser, orga).value
           ).tupled
         } yield {
-          val data = projectSeq.zip(tags).map {
+          val data = projectSeq.zip(tagsSeq).map {
             case ((p, v), tags) =>
               (p, user, v, tags)
           }
@@ -172,7 +170,7 @@ class Users @Inject()(
               orgaData.flatMap(a => scopedOrgaData.map(b => (a, b))),
               data,
               starredData.take(5),
-              p
+              pageNum
             )
           )
         }
@@ -183,11 +181,11 @@ class Users @Inject()(
   private def queryUserProjects(user: User) = {
     queryProjectRV
       .filter {
-        case (p, v) =>
+        case (p, _) =>
           p.userId === user.id.value
       }
       .sortBy {
-        case (p, v) =>
+        case (p, _) =>
           (p.stars.desc, p.name.asc)
       }
   }

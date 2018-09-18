@@ -4,7 +4,6 @@ import controllers.sugar.Requests.{AuthRequest, AuthedProjectRequest, OreRequest
 import controllers.sugar.{Actions, Bakery, Requests}
 import db.ModelService
 import db.access.ModelAccess
-import db.impl.VersionTable
 import db.impl.OrePostgresDriver.api._
 import models.project.{Project, Version, VisibilityTypes}
 import models.user.SignOn
@@ -23,6 +22,7 @@ import play.api.data.Form
 import slick.jdbc.JdbcBackend
 import cats.data.{EitherT, OptionT}
 import cats.Monad
+import db.impl.schema.VersionTable
 import ore.permission.ReviewProjects
 
 /**

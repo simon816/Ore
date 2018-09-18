@@ -1,5 +1,7 @@
 package models.project
 
+import scala.language.implicitConversions
+
 import db.ModelFilter
 import db.impl.OrePostgresDriver
 import db.impl.OrePostgresDriver.api._
@@ -9,11 +11,11 @@ import ore.permission.{Permission, ReviewProjects}
 import slick.jdbc.JdbcType
 
 object VisibilityTypes extends Enumeration {
-  val Public        = Visibility(1, "public", ReviewProjects, false, "")
-  val New           = Visibility(2, "new", ReviewProjects, false, "project-new")
-  val NeedsChanges  = Visibility(3, "needsChanges", ReviewProjects, true, "striped project-needsChanges")
-  val NeedsApproval = Visibility(4, "needsApproval", ReviewProjects, false, "striped project-needsChanges")
-  val SoftDelete    = Visibility(5, "softDelete", ReviewProjects, true, "striped project-hidden")
+  val Public        = Visibility(1, "public", ReviewProjects, showModal = false, "")
+  val New           = Visibility(2, "new", ReviewProjects, showModal = false, "project-new")
+  val NeedsChanges  = Visibility(3, "needsChanges", ReviewProjects, showModal = true, "striped project-needsChanges")
+  val NeedsApproval = Visibility(4, "needsApproval", ReviewProjects, showModal = false, "striped project-needsChanges")
+  val SoftDelete    = Visibility(5, "softDelete", ReviewProjects, showModal = true, "striped project-hidden")
 
   def isPublic(visibility: Visibility): Boolean = visibility == Public || visibility == New
 

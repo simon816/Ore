@@ -25,13 +25,12 @@ import cats.syntax.all._
 /**
   * Controller for handling Channel related actions.
   */
-class Channels @Inject()(forms: OreForms, factory: ProjectFactory)(
+class Channels @Inject()(forms: OreForms)(
     implicit val ec: ExecutionContext,
     bakery: Bakery,
     cache: AsyncCacheApi,
     auth: SpongeAuthApi,
     sso: SingleSignOnConsumer,
-    messagesApi: MessagesApi,
     env: OreEnv,
     config: OreConfig,
     service: ModelService

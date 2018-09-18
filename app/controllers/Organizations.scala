@@ -2,12 +2,10 @@ package controllers
 
 import controllers.sugar.Bakery
 import db.{ModelService, ObjectReference}
-import discourse.OreDiscourseApi
 import form.OreForms
 import javax.inject.Inject
 
 import ore.permission.EditSettings
-import ore.rest.OreWrites
 import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv}
 import play.api.cache.AsyncCacheApi
@@ -24,7 +22,7 @@ import play.api.mvc.{Action, AnyContent}
 /**
   * Controller for handling Organization based actions.
   */
-class Organizations @Inject()(forms: OreForms, writes: OreWrites, forums: OreDiscourseApi)(
+class Organizations @Inject()(forms: OreForms)(
     implicit val ec: ExecutionContext,
     bakery: Bakery,
     auth: SpongeAuthApi,

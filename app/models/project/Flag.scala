@@ -5,8 +5,8 @@ import java.time.Instant
 
 import scala.concurrent.{ExecutionContext, Future}
 
+import db.impl.schema.FlagTable
 import db.{Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
-import db.impl.FlagTable
 import models.user.User
 import ore.permission.scope.ProjectScope
 import ore.project.FlagReasons.FlagReason

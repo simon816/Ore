@@ -4,12 +4,15 @@ import java.sql.Timestamp
 import java.time.Instant
 
 import db.impl.OrePostgresDriver.api._
-import db.impl.{OrePostgresDriver, TagTable}
+import db.impl.OrePostgresDriver
 import db.table.MappedType
 import db.{Model, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
 import models.project.TagColors.TagColor
 import slick.jdbc.JdbcType
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.implicitConversions
+
+import db.impl.schema.TagTable
 
 case class Tag(
     id: ObjectId = ObjectId.Uninitialized,

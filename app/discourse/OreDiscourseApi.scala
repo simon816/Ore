@@ -327,7 +327,7 @@ trait OreDiscourseApi extends DiscourseApi {
           Logger.debug(s"Successfully deleted project topic for: ${project.url}.")
           resultPromise.completeWith(service.update(project.copy(topicId = None, postId = None)).map(_ => true))
         }
-      case Failure(e) =>
+      case Failure(_) =>
         logFailure()
         resultPromise.success(false)
     }
@@ -348,7 +348,7 @@ trait OreDiscourseApi extends DiscourseApi {
     var futures: Seq[Future[Boolean]] = Seq.empty
     for (user <- users) {
       futures :+= userExists(user).recover {
-        case e: Exception => false
+        case _: Exception => false
       }
     }
     Future.sequence(futures).map(results => results.count(_ == true))

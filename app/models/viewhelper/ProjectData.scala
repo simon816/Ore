@@ -2,7 +2,6 @@ package models.viewhelper
 
 import controllers.sugar.Requests.OreRequest
 import db.impl.OrePostgresDriver.api._
-import db.impl.{ProjectRoleTable, UserTable}
 import models.admin.ProjectVisibilityChange
 import models.project._
 import models.user.User
@@ -20,6 +19,7 @@ import ore.OreConfig
 import play.twirl.api.Html
 import cats.syntax.all._
 import cats.instances.future._
+import db.impl.schema.{ProjectRoleTable, UserTable}
 
 /**
   * Holds ProjetData that is the same for all users
@@ -57,7 +57,7 @@ object ProjectData {
   def of[A](
       request: OreRequest[A],
       project: PendingProject
-  )(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext): ProjectData = {
+  ): ProjectData = {
 
     val projectOwner = request.data.currentUser.get
 
@@ -65,9 +65,6 @@ object ProjectData {
     val ownerRole                = null
     val versions                 = 0
     val members                  = Seq.empty
-    val uProjectFlags            = false
-    val starred                  = false
-    val watching                 = false
     val logSize                  = 0
     val lastVisibilityChange     = None
     val lastVisibilityChangeUser = "-"
@@ -92,8 +89,7 @@ object ProjectData {
   }
 
   def of[A](project: Project)(
-      implicit cache: AsyncCacheApi,
-      db: JdbcBackend#DatabaseDef,
+      implicit db: JdbcBackend#DatabaseDef,
       ec: ExecutionContext,
       service: ModelService
   ): Future[ProjectData] = {
