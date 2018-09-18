@@ -19,27 +19,31 @@ import cats.instances.future._
 
 // TODO separate Scoped UserData
 
-case class UserData(headerData: HeaderData,
-                    user: User,
-                    isOrga: Boolean,
-                    projectCount: Int,
-                    orgas: Seq[(Organization, User, OrganizationRole, User)],
-                    userPerm: Map[Permission, Boolean],
-                    orgaPerm: Map[Permission, Boolean]) {
+case class UserData(
+    headerData: HeaderData,
+    user: User,
+    isOrga: Boolean,
+    projectCount: Int,
+    orgas: Seq[(Organization, User, OrganizationRole, User)],
+    userPerm: Map[Permission, Boolean],
+    orgaPerm: Map[Permission, Boolean]
+) {
 
   def global: HeaderData = headerData
 
-  def hasUser: Boolean = global.hasUser
+  def hasUser: Boolean          = global.hasUser
   def currentUser: Option[User] = global.currentUser
 
   def isCurrent: Boolean = currentUser.contains(user)
 
   def pgpFormCall: Call = {
-    user.pgpPubKey.map { _ =>
-      routes.Users.verify(Some(routes.Users.deletePgpPublicKey(user.name, None, None).path))
-    } getOrElse {
-      routes.Users.savePgpPublicKey(user.name)
-    }
+    user.pgpPubKey
+      .map { _ =>
+        routes.Users.verify(Some(routes.Users.deletePgpPublicKey(user.name, None, None).path))
+      }
+      .getOrElse {
+        routes.Users.savePgpPublicKey(user.name)
+      }
   }
 
   def pgpFormClass: String = user.pgpPubKey.map(_ => "pgp-delete").getOrElse("")
@@ -57,9 +61,9 @@ object UserData {
     val userTable = TableQuery[UserTable]
 
     for {
-      r <- roleTable if r.userId === user.id.value
-      o <- orgaTable if r.organizationId === o.id
-      u <- userTable if o.id === u.id
+      r  <- roleTable if r.userId === user.id.value
+      o  <- orgaTable if r.organizationId === o.id
+      u  <- userTable if o.id === u.id
       uo <- userTable if o.userId === uo.id
     } yield {
       (o, u, r, uo) // Organization OrgaUser Role Owner
@@ -67,33 +71,35 @@ object UserData {
 
   }
 
-
-  def of[A](request: OreRequest[A], user: User)(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext, service: ModelService): Future[UserData] = {
+  def of[A](request: OreRequest[A], user: User)(
+      implicit cache: AsyncCacheApi,
+      db: JdbcBackend#DatabaseDef,
+      ec: ExecutionContext,
+      service: ModelService
+  ): Future[UserData] = {
     for {
-      isOrga <- user.toMaybeOrganization.isDefined
-      projectCount <- user.projects.size
+      isOrga                 <- user.toMaybeOrganization.isDefined
+      projectCount           <- user.projects.size
       (userPerms, orgaPerms) <- perms(request.currentUser)
-      orgas <- db.run(queryRoles(user).result)
+      orgas                  <- db.run(queryRoles(user).result)
     } yield {
 
-      UserData(request.data,
-              user,
-              isOrga,
-              projectCount,
-              orgas,
-              userPerms,
-              orgaPerms)
+      UserData(request.data, user, isOrga, projectCount, orgas, userPerms, orgaPerms)
     }
   }
 
-  def perms(currentUser: Option[User])(implicit ec: ExecutionContext, service: ModelService): Future[(Map[Permission, Boolean], Map[Permission, Boolean])] = {
+  def perms(currentUser: Option[User])(
+      implicit ec: ExecutionContext,
+      service: ModelService
+  ): Future[(Map[Permission, Boolean], Map[Permission, Boolean])] = {
     if (currentUser.isEmpty) Future.successful((Map.empty, Map.empty))
     else {
-      val user = currentUser.get
-      val viewActivityFut = user can ViewActivity in user map ((ViewActivity, _))
-      val reviewFlagsFut = user can ReviewFlags in user map ((ReviewFlags, _))
-      val reviewProjectsFut = user can ReviewProjects in user map ((ReviewProjects, _))
-      val editSettingsFut = user.toMaybeOrganization.value.flatMap(orga => user can EditSettings in orga map ((EditSettings, _)))
+      val user              = currentUser.get
+      val viewActivityFut   = (user.can(ViewActivity) in user).map((ViewActivity, _))
+      val reviewFlagsFut    = (user.can(ReviewFlags) in user).map((ReviewFlags, _))
+      val reviewProjectsFut = (user.can(ReviewProjects) in user).map((ReviewProjects, _))
+      val editSettingsFut =
+        user.toMaybeOrganization.value.flatMap(orga => (user.can(EditSettings) in orga).map((EditSettings, _)))
 
       (viewActivityFut, reviewFlagsFut, reviewProjectsFut, editSettingsFut).mapN {
         case (viewActivity, reviewFlags, reviewProjects, editSettings) =>

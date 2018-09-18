@@ -32,23 +32,35 @@ trait Hideable extends Model { self =>
     *
     * @param visibility True if visible
     */
-  def setVisibility(visibility: Visibility, comment: String, creator: ObjectReference)(implicit ec: ExecutionContext, service: ModelService): Future[(M, ModelVisibilityChange)]
+  def setVisibility(visibility: Visibility, comment: String, creator: ObjectReference)(
+      implicit ec: ExecutionContext,
+      service: ModelService
+  ): Future[(M, ModelVisibilityChange)]
 
   /**
     * Get VisibilityChanges
     */
   def visibilityChanges(implicit service: ModelService): ModelAccess[ModelVisibilityChange]
 
-  def visibilityChangesByDate(implicit ec: ExecutionContext, service: ModelService): Future[Seq[ModelVisibilityChange]] =
+  def visibilityChangesByDate(
+      implicit ec: ExecutionContext,
+      service: ModelService
+  ): Future[Seq[ModelVisibilityChange]] =
     visibilityChanges.all.map(_.toSeq.sortWith(byCreationDate))
 
   def byCreationDate(first: ModelVisibilityChange, second: ModelVisibilityChange): Boolean =
     first.createdAt.value.getTime < second.createdAt.value.getTime
 
-  def lastVisibilityChange(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, ModelVisibilityChange] =
+  def lastVisibilityChange(
+      implicit ec: ExecutionContext,
+      service: ModelService
+  ): OptionT[Future, ModelVisibilityChange] =
     OptionT(visibilityChanges.all.map(_.toSeq.filter(cr => !cr.isResolved).sortWith(byCreationDate).headOption))
 
   def lastChangeRequest(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, ModelVisibilityChange] =
-    OptionT(visibilityChanges.all.map(_.toSeq.filter(cr => cr.visibility == VisibilityTypes.NeedsChanges.id).sortWith(byCreationDate).lastOption))
+    OptionT(
+      visibilityChanges.all
+        .map(_.toSeq.filter(cr => cr.visibility == VisibilityTypes.NeedsChanges.id).sortWith(byCreationDate).lastOption)
+    )
 
 }

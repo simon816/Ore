@@ -35,7 +35,7 @@ trait SingleSignOnConsumer {
   val timeout: Duration
 
   val CharEncoding = "UTF-8"
-  val Algo = "HmacSHA256"
+  val Algo         = "HmacSHA256"
 
   val Logger = play.api.Logger("SSO")
 
@@ -44,9 +44,10 @@ trait SingleSignOnConsumer {
     *
     * @return True if available
     */
-  def isAvailable(implicit ec: ExecutionContext): Boolean = Await.result(this.ws.url(this.loginUrl).get().map(_.status == Status.OK).recover {
-    case _: Exception => false
-  }, this.timeout)
+  def isAvailable(implicit ec: ExecutionContext): Boolean =
+    Await.result(this.ws.url(this.loginUrl).get().map(_.status == Status.OK).recover {
+      case _: Exception => false
+    }, this.timeout)
 
   /**
     * Returns the login URL with a generated SSO payload to the SSO instance.
@@ -73,8 +74,8 @@ trait SingleSignOnConsumer {
   def getVerifyUrl(returnUrl: String, nonce: String): String = getUrl(returnUrl, this.verifyUrl, nonce)
 
   private def getUrl(returnUrl: String, baseUrl: String, nonce: String) = {
-    val payload = generatePayload(returnUrl, baseUrl, nonce)
-    val sig = generateSignature(payload)
+    val payload    = generatePayload(returnUrl, baseUrl, nonce)
+    val sig        = generateSignature(payload)
     val urlEncoded = URLEncoder.encode(payload, this.CharEncoding)
     baseUrl + "?sso=" + urlEncoded + "&sig=" + sig
   }
@@ -110,7 +111,9 @@ trait SingleSignOnConsumer {
     *                       marks the nonce as invalid so it cannot be used again
     * @return               [[SpongeUser]] if successful
     */
-  def authenticate(payload: String, sig: String)(isNonceValid: String => Future[Boolean])(implicit ec: ExecutionContext): OptionT[Future, SpongeUser] = {
+  def authenticate(payload: String, sig: String)(
+      isNonceValid: String => Future[Boolean]
+  )(implicit ec: ExecutionContext): OptionT[Future, SpongeUser] = {
     Logger.debug("Authenticating SSO payload...")
     Logger.debug(payload)
     Logger.debug("Signed with : " + sig)
@@ -126,17 +129,24 @@ trait SingleSignOnConsumer {
 
     // extract info
     val info = for {
-      nonce <- query.get("nonce")
+      nonce      <- query.get("nonce")
       externalId <- query.get("external_id").flatMap(s => Try(s.toLong).toOption)
-      username <- query.get("username")
-      email <- query.get("email")
+      username   <- query.get("username")
+      email      <- query.get("email")
     } yield {
-      nonce -> SpongeUser(externalId, username, email, query.get("avatar_url"), query.get("language").flatMap(Lang.get), query.get("add_groups"))
+      nonce -> SpongeUser(
+        externalId,
+        username,
+        email,
+        query.get("avatar_url"),
+        query.get("language").flatMap(Lang.get),
+        query.get("add_groups")
+      )
     }
 
     OptionT
       .fromOption[Future](info)
-      .semiflatMap { case (nonce, user) => isNonceValid(nonce).tupleRight(user)}
+      .semiflatMap { case (nonce, user) => isNonceValid(nonce).tupleRight(user) }
       .subflatMap {
         case (false, _) =>
           Logger.debug("<FAILURE> Invalid nonce.")
@@ -148,7 +158,7 @@ trait SingleSignOnConsumer {
   }
 
   private def hmac_sha256(data: Array[Byte]): String = {
-    val hmac = Mac.getInstance(this.Algo)
+    val hmac    = Mac.getInstance(this.Algo)
     val keySpec = new SecretKeySpec(this.secret.getBytes(this.CharEncoding), this.Algo)
     hmac.init(keySpec)
     Hex.encodeHexString(hmac.doFinal(data))
@@ -164,14 +174,15 @@ object SingleSignOnConsumer {
 
 }
 
-class SpongeSingleSignOnConsumer @Inject()(override val ws: WSClient, config: Configuration) extends SingleSignOnConsumer {
+class SpongeSingleSignOnConsumer @Inject()(override val ws: WSClient, config: Configuration)
+    extends SingleSignOnConsumer {
 
   private val conf = this.config.get[Configuration]("security")
 
-  override val loginUrl: String = this.conf.get[String]("sso.loginUrl")
-  override val signupUrl: String = this.conf.get[String]("sso.signupUrl")
-  override val verifyUrl: String = this.conf.get[String]("sso.verifyUrl")
-  override val secret: String = this.conf.get[String]("sso.secret")
+  override val loginUrl: String        = this.conf.get[String]("sso.loginUrl")
+  override val signupUrl: String       = this.conf.get[String]("sso.signupUrl")
+  override val verifyUrl: String       = this.conf.get[String]("sso.verifyUrl")
+  override val secret: String          = this.conf.get[String]("sso.secret")
   override val timeout: FiniteDuration = this.conf.get[FiniteDuration]("sso.timeout")
 
 }

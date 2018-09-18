@@ -14,32 +14,53 @@ import db.ObjectId
   */
 object Platforms extends Enumeration {
 
-  val Sponge = Platform(0, "Sponge", SpongeCategory, 0, "spongeapi",
-    TagColors.Sponge, "https://spongepowered.org/downloads")
+  val Sponge =
+    Platform(0, "Sponge", SpongeCategory, 0, "spongeapi", TagColors.Sponge, "https://spongepowered.org/downloads")
 
-  val SpongeForge = Platform(2, "SpongeForge", SpongeCategory, 2, "spongeforge",
-    TagColors.SpongeForge, "https://www.spongepowered.org/downloads/spongeforge")
+  val SpongeForge = Platform(
+    2,
+    "SpongeForge",
+    SpongeCategory,
+    2,
+    "spongeforge",
+    TagColors.SpongeForge,
+    "https://www.spongepowered.org/downloads/spongeforge"
+  )
 
-  val SpongeVanilla = Platform(3, "SpongeVanilla", SpongeCategory, 2, "spongevanilla",
-    TagColors.SpongeVanilla, "https://www.spongepowered.org/downloads/spongevanilla")
+  val SpongeVanilla = Platform(
+    3,
+    "SpongeVanilla",
+    SpongeCategory,
+    2,
+    "spongevanilla",
+    TagColors.SpongeVanilla,
+    "https://www.spongepowered.org/downloads/spongevanilla"
+  )
 
-  val SpongeCommon = Platform(4, "SpongeCommon", SpongeCategory, 1, "sponge",
-    TagColors.SpongeCommon, "https://www.spongepowered.org/downloads")
+  val SpongeCommon = Platform(
+    4,
+    "SpongeCommon",
+    SpongeCategory,
+    1,
+    "sponge",
+    TagColors.SpongeCommon,
+    "https://www.spongepowered.org/downloads"
+  )
 
-  val Lantern = Platform(5, "Lantern", SpongeCategory, 2, "lantern",
-    TagColors.Lantern, "https://www.lanternpowered.org/")
+  val Lantern =
+    Platform(5, "Lantern", SpongeCategory, 2, "lantern", TagColors.Lantern, "https://www.lanternpowered.org/")
 
-  val Forge = Platform(1, "Forge", ForgeCategory, 0, "forge",
-    TagColors.Forge, "https://files.minecraftforge.net/")
+  val Forge = Platform(1, "Forge", ForgeCategory, 0, "forge", TagColors.Forge, "https://files.minecraftforge.net/")
 
-  case class Platform(override val id: Int,
-                      name: String,
-                      platformCategory: PlatformCategory,
-                      priority: Int,
-                      dependencyId: String,
-                      tagColor: TagColor,
-                      url: String
-                     ) extends super.Val(id, name) {
+  case class Platform(
+      override val id: Int,
+      name: String,
+      platformCategory: PlatformCategory,
+      priority: Int,
+      dependencyId: String,
+      tagColor: TagColor,
+      url: String
+  ) extends super.Val(id, name) {
 
     def toGhostTag(version: String): Tag = Tag(ObjectId.Uninitialized, List(), name, version, tagColor)
 
@@ -81,9 +102,8 @@ object Platforms extends Enumeration {
 sealed trait PlatformCategory {
   val name: String
 
-  def getPlatforms: Seq[Platforms.Value] = {
+  def getPlatforms: Seq[Platforms.Value] =
     Platforms.values.filter(p => p.platformCategory == this).toSeq
-  }
 }
 
 case object SpongeCategory extends PlatformCategory {

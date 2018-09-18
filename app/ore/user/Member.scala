@@ -11,8 +11,7 @@ import db.{ModelService, ObjectReference}
 /**
   * Represents a [[User]] member of some entity.
   */
-abstract class Member[RoleType <: RoleModel](override val userId: ObjectReference)
-                                             extends ScopeSubject with UserOwned {
+abstract class Member[RoleType <: RoleModel](override val userId: ObjectReference) extends ScopeSubject with UserOwned {
 
   /**
     * Returns the [[RoleModel]]s the user has in this entity.

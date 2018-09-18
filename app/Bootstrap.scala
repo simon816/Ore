@@ -38,7 +38,9 @@ trait Bootstrap {
 }
 
 @Singleton
-class BootstrapImpl @Inject()(override val modelService: ModelService,
-                              override val forums: OreDiscourseApi,
-                              override val config: OreConfig,
-                              override val projectTask: ProjectTask) extends Bootstrap
+class BootstrapImpl @Inject()(
+    override val modelService: ModelService,
+    override val forums: OreDiscourseApi,
+    override val config: OreConfig,
+    override val projectTask: ProjectTask
+) extends Bootstrap

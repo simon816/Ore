@@ -45,40 +45,53 @@ trait OreRestfulApi {
     * @param offset     Amount to drop
     * @return           JSON list of projects
     */
-  def getProjectList(categories: Option[String], sort: Option[Int], q: Option[String],
-                     limit: Option[Int], offset: Option[Int])(implicit ec: ExecutionContext): Future[JsValue] = {
-    val queries = this.service.getSchema(classOf[ProjectSchema])
+  def getProjectList(
+      categories: Option[String],
+      sort: Option[Int],
+      q: Option[String],
+      limit: Option[Int],
+      offset: Option[Int]
+  )(implicit ec: ExecutionContext): Future[JsValue] = {
+    val queries                     = this.service.getSchema(classOf[ProjectSchema])
     val cats: Option[Seq[Category]] = categories.map(Categories.fromString).map(_.toSeq)
-    val ordering = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
+    val ordering                    = sort.map(ProjectSortingStrategies.withId(_).get).getOrElse(ProjectSortingStrategies.Default)
 
     val maxLoad = this.config.projects.get[Int]("init-load")
-    val lim = max(min(limit.getOrElse(maxLoad), maxLoad), 0)
+    val lim     = max(min(limit.getOrElse(maxLoad), maxLoad), 0)
 
     def filteredProjects(offset: Option[Int], lim: Int) = {
-      val query = queryProjectRV.filter { case (p, v, c) =>
-        val query = "%" + q.map(_.toLowerCase).getOrElse("") + "%"
-        (p.name.toLowerCase like query) ||
-          (p.description.toLowerCase like query) ||
-          (p.ownerName.toLowerCase like query) ||
-          (p.pluginId.toLowerCase like query)
+      val query = queryProjectRV.filter {
+        case (p, v, c) =>
+          val query = "%" + q.map(_.toLowerCase).getOrElse("") + "%"
+          (p.name.toLowerCase.like(query)) ||
+          (p.description.toLowerCase.like(query)) ||
+          (p.ownerName.toLowerCase.like(query)) ||
+          (p.pluginId.toLowerCase.like(query))
       }
       //categories.map(_.toSeq).map { cats =>
-      val filtered = cats.map { ca =>
-        query.filter { case (p, _, _) =>
-          p.category inSetBind ca
+      val filtered = cats
+        .map { ca =>
+          query.filter {
+            case (p, _, _) =>
+              p.category.inSetBind(ca)
+          }
         }
-      } getOrElse query
+        .getOrElse(query)
 
-      filtered sortBy { case (p, _, _) =>
-        ordering.fn.apply(p)
-      } drop offset.getOrElse(0) take lim
+      filtered
+        .sortBy {
+          case (p, _, _) =>
+            ordering.fn.apply(p)
+        }
+        .drop(offset.getOrElse(0))
+        .take(lim)
     }
 
     val query = filteredProjects(offset, lim)
 
     for {
       projects <- service.DB.db.run(query.result)
-      json <- writeProjects(projects)
+      json     <- writeProjects(projects)
     } yield {
       toJson(json.map(_._2))
     }
@@ -98,44 +111,55 @@ trait OreRestfulApi {
 
   def writeMembers(members: Seq[(ProjectRole, User)]): Seq[JsObject] = {
     val allRoles = members.groupBy(_._1.userId).mapValues(_.map(_._1.roleType))
-    members.map { case (_, user) =>
-      val roles = allRoles(user.id.value)
-      val trustOrder: Ordering[RoleType] = Ordering.by(_.trust)
-      obj(
-        "userId"    ->  user.id.value,
-        "name"      ->  user.name,
-        "roles"     ->  JsArray(roles.map(role => JsString(role.title))),
-        "headRole"  ->  roles.max(trustOrder).title
-      )
+    members.map {
+      case (_, user) =>
+        val roles                          = allRoles(user.id.value)
+        val trustOrder: Ordering[RoleType] = Ordering.by(_.trust)
+        obj(
+          "userId"   -> user.id.value,
+          "name"     -> user.name,
+          "roles"    -> JsArray(roles.map(role => JsString(role.title))),
+          "headRole" -> roles.max(trustOrder).title
+        )
     }
   }
 
-  private def writeProjects(projects: Seq[(Project, Version, Channel)])(implicit ec: ExecutionContext): Future[Seq[(Project, JsObject)]] = {
+  private def writeProjects(
+      projects: Seq[(Project, Version, Channel)]
+  )(implicit ec: ExecutionContext): Future[Seq[(Project, JsObject)]] = {
     val projectIds = projects.map(_._1.id.value)
     val versionIds = projects.map(_._2.id.value)
 
     for {
-      chans <- service.DB.db.run(queryProjectChannels(projectIds).result).map { chans => chans.groupBy(_.projectId) }
-      vTags <- service.DB.db.run(queryVersionTags(versionIds).result).map { p => p.groupBy(_._1) mapValues (_.map(_._2)) }
+      chans <- service.DB.db.run(queryProjectChannels(projectIds).result).map { chans =>
+        chans.groupBy(_.projectId)
+      }
+      vTags <- service.DB.db.run(queryVersionTags(versionIds).result).map { p =>
+        p.groupBy(_._1).mapValues(_.map(_._2))
+      }
       members <- service.DB.db.run(getMembers(projectIds).result).map(_.groupBy(_._1.projectId))
     } yield {
 
-      projects.map { case (p, v, c) =>
-        (p, obj(
-          "pluginId" -> p.pluginId,
-          "createdAt" -> p.createdAt.value.toString,
-          "name" -> p.name,
-          "owner" -> p.ownerName,
-          "description" -> p.description,
-          "href" -> ('/' + p.ownerName + '/' + p.slug),
-          "members"       -> writeMembers(members.getOrElse(p.id.value, Seq.empty)),
-          "channels"      ->  toJson(chans.getOrElse(p.id.value, Seq.empty)),
-          "recommended"   ->  toJson(writeVersion(v, p, c, None, vTags.getOrElse(v.id.value, Seq.empty))),
-          "category" -> obj("title" -> p.category.title, "icon" -> p.category.icon),
-          "views" -> p.viewCount,
-          "downloads" -> p.downloadCount,
-          "stars" -> p.starCount
-        ))
+      projects.map {
+        case (p, v, c) =>
+          (
+            p,
+            obj(
+              "pluginId"    -> p.pluginId,
+              "createdAt"   -> p.createdAt.value.toString,
+              "name"        -> p.name,
+              "owner"       -> p.ownerName,
+              "description" -> p.description,
+              "href"        -> ('/' + p.ownerName + '/' + p.slug),
+              "members"     -> writeMembers(members.getOrElse(p.id.value, Seq.empty)),
+              "channels"    -> toJson(chans.getOrElse(p.id.value, Seq.empty)),
+              "recommended" -> toJson(writeVersion(v, p, c, None, vTags.getOrElse(v.id.value, Seq.empty))),
+              "category"    -> obj("title" -> p.category.title, "icon" -> p.category.icon),
+              "views"       -> p.viewCount,
+              "downloads"   -> p.downloadCount,
+              "stars"       -> p.starCount
+            )
+          )
       }
     }
   }
@@ -145,43 +169,43 @@ trait OreRestfulApi {
       obj("pluginId" -> dependency.pluginId, "version" -> dependency.version)
     }
     val json = obj(
-      "id"            ->  v.id.value,
-      "createdAt"     ->  v.createdAt.value.toString,
-      "name"          ->  v.versionString,
-      "dependencies"  ->  dependencies,
-      "pluginId"      ->  p.pluginId,
-      "channel"       ->  toJson(c),
-      "fileSize"      ->  v.fileSize,
-      "md5"           ->  v.hash,
-      "staffApproved" ->  v.isReviewed,
-      "href"          ->  ('/' + v.url(p)),
-      "tags"          ->  tags.map(toJson(_)),
-      "downloads"     ->  v.downloadCount
+      "id"            -> v.id.value,
+      "createdAt"     -> v.createdAt.value.toString,
+      "name"          -> v.versionString,
+      "dependencies"  -> dependencies,
+      "pluginId"      -> p.pluginId,
+      "channel"       -> toJson(c),
+      "fileSize"      -> v.fileSize,
+      "md5"           -> v.hash,
+      "staffApproved" -> v.isReviewed,
+      "href"          -> ('/' + v.url(p)),
+      "tags"          -> tags.map(toJson(_)),
+      "downloads"     -> v.downloadCount
     )
 
     lazy val jsonVisibility = obj(
       "type" -> v.visibility.nameKey,
-      "css" -> v.visibility.cssClass
+      "css"  -> v.visibility.cssClass
     )
 
-    val withVisibility = if(v.visibility == VisibilityTypes.Public) json else json + ("visibility" -> jsonVisibility)
+    val withVisibility = if (v.visibility == VisibilityTypes.Public) json else json + ("visibility" -> jsonVisibility)
     author.fold(withVisibility)(a => withVisibility + (("author", JsString(a))))
   }
 
   private def queryProjectChannels(projectIds: Seq[ObjectReference]) = {
     val tableChannels = TableQuery[ChannelTable]
     for {
-      c <- tableChannels if c.projectId inSetBind projectIds
+      c <- tableChannels if c.projectId.inSetBind(projectIds)
     } yield {
       c
     }
   }
 
   private def queryVersionTags(versions: Seq[ObjectReference]) = {
-    val tableTags = TableQuery[TagTable]
+    val tableTags    = TableQuery[TagTable]
     val tableVersion = TableQuery[VersionTable]
     for {
-      v <- tableVersion if (v.id inSetBind versions) && v.visibility === VisibilityTypes.Public
+      v <- tableVersion if (v.id.inSetBind(versions)) && v.visibility === VisibilityTypes.Public
       t <- tableTags if t.id === v.tagIds.any
     } yield {
       (v.id, t)
@@ -189,8 +213,8 @@ trait OreRestfulApi {
   }
 
   private def queryProjectRV = {
-    val tableProject = TableQuery[ProjectTableMain]
-    val tableVersion = TableQuery[VersionTable]
+    val tableProject  = TableQuery[ProjectTableMain]
+    val tableVersion  = TableQuery[VersionTable]
     val tableChannels = TableQuery[ChannelTable]
 
     for {
@@ -213,7 +237,7 @@ trait OreRestfulApi {
     }
     for {
       project <- service.DB.db.run(query.result.headOption)
-      json <- writeProjects(project.toSeq)
+      json    <- writeProjects(project.toSeq)
     } yield {
       json.headOption.map(_._2)
     }
@@ -228,31 +252,45 @@ trait OreRestfulApi {
     * @param offset   Amount to drop
     * @return         JSON list of versions
     */
-  def getVersionList(pluginId: String, channels: Option[String],
-                     limit: Option[Int], offset: Option[Int], onlyPublic: Boolean)(implicit ec: ExecutionContext): Future[JsValue] = {
-    val filtered = channels.map { chan =>
-      queryVersions(onlyPublic).filter { case (p, v, vId, c, uName) =>
-          // Only allow versions in the specified channels or all if none specified
-          c.name.toLowerCase inSetBind chan.toLowerCase.split(",")
+  def getVersionList(
+      pluginId: String,
+      channels: Option[String],
+      limit: Option[Int],
+      offset: Option[Int],
+      onlyPublic: Boolean
+  )(implicit ec: ExecutionContext): Future[JsValue] = {
+    val filtered = channels
+      .map { chan =>
+        queryVersions(onlyPublic).filter {
+          case (p, v, vId, c, uName) =>
+            // Only allow versions in the specified channels or all if none specified
+            c.name.toLowerCase.inSetBind(chan.toLowerCase.split(","))
+        }
       }
-    } getOrElse queryVersions(onlyPublic) filter {
-      case (p, v, vId, c, uName) =>
-        p.pluginId.toLowerCase === pluginId.toLowerCase
-    } sortBy { case (_, v, _, _, _) =>
-      v.createdAt.desc
-    }
+      .getOrElse(queryVersions(onlyPublic))
+      .filter {
+        case (p, v, vId, c, uName) =>
+          p.pluginId.toLowerCase === pluginId.toLowerCase
+      }
+      .sortBy {
+        case (_, v, _, _, _) =>
+          v.createdAt.desc
+      }
 
     val maxLoad = this.config.projects.get[Int]("init-version-load")
-    val lim = max(min(limit.getOrElse(maxLoad), maxLoad), 0)
+    val lim     = max(min(limit.getOrElse(maxLoad), maxLoad), 0)
 
     val limited = filtered.drop(offset.getOrElse(0)).take(lim)
 
     for {
       data <- service.DB.db.run(limited.result) // Get Project Version Channel and AuthorName
-      vTags <- service.DB.db.run(queryVersionTags(data.map(_._3)).result).map { p => p.groupBy(_._1) mapValues (_.map(_._2)) }
+      vTags <- service.DB.db.run(queryVersionTags(data.map(_._3)).result).map { p =>
+        p.groupBy(_._1).mapValues(_.map(_._2))
+      }
     } yield {
-      val list = data.map { case (p, v, vId, c, uName) =>
-        writeVersion(v, p, c, uName, vTags.getOrElse(vId, Seq.empty))
+      val list = data.map {
+        case (p, v, vId, c, uName) =>
+          writeVersion(v, p, c, uName, vTags.getOrElse(vId, Seq.empty))
       }
       toJson(list)
     }
@@ -267,32 +305,39 @@ trait OreRestfulApi {
     */
   def getVersion(pluginId: String, name: String)(implicit ec: ExecutionContext): Future[Option[JsValue]] = {
 
-    val filtered = queryVersions().filter { case (p, v, vId, c, uName) =>
-      p.pluginId.toLowerCase === pluginId.toLowerCase &&
-      v.versionString.toLowerCase === name.toLowerCase
+    val filtered = queryVersions().filter {
+      case (p, v, vId, c, uName) =>
+        p.pluginId.toLowerCase === pluginId.toLowerCase &&
+          v.versionString.toLowerCase === name.toLowerCase
     }
 
     for {
-      data <- service.DB.db.run(filtered.result.headOption) // Get Project Version Channel and AuthorName
+      data <- service.DB.db.run(filtered.result.headOption)                                     // Get Project Version Channel and AuthorName
       tags <- service.DB.db.run(queryVersionTags(data.map(_._3).toSeq).result).map(_.map(_._2)) // Get Tags
     } yield {
-      data.map { case (p, v, _, c, uName) =>
-        writeVersion(v, p, c, uName, tags)
+      data.map {
+        case (p, v, _, c, uName) =>
+          writeVersion(v, p, c, uName, tags)
       }
     }
   }
 
-
-  private def queryVersions(onlyPublic: Boolean = true): Query[(ProjectTableMain, VersionTable, Rep[ObjectReference], ChannelTable, Rep[Option[String]]), (Project, Version, ObjectReference, Channel, Option[String]), Seq] = {
-    val tableProject = TableQuery[ProjectTableMain]
-    val tableVersion = TableQuery[VersionTable]
+  private def queryVersions(onlyPublic: Boolean = true): Query[
+    (ProjectTableMain, VersionTable, Rep[ObjectReference], ChannelTable, Rep[Option[String]]),
+    (Project, Version, ObjectReference, Channel, Option[String]),
+    Seq
+  ] = {
+    val tableProject  = TableQuery[ProjectTableMain]
+    val tableVersion  = TableQuery[VersionTable]
     val tableChannels = TableQuery[ChannelTable]
-    val tableUsers = TableQuery[UserTable]
+    val tableUsers    = TableQuery[UserTable]
 
     for {
-      p <- tableProject
-      (v, u) <- tableVersion joinLeft tableUsers on (_.authorId === _.id)
-      c <- tableChannels if v.channelId === c.id && p.id === v.projectId && (if(onlyPublic) v.visibility === VisibilityTypes.Public else true)
+      p      <- tableProject
+      (v, u) <- tableVersion.joinLeft(tableUsers).on(_.authorId === _.id)
+      c      <- tableChannels
+      if v.channelId === c.id && p.id === v.projectId && (if (onlyPublic) v.visibility === VisibilityTypes.Public
+                                                          else true)
     } yield {
       (p, v, v.id, c, u.map(_.name))
     }
@@ -305,32 +350,40 @@ trait OreRestfulApi {
     * @param parentId Optional parent ID filter
     * @return         List of project pages
     */
-  def getPages(pluginId: String, parentId: Option[Int])(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, JsValue] = {
+  def getPages(
+      pluginId: String,
+      parentId: Option[Int]
+  )(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, JsValue] = {
     ProjectBase().withPluginId(pluginId).semiflatMap { project =>
-        for {
-          pages <- project.pages.sorted(_.name)
-        } yield {
-          val seq = pages.filter(_.parentId == parentId)
-          val pageById = pages.map(p => (p.id.value, p)).toMap
-          toJson(seq.map(page => obj(
-            "createdAt" -> page.createdAt.value,
-            "id" -> page.id.value,
-            "name" -> page.name,
-            "parentId" -> page.parentId,
-            "slug" -> page.slug,
-            "fullSlug" -> page.fullSlug(page.parentId.flatMap(pageById.get))
-          )))
-        }
+      for {
+        pages <- project.pages.sorted(_.name)
+      } yield {
+        val seq      = pages.filter(_.parentId == parentId)
+        val pageById = pages.map(p => (p.id.value, p)).toMap
+        toJson(
+          seq.map(
+            page =>
+              obj(
+                "createdAt" -> page.createdAt.value,
+                "id"        -> page.id.value,
+                "name"      -> page.name,
+                "parentId"  -> page.parentId,
+                "slug"      -> page.slug,
+                "fullSlug"  -> page.fullSlug(page.parentId.flatMap(pageById.get))
+            )
+          )
+        )
+      }
     }
   }
 
-  private def queryStars(users: Seq[User])  = {
+  private def queryStars(users: Seq[User]) = {
 
-    val tableStars = TableQuery[ProjectStarsTable]
+    val tableStars   = TableQuery[ProjectStarsTable]
     val tableProject = TableQuery[ProjectTableMain]
 
     for {
-      s <- tableStars if s.userId inSetBind users.map(_.id.value)
+      s <- tableStars if s.userId.inSetBind(users.map(_.id.value))
       p <- tableProject if s.projectId === p.id
     } yield {
       (s.userId, p.pluginId)
@@ -346,7 +399,7 @@ trait OreRestfulApi {
     */
   def getUserList(limit: Option[Int], offset: Option[Int])(implicit ec: ExecutionContext): Future[JsValue] = {
     for {
-      users <- service.DB.db.run(TableQuery[UserTable].drop(offset.getOrElse(0)).take(limit.getOrElse(25)).result)
+      users        <- service.DB.db.run(TableQuery[UserTable].drop(offset.getOrElse(0)).take(limit.getOrElse(25)).result)
       writtenUsers <- writeUsers(users)
     } yield {
       toJson(writtenUsers)
@@ -357,24 +410,24 @@ trait OreRestfulApi {
     implicit def config: OreConfig = this.config
 
     val query = queryProjectRV.filter {
-      case (p, v, c) => p.userId inSetBind userList.map(_.id.value) // query all projects with given users
+      case (p, v, c) => p.userId.inSetBind(userList.map(_.id.value)) // query all projects with given users
     }
 
     for {
-      allProjects <- service.DB.db.run(query.result)
-      stars <- service.DB.db.run(queryStars(userList).result).map(_.groupBy(_._1).mapValues(_.map(_._2)))
+      allProjects  <- service.DB.db.run(query.result)
+      stars        <- service.DB.db.run(queryStars(userList).result).map(_.groupBy(_._1).mapValues(_.map(_._2)))
       jsonProjects <- writeProjects(allProjects)
     } yield {
       val projectsByUser = jsonProjects.groupBy(_._1.ownerId).mapValues(_.map(_._2))
       userList.map { user =>
         obj(
-          "id"              ->  user.id.value,
-          "createdAt"       ->  user.createdAt.value.toString,
-          "username"        ->  user.name,
-          "roles"           ->  user.globalRoles.map(_.title),
-          "starred"         ->  toJson(stars.getOrElse(user.id.value, Seq.empty)),
-          "avatarUrl"       ->  user.avatarUrl,
-          "projects"        ->  toJson(projectsByUser.getOrElse(user.id.value, Nil))
+          "id"        -> user.id.value,
+          "createdAt" -> user.createdAt.value.toString,
+          "username"  -> user.name,
+          "roles"     -> user.globalRoles.map(_.title),
+          "starred"   -> toJson(stars.getOrElse(user.id.value, Seq.empty)),
+          "avatarUrl" -> user.avatarUrl,
+          "projects"  -> toJson(projectsByUser.getOrElse(user.id.value, Nil))
         )
       }
     }
@@ -404,16 +457,18 @@ trait OreRestfulApi {
     * @param version  Version name
     * @return         Tags on the Version
     */
-  def getTags(pluginId: String, version: String)(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, JsValue] = {
+  def getTags(
+      pluginId: String,
+      version: String
+  )(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, JsValue] = {
     ProjectBase().withPluginId(pluginId).flatMap { project =>
-      project.versions.find(v => v.versionString.toLowerCase === version.toLowerCase && v.visibility === VisibilityTypes.Public).semiflatMap { v =>
-        v.tags.map { tags =>
-          obj(
-            "pluginId" -> pluginId,
-            "version" -> version,
-            "tags" -> tags.map(toJson(_))): JsValue
+      project.versions
+        .find(v => v.versionString.toLowerCase === version.toLowerCase && v.visibility === VisibilityTypes.Public)
+        .semiflatMap { v =>
+          v.tags.map { tags =>
+            obj("pluginId" -> pluginId, "version" -> version, "tags" -> tags.map(toJson(_))): JsValue
+          }
         }
-      }
     }
   }
 
@@ -423,12 +478,13 @@ trait OreRestfulApi {
     * @param tagId The ID of the Tag Color
     * @return The Tag Color
     */
-  def getTagColor(tagId: Int): Option[JsValue] = {
+  def getTagColor(tagId: Int): Option[JsValue] =
     Some(toJson(TagColors.withId(tagId)))
-  }
 
 }
 
-class OreRestfulServer @Inject()(override val writes: OreWrites,
-                                 override val service: ModelService,
-                                 override val config: OreConfig) extends OreRestfulApi
+class OreRestfulServer @Inject()(
+    override val writes: OreWrites,
+    override val service: ModelService,
+    override val config: OreConfig
+) extends OreRestfulApi

@@ -24,19 +24,20 @@ import cats.instances.future._
 /**
   * Holds ProjetData that is the same for all users
   */
-case class ProjectData(joinable: Project,
-                       projectOwner: User,
-                       ownerRole: ProjectRole,
-                       publicVersions: Int, // project.versions.count(_.visibility === VisibilityTypes.Public)
-                       settings: ProjectSettings,
-                       members: Seq[(ProjectRole, User)],
-                       projectLogSize: Int,
-                       flags: Seq[(Flag, String, Option[String])], // (Flag, user.name, resolvedBy)
-                       noteCount: Int, // getNotes.size
-                       lastVisibilityChange: Option[ProjectVisibilityChange],
-                       lastVisibilityChangeUser: String, // users.get(project.lastVisibilityChange.get.createdBy.get).map(_.username).getOrElse("Unknown")
-                       recommendedVersion: Option[Version]
-                      ) extends JoinableData[ProjectRole, ProjectMember, Project] {
+case class ProjectData(
+    joinable: Project,
+    projectOwner: User,
+    ownerRole: ProjectRole,
+    publicVersions: Int, // project.versions.count(_.visibility === VisibilityTypes.Public)
+    settings: ProjectSettings,
+    members: Seq[(ProjectRole, User)],
+    projectLogSize: Int,
+    flags: Seq[(Flag, String, Option[String])], // (Flag, user.name, resolvedBy)
+    noteCount: Int, // getNotes.size
+    lastVisibilityChange: Option[ProjectVisibilityChange],
+    lastVisibilityChangeUser: String, // users.get(project.lastVisibilityChange.get.createdBy.get).map(_.username).getOrElse("Unknown")
+    recommendedVersion: Option[Version]
+) extends JoinableData[ProjectRole, ProjectMember, Project] {
 
   def flagCount: Int = flags.size
 
@@ -53,23 +54,27 @@ object ProjectData {
 
   def cacheKey(project: Project): String = "project" + project.id.value
 
-  def of[A](request: OreRequest[A], project: PendingProject)(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext): ProjectData = {
+  def of[A](
+      request: OreRequest[A],
+      project: PendingProject
+  )(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext): ProjectData = {
 
     val projectOwner = request.data.currentUser.get
 
-    val settings = project.settings
-    val ownerRole = null
-    val versions = 0
-    val members = Seq.empty
-    val uProjectFlags = false
-    val starred = false
-    val watching = false
-    val logSize = 0
-    val lastVisibilityChange = None
+    val settings                 = project.settings
+    val ownerRole                = null
+    val versions                 = 0
+    val members                  = Seq.empty
+    val uProjectFlags            = false
+    val starred                  = false
+    val watching                 = false
+    val logSize                  = 0
+    val lastVisibilityChange     = None
     val lastVisibilityChangeUser = "-"
-    val recommendedVersion = None
+    val recommendedVersion       = None
 
-    val data = new ProjectData(project.underlying,
+    val data = new ProjectData(
+      project.underlying,
       projectOwner,
       ownerRole,
       versions,
@@ -80,19 +85,27 @@ object ProjectData {
       0,
       lastVisibilityChange,
       lastVisibilityChangeUser,
-      recommendedVersion)
+      recommendedVersion
+    )
 
     data
   }
 
-  def of[A](project: Project)(implicit cache: AsyncCacheApi, db: JdbcBackend#DatabaseDef, ec: ExecutionContext, service: ModelService): Future[ProjectData] = {
-    val flagsFut = project.flags.all
+  def of[A](project: Project)(
+      implicit cache: AsyncCacheApi,
+      db: JdbcBackend#DatabaseDef,
+      ec: ExecutionContext,
+      service: ModelService
+  ): Future[ProjectData] = {
+    val flagsFut     = project.flags.all
     val flagUsersFut = flagsFut.flatMap(flags => Future.sequence(flags.map(_.user)))
-    val flagResolvedFut = flagsFut.flatMap(flags => Future.sequence(flags.map(flag => UserBase().get(flag.resolvedBy.getOrElse(-1)).value)))
+    val flagResolvedFut =
+      flagsFut.flatMap(flags => Future.sequence(flags.map(flag => UserBase().get(flag.resolvedBy.getOrElse(-1)).value)))
 
     val lastVisibilityChangeFut = project.lastVisibilityChange.value
     val lastVisibilityChangeUserFut = lastVisibilityChangeFut.flatMap { lastVisibilityChange =>
-      if (lastVisibilityChange.isEmpty) Future.successful("Unknown") else lastVisibilityChange.get.created.fold("Unknown")(_.name)
+      if (lastVisibilityChange.isEmpty) Future.successful("Unknown")
+      else lastVisibilityChange.get.created.fold("Unknown")(_.name)
     }
 
     (
@@ -109,10 +122,24 @@ object ProjectData {
       lastVisibilityChangeUserFut,
       project.recommendedVersion
     ).mapN {
-      case (settings, projectOwner, ownerRole, versions, members, logSize, flags, flagUsers, flagResolved, lastVisibilityChange, lastVisibilityChangeUser, recommendedVersion) =>
+      case (
+          settings,
+          projectOwner,
+          ownerRole,
+          versions,
+          members,
+          logSize,
+          flags,
+          flagUsers,
+          flagResolved,
+          lastVisibilityChange,
+          lastVisibilityChangeUser,
+          recommendedVersion
+          ) =>
         val noteCount = project.decodeNotes.size
-        val flagData = flags zip flagUsers zip flagResolved map { case ((fl, user), resolved) =>
-          (fl, user.name, resolved.map(_.name))
+        val flagData = flags.zip(flagUsers).zip(flagResolved).map {
+          case ((fl, user), resolved) =>
+            (fl, user.name, resolved.map(_.name))
         }
 
         new ProjectData(
@@ -127,11 +154,14 @@ object ProjectData {
           noteCount,
           lastVisibilityChange,
           lastVisibilityChangeUser,
-          Some(recommendedVersion))
+          Some(recommendedVersion)
+        )
     }
   }
 
-  def members(project: Project)(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef): Future[Seq[(ProjectRole, User)]] = {
+  def members(
+      project: Project
+  )(implicit ec: ExecutionContext, db: JdbcBackend#DatabaseDef): Future[Seq[(ProjectRole, User)]] = {
     val tableUser = TableQuery[UserTable]
     val tableRole = TableQuery[ProjectRoleTable]
 
@@ -142,11 +172,10 @@ object ProjectData {
       (r, u)
     }
 
-    db.run(query.result).map(_.map {
-      case (r, u) => (r, u)
-    })
+    db.run(query.result)
+      .map(_.map {
+        case (r, u) => (r, u)
+      })
   }
-
-
 
 }

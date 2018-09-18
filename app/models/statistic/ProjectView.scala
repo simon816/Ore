@@ -26,18 +26,20 @@ import security.spauth.SpongeAuthApi
   * @param cookie     Browser cookie
   * @param userId     User ID
   */
-case class ProjectView(id: ObjectId = ObjectId.Uninitialized,
-                       createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                       modelId: ObjectReference,
-                       address: InetString,
-                       cookie: String,
-                       userId: Option[ObjectReference] = None)
-                       extends StatEntry[Project] with ProjectScope {
+case class ProjectView(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    modelId: ObjectReference,
+    address: InetString,
+    cookie: String,
+    userId: Option[ObjectReference] = None
+) extends StatEntry[Project]
+    with ProjectScope {
 
   override type M = ProjectView
   override type T = ProjectViewsTable
 
-  override def projectId: ObjectReference = this.modelId
+  override def projectId: ObjectReference                                    = this.modelId
   override def copyWith(id: ObjectId, theTime: ObjectTimestamp): ProjectView = this.copy(id = id, createdAt = theTime)
 }
 
@@ -50,7 +52,9 @@ object ProjectView {
     * @param request  Request to bind
     * @return         New ProjectView
     */
-  def bindFromRequest(request: ProjectRequest[_])(implicit ec: ExecutionContext, users: UserBase, auth: SpongeAuthApi): Future[ProjectView] = {
+  def bindFromRequest(
+      request: ProjectRequest[_]
+  )(implicit ec: ExecutionContext, users: UserBase, auth: SpongeAuthApi): Future[ProjectView] = {
     implicit val r: Requests.OreRequest[_] = request.request
     checkNotNull(request, "null request", "")
     checkNotNull(users, "null user base", "")

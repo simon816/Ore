@@ -24,8 +24,7 @@ import slick.lifted.ColumnOrdered
 /**
   * Represents a central location for all Users.
   */
-class UserBase(implicit val service: ModelService, config: OreConfig)
-  extends ModelBase[User] {
+class UserBase(implicit val service: ModelService, config: OreConfig) extends ModelBase[User] {
 
   import UserBase.UserOrdering
 
@@ -41,11 +40,10 @@ class UserBase(implicit val service: ModelService, config: OreConfig)
     * @param username Username of user
     * @return User if found, None otherwise
     */
-  def withName(username: String)(implicit ec: ExecutionContext, auth: SpongeAuthApi): OptionT[Future, User] = {
+  def withName(username: String)(implicit ec: ExecutionContext, auth: SpongeAuthApi): OptionT[Future, User] =
     this.find(equalsIgnoreCase(_.name, username)).orElse {
       auth.getUser(username).map(User.fromSponge).semiflatMap(getOrCreate)
     }
-  }
 
   /**
     * Returns the requested user when it is the requester or has the requested permission in the orga
@@ -56,14 +54,18 @@ class UserBase(implicit val service: ModelService, config: OreConfig)
     *
     * @return the requested user
     */
-  def requestPermission(user: User, name: String, perm: Permission)(implicit ec: ExecutionContext, auth: SpongeAuthApi): OptionT[Future, User] = {
+  def requestPermission(user: User, name: String, perm: Permission)(
+      implicit ec: ExecutionContext,
+      auth: SpongeAuthApi
+  ): OptionT[Future, User] = {
     this.withName(name).flatMap { toCheck =>
-      if(user == toCheck) OptionT.pure[Future](user) // Same user
-      else toCheck.toMaybeOrganization.flatMap { orga =>
-        OptionT.liftF(user can perm in orga).collect {
-          case true => toCheck // Has Orga perm
+      if (user == toCheck) OptionT.pure[Future](user) // Same user
+      else
+        toCheck.toMaybeOrganization.flatMap { orga =>
+          OptionT.liftF(user.can(perm) in orga).collect {
+            case true => toCheck // Has Orga perm
+          }
         }
-      }
     }
   }
 
@@ -74,64 +76,75 @@ class UserBase(implicit val service: ModelService, config: OreConfig)
     *
     * @return Users with at least one project
     */
-  def getAuthors(ordering: String = UserOrdering.Projects, page: Int = 1)(implicit ec: ExecutionContext): Future[Seq[(User, Int)]] = {
+  def getAuthors(ordering: String = UserOrdering.Projects, page: Int = 1)(
+      implicit ec: ExecutionContext
+  ): Future[Seq[(User, Int)]] = {
     // determine ordering
     val (sort, reverse) = if (ordering.startsWith("-")) (ordering.substring(1), false) else (ordering, true)
-    val pageSize = this.config.users.get[Int]("author-page-size")
-    val offset = (page - 1) * pageSize
+    val pageSize        = this.config.users.get[Int]("author-page-size")
+    val offset          = (page - 1) * pageSize
 
-    if(sort != UserOrdering.Role) {
+    if (sort != UserOrdering.Role) {
       val baseQuery = for {
         project <- TableQuery[ProjectTableMain]
-        user <- TableQuery[UserTable] if project.userId === user.id
+        user    <- TableQuery[UserTable] if project.userId === user.id
       } yield (user, TableQuery[ProjectTableMain].filter(_.userId === user.id).length)
 
-      def ordered[A](a: ColumnOrdered[A]) = if(reverse) a.desc else a.asc
+      def ordered[A](a: ColumnOrdered[A]) = if (reverse) a.desc else a.asc
 
       //TODO Page in database
       val query = sort match {
-        case UserOrdering.JoinDate => baseQuery.sortBy(user => (ordered(user._1.joinDate), ordered(user._1.createdAt)))
-        case UserOrdering.UserName => baseQuery.sortBy(user => ordered(user._1.name))
+        case UserOrdering.JoinDate     => baseQuery.sortBy(user => (ordered(user._1.joinDate), ordered(user._1.createdAt)))
+        case UserOrdering.UserName     => baseQuery.sortBy(user => ordered(user._1.name))
         case UserOrdering.Projects | _ => baseQuery.sortBy(user => ordered(user._2))
       }
 
       service.DB.db.run(query.distinct.result).map(_.slice(offset, offset + pageSize))
-    }
-    else {
+    } else {
       // TODO page and order should be done in Database!
       // get authors
-      this.service.getSchema(classOf[ProjectSchema]).distinctAuthors.map { users =>
-        users.sortBy(_.globalRoles.sortBy(_.trust).headOption.map(_.trust.level).getOrElse(-1))
-      } map { users => // Reverse?
-        if (reverse) users.reverse else users
-      } map { users =>
-        // get page slice
-        val offset = (page - 1) * pageSize
-        users.slice(offset, offset + pageSize)
-      } flatMap { users =>
-        Future.sequence(users.map(u => u.projects.size.map((u, _))))
-      }
+      this.service
+        .getSchema(classOf[ProjectSchema])
+        .distinctAuthors
+        .map { users =>
+          users.sortBy(_.globalRoles.sortBy(_.trust).headOption.map(_.trust.level).getOrElse(-1))
+        }
+        .map { users => // Reverse?
+          if (reverse) users.reverse else users
+        }
+        .map { users =>
+          // get page slice
+          val offset = (page - 1) * pageSize
+          users.slice(offset, offset + pageSize)
+        }
+        .flatMap { users =>
+          Future.sequence(users.map(u => u.projects.size.map((u, _))))
+        }
     }
   }
 
   /**
     * Returns a page of [[User]]s that have Ore staff roles.
     */
-  def getStaff(ordering: String = UserOrdering.Role, page: Int = 1)(implicit ec: ExecutionContext): Future[Seq[User]] = {
+  def getStaff(ordering: String = UserOrdering.Role, page: Int = 1)(
+      implicit ec: ExecutionContext
+  ): Future[Seq[User]] = {
     // determine ordering
-    val (sort, reverse) = if (ordering.startsWith("-")) (ordering.substring(1), false) else (ordering, true)
+    val (sort, reverse)            = if (ordering.startsWith("-")) (ordering.substring(1), false) else (ordering, true)
     val staffRoles: List[RoleType] = List(RoleType.OreAdmin, RoleType.OreMod)
 
     val pageSize = this.config.users.get[Int]("author-page-size")
-    val offset = (page - 1) * pageSize
+    val offset   = (page - 1) * pageSize
 
-    val dbio = this.service.getSchema(classOf[UserSchema]).baseQuery
+    val dbio = this.service
+      .getSchema(classOf[UserSchema])
+      .baseQuery
       .filter(u => u.globalRoles.asColumnOf[List[RoleType]] @& staffRoles.bind.asColumnOf[List[RoleType]])
       .sortBy { users =>
         sort match { // Sort
-          case UserOrdering.JoinDate => if(reverse) users.joinDate.asc else users.joinDate.desc
-          case UserOrdering.Role => if(reverse) users.globalRoles.asc else users.globalRoles.desc
-          case _ => if(reverse) users.name.asc else users.joinDate.desc
+          case UserOrdering.JoinDate => if (reverse) users.joinDate.asc else users.joinDate.desc
+          case UserOrdering.Role     => if (reverse) users.globalRoles.asc else users.globalRoles.desc
+          case _                     => if (reverse) users.name.asc else users.joinDate.desc
         }
       }
       .drop(offset)
@@ -141,10 +154,10 @@ class UserBase(implicit val service: ModelService, config: OreConfig)
     service.DB.db.run(dbio)
   }
 
-  implicit val timestampOrdering: Ordering[Timestamp] = (x: Timestamp, y: Timestamp) => x compareTo y
+  implicit val timestampOrdering: Ordering[Timestamp] = (x: Timestamp, y: Timestamp) => x.compareTo(y)
   implicit val rolesOrdering: Ordering[List[RoleType]] = (x: List[RoleType], y: List[RoleType]) => {
-    def maxOrZero[A, B: Ordering](xs: List[A])(f: A => B, zero: B) = if(xs.isEmpty) zero else xs.map(f).max
-    maxOrZero(x)(_.trust, role.Default) compareTo maxOrZero(y)(_.trust, role.Default)
+    def maxOrZero[A, B: Ordering](xs: List[A])(f: A => B, zero: B) = if (xs.isEmpty) zero else xs.map(f).max
+    maxOrZero(x)(_.trust, role.Default).compareTo(maxOrZero(y)(_.trust, role.Default))
   }
 
   /**
@@ -165,10 +178,10 @@ class UserBase(implicit val service: ModelService, config: OreConfig)
     * @return     Newly created session
     */
   def createSession(user: User)(implicit ec: ExecutionContext): Future[Session] = {
-    val maxAge = this.config.play.get[Int]("http.session.maxAge")
+    val maxAge     = this.config.play.get[Int]("http.session.maxAge")
     val expiration = new Timestamp(new Date().getTime + maxAge * 1000L)
-    val token = UUID.randomUUID().toString
-    val session = Session(ObjectId.Uninitialized, ObjectTimestamp.Uninitialized, expiration, user.name, token)
+    val token      = UUID.randomUUID().toString
+    val session    = Session(ObjectId.Uninitialized, ObjectTimestamp.Uninitialized, expiration, user.name, token)
     this.service.access[Session](classOf[Session]).add(session)
   }
 
@@ -187,18 +200,17 @@ class UserBase(implicit val service: ModelService, config: OreConfig)
       } else Some(session)
     }
 
-
   /**
     * Returns the currently authenticated User.c
     *
     * @param session  Current session
     * @return         Authenticated user, if any, None otherwise
     */
-  def current(implicit session: Request[_], ec: ExecutionContext, authApi: SpongeAuthApi): OptionT[Future, User] = {
-    OptionT.fromOption[Future](session.cookies.get("_oretoken"))
+  def current(implicit session: Request[_], ec: ExecutionContext, authApi: SpongeAuthApi): OptionT[Future, User] =
+    OptionT
+      .fromOption[Future](session.cookies.get("_oretoken"))
       .flatMap(cookie => getSession(cookie.value))
       .flatMap(_.user)
-  }
 
 }
 

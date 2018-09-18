@@ -20,19 +20,22 @@ import cats.instances.future._
   * @param baseQuery Model table [[TableQuery]] instance
   * @tparam M Model type
   */
-class ModelSchema[M <: Model](val service: ModelService,
-                              val modelClass: Class[M],
-                              val baseQuery: TableQuery[_ <: M#T]) {
+class ModelSchema[M <: Model](
+    val service: ModelService,
+    val modelClass: Class[M],
+    val baseQuery: TableQuery[_ <: M#T]
+) {
 
   private case class Associate[T <: AssociativeTable, A <: Model](tableClass: Class[T], modelClass: Class[A])
 
-  private var associations: Map[Class[_ <: AssociativeTable], ModelAssociation[_]] = Map.empty
+  private var associations: Map[Class[_ <: AssociativeTable], ModelAssociation[_]]   = Map.empty
   private var associatedModels: Map[Class[_ <: AssociativeTable], Class[_ <: Model]] = Map.empty
-  private var associativeSelfReferences: Map[Class[_ <: AssociativeTable], AssociativeTable => Rep[ObjectReference]] = Map.empty
+  private var associativeSelfReferences: Map[Class[_ <: AssociativeTable], AssociativeTable => Rep[ObjectReference]] =
+    Map.empty
   private var associativeOtherReferences: Map[Associate[_, _], AssociativeTable => Rep[ObjectReference]] = Map.empty
 
   private var children: Map[Class[_ <: Model], ModelTable[_] => Rep[ObjectReference]] = Map.empty
-  private var siblings: Map[Class[_ <: Model], M => ObjectReference] = Map.empty
+  private var siblings: Map[Class[_ <: Model], M => ObjectReference]                  = Map.empty
 
   /**
     * Adds a new [[ModelAssociation]] to this schema and defines a
@@ -47,13 +50,15 @@ class ModelSchema[M <: Model](val service: ModelService,
     * @tparam A               Model type
     * @return                 This schema instance
     */
-  def withAssociation[Assoc <: AssociativeTable, A <: Model](association: ModelAssociation[Assoc],
-                                                             selfReference: Assoc => Rep[ObjectReference],
-                                                             targetClass: Class[A],
-                                                             targetReference: Assoc => Rep[ObjectReference]): ModelSchema[M] = {
+  def withAssociation[Assoc <: AssociativeTable, A <: Model](
+      association: ModelAssociation[Assoc],
+      selfReference: Assoc => Rep[ObjectReference],
+      targetClass: Class[A],
+      targetReference: Assoc => Rep[ObjectReference]
+  ): ModelSchema[M] = {
     val tableClass = association.tableClass
-    this.associations += tableClass -> association
-    this.associatedModels += tableClass -> targetClass
+    this.associations += tableClass              -> association
+    this.associatedModels += tableClass          -> targetClass
     this.associativeSelfReferences += tableClass -> selfReference.asInstanceOf[AssociativeTable => Rep[ObjectReference]]
     this.associativeOtherReferences += Associate[Assoc, A](tableClass, targetClass) ->
       targetReference.asInstanceOf[AssociativeTable => Rep[ObjectReference]]
@@ -70,12 +75,14 @@ class ModelSchema[M <: Model](val service: ModelService,
     * @tparam A               Model type
     * @return                 This schema instance
     */
-  def getAssociation[Assoc <: AssociativeTable, A <: Model](assocTableClass: Class[Assoc],
-                                                            model: M): ModelAssociationAccess[Assoc, A] = {
+  def getAssociation[Assoc <: AssociativeTable, A <: Model](
+      assocTableClass: Class[Assoc],
+      model: M
+  ): ModelAssociationAccess[Assoc, A] = {
     val parentRef: AssociativeTable => Rep[ObjectReference] = this.associativeSelfReferences(assocTableClass)
-    val otherClass: Class[A] = this.associatedModels(assocTableClass).asInstanceOf[Class[A]]
-    val otherRef: AssociativeTable => Rep[ObjectReference] = this.associativeOtherReferences(Associate[Assoc, A](
-      assocTableClass, otherClass))
+    val otherClass: Class[A]                                = this.associatedModels(assocTableClass).asInstanceOf[Class[A]]
+    val otherRef: AssociativeTable => Rep[ObjectReference] =
+      this.associativeOtherReferences(Associate[Assoc, A](assocTableClass, otherClass))
     val association = this.associations(assocTableClass).asInstanceOf[ModelAssociation[Assoc]]
     new ModelAssociationAccess[Assoc, A](this.service, model, parentRef, otherClass, otherRef, association)
   }
@@ -147,10 +154,11 @@ class ModelSchema[M <: Model](val service: ModelService,
     val modelPromise = Promise[M]
     like(model).value.onComplete {
       case Failure(thrown) => modelPromise.failure(thrown)
-      case Success(modelOpt) => modelOpt match {
-        case Some(existing) => modelPromise.success(existing)
-        case None => modelPromise.completeWith(service insert model)
-      }
+      case Success(modelOpt) =>
+        modelOpt match {
+          case Some(existing) => modelPromise.success(existing)
+          case None           => modelPromise.completeWith(service.insert(model))
+        }
     }
     modelPromise.future
   }

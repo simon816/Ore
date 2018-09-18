@@ -16,16 +16,19 @@ import db.impl.ProjectLogEntryTable
   * @param occurrences      Amount of occurrences this entry has had
   * @param lastOccurrence   Instant of last occurrence
   */
-case class ProjectLogEntry(id: ObjectId = ObjectId.Uninitialized,
-                           createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                           logId: ObjectReference,
-                           tag: String,
-                           message: String,
-                           occurrences: Int = 1,
-                           lastOccurrence: Timestamp) extends Model {
+case class ProjectLogEntry(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    logId: ObjectReference,
+    tag: String,
+    message: String,
+    occurrences: Int = 1,
+    lastOccurrence: Timestamp
+) extends Model {
 
   override type T = ProjectLogEntryTable
   override type M = ProjectLogEntry
 
-  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): ProjectLogEntry = this.copy(id = id, createdAt = theTime)
+  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): ProjectLogEntry =
+    this.copy(id = id, createdAt = theTime)
 }

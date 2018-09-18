@@ -37,13 +37,20 @@ trait StatTracker {
     *
     * @param request Request to view the project
     */
-  def projectViewed(projectRequest: ProjectRequest[_])(f: ProjectRequest[_] => Result)(implicit cache: AsyncCacheApi, request: OreRequest[_],
-      ec: ExecutionContext, auth: SpongeAuthApi): Future[Result] = {
+  def projectViewed(projectRequest: ProjectRequest[_])(f: ProjectRequest[_] => Result)(
+      implicit cache: AsyncCacheApi,
+      request: OreRequest[_],
+      ec: ExecutionContext,
+      auth: SpongeAuthApi
+  ): Future[Result] = {
     ProjectView.bindFromRequest(projectRequest).flatMap { statEntry =>
-      this.viewSchema.record(statEntry).flatMap {
-        case true  => projectRequest.data.project.addView
-        case false => Future.unit
-      }.as(f(projectRequest).withCookies(bakery.bake(COOKIE_NAME, statEntry.cookie, secure = true)))
+      this.viewSchema
+        .record(statEntry)
+        .flatMap {
+          case true  => projectRequest.data.project.addView
+          case false => Future.unit
+        }
+        .as(f(projectRequest).withCookies(bakery.bake(COOKIE_NAME, statEntry.cookie, secure = true)))
     }
   }
 
@@ -55,13 +62,20 @@ trait StatTracker {
     * @param version Version to check downloads for
     * @param request Request to download the version
     */
-  def versionDownloaded(version: Version)(f: ProjectRequest[_] => Result)(implicit cache: AsyncCacheApi,request: ProjectRequest[_],
-      ec: ExecutionContext, auth: SpongeAuthApi): Future[Result] = {
+  def versionDownloaded(version: Version)(f: ProjectRequest[_] => Result)(
+      implicit cache: AsyncCacheApi,
+      request: ProjectRequest[_],
+      ec: ExecutionContext,
+      auth: SpongeAuthApi
+  ): Future[Result] = {
     VersionDownload.bindFromRequest(version).flatMap { statEntry =>
-      this.downloadSchema.record(statEntry).flatMap {
-        case true  => version.addDownload *> request.data.project.addDownload
-        case false => Future.unit
-      }.as(f(request).withCookies(bakery.bake(COOKIE_NAME, statEntry.cookie, secure = true)))
+      this.downloadSchema
+        .record(statEntry)
+        .flatMap {
+          case true  => version.addDownload *> request.data.project.addDownload
+          case false => Future.unit
+        }
+        .as(f(request).withCookies(bakery.bake(COOKIE_NAME, statEntry.cookie, secure = true)))
     }
   }
 
@@ -77,8 +91,8 @@ object StatTracker {
     * @param request  Request with cookie
     * @return         New or existing cookie
     */
-  def currentCookie(implicit request: RequestHeader): String
-  = request.cookies.get(COOKIE_NAME).map(_.value).getOrElse(UUID.randomUUID.toString)
+  def currentCookie(implicit request: RequestHeader): String =
+    request.cookies.get(COOKIE_NAME).map(_.value).getOrElse(UUID.randomUUID.toString)
 
   /**
     * Returns either the original client address from a X-Forwarded-For header
@@ -87,18 +101,19 @@ object StatTracker {
     * @param request  Request to get address of
     * @return         Remote address
     */
-  def remoteAddress(implicit request: RequestHeader): String = {
+  def remoteAddress(implicit request: RequestHeader): String =
     request.headers.get("X-Forwarded-For") match {
-      case None => request.remoteAddress
+      case None         => request.remoteAddress
       case Some(header) => header.split(',').headOption.map(_.trim).getOrElse(request.remoteAddress)
     }
-  }
 
 }
 
 class OreStatTracker @Inject()(val service: ModelService, override val bakery: Bakery) extends StatTracker {
-  override val viewSchema    : StatSchema[ProjectView]     = this.service.getSchemaByModel(classOf[ProjectView]).asInstanceOf[StatSchema[ProjectView]]
+  override val viewSchema: StatSchema[ProjectView] =
+    this.service.getSchemaByModel(classOf[ProjectView]).asInstanceOf[StatSchema[ProjectView]]
 
-  override val downloadSchema: StatSchema[VersionDownload] = this.service.getSchemaByModel(classOf[VersionDownload])
+  override val downloadSchema: StatSchema[VersionDownload] = this.service
+    .getSchemaByModel(classOf[VersionDownload])
     .asInstanceOf[StatSchema[VersionDownload]]
 }

@@ -22,15 +22,17 @@ import db.impl.access.UserBase
   * @param action           Action to perform on click
   * @param isRead             True if notification has been read
   */
-case class Notification(id: ObjectId = ObjectId.Uninitialized,
-                        createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                        userId: ObjectReference,
-                        originId: ObjectReference,
-                        notificationType: NotificationType,
-                        messageArgs: NEL[String],
-                        action: Option[String] = None,
-                        isRead: Boolean = false)
-                        extends Model with UserOwned {
+case class Notification(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    userId: ObjectReference,
+    originId: ObjectReference,
+    notificationType: NotificationType,
+    messageArgs: NEL[String],
+    action: Option[String] = None,
+    isRead: Boolean = false
+) extends Model
+    with UserOwned {
 
   override type M = Notification
   override type T = NotificationTable

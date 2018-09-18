@@ -19,17 +19,19 @@ import scala.concurrent.{ExecutionContext, Future}
   * Utility class for performing some bulk actions on the application data.
   * Typically for testing.
   */
-final class DataHelper @Inject()(implicit config: OreConfig,
-                                 statusZ: StatusZ,
-                                 service: ModelService,
-                                 factory: ProjectFactory,
-                                 forums: OreDiscourseApi,
-                                 cacheApi: SyncCacheApi) {
+final class DataHelper @Inject()(
+    implicit config: OreConfig,
+    statusZ: StatusZ,
+    service: ModelService,
+    factory: ProjectFactory,
+    forums: OreDiscourseApi,
+    cacheApi: SyncCacheApi
+) {
 
-  private val projects = ProjectBase.fromService(service)
+  private val projects                       = ProjectBase.fromService(service)
   private val channels: ModelAccess[Channel] = this.service.access[Channel](classOf[Channel])
   private val versions: ModelAccess[Version] = this.service.access[Version](classOf[Version])
-  private val users = UserBase.fromService(service)
+  private val users                          = UserBase.fromService(service)
 
   val Logger = play.api.Logger("DataHelper")
 
@@ -58,13 +60,15 @@ final class DataHelper @Inject()(implicit config: OreConfig,
     *
     * @param users Amount of users to create
     */
-  def seed(users: Long, projects: Int, versions: Int, channels: Int)(implicit ec: ExecutionContext, service: ModelService): Unit = {
+  def seed(users: Long, projects: Int, versions: Int, channels: Int)(
+      implicit ec: ExecutionContext,
+      service: ModelService
+  ): Unit = {
     if (sys.env.getOrElse(statusZ.SpongeEnv, "unknown") != "local") return
     // Note: Dangerous as hell, handle with care
     Logger.info("---- Seeding Ore ----")
 
-    checkArgument(channels <= Channel.Colors.size,
-      "cannot make more channels than there are colors", "")
+    checkArgument(channels <= Channel.Colors.size, "cannot make more channels than there are colors", "")
     this.factory.isPgpEnabled = false
 
     Logger.info("Resetting Ore")
@@ -79,38 +83,47 @@ final class DataHelper @Inject()(implicit config: OreConfig,
         // Create some projects
         for (j <- 0 until projects) {
           val pluginId = s"plugin$projectNum"
-          this.projects.add(Project.Builder(this.service)
-            .pluginId(pluginId)
-            .ownerName(user.name)
-            .ownerId(user.id.value)
-            .name(s"Project$projectNum")
-            .build()) map { project =>
-            project.updateSettings(ProjectSettings())
-            // Now create some additional versions for this project
-            var versionNum = 0
-            for (k <- 0 until channels) {
-              this.channels.add(new Channel(s"channel$k", Channel.Colors(k), project.id.value)) map { channel =>
-                for (l <- 0 until versions) {
-                  this.versions.add(Version(
-                    projectId = project.id.value,
-                    versionString = versionNum.toString,
-                    channelId = channel.id.value,
-                    fileSize = 1,
-                    hash = "none",
-                    authorId = i,
-                    fileName = "none",
-                    signatureFileName = "none")) map { version =>
-                    versionNum += 1
-                    if (l == 0) service.update(project.copy(recommendedVersionId = Some(version.id.value)))
-                    else Future.unit
+          this.projects
+            .add(
+              Project
+                .Builder(this.service)
+                .pluginId(pluginId)
+                .ownerName(user.name)
+                .ownerId(user.id.value)
+                .name(s"Project$projectNum")
+                .build()
+            )
+            .map { project =>
+              project.updateSettings(ProjectSettings())
+              // Now create some additional versions for this project
+              var versionNum = 0
+              for (k <- 0 until channels) {
+                this.channels.add(new Channel(s"channel$k", Channel.Colors(k), project.id.value)).map { channel =>
+                  for (l <- 0 until versions) {
+                    this.versions
+                      .add(
+                        Version(
+                          projectId = project.id.value,
+                          versionString = versionNum.toString,
+                          channelId = channel.id.value,
+                          fileSize = 1,
+                          hash = "none",
+                          authorId = i,
+                          fileName = "none",
+                          signatureFileName = "none"
+                        )
+                      )
+                      .map { version =>
+                        versionNum += 1
+                        if (l == 0) service.update(project.copy(recommendedVersionId = Some(version.id.value)))
+                        else Future.unit
+                      }
                   }
                 }
               }
+              projectNum += 1
+
             }
-            projectNum += 1
-
-          }
-
 
         }
       }

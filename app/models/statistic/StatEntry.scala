@@ -48,7 +48,6 @@ abstract class StatEntry[Subject <: Model] extends Model { self =>
     *
     * @return User of entry
     */
-  def user(implicit ec: ExecutionContext, userBase: UserBase): OptionT[Future, User] = {
+  def user(implicit ec: ExecutionContext, userBase: UserBase): OptionT[Future, User] =
     OptionT.fromOption[Future](userId).flatMap(userBase.get)
-  }
 }

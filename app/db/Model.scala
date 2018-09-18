@@ -16,8 +16,10 @@ abstract class Model { self =>
 
   /** Self referential type */
   type M <: Model { type M = self.M }
+
   /** The model's table */
   type T <: ModelTable[M]
+
   /** The model's schema */
   type S <: ModelSchema[M]
 
@@ -40,9 +42,8 @@ abstract class Model { self =>
     *                 not yet been processed
     * @return         ModelActions
     */
-  def schema(implicit service: ModelService): S = {
+  def schema(implicit service: ModelService): S =
     service.getSchemaByModel(getClass).asInstanceOf[S]
-  }
 
   /**
     * Returns a copy of this model with an updated ID and timestamp.
@@ -53,11 +54,10 @@ abstract class Model { self =>
     */
   def copyWith(id: ObjectId, theTime: ObjectTimestamp): Model
 
-  protected def Defined[R](f: => R): R = {
+  protected def Defined[R](f: => R): R =
     if (isDefined)
       f
     else
       throw new IllegalStateException("model must exist")
-  }
 
 }

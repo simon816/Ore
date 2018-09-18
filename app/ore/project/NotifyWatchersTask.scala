@@ -17,16 +17,20 @@ import ore.OreConfig
   * @param version  New version
   * @param projects ProjectBase instance
   */
-case class NotifyWatchersTask(version: Version, project: Project)(implicit ec: ExecutionContext, service: ModelService, config: OreConfig)
-  extends Runnable {
+case class NotifyWatchersTask(version: Version, project: Project)(
+    implicit ec: ExecutionContext,
+    service: ModelService,
+    config: OreConfig
+) extends Runnable {
 
   def run(): Unit = {
-    val notification = (userId: ObjectReference) => Notification(
-      userId = userId,
-      originId = project.ownerId,
-      notificationType = NotificationTypes.NewProjectVersion,
-      messageArgs = NonEmptyList.of("notification.project.newVersion", project.name, version.name),
-      action = Some(version.url(project))
+    val notification = (userId: ObjectReference) =>
+      Notification(
+        userId = userId,
+        originId = project.ownerId,
+        notificationType = NotificationTypes.NewProjectVersion,
+        messageArgs = NonEmptyList.of("notification.project.newVersion", project.name, version.name),
+        action = Some(version.url(project))
     )
 
     for {

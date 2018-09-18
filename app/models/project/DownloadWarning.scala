@@ -26,14 +26,17 @@ import scala.concurrent.{ExecutionContext, Future}
   * @param address      Address of client who landed on the warning
   * @param downloadId  Download ID
   */
-case class DownloadWarning(id: ObjectId = ObjectId.Uninitialized,
-                           createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                           expiration: Timestamp,
-                           token: String,
-                           versionId: ObjectReference,
-                           address: InetString,
-                           isConfirmed: Boolean = false,
-                           downloadId: ObjectReference = -1) extends Model with Expirable {
+case class DownloadWarning(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    expiration: Timestamp,
+    token: String,
+    versionId: ObjectReference,
+    address: InetString,
+    isConfirmed: Boolean = false,
+    downloadId: ObjectReference = -1
+) extends Model
+    with Expirable {
 
   override type M = DownloadWarning
   override type T = DownloadWarningsTable
@@ -43,12 +46,11 @@ case class DownloadWarning(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return Download
     */
-  def download(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, UnsafeDownload] = {
+  def download(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, UnsafeDownload] =
     if (downloadId == -1)
       OptionT.none[Future, UnsafeDownload]
     else
       service.access[UnsafeDownload](classOf[UnsafeDownload]).get(downloadId)
-  }
 
   /**
     * Creates a cookie that should be given to the client.
@@ -60,7 +62,8 @@ case class DownloadWarning(id: ObjectId = ObjectId.Uninitialized,
     bakery.bake(COOKIE + "_" + this.versionId, this.token)
   }
 
-  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): DownloadWarning = this.copy(id = id, createdAt = theTime)
+  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): DownloadWarning =
+    this.copy(id = id, createdAt = theTime)
 }
 
 object DownloadWarning {

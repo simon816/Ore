@@ -38,16 +38,18 @@ import db.{ObjectId, ObjectReference, ObjectTimestamp}
   * @param licenseName Project license name
   * @param licenseUrl  Project license URL
   */
-case class ProjectSettings(id: ObjectId = ObjectId.Uninitialized,
-                           createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                           projectId: ObjectReference = -1,
-                           homepage: Option[String] = None,
-                           issues: Option[String] = None,
-                           source: Option[String] = None,
-                           licenseName: Option[String] = None,
-                           licenseUrl: Option[String] = None,
-                           forumSync: Boolean = true)
-                           extends Model with ProjectOwned {
+case class ProjectSettings(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    projectId: ObjectReference = -1,
+    homepage: Option[String] = None,
+    issues: Option[String] = None,
+    source: Option[String] = None,
+    licenseName: Option[String] = None,
+    licenseUrl: Option[String] = None,
+    forumSync: Boolean = true
+) extends Model
+    with ProjectOwned {
 
   override type M = ProjectSettings
   override type T = ProjectSettingsTable
@@ -59,11 +61,17 @@ case class ProjectSettings(id: ObjectId = ObjectId.Uninitialized,
     * @param messages MessagesApi instance
     */
   //noinspection ComparingUnrelatedTypes
-  def save(project: Project, formData: ProjectSettingsForm)(implicit cache: AsyncCacheApi, messages: MessagesApi, fileManager: ProjectFiles, ec: ExecutionContext, service: ModelService): Future[(Project, ProjectSettings)] = {
+  def save(project: Project, formData: ProjectSettingsForm)(
+      implicit cache: AsyncCacheApi,
+      messages: MessagesApi,
+      fileManager: ProjectFiles,
+      ec: ExecutionContext,
+      service: ModelService
+  ): Future[(Project, ProjectSettings)] = {
     Logger.debug("Saving project settings")
     Logger.debug(formData.toString)
 
-    def updateIfDefined[A <: Model](a: A) = if(a.isDefined) service.update(a) else Future.successful(a)
+    def updateIfDefined[A <: Model](a: A) = if (a.isDefined) service.update(a) else Future.successful(a)
 
     val updateProject = updateIfDefined(
       project.copy(
@@ -78,7 +86,7 @@ case class ProjectSettings(id: ObjectId = ObjectId.Uninitialized,
         issues = Option(nullIfEmpty(formData.issues)),
         source = Option(nullIfEmpty(formData.source)),
         licenseUrl = Option(nullIfEmpty(formData.licenseUrl)),
-        licenseName = if(formData.licenseUrl.nonEmpty) Some(formData.licenseName) else licenseName,
+        licenseName = if (formData.licenseUrl.nonEmpty) Some(formData.licenseName) else licenseName,
         forumSync = formData.forumSync
       )
     )
@@ -111,35 +119,51 @@ case class ProjectSettings(id: ObjectId = ObjectId.Uninitialized,
 
           type RoleType = ProjectRole
         } = project.memberships
-        Future.sequence(formData.build().map { role =>
-          dossier.addRole(role.copy(projectId = project.id.value))
-        }).flatMap { roles =>
-          val notifications = roles.map { role =>
-            Notification(
-              createdAt = ObjectTimestamp(Timestamp.from(Instant.now())),
-              userId = role.userId,
-              originId = project.ownerId,
-              notificationType = NotificationTypes.ProjectInvite,
-              messageArgs = NonEmptyList.of("notification.project.invite", role.roleType.title, project.name))
-          }
-
-          service.DB.db.run(TableQuery[NotificationTable] ++= notifications) // Bulk insert Notifications
-        } flatMap { _ =>
-          // Update existing roles
-          val projectRoleTypes = RoleType.values.filter(_.roleClass.equals(classOf[ProjectRole]))
-
-          val usersTable = TableQuery[UserTable]
-          // Select member userIds
-          service.DB.db.run(usersTable.filter(_.name inSetBind formData.userUps).map(_.id).result).map { userIds =>
-            userIds zip formData.roleUps.map(role => projectRoleTypes.find(_.title.equals(role)).getOrElse(throw new RuntimeException("supplied invalid role type")))
-          } map { _.map {
-
-              case (userId, role) => updateMemberShip(userId).update(role)
+        Future
+          .sequence(formData.build().map { role =>
+            dossier.addRole(role.copy(projectId = project.id.value))
+          })
+          .flatMap { roles =>
+            val notifications = roles.map { role =>
+              Notification(
+                createdAt = ObjectTimestamp(Timestamp.from(Instant.now())),
+                userId = role.userId,
+                originId = project.ownerId,
+                notificationType = NotificationTypes.ProjectInvite,
+                messageArgs = NonEmptyList.of("notification.project.invite", role.roleType.title, project.name)
+              )
             }
-          } flatMap { updates =>
-            service.DB.db.run(DBIO.sequence(updates)).map(_ => t)
+
+            service.DB.db.run(TableQuery[NotificationTable] ++= notifications) // Bulk insert Notifications
           }
-        }
+          .flatMap { _ =>
+            // Update existing roles
+            val projectRoleTypes = RoleType.values.filter(_.roleClass.equals(classOf[ProjectRole]))
+
+            val usersTable = TableQuery[UserTable]
+            // Select member userIds
+            service.DB.db
+              .run(usersTable.filter(_.name.inSetBind(formData.userUps)).map(_.id).result)
+              .map { userIds =>
+                userIds.zip(
+                  formData.roleUps.map(
+                    role =>
+                      projectRoleTypes
+                        .find(_.title.equals(role))
+                        .getOrElse(throw new RuntimeException("supplied invalid role type"))
+                  )
+                )
+              }
+              .map {
+                _.map {
+
+                  case (userId, role) => updateMemberShip(userId).update(role)
+                }
+              }
+              .flatMap { updates =>
+                service.DB.db.run(DBIO.sequence(updates)).map(_ => t)
+              }
+          }
       } else Future.successful(t)
     }
   }
@@ -155,5 +179,6 @@ case class ProjectSettings(id: ObjectId = ObjectId.Uninitialized,
   }
   private lazy val updateMemberShip = Compiled(memberShipUpdate _)
 
-  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): ProjectSettings = this.copy(id = id, createdAt = theTime)
+  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): ProjectSettings =
+    this.copy(id = id, createdAt = theTime)
 }

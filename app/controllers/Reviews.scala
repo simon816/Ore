@@ -34,8 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * Controller for handling Review related actions.
   */
-final class Reviews @Inject()(data: DataHelper,
-                              forms: OreForms)(
+final class Reviews @Inject()(data: DataHelper, forms: OreForms)(
     implicit val ec: ExecutionContext,
     bakery: Bakery,
     auth: SpongeAuthApi,
@@ -48,29 +47,37 @@ final class Reviews @Inject()(data: DataHelper,
 ) extends OreBaseController {
 
   def showReviews(author: String, slug: String, versionString: String): Action[AnyContent] =
-    (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects) andThen ProjectAction(author, slug)).async { request =>
-      implicit val r: Requests.OreRequest[AnyContent] = request.request
-      implicit val p: Project = request.data.project
+    Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects)).andThen(ProjectAction(author, slug)).async {
+      request =>
+        implicit val r: Requests.OreRequest[AnyContent] = request.request
+        implicit val p: Project                         = request.data.project
 
-      val res = for {
-        version <- getVersion(p, versionString)
-        reviews <- EitherT.right[Result](version.mostRecentReviews)
-        rv <- EitherT.right[Result](
-          Future.traverse(reviews)(r => users.get(r.userId).map(_.name).value.tupleLeft(r))
-        )
-      } yield {
-        val unfinished = reviews.filter(_.endedAt.isEmpty).sorted(Review.ordering2).headOption
-        implicit val v: Version = version
-        Ok(views.users.admin.reviews(unfinished, rv))
-      }
+        val res = for {
+          version <- getVersion(p, versionString)
+          reviews <- EitherT.right[Result](version.mostRecentReviews)
+          rv <- EitherT.right[Result](
+            Future.traverse(reviews)(r => users.get(r.userId).map(_.name).value.tupleLeft(r))
+          )
+        } yield {
+          val unfinished          = reviews.filter(_.endedAt.isEmpty).sorted(Review.ordering2).headOption
+          implicit val v: Version = version
+          Ok(views.users.admin.reviews(unfinished, rv))
+        }
 
-      res.merge
-  }
+        res.merge
+    }
 
   def createReview(author: String, slug: String, versionString: String): Action[AnyContent] = {
-    (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) async { implicit request =>
+    (Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects))).async { implicit request =>
       getProjectVersion(author, slug, versionString).map { version =>
-        val review = new Review(ObjectId.Uninitialized, ObjectTimestamp(Timestamp.from(Instant.now())), version.id.value, request.user.id.value, None, "")
+        val review = new Review(
+          ObjectId.Uninitialized,
+          ObjectTimestamp(Timestamp.from(Instant.now())),
+          version.id.value,
+          request.user.id.value,
+          None,
+          ""
+        )
         this.service.insert(review)
         Redirect(routes.Reviews.showReviews(author, slug, versionString))
       }.merge
@@ -78,10 +85,10 @@ final class Reviews @Inject()(data: DataHelper,
   }
 
   def reopenReview(author: String, slug: String, versionString: String): Action[AnyContent] = {
-    (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) async { implicit request =>
+    (Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects))).async { implicit request =>
       val res = for {
         version <- getProjectVersion(author, slug, versionString)
-        review <- EitherT.fromOptionF(version.mostRecentReviews.map(_.headOption), notFound)
+        review  <- EitherT.fromOptionF(version.mostRecentReviews.map(_.headOption), notFound)
         _ <- EitherT.right[Result](
           service.update(
             version.copy(
@@ -103,10 +110,10 @@ final class Reviews @Inject()(data: DataHelper,
   }
 
   def stopReview(author: String, slug: String, versionString: String): Action[AnyContent] = {
-    Authenticated andThen PermissionAction[AuthRequest](ReviewProjects) async { implicit request =>
+    Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       val res = for {
         version <- getProjectVersion(author, slug, versionString)
-        review <- version.mostRecentUnfinishedReview.toRight(notFound)
+        review  <- version.mostRecentUnfinishedReview.toRight(notFound)
         message <- bindFormEitherT[Future](this.forms.ReviewDescription)(_ => BadRequest: Result)
         _ <- EitherT.right[Result](
           service
@@ -120,11 +127,11 @@ final class Reviews @Inject()(data: DataHelper,
   }
 
   def approveReview(author: String, slug: String, versionString: String): Action[AnyContent] = {
-    (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)) async { implicit request =>
+    (Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects))).async { implicit request =>
       val ret = for {
         project <- getProject(author, slug)
         version <- getVersion(project, versionString)
-        review <- version.mostRecentUnfinishedReview.toRight(notFound)
+        review  <- version.mostRecentUnfinishedReview.toRight(notFound)
         _ <- EitherT.right[Result](
           (
             service.update(review.copy(endedAt = Some(Timestamp.from(Instant.now())))),
@@ -138,26 +145,29 @@ final class Reviews @Inject()(data: DataHelper,
     }
   }
 
-  private def queryNotificationUsers(projectId: Rep[ObjectReference], userId: Rep[ObjectReference], noRole: Rep[Option[RoleType]])
-    : Query[(Rep[ObjectReference], Rep[Option[RoleType]]), (ObjectReference, Option[RoleType]), Seq] = {
+  private def queryNotificationUsers(
+      projectId: Rep[ObjectReference],
+      userId: Rep[ObjectReference],
+      noRole: Rep[Option[RoleType]]
+  ): Query[(Rep[ObjectReference], Rep[Option[RoleType]]), (ObjectReference, Option[RoleType]), Seq] = {
 
-    val orgTable = TableQuery[OrganizationTable]
+    val orgTable       = TableQuery[OrganizationTable]
     val orgMemberTable = TableQuery[OrganizationMembersTable]
-    val orgRolesTable = TableQuery[OrganizationRoleTable]
-    val userTable = TableQuery[UserTable]
+    val orgRolesTable  = TableQuery[OrganizationRoleTable]
+    val userTable      = TableQuery[UserTable]
 
     // Query Orga Members
-    val q1: Query[(Rep[ObjectReference], Rep[Option[RoleType]]), (ObjectReference, Option[RoleType]), scala.Seq]  = for {
-      org <- orgTable if org.id === projectId
+    val q1: Query[(Rep[ObjectReference], Rep[Option[RoleType]]), (ObjectReference, Option[RoleType]), scala.Seq] = for {
+      org     <- orgTable if org.id === projectId
       members <- orgMemberTable if org.id === members.organizationId
-      roles <- orgRolesTable if members.userId === roles.userId // TODO roletype lvl in database?
-      users <- userTable if members.userId === users.id
+      roles   <- orgRolesTable if members.userId === roles.userId // TODO roletype lvl in database?
+      users   <- userTable if members.userId === users.id
     } yield {
       (users.id, roles.roleType.?)
     }
 
     // Query version author
-    val q2: Query[(Rep[ObjectReference], Rep[Option[RoleType]]), (ObjectReference, Option[RoleType]), scala.Seq]  = for {
+    val q2: Query[(Rep[ObjectReference], Rep[Option[RoleType]]), (ObjectReference, Option[RoleType]), scala.Seq] = for {
       user <- userTable if user.id === userId
     } yield {
       (user.id, noRole)
@@ -170,46 +180,65 @@ final class Reviews @Inject()(data: DataHelper,
 
   private def sendReviewNotification(project: Project, version: Version, requestUser: User): Future[_] = {
 
-    val futUsers: Future[Seq[ObjectReference]] = this.service.DB.db.run(notificationUsersQuery(project.id.value, version.authorId, None).result).map { list =>
-      list.filter {
-        case (_, Some(level)) => level.trust.level >= Lifted.level
-        case (_, None) => true
-      }.map(_._1)
-    }
+    val futUsers: Future[Seq[ObjectReference]] =
+      this.service.DB.db.run(notificationUsersQuery((project.id.value, version.authorId, None)).result).map { list =>
+        list
+          .filter {
+            case (_, Some(level)) => level.trust.level >= Lifted.level
+            case (_, None)        => true
+          }
+          .map(_._1)
+      }
 
     val notificationTable = TableQuery[NotificationTable]
 
-    futUsers.map { users =>
-      users.map { userId =>
-        Notification(
-          userId = userId,
-          createdAt = ObjectTimestamp(Timestamp.from(Instant.now())),
-          originId = requestUser.id.value,
-          notificationType = NotificationTypes.VersionReviewed,
-          messageArgs = NonEmptyList.of("notification.project.reviewed", project.slug, version.versionString)
-        )
+    futUsers
+      .map { users =>
+        users.map { userId =>
+          Notification(
+            userId = userId,
+            createdAt = ObjectTimestamp(Timestamp.from(Instant.now())),
+            originId = requestUser.id.value,
+            notificationType = NotificationTypes.VersionReviewed,
+            messageArgs = NonEmptyList.of("notification.project.reviewed", project.slug, version.versionString)
+          )
+        }
       }
-    } map (notificationTable ++= _) flatMap (service.DB.db.run(_)) // Batch insert all notifications
+      .map(notificationTable ++= _)
+      .flatMap(service.DB.db.run(_)) // Batch insert all notifications
   }
 
   def takeoverReview(author: String, slug: String, versionString: String): Action[AnyContent] = {
-    (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
+    Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       val ret = for {
         version <- getProjectVersion(author, slug, versionString)
         message <- bindFormEitherT[Future](this.forms.ReviewDescription)(_ => BadRequest)
         _ <- {
           // Close old review
-          val closeOldReview = version.mostRecentUnfinishedReview.semiflatMap { oldreview =>
-            (
-              oldreview.addMessage(Message(message.trim, System.currentTimeMillis(), "takeover")),
-              service.update(oldreview.copy(endedAt = Some(Timestamp.from(Instant.now())))),
-            ).mapN { (_, _) => () }
-          }.getOrElse(())
+          val closeOldReview = version.mostRecentUnfinishedReview
+            .semiflatMap { oldreview =>
+              (
+                oldreview.addMessage(Message(message.trim, System.currentTimeMillis(), "takeover")),
+                service.update(oldreview.copy(endedAt = Some(Timestamp.from(Instant.now())))),
+              ).mapN { (_, _) =>
+                ()
+              }
+            }
+            .getOrElse(())
 
           // Then make new one
           val result = (
             closeOldReview,
-            this.service.insert(Review(ObjectId.Uninitialized, ObjectTimestamp(Timestamp.from(Instant.now())), version.id.value, request.user.id.value, None, ""))
+            this.service.insert(
+              Review(
+                ObjectId.Uninitialized,
+                ObjectTimestamp(Timestamp.from(Instant.now())),
+                version.id.value,
+                request.user.id.value,
+                None,
+                ""
+              )
+            )
           ).tupled
           EitherT.right[Result](result)
         }
@@ -220,7 +249,7 @@ final class Reviews @Inject()(data: DataHelper,
   }
 
   def editReview(author: String, slug: String, versionString: String, reviewId: ObjectReference): Action[AnyContent] = {
-    (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
+    Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       val res = for {
         version <- getProjectVersion(author, slug, versionString)
         review  <- version.reviewById(reviewId).toRight(notFound)
@@ -235,12 +264,12 @@ final class Reviews @Inject()(data: DataHelper,
   }
 
   def addMessage(author: String, slug: String, versionString: String): Action[AnyContent] = {
-    (Authenticated andThen PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
+    Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       val ret = for {
-        version <- getProjectVersion(author, slug, versionString)
+        version      <- getProjectVersion(author, slug, versionString)
         recentReview <- version.mostRecentUnfinishedReview.toRight(Ok("Review"))
-        currentUser <- users.current.toRight(Ok("Review"))
-        message <- bindFormEitherT[Future](this.forms.ReviewDescription)(_ => BadRequest)
+        currentUser  <- users.current.toRight(Ok("Review"))
+        message      <- bindFormEitherT[Future](this.forms.ReviewDescription)(_ => BadRequest)
         _ <- {
           if (recentReview.userId == currentUser.userId) {
             EitherT.right[Result](recentReview.addMessage(Message(message.trim)))
@@ -253,12 +282,18 @@ final class Reviews @Inject()(data: DataHelper,
   }
 
   def shouldReviewToggle(author: String, slug: String, versionString: String): Action[AnyContent] = {
-    Authenticated andThen PermissionAction[AuthRequest](ReviewProjects) async { implicit request =>
+    Authenticated.andThen(PermissionAction[AuthRequest](ReviewProjects)).async { implicit request =>
       val res = for {
         version <- getProjectVersion(author, slug, versionString)
       } yield {
 
-        UserActionLogger.log(request, LoggedAction.VersionNonReviewChanged, version.id.value, s"In review queue: ${version.isNonReviewed}", s"In review queue: ${!version.isNonReviewed}")
+        UserActionLogger.log(
+          request,
+          LoggedAction.VersionNonReviewChanged,
+          version.id.value,
+          s"In review queue: ${version.isNonReviewed}",
+          s"In review queue: ${!version.isNonReviewed}"
+        )
         service.update(version.copy(isNonReviewed = !version.isNonReviewed))
 
         Redirect(routes.Reviews.showReviews(author, slug, versionString))

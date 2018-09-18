@@ -18,15 +18,16 @@ import ore.permission.scope.ProjectScope
   * @param color       Color used to represent this Channel
   * @param projectId    ID of project this channel belongs to
   */
-case class Channel(id: ObjectId = ObjectId.Uninitialized,
-                   createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                   projectId: ObjectReference,
-                   name: String,
-                   color: Color,
-                   isNonReviewed: Boolean = false)
-                   extends Model
-                     with Named
-                     with ProjectScope {
+case class Channel(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    projectId: ObjectReference,
+    name: String,
+    color: Color,
+    isNonReviewed: Boolean = false
+) extends Model
+    with Named
+    with ProjectScope {
 
   override type T = ChannelTable
   override type M = Channel
@@ -41,7 +42,8 @@ case class Channel(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return All versions
     */
-  def versions(implicit service: ModelService): ModelAccess[Version] = this.schema.getChildren[Version](classOf[Version], this)
+  def versions(implicit service: ModelService): ModelAccess[Version] =
+    this.schema.getChildren[Version](classOf[Version], this)
 
   override def copyWith(id: ObjectId, theTime: ObjectTimestamp): Channel = this.copy(id = id, createdAt = theTime)
 }
@@ -53,7 +55,7 @@ object Channel {
   /**
     * The colors a Channel is allowed to have.
     */
-  val Colors: Seq[Color] = Seq(Purple, Violet, Magenta, Blue, Aqua, Cyan, Green,
-                               DarkGreen, Chartreuse, Amber, Orange, Red)
+  val Colors: Seq[Color] =
+    Seq(Purple, Violet, Magenta, Blue, Aqua, Cyan, Green, DarkGreen, Chartreuse, Amber, Orange, Red)
 
 }

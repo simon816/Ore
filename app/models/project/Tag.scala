@@ -11,12 +11,14 @@ import models.project.TagColors.TagColor
 import slick.jdbc.JdbcType
 import scala.concurrent.{ExecutionContext, Future}
 
-case class Tag(id: ObjectId = ObjectId.Uninitialized,
-               versionIds: List[ObjectReference],
-               name: String,
-               data: String,
-               color: TagColor)
-  extends Model with Named {
+case class Tag(
+    id: ObjectId = ObjectId.Uninitialized,
+    versionIds: List[ObjectReference],
+    name: String,
+    data: String,
+    color: TagColor
+) extends Model
+    with Named {
 
   override val createdAt: ObjectTimestamp = ObjectTimestamp(Timestamp.from(Instant.EPOCH))
 
@@ -45,21 +47,22 @@ case class Tag(id: ObjectId = ObjectId.Uninitialized,
 object TagColors extends Enumeration {
 
   // Tag colors
-  val Sponge = TagColor(1, "#F7Cf0D", "#333333")
-  val Forge = TagColor(2, "#dfa86a", "#FFFFFF")
-  val Unstable = TagColor(3, "#FFDAB9", "#333333")
-  val SpongeForge = TagColor(4, "#910020", "#FFFFFF")
+  val Sponge        = TagColor(1, "#F7Cf0D", "#333333")
+  val Forge         = TagColor(2, "#dfa86a", "#FFFFFF")
+  val Unstable      = TagColor(3, "#FFDAB9", "#333333")
+  val SpongeForge   = TagColor(4, "#910020", "#FFFFFF")
   val SpongeVanilla = TagColor(5, "#50C888", "#FFFFFF")
-  val SpongeCommon = TagColor(6, "#5d5dff", "#FFFFFF")
-  val Lantern = TagColor(7, "#4EC1B4", "#FFFFFF")
-  val Mixin = TagColor(8, "#FFA500", "#333333")
+  val SpongeCommon  = TagColor(6, "#5d5dff", "#FFFFFF")
+  val Lantern       = TagColor(7, "#4EC1B4", "#FFFFFF")
+  val Mixin         = TagColor(8, "#FFA500", "#333333")
 
-  def withId(id: Int): TagColor = {
+  def withId(id: Int): TagColor =
     this.apply(id).asInstanceOf[TagColor]
-  }
 
   /** Represents a color. */
-  case class TagColor(i: Int, background: String, foreground: String) extends super.Val(i, s"$background $foreground") with MappedType[TagColor] {
+  case class TagColor(i: Int, background: String, foreground: String)
+      extends super.Val(i, s"$background $foreground")
+      with MappedType[TagColor] {
     implicit val mapper: JdbcType[TagColor] = OrePostgresDriver.api.tagColorTypeMapper
   }
 

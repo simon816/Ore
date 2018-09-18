@@ -26,7 +26,7 @@ import db.ObjectReference
 class PluginFile(private var _path: Path, val signaturePath: Path, val user: User) extends UserOwned {
 
   private var _data: Option[PluginFileData] = None
-  private var _md5: String = _
+  private var _md5: String                  = _
 
   /**
     * Returns the actual file path associated with this plugin.
@@ -106,13 +106,17 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
       if (fileNames.contains(JarFile.MANIFEST_NAME)) {
         val manifest = jarIn.getManifest
         if (manifest != null) {
-          val manifestLines = new BufferedReader(new StringReader(jarIn.getManifest.getMainAttributes.asScala
-            .map(p => p._1.toString + ": " + p._2.toString).mkString("\n")))
+          val manifestLines = new BufferedReader(
+            new StringReader(
+              jarIn.getManifest.getMainAttributes.asScala
+                .map(p => p._1.toString + ": " + p._2.toString)
+                .mkString("\n")
+            )
+          )
 
           data ++= PluginFileData.getData(JarFile.MANIFEST_NAME, manifestLines)
         }
       }
-
 
       // This won't be called if a plugin uses mixins but doesn't
       // have a mcmod.info, but the check below will catch that
@@ -122,7 +126,7 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
       val fileData = new PluginFileData(data)
 
       this._data = Some(fileData)
-      if(!fileData.isValidPlugin) {
+      if (!fileData.isValidPlugin) {
         return Left(messages("error.plugin.incomplete", "id or version"))
       }
 
@@ -158,11 +162,11 @@ class PluginFile(private var _path: Path, val signaturePath: Path, val user: Use
       throw new Exception("Plugin is already JAR")
 
     var pluginEntry: ZipEntry = null
-    val entries = zip.entries()
+    val entries               = zip.entries()
     breakable {
       while (entries.hasMoreElements) {
         val entry = entries.nextElement()
-        val name = entry.getName
+        val name  = entry.getName
         if (!entry.isDirectory && name.split("/").length == 1 && name.endsWith(".jar")) {
           pluginEntry = entry
           break

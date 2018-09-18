@@ -18,17 +18,18 @@ import discourse.OreDiscourseApi
   * @param underlying  Pending project
   * @param file     Uploaded plugin
   */
-case class PendingProject(projects: ProjectBase,
-                          factory: ProjectFactory,
-                          underlying: Project,
-                          file: PluginFile,
-                          channelName: String,
-                          settings: ProjectSettings = ProjectSettings(),
-                          var pendingVersion: PendingVersion,
-                          roles: Set[ProjectRole] = Set(),
-                          cacheApi: SyncCacheApi)
-                         (implicit service: ModelService, val config: OreConfig)
-                           extends Cacheable {
+case class PendingProject(
+    projects: ProjectBase,
+    factory: ProjectFactory,
+    underlying: Project,
+    file: PluginFile,
+    channelName: String,
+    settings: ProjectSettings = ProjectSettings(),
+    var pendingVersion: PendingVersion,
+    roles: Set[ProjectRole] = Set(),
+    cacheApi: SyncCacheApi
+)(implicit service: ModelService, val config: OreConfig)
+    extends Cacheable {
 
   def complete()(implicit ec: ExecutionContext): Future[(Project, Version)] = {
     free()
@@ -56,11 +57,11 @@ object PendingProject {
   def createPendingVersion(project: PendingProject): PendingVersion = {
     val result = project.factory.startVersion(project.file, project.underlying, project.settings, project.channelName)
     result match {
-      case Right (version) =>
+      case Right(version) =>
         version.cache()
         version
       // TODO: not this crap
-      case Left (errorMessage) => throw new IllegalArgumentException(errorMessage)
+      case Left(errorMessage) => throw new IllegalArgumentException(errorMessage)
     }
   }
 }

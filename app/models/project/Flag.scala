@@ -22,24 +22,32 @@ import ore.user.UserOwned
   * @param reason       Reason for flag
   * @param isResolved   True if has been reviewed and resolved by staff member
   */
-case class Flag(id: ObjectId = ObjectId.Uninitialized,
-                createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                projectId: ObjectReference,
-                userId: ObjectReference,
-                reason: FlagReason,
-                comment: String,
-                isResolved: Boolean = false,
-                resolvedAt: Option[Timestamp] = None,
-                resolvedBy: Option[ObjectReference] = None)
-                extends Model
-                  with UserOwned
-                  with ProjectScope {
+case class Flag(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    projectId: ObjectReference,
+    userId: ObjectReference,
+    reason: FlagReason,
+    comment: String,
+    isResolved: Boolean = false,
+    resolvedAt: Option[Timestamp] = None,
+    resolvedBy: Option[ObjectReference] = None
+) extends Model
+    with UserOwned
+    with ProjectScope {
 
   override type M = Flag
   override type T = FlagTable
 
   def this(projectId: ObjectReference, userId: ObjectReference, reason: FlagReason, comment: String) = {
-    this(id=ObjectId.Uninitialized, createdAt=ObjectTimestamp.Uninitialized, projectId=projectId, userId=userId, reason=reason, comment=comment)
+    this(
+      id = ObjectId.Uninitialized,
+      createdAt = ObjectTimestamp.Uninitialized,
+      projectId = projectId,
+      userId = userId,
+      reason = reason,
+      comment = comment
+    )
   }
 
   /**
@@ -47,11 +55,15 @@ case class Flag(id: ObjectId = ObjectId.Uninitialized,
     *
     * @param resolved True if resolved
     */
-  def markResolved(resolved: Boolean, user: Option[User])(implicit ec: ExecutionContext, service: ModelService): Future[Flag] = Defined {
-    val (at, by) = if(resolved)
-      (Some(Timestamp.from(Instant.now)), Some(user.map(_.id.value).getOrElse(-1)): Option[ObjectReference])
-    else
-      (None, None)
+  def markResolved(
+      resolved: Boolean,
+      user: Option[User]
+  )(implicit ec: ExecutionContext, service: ModelService): Future[Flag] = Defined {
+    val (at, by) =
+      if (resolved)
+        (Some(Timestamp.from(Instant.now)), Some(user.map(_.id.value).getOrElse(-1)): Option[ObjectReference])
+      else
+        (None, None)
 
     service.update(
       copy(

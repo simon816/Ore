@@ -12,16 +12,21 @@ import db.impl.ProjectVisibilityChangeTable
 import db.impl.model.common.VisibilityChange
 import ore.OreConfig
 
-case class ProjectVisibilityChange(id: ObjectId = ObjectId.Uninitialized,
-                            createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                            createdBy: Option[ObjectReference] = None,
-                            projectId: ObjectReference = -1,
-                            comment: String,
-                            resolvedAt: Option[Timestamp] = None,
-                            resolvedBy: Option[ObjectReference] = None,
-                            visibility: Int = 1) extends Model with VisibilityChange {
+case class ProjectVisibilityChange(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    createdBy: Option[ObjectReference] = None,
+    projectId: ObjectReference = -1,
+    comment: String,
+    resolvedAt: Option[Timestamp] = None,
+    resolvedBy: Option[ObjectReference] = None,
+    visibility: Int = 1
+) extends Model
+    with VisibilityChange {
+
   /** Self referential type */
   override type M = ProjectVisibilityChange
+
   /** The model's table */
   override type T = ProjectVisibilityChangeTable
 

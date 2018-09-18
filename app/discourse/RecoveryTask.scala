@@ -13,9 +13,11 @@ import play.api.Logger
 /**
   * Task to periodically retry failed Discourse requests.
   */
-class RecoveryTask(scheduler: Scheduler,
-                   retryRate: FiniteDuration,
-                   api: OreDiscourseApi)(implicit ec: ExecutionContext, service: ModelService, config: OreConfig) extends Runnable {
+class RecoveryTask(scheduler: Scheduler, retryRate: FiniteDuration, api: OreDiscourseApi)(
+    implicit ec: ExecutionContext,
+    service: ModelService,
+    config: OreConfig
+) extends Runnable {
 
   val Logger: Logger = this.api.Logger
 

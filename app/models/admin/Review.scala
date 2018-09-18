@@ -24,17 +24,21 @@ import scala.concurrent.{ExecutionContext, Future}
   * @param endedAt      When the approval process ended
   * @param message      Message of why it ended
   */
-case class Review(id: ObjectId = ObjectId.Uninitialized,
-                  createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                  versionId: ObjectReference = -1,
-                  userId: ObjectReference,
-                  endedAt: Option[Timestamp],
-                  message: String) extends Model {
+case class Review(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    versionId: ObjectReference = -1,
+    userId: ObjectReference,
+    endedAt: Option[Timestamp],
+    message: String
+) extends Model {
 
   /** Self referential type */
   override type M = Review
+
   /** The model's table */
   override type T = ReviewTable
+
   /** The model's schema */
   override type S = ReviewSchema
 
@@ -43,13 +47,15 @@ case class Review(id: ObjectId = ObjectId.Uninitialized,
     */
   def addMessage(message: Message)(implicit ec: ExecutionContext, service: ModelService): Future[Review] = {
     val messages = decodeMessages :+ message
-    val js = Json.toJson(messages)
+    val js       = Json.toJson(messages)
     service.update(
       copy(
         message = Json.stringify(
-          JsObject(Seq(
-            "messages" -> js
-          ))
+          JsObject(
+            Seq(
+              "messages" -> js
+            )
+          )
         )
       )
     )
@@ -60,7 +66,7 @@ case class Review(id: ObjectId = ObjectId.Uninitialized,
     * @return
     */
   def decodeMessages: Seq[Message] = {
-    if (message.startsWith("{")  && message.endsWith("}")) {
+    if (message.startsWith("{") && message.endsWith("}")) {
       val messages: JsValue = Json.parse(message)
       (messages \ "messages").as[Seq[Message]]
     } else {
@@ -83,33 +89,31 @@ case class Review(id: ObjectId = ObjectId.Uninitialized,
   */
 case class Message(message: String, time: Long = System.currentTimeMillis(), action: String = "message") {
   def getTime(implicit messages: Messages): String = StringUtils.prettifyDateAndTime(new Timestamp(time))
-  def isTakeover: Boolean = action.equalsIgnoreCase("takeover")
-  def isStop: Boolean = action.equalsIgnoreCase("stop")
-  def render(implicit oreConfig: OreConfig): Html = Page.render(message)
+  def isTakeover: Boolean                          = action.equalsIgnoreCase("takeover")
+  def isStop: Boolean                              = action.equalsIgnoreCase("stop")
+  def render(implicit oreConfig: OreConfig): Html  = Page.render(message)
 }
 object Message {
-  implicit val messageReads: Reads[Message] = (
-    (JsPath \ "message").read[String] and
-      (JsPath \ "time").read[Long] and
-      (JsPath \ "action").read[String]
-    )(Message.apply _)
+  implicit val messageReads: Reads[Message] =
+    (JsPath \ "message")
+      .read[String]
+      .and((JsPath \ "time").read[Long])
+      .and((JsPath \ "action").read[String])(Message.apply _)
 
-  implicit val messageWrites: Writes[Message] = (message: Message) => Json.obj(
-    "message" -> message.message,
-    "time" -> message.time,
-    "action" -> message.action
+  implicit val messageWrites: Writes[Message] = (message: Message) =>
+    Json.obj(
+      "message" -> message.message,
+      "time"    -> message.time,
+      "action"  -> message.action
   )
 }
 
-
 object Review {
-  def ordering: Ordering[(Review, _)] = {
+  def ordering: Ordering[(Review, _)] =
     // TODO make simple + check order
     Ordering.by(_._1.createdAt.value.getTime)
-  }
 
-  def ordering2: Ordering[Review] = {
+  def ordering2: Ordering[Review] =
     // TODO make simple + check order
     Ordering.by(_.createdAt.value.getTime)
-  }
 }

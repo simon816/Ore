@@ -34,8 +34,8 @@ class PGPVerifier {
     Logger.debug("Processing signature...")
     var result = false
     try {
-      val in = PGPUtil.getDecoderStream(sigIn)
-      val factory = new JcaPGPObjectFactory(in)
+      val in                        = PGPUtil.getDecoderStream(sigIn)
+      val factory                   = new JcaPGPObjectFactory(in)
       var sigList: PGPSignatureList = null
 
       def getNextObject = Try(factory.nextObject()).toOption.orNull
@@ -66,9 +66,9 @@ class PGPVerifier {
         return false
       }
 
-      val sig = sigList.get(0)
+      val sig      = sigList.get(0)
       val keyRings = new JcaPGPPublicKeyRingCollection(keyIn)
-      val pubKey = keyRings.getPublicKey(sig.getKeyID)
+      val pubKey   = keyRings.getPublicKey(sig.getKeyID)
       if (pubKey == null) {
         Logger.debug("<VERIFICATION FAILED> Invalid signature for public key.")
         return false
@@ -133,10 +133,10 @@ class PGPVerifier {
     checkNotNull(keyIn, "key input is null", "")
 
     // Retrieve the necessary data
-    val in = PGPUtil.getDecoderStream(verifyIn)
-    var factory = new JcaPGPObjectFactory(in)
-    var sig: PGPOnePassSignature = null
-    var data: Array[Byte] = null
+    val in                        = PGPUtil.getDecoderStream(verifyIn)
+    var factory                   = new JcaPGPObjectFactory(in)
+    var sig: PGPOnePassSignature  = null
+    var data: Array[Byte]         = null
     var sigList: PGPSignatureList = null
 
     def doNextObject() = Try(factory.nextObject()).getOrElse(null)
@@ -181,7 +181,7 @@ class PGPVerifier {
 
     // Verify against public key
     val keyRings = new JcaPGPPublicKeyRingCollection(keyIn)
-    val pubKey = keyRings.getPublicKey(sig.getKeyID)
+    val pubKey   = keyRings.getPublicKey(sig.getKeyID)
     keyIn.close()
     if (pubKey == null)
       return false
@@ -207,7 +207,7 @@ class PGPVerifier {
       createDirectories(out.getParent)
       createFile(out)
     }
-    val inStream = newInputStream(in)
+    val inStream  = newInputStream(in)
     val outStream = newOutputStream(out)
     val keyStream = PGPUtil.getDecoderStream(new ByteArrayInputStream(key.getBytes))
     verifyAndDecrypt(inStream, outStream, keyStream)

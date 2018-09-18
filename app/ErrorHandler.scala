@@ -13,22 +13,23 @@ import play.api.routing.Router
 import scala.concurrent._
 
 /** A custom server error handler */
-class ErrorHandler @Inject()(env: Environment,
-                             conf: Configuration,
-                             sourceMapper: OptionalSourceMapper,
-                             router: Provider[Router],
-                             implicit val oreEnv: OreEnv,
-                             implicit val config: OreConfig,
-                             implicit val service: ModelService,
-                             implicit val forums: OreDiscourseApi,
-                             override val messagesApi: MessagesApi)
-                             extends DefaultHttpErrorHandler(env, conf, sourceMapper, router)
-                               with I18nSupport {
+class ErrorHandler @Inject()(
+    env: Environment,
+    conf: Configuration,
+    sourceMapper: OptionalSourceMapper,
+    router: Provider[Router],
+    implicit val oreEnv: OreEnv,
+    implicit val config: OreConfig,
+    implicit val service: ModelService,
+    implicit val forums: OreDiscourseApi,
+    override val messagesApi: MessagesApi
+) extends DefaultHttpErrorHandler(env, conf, sourceMapper, router)
+    with I18nSupport {
 
   override def onProdServerError(request: RequestHeader, exception: UsefulException): Future[Result] = {
-    implicit val session: Session = request.session
+    implicit val session: Session           = request.session
     implicit val requestImpl: RequestHeader = request
-    implicit val headerData: HeaderData = HeaderData() // Empty HeaderData on error
+    implicit val headerData: HeaderData     = HeaderData() // Empty HeaderData on error
 
     Future.successful {
       if (exception.cause.isInstanceOf[TimeoutException])
@@ -39,9 +40,9 @@ class ErrorHandler @Inject()(env: Environment,
   }
 
   override def onNotFound(request: RequestHeader, message: String): Future[Result] = {
-    implicit val session: Session = request.session
+    implicit val session: Session           = request.session
     implicit val requestImpl: RequestHeader = request
-    implicit val headerData: HeaderData = HeaderData() // Empty HeaderData on error
+    implicit val headerData: HeaderData     = HeaderData() // Empty HeaderData on error
 
     Future.successful(NotFound(views.html.errors.notFound()))
   }

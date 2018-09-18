@@ -24,18 +24,20 @@ import security.spauth.SpongeAuthApi
   * @param cookie     Browser cookie
   * @param userId     User ID
   */
-case class VersionDownload(id: ObjectId = ObjectId.Uninitialized,
-                           createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                           modelId: ObjectReference,
-                           address: InetString,
-                           cookie: String,
-                           userId: Option[ObjectReference] = None)
-                           extends StatEntry[Version] {
+case class VersionDownload(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    modelId: ObjectReference,
+    address: InetString,
+    cookie: String,
+    userId: Option[ObjectReference] = None
+) extends StatEntry[Version] {
 
   override type M = VersionDownload
   override type T = VersionDownloadsTable
 
-  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): VersionDownload = this.copy(id = id, createdAt = theTime)
+  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): VersionDownload =
+    this.copy(id = id, createdAt = theTime)
 }
 
 object VersionDownload {
@@ -48,7 +50,12 @@ object VersionDownload {
     * @param request  Request to bind
     * @return         New VersionDownload
     */
-  def bindFromRequest(version: Version)(implicit ec: ExecutionContext, request: ProjectRequest[_], users: UserBase, auth: SpongeAuthApi): Future[VersionDownload] = {
+  def bindFromRequest(version: Version)(
+      implicit ec: ExecutionContext,
+      request: ProjectRequest[_],
+      users: UserBase,
+      auth: SpongeAuthApi
+  ): Future[VersionDownload] = {
     checkNotNull(version, "null version", "")
     checkArgument(version.isDefined, "undefined version", "")
     checkNotNull(request, "null request", "")

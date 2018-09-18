@@ -47,7 +47,7 @@ trait ProjectFactory {
   def fileManager: ProjectFiles = this.projects.fileManager
   def cacheApi: SyncCacheApi
   def actorSystem: ActorSystem
-  val pgp: PGPVerifier = new PGPVerifier
+  val pgp: PGPVerifier              = new PGPVerifier
   val dependencyVersionRegex: Regex = "^[0-9a-zA-Z\\.\\,\\[\\]\\(\\)-]+$".r
 
   implicit def config: OreConfig
@@ -64,8 +64,10 @@ trait ProjectFactory {
     * @param owner      Upload owner
     * @return Loaded PluginFile
     */
-  def processPluginUpload(uploadData: PluginUpload, owner: User)(implicit messages: Messages): Either[String, PluginFile] = {
-    val pluginFileName = uploadData.pluginFileName
+  def processPluginUpload(uploadData: PluginUpload, owner: User)(
+      implicit messages: Messages
+  ): Either[String, PluginFile] = {
+    val pluginFileName    = uploadData.pluginFileName
     var signatureFileName = uploadData.signatureFileName
 
     // file extension constraints
@@ -81,7 +83,7 @@ trait ProjectFactory {
       throw new IllegalArgumentException("error.plugin.pubKey.cooldown")
 
     var pluginPath = uploadData.pluginFile.path
-    var sigPath = uploadData.signatureFile.path
+    var sigPath    = uploadData.signatureFile.path
 
     // verify detached signature
     if (!this.pgp.verifyDetachedSignature(pluginPath, sigPath, owner.pgpPubKey.get))
@@ -101,14 +103,15 @@ trait ProjectFactory {
     val plugin = new PluginFile(pluginPath, sigPath, owner)
     val result = plugin.loadMeta()
     result match {
-      case Right(_) => Right(plugin)
+      case Right(_)           => Right(plugin)
       case Left(errorMessage) => Left(errorMessage)
     }
   }
 
-  def processSubsequentPluginUpload(uploadData: PluginUpload,
-                                    owner: User,
-                                    project: Project)(implicit ec: ExecutionContext, messages: Messages): EitherT[Future, String, PendingVersion] = {
+  def processSubsequentPluginUpload(uploadData: PluginUpload, owner: User, project: Project)(
+      implicit ec: ExecutionContext,
+      messages: Messages
+  ): EitherT[Future, String, PendingVersion] = {
     this.processPluginUpload(uploadData, owner) match {
       case Right(plugin) if !plugin.data.flatMap(_.id).contains(project.pluginId) =>
         EitherT.leftT("error.version.invalidPluginId")
@@ -119,16 +122,17 @@ trait ProjectFactory {
             version = this.startVersion(plugin, project, settings, channels.head.name)
             modelExists <- version match {
               case Right(v) => v.underlying.exists
-              case Left(_) => Future.successful(false)
+              case Left(_)  => Future.successful(false)
             }
           } yield {
             version match {
-              case Right(v) => if (modelExists && this.config.projects.get[Boolean]("file-validate"))
-                Left("error.version.duplicate")
-              else {
-                v.cache()
-                Right(v)
-              }
+              case Right(v) =>
+                if (modelExists && this.config.projects.get[Boolean]("file-validate"))
+                  Left("error.version.duplicate")
+                else {
+                  v.cache()
+                  Right(v)
+                }
               case Left(m) => Left(m)
             }
 
@@ -167,10 +171,11 @@ trait ProjectFactory {
     */
   def startProject(plugin: PluginFile): PendingProject = {
     val metaData = checkMeta(plugin)
-    val owner = plugin.user
+    val owner    = plugin.user
 
     // Start a new pending project
-    val project = Project.Builder(this.service)
+    val project = Project
+      .Builder(this.service)
       .pluginId(metaData.id.get)
       .ownerName(owner.name)
       .ownerId(owner.id.value)
@@ -199,14 +204,20 @@ trait ProjectFactory {
     * @param project Parent project
     * @return PendingVersion instance
     */
-  def startVersion(plugin: PluginFile, project: Project, settings: ProjectSettings, channelName: String): Either[String, PendingVersion] = {
+  def startVersion(
+      plugin: PluginFile,
+      project: Project,
+      settings: ProjectSettings,
+      channelName: String
+  ): Either[String, PendingVersion] = {
     val metaData = checkMeta(plugin)
     if (!metaData.id.contains(project.pluginId))
       return Left("error.plugin.invalidPluginId")
 
     // Create new pending version
     val path = plugin.path
-    val version = Version.Builder(this.service)
+    val version = Version
+      .Builder(this.service)
       .versionString(metaData.version.get)
       .dependencyIds(metaData.dependencies.map(d => d.pluginId + ":" + d.version).toList)
       .description(metaData.get[String]("description").getOrElse(""))
@@ -218,21 +229,23 @@ trait ProjectFactory {
       .authorId(plugin.user.id.value)
       .build()
 
-    Right(PendingVersion(
-      projects = this.projects,
-      factory = this,
-      project = project,
-      channelName = channelName,
-      channelColor = this.config.defaultChannelColor,
-      underlying = version,
-      plugin = plugin,
-      createForumPost = settings.forumSync,
-      cacheApi = cacheApi
-    ))
+    Right(
+      PendingVersion(
+        projects = this.projects,
+        factory = this,
+        project = project,
+        channelName = channelName,
+        channelColor = this.config.defaultChannelColor,
+        underlying = version,
+        plugin = plugin,
+        createForumPost = settings.forumSync,
+        cacheApi = cacheApi
+      )
+    )
   }
 
-  private def checkMeta(plugin: PluginFile): PluginFileData
-  = plugin.data.getOrElse(throw new IllegalStateException("plugin metadata not loaded?"))
+  private def checkMeta(plugin: PluginFile): PluginFileData =
+    plugin.data.getOrElse(throw new IllegalStateException("plugin metadata not loaded?"))
 
   /**
     * Returns the PendingProject of the specified owner and name, if any.
@@ -241,8 +254,8 @@ trait ProjectFactory {
     * @param slug  Project slug
     * @return PendingProject if present, None otherwise
     */
-  def getPendingProject(owner: String, slug: String): Option[PendingProject]
-  = this.cacheApi.get[PendingProject](owner + '/' + slug)
+  def getPendingProject(owner: String, slug: String): Option[PendingProject] =
+    this.cacheApi.get[PendingProject](owner + '/' + slug)
 
   /**
     * Returns the pending version for the specified owner, name, channel, and
@@ -253,8 +266,8 @@ trait ProjectFactory {
     * @param version Name of version
     * @return PendingVersion, if present, None otherwise
     */
-  def getPendingVersion(owner: String, slug: String, version: String): Option[PendingVersion]
-  = this.cacheApi.get[PendingVersion](owner + '/' + slug + '/' + version)
+  def getPendingVersion(owner: String, slug: String, version: String): Option[PendingVersion] =
+    this.cacheApi.get[PendingVersion](owner + '/' + slug + '/' + version)
 
   /**
     * Creates a new Project from the specified PendingProject
@@ -276,30 +289,33 @@ trait ProjectFactory {
       _ = checkArgument(this.config.isValidProjectName(pending.underlying.name), "invalid name", "")
       // Create the project and it's settings
       newProject <- this.projects.add(pending.underlying)
-      _ <- newProject.updateSettings(pending.settings)
-      _<- {
+      _          <- newProject.updateSettings(pending.settings)
+      _ <- {
         // Invite members
         val dossier: MembershipDossier {
           type MembersTable = ProjectMembersTable
-          type MemberType = ProjectMember
-          type RoleTable = ProjectRoleTable
-          type ModelType = Project
-          type RoleType = ProjectRole
-        } = newProject.memberships
-        val owner = newProject.owner
-        val ownerId = owner.userId
+          type MemberType   = ProjectMember
+          type RoleTable    = ProjectRoleTable
+          type ModelType    = Project
+          type RoleType     = ProjectRole
+        }             = newProject.memberships
+        val owner     = newProject.owner
+        val ownerId   = owner.userId
         val projectId = newProject.id.value
 
-        val addRole = dossier.addRole(new ProjectRole(ownerId, RoleType.ProjectOwner, projectId, accepted = true, visible = true))
+        val addRole =
+          dossier.addRole(new ProjectRole(ownerId, RoleType.ProjectOwner, projectId, accepted = true, visible = true))
         val addOtherRoles = Future.traverse(pending.roles) { role =>
           role.user.flatMap { user =>
             dossier.addRole(role.copy(projectId = projectId)) *>
-              user.sendNotification(Notification(
-                userId = user.id.value,
-                originId = ownerId,
-                notificationType = NotificationTypes.ProjectInvite,
-                messageArgs = NonEmptyList.of("notification.project.invite", role.roleType.title, project.name)
-              ))
+              user.sendNotification(
+                Notification(
+                  userId = user.id.value,
+                  originId = ownerId,
+                  notificationType = NotificationTypes.ProjectInvite,
+                  messageArgs = NonEmptyList.of("notification.project.invite", role.roleType.title, project.name)
+                )
+              )
           }
         }
 
@@ -317,7 +333,9 @@ trait ProjectFactory {
     * @param color   Channel color
     * @return New channel
     */
-  def createChannel(project: Project, name: String, color: Color, nonReviewed: Boolean)(implicit ec: ExecutionContext): Future[Channel] = {
+  def createChannel(project: Project, name: String, color: Color, nonReviewed: Boolean)(
+      implicit ec: ExecutionContext
+  ): Future[Channel] = {
     checkNotNull(project, "null project", "")
     checkArgument(project.isDefined, "undefined project", "")
     checkNotNull(name, "null name", "")
@@ -336,7 +354,9 @@ trait ProjectFactory {
     * @param pending PendingVersion
     * @return New version
     */
-  def createVersion(pending: PendingVersion)(implicit ec: ExecutionContext): Future[(Version, Channel, Seq[ProjectTag])] = {
+  def createVersion(
+      pending: PendingVersion
+  )(implicit ec: ExecutionContext): Future[(Version, Channel, Seq[ProjectTag])] = {
     val project = pending.project
 
     val pendingVersion = pending.underlying
@@ -344,7 +364,8 @@ trait ProjectFactory {
     for {
       // Create channel if not exists
       (channel, exists) <- (getOrCreateChannel(pending, project), pendingVersion.exists).tupled
-      _ = if (exists && this.config.projects.get[Boolean]("file-validate")) throw new IllegalArgumentException("Version already exists.")
+      _ = if (exists && this.config.projects.get[Boolean]("file-validate"))
+        throw new IllegalArgumentException("Version already exists.")
       // Create version
       newVersion <- {
         val newVersion = Version(
@@ -366,15 +387,16 @@ trait ProjectFactory {
       // Notify watchers
       _ = this.actorSystem.scheduler.scheduleOnce(Duration.Zero, NotifyWatchersTask(newVersion, project))
       _ <- Future.fromTry(uploadPlugin(project, channel, pending.plugin, newVersion))
-      _ <-
-        if (project.topicId.isDefined && pending.createForumPost)
-          this.forums.postVersionRelease(project, newVersion, newVersion.description).void
-        else
-          Future.unit
+      _ <- if (project.topicId.isDefined && pending.createForumPost)
+        this.forums.postVersionRelease(project, newVersion, newVersion.description).void
+      else
+        Future.unit
     } yield (newVersion, channel, tags)
   }
 
-  private def addTags(pendingVersion: PendingVersion, newVersion: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
+  private def addTags(pendingVersion: PendingVersion, newVersion: Version)(
+      implicit ec: ExecutionContext
+  ): Future[Seq[ProjectTag]] = {
     for {
       (metadataTags, dependencyTags) <- (
         addMetadataTags(pendingVersion.plugin.data, newVersion),
@@ -385,7 +407,9 @@ trait ProjectFactory {
     }
   }
 
-  private def addMetadataTags(pluginFileData: Option[PluginFileData], version: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
+  private def addMetadataTags(pluginFileData: Option[PluginFileData], version: Version)(
+      implicit ec: ExecutionContext
+  ): Future[Seq[ProjectTag]] = {
     val futureTags = pluginFileData.map(_.ghostTags.map(_.getFilledTag(service))).toList.flatten
     Future.traverse(futureTags) { futureTag =>
       futureTag
@@ -395,10 +419,12 @@ trait ProjectFactory {
   }
 
   private def addDependencyTags(version: Version)(implicit ec: ExecutionContext): Future[Seq[ProjectTag]] = {
-    val futureTags = Platforms.getPlatformGhostTags(
-      // filter valid dependency versions
-      version.dependencies.filter(d => dependencyVersionRegex.pattern.matcher(d.version).matches())
-    ).map(_.getFilledTag(service))
+    val futureTags = Platforms
+      .getPlatformGhostTags(
+        // filter valid dependency versions
+        version.dependencies.filter(d => dependencyVersionRegex.pattern.matcher(d.version).matches())
+      )
+      .map(_.getFilledTag(service))
 
     Future.traverse(futureTags) { futureTag =>
       futureTag
@@ -407,17 +433,17 @@ trait ProjectFactory {
     }
   }
 
-  private def getOrCreateChannel(pending: PendingVersion, project: Project)(implicit ec: ExecutionContext) = {
-    project.channels.find(equalsIgnoreCase(_.name, pending.channelName))
+  private def getOrCreateChannel(pending: PendingVersion, project: Project)(implicit ec: ExecutionContext) =
+    project.channels
+      .find(equalsIgnoreCase(_.name, pending.channelName))
       .getOrElseF(createChannel(project, pending.channelName, pending.channelColor, nonReviewed = false))
-  }
 
   private def uploadPlugin(project: Project, channel: Channel, plugin: PluginFile, version: Version): Try[Unit] = Try {
-    val oldPath = plugin.path
+    val oldPath    = plugin.path
     val oldSigPath = plugin.signaturePath
 
     val versionDir = this.fileManager.getVersionDir(project.ownerName, project.name, version.name)
-    val newPath = versionDir.resolve(oldPath.getFileName)
+    val newPath    = versionDir.resolve(oldPath.getFileName)
     val newSigPath = versionDir.resolve(oldSigPath.getFileName)
 
     if (exists(newPath) || exists(newSigPath))
@@ -433,9 +459,10 @@ trait ProjectFactory {
 
 }
 
-class OreProjectFactory @Inject()(override val service: ModelService,
-                                  override val config: OreConfig,
-                                  override val forums: OreDiscourseApi,
-                                  override val cacheApi: SyncCacheApi,
-                                  override val actorSystem: ActorSystem)
-  extends ProjectFactory
+class OreProjectFactory @Inject()(
+    override val service: ModelService,
+    override val config: OreConfig,
+    override val forums: OreDiscourseApi,
+    override val cacheApi: SyncCacheApi,
+    override val actorSystem: ActorSystem
+) extends ProjectFactory

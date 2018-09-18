@@ -24,9 +24,7 @@ import play.api.mvc.{Action, AnyContent}
 /**
   * Controller for handling Organization based actions.
   */
-class Organizations @Inject()(forms: OreForms,
-                              writes: OreWrites,
-                              forums: OreDiscourseApi)(
+class Organizations @Inject()(forms: OreForms, writes: OreWrites, forums: OreDiscourseApi)(
     implicit val ec: ExecutionContext,
     bakery: Bakery,
     auth: SpongeAuthApi,
@@ -38,8 +36,8 @@ class Organizations @Inject()(forms: OreForms,
     messagesApi: MessagesApi
 ) extends OreBaseController {
 
-  private def EditOrganizationAction(organization: String)
-  = AuthedOrganizationAction(organization, requireUnlock = true) andThen OrganizationPermissionAction(EditSettings)
+  private def EditOrganizationAction(organization: String) =
+    AuthedOrganizationAction(organization, requireUnlock = true).andThen(OrganizationPermissionAction(EditSettings))
 
   private val createLimit: Int = this.config.orgs.get[Int]("createLimit")
 
@@ -50,7 +48,8 @@ class Organizations @Inject()(forms: OreForms,
     */
   def showCreator(): Action[AnyContent] = UserLock().async { implicit request =>
     request.user.ownedOrganizations.size.map { size =>
-      if (size >= this.createLimit) Redirect(ShowHome).withError(request.messages.apply("error.org.createLimit", this.createLimit))
+      if (size >= this.createLimit)
+        Redirect(ShowHome).withError(request.messages.apply("error.org.createLimit", this.createLimit))
       else {
         Ok(views.createOrganization())
       }
@@ -64,7 +63,7 @@ class Organizations @Inject()(forms: OreForms,
     * @return Redirect to organization page
     */
   def create(): Action[AnyContent] = UserLock().async { implicit request =>
-    val user = request.user
+    val user     = request.user
     val failCall = routes.Organizations.showCreator()
     user.ownedOrganizations.size.flatMap { size =>
       if (size >= this.createLimit)
@@ -74,11 +73,14 @@ class Organizations @Inject()(forms: OreForms,
       else if (!this.config.orgs.get[Boolean]("enabled"))
         Future.successful(Redirect(failCall).withError("error.org.disabled"))
       else {
-        bindFormEitherT[Future](this.forms.OrganizationCreate)(hasErrors => FormError(failCall, hasErrors)).flatMap { formData =>
-          organizations.create(formData.name, user.id.value, formData.build()).bimap(
-            error => Redirect(failCall).withError(error),
-            organization => Redirect(routes.Users.showProjects(organization.name, None))
-          )
+        bindFormEitherT[Future](this.forms.OrganizationCreate)(hasErrors => FormError(failCall, hasErrors)).flatMap {
+          formData =>
+            organizations
+              .create(formData.name, user.id.value, formData.build())
+              .bimap(
+                error => Redirect(failCall).withError(error),
+                organization => Redirect(routes.Users.showProjects(organization.name, None))
+              )
         }.merge
       }
     }
@@ -91,16 +93,20 @@ class Organizations @Inject()(forms: OreForms,
     * @param status Invite status
     * @return       NotFound if invite doesn't exist, Ok otherwise
     */
-  def setInviteStatus(id: ObjectReference, status: String): Action[AnyContent] = Authenticated.async { implicit request =>
-    val user = request.user
-    user.organizationRoles.get(id).semiflatMap { role =>
-      status match {
-        case STATUS_DECLINE  => role.organization.flatMap(_.memberships.removeRole(role)).as(Ok)
-        case STATUS_ACCEPT   => service.update(role.copy(isAccepted = true)).as(Ok)
-        case STATUS_UNACCEPT => service.update(role.copy(isAccepted = false)).as(Ok)
-        case _               => Future.successful(BadRequest)
-      }
-    }.getOrElse(notFound)
+  def setInviteStatus(id: ObjectReference, status: String): Action[AnyContent] = Authenticated.async {
+    implicit request =>
+      val user = request.user
+      user.organizationRoles
+        .get(id)
+        .semiflatMap { role =>
+          status match {
+            case STATUS_DECLINE  => role.organization.flatMap(_.memberships.removeRole(role)).as(Ok)
+            case STATUS_ACCEPT   => service.update(role.copy(isAccepted = true)).as(Ok)
+            case STATUS_UNACCEPT => service.update(role.copy(isAccepted = false)).as(Ok)
+            case _               => Future.successful(BadRequest)
+          }
+        }
+        .getOrElse(notFound)
   }
 
   /**
@@ -109,9 +115,10 @@ class Organizations @Inject()(forms: OreForms,
     * @param organization Organization to update avatar of
     * @return             Json response with errors if any
     */
-  def updateAvatar(organization: String): Action[AnyContent] = EditOrganizationAction(organization) { implicit request =>
-    // TODO implement me
-    Ok
+  def updateAvatar(organization: String): Action[AnyContent] = EditOrganizationAction(organization) {
+    implicit request =>
+      // TODO implement me
+      Ok
   }
 
   /**
@@ -120,16 +127,17 @@ class Organizations @Inject()(forms: OreForms,
     * @param organization Organization to update
     * @return             Redirect to Organization page
     */
-  def removeMember(organization: String): Action[AnyContent] = EditOrganizationAction(organization).async { implicit request =>
-    val res = for {
-      name <- bindFormOptionT[Future](this.forms.OrganizationMemberRemove)
-      user <- users.withName(name)
-    } yield {
-      request.data.orga.memberships.removeMember(user)
-      Redirect(ShowUser(organization))
-    }
+  def removeMember(organization: String): Action[AnyContent] = EditOrganizationAction(organization).async {
+    implicit request =>
+      val res = for {
+        name <- bindFormOptionT[Future](this.forms.OrganizationMemberRemove)
+        user <- users.withName(name)
+      } yield {
+        request.data.orga.memberships.removeMember(user)
+        Redirect(ShowUser(organization))
+      }
 
-    res.getOrElse(BadRequest)
+      res.getOrElse(BadRequest)
   }
 
   /**
@@ -138,11 +146,14 @@ class Organizations @Inject()(forms: OreForms,
     * @param organization Organization to update
     * @return             Redirect to Organization page
     */
-  def updateMembers(organization: String): Action[AnyContent] = EditOrganizationAction(organization) { implicit request =>
-    bindFormOptionT[Id](this.forms.OrganizationUpdateMembers).map { update =>
-      update.saveTo(request.data.orga)
-      Redirect(ShowUser(organization))
-    }.getOrElse(BadRequest)
+  def updateMembers(organization: String): Action[AnyContent] = EditOrganizationAction(organization) {
+    implicit request =>
+      bindFormOptionT[Id](this.forms.OrganizationUpdateMembers)
+        .map { update =>
+          update.saveTo(request.data.orga)
+          Redirect(ShowUser(organization))
+        }
+        .getOrElse(BadRequest)
   }
 
 }

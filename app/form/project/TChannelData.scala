@@ -37,8 +37,11 @@ trait TChannelData {
     * @param project  Project to add Channel to
     * @return         Either the new channel or an error message
     */
-  def addTo(project: Project)(implicit ec: ExecutionContext, service: ModelService): EitherT[Future, String, Channel] = {
-    EitherT.liftF(project.channels.all)
+  def addTo(
+      project: Project
+  )(implicit ec: ExecutionContext, service: ModelService): EitherT[Future, String, Channel] = {
+    EitherT
+      .liftF(project.channels.all)
       .ensure("A project may only have up to five channels.")(_.size <= config.projects.get[Int]("max-channels"))
       .ensure("A channel with that name already exists.")(_.forall(ch => !ch.name.equalsIgnoreCase(this.channelName)))
       .ensure("A channel with that color already exists.")(_.forall(_.color != this.color))
@@ -53,14 +56,17 @@ trait TChannelData {
     * @param project  Project of channel
     * @return         Error, if any
     */
-  def saveTo(oldName: String)(implicit project: Project, ec: ExecutionContext, service: ModelService): EitherT[Future, NEL[String], Unit] = {
+  def saveTo(
+      oldName: String
+  )(implicit project: Project, ec: ExecutionContext, service: ModelService): EitherT[Future, NEL[String], Unit] = {
     EitherT.liftF(project.channels.all).flatMap { allChannels =>
       val (channelChangeSet, channels) = allChannels.partition(_.name.equalsIgnoreCase(oldName))
-      val channel = channelChangeSet.toSeq.head
+      val channel                      = channelChangeSet.toSeq.head
       //TODO: Rewrite this nicer if we ever get a Validated/Validation type
-      val e1 = if(channels.exists(_.color == this.color)) List("error.channel.duplicateColor") else Nil
-      val e2 = if(channels.exists(_.name.equalsIgnoreCase(this.channelName))) List("error.channel.duplicateName") else Nil
-      val e3 = if(nonReviewed && channels.count(_.isReviewed) < 1) List("error.channel.minOneReviewed") else Nil
+      val e1 = if (channels.exists(_.color == this.color)) List("error.channel.duplicateColor") else Nil
+      val e2 =
+        if (channels.exists(_.name.equalsIgnoreCase(this.channelName))) List("error.channel.duplicateName") else Nil
+      val e3 = if (nonReviewed && channels.count(_.isReviewed) < 1) List("error.channel.minOneReviewed") else Nil
 
       NEL.fromList(e1 ::: e2 ::: e3) match {
         case Some(errors) => EitherT.leftT[Future, Unit](errors)

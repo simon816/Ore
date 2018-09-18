@@ -13,6 +13,7 @@ trait ModelBase[M <: Model] {
 
   /** The [[Model]] that this provides access to */
   def modelClass: Class[M]
+
   /** The [[ModelService]] to retrieve the model */
   def service: ModelService
 

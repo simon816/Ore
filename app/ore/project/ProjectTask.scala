@@ -17,11 +17,13 @@ import ore.OreConfig
   * Task that is responsible for publishing New projects
   */
 @Singleton
-class ProjectTask @Inject()(models: ModelService, actorSystem: ActorSystem, config: OreConfig)(implicit ec: ExecutionContext) extends Runnable {
+class ProjectTask @Inject()(models: ModelService, actorSystem: ActorSystem, config: OreConfig)(
+    implicit ec: ExecutionContext
+) extends Runnable {
 
-  val Logger = play.api.Logger("ProjectTask")
+  val Logger                   = play.api.Logger("ProjectTask")
   val interval: FiniteDuration = this.config.projects.get[FiniteDuration]("check-interval")
-  val draftExpire: Long = this.config.projects.getOptional[Long]("draft-expire").getOrElse(86400000)
+  val draftExpire: Long        = this.config.projects.getOptional[Long]("draft-expire").getOrElse(86400000)
 
   /**
     * Starts the task.
@@ -38,8 +40,8 @@ class ProjectTask @Inject()(models: ModelService, actorSystem: ActorSystem, conf
     val actions = this.models.getSchema(classOf[ProjectSchema])
 
     val newFilter: ModelFilter[Project] = ModelFilter[Project](_.visibility === VisibilityTypes.New)
-    val future = actions.collect(newFilter.fn, ProjectSortingStrategies.Default, -1, 0)
-    val projects = this.models.await(future).get
+    val future                          = actions.collect(newFilter.fn, ProjectSortingStrategies.Default, -1, 0)
+    val projects                        = this.models.await(future).get
 
     val dayAgo = System.currentTimeMillis() - draftExpire
 

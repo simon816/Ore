@@ -33,9 +33,8 @@ class ProjectFiles(val env: OreEnv) {
     * @param version Version
     * @return        Version directory
     */
-  def getVersionDir(owner: String, name: String, version: String): Path = {
+  def getVersionDir(owner: String, name: String, version: String): Path =
     getProjectDir(owner, name).resolve("versions").resolve(version)
-  }
 
   /**
     * Returns the specified user's plugin directory.
@@ -100,8 +99,8 @@ class ProjectFiles(val env: OreEnv) {
     * @param project Project to get icon for
     * @return Pending icon path
     */
-  def getPendingIconPath(project: Project): Option[Path]
-  = findFirstFile(getPendingIconDir(project.ownerName, project.name))
+  def getPendingIconPath(project: Project): Option[Path] =
+    findFirstFile(getPendingIconDir(project.ownerName, project.name))
 
   private def findFirstFile(dir: Path): Option[Path] = {
     if (exists(dir)) {

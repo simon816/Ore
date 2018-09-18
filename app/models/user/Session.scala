@@ -20,11 +20,14 @@ import db.{Expirable, Model, ObjectId, ObjectTimestamp}
   * @param username   Username session belongs to
   * @param token      Unique token
   */
-case class Session(id: ObjectId = ObjectId.Uninitialized,
-                   createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                   expiration: Timestamp,
-                   username: String,
-                   token: String) extends Model with Expirable {
+case class Session(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    expiration: Timestamp,
+    username: String,
+    token: String
+) extends Model
+    with Expirable {
 
   override type M = Session
   override type T = SessionTable
@@ -35,7 +38,8 @@ case class Session(id: ObjectId = ObjectId.Uninitialized,
     * @param users UserBase instance
     * @return User session belongs to
     */
-  def user(implicit users: UserBase, ec: ExecutionContext, auth: SpongeAuthApi): OptionT[Future, User] = users.withName(this.username)
+  def user(implicit users: UserBase, ec: ExecutionContext, auth: SpongeAuthApi): OptionT[Future, User] =
+    users.withName(this.username)
 
   override def copyWith(id: ObjectId, theTime: ObjectTimestamp): Model = this.copy(id = id, createdAt = theTime)
 

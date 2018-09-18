@@ -27,11 +27,12 @@ trait MembershipDossier {
 
   implicit def convertModel(model: ModelType): this.model.M = model.asInstanceOf[this.model.M]
 
-  def roles(implicit service: ModelService): ModelAccess[RoleType] = this.model.schema.getChildren[RoleType](this.roleClass, this.model)
+  def roles(implicit service: ModelService): ModelAccess[RoleType] =
+    this.model.schema.getChildren[RoleType](this.roleClass, this.model)
 
-  private def association(implicit service: ModelService)
-  = this.model.schema.getAssociation[MembersTable, User](this.membersTableClass, this.model)
-  def roleAccess(implicit service: ModelService): ModelAccess[RoleType] = service.access[RoleType](roleClass)
+  private def association(implicit service: ModelService) =
+    this.model.schema.getAssociation[MembersTable, User](this.membersTableClass, this.model)
+  def roleAccess(implicit service: ModelService): ModelAccess[RoleType]                   = service.access[RoleType](roleClass)
   private def addMember(user: User)(implicit ec: ExecutionContext, service: ModelService) = this.association.add(user)
 
   /**
@@ -39,7 +40,7 @@ trait MembershipDossier {
     *
     * @param user User instance
     */
-  def clearRoles(user: User):Future[Int]
+  def clearRoles(user: User): Future[Int]
 
   /**
     * Constructs a new member object of the MemberType.
@@ -55,11 +56,10 @@ trait MembershipDossier {
     *
     * @return All members
     */
-  def members(implicit ec: ExecutionContext, service: ModelService): Future[Set[MemberType]] = {
+  def members(implicit ec: ExecutionContext, service: ModelService): Future[Set[MemberType]] =
     this.association.all.map(_.map { user =>
       newMember(user.id.value)
     })
-  }
 
   /**
     * Adds a new role to the dossier and adds the user as a member if not already.
@@ -68,10 +68,10 @@ trait MembershipDossier {
     */
   def addRole(role: RoleType)(implicit ec: ExecutionContext, service: ModelService): Future[RoleType] = {
     for {
-      user <- role.user
+      user   <- role.user
       exists <- this.roles.exists(_.userId === user.id.value)
-      _ <- if(!exists) addMember(user) else Future.successful(user)
-      ret <- this.roleAccess.add(role)
+      _      <- if (!exists) addMember(user) else Future.successful(user)
+      ret    <- this.roleAccess.add(role)
     } yield ret
   }
 
@@ -81,7 +81,8 @@ trait MembershipDossier {
     * @param user User to get roles for
     * @return     User roles
     */
-  def getRoles(user: User)(implicit ec: ExecutionContext, service: ModelService): Future[Set[RoleType]] = this.roles.filter(_.userId === user.id.value).map(_.toSet)
+  def getRoles(user: User)(implicit ec: ExecutionContext, service: ModelService): Future[Set[RoleType]] =
+    this.roles.filter(_.userId === user.id.value).map(_.toSet)
 
   /**
     * Returns the highest level of [[ore.permission.role.Trust]] this user has.
@@ -98,10 +99,10 @@ trait MembershipDossier {
     */
   def removeRole(role: RoleType)(implicit ec: ExecutionContext, service: ModelService): Future[Unit] = {
     for {
-      _ <- this.roleAccess.remove(role)
+      _      <- this.roleAccess.remove(role)
       user   <- role.user
       exists <- this.roles.exists(_.userId === user.id.value)
-      _ <- if(!exists) removeMember(user) else Future.successful(0)
+      _      <- if (!exists) removeMember(user) else Future.successful(0)
     } yield ()
   }
 
@@ -111,18 +112,17 @@ trait MembershipDossier {
     * @param user User to remove
     * @return
     */
-  def removeMember(user: User)(implicit ec: ExecutionContext, service: ModelService): Future[Int] = {
-    clearRoles(user) flatMap { _ =>
+  def removeMember(user: User)(implicit ec: ExecutionContext, service: ModelService): Future[Int] =
+    clearRoles(user).flatMap { _ =>
       this.association.remove(user)
     }
-  }
 
 }
 
 object MembershipDossier {
 
-  val STATUS_DECLINE = "decline"
-  val STATUS_ACCEPT = "accept"
+  val STATUS_DECLINE  = "decline"
+  val STATUS_ACCEPT   = "accept"
   val STATUS_UNACCEPT = "unaccept"
 
 }

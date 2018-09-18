@@ -15,11 +15,13 @@ import ore.project.io.DownloadTypes.DownloadType
   * @param address      Address of client
   * @param downloadType Type of download
   */
-case class UnsafeDownload(id: ObjectId = ObjectId.Uninitialized,
-                          createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                          userId: Option[ObjectReference] = None,
-                          address: InetString,
-                          downloadType: DownloadType) extends Model {
+case class UnsafeDownload(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    userId: Option[ObjectReference] = None,
+    address: InetString,
+    downloadType: DownloadType
+) extends Model {
 
   override type M = UnsafeDownload
   override type T = UnsafeDownloadsTable

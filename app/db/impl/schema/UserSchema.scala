@@ -14,9 +14,9 @@ import cats.data.OptionT
   * TODO: Find solution to eliminate the need for this class
   */
 class UserSchema(override val service: ModelService)
-  extends ModelSchema[User](service, classOf[User], TableQuery[UserTable]) {
+    extends ModelSchema[User](service, classOf[User], TableQuery[UserTable]) {
 
-  override def like(user: User)(implicit ec: ExecutionContext): OptionT[Future, User]
-  = this.service.find[User](this.modelClass, _.name.toLowerCase === user.name.toLowerCase)
+  override def like(user: User)(implicit ec: ExecutionContext): OptionT[Future, User] =
+    this.service.find[User](this.modelClass, _.name.toLowerCase === user.name.toLowerCase)
 
 }

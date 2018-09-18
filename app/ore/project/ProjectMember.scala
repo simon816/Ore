@@ -16,7 +16,7 @@ import db.{ModelService, ObjectReference}
   * @param userId   Member user ID
   */
 class ProjectMember(val project: Project, override val userId: ObjectReference)(implicit users: UserBase)
-                    extends Member[ProjectRole](userId) {
+    extends Member[ProjectRole](userId) {
 
   override def roles(implicit ec: ExecutionContext, service: ModelService): Future[Set[ProjectRole]] =
     this.user.flatMap(user => this.project.memberships.getRoles(user))
@@ -32,12 +32,12 @@ class ProjectMember(val project: Project, override val userId: ObjectReference)(
       case _ => false
     }
   }
-  */
+   */
   /**
     * Returns the Member's top role.
     *
     * @return Top role
     */
-  override def headRole(implicit ec: ExecutionContext, service: ModelService): Future[ProjectRole] = this.roles.map(_.maxBy(_.roleType.trust))
+  override def headRole(implicit ec: ExecutionContext, service: ModelService): Future[ProjectRole] =
+    this.roles.map(_.maxBy(_.roleType.trust))
 }
-

@@ -29,7 +29,8 @@ object DownloadTypes extends Enumeration {
   val SignatureFile = DownloadType(2)
 
   case class DownloadType(i: Int) extends super.Val(i) with MappedType[DownloadType] {
-    override implicit val mapper: JdbcType[DownloadType] with BaseTypedType[DownloadType] = OrePostgresDriver.api.downloadTypeTypeMapper
+    implicit override val mapper: JdbcType[DownloadType] with BaseTypedType[DownloadType] =
+      OrePostgresDriver.api.downloadTypeTypeMapper
   }
   implicit def convert(v: Value): DownloadType = v.asInstanceOf[DownloadType]
 
