@@ -1,14 +1,16 @@
 package discourse
 
-import akka.actor.Scheduler
-import db.impl.OrePostgresDriver.api._
-import db.impl.access.ProjectBase
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 
-import db.ModelService
-import ore.OreConfig
 import play.api.Logger
+
+import db.ModelService
+import db.impl.OrePostgresDriver.api._
+import db.impl.access.ProjectBase
+import ore.OreConfig
+
+import akka.actor.Scheduler
 
 /**
   * Task to periodically retry failed Discourse requests.

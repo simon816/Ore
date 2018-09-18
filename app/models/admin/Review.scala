@@ -2,16 +2,18 @@ package models.admin
 
 import java.sql.Timestamp
 
-import db.{Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.i18n.Messages
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
+import play.twirl.api.Html
+
 import db.impl.schema.{ReviewSchema, ReviewTable}
+import db.{Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
 import models.project.{Page, Project, Version}
 import ore.OreConfig
-import play.api.libs.functional.syntax._
-import play.twirl.api.Html
-import util.StringUtils
-import play.api.libs.json._
-import play.api.i18n.Messages
-import scala.concurrent.{ExecutionContext, Future}
+import _root_.util.StringUtils
 
 /**
   * Represents an approval instance of [[Project]] [[Version]].

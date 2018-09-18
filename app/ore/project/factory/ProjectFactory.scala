@@ -2,16 +2,20 @@ package ore.project.factory
 
 import java.nio.file.Files._
 import java.nio.file.StandardCopyOption
-
-import akka.actor.ActorSystem
-import com.google.common.base.Preconditions._
-
-import db.ModelService
-import db.impl.OrePostgresDriver.api._
-import db.impl.access.ProjectBase
-import discourse.OreDiscourseApi
 import javax.inject.Inject
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
+import scala.util.matching.Regex
+
+import play.api.cache.SyncCacheApi
+import play.api.i18n.Messages
+
+import db.ModelService
+import db.impl.access.ProjectBase
+import db.impl.schema.{ProjectMembersTable, ProjectRoleTable}
+import discourse.OreDiscourseApi
 import models.project._
 import models.user.role.ProjectRole
 import models.user.{Notification, User}
@@ -23,19 +27,14 @@ import ore.project.{NotifyWatchersTask, ProjectMember}
 import ore.user.MembershipDossier
 import ore.user.notification.NotificationTypes
 import ore.{OreConfig, OreEnv, Platforms}
-import play.api.cache.SyncCacheApi
-import play.api.i18n.Messages
 import security.pgp.PGPVerifier
 import util.StringUtils._
+
+import akka.actor.ActorSystem
 import cats.data.{EitherT, NonEmptyList}
 import cats.instances.future._
 import cats.syntax.all._
-import scala.concurrent.duration.Duration
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
-import scala.util.matching.Regex
-
-import db.impl.schema.{ProjectMembersTable, ProjectRoleTable}
+import com.google.common.base.Preconditions._
 
 /**
   * Manages the project and version creation pipeline.

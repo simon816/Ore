@@ -2,36 +2,33 @@ package controllers
 
 import java.sql.Timestamp
 import java.time.Instant
-
-import controllers.sugar.{Bakery, Requests}
-import controllers.sugar.Requests.AuthRequest
-import db.{ModelService, ObjectId, ObjectReference, ObjectTimestamp}
-import db.impl.OrePostgresDriver.api._
-import db.impl._
-import form.OreForms
 import javax.inject.Inject
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.cache.AsyncCacheApi
+import play.api.mvc.{Action, AnyContent, Result}
+
+import controllers.sugar.Requests.AuthRequest
+import controllers.sugar.{Bakery, Requests}
+import db.impl.OrePostgresDriver.api._
+import db.impl.schema.{NotificationTable, OrganizationMembersTable, OrganizationRoleTable, OrganizationTable, UserTable}
+import db.{ModelService, ObjectId, ObjectReference, ObjectTimestamp}
+import form.OreForms
 import models.admin.{Message, Review}
 import models.project.{Project, Version}
 import models.user.{LoggedAction, Notification, User, UserActionLogger}
 import ore.permission.ReviewProjects
-import ore.permission.role.Lifted
-import ore.permission.role.RoleType
+import ore.permission.role.{Lifted, RoleType}
 import ore.user.notification.NotificationTypes
 import ore.{OreConfig, OreEnv}
-import play.api.cache.AsyncCacheApi
-import play.api.i18n.MessagesApi
-import play.api.mvc.{Action, AnyContent, Result}
 import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
-import slick.lifted.{Rep, TableQuery}
-import util.DataHelper
 import views.{html => views}
+
+import cats.data.{EitherT, NonEmptyList}
 import cats.instances.future._
 import cats.syntax.all._
-import cats.data.{EitherT, NonEmptyList}
-import scala.concurrent.{ExecutionContext, Future}
-
-import db.impl.schema.{NotificationTable, OrganizationMembersTable, OrganizationRoleTable, OrganizationTable, UserTable}
+import slick.lifted.{Rep, TableQuery}
 
 /**
   * Controller for handling Review related actions.

@@ -1,11 +1,12 @@
 package models.user.role
-import ore.Visitable
-import ore.permission.role.RoleType
-import ore.permission.scope.ProjectScope
+
 import scala.concurrent.{ExecutionContext, Future}
 
 import db.impl.schema.ProjectRoleTable
 import db.{ModelService, ObjectId, ObjectReference, ObjectTimestamp}
+import ore.Visitable
+import ore.permission.role.RoleType
+import ore.permission.scope.ProjectScope
 
 /**
   * Represents a [[ore.project.ProjectMember]]'s role in a

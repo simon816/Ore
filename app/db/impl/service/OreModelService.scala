@@ -1,14 +1,16 @@
 package db.impl.service
 
-import db.impl.OrePostgresDriver
-import db.{ModelRegistry, ModelService}
 import javax.inject.{Inject, Singleton}
-import ore.{OreConfig, OreEnv}
-import play.api.db.slick.DatabaseConfigProvider
-import play.api.i18n.MessagesApi
-import slick.jdbc.JdbcProfile
 
 import scala.concurrent.duration._
+
+import play.api.db.slick.DatabaseConfigProvider
+
+import db.impl.OrePostgresDriver
+import db.{ModelRegistry, ModelService}
+import ore.{OreConfig, OreEnv}
+
+import slick.jdbc.JdbcProfile
 
 /**
   * The Ore ModelService implementation. Contains registration of Ore-specific

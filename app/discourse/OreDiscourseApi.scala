@@ -2,21 +2,20 @@ package discourse
 
 import java.nio.file.Path
 
-import akka.actor.Scheduler
-import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
-
-import db.impl.access.ProjectBase
-import models.project.{Project, Version, VisibilityTypes}
-import models.user.User
-import org.spongepowered.play.discourse.DiscourseApi
-
-import util.StringUtils._
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
 import db.ModelService
+import db.impl.access.ProjectBase
+import models.project.{Project, Version}
+import models.user.User
 import ore.OreConfig
+import util.StringUtils._
+
+import akka.actor.Scheduler
+import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
+import org.spongepowered.play.discourse.DiscourseApi
 
 /**
   * An implementation of [[DiscourseApi]] suited to Ore's needs.

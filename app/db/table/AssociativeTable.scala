@@ -1,7 +1,7 @@
 package db.table
 
-import db.{Model, ObjectReference}
 import db.impl.OrePostgresDriver.api._
+import db.{Model, ObjectReference}
 
 /**
   * Represents a associative table between two models.

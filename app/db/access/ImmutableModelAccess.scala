@@ -1,9 +1,9 @@
 package db.access
 
+import scala.concurrent.ExecutionContext
+
 import db.impl.OrePostgresDriver.api._
 import db.{Model, ModelFilter, ModelService}
-
-import scala.concurrent.ExecutionContext
 
 /**
   * An immutable version of [[ModelAccess]].

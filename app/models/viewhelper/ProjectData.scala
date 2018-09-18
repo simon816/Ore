@@ -1,25 +1,26 @@
 package models.viewhelper
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.twirl.api.Html
+
 import controllers.sugar.Requests.OreRequest
+import db.ModelService
 import db.impl.OrePostgresDriver.api._
+import db.impl.access.UserBase
+import db.impl.schema.{ProjectRoleTable, UserTable}
 import models.admin.ProjectVisibilityChange
 import models.project._
 import models.user.User
 import models.user.role.ProjectRole
+import ore.OreConfig
 import ore.project.ProjectMember
 import ore.project.factory.PendingProject
-import play.api.cache.AsyncCacheApi
+
+import cats.instances.future._
+import cats.syntax.all._
 import slick.jdbc.JdbcBackend
 import slick.lifted.TableQuery
-import scala.concurrent.{ExecutionContext, Future}
-
-import db.ModelService
-import db.impl.access.UserBase
-import ore.OreConfig
-import play.twirl.api.Html
-import cats.syntax.all._
-import cats.instances.future._
-import db.impl.schema.{ProjectRoleTable, UserTable}
 
 /**
   * Holds ProjetData that is the same for all users

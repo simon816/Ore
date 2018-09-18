@@ -1,8 +1,9 @@
 package ore.project
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import db.impl.access.ProjectBase
 import models.project.Project
-import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.OptionT
 

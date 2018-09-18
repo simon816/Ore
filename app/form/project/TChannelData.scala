@@ -2,13 +2,14 @@ package form.project
 
 import scala.concurrent.{ExecutionContext, Future}
 
-import cats.data.{EitherT, NonEmptyList => NEL}
-import cats.instances.future._
 import db.ModelService
 import models.project.{Channel, Project}
 import ore.Colors.Color
 import ore.OreConfig
 import ore.project.factory.ProjectFactory
+
+import cats.data.{EitherT, NonEmptyList => NEL}
+import cats.instances.future._
 
 /**
   * Represents submitted [[Channel]] data.

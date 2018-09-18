@@ -37,7 +37,20 @@ scala
 BLANK_LINE
 play
 BLANK_LINE
+controllers
+db
+discourse
+filters
+form
+mail
+models
+ore
+security
+util
+views
+BLANK_LINE
 <other stuff>
+BLANK_LINE
 ```
 
 ## Common methods you should use to simplify your code

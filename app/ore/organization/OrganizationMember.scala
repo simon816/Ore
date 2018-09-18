@@ -1,13 +1,13 @@
 package ore.organization
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import db.impl.access.UserBase
+import db.{ModelService, ObjectReference}
 import models.user.Organization
 import models.user.role.OrganizationRole
 import ore.permission.scope.Scope
 import ore.user.Member
-import scala.concurrent.{ExecutionContext, Future}
-
-import db.{ModelService, ObjectReference}
 
 /**
   * Represents a [[models.user.User]] member of an [[Organization]].

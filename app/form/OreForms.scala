@@ -1,28 +1,29 @@
 package form
 
 import java.net.{MalformedURLException, URL}
-
-import controllers.sugar.Requests.ProjectRequest
-import db.{ModelService, ObjectReference}
-import db.impl.OrePostgresDriver.api._
-import form.organization.{OrganizationAvatarUpdate, OrganizationMembersUpdate, OrganizationRoleSetBuilder}
-import form.project._
 import javax.inject.Inject
 
+import scala.concurrent.ExecutionContext
+import scala.util.Try
+
+import play.api.data.Forms._
+import play.api.data.format.Formatter
+import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
+import play.api.data.{FieldMapping, Form, FormError, Mapping}
+
+import controllers.sugar.Requests.ProjectRequest
+import db.impl.OrePostgresDriver.api._
+import db.{ModelService, ObjectReference}
+import form.organization.{OrganizationAvatarUpdate, OrganizationMembersUpdate, OrganizationRoleSetBuilder}
+import form.project._
 import models.api.ProjectApiKey
-import models.project.{Channel, Page}
 import models.project.Page._
+import models.project.{Channel, Page}
 import models.user.role.ProjectRole
 import ore.OreConfig
 import ore.project.factory.ProjectFactory
 import ore.rest.ProjectApiKeyTypes
 import ore.rest.ProjectApiKeyTypes.ProjectApiKeyType
-import play.api.data.Forms._
-import play.api.data.format.Formatter
-import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
-import play.api.data.{FieldMapping, Form, FormError, Mapping}
-import scala.concurrent.ExecutionContext
-import scala.util.Try
 
 /**
   * Collection of forms used in this application.

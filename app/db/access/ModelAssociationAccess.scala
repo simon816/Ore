@@ -1,9 +1,10 @@
 package db.access
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import db.impl.OrePostgresDriver.api._
 import db.table.{AssociativeTable, ModelAssociation}
 import db.{Model, ModelFilter, ModelService, ObjectReference}
-import scala.concurrent.{ExecutionContext, Future}
 
 class ModelAssociationAccess[Assoc <: AssociativeTable, M <: Model](
     service: ModelService,

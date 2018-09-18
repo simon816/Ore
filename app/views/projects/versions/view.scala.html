@@ -1,18 +1,11 @@
 @import controllers.sugar.Requests.OreRequest
-@import db.ModelService
+@import models.project.VisibilityTypes
 @import models.viewhelper.{ScopedProjectData, VersionData}
-@import ore.OreConfig
-@import ore.permission.{EditVersions, ReviewProjects}
+@import ore.{OreConfig, Platforms}
+@import ore.permission.{EditVersions, HardRemoveVersion, ReviewProjects, UploadVersions, ViewLogs}
 @import util.StringUtils._
 @import views.html.helper.{CSRF, form}
 @import views.html.utils.editor
-@import ore.permission.UploadVersions
-@import models.project.VisibilityTypes
-@import ore.permission.ReviewFlags
-@import ore.permission.ViewLogs
-@import ore.Platforms
-@import ore.PlatformCategory
-@import ore.permission.HardRemoveVersion
 @(v: VersionData, sp: ScopedProjectData)(implicit messages: Messages, request: OreRequest[_], flash: Flash, config: OreConfig)
 
 @projectRoutes = @{controllers.project.routes.Projects}

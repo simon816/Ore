@@ -1,11 +1,11 @@
 package db.impl.table
 
-import com.github.tminglei.slickpg.InetString
-
 import db.ObjectReference
 import db.impl.OrePostgresDriver.api._
 import db.table.ModelTable
 import models.statistic.StatEntry
+
+import com.github.tminglei.slickpg.InetString
 
 /**
   * Represents a table that represents statistics on a Model.

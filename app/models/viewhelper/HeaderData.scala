@@ -1,24 +1,23 @@
 package models.viewhelper
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.mvc.Request
+
 import controllers.sugar.Requests.ProjectRequest
-import db.{ModelService, ObjectReference}
 import db.impl.OrePostgresDriver.api._
-import db.impl.access.OrganizationBase
-import db.impl._
+import db.impl.schema.{FlagTable, NotificationTable, ProjectTableMain, SessionTable, UserTable, VersionTable}
+import db.{ModelService, ObjectReference}
 import models.project.VisibilityTypes
 import models.user.User
 import ore.permission._
 import ore.permission.scope.GlobalScope
-import play.api.cache.AsyncCacheApi
-import play.api.mvc.Request
-import slick.jdbc.JdbcBackend
-import slick.lifted.TableQuery
+
 import cats.data.OptionT
 import cats.instances.future._
 import org.slf4j.MDC
-import scala.concurrent.{ExecutionContext, Future}
-
-import db.impl.schema.{FlagTable, NotificationTable, ProjectTableMain, SessionTable, UserTable, VersionTable}
+import slick.jdbc.JdbcBackend
+import slick.lifted.TableQuery
 
 /**
   * Holds global user specific data - When a User is not authenticated a dummy is used

@@ -2,11 +2,12 @@ package db.impl.model.common
 
 import scala.concurrent.{ExecutionContext, Future}
 
-import db.{Model, ModelService, ObjectReference}
 import db.access.ModelAccess
 import db.impl.table.common.VisibilityColumn
+import db.{Model, ModelService, ObjectReference}
 import models.project.VisibilityTypes
 import models.project.VisibilityTypes.Visibility
+
 import cats.data.OptionT
 
 /**

@@ -1,29 +1,31 @@
 package controllers
 
+import scala.language.higherKinds
+
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.cache.AsyncCacheApi
+import play.api.data.Form
+import play.api.i18n.I18nSupport
+import play.api.mvc._
+
+import controllers.OreBaseController.{BindFormEitherTPartiallyApplied, BindFormOptionTPartiallyApplied}
 import controllers.sugar.Requests.{AuthRequest, AuthedProjectRequest, OreRequest}
 import controllers.sugar.{Actions, Bakery, Requests}
 import db.ModelService
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
+import db.impl.schema.VersionTable
 import models.project.{Project, Version, VisibilityTypes}
 import models.user.SignOn
-import ore.{OreConfig, OreEnv}
-import play.api.cache.AsyncCacheApi
-import play.api.i18n.{I18nSupport, Lang}
-import play.api.mvc._
-import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
-import util.StringUtils._
-import cats.instances.future._
-import scala.concurrent.{ExecutionContext, Future}
-import scala.language.higherKinds
-
-import controllers.OreBaseController.{BindFormEitherTPartiallyApplied, BindFormOptionTPartiallyApplied}
-import play.api.data.Form
-import slick.jdbc.JdbcBackend
-import cats.data.{EitherT, OptionT}
-import cats.Monad
-import db.impl.schema.VersionTable
 import ore.permission.ReviewProjects
+import ore.{OreConfig, OreEnv}
+import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
+
+import cats.Monad
+import cats.data.{EitherT, OptionT}
+import cats.instances.future._
+import slick.jdbc.JdbcBackend
 
 /**
   * Represents a Secured base Controller for this application.

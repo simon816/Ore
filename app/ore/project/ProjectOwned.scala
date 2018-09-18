@@ -1,12 +1,12 @@
 package ore.project
 
-import db.impl.access.ProjectBase
-import models.project.Project
-import cats.instances.future._
-
 import scala.concurrent.{ExecutionContext, Future}
 
 import db.ObjectReference
+import db.impl.access.ProjectBase
+import models.project.Project
+
+import cats.instances.future._
 
 /**
   * Represents anything that has a [[models.project.Project]].

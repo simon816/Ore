@@ -2,8 +2,9 @@ package db.table
 
 import java.sql.Timestamp
 
-import db.{Model, ObjectReference}
 import db.impl.OrePostgresDriver.api._
+import db.{Model, ObjectReference}
+
 import slick.lifted.Tag
 
 /**

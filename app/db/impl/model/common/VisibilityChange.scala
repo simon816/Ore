@@ -4,10 +4,11 @@ import java.sql.Timestamp
 
 import scala.concurrent.{ExecutionContext, Future}
 
-import db.{Model, ObjectReference}
 import db.impl.access.UserBase
 import db.impl.table.common.VisibilityChangeColumns
+import db.{Model, ObjectReference}
 import models.user.User
+
 import cats.data.OptionT
 import cats.instances.future._
 

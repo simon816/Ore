@@ -1,7 +1,6 @@
 package db.impl.service
 
 import db.impl.OrePostgresDriver.api._
-import db.impl._
 import db.impl.schema._
 import db.table.ModelAssociation
 import db.{ModelSchema, ModelService, ObjectReference}
@@ -9,8 +8,8 @@ import models.admin.{ProjectLog, ProjectLogEntry, ProjectVisibilityChange, Revie
 import models.api.ProjectApiKey
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
-import models.user.role.{OrganizationRole, ProjectRole}
 import models.user._
+import models.user.role.{OrganizationRole, ProjectRole}
 
 trait OreModelConfig extends ModelService with OreDBOs {
 

@@ -1,12 +1,10 @@
 package models.viewhelper
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import db.ModelService
 import models.user.{Organization, User}
-import ore.permission.{Permission, _}
-import play.api.cache.AsyncCacheApi
-import slick.jdbc.JdbcBackend
-
-import scala.concurrent.{ExecutionContext, Future}
+import ore.permission._
 
 import cats.data.OptionT
 import cats.instances.future._

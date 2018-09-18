@@ -3,19 +3,20 @@ package db.impl.access
 import java.sql.Timestamp
 import java.util.{Date, UUID}
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.mvc.Request
+
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema.{ProjectSchema, ProjectTableMain, UserSchema, UserTable}
 import db.{ModelBase, ModelService, ObjectId, ObjectTimestamp}
 import models.user.{Session, User}
 import ore.OreConfig
-import ore.permission.Permission
-import play.api.mvc.Request
+import ore.permission.role.RoleType
+import ore.permission.{Permission, role}
 import security.spauth.SpongeAuthApi
 import util.StringUtils._
-import scala.concurrent.{ExecutionContext, Future}
 
-import ore.permission.role
-import ore.permission.role.RoleType
 import cats.data.OptionT
 import cats.instances.future._
 import slick.lifted.ColumnOrdered

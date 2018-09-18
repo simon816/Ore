@@ -1,12 +1,12 @@
-@import controllers.sugar.Requests.OreRequest
-@import db.ModelService
-@import models.user.{Notification, User}
+@@import controllers.sugar.Requests.OreRequest
 @import models.user.role.RoleModel
-@import ore.{OreConfig, Visitable}
+@import models.user.{Notification, User}
 @import ore.user.notification.InviteFilters.InviteFilter
 @import ore.user.notification.NotificationFilters.NotificationFilter
 @import ore.user.notification.{InviteFilters, NotificationFilters}
+@import ore.{OreConfig, Visitable}
 @import views.html.utils.userAvatar
+
 @import cats.data.{NonEmptyList => NEL}
 
 @(notifications: Seq[(Notification, User)], invites: Seq[(RoleModel, Visitable)], notificationFilter: NotificationFilter,

@@ -1,11 +1,12 @@
 package ore.user.notification
 
+import scala.language.implicitConversions
+
+import scala.concurrent.Future
+
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import models.user.Notification
-
-import scala.concurrent.{ExecutionContext, Future}
-import scala.language.implicitConversions
 
 /**
   * A collection of ways to filter notifications.

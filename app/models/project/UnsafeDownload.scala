@@ -1,10 +1,10 @@
 package models.project
 
-import com.github.tminglei.slickpg.InetString
-
 import db.impl.schema.UnsafeDownloadsTable
 import db.{Model, ObjectId, ObjectReference, ObjectTimestamp}
 import ore.project.io.DownloadTypes.DownloadType
+
+import com.github.tminglei.slickpg.InetString
 
 /**
   * Represents a download instance of an unreviewed [[Project]] [[Version]].

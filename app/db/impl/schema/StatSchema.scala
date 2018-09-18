@@ -1,11 +1,12 @@
 package db.impl.schema
 
-import db.impl.OrePostgresDriver.api._
-import db.{ModelFilter, ModelSchema, ModelService, ObjectReference}
-import models.statistic.StatEntry
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
+import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase
+import db.{ModelFilter, ModelSchema, ModelService, ObjectReference}
+import models.statistic.StatEntry
+
 import cats.data.OptionT
 import cats.instances.future._
 

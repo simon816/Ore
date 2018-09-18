@@ -1,19 +1,18 @@
 package db.impl.access
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import db.{ModelBase, ModelService, ObjectId, ObjectReference}
 import models.user.role.OrganizationRole
 import models.user.{Notification, Organization}
 import ore.OreConfig
 import ore.permission.role.RoleType
 import ore.user.notification.NotificationTypes
-import play.api.cache.AsyncCacheApi
-import play.api.i18n.{Lang, MessagesApi}
 import security.spauth.SpongeAuthApi
 import util.StringUtils
-import cats.instances.future._
-import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.{EitherT, NonEmptyList, OptionT}
+import cats.instances.future._
 
 class OrganizationBase(implicit val service: ModelService, config: OreConfig) extends ModelBase[Organization] {
 

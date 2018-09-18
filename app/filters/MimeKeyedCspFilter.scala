@@ -1,13 +1,15 @@
 package filters
 
-import akka.stream.Materializer
 import javax.inject.{Inject, Singleton}
+
+import scala.concurrent.{ExecutionContext, Future}
+
 import play.api.Configuration
 import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.mvc.{Filter, RequestHeader, Result}
 import play.filters.headers.SecurityHeadersFilter.CONTENT_SECURITY_POLICY_HEADER
 
-import scala.concurrent.{ExecutionContext, Future}
+import akka.stream.Materializer
 
 @Singleton
 class MimeKeyedCspFilter @Inject()(implicit val mat: Materializer, ec: ExecutionContext, conf: Configuration)

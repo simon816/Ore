@@ -2,42 +2,33 @@ package models.user
 
 import java.sql.Timestamp
 
-import com.google.common.base.Preconditions._
+import scala.concurrent.{ExecutionContext, Future}
 
-import db.{Model, ModelFilter, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
+import play.api.i18n.Lang
+import play.api.mvc.Request
+
 import db.access.{ModelAccess, ModelAssociationAccess}
 import db.impl.OrePostgresDriver.api._
-import db.impl._
 import db.impl.access.{OrganizationBase, UserBase}
-import models.project.{Flag, Project, Version, VisibilityTypes}
+import db.impl.schema.{OrganizationMembersTable, OrganizationRoleTable, OrganizationTable, ProjectMembersTable, ProjectStarsTable, ProjectWatchersTable, UserTable}
+import db.{Model, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
+import models.project.{Flag, Project, VisibilityTypes}
 import models.user.role.{OrganizationRole, ProjectRole}
 import ore.OreConfig
 import ore.permission._
-import ore.permission.role.RoleType
-import ore.permission.role._
+import ore.permission.role.{RoleType, _}
 import ore.permission.scope._
 import ore.user.Prompts.Prompt
 import ore.user.UserOwned
-import play.api.mvc.Request
 import security.pgp.PGPPublicKeyInfo
 import security.spauth.{SpongeAuthApi, SpongeUser}
-import slick.lifted.TableQuery
 import util.StringUtils._
+
+import cats.data.OptionT
 import cats.instances.future._
 import cats.syntax.all._
-import cats.data.OptionT
-import scala.concurrent.{ExecutionContext, Future}
-
-import db.impl.schema.{
-  OrganizationMembersTable,
-  OrganizationRoleTable,
-  OrganizationTable,
-  ProjectMembersTable,
-  ProjectStarsTable,
-  ProjectWatchersTable,
-  UserTable
-}
-import play.api.i18n.Lang
+import com.google.common.base.Preconditions._
+import slick.lifted.TableQuery
 
 /**
   * Represents a Sponge user.

@@ -1,16 +1,10 @@
-@import java.sql.Timestamp
-@import java.time.Instant
-
-@import controllers.sugar.Requests.OreRequest
-@import controllers.routes.{Users => userRoutes}
-@import controllers.routes.{Application => appRoutes}
 @import controllers.project.{routes => projectRoutes}
-@import models.user.LoggedActionContext
-@import models.user.LoggedAction
+@import controllers.sugar.Requests.OreRequest
+@import db.ObjectReference
+@import models.admin.LoggedActionViewModel
+@import models.user.{LoggedAction, LoggedActionContext}
 @import ore.OreConfig
 @import util.StringUtils._
-@import models.admin.LoggedActionViewModel
-@import db.ObjectReference
 
 @(actions: Seq[LoggedActionViewModel], limit: Int, offset: Int, page: Int, size: Int, userFilter: Option[ObjectReference],
         projectFilter: Option[ObjectReference], versionFilter: Option[ObjectReference], pageFilter: Option[ObjectReference],

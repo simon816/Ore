@@ -2,9 +2,8 @@ package db.impl.schema
 
 import java.sql.Timestamp
 
-import com.github.tminglei.slickpg.InetString
+import play.api.i18n.Lang
 
-import cats.data.NonEmptyList
 import db.impl.OrePostgresDriver.api._
 import db.impl.table.StatTable
 import db.impl.table.common.{DescriptionColumn, DownloadsColumn, VisibilityChangeColumns, VisibilityColumn}
@@ -16,16 +15,7 @@ import models.project.TagColors.TagColor
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
-import models.user.{
-  LoggedAction,
-  LoggedActionContext,
-  LoggedActionModel,
-  Notification,
-  Organization,
-  SignOn,
-  User,
-  Session => DbSession
-}
+import models.user.{LoggedAction, LoggedActionContext, LoggedActionModel, Notification, Organization, SignOn, User, Session => DbSession}
 import ore.Colors.Color
 import ore.permission.role.RoleType
 import ore.project.Categories.Category
@@ -34,7 +24,9 @@ import ore.project.io.DownloadTypes.DownloadType
 import ore.rest.ProjectApiKeyTypes.ProjectApiKeyType
 import ore.user.Prompts.Prompt
 import ore.user.notification.NotificationTypes.NotificationType
-import play.api.i18n.Lang
+
+import cats.data.NonEmptyList
+import com.github.tminglei.slickpg.InetString
 
 /*
  * Database schema definitions. Changes must be first applied as an evolutions

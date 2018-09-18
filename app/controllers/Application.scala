@@ -2,31 +2,25 @@ package controllers
 
 import java.sql.Timestamp
 import java.time.Instant
+import javax.inject.Inject
+
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.cache.AsyncCacheApi
+import play.api.mvc.{Action, ActionBuilder, AnyContent}
 
 import controllers.sugar.Bakery
 import controllers.sugar.Requests.AuthRequest
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
-import db.impl._
-import db.impl.schema.{
-  ChannelTable,
-  LoggedActionViewTable,
-  ProjectSchema,
-  ProjectTableMain,
-  ReviewTable,
-  TagTable,
-  UserTable,
-  VersionTable
-}
+import db.impl.schema.{ChannelTable, LoggedActionViewTable, ProjectSchema, ProjectTableMain, ReviewTable, TagTable, UserTable, VersionTable}
 import db.{ModelFilter, ModelService, ObjectReference}
 import form.OreForms
-import javax.inject.Inject
-
 import models.admin.Review
 import models.project.{Tag, _}
 import models.user.role._
 import models.user.{LoggedAction, LoggedActionModel, User, UserActionLogger}
-import models.viewhelper.{HeaderData, OrganizationData, ScopedOrganizationData}
+import models.viewhelper.OrganizationData
 import ore.Platforms.Platform
 import ore.permission._
 import ore.permission.role.{Role, RoleType}
@@ -34,16 +28,13 @@ import ore.permission.scope.GlobalScope
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
 import ore.{OreConfig, OreEnv, PlatformCategory, Platforms}
-import play.api.cache.AsyncCacheApi
-import play.api.i18n.MessagesApi
-import play.api.mvc.{Action, ActionBuilder, AnyContent}
 import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
 import util.DataHelper
+import views.{html => views}
+
 import cats.data.OptionT
 import cats.instances.future._
 import cats.syntax.all._
-import views.{html => views}
-import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Main entry point for application.

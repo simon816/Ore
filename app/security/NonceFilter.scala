@@ -2,13 +2,14 @@ package security
 
 import java.security.SecureRandom
 import java.util.Base64
-
-import akka.stream.Materializer
 import javax.inject.Inject
+
+import scala.concurrent.Future
+
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc.{Filter, RequestHeader, Result}
 
-import scala.concurrent.Future
+import akka.stream.Materializer
 
 object NonceFilter {
 

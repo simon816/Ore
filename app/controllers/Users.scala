@@ -1,36 +1,36 @@
 package controllers
 
-import controllers.sugar.Bakery
-import controllers.sugar.Requests.AuthRequest
-import db.{ModelService, ObjectReference}
-import db.impl.OrePostgresDriver.api._
-import db.impl.access.UserBase.UserOrdering
-import discourse.OreDiscourseApi
-import form.OreForms
 import javax.inject.Inject
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.Logger
+import play.api.cache.AsyncCacheApi
+import play.api.i18n.MessagesApi
+import play.api.mvc._
+
+import controllers.sugar.Bakery
+import controllers.sugar.Requests.AuthRequest
+import db.impl.OrePostgresDriver.api._
+import db.impl.access.UserBase.UserOrdering
+import db.impl.schema.{ProjectTableMain, VersionTable}
+import db.{ModelService, ObjectReference}
+import form.OreForms
 import mail.{EmailFactory, Mailer}
 import models.user.{LoggedAction, SignOn, User, UserActionLogger}
 import models.viewhelper.{OrganizationData, ScopedOrganizationData}
 import ore.permission.ReviewProjects
-import ore.rest.OreWrites
 import ore.user.notification.InviteFilters.InviteFilter
 import ore.user.notification.NotificationFilters.NotificationFilter
 import ore.user.notification.{InviteFilters, NotificationFilters}
 import ore.user.{FakeUser, Prompts}
 import ore.{OreConfig, OreEnv}
-import play.Logger
-import play.api.cache.AsyncCacheApi
-import play.api.i18n.MessagesApi
-import play.api.mvc._
 import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
 import views.{html => views}
-import cats.instances.future._
-import cats.syntax.all._
-import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.EitherT
-import db.impl.schema.{ProjectTableMain, VersionTable}
+import cats.instances.future._
+import cats.syntax.all._
 
 /**
   * Controller for general user actions.

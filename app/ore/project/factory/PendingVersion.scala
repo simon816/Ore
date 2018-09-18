@@ -1,16 +1,15 @@
 package ore.project.factory
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.cache.SyncCacheApi
+
 import db.impl.access.ProjectBase
 import models.project._
 import ore.Colors.Color
 import ore.project.factory.TagAlias.ProjectTag
 import ore.project.io.PluginFile
 import ore.{Cacheable, Platforms}
-import play.api.cache.SyncCacheApi
-
-import scala.concurrent.{ExecutionContext, Future}
-
-import db.ObjectId
 
 object TagAlias {
   type ProjectTag = models.project.Tag

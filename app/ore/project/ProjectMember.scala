@@ -1,13 +1,13 @@
 package ore.project
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import db.impl.access.UserBase
+import db.{ModelService, ObjectReference}
 import models.project.Project
 import models.user.role.ProjectRole
 import ore.permission.scope.Scope
 import ore.user.Member
-import scala.concurrent.{ExecutionContext, Future}
-
-import db.{ModelService, ObjectReference}
 
 /**
   * Represents a member of a [[Project]].

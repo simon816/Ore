@@ -2,6 +2,22 @@ package models.project
 
 import java.net.{URI, URISyntaxException}
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.twirl.api.Html
+
+import db.access.ModelAccess
+import db.impl.OrePostgresDriver.api._
+import db.impl.access.ProjectBase
+import db.impl.schema.{PageSchema, PageTable}
+import db.{Model, ModelFilter, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
+import discourse.OreDiscourseApi
+import ore.OreConfig
+import ore.permission.scope.ProjectScope
+import util.StringUtils._
+
+import cats.data.OptionT
+import cats.instances.future._
 import com.google.common.base.Preconditions._
 import com.vladsch.flexmark.ast.{MailLink, Node}
 import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension
@@ -15,21 +31,6 @@ import com.vladsch.flexmark.html.renderer._
 import com.vladsch.flexmark.html.{HtmlRenderer, LinkResolver, LinkResolverFactory}
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.options.MutableDataSet
-
-import db.access.ModelAccess
-import db.impl.OrePostgresDriver.api._
-import db.impl.schema.{PageSchema, PageTable}
-import db.{Model, ModelFilter, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
-import ore.OreConfig
-import ore.permission.scope.ProjectScope
-import play.twirl.api.Html
-import util.StringUtils._
-import cats.instances.future._
-import cats.data.OptionT
-import scala.concurrent.{ExecutionContext, Future}
-
-import db.impl.access.ProjectBase
-import discourse.OreDiscourseApi
 
 /**
   * Represents a documentation page within a project.

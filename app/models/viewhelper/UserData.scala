@@ -1,21 +1,22 @@
 package models.viewhelper
 
-import controllers.routes
-import controllers.sugar.Requests.OreRequest
-import db.ModelService
-import models.user.role.OrganizationRole
-import models.user.{Organization, User}
-import ore.permission._
-import play.api.cache.AsyncCacheApi
-import slick.jdbc.JdbcBackend
-import slick.lifted.TableQuery
-import db.impl.OrePostgresDriver.api._
 import scala.concurrent.{ExecutionContext, Future}
 
 import play.api.mvc.Call
-import cats.syntax.all._
-import cats.instances.future._
+
+import controllers.routes
+import controllers.sugar.Requests.OreRequest
+import db.ModelService
+import db.impl.OrePostgresDriver.api._
 import db.impl.schema.{OrganizationRoleTable, OrganizationTable, UserTable}
+import models.user.role.OrganizationRole
+import models.user.{Organization, User}
+import ore.permission._
+
+import cats.instances.future._
+import cats.syntax.all._
+import slick.jdbc.JdbcBackend
+import slick.lifted.TableQuery
 
 // TODO separate Scoped UserData
 

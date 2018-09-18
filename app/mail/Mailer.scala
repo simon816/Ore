@@ -2,17 +2,18 @@ package mail
 
 import java.security.Security
 import java.util.Date
-
-import akka.actor.{ActorSystem, Scheduler}
-import com.sun.net.ssl.internal.ssl.Provider
 import javax.inject.{Inject, Singleton}
 import javax.mail.Message.RecipientType
 import javax.mail.Session
 import javax.mail.internet.{InternetAddress, MimeMessage}
-import play.api.Configuration
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+
+import play.api.Configuration
+
+import akka.actor.{ActorSystem, Scheduler}
+import com.sun.net.ssl.internal.ssl.Provider
 
 /**
   * Handles dispatch of emails to users. Particularly for email verification.

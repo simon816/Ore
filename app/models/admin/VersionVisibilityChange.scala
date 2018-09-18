@@ -2,12 +2,13 @@ package models.admin
 
 import java.sql.Timestamp
 
-import db.{Model, ObjectId, ObjectReference, ObjectTimestamp}
+import play.twirl.api.Html
+
 import db.impl.model.common.VisibilityChange
 import db.impl.schema.VersionVisibilityChangeTable
+import db.{Model, ObjectId, ObjectReference, ObjectTimestamp}
 import models.project.Page
 import ore.OreConfig
-import play.twirl.api.Html
 
 case class VersionVisibilityChange(
     id: ObjectId = ObjectId.Uninitialized,

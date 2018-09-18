@@ -1,16 +1,17 @@
 package discourse
 
 import java.nio.file.Path
-
-import akka.actor.{ActorSystem, Scheduler}
 import javax.inject.{Inject, Singleton}
 
-import ore.{OreConfig, OreEnv}
-import play.api.libs.ws.WSClient
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
+import play.api.libs.ws.WSClient
+
 import db.ModelService
+import ore.{OreConfig, OreEnv}
+
+import akka.actor.{ActorSystem, Scheduler}
 
 /**
   * [[OreDiscourseApi]] implementation.

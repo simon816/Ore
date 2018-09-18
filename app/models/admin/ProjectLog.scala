@@ -1,13 +1,14 @@
 package models.admin
 
-import db.{Model, ModelFilter, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
-import db.access.ModelAccess
-import db.impl.OrePostgresDriver.api._
-import ore.project.ProjectOwned
-import cats.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
+import db.access.ModelAccess
+import db.impl.OrePostgresDriver.api._
 import db.impl.schema.ProjectLogTable
+import db.{Model, ModelFilter, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
+import ore.project.ProjectOwned
+
+import cats.instances.future._
 
 /**
   * Represents a log for a [[models.project.Project]].

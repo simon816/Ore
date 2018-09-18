@@ -4,23 +4,24 @@ import java.math.BigInteger
 import java.net.URLEncoder
 import java.security.SecureRandom
 import java.util.Base64
-
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
-import org.apache.commons.codec.binary.Hex
-import play.api.Configuration
-import play.api.http.Status
-import play.api.libs.ws.WSClient
-import cats.data.OptionT
-import cats.instances.future._
-import cats.syntax.all._
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Try
-import akka.http.scaladsl.model.Uri
+
+import play.api.Configuration
+import play.api.http.Status
 import play.api.i18n.Lang
+import play.api.libs.ws.WSClient
+
+import akka.http.scaladsl.model.Uri
+import cats.data.OptionT
+import cats.instances.future._
+import cats.syntax.all._
+import org.apache.commons.codec.binary.Hex
 
 /**
   * Manages authentication to Sponge services.

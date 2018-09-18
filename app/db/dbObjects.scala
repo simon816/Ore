@@ -2,8 +2,6 @@ package db
 
 import java.sql.Timestamp
 
-import db.ObjectId.Uninitialized
-
 sealed trait DbInitialized[A] {
   def value: A
   def unsafeToOption: Option[A]

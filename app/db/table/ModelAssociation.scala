@@ -2,10 +2,10 @@ package db.table
 
 import scala.concurrent.Future
 
-import com.google.common.base.Preconditions._
-
 import db.impl.OrePostgresDriver.api._
 import db.{Model, ModelService, ObjectReference}
+
+import com.google.common.base.Preconditions._
 
 /**
   * Represents an association between two models handled by an associative table.

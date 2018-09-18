@@ -1,11 +1,12 @@
 package ore.organization
 
-import db.impl.access.OrganizationBase
-import models.user.Organization
-import cats.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
 import db.ObjectReference
+import db.impl.access.OrganizationBase
+import models.user.Organization
+
+import cats.instances.future._
 
 /**
   * Represents anything that has an [[Organization]].

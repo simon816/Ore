@@ -4,28 +4,25 @@ import java.nio.file.Files._
 import java.sql.Timestamp
 import java.time.Instant
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.Logger
+
 import db.impl.OrePostgresDriver.api._
-import db.impl._
-import cats.instances.future._
+import db.impl.schema.{NotificationTable, ProjectMembersTable, ProjectRoleTable, ProjectSettingsTable, UserTable}
+import db.{Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
 import form.project.ProjectSettingsForm
 import models.user.Notification
 import models.user.role.ProjectRole
 import ore.permission.role.RoleType
 import ore.project.io.ProjectFiles
 import ore.project.{Categories, ProjectMember, ProjectOwned}
+import ore.user.MembershipDossier
 import ore.user.notification.NotificationTypes
-import play.api.Logger
-import play.api.cache.AsyncCacheApi
-import play.api.i18n.{Lang, MessagesApi}
-import slick.lifted.TableQuery
 import util.StringUtils._
-import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.NonEmptyList
-import db.impl.schema.{NotificationTable, ProjectMembersTable, ProjectRoleTable, ProjectSettingsTable, UserTable}
-import db.{Model, ModelService}
-import ore.user.MembershipDossier
-import db.{ObjectId, ObjectReference, ObjectTimestamp}
+import slick.lifted.TableQuery
 
 /**
   * Represents a [[Project]]'s settings.

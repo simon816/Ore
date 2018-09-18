@@ -1,17 +1,17 @@
 package ore.project
 
-import java.sql.Timestamp
-import java.time.Instant
 import javax.inject.{Inject, Singleton}
 
-import akka.actor.ActorSystem
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
+
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
 import models.project.{Project, VisibilityTypes}
 import ore.OreConfig
+
+import akka.actor.ActorSystem
 
 /**
   * Task that is responsible for publishing New projects

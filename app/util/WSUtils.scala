@@ -1,10 +1,10 @@
 package util
 
+import scala.util.{Failure, Success, Try}
+
 import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.libs.ws.WSResponse
-
-import scala.util.{Failure, Success, Try}
 
 object WSUtils {
 

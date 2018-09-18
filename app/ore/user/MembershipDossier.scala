@@ -1,15 +1,16 @@
 package ore.user
 
+import scala.language.implicitConversions
+
+import scala.concurrent.{ExecutionContext, Future}
+
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.table.AssociativeTable
+import db.{Model, ModelService, ObjectReference}
 import models.user.User
 import models.user.role.RoleModel
 import ore.permission.role.Trust
-import scala.concurrent.{ExecutionContext, Future}
-import scala.language.implicitConversions
-
-import db.{Model, ModelService, ObjectReference}
 
 /**
   * Handles and keeps track of [[User]] "memberships" for an [[Model]].

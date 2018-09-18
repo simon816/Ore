@@ -1,24 +1,17 @@
 package ore.rest
 
 import java.lang.Math._
-
-import db.{ModelService, ObjectReference}
-import db.impl.OrePostgresDriver.api._
-import db.impl._
-import db.impl.access.ProjectBase
-import db.impl.schema.{
-  ChannelTable,
-  ProjectRoleTable,
-  ProjectSchema,
-  ProjectStarsTable,
-  ProjectTableMain,
-  ProjectTag,
-  TagTable,
-  UserTable,
-  VersionTable
-}
 import javax.inject.Inject
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.libs.json.Json.{obj, toJson}
+import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
+
+import db.impl.OrePostgresDriver.api._
+import db.impl.access.ProjectBase
+import db.impl.schema.{ChannelTable, ProjectRoleTable, ProjectStarsTable, ProjectTableMain, ProjectTag, TagTable, UserTable, VersionTable}
+import db.{ModelService, ObjectReference}
 import models.project._
 import models.user.User
 import models.user.role.ProjectRole
@@ -26,13 +19,9 @@ import ore.OreConfig
 import ore.permission.role.RoleType
 import ore.project.Categories.Category
 import ore.project.{Categories, ProjectSortingStrategies}
-import play.api.libs.json.Json.{obj, toJson}
-import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
-import util.StringUtils._
-import cats.instances.future._
-import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.OptionT
+import cats.instances.future._
 
 /**
   * The Ore API

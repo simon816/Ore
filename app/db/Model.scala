@@ -1,10 +1,10 @@
 package db
 
+import scala.language.implicitConversions
+
 import scala.concurrent.Future
 
 import db.table.ModelTable
-
-import scala.language.implicitConversions
 
 /**
   * Represents a Model that may or may not exist in the database.

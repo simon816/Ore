@@ -2,13 +2,13 @@ package ore.project.io
 
 import java.io.BufferedReader
 
-import models.project.{Tag, TagColors}
-import ore.project.Dependency
-import org.spongepowered.plugin.meta.McModInfo
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 
 import db.ObjectId
+import models.project.{Tag, TagColors}
+import ore.project.Dependency
+import org.spongepowered.plugin.meta.McModInfo
 
 /**
   * The metadata within a [[PluginFile]]

@@ -1,12 +1,12 @@
 package models.viewhelper
 
-import models.project.{Project, VisibilityTypes}
-import models.user.User
-import ore.permission._
-import play.api.cache.AsyncCacheApi
 import scala.concurrent.{ExecutionContext, Future}
 
 import db.ModelService
+import models.project.{Project, VisibilityTypes}
+import models.user.User
+import ore.permission._
+
 import cats.instances.future._
 import cats.syntax.all._
 

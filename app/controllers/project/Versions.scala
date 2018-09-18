@@ -4,53 +4,42 @@ import java.nio.file.Files._
 import java.nio.file.{Files, StandardCopyOption}
 import java.sql.Timestamp
 import java.util.{Date, UUID}
-
-import com.github.tminglei.slickpg.InetString
-
-import controllers.OreBaseController
-import controllers.sugar.{Bakery, Requests}
-import controllers.sugar.Requests.{AuthRequest, OreRequest, ProjectRequest}
-import db.{ModelFilter, ModelService, ObjectReference}
-import db.impl.OrePostgresDriver.api._
-import discourse.OreDiscourseApi
-import form.OreForms
 import javax.inject.Inject
 
-import models.project._
-import models.viewhelper.{ProjectData, VersionData}
-import ore.permission.{
-  EditSettings,
-  EditVersions,
-  HardRemoveProject,
-  HardRemoveVersion,
-  ReviewProjects,
-  UploadVersions,
-  ViewLogs
-}
-import ore.project.factory.TagAlias.ProjectTag
-import ore.project.factory.{PendingProject, PendingVersion, ProjectFactory}
-import ore.project.io.DownloadTypes._
-import ore.project.io.{DownloadTypes, InvalidPluginFileException, PluginFile, PluginUpload}
-import ore.{OreConfig, OreEnv, StatTracker}
+import scala.concurrent.{ExecutionContext, Future}
+
 import play.api.Logger
 import play.api.cache.AsyncCacheApi
 import play.api.i18n.{Lang, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import play.filters.csrf.CSRF
-import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
-import util.StringUtils._
-import cats.syntax.all._
-import views.html.projects.{versions => views}
-import _root_.views.html.helper
+
+import controllers.OreBaseController
+import controllers.sugar.Requests.{AuthRequest, OreRequest, ProjectRequest}
+import controllers.sugar.{Bakery, Requests}
+import db.impl.OrePostgresDriver.api._
+import db.impl.schema.VersionTable
+import db.{ModelFilter, ModelService, ObjectReference}
+import form.OreForms
+import models.project._
 import models.user.{LoggedAction, UserActionLogger}
+import models.viewhelper.{ProjectData, VersionData}
+import ore.permission.{EditVersions, HardRemoveVersion, ReviewProjects, UploadVersions, ViewLogs}
 import ore.project.factory.TagAlias.ProjectTag
+import ore.project.factory.{PendingProject, PendingVersion, ProjectFactory}
+import ore.project.io.DownloadTypes._
+import ore.project.io.{DownloadTypes, InvalidPluginFileException, PluginFile, PluginUpload}
+import ore.{OreConfig, OreEnv, StatTracker}
+import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
 import util.JavaUtils.autoClose
-import scala.concurrent.{ExecutionContext, Future}
+import util.StringUtils._
+import views.html.projects.{versions => views}
 
 import cats.data.{EitherT, OptionT}
 import cats.instances.future._
-import db.impl.schema.VersionTable
+import cats.syntax.all._
+import com.github.tminglei.slickpg.InetString
 
 /**
   * Controller for handling Version related actions.

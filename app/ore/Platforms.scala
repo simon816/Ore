@@ -1,11 +1,11 @@
 package ore
 
-import models.project.{Tag, TagColors}
-import models.project.TagColors.TagColor
-import ore.project.Dependency
 import scala.language.implicitConversions
 
 import db.ObjectId
+import models.project.TagColors.TagColor
+import models.project.{Tag, TagColors}
+import ore.project.Dependency
 
 /**
   * The Platform a plugin/mod runs on

@@ -1,23 +1,25 @@
 package controllers
 
+import javax.inject.Inject
+
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.cache.AsyncCacheApi
+import play.api.i18n.MessagesApi
+import play.api.mvc.{Action, AnyContent}
+
 import controllers.sugar.Bakery
 import db.{ModelService, ObjectReference}
 import form.OreForms
-import javax.inject.Inject
-
 import ore.permission.EditSettings
 import ore.user.MembershipDossier._
 import ore.{OreConfig, OreEnv}
-import play.api.cache.AsyncCacheApi
-import play.api.i18n.MessagesApi
 import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
 import views.{html => views}
-import cats.instances.future._
-import cats.Id
-import cats.syntax.all._
-import scala.concurrent.{ExecutionContext, Future}
 
-import play.api.mvc.{Action, AnyContent}
+import cats.Id
+import cats.instances.future._
+import cats.syntax.all._
 
 /**
   * Controller for handling Organization based actions.

@@ -1,17 +1,16 @@
 package models.user
 
 import scala.collection.immutable
-
-import com.github.tminglei.slickpg.InetString
+import scala.concurrent.Future
 
 import controllers.sugar.Requests.AuthRequest
+import db.impl.schema.LoggedActionTable
 import db.{Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
-import enumeratum.values.{IntEnum, IntEnumEntry}
 import ore.StatTracker
 import ore.user.UserOwned
-import scala.concurrent.{ExecutionContext, Future}
 
-import db.impl.schema.LoggedActionTable
+import com.github.tminglei.slickpg.InetString
+import enumeratum.values.{IntEnum, IntEnumEntry}
 
 case class LoggedActionModel(
     id: ObjectId = ObjectId.Uninitialized,

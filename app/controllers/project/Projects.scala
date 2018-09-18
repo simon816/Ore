@@ -1,45 +1,44 @@
 package controllers.project
 
 import java.nio.file.{Files, Path}
-
-import controllers.OreBaseController
-import controllers.sugar.{Bakery, Requests}
-import controllers.sugar.Requests.{AuthRequest, AuthedProjectRequest}
-import db.{ModelService, ObjectReference}
-import discourse.OreDiscourseApi
-import form.OreForms
 import javax.inject.Inject
 
-import models.project.{Note, Project, VisibilityTypes}
-import models.user._
-import ore.permission._
-import ore.project.factory.ProjectFactory
-import ore.project.io.{InvalidPluginFileException, PluginUpload, ProjectFiles}
-import ore.rest.ProjectApiKeyTypes
-import ore.user.MembershipDossier._
-import ore.{OreConfig, OreEnv, StatTracker}
-import play.api.cache.{AsyncCacheApi, SyncCacheApi}
-import play.api.i18n.MessagesApi
-import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
-import _root_.util.StringUtils._
-import com.github.tminglei.slickpg.InetString
-
-import ore.permission.scope.GlobalScope
-import views.html.{projects => views}
-import db.impl.OrePostgresDriver.api._
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
+import play.api.cache.AsyncCacheApi
+import play.api.i18n.MessagesApi
+import play.api.mvc.{Action, AnyContent, Result}
+
+import controllers.OreBaseController
+import controllers.sugar.Requests.AuthRequest
+import controllers.sugar.{Bakery, Requests}
+import db.impl.OrePostgresDriver.api._
+import db.impl.schema.{ProjectMembersTable, ProjectRoleTable}
+import db.{ModelService, ObjectReference}
+import discourse.OreDiscourseApi
+import form.OreForms
+import models.project.{Note, Project, VisibilityTypes}
+import models.user._
 import models.user.role.ProjectRole
 import models.viewhelper.ScopedOrganizationData
+import ore.permission._
+import ore.permission.scope.GlobalScope
 import ore.project.ProjectMember
+import ore.project.factory.ProjectFactory
+import ore.project.io.{InvalidPluginFileException, PluginUpload, ProjectFiles}
+import ore.rest.ProjectApiKeyTypes
 import ore.user.MembershipDossier
-import play.api.mvc.{Action, AnyContent, Result}
-import cats.data.{EitherT, OptionT}
+import ore.user.MembershipDossier._
+import ore.{OreConfig, OreEnv, StatTracker}
+import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
+import _root_.util.StringUtils._
+import views.html.{projects => views}
+
 import cats.Id
+import cats.data.{EitherT, OptionT}
 import cats.instances.future._
 import cats.syntax.all._
-import db.impl.schema.{ProjectMembersTable, ProjectRoleTable}
 
 /**
   * Controller for handling Project related actions.

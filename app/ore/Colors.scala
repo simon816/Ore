@@ -1,10 +1,11 @@
 package ore
 
+import scala.language.implicitConversions
+
 import db.impl.OrePostgresDriver
 import db.table.MappedType
-import slick.jdbc.JdbcType
 
-import scala.language.implicitConversions
+import slick.jdbc.JdbcType
 
 /**
   * Collection of colors used in Ore.

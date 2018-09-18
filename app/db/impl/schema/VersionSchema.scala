@@ -1,9 +1,10 @@
 package db.impl.schema
 
+import scala.concurrent.Future
+
 import db.impl.OrePostgresDriver.api._
 import db.{ModelFilter, ModelSchema, ModelService, ObjectReference}
 import models.project.Version
-import scala.concurrent.Future
 
 /**
   * Version related queries.

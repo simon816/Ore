@@ -1,9 +1,7 @@
 package db.impl
 
-import com.github.tminglei.slickpg._
-import com.github.tminglei.slickpg.agg.PgAggFuncSupport
+import play.api.i18n.Lang
 
-import enumeratum.values.SlickValueEnumSupport
 import models.project.TagColors.TagColor
 import models.project.VisibilityTypes.Visibility
 import models.project.{TagColors, VisibilityTypes}
@@ -22,10 +20,13 @@ import ore.user.Prompts
 import ore.user.Prompts.Prompt
 import ore.user.notification.NotificationTypes
 import ore.user.notification.NotificationTypes.NotificationType
-import play.api.i18n.Lang
+
+import cats.data.{NonEmptyList => NEL}
+import com.github.tminglei.slickpg._
+import com.github.tminglei.slickpg.agg.PgAggFuncSupport
+import enumeratum.values.SlickValueEnumSupport
 import slick.ast.BaseTypedType
 import slick.jdbc.JdbcType
-import cats.data.{NonEmptyList => NEL}
 
 /**
   * Custom Postgres driver to support array data and custom type mappings.

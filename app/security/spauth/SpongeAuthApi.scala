@@ -1,23 +1,24 @@
 package security.spauth
 
 import java.util.concurrent.TimeoutException
-
-import com.google.common.base.Preconditions._
 import javax.inject.Inject
-import ore.OreConfig
-import util.WSUtils.parseJson
-import cats.data.{EitherT, OptionT}
-import cats.instances.future._
+
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.Configuration
+import play.api.i18n.Lang
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
+import ore.OreConfig
+import _root_.util.WSUtils.parseJson
 
-import play.api.Configuration
-import play.api.i18n.Lang
+import cats.data.{EitherT, OptionT}
+import cats.instances.future._
+import com.google.common.base.Preconditions._
 
 /**
   * Interfaces with the SpongeAuth Web API

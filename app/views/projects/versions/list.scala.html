@@ -5,9 +5,8 @@ Versions page within Project overview.
 @import models.project.Channel
 @import models.viewhelper.{ProjectData, ScopedProjectData}
 @import ore.OreConfig
-@import ore.permission.{EditChannels, UploadVersions}
+@import ore.permission.{EditChannels, ReviewProjects, UploadVersions}
 @import security.NonceFilter._
-@import ore.permission.ReviewProjects
 @(p: ProjectData,
         sp: ScopedProjectData,
         channels: Seq[Channel],

@@ -1,13 +1,14 @@
 package ore.project
 
-import models.project.{Project, Version}
-import models.user.Notification
-import ore.user.notification.NotificationTypes
 import scala.concurrent.ExecutionContext
 
-import cats.data.NonEmptyList
 import db.{ModelService, ObjectReference}
+import models.project.{Project, Version}
+import models.user.Notification
 import ore.OreConfig
+import ore.user.notification.NotificationTypes
+
+import cats.data.NonEmptyList
 
 /**
   * Notifies all [[models.user.User]]s that are watching the specified

@@ -1,12 +1,10 @@
 package controllers.sugar
 
-import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
-
 import play.api.data.{Form, FormError}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Call, Flash, Result}
 
-import cats.data.{NonEmptyList => NEL}
+import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
 
 /**
   * A helper class for some common functions of controllers.

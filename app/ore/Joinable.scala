@@ -1,11 +1,11 @@
 package ore
 
-import models.user.role.RoleModel
-import ore.permission.scope.ScopeSubject
-import ore.user.{Member, MembershipDossier}
 import scala.concurrent.{ExecutionContext, Future}
 
 import db.{ModelService, ObjectReference}
+import models.user.role.RoleModel
+import ore.permission.scope.ScopeSubject
+import ore.user.{Member, MembershipDossier}
 
 /**
   * Represents something with a [[MembershipDossier]].

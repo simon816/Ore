@@ -1,12 +1,13 @@
 package db.access
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import db.ModelFilter.IdFilter
 import db.impl.OrePostgresDriver.api._
 import db.{Model, ModelFilter, ModelService, ObjectReference}
-import slick.lifted.ColumnOrdered
-import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.OptionT
+import slick.lifted.ColumnOrdered
 
 /**
   * Provides simple, synchronous, access to a ModelTable.

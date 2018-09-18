@@ -1,13 +1,12 @@
 package ore.user
 
+import scala.language.implicitConversions
+
 import java.sql.Timestamp
 import java.util.Date
-
 import javax.inject.Inject
 
 import db.{ObjectId, ObjectReference}
-import scala.language.implicitConversions
-
 import models.user.User
 import ore.OreConfig
 import ore.permission.role.RoleType

@@ -4,8 +4,9 @@ import java.nio.file.{Files, Path}
 import java.text.{DateFormat, MessageFormat}
 import java.util.Date
 
-import db.impl.OrePostgresDriver.api._
 import play.api.i18n.Messages
+
+import db.impl.OrePostgresDriver.api._
 
 /**
   * Helper class for handling User input.

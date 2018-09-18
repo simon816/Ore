@@ -1,9 +1,9 @@
 package ore.project.io
 
+import scala.language.implicitConversions
+
 import db.impl.OrePostgresDriver
 import db.table.MappedType
-
-import scala.language.implicitConversions
 
 import slick.ast.BaseTypedType
 import slick.jdbc.JdbcType

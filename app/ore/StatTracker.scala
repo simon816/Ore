@@ -1,23 +1,23 @@
 package ore
 
 import java.util.UUID
-
-import controllers.sugar.Bakery
-import controllers.sugar.Requests.{OreRequest, ProjectRequest}
-import db.ModelService
-import db.impl.schema.StatSchema
 import javax.inject.Inject
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.mvc.{RequestHeader, Result}
+
+import controllers.sugar.Bakery
+import controllers.sugar.Requests.ProjectRequest
+import db.ModelService
+import db.impl.schema.StatSchema
 import models.project.Version
 import models.statistic.{ProjectView, VersionDownload}
 import ore.StatTracker.COOKIE_NAME
-import play.api.cache.AsyncCacheApi
-import play.api.mvc.{RequestHeader, Result}
+import security.spauth.SpongeAuthApi
+
 import cats.instances.future._
 import cats.syntax.all._
-import scala.concurrent.{ExecutionContext, Future}
-
-import security.spauth.SpongeAuthApi
 
 /**
   * Helper class for handling tracking of statistics.

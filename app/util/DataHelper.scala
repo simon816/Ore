@@ -1,19 +1,18 @@
 package util
 
-import com.google.common.base.Preconditions.checkArgument
-
-import db.{ModelService, ObjectId}
-import db.access.ModelAccess
-import db.impl.access.{ProjectBase, UserBase}
-import discourse.OreDiscourseApi
 import javax.inject.Inject
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import db.access.ModelAccess
+import db.impl.access.{ProjectBase, UserBase}
+import db.{ModelService, ObjectId}
+import discourse.OreDiscourseApi
 import models.project.{Channel, Project, ProjectSettings, Version}
 import models.user.User
-import ore.OreConfig
 import ore.project.factory.ProjectFactory
-import play.api.cache.SyncCacheApi
-import scala.concurrent.{ExecutionContext, Future}
+
+import com.google.common.base.Preconditions.checkArgument
 
 /**
   * Utility class for performing some bulk actions on the application data.

@@ -4,15 +4,15 @@ import java.io.{ByteArrayInputStream, InputStream, OutputStream}
 import java.nio.file.Files._
 import java.nio.file.{Files, Path}
 
+import scala.util.Try
+
+import play.api.Logger
+
 import com.google.common.base.Preconditions._
 import com.google.common.io.ByteStreams
 import org.bouncycastle.openpgp._
 import org.bouncycastle.openpgp.jcajce.{JcaPGPObjectFactory, JcaPGPPublicKeyRingCollection}
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentVerifierBuilderProvider
-
-import scala.util.Try
-
-import play.api.Logger
 
 /**
   * Verifies data within the PGP ecosystem.

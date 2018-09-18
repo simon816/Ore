@@ -1,19 +1,18 @@
 package form.organization
 
-import models.user.role.OrganizationRole
-import models.user.{Notification, Organization}
-import ore.permission.role.RoleType
-import ore.user.notification.NotificationTypes
-import play.api.cache.AsyncCacheApi
-import play.api.i18n.{Lang, MessagesApi}
 import scala.concurrent.{ExecutionContext, Future}
 
-import cats.data.NonEmptyList
-import db.{ModelService, ObjectReference}
 import db.impl.schema.{OrganizationMembersTable, OrganizationRoleTable}
+import db.{ModelService, ObjectReference}
+import models.user.role.OrganizationRole
+import models.user.{Notification, Organization}
 import ore.OreConfig
 import ore.organization.OrganizationMember
+import ore.permission.role.RoleType
 import ore.user.MembershipDossier
+import ore.user.notification.NotificationTypes
+
+import cats.data.NonEmptyList
 
 /**
   * Saves new and old [[OrganizationRole]]s.
@@ -56,7 +55,7 @@ case class OrganizationMembersUpdate(
       val user = role.user
       dossier.addRole(role.copy(organizationId = orgId))
       user.flatMap { user =>
-        import user.langOrDefault
+
         user.sendNotification(
           Notification(
             userId = user.id.value,

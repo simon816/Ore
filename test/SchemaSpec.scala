@@ -1,41 +1,39 @@
 import java.net.InetAddress
 import java.sql.Timestamp
-
 import javax.sql.DataSource
 
-import org.junit.runner._
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfterAll, FunSuite, Matchers}
-
-import cats.data.{NonEmptyList => NEL}
-import doobie._
-import doobie.implicits._
-import doobie.postgres._
-import doobie.postgres.implicits._
-import doobie.scalatest.IOChecker
-import cats.effect.IO
-import play.api.db.evolutions.Evolutions
-import play.api.db.Databases
-import play.api.i18n.Lang
-import db.{ObjectId, ObjectReference, ObjectTimestamp}
-import enumeratum.values.{ValueEnum, ValueEnumEntry}
-import models.project._
-import ore.Colors
-import ore.permission.role.RoleType
-import ore.project.{Categories, FlagReasons}
 import scala.reflect.runtime.universe.TypeTag
 
-import com.github.tminglei.slickpg.InetString
+import play.api.db.Databases
+import play.api.db.evolutions.Evolutions
+import play.api.i18n.Lang
 
+import db.{ObjectId, ObjectReference, ObjectTimestamp}
 import models.admin._
 import models.api.ProjectApiKey
+import models.project._
 import models.statistic.{ProjectView, VersionDownload}
-import models.user.role.{OrganizationRole, ProjectRole}
 import models.user._
+import models.user.role.{OrganizationRole, ProjectRole}
+import ore.Colors
+import ore.permission.role.RoleType
 import ore.project.io.DownloadTypes
+import ore.project.{Categories, FlagReasons}
 import ore.rest.ProjectApiKeyTypes
 import ore.user.Prompts
 import ore.user.notification.NotificationTypes
+
+import cats.data.{NonEmptyList => NEL}
+import cats.effect.IO
+import com.github.tminglei.slickpg.InetString
+import doobie._
+import doobie.implicits._
+import doobie.postgres.implicits._
+import doobie.scalatest.IOChecker
+import enumeratum.values.{ValueEnum, ValueEnumEntry}
+import org.junit.runner._
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.{BeforeAndAfterAll, FunSuite, Matchers}
 
 @RunWith(classOf[JUnitRunner])
 class SchemaSpec extends FunSuite with Matchers with IOChecker with BeforeAndAfterAll {

@@ -1,11 +1,12 @@
 import java.security.Security
+import javax.inject.{Inject, Singleton}
 
 import db.ModelService
 import db.impl.access.ProjectBase
 import discourse.OreDiscourseApi
-import javax.inject.{Inject, Singleton}
 import ore.OreConfig
 import ore.project.ProjectTask
+
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
 /**

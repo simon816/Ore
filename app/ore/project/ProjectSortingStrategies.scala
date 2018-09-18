@@ -6,6 +6,7 @@ import db.ObjectReference
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema.ProjectTable
 import models.project.Project
+
 import slick.lifted.ColumnOrdered
 
 /**

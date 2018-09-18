@@ -3,24 +3,17 @@ package models.project
 import java.sql.Timestamp
 import java.time.Instant
 
-import _root_.util.StringUtils
-import _root_.util.StringUtils._
-import cats.instances.future._
-import cats.syntax.all._
-import com.google.common.base.Preconditions._
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.i18n.Messages
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
+import play.twirl.api.Html
 
 import db.access.{ModelAccess, ModelAssociationAccess}
 import db.impl.OrePostgresDriver.api._
-import db.impl._
 import db.impl.model.common.{Describable, Downloadable, Hideable}
-import db.impl.schema.{
-  ProjectMembersTable,
-  ProjectRoleTable,
-  ProjectSchema,
-  ProjectStarsTable,
-  ProjectTable,
-  ProjectWatchersTable
-}
+import db.impl.schema.{ProjectMembersTable, ProjectRoleTable, ProjectSchema, ProjectStarsTable, ProjectTable, ProjectWatchersTable}
 import db.{Model, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
 import models.admin.{ProjectLog, ProjectVisibilityChange}
 import models.api.ProjectApiKey
@@ -35,15 +28,14 @@ import ore.project.FlagReasons.FlagReason
 import ore.project.{Categories, ProjectMember}
 import ore.user.MembershipDossier
 import ore.{Joinable, OreConfig, Visitable}
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
-import play.twirl.api.Html
+import _root_.util.StringUtils
+import _root_.util.StringUtils._
+
+import cats.instances.future._
+import cats.syntax.all._
+import com.google.common.base.Preconditions._
 import slick.lifted
 import slick.lifted.{Rep, TableQuery}
-import scala.concurrent.{ExecutionContext, Future}
-
-import db.impl.access.UserBase
-import play.api.i18n.Messages
 
 /**
   * Represents an Ore package.

@@ -2,13 +2,14 @@ package models.user
 
 import java.sql.Timestamp
 
-import db.impl.access.UserBase
 import scala.concurrent.{ExecutionContext, Future}
 
-import security.spauth.SpongeAuthApi
-import cats.data.OptionT
+import db.impl.access.UserBase
 import db.impl.schema.SessionTable
 import db.{Expirable, Model, ObjectId, ObjectTimestamp}
+import security.spauth.SpongeAuthApi
+
+import cats.data.OptionT
 
 /**
   * Represents a persistant [[User]] session.

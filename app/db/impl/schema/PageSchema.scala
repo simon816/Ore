@@ -1,9 +1,10 @@
 package db.impl.schema
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import db.impl.OrePostgresDriver.api._
 import db.{ModelSchema, ModelService}
 import models.project.Page
-import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.OptionT
 

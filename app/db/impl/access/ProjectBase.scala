@@ -5,22 +5,22 @@ import java.nio.file.Files._
 import java.sql.Timestamp
 import java.util.Date
 
-import com.google.common.base.Preconditions._
+import scala.concurrent.{ExecutionContext, Future}
 
 import db.impl.OrePostgresDriver.api._
+import db.impl.schema.{PageTable, ProjectTableMain, VersionTable}
 import db.{ModelBase, ModelService}
 import discourse.OreDiscourseApi
 import models.project.{Channel, Page, Project, Version, VisibilityTypes}
 import ore.project.io.ProjectFiles
 import ore.{OreConfig, OreEnv}
-import slick.lifted.TableQuery
 import util.FileUtils
 import util.StringUtils._
-import cats.instances.future._
-import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.OptionT
-import db.impl.schema.{PageTable, ProjectTableMain, VersionTable}
+import cats.instances.future._
+import com.google.common.base.Preconditions._
+import slick.lifted.TableQuery
 
 class ProjectBase(implicit val service: ModelService, env: OreEnv, config: OreConfig) extends ModelBase[Project] {
 

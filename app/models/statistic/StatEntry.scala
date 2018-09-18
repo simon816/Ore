@@ -1,16 +1,16 @@
 package models.statistic
 
-import com.github.tminglei.slickpg.InetString
-import com.google.common.base.Preconditions._
-
-import db.{Model, ObjectReference}
-import db.impl.table.StatTable
-import cats.instances.future._
-import cats.data.OptionT
-import models.user.User
 import scala.concurrent.{ExecutionContext, Future}
 
 import db.impl.access.UserBase
+import db.impl.table.StatTable
+import db.{Model, ObjectReference}
+import models.user.User
+
+import cats.data.OptionT
+import cats.instances.future._
+import com.github.tminglei.slickpg.InetString
+import com.google.common.base.Preconditions._
 
 /**
   * Represents a statistic entry in a StatTable.

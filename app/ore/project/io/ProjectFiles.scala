@@ -4,12 +4,13 @@ import java.io.IOException
 import java.nio.file.Files._
 import java.nio.file.Path
 
-import models.project.Project
-import ore.OreEnv
-import play.api.Logger
-
 import scala.collection.JavaConverters._
 import scala.util.Try
+
+import play.api.Logger
+
+import models.project.Project
+import ore.OreEnv
 
 /**
   * Handles file management of Projects.

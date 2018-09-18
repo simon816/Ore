@@ -1,7 +1,10 @@
 package models.user
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase
+import db.impl.schema.{OrganizationMembersTable, OrganizationRoleTable, OrganizationTable}
 import db.{Model, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
 import models.user.role.OrganizationRole
 import ore.organization.OrganizationMember
@@ -9,12 +12,10 @@ import ore.permission.role.{Default, RoleType, Trust}
 import ore.permission.scope.OrganizationScope
 import ore.user.{MembershipDossier, UserOwned}
 import ore.{Joinable, Visitable}
-import slick.lifted.{Compiled, Rep, TableQuery}
-import scala.concurrent.{ExecutionContext, Future}
-
 import security.spauth.SpongeAuthApi
+
 import cats.data.OptionT
-import db.impl.schema.{OrganizationMembersTable, OrganizationRoleTable, OrganizationTable}
+import slick.lifted.{Compiled, Rep, TableQuery}
 
 /**
   * Represents an Ore Organization. An organization is like a [[User]] in the

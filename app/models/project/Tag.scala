@@ -1,18 +1,20 @@
 package models.project
 
+import scala.language.implicitConversions
+
 import java.sql.Timestamp
 import java.time.Instant
 
-import db.impl.OrePostgresDriver.api._
+import scala.concurrent.{ExecutionContext, Future}
+
 import db.impl.OrePostgresDriver
+import db.impl.OrePostgresDriver.api._
+import db.impl.schema.TagTable
 import db.table.MappedType
 import db.{Model, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
 import models.project.TagColors.TagColor
-import slick.jdbc.JdbcType
-import scala.concurrent.{ExecutionContext, Future}
-import scala.language.implicitConversions
 
-import db.impl.schema.TagTable
+import slick.jdbc.JdbcType
 
 case class Tag(
     id: ObjectId = ObjectId.Uninitialized,

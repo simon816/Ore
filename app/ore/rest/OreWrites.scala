@@ -1,12 +1,10 @@
 package ore.rest
 
-import db.ModelService
-import javax.inject.Inject
-import models.api.ProjectApiKey
-import models.project._
-import ore.OreConfig
 import play.api.libs.json.Json.obj
 import play.api.libs.json._
+
+import models.api.ProjectApiKey
+import models.project._
 import security.pgp.PGPPublicKeyInfo
 
 /**

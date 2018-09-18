@@ -1,31 +1,31 @@
 package controllers.project
 
 import java.nio.charset.StandardCharsets
+import javax.inject.Inject
+
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.cache.AsyncCacheApi
+import play.api.mvc.{Action, AnyContent}
+import play.utils.UriEncoding
 
 import controllers.OreBaseController
 import controllers.sugar.{Bakery, Requests}
+import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import db.{ModelFilter, ModelService, ObjectReference}
+import db.impl.schema.PageTable
 import form.OreForms
-import javax.inject.Inject
-
 import models.project.{Page, Project}
 import models.user.{LoggedAction, UserActionLogger}
 import ore.permission.EditPages
 import ore.{OreConfig, OreEnv, StatTracker}
-import play.api.cache.AsyncCacheApi
-import play.api.i18n.MessagesApi
 import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
 import util.StringUtils._
 import views.html.projects.{pages => views}
+
+import cats.data.OptionT
 import cats.instances.future._
 import cats.syntax.all._
-import cats.data.OptionT
-import scala.concurrent.{ExecutionContext, Future}
-
-import db.impl.schema.PageTable
-import play.api.mvc.{Action, AnyContent}
-import play.utils.UriEncoding
 
 /**
   * Controller for handling Page related actions.

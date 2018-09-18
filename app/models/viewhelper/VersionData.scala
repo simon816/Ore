@@ -1,20 +1,15 @@
 package models.viewhelper
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import controllers.sugar.Requests.ProjectRequest
 import db.ModelService
-import db.impl.access.ProjectBase
 import models.project.{Channel, Project, Version}
 import ore.Platforms
 import ore.project.Dependency
-import play.api.cache.AsyncCacheApi
-import slick.jdbc.JdbcBackend
+
 import cats.instances.future._
 import cats.syntax.all._
-
-import scala.concurrent.{ExecutionContext, Future}
-
-import cats.syntax.all._
-import cats.instances.future._
 
 case class VersionData(
     p: ProjectData,

@@ -1,15 +1,21 @@
 package controllers
 
 import java.util.{Base64, UUID}
-
-import akka.http.scaladsl.model.Uri
-import controllers.sugar.Bakery
-import db.{ModelService, ObjectReference}
-import db.access.ModelAccess
-import db.impl.OrePostgresDriver.api._
-import form.OreForms
 import javax.inject.Inject
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.cache.AsyncCacheApi
+import play.api.i18n.Messages
+import play.api.libs.json._
+import play.api.mvc._
+
+import controllers.sugar.Bakery
+import db.access.ModelAccess
+import db.impl.OrePostgresDriver.api._
+import db.impl.schema.ProjectApiKeyTable
+import db.{ModelService, ObjectReference}
+import form.OreForms
 import models.api.ProjectApiKey
 import models.user.{LoggedAction, UserActionLogger}
 import ore.permission.role.RoleType
@@ -19,21 +25,16 @@ import ore.project.io.{InvalidPluginFileException, PluginUpload, ProjectFiles}
 import ore.rest.ProjectApiKeyTypes._
 import ore.rest.{OreRestfulApi, OreWrites}
 import ore.{OreConfig, OreEnv}
-import play.api.cache.AsyncCacheApi
-import play.api.i18n.{Messages, MessagesApi}
-import util.StatusZ
-import cats.data.{EitherT, OptionT}
-import cats.Id
-import cats.instances.future._
-import cats.syntax.all._
-import play.api.libs.json._
-import play.api.mvc._
 import security.CryptoUtils
 import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
-import slick.lifted.Compiled
-import scala.concurrent.{ExecutionContext, Future}
+import _root_.util.StatusZ
 
-import db.impl.schema.ProjectApiKeyTable
+import akka.http.scaladsl.model.Uri
+import cats.Id
+import cats.data.{EitherT, OptionT}
+import cats.instances.future._
+import cats.syntax.all._
+import slick.lifted.Compiled
 
 /**
   * Ore API (v1)

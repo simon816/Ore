@@ -5,18 +5,18 @@ import java.nio.file.{Files, Path}
 import java.util.jar.{JarEntry, JarFile, JarInputStream}
 import java.util.zip.{ZipEntry, ZipFile}
 
-import com.google.common.base.Preconditions._
-
-import models.user.User
-import ore.user.UserOwned
-import org.apache.commons.codec.digest.DigestUtils
-
-import play.api.i18n.Messages
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.Breaks._
 
+import play.api.i18n.Messages
+
 import db.ObjectReference
+import models.user.User
+import ore.user.UserOwned
+
+import com.google.common.base.Preconditions._
+import org.apache.commons.codec.digest.DigestUtils
 
 /**
   * Represents an uploaded plugin file.

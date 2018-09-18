@@ -1,15 +1,15 @@
 package db.impl.schema
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import db._
 import db.impl.OrePostgresDriver.api._
-import db.impl._
 import db.impl.access.UserBase
 import models.project._
 import models.user.User
 import ore.Platforms.Platform
 import ore.project.Categories.Category
 import ore.project.ProjectSortingStrategies.ProjectSortingStrategy
-import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.OptionT
 

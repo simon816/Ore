@@ -2,8 +2,8 @@ package util.instances
 
 import scala.concurrent.ExecutionContext
 
-import cats.{MonadError, StackSafeMonad}
 import cats.syntax.either._
+import cats.{MonadError, StackSafeMonad}
 import slick.dbio.DBIO
 
 trait DBIOInstances {

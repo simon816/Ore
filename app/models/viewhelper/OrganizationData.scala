@@ -1,21 +1,20 @@
 package models.viewhelper
 
-import db.{ModelService, ObjectReference}
+import scala.concurrent.{ExecutionContext, Future}
+
 import db.impl.OrePostgresDriver.api._
-import db.impl._
+import db.impl.schema.{ProjectRoleTable, ProjectTableMain}
+import db.{ModelService, ObjectReference}
 import models.project.Project
 import models.user.role.{OrganizationRole, ProjectRole}
 import models.user.{Organization, User}
 import ore.organization.OrganizationMember
 import ore.permission._
-import play.api.cache.AsyncCacheApi
-import slick.jdbc.JdbcBackend
-import scala.concurrent.{ExecutionContext, Future}
 
-import slick.lifted.TableQuery
 import cats.data.OptionT
 import cats.instances.future._
-import db.impl.schema.{ProjectRoleTable, ProjectTableMain}
+import slick.jdbc.JdbcBackend
+import slick.lifted.TableQuery
 
 case class OrganizationData(
     joinable: Organization,

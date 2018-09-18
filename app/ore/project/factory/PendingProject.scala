@@ -1,18 +1,19 @@
 package ore.project.factory
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.cache.SyncCacheApi
+
 import db.ModelService
 import db.impl.access.ProjectBase
+import discourse.OreDiscourseApi
 import models.project.{Project, ProjectSettings, Version}
 import models.user.role.ProjectRole
 import ore.project.io.PluginFile
 import ore.{Cacheable, OreConfig}
-import play.api.cache.SyncCacheApi
-import scala.concurrent.{ExecutionContext, Future}
 
-import discourse.OreDiscourseApi
-
-import cats.syntax.all._
 import cats.instances.future._
+import cats.syntax.all._
 
 /**
   * Represents a Project with an uploaded plugin that has not yet been

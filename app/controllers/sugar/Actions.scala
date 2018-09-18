@@ -1,32 +1,34 @@
 package controllers.sugar
 
+import scala.language.higherKinds
+
 import java.util.Date
+
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.i18n.Messages
+import play.api.mvc.Results.{Redirect, Unauthorized}
+import play.api.mvc._
 
 import controllers.routes
 import controllers.sugar.Requests._
 import db.ModelService
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
+import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import models.project.{Project, VisibilityTypes}
 import models.user.{Organization, SignOn, User}
 import models.viewhelper._
 import ore.permission.scope.GlobalScope
 import ore.permission.{EditPages, EditSettings, HideProjects, Permission}
-import play.api.cache.AsyncCacheApi
-import play.api.mvc.Results.{Redirect, Unauthorized}
-import play.api.mvc._
-import play.api.i18n.Messages
 import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
-import slick.jdbc.JdbcBackend
-
-import scala.concurrent.{ExecutionContext, Future}
-import scala.language.higherKinds
-import db.impl.access.{OrganizationBase, ProjectBase, UserBase}
 import util.FutureUtils
+
 import cats.data.OptionT
 import cats.instances.future._
 import cats.syntax.all._
 import org.slf4j.MDC
+import slick.jdbc.JdbcBackend
 
 /**
   * A set of actions used by Ore.

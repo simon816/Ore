@@ -1,26 +1,25 @@
 package controllers.project
 
+import javax.inject.Inject
+
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.cache.AsyncCacheApi
+import play.api.mvc.{Action, AnyContent}
+
+import cats.data.EitherT
+import cats.instances.future._
+import cats.syntax.all._
 import controllers.OreBaseController
 import controllers.sugar.{Bakery, Requests}
 import db.ModelService
 import form.OreForms
-import javax.inject.Inject
-
-import ore.permission.EditChannels
-import ore.project.factory.ProjectFactory
-import ore.{OreConfig, OreEnv}
-import play.api.cache.AsyncCacheApi
-import play.api.i18n.MessagesApi
-import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
-import views.html.projects.{channels => views}
-import cats.instances.future._
-import scala.concurrent.{ExecutionContext, Future}
-
 import models.project.Project
 import models.viewhelper.ProjectData
-import play.api.mvc.{Action, AnyContent}
-import cats.data.EitherT
-import cats.syntax.all._
+import ore.permission.EditChannels
+import ore.{OreConfig, OreEnv}
+import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
+import views.html.projects.{channels => views}
 
 /**
   * Controller for handling Channel related actions.

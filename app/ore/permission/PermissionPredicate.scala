@@ -1,11 +1,11 @@
 package ore.permission
 
-import models.user.User
-import ore.permission.role.{RoleType, Trust}
-import ore.permission.scope.ScopeSubject
 import scala.concurrent.{ExecutionContext, Future}
 
 import db.ModelService
+import models.user.User
+import ore.permission.role.{RoleType, Trust}
+import ore.permission.scope.ScopeSubject
 
 /**
   * Permission wrapper used for chaining permission checks.

@@ -1,7 +1,8 @@
 package security.spauth
 
-import db.ObjectReference
 import play.api.i18n.Lang
+
+import db.ObjectReference
 
 /**
   * Represents a Sponge user.

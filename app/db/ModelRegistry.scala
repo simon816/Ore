@@ -1,9 +1,9 @@
 package db
 
+import scala.collection.JavaConverters._
+
 import com.google.common.base.Preconditions.checkNotNull
 import com.google.common.collect.{BiMap, HashBiMap}
-
-import scala.collection.JavaConverters._
 
 /**
   * A registry for [[Model]] information such as [[ModelSchema]]s or

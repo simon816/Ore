@@ -1,12 +1,13 @@
 package ore.user
 
+import scala.language.implicitConversions
+
+import scala.concurrent.{ExecutionContext, Future}
+
+import db.{ModelService, ObjectReference}
 import models.user.User
 import models.user.role.RoleModel
 import ore.permission.scope.ScopeSubject
-import scala.concurrent.{ExecutionContext, Future}
-import scala.language.implicitConversions
-
-import db.{ModelService, ObjectReference}
 
 /**
   * Represents a [[User]] member of some entity.

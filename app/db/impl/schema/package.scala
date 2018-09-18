@@ -4,8 +4,8 @@ import java.sql.Timestamp
 
 import db.{ObjectId, ObjectReference, ObjectTimestamp}
 
-import shapeless._
 import shapeless.Nat._
+import shapeless._
 import shapeless.ops.function._
 import shapeless.ops.hlist._
 

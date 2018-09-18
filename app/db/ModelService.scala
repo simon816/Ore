@@ -3,22 +3,22 @@ package db
 import java.sql.Timestamp
 import java.util.Date
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future, Promise}
+import scala.util.{Failure, Success, Try}
+
 import db.ModelFilter.IdFilter
 import db.access.ModelAccess
 import db.table.{MappedType, ModelTable}
+
+import cats.data.OptionT
+import cats.instances.future._
+import cats.syntax.all._
 import slick.ast.{AnonSymbol, Ref, SortBy}
 import slick.basic.DatabaseConfig
 import slick.jdbc.{JdbcProfile, JdbcType}
 import slick.lifted.{ColumnOrdered, WrappingQuery}
 import slick.util.ConstArray
-
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future, Promise}
-import scala.util.{Failure, Success, Try}
-
-import cats.data.OptionT
-import cats.instances.future._
-import cats.syntax.all._
 
 /**
   * Represents a service that creates, deletes, and manipulates Models.

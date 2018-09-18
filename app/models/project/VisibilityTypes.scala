@@ -8,6 +8,7 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.model.common.Hideable
 import db.table.MappedType
 import ore.permission.{Permission, ReviewProjects}
+
 import slick.jdbc.JdbcType
 
 object VisibilityTypes extends Enumeration {

@@ -2,18 +2,19 @@ package models.project
 
 import java.sql.Timestamp
 
-import com.github.tminglei.slickpg.InetString
-import com.google.common.base.Preconditions._
-
-import controllers.sugar.Bakery
-import db.{Expirable, Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
-import models.project.DownloadWarning.COOKIE
-import cats.data.OptionT
-import cats.instances.future._
-import play.api.mvc.Cookie
 import scala.concurrent.{ExecutionContext, Future}
 
+import play.api.mvc.Cookie
+
+import controllers.sugar.Bakery
 import db.impl.schema.DownloadWarningsTable
+import db.{Expirable, Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
+import models.project.DownloadWarning.COOKIE
+
+import cats.data.OptionT
+import cats.instances.future._
+import com.github.tminglei.slickpg.InetString
+import com.google.common.base.Preconditions._
 
 /**
   * Represents an instance of a warning that a client has landed on. Warnings
