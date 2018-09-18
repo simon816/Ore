@@ -43,7 +43,7 @@ object Categories extends Enumeration {
         id = Integer.parseInt(idStr)
       } catch {
         case _: NumberFormatException => ;
-        case e: Exception               => throw e
+        case e: Exception             => throw e
       }
       if (id >= 0 && id < Categories.values.size) {
         Some(Categories(id).asInstanceOf[Category])

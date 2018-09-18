@@ -8,7 +8,16 @@ import controllers.sugar.Requests.AuthRequest
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl._
-import db.impl.schema.{ChannelTable, LoggedActionViewTable, ProjectSchema, ProjectTableMain, ReviewTable, TagTable, UserTable, VersionTable}
+import db.impl.schema.{
+  ChannelTable,
+  LoggedActionViewTable,
+  ProjectSchema,
+  ProjectTableMain,
+  ReviewTable,
+  TagTable,
+  UserTable,
+  VersionTable
+}
 import db.{ModelFilter, ModelService, ObjectReference}
 import form.OreForms
 import javax.inject.Inject

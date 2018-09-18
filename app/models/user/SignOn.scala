@@ -2,6 +2,7 @@ package models.user
 
 import db.impl.schema.SignOnTable
 import db.{Model, ObjectId, ObjectTimestamp}
+
 /**
   * Represents a sign-on instance for a user.
   *

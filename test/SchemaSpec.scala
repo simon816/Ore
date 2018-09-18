@@ -19,7 +19,7 @@ import play.api.db.Databases
 import play.api.i18n.Lang
 import db.{ObjectId, ObjectReference, ObjectTimestamp}
 import enumeratum.values.{ValueEnum, ValueEnumEntry}
-import models.project.{Channel, DownloadWarning, Flag, Page, Project, ProjectSettings, Tag, TagColors, UnsafeDownload, Version, VisibilityTypes}
+import models.project._
 import ore.Colors
 import ore.permission.role.RoleType
 import ore.project.{Categories, FlagReasons}
@@ -27,22 +27,18 @@ import scala.reflect.runtime.universe.TypeTag
 
 import com.github.tminglei.slickpg.InetString
 
-import models.admin.{LoggedActionViewModel, LoggedProject, LoggedProjectPage, LoggedProjectVersion, LoggedSubject, ProjectLog, ProjectLogEntry, ProjectVisibilityChange, Review, VersionVisibilityChange}
+import models.admin._
 import models.api.ProjectApiKey
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole}
-import models.user.{LoggedAction, LoggedActionContext, LoggedActionModel, Notification, Organization, Session, SignOn, User}
+import models.user._
 import ore.project.io.DownloadTypes
 import ore.rest.ProjectApiKeyTypes
 import ore.user.Prompts
 import ore.user.notification.NotificationTypes
 
 @RunWith(classOf[JUnitRunner])
-class SchemaSpec
-    extends FunSuite
-    with Matchers
-    with IOChecker
-    with BeforeAndAfterAll {
+class SchemaSpec extends FunSuite with Matchers with IOChecker with BeforeAndAfterAll {
 
   lazy val database = Databases(
     "org.postgresql.Driver",
@@ -56,34 +52,42 @@ class SchemaSpec
   lazy val transactor: Transactor.Aux[IO, DataSource] =
     Transactor.fromDataSource[IO](database.dataSource)
 
-  implicit val objectIdMeta: Meta[ObjectId] = Meta[ObjectReference].xmap(ObjectId.apply, _.value)
+  implicit val objectIdMeta: Meta[ObjectId]               = Meta[ObjectReference].xmap(ObjectId.apply, _.value)
   implicit val objectTimestampMeta: Meta[ObjectTimestamp] = Meta[Timestamp].xmap(ObjectTimestamp.apply, _.value)
 
   def enumerationMeta[E <: Enumeration#Value: TypeTag](enum: Enumeration): Meta[E] =
     Meta[Int].xmap[E](enum.apply(_).asInstanceOf[E], _.id)
 
-  def enumeratumMeta[V: TypeTag, E <: ValueEnumEntry[V]: TypeTag](enum: ValueEnum[V, E])(implicit meta: Meta[V]): Meta[E] =
+  def enumeratumMeta[V: TypeTag, E <: ValueEnumEntry[V]: TypeTag](
+      enum: ValueEnum[V, E]
+  )(implicit meta: Meta[V]): Meta[E] =
     meta.xmap[E](enum.withValue, _.value)
 
-  implicit val colorMeta: Meta[Colors.Color] = enumerationMeta[Colors.Color](Colors)
-  implicit val tagColorMeta: Meta[TagColors.TagColor] = enumerationMeta[TagColors.TagColor](TagColors)
-  implicit val roleTypeMeta: Meta[RoleType] = enumeratumMeta(RoleType)
-  implicit val categoryMeta: Meta[Categories.Category] = enumerationMeta[Categories.Category](Categories)
+  implicit val colorMeta: Meta[Colors.Color]                = enumerationMeta[Colors.Color](Colors)
+  implicit val tagColorMeta: Meta[TagColors.TagColor]       = enumerationMeta[TagColors.TagColor](TagColors)
+  implicit val roleTypeMeta: Meta[RoleType]                 = enumeratumMeta(RoleType)
+  implicit val categoryMeta: Meta[Categories.Category]      = enumerationMeta[Categories.Category](Categories)
   implicit val flagReasonMeta: Meta[FlagReasons.FlagReason] = enumerationMeta[FlagReasons.FlagReason](FlagReasons)
-  implicit val notificationTypeMeta: Meta[NotificationTypes.NotificationType] = enumerationMeta[NotificationTypes.NotificationType](NotificationTypes)
+  implicit val notificationTypeMeta: Meta[NotificationTypes.NotificationType] =
+    enumerationMeta[NotificationTypes.NotificationType](NotificationTypes)
   implicit val promptMeta: Meta[Prompts.Prompt] = enumerationMeta[Prompts.Prompt](Prompts)
-  implicit val downloadTypeMeta: Meta[DownloadTypes.DownloadType] = enumerationMeta[DownloadTypes.DownloadType](DownloadTypes)
-  implicit val pojectApiKeyTypeMeta: Meta[ProjectApiKeyTypes.ProjectApiKeyType] = enumerationMeta[ProjectApiKeyTypes.ProjectApiKeyType](ProjectApiKeyTypes)
-  implicit val visibilityMeta: Meta[VisibilityTypes.Visibility] = enumerationMeta[VisibilityTypes.Visibility](VisibilityTypes)
-  implicit val loggedActionMeta: Meta[LoggedAction] = enumeratumMeta(LoggedAction)
+  implicit val downloadTypeMeta: Meta[DownloadTypes.DownloadType] =
+    enumerationMeta[DownloadTypes.DownloadType](DownloadTypes)
+  implicit val pojectApiKeyTypeMeta: Meta[ProjectApiKeyTypes.ProjectApiKeyType] =
+    enumerationMeta[ProjectApiKeyTypes.ProjectApiKeyType](ProjectApiKeyTypes)
+  implicit val visibilityMeta: Meta[VisibilityTypes.Visibility] =
+    enumerationMeta[VisibilityTypes.Visibility](VisibilityTypes)
+  implicit val loggedActionMeta: Meta[LoggedAction]               = enumeratumMeta(LoggedAction)
   implicit val loggedActionContextMeta: Meta[LoggedActionContext] = enumeratumMeta(LoggedActionContext)
 
   implicit val langMeta: Meta[Lang] = Meta[String].xmap(Lang.apply, _.toLocale.toLanguageTag)
   implicit val inetStringMeta: Meta[InetString] =
     Meta[InetAddress].xmap(address => InetString(address.toString), str => InetAddress.getByName(str.value))
 
-  implicit val promptArrayMeta: Meta[List[Prompts.Prompt]] = Meta[List[Int]].xmap(_.map(x => Prompts.convert(Prompts(x))), _.map(_.id))
-  implicit val roleTypeArrayMeta: Meta[List[RoleType]] = Meta[List[String]].xmap(_.map(RoleType.withValue), _.map(_.value))
+  implicit val promptArrayMeta: Meta[List[Prompts.Prompt]] =
+    Meta[List[Int]].xmap(_.map(x => Prompts.convert(Prompts(x))), _.map(_.id))
+  implicit val roleTypeArrayMeta: Meta[List[RoleType]] =
+    Meta[List[String]].xmap(_.map(RoleType.withValue), _.map(_.value))
 
   implicit def unsafeNelMeta[A](implicit listMeta: Meta[List[A]], typeTag: TypeTag[NEL[A]]): Meta[NEL[A]] =
     listMeta.xmap(NEL.fromListUnsafe, _.toList)
@@ -155,15 +159,15 @@ class SchemaSpec
   }
 
   test("VersionDownloads") {
-    check(
-      sql"""|SELECT id, created_at, version_id, address, cookie, user_id
-            |FROM project_version_downloads""".stripMargin.query[VersionDownload])
+    check(sql"""|SELECT id, created_at, version_id, address, cookie, user_id
+                |FROM project_version_downloads""".stripMargin.query[VersionDownload])
   }
 
   test("User") {
     check(
       sql"""|SELECT id, created_at, full_name, name, email, tagline, global_roles, join_date, read_prompts, pgp_pub_key,
-            |last_pgp_pub_key_update, is_locked, language FROM users""".stripMargin.query[User])
+            |last_pgp_pub_key_update, is_locked, language FROM users""".stripMargin.query[User]
+    )
   }
 
   test("Session") {
@@ -183,32 +187,30 @@ class SchemaSpec
   }
 
   test("OrganizationRole") {
-    check(
-      sql"""|SELECT id, created_at, user_id, organization_id, role_type,
-            |is_accepted FROM user_organization_roles""".stripMargin.query[OrganizationRole])
+    check(sql"""|SELECT id, created_at, user_id, organization_id, role_type,
+                |is_accepted FROM user_organization_roles""".stripMargin.query[OrganizationRole])
   }
 
   test("ProjectRole") {
-    check(
-      sql"""|SELECT id, created_at, user_id, project_id, role_type,
-            |is_accepted FROM user_project_roles""".stripMargin.query[ProjectRole])
+    check(sql"""|SELECT id, created_at, user_id, project_id, role_type,
+                |is_accepted FROM user_project_roles""".stripMargin.query[ProjectRole])
   }
 
   test("ProjectMember") {
-    check(sql"""SELECT project_id, user_id FROM project_members"""
-      .query[(ObjectReference, ObjectReference)])
+    check(
+      sql"""SELECT project_id, user_id FROM project_members"""
+        .query[(ObjectReference, ObjectReference)]
+    )
   }
 
   test("Notifiation") {
-    check(
-      sql"""|SELECT id, created_at, user_id, origin_id, notification_type, message_args, action,
-            |read FROM notifications""".stripMargin.query[Notification])
+    check(sql"""|SELECT id, created_at, user_id, origin_id, notification_type, message_args, action,
+                |read FROM notifications""".stripMargin.query[Notification])
   }
 
   test("Flag") {
-    check(
-      sql"""|SELECT id, created_at, project_id, user_id, reason, comment, is_resolved, resolved_at, resolved_by
-            |FROM project_flags""".stripMargin.query[Flag])
+    check(sql"""|SELECT id, created_at, project_id, user_id, reason, comment, is_resolved, resolved_at, resolved_by
+                |FROM project_flags""".stripMargin.query[Flag])
   }
 
   test("ProjectApiKey") {
@@ -217,7 +219,8 @@ class SchemaSpec
 
   test("Review") {
     check(
-      sql"""SELECT id, created_at, version_id, user_id, ended_at, comment FROM project_version_reviews""".query[Review])
+      sql"""SELECT id, created_at, version_id, user_id, ended_at, comment FROM project_version_reviews""".query[Review]
+    )
   }
 
   test("ProjectVisibilityChange") {
@@ -228,7 +231,8 @@ class SchemaSpec
   test("LoggedAction") {
     check(
       sql"""|SELECT id, created_at, user_id, address, action, action_context, action_context_id, new_state, old_state
-            |FROM logged_actions""".stripMargin.query[LoggedActionModel])
+            |FROM logged_actions""".stripMargin.query[LoggedActionModel]
+    )
   }
 
   test("VersionVisibilityChange") {
@@ -243,7 +247,7 @@ class SchemaSpec
             |u_id, u_name, p_id, p_plugin_id, p_slug, p_owner_name, pv_id, pv_version_string, pp_id, pp_slug, s_id,
             |s_name, filter_project, filter_version, filter_page, filter_subject, filter_action
             |FROM v_logged_actions""".stripMargin.query[LoggedActionViewModel])
-            */
+     */
     check(sql"""SELECT p_id, p_plugin_id, p_slug, p_owner_name FROM v_logged_actions""".query[LoggedProject])
     check(sql"""SELECT pv_id, pv_version_string FROM v_logged_actions""".query[LoggedProjectVersion])
     check(sql"""SELECT pp_id, pp_slug FROM v_logged_actions""".query[LoggedProjectPage])

@@ -18,7 +18,15 @@ import javax.inject.Inject
 
 import models.project._
 import models.viewhelper.{ProjectData, VersionData}
-import ore.permission.{EditSettings, EditVersions, HardRemoveProject, HardRemoveVersion, ReviewProjects, UploadVersions, ViewLogs}
+import ore.permission.{
+  EditSettings,
+  EditVersions,
+  HardRemoveProject,
+  HardRemoveVersion,
+  ReviewProjects,
+  UploadVersions,
+  ViewLogs
+}
 import ore.project.factory.TagAlias.ProjectTag
 import ore.project.factory.{PendingProject, PendingVersion, ProjectFactory}
 import ore.project.io.DownloadTypes._
@@ -43,6 +51,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import cats.data.{EitherT, OptionT}
 import cats.instances.future._
 import db.impl.schema.VersionTable
+
 /**
   * Controller for handling Version related actions.
   */

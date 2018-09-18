@@ -6,7 +6,17 @@ import db.{ModelService, ObjectReference}
 import db.impl.OrePostgresDriver.api._
 import db.impl._
 import db.impl.access.ProjectBase
-import db.impl.schema.{ChannelTable, ProjectRoleTable, ProjectSchema, ProjectStarsTable, ProjectTableMain, ProjectTag, TagTable, UserTable, VersionTable}
+import db.impl.schema.{
+  ChannelTable,
+  ProjectRoleTable,
+  ProjectSchema,
+  ProjectStarsTable,
+  ProjectTableMain,
+  ProjectTag,
+  TagTable,
+  UserTable,
+  VersionTable
+}
 import javax.inject.Inject
 
 import models.project._

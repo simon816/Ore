@@ -15,8 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.{EitherT, NonEmptyList, OptionT}
 
-class OrganizationBase(implicit val service: ModelService, config: OreConfig)
-    extends ModelBase[Organization] {
+class OrganizationBase(implicit val service: ModelService, config: OreConfig) extends ModelBase[Organization] {
 
   override val modelClass: Class[Organization] = classOf[Organization]
 

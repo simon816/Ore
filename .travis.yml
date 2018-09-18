@@ -32,3 +32,5 @@ before_cache:
 script:
   - sbt ++$TRAVIS_SCALA_VERSION test
   - ./scalafmt app --test --non-interactive
+  - ./scalafmt test --test --non-interactive
+  - ./scalafmt build.sbt --test --non-interactive

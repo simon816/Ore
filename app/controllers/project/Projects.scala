@@ -768,7 +768,7 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
         val project                                     = request.data.project
         for {
           logger <- project.logger
-          logs <- logger.entries.all
+          logs   <- logger.entries.all
         } yield {
           Ok(views.log(project, logs.toSeq))
         }
@@ -829,10 +829,9 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
     * @param slug   Project slug
     */
   def showFlags(author: String, slug: String): Action[AnyContent] = {
-    Authenticated.andThen(PermissionAction[AuthRequest](ReviewFlags)).andThen(ProjectAction(author, slug)) {
-      request =>
-        implicit val r: Requests.OreRequest[AnyContent] = request.request
-        Ok(views.admin.flags(request.data))
+    Authenticated.andThen(PermissionAction[AuthRequest](ReviewFlags)).andThen(ProjectAction(author, slug)) { request =>
+      implicit val r: Requests.OreRequest[AnyContent] = request.request
+      Ok(views.admin.flags(request.data))
     }
   }
 

@@ -4,6 +4,7 @@ import java.sql.Timestamp
 
 import db.impl.schema.ProjectLogEntryTable
 import db.{Model, ObjectId, ObjectReference, ObjectTimestamp}
+
 /**
   * Represents an entry in a [[ProjectLog]].
   *

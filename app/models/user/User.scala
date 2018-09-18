@@ -28,7 +28,15 @@ import cats.syntax.all._
 import cats.data.OptionT
 import scala.concurrent.{ExecutionContext, Future}
 
-import db.impl.schema.{OrganizationMembersTable, OrganizationRoleTable, OrganizationTable, ProjectMembersTable, ProjectStarsTable, ProjectWatchersTable, UserTable}
+import db.impl.schema.{
+  OrganizationMembersTable,
+  OrganizationRoleTable,
+  OrganizationTable,
+  ProjectMembersTable,
+  ProjectStarsTable,
+  ProjectWatchersTable,
+  UserTable
+}
 import play.api.i18n.Lang
 
 /**
