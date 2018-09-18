@@ -1,6 +1,6 @@
 package db.impl.access
 
-import db.{ModelBase, ModelService, ObjectId}
+import db.{ModelBase, ModelService, ObjectId, ObjectReference}
 import models.user.role.OrganizationRole
 import models.user.{Notification, Organization}
 import ore.OreConfig
@@ -32,7 +32,7 @@ class OrganizationBase(implicit val service: ModelService,
     * @param ownerId  User ID of the organization owner
     * @return         New organization if successful, None otherwise
     */
-  def create(name: String, ownerId: Int, members: Set[OrganizationRole])(implicit cache: AsyncCacheApi, ec: ExecutionContext, auth: SpongeAuthApi): EitherT[Future, String, Organization] = {
+  def create(name: String, ownerId: ObjectReference, members: Set[OrganizationRole])(implicit cache: AsyncCacheApi, ec: ExecutionContext, auth: SpongeAuthApi): EitherT[Future, String, Organization] = {
     Logger.debug("Creating Organization...")
     Logger.debug("Name     : " + name)
     Logger.debug("Owner ID : " + ownerId)
@@ -79,6 +79,7 @@ class OrganizationBase(implicit val service: ModelService,
             // TODO remove role.user db access we really only need the userid we already have for notifications
             org.memberships.addRole(role.copy(organizationId = org.id.value)).flatMap(_ => role.user).flatMap { user =>
               user.sendNotification(Notification(
+                userId = user.id.value,
                 originId = org.id.value,
                 notificationType = NotificationTypes.OrganizationInvite,
                 messageArgs = NonEmptyList.of("notification.organization.invite", role.roleType.title, org.username)

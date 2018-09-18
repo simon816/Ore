@@ -4,17 +4,21 @@ version := "1.6.12"
 lazy val `ore` = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.12.6"
-scalacOptions += "-Ypartial-unification"
+scalacOptions ++= Seq(
+  "-Ypartial-unification",
+  "-Ywarn-numeric-widen"
+)
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.7")
 
 routesGenerator := InjectedRoutesGenerator
+routesImport += "_root_.db.ObjectReference"
 resolvers ++= Seq(
   "sponge" at "https://repo.spongepowered.org/maven",
   "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
   "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/"
 )
 
-libraryDependencies ++= Seq( ehcache , ws , specs2 % Test , guice )
+libraryDependencies ++= Seq( ehcache , ws , guice )
 libraryDependencies ++= Seq(
   "org.spongepowered"     %   "play-discourse"          %   "3.0",
   "org.spongepowered"     %   "plugin-meta"             %   "0.4.1",
@@ -47,6 +51,18 @@ libraryDependencies ++= Seq(
   "org.webjars.npm"   % "moment"       % "2.22.2",
   "org.webjars.npm"   % "clipboard"    % "2.0.1",
   "org.webjars.npm"   % "chart.js"     % "2.7.2"
+)
+
+lazy val doobieVersion = "0.5.3"
+
+libraryDependencies ++= Seq(
+  jdbc % Test,
+  //specs2 % Test,
+  "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
+
+  "org.tpolecat" %% "doobie-core"      % doobieVersion % Test,
+  "org.tpolecat" %% "doobie-postgres"  % doobieVersion % Test,
+  "org.tpolecat" %% "doobie-scalatest" % doobieVersion % Test
 )
 
 unmanagedResourceDirectories in Test +=  (baseDirectory.value / "target/web/public/test")
