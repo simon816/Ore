@@ -1,8 +1,9 @@
 package ore.project
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import db.impl.access.ProjectBase
 import models.project.Project
-import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.OptionT
 
@@ -19,6 +20,7 @@ case class Dependency(pluginId: String, version: String) {
     *
     * @return Project if dependency is on Ore, empty otherwise.
     */
-  def project(implicit projects: ProjectBase, ec: ExecutionContext): OptionT[Future, Project] = projects.withPluginId(this.pluginId)
+  def project(implicit projects: ProjectBase, ec: ExecutionContext): OptionT[Future, Project] =
+    projects.withPluginId(this.pluginId)
 
 }

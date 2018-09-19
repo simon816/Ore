@@ -18,8 +18,8 @@ trait JoinableData[R <: RoleModel, M <: Member[R], T <: Joinable[M, T]] {
 
   def filteredMembers(implicit request: OreRequest[_]): Seq[(R, User)] = {
     if (request.data.globalPerm(EditSettings) || // has EditSettings show all
-      request.currentUser.map(_.id.value).contains(joinable.ownerId) // Current User is owner
-    ) members
+        request.currentUser.map(_.id.value).contains(joinable.ownerId) // Current User is owner
+        ) members
     else {
       members.filter {
         case (role, _) => role.isAccepted // project role is accepted

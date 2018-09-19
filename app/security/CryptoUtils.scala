@@ -2,10 +2,10 @@ package security
 
 import java.security.SecureRandom
 import java.util.Base64
-
-import com.google.common.base.Preconditions._
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{Cipher, Mac}
+
+import com.google.common.base.Preconditions._
 import org.apache.commons.codec.binary.Hex
 
 /**
@@ -14,13 +14,13 @@ import org.apache.commons.codec.binary.Hex
 object CryptoUtils {
 
   // Hashing
-  final val HmacSha256 = "HmacSHA256"
-  final val HmacSha1 = "HmacSHA1"
+  final val HmacSha256   = "HmacSHA256"
+  final val HmacSha1     = "HmacSHA1"
   final val CharEncoding = "UTF-8"
 
   // Two way encryption
-  final val Random = new SecureRandom()
-  final val Algo = "DESede"
+  final val Random    = new SecureRandom()
+  final val Algo      = "DESede"
   final val KeyLength = 24
 
   /**
@@ -37,7 +37,7 @@ object CryptoUtils {
     checkArgument(secret.nonEmpty, "empty secret", "")
     checkNotNull(data, "null data", "")
     checkArgument(data.nonEmpty, "nothing to hash!", "")
-    val hmac = Mac.getInstance(algo)
+    val hmac    = Mac.getInstance(algo)
     val keySpec = new SecretKeySpec(secret, algo)
     hmac.init(keySpec)
     hmac.doFinal(data)
@@ -50,8 +50,8 @@ object CryptoUtils {
     * @param data   Data to encrypt
     * @return
     */
-  def hmac_sha256(secret: String, data: Array[Byte]): String
-  = Hex.encodeHexString(hmac(HmacSha256, secret.getBytes(CharEncoding), data))
+  def hmac_sha256(secret: String, data: Array[Byte]): String =
+    Hex.encodeHexString(hmac(HmacSha256, secret.getBytes(CharEncoding), data))
 
   /**
     * Performs a two-way encryption of the specified string using the DESede

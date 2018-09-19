@@ -1,9 +1,9 @@
 package ore.project.io
 
+import scala.language.implicitConversions
+
 import db.impl.OrePostgresDriver
 import db.table.MappedType
-
-import scala.language.implicitConversions
 
 import slick.ast.BaseTypedType
 import slick.jdbc.JdbcType
@@ -29,7 +29,8 @@ object DownloadTypes extends Enumeration {
   val SignatureFile = DownloadType(2)
 
   case class DownloadType(i: Int) extends super.Val(i) with MappedType[DownloadType] {
-    override implicit val mapper: JdbcType[DownloadType] with BaseTypedType[DownloadType] = OrePostgresDriver.api.downloadTypeTypeMapper
+    implicit override val mapper: JdbcType[DownloadType] with BaseTypedType[DownloadType] =
+      OrePostgresDriver.api.downloadTypeTypeMapper
   }
   implicit def convert(v: Value): DownloadType = v.asInstanceOf[DownloadType]
 

@@ -1,11 +1,12 @@
 import java.security.Security
+import javax.inject.{Inject, Singleton}
 
 import db.ModelService
 import db.impl.access.ProjectBase
 import discourse.OreDiscourseApi
-import javax.inject.{Inject, Singleton}
 import ore.OreConfig
 import ore.project.ProjectTask
+
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
 /**
@@ -38,7 +39,9 @@ trait Bootstrap {
 }
 
 @Singleton
-class BootstrapImpl @Inject()(override val modelService: ModelService,
-                              override val forums: OreDiscourseApi,
-                              override val config: OreConfig,
-                              override val projectTask: ProjectTask) extends Bootstrap
+class BootstrapImpl @Inject()(
+    override val modelService: ModelService,
+    override val forums: OreDiscourseApi,
+    override val config: OreConfig,
+    override val projectTask: ProjectTask
+) extends Bootstrap

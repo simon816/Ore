@@ -2,8 +2,9 @@ package db.table
 
 import java.sql.Timestamp
 
-import db.{Model, ObjectReference}
 import db.impl.OrePostgresDriver.api._
+import db.{Model, ObjectReference}
+
 import slick.lifted.Tag
 
 /**
@@ -13,6 +14,7 @@ abstract class ModelTable[M <: Model](tag: Tag, name: String) extends Table[M](t
 
   /** The Model's primary key column */
   def id = column[ObjectReference]("id", O.PrimaryKey, O.AutoInc)
+
   /** The [[java.sql.Timestamp]] instant of when a Model was created. */
   def createdAt = column[Timestamp]("created_at")
 

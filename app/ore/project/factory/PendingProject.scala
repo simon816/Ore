@@ -1,15 +1,19 @@
 package ore.project.factory
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.cache.SyncCacheApi
+
 import db.ModelService
 import db.impl.access.ProjectBase
+import discourse.OreDiscourseApi
 import models.project.{Project, ProjectSettings, Version}
 import models.user.role.ProjectRole
 import ore.project.io.PluginFile
 import ore.{Cacheable, OreConfig}
-import play.api.cache.SyncCacheApi
-import scala.concurrent.{ExecutionContext, Future}
 
-import discourse.OreDiscourseApi
+import cats.instances.future._
+import cats.syntax.all._
 
 /**
   * Represents a Project with an uploaded plugin that has not yet been
@@ -18,17 +22,18 @@ import discourse.OreDiscourseApi
   * @param underlying  Pending project
   * @param file     Uploaded plugin
   */
-case class PendingProject(projects: ProjectBase,
-                          factory: ProjectFactory,
-                          underlying: Project,
-                          file: PluginFile,
-                          channelName: String,
-                          settings: ProjectSettings = ProjectSettings(),
-                          var pendingVersion: PendingVersion,
-                          roles: Set[ProjectRole] = Set(),
-                          cacheApi: SyncCacheApi)
-                         (implicit service: ModelService, val config: OreConfig)
-                           extends Cacheable {
+case class PendingProject(
+    projects: ProjectBase,
+    factory: ProjectFactory,
+    underlying: Project,
+    file: PluginFile,
+    channelName: String,
+    settings: ProjectSettings = ProjectSettings(),
+    var pendingVersion: PendingVersion,
+    roles: Set[ProjectRole] = Set(),
+    cacheApi: SyncCacheApi
+)(implicit service: ModelService, val config: OreConfig)
+    extends Cacheable {
 
   def complete()(implicit ec: ExecutionContext): Future[(Project, Version)] = {
     free()
@@ -42,11 +47,12 @@ case class PendingProject(projects: ProjectBase,
     } yield (updatedProject, newVersion._1)
   }
 
-  def cancel()(implicit ec: ExecutionContext, forums: OreDiscourseApi) = {
+  def cancel()(implicit ec: ExecutionContext, forums: OreDiscourseApi): Future[Unit] = {
     free()
     this.file.delete()
     if (this.underlying.isDefined)
-      this.projects.delete(this.underlying)
+      this.projects.delete(this.underlying).as(())
+    else Future.unit
   }
 
   override def key: String = this.underlying.ownerName + '/' + this.underlying.slug
@@ -56,11 +62,11 @@ object PendingProject {
   def createPendingVersion(project: PendingProject): PendingVersion = {
     val result = project.factory.startVersion(project.file, project.underlying, project.settings, project.channelName)
     result match {
-      case Right (version) =>
+      case Right(version) =>
         version.cache()
         version
       // TODO: not this crap
-      case Left (errorMessage) => throw new IllegalArgumentException(errorMessage)
+      case Left(errorMessage) => throw new IllegalArgumentException(errorMessage)
     }
   }
 }

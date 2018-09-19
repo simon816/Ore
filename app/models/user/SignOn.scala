@@ -1,7 +1,7 @@
 package models.user
 
+import db.impl.schema.SignOnTable
 import db.{Model, ObjectId, ObjectTimestamp}
-import db.impl.SignOnTable
 
 /**
   * Represents a sign-on instance for a user.
@@ -11,10 +11,12 @@ import db.impl.SignOnTable
   * @param nonce        Nonce used
   * @param isCompleted  True if sign on was completed
   */
-case class SignOn(id: ObjectId = ObjectId.Uninitialized,
-                  createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                  nonce: String,
-                  isCompleted: Boolean = false) extends Model {
+case class SignOn(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    nonce: String,
+    isCompleted: Boolean = false
+) extends Model {
 
   override type M = SignOn
   override type T = SignOnTable

@@ -26,14 +26,6 @@ Running Ore is relatively simple.
 * Create a new Play 2 App run configuration.
 * Run it.
 
-## Contributing
-
-Ore's code-style is not unlike the rest of the Sponge projects code-style with some leniency for readability.
-Namely, the differences include:
-* Non-uniform whitespace (see [schema.sql](app/models/db/schema.scala))
-* Inline conditionals / statements
-* Public fields permitted on database properties in models
-
 ### Setup
 
 After cloning Ore, the first thing you will want to do is create a new PostgreSQL database for the application to use.

@@ -1,7 +1,6 @@
 @import models.project.{Project, VisibilityTypes}
-@import models.user.User
 @import ore.permission.Permission
-@(project: Project, perms: Map[Permission, Boolean], user: User)(implicit messages: Messages)
+@(project: Project, perms: Map[Permission, Boolean])(implicit messages: Messages)
 
 <div class="btn-group btn-group-sm">
     <button class="btn btn-alert btn-hide-dropdown dropdown-toggle" type="button" id="visibility-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-project="@project.ownerName/@project.slug" style="color: black">

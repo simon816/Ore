@@ -4,8 +4,9 @@ import java.nio.file.{Files, Path}
 import java.text.{DateFormat, MessageFormat}
 import java.util.Date
 
-import db.impl.OrePostgresDriver.api._
 import play.api.i18n.Messages
+
+import db.impl.OrePostgresDriver.api._
 
 /**
   * Helper class for handling User input.
@@ -56,8 +57,8 @@ object StringUtils {
     * @param str2 String 2
     * @return     Result
     */
-  def equalsIgnoreCase[T <: Table[_]](str1: T => Rep[String], str2: String): T => Rep[Boolean]
-  = str1(_).toLowerCase === str2.toLowerCase
+  def equalsIgnoreCase[T <: Table[_]](str1: T => Rep[String], str2: String): T => Rep[Boolean] =
+    str1(_).toLowerCase === str2.toLowerCase
 
   /**
     * Reads the specified Path's file content and formats it with the
@@ -67,8 +68,8 @@ object StringUtils {
     * @param params Format parameters
     * @return       Formatted string
     */
-  def readAndFormatFile(path: Path, params: String*): String
-  = MessageFormat.format(new String(Files.readAllBytes(path)), params.map(_.asInstanceOf[AnyRef]): _*)
+  def readAndFormatFile(path: Path, params: String*): String =
+    MessageFormat.format(new String(Files.readAllBytes(path)), params.map(_.asInstanceOf[AnyRef]): _*)
 
   /**
     * Formats the specified date into the standard application form time.

@@ -1,27 +1,29 @@
 package ore.project
 
-import java.sql.Timestamp
-import java.time.Instant
 import javax.inject.{Inject, Singleton}
 
-import akka.actor.ActorSystem
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
+
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
 import models.project.{Project, VisibilityTypes}
 import ore.OreConfig
 
+import akka.actor.ActorSystem
+
 /**
   * Task that is responsible for publishing New projects
   */
 @Singleton
-class ProjectTask @Inject()(models: ModelService, actorSystem: ActorSystem, config: OreConfig)(implicit ec: ExecutionContext) extends Runnable {
+class ProjectTask @Inject()(models: ModelService, actorSystem: ActorSystem, config: OreConfig)(
+    implicit ec: ExecutionContext
+) extends Runnable {
 
-  val Logger = play.api.Logger("ProjectTask")
+  val Logger                   = play.api.Logger("ProjectTask")
   val interval: FiniteDuration = this.config.projects.get[FiniteDuration]("check-interval")
-  val draftExpire: Long = this.config.projects.getOptional[Long]("draft-expire").getOrElse(86400000)
+  val draftExpire: Long        = this.config.projects.getOptional[Long]("draft-expire").getOrElse(86400000)
 
   /**
     * Starts the task.
@@ -38,8 +40,8 @@ class ProjectTask @Inject()(models: ModelService, actorSystem: ActorSystem, conf
     val actions = this.models.getSchema(classOf[ProjectSchema])
 
     val newFilter: ModelFilter[Project] = ModelFilter[Project](_.visibility === VisibilityTypes.New)
-    val future = actions.collect(newFilter.fn, ProjectSortingStrategies.Default, -1, 0)
-    val projects = this.models.await(future).get
+    val future                          = actions.collect(newFilter.fn, ProjectSortingStrategies.Default, -1, 0)
+    val projects                        = this.models.await(future).get
 
     val dayAgo = System.currentTimeMillis() - draftExpire
 

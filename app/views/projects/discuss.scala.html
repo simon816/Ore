@@ -2,13 +2,12 @@
 Discussion page within Project overview.
 *@
 @import controllers.sugar.Requests.OreRequest
-@import db.ModelService
 @import models.viewhelper.{ProjectData, ScopedProjectData}
 @import ore.OreConfig
-@import ore.project.ProjectMember
-@import org.spongepowered.play.discourse.DiscourseApi
 @import security.NonceFilter._
 @import views.html.utils
+
+@import org.spongepowered.play.discourse.DiscourseApi
 @(p: ProjectData, sp: ScopedProjectData)(implicit messages: Messages, request: OreRequest[_], flash: Flash, forums: DiscourseApi, config: OreConfig)
 
 @projectRoutes = @{controllers.project.routes.Projects}

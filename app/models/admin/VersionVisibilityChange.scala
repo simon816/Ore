@@ -2,23 +2,29 @@ package models.admin
 
 import java.sql.Timestamp
 
-import db.{Model, ObjectId, ObjectReference, ObjectTimestamp}
-import db.impl.VersionVisibilityChangeTable
-import db.impl.model.common.VisibilityChange
-import models.project.Page
-import ore.OreConfig
 import play.twirl.api.Html
 
-case class VersionVisibilityChange(id: ObjectId = ObjectId.Uninitialized,
-                            createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                            createdBy: Option[ObjectReference] = None,
-                            projectId: ObjectReference = -1,
-                            comment: String,
-                            resolvedAt: Option[Timestamp] = None,
-                            resolvedBy: Option[ObjectReference] = None,
-                            visibility: Int = 1) extends Model with VisibilityChange {
+import db.impl.model.common.VisibilityChange
+import db.impl.schema.VersionVisibilityChangeTable
+import db.{Model, ObjectId, ObjectReference, ObjectTimestamp}
+import models.project.Page
+import ore.OreConfig
+
+case class VersionVisibilityChange(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    createdBy: Option[ObjectReference] = None,
+    projectId: ObjectReference = -1,
+    comment: String,
+    resolvedAt: Option[Timestamp] = None,
+    resolvedBy: Option[ObjectReference] = None,
+    visibility: Int = 1
+) extends Model
+    with VisibilityChange {
+
   /** Self referential type */
   override type M = VersionVisibilityChange
+
   /** The model's table */
   override type T = VersionVisibilityChangeTable
 

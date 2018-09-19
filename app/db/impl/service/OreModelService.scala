@@ -1,14 +1,16 @@
 package db.impl.service
 
-import db.impl.OrePostgresDriver
-import db.{ModelRegistry, ModelService}
 import javax.inject.{Inject, Singleton}
-import ore.{OreConfig, OreEnv}
-import play.api.db.slick.DatabaseConfigProvider
-import play.api.i18n.MessagesApi
-import slick.jdbc.JdbcProfile
 
 import scala.concurrent.duration._
+
+import play.api.db.slick.DatabaseConfigProvider
+
+import db.impl.OrePostgresDriver
+import db.{ModelRegistry, ModelService}
+import ore.{OreConfig, OreEnv}
+
+import slick.jdbc.JdbcProfile
 
 /**
   * The Ore ModelService implementation. Contains registration of Ore-specific
@@ -17,19 +19,20 @@ import scala.concurrent.duration._
   * @param db DatabaseConfig
   */
 @Singleton
-class OreModelService @Inject()(override val env: OreEnv,
-                                override val config: OreConfig,
-                                override val messages: MessagesApi,
-                                db: DatabaseConfigProvider)
-                                extends ModelService with OreModelConfig {
+class OreModelService @Inject()(
+    override val env: OreEnv,
+    override val config: OreConfig,
+    db: DatabaseConfigProvider
+) extends ModelService
+    with OreModelConfig {
 
   val Logger = play.api.Logger("Database")
 
   // Implement ModelService
-  override lazy val registry: ModelRegistry = new ModelRegistry {}
+  override lazy val registry: ModelRegistry        = new ModelRegistry {}
   override lazy val driver: OrePostgresDriver.type = OrePostgresDriver
-  override lazy val DB = db.get[JdbcProfile]
-  override lazy val DefaultTimeout: Duration = this.config.app.get[Int]("db.default-timeout").seconds
+  override lazy val DB                             = db.get[JdbcProfile]
+  override lazy val DefaultTimeout: Duration       = this.config.app.get[Int]("db.default-timeout").seconds
 
   import registry.{registerModelBase, registerSchema}
 
@@ -73,7 +76,8 @@ class OreModelService @Inject()(override val env: OreEnv,
         s"Initialization time: ${System.currentTimeMillis() - time}ms\n" +
         s"Default timeout: ${DefaultTimeout.toString}\n" +
         s"Registered DBOs: ${this.registry.modelBases.size}\n" +
-        s"Registered Schemas: ${this.registry.modelSchemas.size}")
+        s"Registered Schemas: ${this.registry.modelSchemas.size}"
+    )
   }
 
 }

@@ -1,23 +1,24 @@
 package security.spauth
 
 import java.util.concurrent.TimeoutException
-
-import com.google.common.base.Preconditions._
 import javax.inject.Inject
-import ore.OreConfig
-import util.WSUtils.parseJson
-import cats.data.{EitherT, OptionT}
-import cats.instances.future._
+
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.Configuration
+import play.api.i18n.Lang
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
+import ore.OreConfig
+import _root_.util.WSUtils.parseJson
 
-import play.api.Configuration
-import play.api.i18n.Lang
+import cats.data.{EitherT, OptionT}
+import cats.instances.future._
+import com.google.common.base.Preconditions._
 
 /**
   * Interfaces with the SpongeAuth Web API
@@ -26,6 +27,7 @@ trait SpongeAuthApi {
 
   /** The base URL of the instance */
   val url: String
+
   /** Secret API key */
   val apiKey: String
   val ws: WSClient
@@ -33,14 +35,14 @@ trait SpongeAuthApi {
 
   val Logger = play.api.Logger("SpongeAuth")
 
-  implicit private val spongeUserReads: Reads[SpongeUser] = (
-    (JsPath \ "id").read[Long] and
-    (JsPath \ "username").read[String] and
-    (JsPath \ "email").read[String] and
-    (JsPath \ "avatar_url").readNullable[String] and
-    (JsPath \ "language").readNullable[String].map(_.flatMap(Lang.get)) and
-    (JsPath \ "add_groups").readNullable[String]
-  )(SpongeUser.apply _)
+  implicit private val spongeUserReads: Reads[SpongeUser] =
+    (JsPath \ "id")
+      .read[Long]
+      .and((JsPath \ "username").read[String])
+      .and((JsPath \ "email").read[String])
+      .and((JsPath \ "avatar_url").readNullable[String])
+      .and((JsPath \ "language").readNullable[String].map(_.flatMap(Lang.get)))
+      .and((JsPath \ "add_groups").readNullable[String])(SpongeUser.apply _)
 
   /**
     * Creates a new user with the specified credentials.
@@ -51,11 +53,9 @@ trait SpongeAuthApi {
     * @param verified True if should bypass email verification
     * @return         Newly created user
     */
-  def createUser(username: String,
-                 email: String,
-                 password: String,
-                 verified: Boolean = false)(implicit ec: ExecutionContext): EitherT[Future, String, SpongeUser]
-  = doCreateUser(username, email, password, verified)
+  def createUser(username: String, email: String, password: String)(
+      implicit ec: ExecutionContext
+  ): EitherT[Future, String, SpongeUser] = doCreateUser(username, email, password)
 
   /**
     * Creates a "dummy" user that cannot log in and has no password.
@@ -65,22 +65,25 @@ trait SpongeAuthApi {
     * @param verified True if should bypass email verification
     * @return         Newly created user
     */
-  def createDummyUser(username: String, email: String, verified: Boolean = false)(implicit ec: ExecutionContext): EitherT[Future, String, SpongeUser]
-  = doCreateUser(username, email, null, verified, dummy = true)
+  def createDummyUser(username: String, email: String)(
+      implicit ec: ExecutionContext
+  ): EitherT[Future, String, SpongeUser] = doCreateUser(username, email, null, dummy = true)
 
-  private def doCreateUser(username: String,
-                           email: String,
-                           password: String,
-                           verified: Boolean = false,
-                           dummy: Boolean = false)(implicit ec: ExecutionContext): EitherT[Future, String, SpongeUser] = {
+  private def doCreateUser(
+      username: String,
+      email: String,
+      password: String,
+      dummy: Boolean = false
+  )(implicit ec: ExecutionContext): EitherT[Future, String, SpongeUser] = {
     checkNotNull(username, "null username", "")
     checkNotNull(email, "null email", "")
     var params = Map(
-      "api-key" -> Seq(this.apiKey),
+      "api-key"  -> Seq(this.apiKey),
       "username" -> Seq(username),
-      "email" -> Seq(email),
-      "verified" -> Seq(verified.toString),
-      "dummy" -> Seq(dummy.toString))
+      "email"    -> Seq(email),
+      "verified" -> Seq(false.toString),
+      "dummy"    -> Seq(dummy.toString)
+    )
     if (password != null)
       params += "password" -> Seq(password)
     readUser(this.ws.url(route("/api/users")).withRequestTimeout(timeout).post(params))
@@ -110,21 +113,26 @@ trait SpongeAuthApi {
     readUser(this.ws.url(url).withRequestTimeout(timeout).delete())
   }
 
-  private def readUser(response: Future[WSResponse], nullable: Boolean = false)(implicit ec: ExecutionContext): EitherT[Future, String, SpongeUser] = {
+  private def readUser(response: Future[WSResponse])(
+      implicit ec: ExecutionContext
+  ): EitherT[Future, String, SpongeUser] = {
     EitherT(
-      OptionT(response.map(parseJson(_, Logger))).map { json =>
-        val obj = json.as[JsObject]
-        if (obj.keys.contains("error"))
-          Left((obj \ "error").as[String])
-        else
-          Right(obj.as[SpongeUser])
-      }.getOrElse(Left("error.spongeauth.parse")).recover {
-        case toe: TimeoutException =>
-          Left("error.spongeauth.connect")
-        case e =>
-          Logger.error("An unexpected error occured while handling a response", e)
-          Left("error.spongeauth.unexpected")
-      }
+      OptionT(response.map(parseJson(_, Logger)))
+        .map { json =>
+          val obj = json.as[JsObject]
+          if (obj.keys.contains("error"))
+            Left((obj \ "error").as[String])
+          else
+            Right(obj.as[SpongeUser])
+        }
+        .getOrElse(Left("error.spongeauth.parse"))
+        .recover {
+          case _: TimeoutException =>
+            Left("error.spongeauth.connect")
+          case e =>
+            Logger.error("An unexpected error occured while handling a response", e)
+            Left("error.spongeauth.unexpected")
+        }
     )
   }
 
@@ -136,8 +144,8 @@ final class SpongeAuth @Inject()(config: OreConfig, override val ws: WSClient) e
 
   val conf: Configuration = this.config.security
 
-  override val url: String = this.conf.get[String]("api.url")
-  override val apiKey: String = this.conf.get[String]("api.key")
+  override val url: String             = this.conf.get[String]("api.url")
+  override val apiKey: String          = this.conf.get[String]("api.key")
   override val timeout: FiniteDuration = this.conf.get[FiniteDuration]("api.timeout")
 
 }

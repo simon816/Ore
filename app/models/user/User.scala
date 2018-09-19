@@ -2,33 +2,41 @@ package models.user
 
 import java.sql.Timestamp
 
-import com.google.common.base.Preconditions._
-
-import db.{Model, ModelFilter, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
-import db.access.{ModelAccess, ModelAssociationAccess}
-import db.impl.OrePostgresDriver.api._
-import db.impl._
-import db.impl.access.{OrganizationBase, UserBase}
-import models.project.{Flag, Project, Version, VisibilityTypes}
-import models.user.role.{OrganizationRole, ProjectRole}
-import ore.OreConfig
-import ore.permission._
-import ore.permission.role.RoleType
-import ore.permission.role._
-import ore.permission.scope._
-import ore.user.Prompts.Prompt
-import ore.user.UserOwned
-import play.api.mvc.Request
-import security.pgp.PGPPublicKeyInfo
-import security.spauth.{SpongeAuthApi, SpongeUser}
-import slick.lifted.TableQuery
-import util.StringUtils._
-import cats.instances.future._
-import cats.syntax.all._
-import cats.data.OptionT
 import scala.concurrent.{ExecutionContext, Future}
 
 import play.api.i18n.Lang
+import play.api.mvc.Request
+
+import db.access.{ModelAccess, ModelAssociationAccess}
+import db.impl.OrePostgresDriver.api._
+import db.impl.access.{OrganizationBase, UserBase}
+import db.impl.schema.{
+  OrganizationMembersTable,
+  OrganizationRoleTable,
+  OrganizationTable,
+  ProjectMembersTable,
+  ProjectStarsTable,
+  ProjectWatchersTable,
+  UserTable
+}
+import db.{Model, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
+import models.project.{Flag, Project, VisibilityTypes}
+import models.user.role.{OrganizationRole, ProjectRole}
+import ore.OreConfig
+import ore.permission._
+import ore.permission.role.{RoleType, _}
+import ore.permission.scope._
+import ore.user.Prompts.Prompt
+import ore.user.UserOwned
+import security.pgp.PGPPublicKeyInfo
+import security.spauth.{SpongeAuthApi, SpongeUser}
+import util.StringUtils._
+
+import cats.data.OptionT
+import cats.instances.future._
+import cats.syntax.all._
+import com.google.common.base.Preconditions._
+import slick.lifted.TableQuery
 
 /**
   * Represents a Sponge user.
@@ -40,23 +48,24 @@ import play.api.i18n.Lang
   * @param email        Email
   * @param tagline      The user configured "tagline" displayed on the user page.
   */
-case class User(id: ObjectId = ObjectId.Uninitialized,
-                createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                fullName: Option[String] = None,
-                name: String = null,
-                email: Option[String] = None,
-                tagline: Option[String] = None,
-                globalRoles: List[RoleType] = List(),
-                joinDate: Option[Timestamp] = None,
-                readPrompts: List[Prompt] = List(),
-                pgpPubKey: Option[String] = None,
-                lastPgpPubKeyUpdate: Option[Timestamp] = None,
-                isLocked: Boolean = false,
-                lang: Option[Lang] = None)
-                extends Model
-                  with UserOwned
-                  with ScopeSubject
-                  with Named {
+case class User(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    fullName: Option[String] = None,
+    name: String = null,
+    email: Option[String] = None,
+    tagline: Option[String] = None,
+    globalRoles: List[RoleType] = List(),
+    joinDate: Option[Timestamp] = None,
+    readPrompts: List[Prompt] = List(),
+    pgpPubKey: Option[String] = None,
+    lastPgpPubKeyUpdate: Option[Timestamp] = None,
+    isLocked: Boolean = false,
+    lang: Option[Lang] = None
+) extends Model
+    with UserOwned
+    with ScopeSubject
+    with Named {
 
   //TODO: Check this in some way
   //checkArgument(tagline.forall(_.length <= config.users.get[Int]("max-tagline-len")), "tagline too long", "")
@@ -85,11 +94,12 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return True if key is ready for use
     */
-  def isPgpPubKeyReady(implicit config: OreConfig, service: ModelService): Boolean = this.pgpPubKey.isDefined && this.lastPgpPubKeyUpdate.forall { lastUpdate =>
-    val cooldown = config.security.get[Long]("keyChangeCooldown")
-    val minTime = new Timestamp(lastUpdate.getTime + cooldown)
-    minTime.before(service.theTime)
-  }
+  def isPgpPubKeyReady(implicit config: OreConfig, service: ModelService): Boolean =
+    this.pgpPubKey.isDefined && this.lastPgpPubKeyUpdate.forall { lastUpdate =>
+      val cooldown = config.security.get[Long]("keyChangeCooldown")
+      val minTime  = new Timestamp(lastUpdate.getTime + cooldown)
+      minTime.before(service.theTime)
+    }
 
   /**
     * Returns this user's current language, or the default language if none
@@ -102,16 +112,14 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return Highest level donor type
     */
-  def donorType: Option[DonorType] = {
+  def donorType: Option[DonorType] =
     this.globalRoles
-      .collect { case donor: DonorType => donor}
-      .sortBy(_.rank).headOption
-  }
-
-  private def biggestRole(roles: Set[Role]): Trust = biggestRoleTpe(roles.map(_.roleType))
+      .collect { case donor: DonorType => donor }
+      .sortBy(_.rank)
+      .headOption
 
   private def biggestRoleTpe(roles: Set[RoleType]): Trust =
-    if(roles.isEmpty) Default
+    if (roles.isEmpty) Default
     else roles.map(_.trust).max
 
   private def globalTrust = biggestRoleTpe(globalRoles.toSet)
@@ -121,44 +129,45 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return Highest level of trust
     */
-  def trustIn(scope: Scope = GlobalScope)(implicit ec: ExecutionContext, service: ModelService): Future[Trust] = Defined {
-    scope match {
-      case GlobalScope          => Future.successful(globalTrust)
-      case pScope: ProjectScope =>
-        val projectRoles = service.DB.db.run(Project.roleForTrustQuery(pScope.projectId, this.id.value).result)
+  def trustIn(scope: Scope = GlobalScope)(implicit ec: ExecutionContext, service: ModelService): Future[Trust] =
+    Defined {
+      scope match {
+        case GlobalScope => Future.successful(globalTrust)
+        case pScope: ProjectScope =>
+          val projectRoles = service.DB.db.run(Project.roleForTrustQuery((pScope.projectId, this.id.value)).result)
 
-        val projectTrust = projectRoles
-          .map(biggestRoleTpe)
-          .flatMap { userTrust =>
-            if (userTrust != Default) {
-              Future.successful(userTrust)
-            } else {
+          val projectTrust = projectRoles
+            .map(biggestRoleTpe)
+            .flatMap { userTrust =>
+              if (userTrust != Default) {
+                Future.successful(userTrust)
+              } else {
 
-              val projectMembersTable = TableQuery[ProjectMembersTable]
-              val orgaTable = TableQuery[OrganizationTable]
+                val projectMembersTable = TableQuery[ProjectMembersTable]
+                val orgaTable           = TableQuery[OrganizationTable]
 
-              val memberTable = TableQuery[OrganizationMembersTable]
-              val roleTable = TableQuery[OrganizationRoleTable]
+                val memberTable = TableQuery[OrganizationMembersTable]
+                val roleTable   = TableQuery[OrganizationRoleTable]
 
-              // TODO review permission logic
-              val query = for {
-                pm <- projectMembersTable if pm.projectId === pScope.projectId // Join members of project
-                o <- orgaTable if pm.userId == o.userId // Filter out non organizations
-                m <- memberTable if m.organizationId === o.id
-                r <- roleTable if m.userId === r.userId && r.organizationId === o.id
-              } yield r.roleType
+                // TODO review permission logic
+                val query = for {
+                  pm <- projectMembersTable if pm.projectId === pScope.projectId // Join members of project
+                  o  <- orgaTable if pm.userId == o.userId // Filter out non organizations
+                  m  <- memberTable if m.organizationId === o.id
+                  r  <- roleTable if m.userId === r.userId && r.organizationId === o.id
+                } yield r.roleType
 
-              service.DB.db.run(query.to[Set].result).map(biggestRoleTpe)
+                service.DB.db.run(query.to[Set].result).map(biggestRoleTpe)
+              }
             }
-        }
 
-        projectTrust.map(Set(_, globalTrust).max)
-      case oScope: OrganizationScope =>
-        Organization.getTrust(id.value, oScope.organizationId).map(Set(_, globalTrust).max)
-      case _ =>
-        throw new RuntimeException("unknown scope: " + scope)
+          projectTrust.map(Set(_, globalTrust).max)
+        case oScope: OrganizationScope =>
+          Organization.getTrust(id.value, oScope.organizationId).map(Set(_, globalTrust).max)
+        case _ =>
+          throw new RuntimeException("unknown scope: " + scope)
+      }
     }
-  }
 
   /**
     * Returns the Projects that this User has starred.
@@ -166,12 +175,15 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     * @param page Page of user stars
     * @return Projects user has starred
     */
-  def starred(page: Int = -1)(implicit ec: ExecutionContext, config: OreConfig, service: ModelService): Future[Seq[Project]] = Defined {
+  def starred(
+      page: Int = -1
+  )(implicit config: OreConfig, service: ModelService): Future[Seq[Project]] = Defined {
     val starsPerPage = config.users.get[Int]("stars-per-page")
-    val limit = if (page < 1) -1 else starsPerPage
-    val offset = (page - 1) * starsPerPage
-    val filter = VisibilityTypes.isPublicFilter[Project]
-    this.schema.getAssociation[ProjectStarsTable, Project](classOf[ProjectStarsTable], this)
+    val limit        = if (page < 1) -1 else starsPerPage
+    val offset       = (page - 1) * starsPerPage
+    val filter       = VisibilityTypes.isPublicFilter[Project]
+    this.schema
+      .getAssociation[ProjectStarsTable, Project](classOf[ProjectStarsTable], this)
       .sorted(ordering = _.name, filter = filter.fn, limit = limit, offset = offset)
   }
 
@@ -180,12 +192,19 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return True if currently authenticated user
     */
-  def isCurrent(implicit request: Request[_], ec: ExecutionContext, service: ModelService, auth: SpongeAuthApi): Future[Boolean] = {
+  def isCurrent(
+      implicit request: Request[_],
+      ec: ExecutionContext,
+      service: ModelService,
+      auth: SpongeAuthApi
+  ): Future[Boolean] = {
     checkNotNull(request, "null request", "")
-    UserBase().current.semiflatMap { user =>
-      if(user == this) Future.successful(true)
-      else this.toMaybeOrganization.semiflatMap(_.owner.user).exists(_ == user)
-    }.exists(identity)
+    UserBase().current
+      .semiflatMap { user =>
+        if (user == this) Future.successful(true)
+        else this.toMaybeOrganization.semiflatMap(_.owner.user).exists(_ == user)
+      }
+      .exists(identity)
   }
 
   /**
@@ -193,15 +212,17 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     *
     * @param user Sponge User
     */
-  def copyFromSponge(user: SpongeUser)(implicit config: OreConfig): User = {
+  def copyFromSponge(user: SpongeUser): User = {
     copy(
       id = ObjectId(user.id),
       name = user.username,
       email = Some(user.email),
       lang = user.lang,
-      globalRoles = user.addGroups.map { groups =>
-        if(groups.trim.isEmpty) Nil else groups.split(",").flatMap(RoleType.withValueOpt).toList
-      }.getOrElse(globalRoles)
+      globalRoles = user.addGroups
+        .map { groups =>
+          if (groups.trim.isEmpty) Nil else groups.split(",").flatMap(RoleType.withValueOpt).toList
+        }
+        .getOrElse(globalRoles)
     )
   }
 
@@ -210,7 +231,8 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return Projects owned by user
     */
-  def projects(implicit service: ModelService): ModelAccess[Project] = this.schema.getChildren[Project](classOf[Project], this)
+  def projects(implicit service: ModelService): ModelAccess[Project] =
+    this.schema.getChildren[Project](classOf[Project], this)
 
   /**
     * Returns the Project with the specified name that this User owns.
@@ -218,52 +240,58 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     * @param name Name of project
     * @return Owned project, if any, None otherwise
     */
-  def getProject(name: String)(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, Project] = this.projects.find(equalsIgnoreCase(_.name, name))
+  def getProject(name: String)(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, Project] =
+    this.projects.find(equalsIgnoreCase(_.name, name))
 
   /**
     * Returns a [[ModelAccess]] of [[ProjectRole]]s.
     *
     * @return ProjectRoles
     */
-  def projectRoles(implicit service: ModelService): ModelAccess[ProjectRole] = this.schema.getChildren[ProjectRole](classOf[ProjectRole], this)
+  def projectRoles(implicit service: ModelService): ModelAccess[ProjectRole] =
+    this.schema.getChildren[ProjectRole](classOf[ProjectRole], this)
 
   /**
     * Returns the [[Organization]]s that this User owns.
     *
     * @return Organizations user owns
     */
-  def ownedOrganizations(implicit service: ModelService): ModelAccess[Organization] = this.schema.getChildren[Organization](classOf[Organization], this)
+  def ownedOrganizations(implicit service: ModelService): ModelAccess[Organization] =
+    this.schema.getChildren[Organization](classOf[Organization], this)
 
   /**
     * Returns the [[Organization]]s that this User belongs to.
     *
     * @return Organizations user belongs to
     */
-  def organizations(implicit service: ModelService): ModelAssociationAccess[OrganizationMembersTable, Organization]
-  = this.schema.getAssociation[OrganizationMembersTable, Organization](classOf[OrganizationMembersTable], this)
+  def organizations(implicit service: ModelService): ModelAssociationAccess[OrganizationMembersTable, Organization] =
+    this.schema.getAssociation[OrganizationMembersTable, Organization](classOf[OrganizationMembersTable], this)
 
   /**
     * Returns a [[ModelAccess]] of [[OrganizationRole]]s.
     *
     * @return OrganizationRoles
     */
-  def organizationRoles(implicit service: ModelService): ModelAccess[OrganizationRole] = this.schema.getChildren[OrganizationRole](classOf[OrganizationRole], this)
+  def organizationRoles(implicit service: ModelService): ModelAccess[OrganizationRole] =
+    this.schema.getChildren[OrganizationRole](classOf[OrganizationRole], this)
 
   /**
     * Converts this User to an [[Organization]].
     *
     * @return Organization
     */
-  def toMaybeOrganization(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, Organization] = Defined {
-    OrganizationBase().get(this.id.value)
-  }
+  def toMaybeOrganization(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, Organization] =
+    Defined {
+      OrganizationBase().get(this.id.value)
+    }
 
   /**
     * Returns the [[Project]]s that this User is watching.
     *
     * @return Projects user is watching
     */
-  def watching(implicit service: ModelService): ModelAssociationAccess[ProjectWatchersTable, Project] = this.schema.getAssociation[ProjectWatchersTable, Project](classOf[ProjectWatchersTable], this)
+  def watching(implicit service: ModelService): ModelAssociationAccess[ProjectWatchersTable, Project] =
+    this.schema.getAssociation[ProjectWatchersTable, Project](classOf[ProjectWatchersTable], this)
 
   /**
     * Sets the "watching" status on the specified project.
@@ -271,12 +299,15 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     * @param project  Project to update status on
     * @param watching True if watching
     */
-  def setWatching(project: Project, watching: Boolean)(implicit ec: ExecutionContext, service: ModelService): Future[Unit] = {
+  def setWatching(
+      project: Project,
+      watching: Boolean
+  )(implicit ec: ExecutionContext, service: ModelService): Future[Unit] = {
     checkNotNull(project, "null project", "")
     checkArgument(project.isDefined, "undefined project", "")
     val contains = this.watching.contains(project)
     contains.map {
-      case true => if (!watching) this.watching.remove(project).as(())
+      case true  => if (!watching) this.watching.remove(project).as(())
       case false => if (watching) this.watching.add(project).as(())
     }
   }
@@ -306,7 +337,8 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return User notifications
     */
-  def notifications(implicit service: ModelService): ModelAccess[Notification] = this.schema.getChildren[Notification](classOf[Notification], this)
+  def notifications(implicit service: ModelService): ModelAccess[Notification] =
+    this.schema.getChildren[Notification](classOf[Notification], this)
 
   /**
     * Sends a [[Notification]] to this user.
@@ -314,7 +346,9 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     * @param notification Notification to send
     * @return Future result
     */
-  def sendNotification(notification: Notification)(implicit ec: ExecutionContext, service: ModelService, config: OreConfig): Future[Notification] = {
+  def sendNotification(
+      notification: Notification
+  )(implicit ec: ExecutionContext, service: ModelService, config: OreConfig): Future[Notification] = {
     checkNotNull(notification, "null notification", "")
     config.debug("Sending notification: " + notification, -1)
     service.access[Notification](classOf[Notification]).add(notification.copy(userId = this.id.value))
@@ -334,8 +368,8 @@ case class User(id: ObjectId = ObjectId.Uninitialized,
     )
   }
 
-  override val scope: GlobalScope.type = GlobalScope
-  override def userId: ObjectReference = this.id.value
+  override val scope: GlobalScope.type                                = GlobalScope
+  override def userId: ObjectReference                                = this.id.value
   override def copyWith(id: ObjectId, theTime: ObjectTimestamp): User = this.copy(createdAt = theTime)
 }
 
@@ -347,6 +381,6 @@ object User {
     * @param toConvert User to convert
     * @return Ore user
     */
-  def fromSponge(toConvert: SpongeUser)(implicit config: OreConfig): User =
+  def fromSponge(toConvert: SpongeUser): User =
     User().copyFromSponge(toConvert)
 }

@@ -1,14 +1,15 @@
 package models.user
 
-import db.{Model, ObjectId, ObjectReference, ObjectTimestamp}
-import db.impl.NotificationTable
-import ore.user.UserOwned
-import ore.user.notification.NotificationTypes.NotificationType
-import cats.instances.future._
-import cats.data.{NonEmptyList => NEL}
 import scala.concurrent.{ExecutionContext, Future}
 
 import db.impl.access.UserBase
+import db.impl.schema.NotificationTable
+import db.{Model, ObjectId, ObjectReference, ObjectTimestamp}
+import ore.user.UserOwned
+import ore.user.notification.NotificationTypes.NotificationType
+
+import cats.data.{NonEmptyList => NEL}
+import cats.instances.future._
 
 /**
   * Represents a [[User]] notification.
@@ -22,15 +23,17 @@ import db.impl.access.UserBase
   * @param action           Action to perform on click
   * @param isRead             True if notification has been read
   */
-case class Notification(id: ObjectId = ObjectId.Uninitialized,
-                        createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                        userId: ObjectReference,
-                        originId: ObjectReference,
-                        notificationType: NotificationType,
-                        messageArgs: NEL[String],
-                        action: Option[String] = None,
-                        isRead: Boolean = false)
-                        extends Model with UserOwned {
+case class Notification(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    userId: ObjectReference,
+    originId: ObjectReference,
+    notificationType: NotificationType,
+    messageArgs: NEL[String],
+    action: Option[String] = None,
+    isRead: Boolean = false
+) extends Model
+    with UserOwned {
 
   override type M = Notification
   override type T = NotificationTable

@@ -1,12 +1,12 @@
 package models.user.role
 
-import db.impl.ProjectRoleTable
+import scala.concurrent.{ExecutionContext, Future}
+
+import db.impl.schema.ProjectRoleTable
+import db.{ModelService, ObjectId, ObjectReference, ObjectTimestamp}
 import ore.Visitable
 import ore.permission.role.RoleType
 import ore.permission.scope.ProjectScope
-import scala.concurrent.{ExecutionContext, Future}
-
-import db.{ModelService, ObjectId, ObjectReference, ObjectTimestamp}
 
 /**
   * Represents a [[ore.project.ProjectMember]]'s role in a
@@ -19,19 +19,26 @@ import db.{ModelService, ObjectId, ObjectReference, ObjectTimestamp}
   * @param roleType   Type of role
   * @param projectId  ID of project this role belongs to
   */
-case class ProjectRole(id: ObjectId = ObjectId.Uninitialized,
-                       createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                       userId: ObjectReference,
-                       projectId: ObjectReference,
-                       roleType: RoleType,
-                       isAccepted: Boolean = false)
-                       extends RoleModel
-                         with ProjectScope {
+case class ProjectRole(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    userId: ObjectReference,
+    projectId: ObjectReference,
+    roleType: RoleType,
+    isAccepted: Boolean = false
+) extends RoleModel
+    with ProjectScope {
 
   override type M = ProjectRole
   override type T = ProjectRoleTable
 
-  def this(userId: ObjectReference, roleType: RoleType, projectId: ObjectReference, accepted: Boolean, visible: Boolean) = this(
+  def this(
+      userId: ObjectReference,
+      roleType: RoleType,
+      projectId: ObjectReference,
+      accepted: Boolean,
+      visible: Boolean
+  ) = this(
     id = ObjectId.Uninitialized,
     createdAt = ObjectTimestamp.Uninitialized,
     userId = userId,
@@ -41,5 +48,5 @@ case class ProjectRole(id: ObjectId = ObjectId.Uninitialized,
   )
 
   override def subject(implicit ec: ExecutionContext, service: ModelService): Future[Visitable] = this.project
-  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): ProjectRole = this.copy(id = id, createdAt = theTime)
+  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): ProjectRole                    = this.copy(id = id, createdAt = theTime)
 }

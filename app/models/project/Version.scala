@@ -3,29 +3,29 @@ package models.project
 import java.sql.Timestamp
 import java.time.Instant
 
-import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
-
-import db.{Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
-import db.access.ModelAccess
-import db.impl.OrePostgresDriver.api._
-import db.impl.model.common.{Describable, Downloadable, Hideable}
-import db.impl.schema.VersionSchema
-import db.impl.{ReviewTable, VersionTable}
-import models.admin.{Review, VersionVisibilityChange}
-import models.statistic.VersionDownload
-import models.user.User
-import ore.permission.scope.ProjectScope
-import ore.project.Dependency
-import play.twirl.api.Html
-import util.FileUtils
-import cats.instances.future._
-import cats.data.OptionT
-import cats.syntax.all._
 import scala.concurrent.{ExecutionContext, Future}
 
+import play.twirl.api.Html
+
+import db.access.ModelAccess
+import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase
+import db.impl.model.common.{Describable, Downloadable, Hideable}
+import db.impl.schema.{ReviewTable, VersionSchema, VersionTable}
+import db.{Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
+import models.admin.{Review, VersionVisibilityChange}
 import models.project.VisibilityTypes.Visibility
+import models.statistic.VersionDownload
+import models.user.User
 import ore.OreConfig
+import ore.permission.scope.ProjectScope
+import ore.project.Dependency
+import util.FileUtils
+
+import cats.data.OptionT
+import cats.instances.future._
+import cats.syntax.all._
+import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
 
 /**
   * Represents a single version of a Project.
@@ -40,38 +40,39 @@ import ore.OreConfig
   * @param projectId        ID of project this version belongs to
   * @param _channelId        ID of channel this version belongs to
   */
-case class Version(id: ObjectId = ObjectId.Uninitialized,
-                   createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                   projectId: ObjectReference,
-                   versionString: String,
-                   dependencyIds: List[String] = List(),
-                   assets: Option[String] = None,
-                   channelId: ObjectReference,
-                   fileSize: Long,
-                   hash: String,
-                   authorId: ObjectReference,
-                   description: Option[String] = None,
-                   downloadCount: Long = 0,
-                   isReviewed: Boolean = false,
-                   reviewerId: Option[ObjectReference] = None,
-                   approvedAt: Option[Timestamp] = None,
-                   tagIds: List[ObjectReference] = List(),
-                   visibility: Visibility = VisibilityTypes.Public,
-                   fileName: String,
-                   signatureFileName: String,
-                   isNonReviewed: Boolean = false)
-                   extends Model
-                     with ProjectScope
-                     with Describable
-                     with Downloadable
-                     with Hideable {
+case class Version(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    projectId: ObjectReference,
+    versionString: String,
+    dependencyIds: List[String] = List(),
+    assets: Option[String] = None,
+    channelId: ObjectReference,
+    fileSize: Long,
+    hash: String,
+    authorId: ObjectReference,
+    description: Option[String] = None,
+    downloadCount: Long = 0,
+    isReviewed: Boolean = false,
+    reviewerId: Option[ObjectReference] = None,
+    approvedAt: Option[Timestamp] = None,
+    tagIds: List[ObjectReference] = List(),
+    visibility: Visibility = VisibilityTypes.Public,
+    fileName: String,
+    signatureFileName: String,
+    isNonReviewed: Boolean = false
+) extends Model
+    with ProjectScope
+    with Describable
+    with Downloadable
+    with Hideable {
 
   //TODO: Check this in some way
   //checkArgument(description.exists(_.length <= Page.maxLength), "content too long", "")
 
-  override type M = Version
-  override type T = VersionTable
-  override type S = VersionSchema
+  override type M                     = Version
+  override type T                     = VersionTable
+  override type S                     = VersionSchema
   override type ModelVisibilityChange = VersionVisibilityChange
 
   /**
@@ -87,7 +88,10 @@ case class Version(id: ObjectId = ObjectId.Uninitialized,
     * @return Channel
     */
   def channel(implicit ec: ExecutionContext, service: ModelService): Future[Channel] =
-    service.access[Channel](classOf[Channel]).get(this.channelId).getOrElse(throw new NoSuchElementException("None of Option"))
+    service
+      .access[Channel](classOf[Channel])
+      .get(this.channelId)
+      .getOrElse(throw new NoSuchElementException("None of Option"))
 
   /**
     * Returns the channel this version belongs to from the specified collection
@@ -106,8 +110,8 @@ case class Version(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return Description in html
     */
-  def descriptionHtml(implicit config: OreConfig): Html
-  = this.description.map(str => Page.render(str)).getOrElse(Html(""))
+  def descriptionHtml(implicit config: OreConfig): Html =
+    this.description.map(str => Page.render(str)).getOrElse(Html(""))
 
   /**
     * Returns the base URL for this Version.
@@ -121,28 +125,27 @@ case class Version(id: ObjectId = ObjectId.Uninitialized,
   def reviewer(implicit ec: ExecutionContext, userBase: UserBase): OptionT[Future, User] =
     OptionT.fromOption[Future](this.reviewerId).flatMap(userBase.get)
 
-  def tags(implicit ec: ExecutionContext, service: ModelService): Future[List[Tag]] = {
-    service.access(classOf[Tag]).filter(_.id inSetBind tagIds).map { list =>
+  def tags(implicit ec: ExecutionContext, service: ModelService): Future[List[Tag]] =
+    service.access(classOf[Tag]).filter(_.id.inSetBind(tagIds)).map { list =>
       list.distinct.toList
     }
-  }
 
+  def isSpongePlugin(implicit ec: ExecutionContext, service: ModelService): Future[Boolean] =
+    tags.map(_.map(_.name).contains("Sponge"))
 
-  def isSpongePlugin(implicit ec: ExecutionContext, service: ModelService): Future[Boolean] = tags.map(_.map(_.name).contains("Sponge"))
-
-  def isForgeMod(implicit ec: ExecutionContext, service: ModelService): Future[Boolean] = tags.map(_.map(_.name).contains("Forge"))
+  def isForgeMod(implicit ec: ExecutionContext, service: ModelService): Future[Boolean] =
+    tags.map(_.map(_.name).contains("Forge"))
 
   /**
     * Returns this Versions plugin dependencies.
     *
     * @return Plugin dependencies
     */
-  def dependencies: List[Dependency] = {
+  def dependencies: List[Dependency] =
     for (depend <- this.dependencyIds) yield {
       val data = depend.split(":")
       Dependency(data(0), if (data.length > 1) data(1) else "")
     }
-  }
 
   /**
     * Returns true if this version has a dependency on the specified plugin ID.
@@ -162,19 +165,35 @@ case class Version(id: ObjectId = ObjectId.Uninitialized,
   override def visibilityChanges(implicit service: ModelService): ModelAccess[VersionVisibilityChange] =
     this.schema.getChildren[VersionVisibilityChange](classOf[VersionVisibilityChange], this)
 
-  override def setVisibility(visibility: Visibility, comment: String, creator: ObjectReference)(implicit ec: ExecutionContext, service: ModelService): Future[(Version, VersionVisibilityChange)] = {
-    val updateOldChange = lastVisibilityChange.semiflatMap { vc =>
-      service.update(
-        vc.copy(
-          resolvedAt = Some(Timestamp.from(Instant.now())),
-          resolvedBy = Some(creator)
+  override def setVisibility(visibility: Visibility, comment: String, creator: ObjectReference)(
+      implicit ec: ExecutionContext,
+      service: ModelService
+  ): Future[(Version, VersionVisibilityChange)] = {
+    val updateOldChange = lastVisibilityChange
+      .semiflatMap { vc =>
+        service.update(
+          vc.copy(
+            resolvedAt = Some(Timestamp.from(Instant.now())),
+            resolvedBy = Some(creator)
+          )
+        )
+      }
+      .cata((), _ => ())
+
+    val createNewChange = service
+      .access(classOf[VersionVisibilityChange])
+      .add(
+        VersionVisibilityChange(
+          ObjectId.Uninitialized,
+          ObjectTimestamp(Timestamp.from(Instant.now())),
+          Some(creator),
+          this.id.value,
+          comment,
+          None,
+          None,
+          visibility.id
         )
       )
-    }.cata((), _ => ())
-
-    val createNewChange = service.access(classOf[VersionVisibilityChange]).add(
-      VersionVisibilityChange(ObjectId.Uninitialized, ObjectTimestamp(Timestamp.from(Instant.now())), Some(creator), this.id.value, comment, None, None, visibility.id)
-    )
 
     val updateVersion = service.update(
       copy(
@@ -190,7 +209,8 @@ case class Version(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return Recorded downloads
     */
-  def downloadEntries(implicit service: ModelService): ModelAccess[VersionDownload] = this.schema.getChildren[VersionDownload](classOf[VersionDownload], this)
+  def downloadEntries(implicit service: ModelService): ModelAccess[VersionDownload] =
+    this.schema.getChildren[VersionDownload](classOf[VersionDownload], this)
 
   /**
     * Returns a human readable file size for this Version.
@@ -211,8 +231,8 @@ case class Version(id: ObjectId = ObjectId.Uninitialized,
     else {
       for {
         hashExists <- this.schema.hashExists(this.projectId, this.hash)
-        project <- this.project
-        pExists <- project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase)
+        project    <- this.project
+        pExists    <- project.versions.exists(_.versionString.toLowerCase === this.versionString.toLowerCase)
       } yield {
         hashExists && pExists
       }
@@ -221,13 +241,19 @@ case class Version(id: ObjectId = ObjectId.Uninitialized,
 
   override def copyWith(id: ObjectId, theTime: ObjectTimestamp): Version = this.copy(id = id, createdAt = theTime)
 
-  def byCreationDate(first: Review, second: Review): Boolean = first.createdAt.value.getTime < second.createdAt.value.getTime
-  def reviewEntries(implicit service: ModelService): ModelAccess[Review] = this.schema.getChildren[Review](classOf[Review], this)
-  def unfinishedReviews(implicit ec: ExecutionContext, service: ModelService): Future[Seq[Review]] = reviewEntries.all.map(_.toSeq.filter(_.endedAt.isEmpty).sortWith(byCreationDate))
-  def mostRecentUnfinishedReview(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, Review] = OptionT(unfinishedReviews.map(_.headOption))
-  def mostRecentReviews(implicit ec: ExecutionContext, service: ModelService): Future[Seq[Review]] = reviewEntries.toSeq.map(_.sortWith(byCreationDate))
-  def reviewById(id: ObjectReference)(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, Review] = reviewEntries.find(equalsLong[ReviewTable](_.id, id))
-  def equalsLong[T <: Table[_]](int1: T => Rep[Long], int2: Long): T => Rep[Boolean] = int1(_) === int2
+  def byCreationDate(first: Review, second: Review): Boolean =
+    first.createdAt.value.getTime < second.createdAt.value.getTime
+  def reviewEntries(implicit service: ModelService): ModelAccess[Review] =
+    this.schema.getChildren[Review](classOf[Review], this)
+  def unfinishedReviews(implicit ec: ExecutionContext, service: ModelService): Future[Seq[Review]] =
+    reviewEntries.all.map(_.toSeq.filter(_.endedAt.isEmpty).sortWith(byCreationDate))
+  def mostRecentUnfinishedReview(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, Review] =
+    OptionT(unfinishedReviews.map(_.headOption))
+  def mostRecentReviews(implicit ec: ExecutionContext, service: ModelService): Future[Seq[Review]] =
+    reviewEntries.toSeq.map(_.sortWith(byCreationDate))
+  def reviewById(id: ObjectReference)(implicit ec: ExecutionContext, service: ModelService): OptionT[Future, Review] =
+    reviewEntries.find(equalsLong[ReviewTable](_.id, id))
+  def equalsLong[A <: Table[_]](int1: A => Rep[Long], int2: Long): A => Rep[Boolean] = int1(_) === int2
 
 }
 
@@ -240,17 +266,17 @@ object Version {
     */
   case class Builder(service: ModelService) {
 
-    private var versionString: String = _
-    private var dependencyIds: List[String] = List()
-    private var description: String = _
-    private var projectId: ObjectReference = -1
-    private var authorId: ObjectReference = -1
-    private var fileSize: Long = -1
-    private var hash: String = _
-    private var fileName: String = _
-    private var signatureFileName: String = _
+    private var versionString: String         = _
+    private var dependencyIds: List[String]   = List()
+    private var description: String           = _
+    private var projectId: ObjectReference    = -1
+    private var authorId: ObjectReference     = -1
+    private var fileSize: Long                = -1
+    private var hash: String                  = _
+    private var fileName: String              = _
+    private var signatureFileName: String     = _
     private var tagIds: List[ObjectReference] = List()
-    private var visibility: Visibility = VisibilityTypes.Public
+    private var visibility: Visibility        = VisibilityTypes.Public
 
     def versionString(versionString: String): Builder = {
       this.versionString = versionString
@@ -321,7 +347,8 @@ object Version {
         tagIds = this.tagIds,
         visibility = visibility,
         signatureFileName = checkNotNull(this.signatureFileName, "signature file name null", ""),
-        channelId = -1L)
+        channelId = -1L
+      )
     }
 
   }

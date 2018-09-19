@@ -3,22 +3,22 @@ package db
 import java.sql.Timestamp
 import java.util.Date
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future, Promise}
+import scala.util.{Failure, Success, Try}
+
 import db.ModelFilter.IdFilter
 import db.access.ModelAccess
 import db.table.{MappedType, ModelTable}
+
+import cats.data.OptionT
+import cats.instances.future._
+import cats.syntax.all._
 import slick.ast.{AnonSymbol, Ref, SortBy}
 import slick.basic.DatabaseConfig
 import slick.jdbc.{JdbcProfile, JdbcType}
 import slick.lifted.{ColumnOrdered, WrappingQuery}
 import slick.util.ConstArray
-
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future, Promise}
-import scala.util.{Failure, Success, Try}
-
-import cats.data.OptionT
-import cats.instances.future._
-import cats.syntax.all._
 
 /**
   * Represents a service that creates, deletes, and manipulates Models.
@@ -82,8 +82,7 @@ trait ModelService {
     * @tparam M         Model type
     * @return           ModelSchema
     */
-  def getSchemaByModel[M <: Model](modelClass: Class[M]): ModelSchema[M]
-  = this.registry.getSchemaByModel(modelClass)
+  def getSchemaByModel[M <: Model](modelClass: Class[M]): ModelSchema[M] = this.registry.getSchemaByModel(modelClass)
 
   /**
     * Returns the specified [[ModelBase]].
@@ -101,8 +100,8 @@ trait ModelService {
     * @tparam M         Model type
     * @return           Base query for Model
     */
-  def newAction[M <: Model](modelClass: Class[_ <: M]): Query[M#T, M, Seq]
-  = this.registry.getSchemaByModel(modelClass).baseQuery.asInstanceOf[Query[M#T, M, Seq]]
+  def newAction[M <: Model](modelClass: Class[_ <: M]): Query[M#T, M, Seq] =
+    this.registry.getSchemaByModel(modelClass).baseQuery.asInstanceOf[Query[M#T, M, Seq]]
 
   /**
     * Runs the specified ModelAction on the DB and processes the resulting
@@ -111,7 +110,7 @@ trait ModelService {
     * @param action   Action to run
     * @return         Processed result
     */
-  def doAction[R](action: DBIO[R])(implicit ec: ExecutionContext): Future[R] = DB.db.run(action)
+  def doAction[R](action: DBIO[R]): Future[R] = DB.db.run(action)
 
   /**
     * Returns a new ModelAccess to access a ModelTable synchronously.
@@ -121,8 +120,8 @@ trait ModelService {
     * @tparam M         Model
     * @return           New ModelAccess
     */
-  def access[M <: Model](modelClass: Class[M], baseFilter: ModelFilter[M] = ModelFilter[M]())
-  = new ModelAccess[M](this, modelClass, baseFilter)
+  def access[M <: Model](modelClass: Class[M], baseFilter: ModelFilter[M] = ModelFilter[M]()) =
+    new ModelAccess[M](this, modelClass, baseFilter)
 
   /**
     * Creates the specified model in it's table.
@@ -130,11 +129,11 @@ trait ModelService {
     * @param model  Model to create
     * @return       Newly created model
     */
-  def insert[M <: Model](model: M)(implicit ec: ExecutionContext): Future[M] = {
+  def insert[M <: Model](model: M): Future[M] = {
     val toInsert = model.copyWith(ObjectId.Uninitialized, ObjectTimestamp(theTime)).asInstanceOf[M]
-    val models = newAction[M](model.getClass)
+    val models   = newAction[M](model.getClass)
     doAction {
-      models returning models.map(_.id) into {
+      models.returning(models.map(_.id)).into {
         case (m, id) => m.copyWith(ObjectId(id), m.createdAt).asInstanceOf[M]
       } += toInsert
     }
@@ -184,9 +183,11 @@ trait ModelService {
     * @param filter  Filter
     * @return        Optional result
     */
-  def find[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean])(implicit ec: ExecutionContext): OptionT[Future, M] = {
+  def find[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean])(
+      implicit ec: ExecutionContext
+  ): OptionT[Future, M] = {
     val modelPromise = Promise[Option[M]]
-    val query = newAction[M](modelClass).filter(filter).take(1)
+    val query        = newAction[M](modelClass).filter(filter).take(1)
     doAction(query.result).andThen {
       case Failure(thrown) => modelPromise.failure(thrown)
       case Success(result) => modelPromise.success(result.headOption)
@@ -210,8 +211,8 @@ trait ModelService {
     *
     * @param model Model to delete
     */
-  def delete[M <: Model](model: M): Future[Int]
-  = DB.db.run(newAction[M](model.getClass).filter(IdFilter[M](model.id.value).fn).delete)
+  def delete[M <: Model](model: M): Future[Int] =
+    DB.db.run(newAction[M](model.getClass).filter(IdFilter[M](model.id.value).fn).delete)
 
   /**
     * Deletes all the models meeting the specified filter.
@@ -220,8 +221,8 @@ trait ModelService {
     * @param filter     Filter to use
     * @tparam M         Model
     */
-  def deleteWhere[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean]): Future[Int]
-  = DB.db.run(newAction[M](modelClass).filter(filter).delete)
+  def deleteWhere[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean]): Future[Int] =
+    DB.db.run(newAction[M](modelClass).filter(filter).delete)
 
   /**
     * Returns the model with the specified ID, if any.
@@ -229,8 +230,9 @@ trait ModelService {
     * @param id   Model with ID
     * @return     Model if present, None otherwise
     */
-  def get[M <: Model](modelClass: Class[M], id: ObjectReference, filter: M#T => Rep[Boolean] = null)(implicit ec: ExecutionContext): OptionT[Future, M]
-  = find[M](modelClass, (IdFilter[M](id) && filter).fn)
+  def get[M <: Model](modelClass: Class[M], id: ObjectReference, filter: M#T => Rep[Boolean] = null)(
+      implicit ec: ExecutionContext
+  ): OptionT[Future, M] = find[M](modelClass, (IdFilter[M](id) && filter).fn)
 
   /**
     * Returns a sequence of Model's that have an ID in the specified Set.
@@ -241,8 +243,11 @@ trait ModelService {
     * @tparam M         Model type
     * @return           Seq of models in ID set
     */
-  def in[M <: Model](modelClass: Class[M], ids: Set[ObjectReference], filter: M#T => Rep[Boolean] = null)(implicit ec: ExecutionContext): Future[Seq[M]]
-  = this.filter[M](modelClass, (ModelFilter[M](_.id inSetBind ids) && filter).fn)
+  def in[M <: Model](
+      modelClass: Class[M],
+      ids: Set[ObjectReference],
+      filter: M#T => Rep[Boolean] = null
+  ): Future[Seq[M]] = this.filter[M](modelClass, (ModelFilter[M](_.id.inSetBind(ids)) && filter).fn)
 
   /**
     * Returns a collection of models with the specified limit and offset.
@@ -251,8 +256,13 @@ trait ModelService {
     * @param offset Offset to drop
     * @return       Collection of models
     */
-  def collect[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean] = null,
-                          sort: M#T => ColumnOrdered[_] = null, limit: Int = -1, offset: Int = -1)(implicit ec: ExecutionContext): Future[Seq[M]] = {
+  def collect[M <: Model](
+      modelClass: Class[M],
+      filter: M#T => Rep[Boolean] = null,
+      sort: M#T => ColumnOrdered[_] = null,
+      limit: Int = -1,
+      offset: Int = -1
+  ): Future[Seq[M]] = {
     var query = newAction[M](modelClass)
     if (filter != null) query = query.filter(filter)
     if (sort != null) query = query.sortBy(sort)
@@ -264,15 +274,22 @@ trait ModelService {
   /**
     * Same as collect but with multiple sorted columns
     */
-  def collectMultipleSorts[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean] = null,
-                          sort: M#T => List[ColumnOrdered[_]] = null, limit: Int = -1, offset: Int = -1)(implicit ec: ExecutionContext): Future[Seq[M]] = {
+  def collectMultipleSorts[M <: Model](
+      modelClass: Class[M],
+      filter: M#T => Rep[Boolean] = null,
+      sort: M#T => List[ColumnOrdered[_]] = null,
+      limit: Int = -1,
+      offset: Int = -1
+  ): Future[Seq[M]] = {
     var query = newAction[M](modelClass)
     if (filter != null) query = query.filter(filter)
-    if (sort != null)  {
+    if (sort != null) {
       val generator = new AnonSymbol
-      val aliased = query.shaped.encodeRef(Ref(generator))
-      val l = sort(aliased.value)
-      val c = ConstArray.from(l.foldLeft(l.head.columns) { (r, c) => r ++ c.columns })
+      val aliased   = query.shaped.encodeRef(Ref(generator))
+      val l         = sort(aliased.value)
+      val c = ConstArray.from(l.foldLeft(l.head.columns) { (r, c) =>
+        r ++ c.columns
+      })
       query = new WrappingQuery(SortBy(generator, query.toNode, c), query.shaped)
     }
     if (offset > -1) query = query.drop(offset)
@@ -289,9 +306,12 @@ trait ModelService {
     * @tparam M     Model
     * @return       Filtered models
     */
-  def filter[M <: Model](modelClass: Class[M], filter: M#T => Rep[Boolean], limit: Int = -1,
-                         offset: Int = -1)(implicit ec: ExecutionContext): Future[Seq[M]]
-  = collect(modelClass, filter, null.asInstanceOf[M#T => ColumnOrdered[_]], limit, offset)
+  def filter[M <: Model](
+      modelClass: Class[M],
+      filter: M#T => Rep[Boolean],
+      limit: Int = -1,
+      offset: Int = -1
+  ): Future[Seq[M]] = collect(modelClass, filter, null.asInstanceOf[M#T => ColumnOrdered[_]], limit, offset)
 
   /**
     * Sorts the models by the specified ColumnOrdered.
@@ -303,15 +323,23 @@ trait ModelService {
     * @tparam M         Model
     * @return           Sorted models
     */
-  def sorted[M <: Model](modelClass: Class[M], sort: M#T => ColumnOrdered[_], filter: M#T => Rep[Boolean] = null,
-                         limit: Int = -1, offset: Int = -1)(implicit ec: ExecutionContext): Future[Seq[M]]
-  = collect(modelClass, filter, sort, limit, offset)
+  def sorted[M <: Model](
+      modelClass: Class[M],
+      sort: M#T => ColumnOrdered[_],
+      filter: M#T => Rep[Boolean] = null,
+      limit: Int = -1,
+      offset: Int = -1
+  ): Future[Seq[M]] = collect(modelClass, filter, sort, limit, offset)
 
   /**
     * Same as sorted but with multiple sorts
     */
-  def sortedMultipleOrders[M <: Model](modelClass: Class[M], sorts: M#T => List[ColumnOrdered[_]], filter: M#T => Rep[Boolean] = null,
-                         limit: Int = -1, offset: Int = -1)(implicit ec: ExecutionContext): Future[Seq[M]]
-  = collectMultipleSorts(modelClass, filter, sorts, limit, offset)
+  def sortedMultipleOrders[M <: Model](
+      modelClass: Class[M],
+      sorts: M#T => List[ColumnOrdered[_]],
+      filter: M#T => Rep[Boolean] = null,
+      limit: Int = -1,
+      offset: Int = -1
+  ): Future[Seq[M]] = collectMultipleSorts(modelClass, filter, sorts, limit, offset)
 
 }

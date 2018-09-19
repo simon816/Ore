@@ -2,26 +2,23 @@
 The main entry point of Ore. This page displays a list of Projects that can be
 sorted according to different criteria.
 *@
+@import scala.util.Random
+
+@import play.api.Configuration
+
 @import controllers.sugar.Requests.OreRequest
-@import db.ModelService
 @import models.project.{Project, Tag, Version}
 @import models.user.User
 @import ore.Platforms.Platform
 @import ore.project.Categories._
 @import ore.project.ProjectSortingStrategies.{values, _}
 @import ore.project.{Categories, ProjectSortingStrategies}
-@import ore.{OreConfig, Platforms}
-@import play.api.Configuration
+@import ore.{OreConfig, PlatformCategory}
 @import security.NonceFilter._
 @import views.html.utils.alert
-
-@import scala.util.Random
-@import ore.PlatformCategory
 @(models: Seq[(Project, User, Version, Seq[Tag])], visibleCategories: Option[Seq[Category]], query: Option[String], page: Int,
         sort: ProjectSortingStrategy, platformCategory: Option[PlatformCategory], platform: Option[Platform])(implicit messages: Messages, flash: Flash,
         request: OreRequest[_], config: OreConfig)
-
-@projectRoutes = @{controllers.project.routes.Projects}
 
 @randomSponsor = @{
     val logos: Seq[Configuration] = config.sponge.get[Seq[Configuration]]("sponsors")

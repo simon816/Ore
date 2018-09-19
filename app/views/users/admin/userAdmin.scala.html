@@ -1,18 +1,16 @@
 @import controllers.sugar.Requests.OreRequest
-@import db.ModelService
 @import models.project.Project
-@import models.user.{Organization, User}
 @import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
+@import models.user.{Organization, User}
 @import models.viewhelper.{OrganizationData, UserData}
 @import ore.OreConfig
-@import ore.permission.role.{GlobalRole, RoleType}
+@import ore.permission.role.RoleType
 @(user: UserData, orga: Option[OrganizationData], userProjectRoles: Seq[(Project, ProjectRole)])(implicit messages: Messages, request: OreRequest[_], config: OreConfig)
 
 @prefix = @{"Edit " + (if(user.isOrga) "Organization" else "User") + ": "}
 
 @orgRoles = @{RoleType.values.filter(r => r.roleClass == classOf[OrganizationRole] && (r.isAssignable || r == RoleType.OrganizationOwner))}
 @projectRoles = @{RoleType.values.filter(r => r.roleClass == classOf[ProjectRole] && (r.isAssignable || r == RoleType.ProjectOwner))}
-@globalRoles = @{RoleType.values.filter(r => r.roleClass == classOf[GlobalRole] && r.isAssignable)}
 
 @panel(title: String, size: Int = 12)(content: Html) = {
     <div class="col-md-@size">

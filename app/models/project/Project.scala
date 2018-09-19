@@ -3,17 +3,24 @@ package models.project
 import java.sql.Timestamp
 import java.time.Instant
 
-import _root_.util.StringUtils
-import _root_.util.StringUtils._
-import cats.instances.future._
-import cats.syntax.all._
-import com.google.common.base.Preconditions._
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.i18n.Messages
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
+import play.twirl.api.Html
 
 import db.access.{ModelAccess, ModelAssociationAccess}
 import db.impl.OrePostgresDriver.api._
-import db.impl._
 import db.impl.model.common.{Describable, Downloadable, Hideable}
-import db.impl.schema.ProjectSchema
+import db.impl.schema.{
+  ProjectMembersTable,
+  ProjectRoleTable,
+  ProjectSchema,
+  ProjectStarsTable,
+  ProjectTable,
+  ProjectWatchersTable
+}
 import db.{Model, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
 import models.admin.{ProjectLog, ProjectVisibilityChange}
 import models.api.ProjectApiKey
@@ -28,15 +35,14 @@ import ore.project.FlagReasons.FlagReason
 import ore.project.{Categories, ProjectMember}
 import ore.user.MembershipDossier
 import ore.{Joinable, OreConfig, Visitable}
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
-import play.twirl.api.Html
+import _root_.util.StringUtils
+import _root_.util.StringUtils._
+
+import cats.instances.future._
+import cats.syntax.all._
+import com.google.common.base.Preconditions._
 import slick.lifted
 import slick.lifted.{Rep, TableQuery}
-import scala.concurrent.{ExecutionContext, Future}
-
-import db.impl.access.UserBase
-import play.api.i18n.Messages
 
 /**
   * Represents an Ore package.
@@ -61,66 +67,67 @@ import play.api.i18n.Messages
   * @param lastUpdated            Instant of last version release
   * @param notes                  JSON notes
   */
-case class Project(id: ObjectId = ObjectId.Uninitialized,
-                   createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-                   pluginId: String,
-                   ownerName: String,
-                   ownerId: ObjectReference,
-                   name: String,
-                   slug: String,
-                   recommendedVersionId: Option[ObjectReference] = None,
-                   category: Category = Categories.Undefined,
-                   description: Option[String] = None,
-                   starCount: Long = 0,
-                   viewCount: Long = 0,
-                   downloadCount: Long = 0,
-                   topicId: Option[Int] = None,
-                   postId: Option[Int] = None,
-                   isTopicDirty: Boolean = false,
-                   visibility: Visibility = Public,
-                   lastUpdated: Timestamp = null,
-                   notes: String = "")
-                   extends Model
-                     with ProjectScope
-                     with Downloadable
-                     with Named
-                     with Describable
-                     with Hideable
-                     with Joinable[ProjectMember, Project]
-                  with Visitable {
+case class Project(
+    id: ObjectId = ObjectId.Uninitialized,
+    createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
+    pluginId: String,
+    ownerName: String,
+    ownerId: ObjectReference,
+    name: String,
+    slug: String,
+    recommendedVersionId: Option[ObjectReference] = None,
+    category: Category = Categories.Undefined,
+    description: Option[String] = None,
+    starCount: Long = 0,
+    viewCount: Long = 0,
+    downloadCount: Long = 0,
+    topicId: Option[Int] = None,
+    postId: Option[Int] = None,
+    isTopicDirty: Boolean = false,
+    visibility: Visibility = Public,
+    lastUpdated: Timestamp = null,
+    notes: String = ""
+) extends Model
+    with ProjectScope
+    with Downloadable
+    with Named
+    with Describable
+    with Hideable
+    with Joinable[ProjectMember, Project]
+    with Visitable {
 
-  override type M = Project
-  override type T = ProjectTable
-  override type S = ProjectSchema
+  override type M                     = Project
+  override type T                     = ProjectTable
+  override type S                     = ProjectSchema
   override type ModelVisibilityChange = ProjectVisibilityChange
 
   /**
     * Contains all information for [[User]] memberships.
     */
   override def memberships(implicit service: ModelService): MembershipDossier {
-  type MembersTable = ProjectMembersTable
+    type MembersTable = ProjectMembersTable
 
-  type MemberType = ProjectMember
+    type MemberType = ProjectMember
 
-  type RoleTable = ProjectRoleTable
-
-  type ModelType = Project
-
-  type RoleType = ProjectRole
-} = new MembershipDossier {
+    type RoleTable = ProjectRoleTable
 
     type ModelType = Project
+
     type RoleType = ProjectRole
-    type RoleTable = ProjectRoleTable
-    type MemberType = ProjectMember
+  } = new MembershipDossier {
+
+    type ModelType    = Project
+    type RoleType     = ProjectRole
+    type RoleTable    = ProjectRoleTable
+    type MemberType   = ProjectMember
     type MembersTable = ProjectMembersTable
 
     val membersTableClass: Class[MembersTable] = classOf[ProjectMembersTable]
-    val roleClass: Class[RoleType] = classOf[ProjectRole]
-    val model: ModelType = Project.this
+    val roleClass: Class[RoleType]             = classOf[ProjectRole]
+    val model: ModelType                       = Project.this
 
-    def newMember(userId: ObjectReference)(implicit ec: ExecutionContext): MemberType = new ProjectMember(this.model, userId)
-
+    def newMember(userId: ObjectReference)(implicit ec: ExecutionContext): MemberType =
+      new ProjectMember(this.model, userId)
 
     /**
       * Returns the highest level of [[ore.permission.role.Trust]] this user has.
@@ -128,12 +135,15 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
       * @param user User to get trust of
       * @return Trust of user
       */
-    override def getTrust(user: User)(implicit ex: ExecutionContext): Future[Trust] = {
-      service.DB.db.run(Project.roleForTrustQuery(id.value, user.id.value).result)
+    override def getTrust(user: User)(implicit ex: ExecutionContext): Future[Trust] =
+      service.DB.db
+        .run(Project.roleForTrustQuery((id.value, user.id.value)).result)
         .map(l => if (l.isEmpty) Default else l.map(_.trust).max)
-    }
 
-    def clearRoles(user: User): Future[Int] = this.roleAccess.removeAll({ s => (s.userId === user.id.value) && (s.projectId === id.value) })
+    def clearRoles(user: User): Future[Int] =
+      this.roleAccess.removeAll({ s =>
+        (s.userId === user.id.value) && (s.projectId === id.value)
+      })
 
   }
 
@@ -150,16 +160,18 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     */
   override def owner(implicit service: ModelService): ProjectMember = new ProjectMember(this, this.ownerId)
 
-  override def transferOwner(member: ProjectMember)(implicit ex: ExecutionContext, service: ModelService): Future[Project] = {
+  override def transferOwner(
+      member: ProjectMember
+  )(implicit ex: ExecutionContext, service: ModelService): Future[Project] = {
     // Down-grade current owner to "Developer"
     for {
-      (owner, user) <- this.owner.user.zip(member.user)
+      (owner, user)           <- this.owner.user.zip(member.user)
       (ownerRoles, userRoles) <- this.memberships.getRoles(owner).zip(this.memberships.getRoles(user))
-      setOwner <- this.setOwner(user)
+      setOwner                <- this.setOwner(user)
       _ <- Future.sequence(
         ownerRoles
           .filter(_.roleType == RoleType.ProjectOwner)
-          .map(role => service.update(role.copy(roleType =  RoleType.ProjectDeveloper)))
+          .map(role => service.update(role.copy(roleType = RoleType.ProjectDeveloper)))
       )
       _ <- Future.sequence(
         userRoles.map(role => service.update(role.copy(roleType = RoleType.ProjectOwner)))
@@ -188,7 +200,8 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return Users watching project
     */
-  def watchers(implicit service: ModelService): ModelAssociationAccess[ProjectWatchersTable, User] = this.schema.getAssociation[ProjectWatchersTable, User](classOf[ProjectWatchersTable], this)
+  def watchers(implicit service: ModelService): ModelAssociationAccess[ProjectWatchersTable, User] =
+    this.schema.getAssociation[ProjectWatchersTable, User](classOf[ProjectWatchersTable], this)
 
   def namespace: String = this.ownerName + '/' + this.slug
 
@@ -204,8 +217,11 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return Project settings
     */
-  def settings(implicit ec: ExecutionContext, service: ModelService): Future[ProjectSettings]
-  = service.access[ProjectSettings](classOf[ProjectSettings]).find(_.projectId === this.id.value).getOrElse(throw new NoSuchElementException("Get on None"))
+  def settings(implicit ec: ExecutionContext, service: ModelService): Future[ProjectSettings] =
+    service
+      .access[ProjectSettings](classOf[ProjectSettings])
+      .find(_.projectId === this.id.value)
+      .getOrElse(throw new NoSuchElementException("Get on None"))
 
   /**
     * Sets this [[Project]]'s [[ProjectSettings]].
@@ -213,10 +229,12 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     * @param settings Project settings
     * @return         Newly created settings instance
     */
-  def updateSettings(settings: ProjectSettings)(implicit ec: ExecutionContext, service: ModelService): Future[ProjectSettings] = Defined {
+  def updateSettings(
+      settings: ProjectSettings
+  )(implicit ec: ExecutionContext, service: ModelService): Future[ProjectSettings] = Defined {
     checkNotNull(settings, "null settings", "")
     val newSettings = settings.copy(projectId = this.id.value)
-    if(settings.isDefined) service.update(newSettings)
+    if (settings.isDefined) service.update(newSettings)
     else service.insert(newSettings)
   }
 
@@ -226,19 +244,34 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     * @param visibility True if visible
     */
   def setVisibility(visibility: Visibility, comment: String, creator: ObjectReference)(
-      implicit ec: ExecutionContext, service: ModelService): Future[(Project, ProjectVisibilityChange)] = {
-    val updateOldChange = lastVisibilityChange.semiflatMap { vc =>
-      service.update(
-        vc.copy(
-          resolvedAt = Some(Timestamp.from(Instant.now())),
-          resolvedBy = Some(creator)
+      implicit ec: ExecutionContext,
+      service: ModelService
+  ): Future[(Project, ProjectVisibilityChange)] = {
+    val updateOldChange = lastVisibilityChange
+      .semiflatMap { vc =>
+        service.update(
+          vc.copy(
+            resolvedAt = Some(Timestamp.from(Instant.now())),
+            resolvedBy = Some(creator)
+          )
+        )
+      }
+      .cata((), _ => ())
+
+    val createNewChange = service
+      .access(classOf[ProjectVisibilityChange])
+      .add(
+        ProjectVisibilityChange(
+          ObjectId.Uninitialized,
+          ObjectTimestamp(Timestamp.from(Instant.now())),
+          Some(creator),
+          this.id.value,
+          comment,
+          None,
+          None,
+          visibility.id
         )
       )
-    }.cata((), _ => ())
-
-    val createNewChange = service.access(classOf[ProjectVisibilityChange]).add(
-      ProjectVisibilityChange(ObjectId.Uninitialized, ObjectTimestamp(Timestamp.from(Instant.now())), Some(creator), this.id.value, comment, None, None, visibility.id)
-    )
 
     val updateProject = service.update(
       copy(
@@ -261,7 +294,8 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return Users who have starred this project
     */
-  def stars(implicit service: ModelService): ModelAssociationAccess[ProjectStarsTable, User] = Defined(this.schema.getAssociation[ProjectStarsTable, User](classOf[ProjectStarsTable], this))
+  def stars(implicit service: ModelService): ModelAssociationAccess[ProjectStarsTable, User] =
+    Defined(this.schema.getAssociation[ProjectStarsTable, User](classOf[ProjectStarsTable], this))
 
   /**
     * Sets the "starred" state of this Project for the specified User.
@@ -269,7 +303,10 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     * @param user User to set starred state of
     * @param starred True if should star
     */
-  def setStarredBy(user: User, starred: Boolean)(implicit ec: ExecutionContext, service: ModelService): Future[Project]  = Defined {
+  def setStarredBy(
+      user: User,
+      starred: Boolean
+  )(implicit ec: ExecutionContext, service: ModelService): Future[Project] = Defined {
     checkNotNull(user, "null user", "")
     checkArgument(user.isDefined, "undefined user", "")
     for {
@@ -289,23 +326,22 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return Unique project views
     */
-  def views(implicit service: ModelService): ModelAccess[ProjectView] = this.schema.getChildren[ProjectView](classOf[ProjectView], this)
+  def views(implicit service: ModelService): ModelAccess[ProjectView] =
+    this.schema.getChildren[ProjectView](classOf[ProjectView], this)
 
   /**
     * Adds a view to this Project.
     */
-  def addView(implicit ec: ExecutionContext, service: ModelService): Future[Project] = {
+  def addView(implicit ec: ExecutionContext, service: ModelService): Future[Project] =
     service.update(copy(viewCount = viewCount + 1))
-  }
 
   /**
     * Increments this Project's downloadc count by one.
     *
     * @return Future result
     */
-  def addDownload(implicit ec: ExecutionContext, service: ModelService): Future[Project] = {
+  def addDownload(implicit ec: ExecutionContext, service: ModelService): Future[Project] =
     service.update(copy(downloadCount = downloadCount + 1))
-  }
 
   /**
     * Returns all flags on this project.
@@ -320,7 +356,10 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     * @param user   Flagger
     * @param reason Reason for flagging
     */
-  def flagFor(user: User, reason: FlagReason, comment: String)(implicit ec: ExecutionContext, service: ModelService): Future[Flag] = Defined {
+  def flagFor(user: User, reason: FlagReason, comment: String)(
+      implicit ec: ExecutionContext,
+      service: ModelService
+  ): Future[Flag] = Defined {
     checkNotNull(user, "null user", "")
     checkNotNull(reason, "null reason", "")
     checkArgument(user.isDefined, "undefined user", "")
@@ -334,14 +373,16 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return Channels in project
     */
-  def channels(implicit service: ModelService): ModelAccess[Channel] = this.schema.getChildren[Channel](classOf[Channel], this)
+  def channels(implicit service: ModelService): ModelAccess[Channel] =
+    this.schema.getChildren[Channel](classOf[Channel], this)
 
   /**
     * Returns all versions in this project.
     *
     * @return Versions in project
     */
-  def versions(implicit service: ModelService): ModelAccess[Version] = this.schema.getChildren[Version](classOf[Version], this)
+  def versions(implicit service: ModelService): ModelAccess[Version] =
+    this.schema.getChildren[Version](classOf[Version], this)
 
   /**
     * Returns this Project's recommended version.
@@ -350,8 +391,15 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     */
   def recommendedVersion(implicit ec: ExecutionContext, service: ModelService): Future[Version] =
     this.versions
-      .get(this.recommendedVersionId.getOrElse(throw new NoSuchElementException(s"Tried to get non-existant recommended version for $name")))
-      .getOrElse(throw new NoSuchElementException(s"Tried to get non-existant recommended version for $name and id ${recommendedVersionId.get}"))
+      .get(
+        this.recommendedVersionId
+          .getOrElse(throw new NoSuchElementException(s"Tried to get non-existant recommended version for $name"))
+      )
+      .getOrElse(
+        throw new NoSuchElementException(
+          s"Tried to get non-existant recommended version for $name and id ${recommendedVersionId.get}"
+        )
+      )
 
   /**
     * Returns the pages in this Project.
@@ -376,7 +424,8 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     * @param name   Page name
     * @return       True if exists
     */
-  def pageExists(name: String)(implicit ec: ExecutionContext, service: ModelService): Future[Boolean] = this.pages.exists(_.name === name)
+  def pageExists(name: String)(implicit ec: ExecutionContext, service: ModelService): Future[Boolean] =
+    this.pages.exists(_.name === name)
 
   /**
     * Returns the specified Page or creates it if it doesn't exist.
@@ -384,7 +433,11 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     * @param name   Page name
     * @return       Page with name or new name if it doesn't exist
     */
-  def getOrCreatePage(name: String, parentId: Option[ObjectReference], content: Option[String] = None)(implicit ec: ExecutionContext, config: OreConfig, service: ModelService): Future[Page] = Defined {
+  def getOrCreatePage(
+      name: String,
+      parentId: Option[ObjectReference],
+      content: Option[String] = None
+  )(implicit ec: ExecutionContext, config: OreConfig, service: ModelService): Future[Page] = Defined {
     checkNotNull(name, "null name", "")
     val c = content match {
       case None => Page.template(name, Page.homeMessage)
@@ -402,34 +455,38 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     *
     * @return Root pages of project
     */
-  def rootPages(implicit ec: ExecutionContext, service: ModelService): Future[Seq[Page]] = {
+  def rootPages(implicit service: ModelService): Future[Seq[Page]] =
     service.access[Page](classOf[Page]).sorted(_.name, p => p.projectId === this.id.value && p.parentId === -1L)
-  }
 
   def logger(implicit ec: ExecutionContext, service: ModelService): Future[ProjectLog] = {
     val loggers = service.access[ProjectLog](classOf[ProjectLog])
     loggers.find(_.projectId === this.id.value).getOrElseF(loggers.add(ProjectLog(projectId = this.id.value)))
   }
 
-  def apiKeys(implicit service: ModelService): ModelAccess[ProjectApiKey] = this.schema.getChildren[ProjectApiKey](classOf[ProjectApiKey], this)
+  def apiKeys(implicit service: ModelService): ModelAccess[ProjectApiKey] =
+    this.schema.getChildren[ProjectApiKey](classOf[ProjectApiKey], this)
 
   override def projectId: ObjectReference = this.id.value
-  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): Project
-  = this.copy(id = id, createdAt = theTime, lastUpdated = theTime.value)
+  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): Project =
+    this.copy(id = id, createdAt = theTime, lastUpdated = theTime.value)
 
   /**
     * Add new note
     */
   def addNote(message: Note)(implicit ec: ExecutionContext, service: ModelService): Future[Project] = {
     val messages = decodeNotes :+ message
-    val js = Json.toJson(messages)
-    service.update(copy(
-      notes = Json.stringify(
-        JsObject(Seq(
-          "messages" -> js
-        ))
+    val js       = Json.toJson(messages)
+    service.update(
+      copy(
+        notes = Json.stringify(
+          JsObject(
+            Seq(
+              "messages" -> js
+            )
+          )
+        )
       )
-    ))
+    )
   }
 
   /**
@@ -437,7 +494,7 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
     * @return
     */
   def decodeNotes: Seq[Note] = {
-    if (this.notes.startsWith("{")  && notes.endsWith("}")) {
+    if (this.notes.startsWith("{") && notes.endsWith("}")) {
       val messages: JsValue = Json.parse(notes)
       (messages \ "messages").as[Seq[Note]]
     } else {
@@ -451,27 +508,28 @@ case class Project(id: ObjectId = ObjectId.Uninitialized,
   */
 case class Note(message: String, user: ObjectReference, time: Long = System.currentTimeMillis()) {
   def printTime(implicit oreConfig: Messages): String = StringUtils.prettifyDateAndTime(new Timestamp(time))
-  def render(implicit oreConfig: OreConfig): Html = Page.render(message)
+  def render(implicit oreConfig: OreConfig): Html     = Page.render(message)
 }
 object Note {
-  implicit val noteWrites: Writes[Note] = (note: Note) => Json.obj(
-    "message" -> note.message,
-    "user" -> note.user,
-    "time" -> note.time
+  implicit val noteWrites: Writes[Note] = (note: Note) =>
+    Json.obj(
+      "message" -> note.message,
+      "user"    -> note.user,
+      "time"    -> note.time
   )
 
-  implicit val notesRead: Reads[Note] = (
-    (JsPath \ "message").read[String] and
-      (JsPath \ "user").read[ObjectReference] and
-      (JsPath \ "time").read[Long]
-    ) (Note.apply _)
+  implicit val notesRead: Reads[Note] =
+    (JsPath \ "message")
+      .read[String]
+      .and((JsPath \ "user").read[ObjectReference])
+      .and((JsPath \ "time").read[Long])(Note.apply _)
 }
 
 object Project {
 
   private def queryRoleForTrust(projectId: Rep[ObjectReference], userId: Rep[ObjectReference]) = {
     val memberTable = TableQuery[ProjectMembersTable]
-    val roleTable = TableQuery[ProjectRoleTable]
+    val roleTable   = TableQuery[ProjectRoleTable]
 
     val q = for {
       m <- memberTable if m.projectId === projectId && m.userId === userId
@@ -489,11 +547,11 @@ object Project {
     */
   case class Builder(service: ModelService) {
 
-    private var pluginId: String = _
-    private var ownerName: String = _
+    private var pluginId: String         = _
+    private var ownerName: String        = _
     private var ownerId: ObjectReference = -1
-    private var name: String = _
-    private var visibility: Visibility = _
+    private var name: String             = _
+    private var visibility: Visibility   = _
 
     def pluginId(pluginId: String): Builder = {
       this.pluginId = pluginId

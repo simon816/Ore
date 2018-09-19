@@ -1,12 +1,10 @@
 package controllers.sugar
 
-import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
-
 import play.api.data.{Form, FormError}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Call, Flash, Result}
 
-import cats.data.{NonEmptyList => NEL}
+import com.google.common.base.Preconditions.{checkArgument, checkNotNull}
 
 /**
   * A helper class for some common functions of controllers.
@@ -53,9 +51,9 @@ trait ActionHelpers {
     def withAlerts(tpe: String, alerts: List[String]): Result = alerts match {
       case Nil           => result
       case single :: Nil => withAlert(tpe, single)
-      case multiple      =>
-        val numPart = s"$tpe-num" -> multiple.size.toString
-        val newValues = (numPart :: multiple.zipWithIndex.map { case (e, i) => s"$tpe-$i" -> e }).toList
+      case multiple =>
+        val numPart   = s"$tpe-num" -> multiple.size.toString
+        val newValues = numPart :: multiple.zipWithIndex.map { case (e, i) => s"$tpe-$i" -> e }
 
         val flash = result.newFlash.fold(Flash(newValues.toMap))(f => Flash(f.data ++ newValues))
 

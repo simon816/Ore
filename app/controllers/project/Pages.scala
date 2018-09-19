@@ -1,43 +1,40 @@
 package controllers.project
 
 import java.nio.charset.StandardCharsets
+import javax.inject.Inject
+
+import scala.concurrent.{ExecutionContext, Future}
+
+import play.api.cache.AsyncCacheApi
+import play.api.mvc.{Action, AnyContent}
+import play.utils.UriEncoding
 
 import controllers.OreBaseController
 import controllers.sugar.{Bakery, Requests}
+import db.ModelService
 import db.impl.OrePostgresDriver.api._
-import db.{ModelFilter, ModelService, ObjectReference}
+import db.impl.schema.PageTable
 import form.OreForms
-import javax.inject.Inject
-
 import models.project.{Page, Project}
 import models.user.{LoggedAction, UserActionLogger}
 import ore.permission.EditPages
 import ore.{OreConfig, OreEnv, StatTracker}
-import play.api.cache.AsyncCacheApi
-import play.api.i18n.MessagesApi
 import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
 import util.StringUtils._
 import views.html.projects.{pages => views}
+
+import cats.data.OptionT
 import cats.instances.future._
 import cats.syntax.all._
-import cats.data.OptionT
-
-import db.impl.PageTable
-import scala.concurrent.{ExecutionContext, Future}
-
-import play.api.mvc.{Action, AnyContent}
-import play.utils.UriEncoding
 
 /**
   * Controller for handling Page related actions.
   */
-class Pages @Inject()(forms: OreForms,
-                      stats: StatTracker)(
+class Pages @Inject()(forms: OreForms, stats: StatTracker)(
     implicit val ec: ExecutionContext,
     bakery: Bakery,
     cache: AsyncCacheApi,
     sso: SingleSignOnConsumer,
-    messagesApi: MessagesApi,
     env: OreEnv,
     config: OreConfig,
     service: ModelService,
@@ -46,14 +43,15 @@ class Pages @Inject()(forms: OreForms,
 
   private val self = controllers.project.routes.Pages
 
-  private def PageEditAction(author: String, slug: String)
-  = AuthedProjectAction(author, slug, requireUnlock = true) andThen ProjectPermissionAction(EditPages)
+  private def PageEditAction(author: String, slug: String) =
+    AuthedProjectAction(author, slug, requireUnlock = true).andThen(ProjectPermissionAction(EditPages))
 
   private val childPageQuery = {
     def childPageQueryFunction(parentSlug: Rep[String], childSlug: Rep[String]) = {
-      val q = TableQuery[PageTable]
+      val q           = TableQuery[PageTable]
       val parentPages = q.filter(_.slug.toLowerCase === parentSlug.toLowerCase).map(_.id)
-      val childPage = q.filter(page => (page.parentId in parentPages) && page.slug.toLowerCase === childSlug.toLowerCase)
+      val childPage =
+        q.filter(page => (page.parentId in parentPages) && page.slug.toLowerCase === childSlug.toLowerCase)
       childPage.take(1)
     }
 
@@ -74,8 +72,10 @@ class Pages @Inject()(forms: OreForms,
     if (parts.length == 2) {
       OptionT(service.DB.db.run(childPageQuery((parts(0), parts(1))).result).map(_.headOption)).map(_ -> false)
     } else {
-      project.pages.find(p => p.slug.toLowerCase === parts(0).toLowerCase && p.parentId === -1L).map(_ -> false)
-          .orElse(project.pages.find(_.slug.toLowerCase === parts(0).toLowerCase).map(_ -> true))
+      project.pages
+        .find(p => p.slug.toLowerCase === parts(0).toLowerCase && p.parentId === -1L)
+        .map(_ -> false)
+        .orElse(project.pages.find(_.slug.toLowerCase === parts(0).toLowerCase).map(_ -> true))
     }
   }
 
@@ -87,20 +87,24 @@ class Pages @Inject()(forms: OreForms,
     * @param page   Page name
     * @return View of page
     */
-  def show(author: String, slug: String, page: String): Action[AnyContent] = ProjectAction(author, slug).async { request =>
-    val data = request.data
-    implicit val r: Requests.OreRequest[AnyContent] = request.request
+  def show(author: String, slug: String, page: String): Action[AnyContent] = ProjectAction(author, slug).async {
+    request =>
+      val data                                        = request.data
+      implicit val r: Requests.OreRequest[AnyContent] = request.request
 
-    withPage(data.project, page).semiflatMap {
-      case (p, b) =>
-        projects.queryProjectPages(data.project).flatMap { pages =>
-          val pageCount = pages.size + pages.map(_._2.size).sum
-          val parentPage =
-            if (pages.map(_._1).contains(p)) None
-            else pages.collectFirst { case (pp, subPage) if subPage.contains(p) => pp }
-          this.stats.projectViewed(request)(_ => Ok(views.view(data, request.scoped, pages, p, parentPage, pageCount, b)))
+      withPage(data.project, page)
+        .semiflatMap {
+          case (p, b) =>
+            projects.queryProjectPages(data.project).flatMap { pages =>
+              val pageCount = pages.size + pages.map(_._2.size).sum
+              val parentPage =
+                if (pages.map(_._1).contains(p)) None
+                else pages.collectFirst { case (pp, subPage) if subPage.contains(p) => pp }
+              this.stats
+                .projectViewed(request)(_ => Ok(views.view(data, request.scoped, pages, p, parentPage, pageCount, b)))
+            }
         }
-    }.getOrElse(notFound)
+        .getOrElse(notFound)
   }
 
   /**
@@ -112,26 +116,30 @@ class Pages @Inject()(forms: OreForms,
     * @param pageName   Page name
     * @return Page editor
     */
-  def showEditor(author: String, slug: String, pageName: String): Action[AnyContent] = PageEditAction(author, slug)
-    .async { request =>
-    implicit val r: Requests.AuthRequest[AnyContent] = request.request
-    val data = request.data
-    val parts = pageName.split("/")
+  def showEditor(author: String, slug: String, pageName: String): Action[AnyContent] =
+    PageEditAction(author, slug)
+      .async { request =>
+        implicit val r: Requests.AuthRequest[AnyContent] = request.request
+        val data                                         = request.data
+        val parts                                        = pageName.split("/")
 
-    for {
-      (name, parentId) <- if (parts.size != 2) Future.successful((parts(0), None)) else {
-        data.project.pages.find(equalsIgnoreCase(_.slug, parts(0))).map(_.id.value).value.map((parts(1), _))
+        for {
+          (name, parentId) <- if (parts.size != 2) Future.successful((parts(0), None))
+          else {
+            data.project.pages.find(equalsIgnoreCase(_.slug, parts(0))).map(_.id.value).value.map((parts(1), _))
+          }
+          (p, pages) <- (
+            data.project.pages
+              .find(equalsIgnoreCase(_.slug, name))
+              .getOrElseF(data.project.getOrCreatePage(name, parentId)),
+            projects.queryProjectPages(data.project)
+          ).tupled
+        } yield {
+          val pageCount  = pages.size + pages.map(_._2.size).sum
+          val parentPage = pages.collectFirst { case (pp, page) if page.contains(p) => pp }
+          Ok(views.view(data, request.scoped, pages, p, parentPage, pageCount, editorOpen = true))
+        }
       }
-      (p, pages) <- (
-        data.project.pages.find(equalsIgnoreCase(_.slug, name)).getOrElseF(data.project.getOrCreatePage(name, parentId)),
-        projects.queryProjectPages(data.project)
-      ).tupled
-    } yield {
-      val pageCount = pages.size + pages.map(_._2.size).sum
-      val parentPage = pages.collectFirst { case (pp, page) if page.contains(p) => pp }
-      Ok(views.view(data, request.scoped, pages, p, parentPage, pageCount, editorOpen = true))
-    }
-  }
 
   /**
     * Renders the submitted page content and returns the result.
@@ -150,45 +158,59 @@ class Pages @Inject()(forms: OreForms,
     * @param page   Page name
     * @return Project home
     */
-  def save(author: String, slug: String, page: String): Action[AnyContent] = PageEditAction(author, slug).async { implicit request =>
-    this.forms.PageEdit.bindFromRequest().fold(
-      hasErrors =>
-        Future.successful(Redirect(self.show(author, slug, page)).withFormErrors(hasErrors.errors)),
-      pageData => {
-        val data = request.data
-        val parentId = pageData.parentId
-        //noinspection ComparingUnrelatedTypes
-        data.project.rootPages.flatMap { rootPages =>
-          if (parentId.isDefined && !rootPages.filterNot(_.name.equals(Page.homeName)).exists(p => parentId.contains(p.id.value))) {
-            Future.successful(BadRequest("Invalid parent ID."))
-          } else {
-            val content = pageData.content
-            if (page.equals(Page.homeName) && (content.isEmpty || content.get.length < Page.minLength)) {
-              Future.successful(Redirect(self.show(author, slug, page)).withError("error.minLength"))
-            } else {
-              val parts = page.split("/")
+  def save(author: String, slug: String, page: String): Action[AnyContent] = PageEditAction(author, slug).async {
+    implicit request =>
+      this.forms.PageEdit
+        .bindFromRequest()
+        .fold(
+          hasErrors => Future.successful(Redirect(self.show(author, slug, page)).withFormErrors(hasErrors.errors)),
+          pageData => {
+            val data     = request.data
+            val parentId = pageData.parentId
+            //noinspection ComparingUnrelatedTypes
+            data.project.rootPages.flatMap {
+              rootPages =>
+                if (parentId.isDefined && !rootPages
+                      .filterNot(_.name.equals(Page.homeName))
+                      .exists(p => parentId.contains(p.id.value))) {
+                  Future.successful(BadRequest("Invalid parent ID."))
+                } else {
+                  val content = pageData.content
+                  if (page.equals(Page.homeName) && (content.isEmpty || content.get.length < Page.minLength)) {
+                    Future.successful(Redirect(self.show(author, slug, page)).withError("error.minLength"))
+                  } else {
+                    val parts = page.split("/")
 
-              val created = if (parts.size == 2) {
-                data.project.pages.find(equalsIgnoreCase(_.slug, parts(0))).map(_.id.value).value.flatMap { parentId =>
-                  val pageName = pageData.name.getOrElse(parts(1))
-                  data.project.getOrCreatePage(pageName, parentId, pageData.content)
+                    val created = if (parts.size == 2) {
+                      data.project.pages.find(equalsIgnoreCase(_.slug, parts(0))).map(_.id.value).value.flatMap {
+                        parentId =>
+                          val pageName = pageData.name.getOrElse(parts(1))
+                          data.project.getOrCreatePage(pageName, parentId, pageData.content)
+                      }
+                    } else {
+                      val pageName = pageData.name.getOrElse(parts(0))
+                      data.project.getOrCreatePage(pageName, parentId, pageData.content)
+                    }
+                    created
+                      .flatMap { createdPage =>
+                        pageData.content.fold(Future.successful(createdPage)) { newPage =>
+                          val oldPage = createdPage.contents
+                          UserActionLogger.log(
+                            request.request,
+                            LoggedAction.ProjectPageEdited,
+                            createdPage.id.value,
+                            newPage,
+                            oldPage
+                          ) *>
+                            service.update(createdPage.copy(contents = newPage))
+                        }
+                      }
+                      .as(Redirect(self.show(author, slug, page)))
+                  }
                 }
-              } else {
-                val pageName = pageData.name.getOrElse(parts(0))
-                data.project.getOrCreatePage(pageName, parentId, pageData.content)
-              }
-              created.flatMap { createdPage =>
-                pageData.content.fold(Future.successful(createdPage)) { newPage =>
-                  val oldPage = createdPage.contents
-                  UserActionLogger.log(request.request, LoggedAction.ProjectPageEdited, createdPage.id.value, newPage, oldPage) *>
-                    service.update(createdPage.copy(contents = newPage))
-                }
-              }.as(Redirect(self.show(author, slug, page)))
             }
           }
-        }
-      }
-    )
+        )
   }
 
   /**
@@ -199,13 +221,14 @@ class Pages @Inject()(forms: OreForms,
     * @param page   Page name
     * @return Redirect to Project homepage
     */
-  def delete(author: String, slug: String, page: String): Action[AnyContent] = PageEditAction(author, slug).async { implicit request =>
-    val data = request.data
-    withPage(data.project, page).value.flatMap { optionPage =>
-      optionPage
-        .fold(Future.unit)(_._1.remove().void)
-        .as(Redirect(routes.Projects.show(author, slug)))
-    }
+  def delete(author: String, slug: String, page: String): Action[AnyContent] = PageEditAction(author, slug).async {
+    implicit request =>
+      val data = request.data
+      withPage(data.project, page).value.flatMap { optionPage =>
+        optionPage
+          .fold(Future.unit)(_._1.remove().void)
+          .as(Redirect(routes.Projects.show(author, slug)))
+      }
   }
 
 }

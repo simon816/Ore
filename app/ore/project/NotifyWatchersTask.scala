@@ -1,13 +1,14 @@
 package ore.project
 
-import models.project.{Project, Version}
-import models.user.Notification
-import ore.user.notification.NotificationTypes
 import scala.concurrent.ExecutionContext
 
-import cats.data.NonEmptyList
 import db.{ModelService, ObjectReference}
+import models.project.{Project, Version}
+import models.user.Notification
 import ore.OreConfig
+import ore.user.notification.NotificationTypes
+
+import cats.data.NonEmptyList
 
 /**
   * Notifies all [[models.user.User]]s that are watching the specified
@@ -17,16 +18,20 @@ import ore.OreConfig
   * @param version  New version
   * @param projects ProjectBase instance
   */
-case class NotifyWatchersTask(version: Version, project: Project)(implicit ec: ExecutionContext, service: ModelService, config: OreConfig)
-  extends Runnable {
+case class NotifyWatchersTask(version: Version, project: Project)(
+    implicit ec: ExecutionContext,
+    service: ModelService,
+    config: OreConfig
+) extends Runnable {
 
   def run(): Unit = {
-    val notification = (userId: ObjectReference) => Notification(
-      userId = userId,
-      originId = project.ownerId,
-      notificationType = NotificationTypes.NewProjectVersion,
-      messageArgs = NonEmptyList.of("notification.project.newVersion", project.name, version.name),
-      action = Some(version.url(project))
+    val notification = (userId: ObjectReference) =>
+      Notification(
+        userId = userId,
+        originId = project.ownerId,
+        notificationType = NotificationTypes.NewProjectVersion,
+        messageArgs = NonEmptyList.of("notification.project.newVersion", project.name, version.name),
+        action = Some(version.url(project))
     )
 
     for {
