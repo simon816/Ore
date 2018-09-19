@@ -13,7 +13,16 @@ import controllers.sugar.Bakery
 import controllers.sugar.Requests.AuthRequest
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
-import db.impl.schema.{ChannelTable, LoggedActionViewTable, ProjectSchema, ProjectTableMain, ReviewTable, TagTable, UserTable, VersionTable}
+import db.impl.schema.{
+  ChannelTable,
+  LoggedActionViewTable,
+  ProjectSchema,
+  ProjectTableMain,
+  ReviewTable,
+  TagTable,
+  UserTable,
+  VersionTable
+}
 import db.{ModelFilter, ModelService, ObjectReference}
 import form.OreForms
 import models.admin.Review

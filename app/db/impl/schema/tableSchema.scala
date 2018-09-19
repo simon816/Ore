@@ -15,7 +15,16 @@ import models.project.TagColors.TagColor
 import models.project._
 import models.statistic.{ProjectView, VersionDownload}
 import models.user.role.{OrganizationRole, ProjectRole, RoleModel}
-import models.user.{LoggedAction, LoggedActionContext, LoggedActionModel, Notification, Organization, SignOn, User, Session => DbSession}
+import models.user.{
+  LoggedAction,
+  LoggedActionContext,
+  LoggedActionModel,
+  Notification,
+  Organization,
+  SignOn,
+  User,
+  Session => DbSession
+}
 import ore.Colors.Color
 import ore.permission.role.RoleType
 import ore.project.Categories.Category

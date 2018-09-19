@@ -55,7 +55,6 @@ case class OrganizationMembersUpdate(
       val user = role.user
       dossier.addRole(role.copy(organizationId = orgId))
       user.flatMap { user =>
-
         user.sendNotification(
           Notification(
             userId = user.id.value,

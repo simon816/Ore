@@ -827,12 +827,11 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
     * @param author Project owner
     * @param slug   Project slug
     */
-  def showFlags(author: String, slug: String): Action[AnyContent] = {
+  def showFlags(author: String, slug: String): Action[AnyContent] =
     Authenticated.andThen(PermissionAction[AuthRequest](ReviewFlags)).andThen(ProjectAction(author, slug)) { request =>
       implicit val r: Requests.OreRequest[AnyContent] = request.request
       Ok(views.admin.flags(request.data))
     }
-  }
 
   /**
     * Show the notes that have been made on this project
