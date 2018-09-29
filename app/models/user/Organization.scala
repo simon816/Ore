@@ -45,19 +45,16 @@ case class Organization(
   /**
     * Contains all information for [[User]] memberships.
     */
-  override def memberships(implicit service: ModelService): MembershipDossier {
+  override def memberships(implicit service: ModelService): MembershipDossier[Organization] {
     type MembersTable = OrganizationMembersTable
 
     type MemberType = OrganizationMember
 
     type RoleTable = OrganizationRoleTable
 
-    type ModelType = Organization
-
     type RoleType = OrganizationRole
-  } = new MembershipDossier {
+  } = new MembershipDossier(this) {
 
-    type ModelType    = Organization
     type RoleType     = OrganizationRole
     type RoleTable    = OrganizationRoleTable
     type MembersTable = OrganizationMembersTable
@@ -65,15 +62,12 @@ case class Organization(
 
     val membersTableClass: Class[MembersTable] = classOf[OrganizationMembersTable]
     val roleClass: Class[RoleType]             = classOf[OrganizationRole]
-    val model: ModelType                       = Organization.this
 
     def newMember(userId: ObjectReference)(implicit ec: ExecutionContext): OrganizationMember =
-      new OrganizationMember(this.model, userId)
+      new OrganizationMember(Organization.this, userId)
 
     def clearRoles(user: User): Future[Int] =
-      this.roleAccess.removeAll({ s =>
-        (s.userId === user.id.value) && (s.organizationId === id.value)
-      })
+      this.roleAccess.removeAll(s => (s.userId === user.id.value) && (s.organizationId === id.value))
 
     /**
       * Returns the highest level of [[ore.permission.role.Trust]] this user has.
@@ -95,7 +89,7 @@ case class Organization(
 
   override def transferOwner(
       member: OrganizationMember
-  )(implicit ec: ExecutionContext, service: ModelService): Future[Organization] = {
+  )(implicit ec: ExecutionContext, service: ModelService): Future[Organization] =
     // Down-grade current owner to "Admin"
     for {
       (owner, memberUser)  <- this.owner.user.zip(member.user)
@@ -108,7 +102,6 @@ case class Organization(
       )
       _ <- Future.sequence(memberRoles.map(role => service.update(role.copy(roleType = RoleType.OrganizationOwner))))
     } yield setOwner
-  }
 
   /**
     * Returns this Organization as a [[User]].
@@ -129,15 +122,11 @@ case class Organization(
 object Organization {
   lazy val roleForTrustQuery = Compiled(queryRoleForTrust _)
 
-  private def queryRoleForTrust(orgId: Rep[ObjectReference], userId: Rep[ObjectReference]) = {
-    val memberTable = TableQuery[OrganizationMembersTable]
-    val roleTable   = TableQuery[OrganizationRoleTable]
-
+  private def queryRoleForTrust(orgId: Rep[ObjectReference], userId: Rep[ObjectReference]) =
     for {
-      m <- memberTable if m.organizationId === orgId && m.userId === userId
-      r <- roleTable if m.userId === r.userId && r.organizationId === orgId
+      m <- TableQuery[OrganizationMembersTable] if m.organizationId === orgId && m.userId === userId
+      r <- TableQuery[OrganizationRoleTable] if m.userId === r.userId && r.organizationId === orgId
     } yield r.roleType
-  }
 
   /**
     * Returns the highest level of [[ore.permission.role.Trust]] this user has.

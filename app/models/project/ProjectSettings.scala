@@ -22,6 +22,8 @@ import ore.user.notification.NotificationType
 import util.StringUtils._
 
 import cats.data.NonEmptyList
+import cats.syntax.all._
+import cats.instances.future._
 import slick.lifted.TableQuery
 
 /**
@@ -72,16 +74,16 @@ case class ProjectSettings(
     val updateProject = updateIfDefined(
       project.copy(
         category = Category.values.find(_.title == formData.categoryName).get,
-        description = Option(nullIfEmpty(formData.description)),
+        description = noneIfEmpty(formData.description),
         ownerId = formData.ownerId.getOrElse(project.ownerId)
       )
     )
 
     val updateSettings = updateIfDefined(
       copy(
-        issues = Option(nullIfEmpty(formData.issues)),
-        source = Option(nullIfEmpty(formData.source)),
-        licenseUrl = Option(nullIfEmpty(formData.licenseUrl)),
+        issues = noneIfEmpty(formData.issues),
+        source = noneIfEmpty(formData.source),
+        licenseUrl = noneIfEmpty(formData.licenseUrl),
         licenseName = if (formData.licenseUrl.nonEmpty) Some(formData.licenseName) else licenseName,
         forumSync = formData.forumSync
       )
@@ -104,21 +106,19 @@ case class ProjectSettings(
       // Handle member changes
       if (project.isDefined) {
         // Add new roles
-        val dossier: MembershipDossier {
+        val dossier: MembershipDossier[Project] {
           type MembersTable = ProjectMembersTable
 
           type MemberType = ProjectMember
 
           type RoleTable = ProjectRoleTable
 
-          type ModelType = Project
-
           type RoleType = ProjectRole
         } = project.memberships
         Future
-          .sequence(formData.build().map { role =>
+          .traverse(formData.build()) { role =>
             dossier.addRole(role.copy(projectId = project.id.value))
-          })
+          }
           .flatMap { roles =>
             val notifications = roles.map { role =>
               Notification(
@@ -130,7 +130,7 @@ case class ProjectSettings(
               )
             }
 
-            service.DB.db.run(TableQuery[NotificationTable] ++= notifications) // Bulk insert Notifications
+            service.doAction(TableQuery[NotificationTable] ++= notifications) // Bulk insert Notifications
           }
           .flatMap { _ =>
             // Update existing roles
@@ -138,41 +138,33 @@ case class ProjectSettings(
 
             val usersTable = TableQuery[UserTable]
             // Select member userIds
-            service.DB.db
-              .run(usersTable.filter(_.name.inSetBind(formData.userUps)).map(_.id).result)
+            service
+              .doAction(usersTable.filter(_.name.inSetBind(formData.userUps)).map(_.id).result)
               .map { userIds =>
                 userIds.zip(
-                  formData.roleUps.map(
-                    role =>
-                      projectRoleTypes
-                        .find(_.title.equals(role))
-                        .getOrElse(throw new RuntimeException("supplied invalid role type"))
-                  )
+                  formData.roleUps.map { role =>
+                    projectRoleTypes
+                      .find(_.title.equals(role))
+                      .getOrElse(throw new RuntimeException("supplied invalid role type"))
+                  }
                 )
               }
               .map {
                 _.map {
-
                   case (userId, role) => updateMemberShip(userId).update(role)
                 }
               }
-              .flatMap { updates =>
-                service.DB.db.run(DBIO.sequence(updates)).map(_ => t)
-              }
+              .flatMap(updates => service.doAction(DBIO.sequence(updates)).as(t))
           }
       } else Future.successful(t)
     }
   }
 
-  private def memberShipUpdate(userId: Rep[ObjectReference]) = {
-    val rolesTable = TableQuery[ProjectRoleTable]
-
+  private def memberShipUpdate(userId: Rep[ObjectReference]) =
     for {
-      m <- rolesTable if m.userId === userId
-    } yield {
-      m.roleType
-    }
-  }
+      m <- TableQuery[ProjectRoleTable] if m.userId === userId
+    } yield m.roleType
+
   private lazy val updateMemberShip = Compiled(memberShipUpdate _)
 
   override def copyWith(id: ObjectId, theTime: ObjectTimestamp): ProjectSettings =

@@ -94,6 +94,10 @@ case class Project(
     with Joinable[ProjectMember, Project]
     with Visitable {
 
+  def this(pluginId: String, name: String, owner: String, ownerId: ObjectReference) = {
+    this(pluginId = pluginId, name = compact(name), slug = slugify(name), ownerName = owner, ownerId = ownerId)
+  }
+
   override type M                     = Project
   override type T                     = ProjectTable
   override type S                     = ProjectSchema
@@ -102,19 +106,16 @@ case class Project(
   /**
     * Contains all information for [[User]] memberships.
     */
-  override def memberships(implicit service: ModelService): MembershipDossier {
+  override def memberships(implicit service: ModelService): MembershipDossier[Project] {
     type MembersTable = ProjectMembersTable
 
     type MemberType = ProjectMember
 
     type RoleTable = ProjectRoleTable
 
-    type ModelType = Project
-
     type RoleType = ProjectRole
-  } = new MembershipDossier {
+  } = new MembershipDossier[Project](this) {
 
-    type ModelType    = Project
     type RoleType     = ProjectRole
     type RoleTable    = ProjectRoleTable
     type MemberType   = ProjectMember
@@ -122,10 +123,9 @@ case class Project(
 
     val membersTableClass: Class[MembersTable] = classOf[ProjectMembersTable]
     val roleClass: Class[RoleType]             = classOf[ProjectRole]
-    val model: ModelType                       = Project.this
 
     def newMember(userId: ObjectReference)(implicit ec: ExecutionContext): MemberType =
-      new ProjectMember(this.model, userId)
+      new ProjectMember(Project.this, userId)
 
     /**
       * Returns the highest level of [[ore.permission.role.Trust]] this user has.
@@ -134,19 +134,12 @@ case class Project(
       * @return Trust of user
       */
     override def getTrust(user: User)(implicit ex: ExecutionContext): Future[Trust] =
-      service.DB.db
-        .run(Project.roleForTrustQuery((id.value, user.id.value)).result)
+      service
+        .doAction(Project.roleForTrustQuery((id.value, user.id.value)).result)
         .map(l => if (l.isEmpty) Default else l.map(_.trust).max)
 
     def clearRoles(user: User): Future[Int] =
-      this.roleAccess.removeAll({ s =>
-        (s.userId === user.id.value) && (s.projectId === id.value)
-      })
-
-  }
-
-  def this(pluginId: String, name: String, owner: String, ownerId: ObjectReference) = {
-    this(pluginId = pluginId, name = compact(name), slug = slugify(name), ownerName = owner, ownerId = ownerId)
+      this.roleAccess.removeAll(s => (s.userId === user.id.value) && (s.projectId === id.value))
   }
 
   def isOwner(user: User): Boolean = user.id.value == ownerId
@@ -267,7 +260,7 @@ case class Project(
           comment,
           None,
           None,
-          visibility.value
+          visibility
         )
       )
 
@@ -526,12 +519,9 @@ object Note {
 object Project {
 
   private def queryRoleForTrust(projectId: Rep[ObjectReference], userId: Rep[ObjectReference]) = {
-    val memberTable = TableQuery[ProjectMembersTable]
-    val roleTable   = TableQuery[ProjectRoleTable]
-
     val q = for {
-      m <- memberTable if m.projectId === projectId && m.userId === userId
-      r <- roleTable if m.userId === r.userId && r.projectId === projectId
+      m <- TableQuery[ProjectMembersTable] if m.projectId === projectId && m.userId === userId
+      r <- TableQuery[ProjectRoleTable] if m.userId === r.userId && r.projectId === projectId
     } yield r.roleType
     q.to[Set]
   }

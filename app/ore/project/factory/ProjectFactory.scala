@@ -157,9 +157,8 @@ trait ProjectFactory {
       if (!user.isPgpPubKeyReady)
         return Some("error.pgp.keyChangeCooldown")
     }
-    if (user.isLocked)
-      return Some("error.user.locked")
-    None
+    if (user.isLocked) Some("error.user.locked")
+    else None
   }
 
   /**
@@ -291,11 +290,10 @@ trait ProjectFactory {
       _          <- newProject.updateSettings(pending.settings)
       _ <- {
         // Invite members
-        val dossier: MembershipDossier {
+        val dossier: MembershipDossier[Project] {
           type MembersTable = ProjectMembersTable
           type MemberType   = ProjectMember
           type RoleTable    = ProjectRoleTable
-          type ModelType    = Project
           type RoleType     = ProjectRole
         }             = newProject.memberships
         val owner     = newProject.owner
@@ -454,6 +452,7 @@ trait ProjectFactory {
     move(oldSigPath, newSigPath)
     deleteIfExists(oldPath)
     deleteIfExists(oldSigPath)
+    ()
   }
 
 }
