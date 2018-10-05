@@ -1,5 +1,5 @@
 name := "ore"
-version := "1.6.13"
+version := "1.6.14"
 
 lazy val `ore` = (project in file(".")).enablePlugins(PlayScala)
 
@@ -104,3 +104,7 @@ libraryDependencies ++= Seq(
 )
 
 unmanagedResourceDirectories in Test += (baseDirectory.value / "target/web/public/test")
+
+// Disable generation of the API documentation for production builds
+sources in (Compile, doc) := Seq.empty
+publishArtifact in (Compile, packageDoc) := false
