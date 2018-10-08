@@ -144,7 +144,7 @@ case class ProjectSettings(
                 userIds.zip(
                   formData.roleUps.map { role =>
                     projectRoleTypes
-                      .find(_.title.equals(role))
+                      .find(_.value.equals(role))
                       .getOrElse(throw new RuntimeException("supplied invalid role type"))
                   }
                 )
