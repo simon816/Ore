@@ -2,19 +2,16 @@ package models.statistic
 
 import scala.concurrent.{ExecutionContext, Future}
 
-import controllers.sugar.Requests
 import controllers.sugar.Requests.ProjectRequest
 import db.impl.access.UserBase
 import db.impl.schema.ProjectViewsTable
 import db.{ObjectId, ObjectReference, ObjectTimestamp}
 import models.project.Project
 import ore.StatTracker._
-import ore.permission.scope.ProjectScope
 import security.spauth.SpongeAuthApi
 
 import cats.instances.future._
 import com.github.tminglei.slickpg.InetString
-import com.google.common.base.Preconditions._
 
 /**
   * Represents a unique view on a Project.
@@ -33,13 +30,11 @@ case class ProjectView(
     address: InetString,
     cookie: String,
     userId: Option[ObjectReference] = None
-) extends StatEntry[Project]
-    with ProjectScope {
+) extends StatEntry[Project] {
 
   override type M = ProjectView
   override type T = ProjectViewsTable
 
-  override def projectId: ObjectReference                                    = this.modelId
   override def copyWith(id: ObjectId, theTime: ObjectTimestamp): ProjectView = this.copy(id = id, createdAt = theTime)
 }
 
