@@ -209,11 +209,6 @@ sponge {
           "link": "https://www.enjin.com/"
         },
         {
-          "name": "Apex Hosting",
-          "image": "images/sponsors/apexhosting.png",
-          "link": "https://apexminecrafthosting.com/"
-        },
-        {
           "name": "MC Server Hosting",
           "image": "images/sponsors/mcserverhosting.png",
           "link": "https://mcserverhosting.net/?ref=sponge"
