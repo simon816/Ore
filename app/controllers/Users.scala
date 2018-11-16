@@ -161,7 +161,7 @@ class Users @Inject()(
           (tagsSeq, userData, starredRv, orgaData, scopedOrgaData) <- (
             Future.sequence(projectSeq.map(_._2.tags)),
             getUserData(request, username).value,
-            Future.sequence(starred.map(_.recommendedVersion)),
+            Future.sequence(starred.map(_.recommendedVersion.value)),
             OrganizationData.of(orga).value,
             ScopedOrganizationData.of(request.currentUser, orga).value
           ).tupled
