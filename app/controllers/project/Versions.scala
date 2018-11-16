@@ -20,7 +20,7 @@ import controllers.sugar.Bakery
 import controllers.sugar.Requests.{AuthRequest, OreRequest, ProjectRequest}
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema.VersionTable
-import db.{ModelService, ObjectReference}
+import db.{DbRef, ModelService}
 import form.OreForms
 import models.project._
 import models.user.{LoggedAction, UserActionLogger}
@@ -58,7 +58,7 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
 
   private val fileManager = projects.fileManager
   private val self        = controllers.project.routes.Versions
-  private val warnings    = this.service.access[DownloadWarning](classOf[DownloadWarning])
+  private val warnings    = this.service.access[DownloadWarning]()
 
   private def VersionEditAction(author: String, slug: String) =
     AuthedProjectAction(author, slug, requireUnlock = true).andThen(ProjectPermissionAction(EditVersions))
@@ -570,7 +570,7 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
       .exists { warn =>
         if (!warn.hasExpired) true
         else {
-          warn.remove()
+          service.delete(warn)
           false
         }
       }
@@ -711,7 +711,7 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
   /**
     * Confirms the download and prepares the unsafe download.
     */
-  private def confirmDownload0(versionId: ObjectReference, downloadType: Option[Int], token: String)(
+  private def confirmDownload0(versionId: DbRef[Version], downloadType: Option[Int], token: String)(
       implicit requestHeader: Request[_]
   ): OptionT[Future, UnsafeDownload] = {
     val addr = InetString(StatTracker.remoteAddress)
@@ -730,7 +730,7 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
       .semiflatMap { warn =>
         val isInvalid = warn.hasExpired
         // warning has expired
-        val remove = if (isInvalid) warn.remove().void else Future.unit
+        val remove = if (isInvalid) service.delete(warn).void else Future.unit
 
         remove.as((warn, isInvalid))
       }
@@ -738,7 +738,7 @@ class Versions @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
       .map(_._1)
       .semiflatMap { warn =>
         // warning confirmed and redirect to download
-        val downloads = this.service.access[UnsafeDownload](classOf[UnsafeDownload])
+        val downloads = this.service.access[UnsafeDownload]()
         for {
           user <- users.current.value
           unsafeDownload <- downloads.add(

@@ -4,7 +4,7 @@ import scala.language.implicitConversions
 
 import scala.concurrent.{ExecutionContext, Future}
 
-import db.ObjectReference
+import db.DbRef
 import db.impl.access.OrganizationBase
 import models.user.Organization
 
@@ -17,7 +17,7 @@ import simulacrum.typeclass
 @typeclass trait OrganizationOwned[A] {
 
   /** Returns the Organization's ID */
-  def organizationId(a: A): ObjectReference
+  def organizationId(a: A): DbRef[Organization]
 
   /** Returns the Organization */
   def organization(a: A)(implicit organizations: OrganizationBase, ec: ExecutionContext): Future[Organization] =

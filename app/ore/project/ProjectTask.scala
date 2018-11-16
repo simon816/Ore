@@ -1,12 +1,14 @@
 package ore.project
 
+import java.sql.Timestamp
+import java.time.Instant
 import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
+import db.ModelFilter._
 import db.impl.OrePostgresDriver.api._
-import db.impl.schema.ProjectSchema
 import db.{ModelFilter, ModelService}
 import models.project.{Project, Visibility}
 import ore.OreConfig
@@ -38,21 +40,16 @@ class ProjectTask @Inject()(actorSystem: ActorSystem, config: OreConfig)(
     * Task runner
     */
   def run(): Unit = {
-    val actions = this.service.getSchema(classOf[ProjectSchema])
-
-    val newFilter: ModelFilter[Project] = ModelFilter[Project](_.visibility === (Visibility.New: Visibility))
-    val future                          = actions.collect(newFilter.fn, ProjectSortingStrategies.Default, -1, 0)
+    val dayAgo          = Timestamp.from(Instant.ofEpochMilli(System.currentTimeMillis() - draftExpire))
+    val newFilter       = ModelFilter[Project](_.visibility === (Visibility.New: Visibility))
+    val createdAtFilter = ModelFilter[Project](_.createdAt < dayAgo)
+    val future          = service.filter[Project](newFilter && createdAtFilter)
 
     future.foreach { projects =>
-      val dayAgo = System.currentTimeMillis() - draftExpire
-      projects.foreach(project => {
-        Logger.debug(s"Found project: ${project.ownerName}/${project.slug}")
-        val createdAt = project.createdAt.value.getTime
-        if (createdAt < dayAgo) {
-          Logger.debug(s"Changed ${project.ownerName}/${project.slug} from New to Public")
-          project.setVisibility(Visibility.Public, "Changed by task", project.ownerId)
-        }
-      })
+      projects.foreach { project =>
+        Logger.debug(s"Changed ${project.ownerName}/${project.slug} from New to Public")
+        project.setVisibility(Visibility.Public, "Changed by task", project.ownerId)
+      }
     }
   }
 }

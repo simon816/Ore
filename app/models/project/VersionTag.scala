@@ -5,14 +5,16 @@ import java.time.Instant
 
 import scala.collection.immutable
 
+import db.impl.model.common.Named
 import db.impl.schema.VersionTagTable
-import db.{Model, Named, ObjectId, ObjectReference, ObjectTimestamp}
+import db.{Model, ModelQuery, ObjId, DbRef, ObjectTimestamp}
 
 import enumeratum.values._
+import slick.lifted.TableQuery
 
 case class VersionTag(
-    id: ObjectId = ObjectId.Uninitialized,
-    versionId: ObjectReference,
+    id: ObjId[VersionTag] = ObjId.Uninitialized(),
+    versionId: DbRef[Version],
     name: String,
     data: String,
     color: TagColor
@@ -23,8 +25,10 @@ case class VersionTag(
 
   override type M = VersionTag
   override type T = VersionTagTable
-
-  def copyWith(id: ObjectId, theTime: ObjectTimestamp): VersionTag = this.copy(id = id)
+}
+object VersionTag {
+  implicit val query: ModelQuery[VersionTag] =
+    ModelQuery.from[VersionTag](TableQuery[VersionTagTable], (obj, id, _) => obj.copy(id))
 }
 
 sealed abstract class TagColor(val value: Int, val background: String, val foreground: String) extends IntEnumEntry

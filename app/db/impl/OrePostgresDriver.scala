@@ -49,14 +49,21 @@ trait OrePostgresDriver
     implicit val projectApiKeyTypeTypeMapper: BaseColumnType[ProjectApiKeyType] =
       mappedColumnTypeForValueEnum(ProjectApiKeyType)
     implicit val visibilityTypeMapper: BaseColumnType[Visibility] = mappedColumnTypeForValueEnum(Visibility)
-    implicit val loggedActionMapper: BaseColumnType[LoggedAction] = mappedColumnTypeForValueEnum(LoggedAction)
-    implicit val loggedActionContextMapper: BaseColumnType[LoggedActionContext] =
-      mappedColumnTypeForValueEnum(LoggedActionContext)
+    implicit def loggedActionMapper[Ctx]: BaseColumnType[LoggedAction[Ctx]] =
+      mappedColumnTypeForValueEnum(LoggedAction).asInstanceOf[BaseColumnType[LoggedAction[Ctx]]]
+    implicit def loggedActionContextMapper[Ctx]: BaseColumnType[LoggedActionContext[Ctx]] =
+      mappedColumnTypeForValueEnum(LoggedActionContext).asInstanceOf[BaseColumnType[LoggedActionContext[Ctx]]]
     implicit val trustTypeMapper: BaseColumnType[Trust]             = mappedColumnTypeForValueEnum(Trust)
     implicit val reviewStateTypeMapper: BaseColumnType[ReviewState] = mappedColumnTypeForValueEnum(ReviewState)
 
     implicit val langTypeMapper: BaseColumnType[Lang] =
       MappedJdbcType.base[Lang, String](_.toLocale.toLanguageTag, Lang.apply)
+
+    /*
+    implicit def dbRefBaseType[A]: BaseColumnType[DbRef[A]] = longColumnType.asInstanceOf[BaseColumnType[DbRef[A]]]
+    implicit def dbRefArrayBaseType[A]: BaseColumnType[List[DbRef[A]]] =
+      simpleLongListTypeMapper.asInstanceOf[BaseColumnType[List[DbRef[A]]]]
+     */
 
     implicit val roleTypeListTypeMapper: DriverJdbcType[List[Role]] = new AdvancedArrayJdbcType[Role](
       "varchar",

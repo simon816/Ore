@@ -2,8 +2,8 @@ package ore.organization
 
 import scala.concurrent.{ExecutionContext, Future}
 
-import db.{ModelService, ObjectReference}
-import models.user.Organization
+import db.{DbRef, ModelService}
+import models.user.{Organization, User}
 import models.user.role.OrganizationUserRole
 import ore.user.{Member, UserOwned}
 
@@ -13,8 +13,7 @@ import ore.user.{Member, UserOwned}
   * @param organization Organization member belongs to
   * @param userId       User ID
   */
-class OrganizationMember(val organization: Organization, val userId: ObjectReference)
-    extends Member[OrganizationUserRole] {
+class OrganizationMember(val organization: Organization, val userId: DbRef[User]) extends Member[OrganizationUserRole] {
 
   override def roles(implicit ec: ExecutionContext, service: ModelService): Future[Set[OrganizationUserRole]] =
     UserOwned[OrganizationMember].user(this).flatMap(user => this.organization.memberships.getRoles(organization, user))

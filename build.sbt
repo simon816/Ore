@@ -48,7 +48,15 @@ addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8")
 addCompilerPlugin(("org.scalamacros" % "paradise" % "2.1.0").cross(CrossVersion.full))
 
 routesGenerator := InjectedRoutesGenerator
-routesImport += "_root_.db.ObjectReference"
+routesImport ++= Seq(
+  "db.DbRef",
+  "models.admin._",
+  "models.project._",
+  "models.user._",
+  "models.user.role._",
+  "ore.user._"
+).map(s => s"_root_.$s")
+
 resolvers ++= Seq(
   "sponge".at("https://repo.spongepowered.org/maven"),
   "scalaz-bintray".at("https://dl.bintray.com/scalaz/releases"),

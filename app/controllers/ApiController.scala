@@ -15,9 +15,10 @@ import controllers.sugar.Bakery
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema.ProjectApiKeyTable
-import db.{ModelService, ObjectReference}
+import db.{DbRef, ModelService}
 import form.OreForms
 import models.api.ProjectApiKey
+import models.project.Project
 import models.user.{LoggedAction, UserActionLogger}
 import ore.permission.role.Role
 import ore.permission.{EditApiKeys, ReviewProjects}
@@ -59,7 +60,7 @@ final class ApiController @Inject()(
     with OreWrites {
 
   val files                                      = new ProjectFiles(this.env)
-  val projectApiKeys: ModelAccess[ProjectApiKey] = this.service.access[ProjectApiKey](classOf[ProjectApiKey])
+  val projectApiKeys: ModelAccess[ProjectApiKey] = this.service.access[ProjectApiKey]()
   val Logger                                     = play.api.Logger("SSO")
 
   private def ApiResult(json: Option[JsValue]): Result = json.map(Ok(_)).getOrElse(NotFound)
@@ -141,7 +142,7 @@ final class ApiController @Inject()(
           val res = for {
             key <- forms.ProjectApiKeyRevoke.bindOptionT[Future]
             if key.projectId == request.data.project.id.value
-            _ <- OptionT.liftF(key.remove())
+            _ <- OptionT.liftF(service.delete(key))
             _ <- OptionT.liftF(
               UserActionLogger.log(
                 request.request,
@@ -237,7 +238,7 @@ final class ApiController @Inject()(
             )
             .flatMap { formData =>
               val apiKeyTable = TableQuery[ProjectApiKeyTable]
-              def queryApiKey(deployment: Rep[ProjectApiKeyType], key: Rep[String], pId: Rep[ObjectReference]) = {
+              def queryApiKey(deployment: Rep[ProjectApiKeyType], key: Rep[String], pId: Rep[DbRef[Project]]) = {
                 val query = for {
                   k <- apiKeyTable if k.value === key && k.projectId === pId && k.keyType === deployment
                 } yield {
@@ -249,7 +250,7 @@ final class ApiController @Inject()(
               val compiled = Compiled(queryApiKey _)
 
               val apiKeyExists: Future[Boolean] =
-                this.service.doAction(compiled((Deployment, formData.apiKey, project.id.value)).result)
+                this.service.runDBIO(compiled((Deployment, formData.apiKey, project.id.value)).result)
 
               EitherT
                 .liftF(apiKeyExists)
@@ -406,7 +407,10 @@ final class ApiController @Inject()(
               }
 
               val updateRoles = globalRoles.fold(Future.unit) { roles =>
-                user.globalRoles.removeAll() *> roles.map(_.toDbRole).traverse(user.globalRoles.add).void
+                user.globalRoles.deleteAllFromParent(user) *> roles
+                  .map(_.toDbRole)
+                  .traverse(user.globalRoles.addAssoc(user, _))
+                  .void
               }
 
               service.update(

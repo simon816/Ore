@@ -14,10 +14,10 @@ import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase.UserOrdering
 import db.impl.schema.{ProjectTableMain, VersionTable}
 import db.query.UserQueries
-import db.{ModelService, ObjectReference}
+import db.{DbRef, ModelService}
 import form.{OreForms, PGPPublicKeySubmission}
 import mail.{EmailFactory, Mailer}
-import models.user.{LoggedAction, SignOn, User, UserActionLogger}
+import models.user.{LoggedAction, Notification, SignOn, User, UserActionLogger}
 import models.viewhelper.{OrganizationData, ScopedOrganizationData}
 import ore.permission.ReviewProjects
 import ore.permission.role.Role
@@ -78,8 +78,11 @@ class Users @Inject()(
         this.config.checkDebug()
         users.getOrCreate(this.fakeUser) *>
           this.fakeUser.globalRoles
-            .contains(Role.OreAdmin.toDbRole)
-            .ifM(ifTrue = Future.unit, ifFalse = this.fakeUser.globalRoles.add(Role.OreAdmin.toDbRole).void) *>
+            .contains(this.fakeUser, Role.OreAdmin.toDbRole)
+            .ifM(
+              ifTrue = Future.unit,
+              ifFalse = this.fakeUser.globalRoles.addAssoc(this.fakeUser, Role.OreAdmin.toDbRole).void
+            ) *>
           this.redirectBack(returnPath.getOrElse(request.path), this.fakeUser)
       } else if (sso.isEmpty || sig.isEmpty) {
         val nonce = SingleSignOnConsumer.nonce
@@ -93,9 +96,10 @@ class Users @Inject()(
             case (fromSponge, sponge) =>
               // Complete authentication
               for {
-                user   <- users.getOrCreate(fromSponge)
-                _      <- user.globalRoles.removeAll()
-                _      <- sponge.newGlobalRoles.fold(Future.unit)(_.map(_.toDbRole).traverse_(user.globalRoles.add))
+                user <- users.getOrCreate(fromSponge)
+                _    <- service.runDBIO(user.globalRoles.allQueryFromParent(user).delete)
+                _ <- sponge.newGlobalRoles
+                  .fold(Future.unit)(_.map(_.toDbRole).traverse_(user.globalRoles.addAssoc(user, _)))
                 result <- this.redirectBack(request.flash.get("url").getOrElse("/"), user)
               } yield result
           }
@@ -154,7 +158,7 @@ class Users @Inject()(
         for {
           // TODO include orga projects?
           (projectSeq, starred, orga) <- (
-            service.doAction(queryUserProjects(user).drop(offset).take(pageSize).result),
+            service.runDBIO(queryUserProjects(user).drop(offset).take(pageSize).result),
             user.starred(),
             getOrga(username).value
           ).tupled
@@ -304,7 +308,7 @@ class Users @Inject()(
     val ordering = sort.getOrElse(UserOrdering.Projects)
     val p        = page.getOrElse(1)
 
-    runDbProgram(UserQueries.getAuthors(p, ordering).to[Vector]).map { u =>
+    service.runDbCon(UserQueries.getAuthors(p, ordering).to[Vector]).map { u =>
       Ok(views.users.authors(u, ordering, p))
     }
   }
@@ -317,7 +321,7 @@ class Users @Inject()(
       val ordering = sort.getOrElse(UserOrdering.Role)
       val p        = page.getOrElse(1)
 
-      runDbProgram(UserQueries.getStaff(p, ordering).to[Vector]).map { u =>
+      service.runDbCon(UserQueries.getStaff(p, ordering).to[Vector]).map { u =>
         Ok(views.users.staff(u, ordering, p))
       }
     }
@@ -356,7 +360,7 @@ class Users @Inject()(
     * @param id Notification ID
     * @return   Ok if marked as read, NotFound if notification does not exist
     */
-  def markNotificationRead(id: ObjectReference): Action[AnyContent] = Authenticated.async { implicit request =>
+  def markNotificationRead(id: DbRef[Notification]): Action[AnyContent] = Authenticated.async { implicit request =>
     request.user.notifications
       .get(id)
       .semiflatMap(notification => service.update(notification.copy(isRead = true)).as(Ok))
@@ -370,7 +374,7 @@ class Users @Inject()(
     * @param id Prompt ID
     * @return   Ok if successful
     */
-  def markPromptRead(id: ObjectReference): Action[AnyContent] = Authenticated.async { implicit request =>
+  def markPromptRead(id: DbRef[Prompt]): Action[AnyContent] = Authenticated.async { implicit request =>
     Prompt.values.find(_.value == id) match {
       case None         => Future.successful(BadRequest)
       case Some(prompt) => request.user.markPromptAsRead(prompt).as(Ok)

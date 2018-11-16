@@ -8,9 +8,10 @@ import play.api.i18n.Lang
 import play.api.mvc.Request
 
 import db._
-import db.access.{ModelAccess, ModelAssociationAccess}
+import db.access.{ModelAccess, ModelAssociationAccess, ModelAssociationAccessImpl}
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.{OrganizationBase, UserBase}
+import db.impl.model.common.Named
 import db.impl.schema._
 import models.project.{Flag, Project, Visibility}
 import models.user.role.{DbRole, OrganizationUserRole, ProjectUserRole}
@@ -41,7 +42,7 @@ import slick.lifted.TableQuery
   * @param tagline      The user configured "tagline" displayed on the user page.
   */
 case class User(
-    id: ObjectId = ObjectId.Uninitialized,
+    id: ObjId[User] = ObjId.Uninitialized(),
     createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
     fullName: Option[String] = None,
     name: String = null,
@@ -101,8 +102,11 @@ case class User(
     *
     * @return Roles the user has.
     */
-  def globalRoles(implicit service: ModelService): ModelAssociationAccess[UserGlobalRolesTable, DbRole] =
-    this.schema.getAssociation[UserGlobalRolesTable, DbRole](classOf[UserGlobalRolesTable], this)
+  def globalRoles(
+      implicit service: ModelService,
+      ec: ExecutionContext
+  ): ModelAssociationAccess[UserGlobalRolesTable, User, DbRole, Future] =
+    new ModelAssociationAccessImpl[UserGlobalRolesTable, User, DbRole]
 
   /**
     * Returns the highest level [[DonorRole]] this User has.
@@ -111,7 +115,7 @@ case class User(
     */
   def donorType(implicit service: ModelService, ec: ExecutionContext): OptionT[Future, DonorRole] =
     OptionT(
-      this.globalRoles.filter(_.rank.?.isDefined).map { seq =>
+      service.runDBIO(this.globalRoles.allQueryFromParent(this).filter(_.rank.?.isDefined).result).map { seq =>
         seq
           .map(_.toRole)
           .collect { case donor: DonorRole => donor }
@@ -130,7 +134,7 @@ case class User(
       r  <- TableQuery[DbRoleTable] if ur.roleId === r.id
     } yield r.trust
 
-    service.doAction(Query(q.max).result.head).map(_.getOrElse(Trust.Default))
+    service.runDBIO(Query(q.max).result.head).map(_.getOrElse(Trust.Default))
   }
 
   def trustIn[A: HasScope](a: A)(implicit ec: ExecutionContext, service: ModelService): Future[Trust] =
@@ -146,7 +150,7 @@ case class User(
       scope match {
         case GlobalScope => globalTrust
         case ProjectScope(projectId) =>
-          val projectRoles = service.doAction(Project.roleForTrustQuery((projectId, this.id.value)).result)
+          val projectRoles = service.runDBIO(Project.roleForTrustQuery((projectId, this.id.value)).result)
 
           val projectTrust = projectRoles
             .map(biggestRoleTpe)
@@ -163,7 +167,7 @@ case class User(
                 r <- roleTable if id.value.bind === r.userId && r.organizationId === o.id
               } yield r.roleType
 
-              service.doAction(query.to[Set].result).map { roleTypes =>
+              service.runDBIO(query.to[Set].result).map { roleTypes =>
                 if (roleTypes.contains(Role.OrganizationAdmin) || roleTypes.contains(Role.OrganizationOwner)) {
                   biggestRoleTpe(roleTypes)
                 } else {
@@ -183,19 +187,18 @@ case class User(
   /**
     * Returns the Projects that this User has starred.
     *
-    * @param page Page of user stars
     * @return Projects user has starred
     */
-  def starred(
-      page: Int = -1
-  )(implicit config: OreConfig, service: ModelService): Future[Seq[Project]] = Defined {
-    val starsPerPage = config.ore.users.starsPerPage
-    val limit        = if (page < 1) -1 else starsPerPage
-    val offset       = (page - 1) * starsPerPage
-    val filter       = Visibility.isPublicFilter[Project]
-    this.schema
-      .getAssociation[ProjectStarsTable, Project](classOf[ProjectStarsTable], this)
-      .sorted(ordering = _.name, filter = filter.fn, limit = limit, offset = offset)
+  def starred()(implicit service: ModelService): Future[Seq[Project]] = Defined {
+    val filter = Visibility.isPublicFilter[Project]
+
+    val baseQuery = for {
+      assoc   <- TableQuery[ProjectStarsTable] if assoc.userId === id.value
+      project <- TableQuery[ProjectTableMain] if assoc.projectId === project.id
+      if filter(project)
+    } yield project
+
+    service.runDBIO(baseQuery.sortBy(_.name).result)
   }
 
   /**
@@ -225,7 +228,7 @@ case class User(
     */
   def copyFromSponge(user: SpongeUser): User = {
     copy(
-      id = ObjectId(user.id),
+      id = ObjId(user.id),
       name = user.username,
       email = Some(user.email),
       lang = user.lang
@@ -237,8 +240,7 @@ case class User(
     *
     * @return Projects owned by user
     */
-  def projects(implicit service: ModelService): ModelAccess[Project] =
-    this.schema.getChildren[Project](classOf[Project], this)
+  def projects(implicit service: ModelService): ModelAccess[Project] = service.access(_.userId === id.value)
 
   /**
     * Returns the Project with the specified name that this User owns.
@@ -254,8 +256,7 @@ case class User(
     *
     * @return ProjectRoles
     */
-  def projectRoles(implicit service: ModelService): ModelAccess[ProjectUserRole] =
-    this.schema.getChildren[ProjectUserRole](classOf[ProjectUserRole], this)
+  def projectRoles(implicit service: ModelService): ModelAccess[ProjectUserRole] = service.access(_.userId === id.value)
 
   /**
     * Returns the [[Organization]]s that this User owns.
@@ -263,15 +264,17 @@ case class User(
     * @return Organizations user owns
     */
   def ownedOrganizations(implicit service: ModelService): ModelAccess[Organization] =
-    this.schema.getChildren[Organization](classOf[Organization], this)
+    service.access(_.userId === id.value)
 
   /**
     * Returns the [[Organization]]s that this User belongs to.
     *
     * @return Organizations user belongs to
     */
-  def organizations(implicit service: ModelService): ModelAssociationAccess[OrganizationMembersTable, Organization] =
-    this.schema.getAssociation[OrganizationMembersTable, Organization](classOf[OrganizationMembersTable], this)
+  def organizations(
+      implicit service: ModelService,
+      ec: ExecutionContext
+  ): ModelAssociationAccess[OrganizationMembersTable, User, Organization, Future] = new ModelAssociationAccessImpl
 
   /**
     * Returns a [[ModelAccess]] of [[OrganizationUserRole]]s.
@@ -279,7 +282,7 @@ case class User(
     * @return OrganizationRoles
     */
   def organizationRoles(implicit service: ModelService): ModelAccess[OrganizationUserRole] =
-    this.schema.getChildren[OrganizationUserRole](classOf[OrganizationUserRole], this)
+    service.access(_.userId === id.value)
 
   /**
     * Converts this User to an [[Organization]].
@@ -296,8 +299,11 @@ case class User(
     *
     * @return Projects user is watching
     */
-  def watching(implicit service: ModelService): ModelAssociationAccess[ProjectWatchersTable, Project] =
-    this.schema.getAssociation[ProjectWatchersTable, Project](classOf[ProjectWatchersTable], this)
+  def watching(
+      implicit service: ModelService,
+      ec: ExecutionContext
+  ): ModelAssociationAccess[ProjectWatchersTable, Project, User, Future] =
+    new ModelAssociationAccessImpl
 
   /**
     * Sets the "watching" status on the specified project.
@@ -311,10 +317,10 @@ case class User(
   )(implicit ec: ExecutionContext, service: ModelService): Future[Unit] = {
     checkNotNull(project, "null project", "")
     checkArgument(project.isDefined, "undefined project", "")
-    val contains = this.watching.contains(project)
+    val contains = this.watching.contains(project, this)
     contains.flatMap {
-      case true  => if (!watching) this.watching.remove(project).void else Future.unit
-      case false => if (watching) this.watching.add(project).void else Future.unit
+      case true  => if (!watching) this.watching.removeAssoc(project, this) else Future.unit
+      case false => if (watching) this.watching.addAssoc(project, this) else Future.unit
     }
   }
 
@@ -323,7 +329,7 @@ case class User(
     *
     * @return Flags submitted by user
     */
-  def flags(implicit service: ModelService): ModelAccess[Flag] = this.schema.getChildren[Flag](classOf[Flag], this)
+  def flags(implicit service: ModelService): ModelAccess[Flag] = service.access(_.userId === id.value)
 
   /**
     * Returns true if the User has an unresolved [[Flag]] on the specified
@@ -343,8 +349,7 @@ case class User(
     *
     * @return User notifications
     */
-  def notifications(implicit service: ModelService): ModelAccess[Notification] =
-    this.schema.getChildren[Notification](classOf[Notification], this)
+  def notifications(implicit service: ModelService): ModelAccess[Notification] = service.access(_.userId === id.value)
 
   /**
     * Sends a [[Notification]] to this user.
@@ -357,7 +362,7 @@ case class User(
   )(implicit ec: ExecutionContext, service: ModelService, config: OreConfig): Future[Notification] = {
     checkNotNull(notification, "null notification", "")
     config.debug("Sending notification: " + notification, -1)
-    service.access[Notification](classOf[Notification]).add(notification.copy(userId = this.id.value))
+    service.access[Notification]().add(notification.copy(userId = this.id.value))
   }
 
   /**
@@ -373,11 +378,27 @@ case class User(
       )
     )
   }
-
-  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): User = this.copy(createdAt = theTime)
 }
 
 object User {
+
+  implicit val query: ModelQuery[User] =
+    ModelQuery.from[User](TableQuery[UserTable], (obj, _, time) => obj.copy(createdAt = time))
+
+  implicit val assocMembersQuery: AssociationQuery[ProjectMembersTable, User, Project] =
+    AssociationQuery.from[ProjectMembersTable, User, Project](TableQuery[ProjectMembersTable])(_.userId, _.projectId)
+
+  implicit val assocOrgMembersQuery: AssociationQuery[OrganizationMembersTable, User, Organization] =
+    AssociationQuery.from[OrganizationMembersTable, User, Organization](TableQuery[OrganizationMembersTable])(
+      _.userId,
+      _.organizationId
+    )
+
+  implicit val assocStarsQuery: AssociationQuery[ProjectStarsTable, User, Project] =
+    AssociationQuery.from[ProjectStarsTable, User, Project](TableQuery[ProjectStarsTable])(_.userId, _.projectId)
+
+  implicit val assocRolesQuery: AssociationQuery[UserGlobalRolesTable, User, DbRole] =
+    AssociationQuery.from[UserGlobalRolesTable, User, DbRole](TableQuery[UserGlobalRolesTable])(_.userId, _.roleId)
 
   def avatarUrl(name: String)(implicit config: OreConfig): String =
     config.security.api.avatarUrl.format(name)

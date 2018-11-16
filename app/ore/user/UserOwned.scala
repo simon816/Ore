@@ -4,7 +4,7 @@ import scala.language.implicitConversions
 
 import scala.concurrent.{ExecutionContext, Future}
 
-import db.ObjectReference
+import db.DbRef
 import db.impl.access.UserBase
 import models.user.User
 
@@ -15,7 +15,7 @@ import simulacrum.typeclass
 @typeclass trait UserOwned[A] {
 
   /** Returns the User ID */
-  def userId(a: A): ObjectReference
+  def userId(a: A): DbRef[User]
 
   /** Returns the User */
   def user(a: A)(implicit users: UserBase, ec: ExecutionContext): Future[User] =

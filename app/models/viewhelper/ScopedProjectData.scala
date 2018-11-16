@@ -29,10 +29,10 @@ object ScopedProjectData {
             .flatMap(_.toMaybeOrganization.value)
             .flatMap(orgaOwner => user.can(PostAsOrganization) in orgaOwner),
           user.hasUnresolvedFlagFor(project),
-          project.stars.contains(user),
-          project.watchers.contains(user),
+          project.stars.contains(user, project),
+          project.watchers.contains(project, user),
           user.trustIn(project),
-          user.globalRoles.all
+          user.globalRoles.allFromParent(user)
         ).mapN {
           case (
               canPostAsOwnerOrga,
@@ -44,7 +44,7 @@ object ScopedProjectData {
               ) =>
             val perms = EditPages +: EditSettings +: EditChannels +: EditVersions +: UploadVersions +: Visibility.values
               .map(_.permission)
-            val permMap = user.can.asMap(projectTrust, globalRoles)(perms: _*)
+            val permMap = user.can.asMap(projectTrust, globalRoles.toSet)(perms: _*)
             ScopedProjectData(canPostAsOwnerOrga, uProjectFlags, starred, watching, permMap)
         }
       }

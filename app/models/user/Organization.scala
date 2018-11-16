@@ -4,8 +4,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.UserBase
+import db.impl.model.common.Named
 import db.impl.schema.{OrganizationMembersTable, OrganizationRoleTable, OrganizationTable}
-import db.{Model, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
+import db.{DbRef, Model, ModelQuery, ModelService, ObjId, ObjectTimestamp}
 import models.user.role.OrganizationUserRole
 import ore.organization.OrganizationMember
 import ore.permission.role.{Role, Trust}
@@ -29,10 +30,10 @@ import slick.lifted.{Compiled, Rep, TableQuery}
   * @param ownerId        The ID of the [[User]] that owns this organization
   */
 case class Organization(
-    id: ObjectId = ObjectId.Uninitialized,
+    id: ObjId[Organization] = ObjId.Uninitialized(),
     createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
     username: String,
-    ownerId: ObjectReference
+    ownerId: DbRef[User]
 ) extends Model
     with Named
     with Visitable
@@ -82,19 +83,20 @@ case class Organization(
   def toUser(implicit ec: ExecutionContext, users: UserBase, auth: SpongeAuthApi): OptionT[Future, User] =
     users.withName(this.username)
 
-  override val name: String                                            = this.username
-  override def url: String                                             = this.username
-  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): Model = this.copy(createdAt = theTime)
-
+  override val name: String = this.username
+  override def url: String  = this.username
 }
 
 object Organization {
+  implicit val query: ModelQuery[Organization] =
+    ModelQuery.from[Organization](TableQuery[OrganizationTable], (obj, _, time) => obj.copy(createdAt = time))
+
   implicit val orgHasScope: HasScope[Organization]  = HasScope.orgScope(_.id.value)
   implicit val isUserOwned: UserOwned[Organization] = (a: Organization) => a.ownerId
 
   lazy val roleForTrustQuery = Compiled(queryRoleForTrust _)
 
-  private def queryRoleForTrust(orgId: Rep[ObjectReference], userId: Rep[ObjectReference]) =
+  private def queryRoleForTrust(orgId: Rep[DbRef[Organization]], userId: Rep[DbRef[User]]) =
     for {
       m <- TableQuery[OrganizationMembersTable] if m.organizationId === orgId && m.userId === userId
       r <- TableQuery[OrganizationRoleTable] if m.userId === r.userId && r.organizationId === orgId
@@ -107,10 +109,10 @@ object Organization {
     * @return Trust of user
     */
   def getTrust(
-      userId: ObjectReference,
-      orgId: ObjectReference
+      userId: DbRef[User],
+      orgId: DbRef[Organization]
   )(implicit ex: ExecutionContext, service: ModelService): Future[Trust] =
-    service.DB.db
-      .run(Organization.roleForTrustQuery((orgId, userId)).result)
+    service
+      .runDBIO(Organization.roleForTrustQuery((orgId, userId)).result)
       .map(_.sortBy(_.trust).headOption.map(_.trust).getOrElse(Trust.Default))
 }

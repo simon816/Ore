@@ -21,13 +21,7 @@ import ore.{OreConfig, OreEnv}
 import security.spauth.{SingleSignOnConsumer, SpongeAuthApi}
 
 import cats.data.EitherT
-import cats.effect.IO
 import cats.instances.future._
-import doobie._
-import doobie.free.KleisliInterpreter
-import doobie.implicits._
-import doobie.util.transactor.Strategy
-import slick.jdbc.{JdbcBackend, JdbcDataSource}
 
 /**
   * Represents a Secured base Controller for this application.
@@ -44,16 +38,7 @@ abstract class OreBaseController(
     with Actions
     with I18nSupport {
 
-  implicit val xa: Transactor.Aux[IO, JdbcDataSource] = Transactor[IO, JdbcDataSource](
-    service.DB.db.source,
-    source => IO(source.createConnection()),
-    KleisliInterpreter[IO].ConnectionInterpreter,
-    Strategy.default
-  )
-
-  implicit val db: JdbcBackend#DatabaseDef = service.DB.db
-
-  override val signOns: ModelAccess[SignOn] = this.service.access[SignOn](classOf[SignOn])
+  override val signOns: ModelAccess[SignOn] = this.service.access[SignOn]()
 
   override def notFound(implicit request: OreRequest[_]) = NotFound(views.html.errors.notFound())
 
@@ -208,7 +193,4 @@ abstract class OreBaseController(
       sso: Option[String],
       sig: Option[String]
   ): ActionBuilder[AuthRequest, AnyContent] = UserAction(username).andThen(verifiedAction(sso, sig))
-
-  def runDbProgram[A](dbio: ConnectionIO[A]): Future[A] = dbio.transact(xa).unsafeToFuture()
-
 }

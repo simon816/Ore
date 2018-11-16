@@ -1,4 +1,4 @@
-import db.ObjectReference
+import db.DbRef
 import models.admin._
 import models.api.ProjectApiKey
 import models.project._
@@ -26,7 +26,7 @@ class SchemaSpec extends DbSpec {
   }
 
   test("Project watchers") {
-    check(sql"""SELECT project_id, user_id FROM project_watchers""".query[(ObjectReference, ObjectReference)])
+    check(sql"""SELECT project_id, user_id FROM project_watchers""".query[(DbRef[Project], DbRef[User])])
   }
 
   test("Project views") {
@@ -35,7 +35,7 @@ class SchemaSpec extends DbSpec {
   }
 
   test("Project stars") {
-    check(sql"""SELECT user_id, project_id FROM project_stars""".query[(ObjectReference, ObjectReference)])
+    check(sql"""SELECT user_id, project_id FROM project_stars""".query[(DbRef[User], DbRef[Project])])
   }
 
   test("Project log") {
@@ -103,7 +103,7 @@ class SchemaSpec extends DbSpec {
   }
 
   test("OrganizationMember") {
-    check(sql"""SELECT user_id, organization_id FROM organization_members""".query[(ObjectReference, ObjectReference)])
+    check(sql"""SELECT user_id, organization_id FROM organization_members""".query[(DbRef[User], DbRef[Organization])])
   }
 
   test("OrganizationRole") {
@@ -118,8 +118,7 @@ class SchemaSpec extends DbSpec {
 
   test("ProjectMember") {
     check(
-      sql"""SELECT project_id, user_id FROM project_members"""
-        .query[(ObjectReference, ObjectReference)]
+      sql"""SELECT project_id, user_id FROM project_members""".query[(DbRef[Project], DbRef[User])]
     )
   }
 
@@ -151,7 +150,7 @@ class SchemaSpec extends DbSpec {
   test("LoggedAction") {
     check(
       sql"""|SELECT id, created_at, user_id, address, action, action_context, action_context_id, new_state, old_state
-            |FROM logged_actions""".stripMargin.query[LoggedActionModel]
+            |FROM logged_actions""".stripMargin.query[LoggedActionModel[Any]]
     )
   }
 
@@ -179,6 +178,6 @@ class SchemaSpec extends DbSpec {
   }
 
   test("UserGlobalRoles") {
-    check(sql"""SELECT user_id, role_id FROM user_global_roles""".query[(ObjectReference, ObjectReference)])
+    check(sql"""SELECT user_id, role_id FROM user_global_roles""".query[(DbRef[User], DbRef[DbRole])])
   }
 }

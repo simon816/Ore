@@ -7,8 +7,9 @@ import scala.concurrent.duration._
 
 import play.api.{ConfigLoader, Configuration, Logger}
 
-import db.ObjectReference
+import db.DbRef
 import models.project.Channel
+import models.user.User
 import util.StringUtils._
 
 import org.spongepowered.plugin.meta.version.ComparableVersion
@@ -35,7 +36,7 @@ final class OreConfig @Inject()(config: Configuration) {
     object fakeUser extends ConfigCategory {
       val raw: Configuration    = app.raw.get[Configuration]("fakeUser")
       val enabled: Boolean      = raw.get[Boolean]("enabled")
-      val id: ObjectReference   = raw.get[ObjectReference]("id")
+      val id: DbRef[User]       = raw.get[DbRef[User]]("id")
       val name: Option[String]  = raw.getOptional[String]("name")
       val username: String      = raw.get[String]("username")
       val email: Option[String] = raw.getOptional[String]("email")

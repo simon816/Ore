@@ -9,11 +9,14 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.twirl.api.Html
 
-import db.impl.schema.{ReviewSchema, ReviewTable}
-import db.{Model, ModelService, ObjectId, ObjectReference, ObjectTimestamp}
+import db.impl.schema.ReviewTable
+import db.{DbRef, Model, ModelQuery, ModelService, ObjId, ObjectTimestamp}
 import models.project.{Page, Project, Version}
+import models.user.User
 import ore.OreConfig
 import _root_.util.StringUtils
+
+import slick.lifted.TableQuery
 
 /**
   * Represents an approval instance of [[Project]] [[Version]].
@@ -26,10 +29,10 @@ import _root_.util.StringUtils
   * @param message      Message of why it ended
   */
 case class Review(
-    id: ObjectId = ObjectId.Uninitialized,
+    id: ObjId[Review] = ObjId.Uninitialized(),
     createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-    versionId: ObjectReference,
-    userId: ObjectReference,
+    versionId: DbRef[Version],
+    userId: DbRef[User],
     endedAt: Option[Timestamp],
     message: JsValue
 ) extends Model {
@@ -39,9 +42,6 @@ case class Review(
 
   /** The model's table */
   override type T = ReviewTable
-
-  /** The model's schema */
-  override type S = ReviewSchema
 
   /**
     * Add new message
@@ -63,15 +63,6 @@ case class Review(
     */
   def decodeMessages: Seq[Message] =
     (message \ "messages").asOpt[Seq[Message]].getOrElse(Nil)
-
-  /**
-    * Returns a copy of this model with an updated ID and timestamp.
-    *
-    * @param id      ID to set
-    * @param theTime Timestamp
-    * @return Copy of model
-    */
-  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): Model = this.copy(id = id, createdAt = createdAt)
 }
 
 /**
@@ -106,4 +97,7 @@ object Review {
   def ordering2: Ordering[Review] =
     // TODO make simple + check order
     Ordering.by(_.createdAt.value.getTime)
+
+  implicit val query: ModelQuery[Review] =
+    ModelQuery.from[Review](TableQuery[ReviewTable], _.copy(_, _))
 }

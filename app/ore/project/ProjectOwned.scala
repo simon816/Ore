@@ -4,7 +4,7 @@ import scala.language.implicitConversions
 
 import scala.concurrent.{ExecutionContext, Future}
 
-import db.ObjectReference
+import db.DbRef
 import db.impl.access.ProjectBase
 import models.project.Project
 
@@ -17,7 +17,7 @@ import simulacrum.typeclass
 @typeclass trait ProjectOwned[A] {
 
   /** Returns the Project ID */
-  def projectId(a: A): ObjectReference
+  def projectId(a: A): DbRef[Project]
 
   /** Returns the Project */
   def project(a: A)(implicit projects: ProjectBase, ec: ExecutionContext): Future[Project] =

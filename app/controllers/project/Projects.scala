@@ -15,12 +15,13 @@ import controllers.OreBaseController
 import controllers.sugar.Bakery
 import controllers.sugar.Requests.AuthRequest
 import db.impl.OrePostgresDriver.api._
-import db.{ModelService, ObjectReference}
+import db.{DbRef, ModelService}
 import discourse.OreDiscourseApi
 import form.OreForms
 import form.project.{DiscussionReplyForm, FlagForm, ProjectRoleSetBuilder}
 import models.project.{Note, Visibility}
 import models.user._
+import models.user.role.ProjectUserRole
 import models.viewhelper.ScopedOrganizationData
 import ore.permission._
 import ore.permission.scope.GlobalScope
@@ -69,13 +70,13 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
     */
   def showCreator(): Action[AnyContent] = UserLock().async { implicit request =>
     for {
-      orgas      <- request.user.organizations.all
+      orgas      <- request.user.organizations.allFromParent(request.user)
       createOrga <- Future.traverse(orgas)(request.user.can(CreateProject).in(_))
     } yield {
       val createdOrgas = orgas.zip(createOrga).collect {
         case (orga, true) => orga
       }
-      Ok(views.create(createdOrgas.toSeq, None))
+      Ok(views.create(createdOrgas, None))
     }
   }
 
@@ -124,13 +125,13 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
       case None => Future.successful(Redirect(self.showCreator()).withError("error.project.timeout"))
       case Some(pending) =>
         for {
-          (orgas, owner) <- (request.user.organizations.all, pending.underlying.owner.user).tupled
+          (orgas, owner) <- (request.user.organizations.allFromParent(request.user), pending.underlying.owner.user).tupled
           createOrga     <- Future.traverse(orgas)(owner.can(CreateProject).in(_))
         } yield {
           val createdOrgas = orgas.zip(createOrga).collect {
             case (orga, true) => orga
           }
-          Ok(views.create(createdOrgas.toSeq, Some(pending)))
+          Ok(views.create(createdOrgas, Some(pending)))
         }
     }
   }
@@ -183,9 +184,9 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
     }
   }
 
-  private def orgasUserCanUploadTo(user: User): Future[Set[ObjectReference]] = {
+  private def orgasUserCanUploadTo(user: User): Future[Set[DbRef[Organization]]] = {
     for {
-      all       <- user.organizations.all
+      all       <- user.organizations.allFromParent(user)
       canCreate <- Future.traverse(all)(org => user.can(CreateProject).in(org).tupleLeft(org.id.value))
     } yield {
       // Filter by can Create Project
@@ -193,7 +194,7 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
         case (id, true) => id
       }
 
-      others + user.id.value // Add self
+      others.toSet + user.id.value // Add self
     }
   }
 
@@ -408,7 +409,7 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
     * @param status Invite status
     * @return       NotFound if invite doesn't exist, Ok otherwise
     */
-  def setInviteStatus(id: ObjectReference, status: String): Action[AnyContent] = Authenticated.async {
+  def setInviteStatus(id: DbRef[ProjectUserRole], status: String): Action[AnyContent] = Authenticated.async {
     implicit request =>
       val user = request.user
       user.projectRoles
@@ -432,7 +433,7 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
     * @param behalf Behalf User
     * @return       NotFound if invite doesn't exist, Ok otherwise
     */
-  def setInviteStatusOnBehalf(id: ObjectReference, status: String, behalf: String): Action[AnyContent] =
+  def setInviteStatusOnBehalf(id: DbRef[ProjectUserRole], status: String, behalf: String): Action[AnyContent] =
     Authenticated.async { implicit request =>
       val user = request.user
       val res = for {

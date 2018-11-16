@@ -9,8 +9,9 @@ import play.twirl.api.Html
 import db.access.ModelAccess
 import db.impl.OrePostgresDriver.api._
 import db.impl.access.ProjectBase
-import db.impl.schema.{PageSchema, PageTable}
-import db.{Model, ModelFilter, ModelService, Named, ObjectId, ObjectReference, ObjectTimestamp}
+import db.impl.model.common.Named
+import db.impl.schema.PageTable
+import db.{DbRef, Model, ModelQuery, ModelService, ObjId, ObjectTimestamp}
 import discourse.OreDiscourseApi
 import ore.OreConfig
 import ore.project.ProjectOwned
@@ -31,6 +32,7 @@ import com.vladsch.flexmark.html.renderer._
 import com.vladsch.flexmark.html.{HtmlRenderer, LinkResolver, LinkResolverFactory}
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.options.MutableDataSet
+import slick.lifted.TableQuery
 
 /**
   * Represents a documentation page within a project.
@@ -45,10 +47,10 @@ import com.vladsch.flexmark.util.options.MutableDataSet
   * @param isDeletable  True if can be deleted by the user
   */
 case class Page(
-    id: ObjectId = ObjectId.Uninitialized,
+    id: ObjId[Page] = ObjId.Uninitialized(),
     createdAt: ObjectTimestamp = ObjectTimestamp.Uninitialized,
-    projectId: ObjectReference,
-    parentId: Option[ObjectReference],
+    projectId: DbRef[Project],
+    parentId: Option[DbRef[Page]],
     name: String,
     slug: String,
     isDeletable: Boolean = true,
@@ -58,7 +60,6 @@ case class Page(
 
   override type M = Page
   override type T = PageTable
-  override type S = PageSchema
 
   import models.project.Page._
 
@@ -67,11 +68,11 @@ case class Page(
   checkNotNull(this.contents, "contents cannot be null", "")
 
   def this(
-      projectId: ObjectReference,
+      projectId: DbRef[Project],
       name: String,
       content: String,
       isDeletable: Boolean,
-      parentId: Option[ObjectReference]
+      parentId: Option[DbRef[Page]]
   ) = {
     this(
       projectId = projectId,
@@ -137,7 +138,7 @@ case class Page(
     for {
       parent  <- OptionT.fromOption[Future](parentId)
       project <- parentProject
-      page    <- project.pages.find(ModelFilter[Page](_.id === parent).fn)
+      page    <- project.pages.find(_.id === parent)
     } yield page
 
   /**
@@ -153,17 +154,16 @@ case class Page(
     * @return Page's children
     */
   def children(implicit service: ModelService): ModelAccess[Page] =
-    service.access[Page](classOf[Page], ModelFilter[Page](page => {
-      page.parentId.isDefined && page.parentId.get === this.id.value
-    }))
+    service.access(page => page.parentId.isDefined && page.parentId.get === this.id.value)
 
   def url(implicit project: Project, parentPage: Option[Page]): String =
     project.url + "/pages/" + this.fullSlug(parentPage)
-
-  override def copyWith(id: ObjectId, theTime: ObjectTimestamp): Page = this.copy(id = id, createdAt = theTime)
 }
 
 object Page {
+
+  implicit val query: ModelQuery[Page] =
+    ModelQuery.from[Page](TableQuery[PageTable], _.copy(_, _))
 
   implicit val isProjectOwned: ProjectOwned[Page] = (a: Page) => a.projectId
 
