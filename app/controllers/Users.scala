@@ -97,7 +97,7 @@ class Users @Inject()(
               // Complete authentication
               for {
                 user <- users.getOrCreate(fromSponge)
-                _    <- service.runDBIO(user.globalRoles.allQueryFromParent(user).delete)
+                _    <- user.globalRoles.deleteAllFromParent(user)
                 _ <- sponge.newGlobalRoles
                   .fold(Future.unit)(_.map(_.toDbRole).traverse_(user.globalRoles.addAssoc(user, _)))
                 result <- this.redirectBack(request.flash.get("url").getOrElse("/"), user)
