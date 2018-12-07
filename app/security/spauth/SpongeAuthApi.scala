@@ -5,6 +5,7 @@ import javax.inject.Inject
 
 import scala.concurrent.duration._
 
+import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
@@ -12,6 +13,7 @@ import play.api.libs.ws.{WSClient, WSResponse}
 import ore.OreConfig
 import _root_.util.WSUtils.parseJson
 
+import cats.ApplicativeError
 import cats.data.{EitherT, OptionT}
 import cats.effect.IO
 import cats.syntax.all._
@@ -73,6 +75,43 @@ trait SpongeAuthApi {
     readUser(IO.fromFuture(IO(this.ws.url(url).withRequestTimeout(timeout).get()))).toOption
   }
 
+  /**
+    * Returns the signed_data that can be used to construct the change-avatar
+    * @param username
+    * @param ec
+    * @return
+    */
+  def getChangeAvatarToken(
+      requester: String,
+      organization: String
+  )(): EitherT[IO, String, ChangeAvatarToken] = {
+    val params = Map(
+      "api-key"          -> Seq(this.apiKey),
+      "request_username" -> Seq(requester),
+    )
+    readChangeAvatarToken(
+      IO.fromFuture(
+        IO(
+          this.ws.url(route(s"/api/users/$organization/change-avatar-token/")).withRequestTimeout(timeout).post(params)
+        )
+      )
+    )
+  }
+
+  private def readChangeAvatarToken(response: IO[WSResponse]): EitherT[IO, String, ChangeAvatarToken] = {
+    val parsed = OptionT(response.map(parseJson(_, Logger)))
+      .map(json => json.as[ChangeAvatarToken])
+      .toRight("Failed to parse json response")
+
+    ApplicativeError[EitherT[IO, String, ?], Throwable].recoverWith(parsed) {
+      case _: TimeoutException =>
+        EitherT.leftT("error.spongeauth.auth")
+      case e =>
+        Logger.error("An unexpected error occured while handling a response", e)
+        EitherT.leftT("error.spongeauth.unexpected")
+    }
+  }
+
   private def readUser(response: IO[WSResponse]): EitherT[IO, String, SpongeUser] = {
     EitherT(
       OptionT(response.map(parseJson(_, Logger)))
@@ -106,4 +145,14 @@ final class SpongeAuth @Inject()(config: OreConfig, override val ws: WSClient) e
   override val apiKey: String          = conf.key
   override val timeout: FiniteDuration = conf.timeout
 
+}
+
+case class ChangeAvatarToken(signedData: String, targetUsername: String, requestUserId: Int)
+
+object ChangeAvatarToken {
+  implicit val changeAvatarTokenReads: Reads[ChangeAvatarToken] =
+    (JsPath \ "signed_data")
+      .read[String]
+      .and((JsPath \ "raw_data" \ "target_username").read[String])
+      .and((JsPath \ "raw_data" \ "request_user_id").read[Int])(ChangeAvatarToken.apply _)
 }
