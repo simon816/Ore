@@ -732,10 +732,7 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
   def delete(author: String, slug: String): Action[AnyContent] = {
     Authenticated.andThen(PermissionAction(HardRemoveProject)).asyncF { implicit request =>
       getProject(author, slug).semiflatMap { project =>
-        val deletePost = if (project.topicId.isDefined) this.forums.deleteProjectTopic(project) else IO.unit
-
-        val effects = deletePost *>
-          projects.delete(project) *>
+        val effects = projects.delete(project) *>
           UserActionLogger
             .log(request, LoggedAction.ProjectVisibilityChange, project.id.value, "deleted", project.visibility.nameKey)
         effects.as(Redirect(ShowHome).withSuccess(request.messages.apply("project.deleted", project.name)))
