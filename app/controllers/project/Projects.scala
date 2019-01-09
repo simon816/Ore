@@ -97,9 +97,8 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
       uploadData <- EitherT.fromOption[IO](PluginUpload.bindFromRequest(), "error.noFile")
       pluginFile <- factory.processPluginUpload(uploadData, user)
       project = factory.startProject(pluginFile)
-      model   = project.underlying
       _ <- EitherT.right[String](project.cache)
-    } yield Redirect(self.showCreatorWithMeta(model.ownerName, model.slug))
+    } yield Redirect(self.showCreatorWithMeta(project.ownerName, project.slug))
 
     res.leftMap(Redirect(self.showCreator()).withError(_))
   }
@@ -117,7 +116,7 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
       case Some(pending) =>
         import cats.instances.vector._
         for {
-          t <- (request.user.organizations.allFromParent(request.user), pending.underlying.owner.user).parTupled
+          t <- (request.user.organizations.allFromParent(request.user), pending.owner).parTupled
           (orgas, owner) = t
           createOrga <- orgas.toVector.parTraverse(owner.can(CreateProject).in(_))
         } yield {
@@ -149,13 +148,9 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
             .fold(
               FormErrorLocalized(self.showCreator()).andThen(IO.pure),
               formData => {
-                pendingProject.settings.save(pendingProject.underlying, formData).flatMap {
+                pendingProject.settings.save(pendingProject, formData).flatMap {
                   case (newProject, newSettings) =>
-                    val newPending = pendingProject.copy(
-                      underlying = newProject,
-                      settings = newSettings
-                    )
-                    newPending.pendingVersion.project = newPending.underlying
+                    val newPending = newProject.copy(settings = newSettings)
 
                     val authors = newPending.file.data.authors.toList
                     (
@@ -163,7 +158,7 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
                         pendingProject.pendingVersion.free *> newPending.pendingVersion.cache,
                       authors.filter(_ != request.user.name).parTraverse(users.withName(_).value),
                       this.forums.countUsers(authors),
-                      newPending.underlying.owner.user
+                      newPending.owner
                     ).parMapN { (_, users, registered, owner) =>
                       Ok(views.invite(owner, newPending, users.flatten, registered))
                     }
@@ -206,7 +201,7 @@ class Projects @Inject()(stats: StatTracker, forms: OreForms, factory: ProjectFa
           val newPending     = pendingProject.copy(roles = request.body.build())
           val pendingVersion = newPending.pendingVersion
           newPending.cache.as(
-            Redirect(routes.Versions.showCreatorWithMeta(author, slug, pendingVersion.underlying.versionString))
+            Redirect(routes.Versions.showCreatorWithMeta(author, slug, pendingVersion.versionString))
           )
         }
         .merge

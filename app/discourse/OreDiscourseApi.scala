@@ -78,7 +78,6 @@ abstract class OreDiscourseApi(implicit cs: ContextShift[IO], timer: Timer[IO]) 
     if (!this.isEnabled)
       IO.pure(project)
     else {
-      checkArgument(project.isDefined, "undefined project", "")
       val title = Templates.projectTitle(project)
 
       val createTopicProgram = (content: String) =>
@@ -138,7 +137,6 @@ abstract class OreDiscourseApi(implicit cs: ContextShift[IO], timer: Timer[IO]) 
     if (!this.isEnabled)
       IO.pure(true)
     else {
-      checkArgument(project.isDefined, "undefined project", "")
       checkArgument(project.topicId.isDefined, "undefined topic id", "")
       checkArgument(project.postId.isDefined, "undefined post id", "")
 
@@ -225,8 +223,6 @@ abstract class OreDiscourseApi(implicit cs: ContextShift[IO], timer: Timer[IO]) 
     if (!this.isEnabled)
       EitherT.leftT[IO, DiscoursePost](Nil: List[String])
     else {
-      checkArgument(project.isDefined, "undefined project", "")
-      checkArgument(version.isDefined, "undefined version", "")
       checkArgument(version.projectId == project.id.value, "invalid version project pair", "")
       EitherT.liftF(project.owner.user).flatMap { user =>
         postDiscussionReply(project, user, content = Templates.versionRelease(project, version, content))
@@ -239,7 +235,6 @@ abstract class OreDiscourseApi(implicit cs: ContextShift[IO], timer: Timer[IO]) 
     if (!this.isEnabled)
       IO.pure(())
     else {
-      checkArgument(project.isDefined, "undefined project", "")
       checkArgument(project.topicId.isDefined, "undefined topic id", "")
 
       updateTopicF(admin, project.topicId.get, None, Some(if (isVisible) categoryDefault else categoryDeleted))
@@ -264,7 +259,6 @@ abstract class OreDiscourseApi(implicit cs: ContextShift[IO], timer: Timer[IO]) 
     if (!this.isEnabled)
       IO.pure(project)
     else {
-      checkArgument(project.isDefined, "undefined project", "")
       checkArgument(project.topicId.isDefined, "undefined topic id", "")
 
       def logFailure(): Unit = Logger.warn(s"Couldn't delete topic for project: ${project.url}. Rescheduling...")
