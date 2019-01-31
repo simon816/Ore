@@ -108,7 +108,7 @@ abstract class OreDiscourseApi(implicit cs: ContextShift[IO], timer: Timer[IO]) 
 
       res
         .leftSemiflatMap {
-          case (errors, content) =>
+          case (errors, _) =>
             // Request went through but Discourse responded with errors
             // Don't schedule a retry because this will just keep happening
             val message =
