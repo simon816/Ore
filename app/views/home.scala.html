@@ -7,12 +7,15 @@ sorted according to different criteria.
 @import controllers.sugar.Requests.OreRequest
 @import models.project.{Project, Version, VersionTag}
 @import models.user.User
-@import ore.project.ProjectSortingStrategies.{values, _}
-@import ore.project.{Category, ProjectSortingStrategies}
+@import ore.project.ProjectSortingStrategy._
+@import ore.project.{Category, ProjectSortingStrategy}
 @import ore.{OreConfig, Platform, PlatformCategory}
 @import security.NonceFilter._
-@(models: Seq[(Project, User, Version, Seq[VersionTag])], visibleCategories: Option[Seq[Category]], query: Option[String], page: Int,
-        sort: ProjectSortingStrategy, platformCategory: Option[PlatformCategory], platform: Option[Platform])(implicit messages: Messages, flash: Flash,
+@import models.querymodels.ProjectListEntry
+@import views.html.utils.alert
+@(models: Seq[ProjectListEntry], visibleCategories: Option[Seq[Category]], query: Option[String], page: Int,
+        sort: ProjectSortingStrategy, platformCategory: Option[PlatformCategory], platform: Option[Platform],
+        orderWithRelevance: Boolean)(implicit messages: Messages, flash: Flash,
         request: OreRequest[_], config: OreConfig)
 
 @randomSponsor = @{
@@ -28,9 +31,13 @@ sorted according to different criteria.
 
 @orderingOption = @{
     sort match {
-        case ProjectSortingStrategies.Default => None
+        case ProjectSortingStrategy.Default => None
         case _ => Some(sort.id)
     }
+}
+
+@relevanceOption = @{
+    Some(orderWithRelevance).filterNot(identity)
 }
 
 @scripts = {
@@ -39,11 +46,14 @@ sorted according to different criteria.
     @if(visibleCategories.isDefined) {
     CATEGORY_STRING = "@visibleCategories.get.map(_.value).mkString(",")";
     }
-    @if(!sort.equals(ProjectSortingStrategies.Default)) {
+    @if(!sort.equals(ProjectSortingStrategy.Default)) {
     SORT_STRING = "@sort.id";
     }
     @if(request.getQueryString("q").isDefined) {
     QUERY_STRING = "@request.getQueryString("q").get";
+    }
+    @if(!orderWithRelevance) {
+    ORDER_WITH_RELEVANCE = "@orderWithRelevance";
     }
     currentlyLoaded = @models.size;
     </script>
@@ -105,7 +115,7 @@ sorted according to different criteria.
                 pageSize = config.ore.projects.initLoad,
                 call = page => routes.Application.showHome(
                     categoryString, query, orderingOption, Some(page),
-                    platformCategory.map(_.name) ,platform.map(_.name))
+                    platformCategory.map(_.name) ,platform.map(_.name), relevanceOption)
             )
         </div>
 
@@ -119,6 +129,11 @@ sorted according to different criteria.
                 }
             </select>
 
+            <div>
+                <input type="checkbox" id="relevanceBox" name="orderWithRelevance" @if(orderWithRelevance) { checked="checked" }>
+                <label for="relevanceBox">Sort with relevance</label>
+            </div>
+
             <!-- Category table -->
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -127,7 +142,7 @@ sorted according to different criteria.
                         <a href="@routes.Application.showHome(
                             None, None, None, None,
                             platformCategory.map(_.name),
-                            platform.map(_.name))">
+                            platform.map(_.name), relevanceOption)">
                             <i class="category-reset fas fa-times white"></i>
                         </a>
                     }
@@ -160,7 +175,8 @@ sorted according to different criteria.
                         query,
                         orderingOption,
                         Some(page),
-                        None, None)"
+                        None, None,
+                        relevanceOption)"
                     class="list-group-item @if(platform.isEmpty && platformCategory.isEmpty) { active }">
                         <strong>@messages("general.any")</strong>
                     </a>
@@ -172,7 +188,8 @@ sorted according to different criteria.
                             orderingOption,
                             Some(page),
                             Some(pc.name),
-                            None)"
+                            None,
+                            relevanceOption)"
                         class="list-group-item @if(platformCategory.map(_.name).getOrElse("") == pc.name) { active }">
                             <strong>@pc.name</strong>
                         </a>
@@ -186,7 +203,8 @@ sorted according to different criteria.
                                         orderingOption,
                                         Some(page),
                                         None,
-                                        Some(p.name))"
+                                        Some(p.name),
+                                        relevanceOption)"
                                     class="list-group-item @if(platform.map(_.name).getOrElse("") == p.name) { active }">
                                             &nbsp;@p.name
                                     </a>

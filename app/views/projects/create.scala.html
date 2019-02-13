@@ -70,7 +70,7 @@ Page used for uploading and creating new projects.
                                 <td>
                                     <div class="pull-right" id="upload-platform-tags">
                                     @for(t <- project.pendingVersion.dependenciesAsGhostTags) {
-                                        @projects.tag(t(ObjId(0L), ObjectTimestamp(Timestamp.from(Instant.now()))))
+                                        @projects.tag(t(ObjId(0L), ObjectTimestamp(Timestamp.from(Instant.now()))).asViewTag)
                                     }
                                     </div>
                                 </td>
