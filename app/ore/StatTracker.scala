@@ -8,10 +8,12 @@ import play.api.mvc.{RequestHeader, Result}
 import controllers.sugar.Bakery
 import controllers.sugar.Requests.ProjectRequest
 import db.ModelFilter._
+import db.access.ModelView
 import db.impl.OrePostgresDriver.api._
-import db.{DbRef, Model, ModelFilter, ModelQuery, ModelService}
+import db.impl.table.StatTable
+import db.{Model, ModelCompanion, DbRef, ModelQuery, ModelService}
 import models.project.{Project, Version}
-import models.statistic.{PartialStatEntry, ProjectView, StatEntry, VersionDownload}
+import models.statistic.{ProjectView, StatEntry, VersionDownload}
 import models.user.User
 import ore.StatTracker.COOKIE_NAME
 import security.spauth.SpongeAuthApi
@@ -34,29 +36,32 @@ trait StatTracker {
   private val Logger    = scalalogging.Logger("StatTracker")
   private val MDCLogger = scalalogging.Logger.takingImplicit[OreMDC](Logger.underlying)
 
-  private def record[S <: Model, MP <: PartialStatEntry[S, M0], M0 <: StatEntry[S] { type M = M0 }: ModelQuery](
-      entry: MP
-  )(setUserId: (M0, DbRef[User]) => M0): IO[Boolean] = {
-    like[S, MP, M0](entry).value.flatMap {
-      case None => service.insert(entry.asFunc).as(true)
+  private def record[S, M <: StatEntry[S]: ModelQuery, T <: StatTable[S, M]](
+      entry: M,
+      subject: ModelCompanion[S],
+      model: ModelCompanion.Aux[M, T]
+  )(setUserId: (M, DbRef[User]) => M): IO[Boolean] = {
+    like[S, M, T](entry, model).value.flatMap {
+      case None => service.insert(entry).as(true)
       case Some(existingEntry) =>
         val effect =
           if (existingEntry.userId.isEmpty && entry.userId.isDefined)
-            service.update(setUserId(existingEntry, entry.userId.get)).void
+            service.update(existingEntry)(setUserId(_, entry.userId.get)).void
           else
             IO.unit
         effect.as(false)
     }
   }
 
-  private def like[S <: Model, MP <: PartialStatEntry[S, M], M <: StatEntry[S]: ModelQuery](
-      entry: MP
-  ): OptionT[IO, M] = {
-    val baseFilter = ModelFilter[M](_.modelId === entry.modelId)
-    val filter     = ModelFilter[M](_.cookie === entry.cookie)
+  private def like[S, M <: StatEntry[S]: ModelQuery, T <: StatTable[S, M]](
+      entry: M,
+      model: ModelCompanion.Aux[M, T]
+  ): OptionT[IO, Model[M]] = {
+    val baseFilter: T => Rep[Boolean] = _.modelId === entry.modelId
+    val filter: T => Rep[Boolean]     = _.cookie === entry.cookie
 
-    val userFilter = entry.userId.fold(filter)(id => ModelFilter[M](e => filter(e) || e.userId === id))
-    service.find(baseFilter && userFilter)
+    val userFilter = entry.userId.fold(filter)(id => e => filter(e) || e.userId === id)
+    ModelView.now(model).find(baseFilter && userFilter)
   }
 
   /**
@@ -71,7 +76,7 @@ trait StatTracker {
   ): IO[Result] = {
     ProjectView.bindFromRequest.flatMap { statEntry =>
       val projectView =
-        record[Project, ProjectView.Partial, ProjectView](statEntry)((m, id) => m.copy(userId = Some(id)))
+        record(statEntry, Project, ProjectView)((m, id) => m.copy(userId = Some(id)))
           .flatMap {
             case true  => projectRequest.data.project.addView
             case false => IO.unit
@@ -92,7 +97,7 @@ trait StatTracker {
     * @param version Version to check downloads for
     * @param request Request to download the version
     */
-  def versionDownloaded(version: Version)(f: IO[Result])(
+  def versionDownloaded(version: Model[Version])(f: IO[Result])(
       implicit request: ProjectRequest[_],
       auth: SpongeAuthApi,
       mdc: OreMDC,
@@ -100,7 +105,7 @@ trait StatTracker {
   ): IO[Result] = {
     VersionDownload.bindFromRequest(version).flatMap { statEntry =>
       val recordDownload =
-        record[Version, VersionDownload.Partial, VersionDownload](statEntry)((m, id) => m.copy(userId = Some(id)))
+        record(statEntry, Version, VersionDownload)((m, id) => m.copy(userId = Some(id)))
           .flatMap {
             case true  => version.addDownload &> request.data.project.addDownload
             case false => IO.unit

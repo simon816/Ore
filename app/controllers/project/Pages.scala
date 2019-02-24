@@ -12,7 +12,8 @@ import play.utils.UriEncoding
 
 import controllers.OreBaseController
 import controllers.sugar.Bakery
-import db.ModelService
+import db.{Model, ModelService}
+import db.access.ModelView
 import db.impl.OrePostgresDriver.api._
 import db.impl.schema.PageTable
 import form.OreForms
@@ -28,6 +29,7 @@ import views.html.projects.{pages => views}
 import cats.data.OptionT
 import cats.effect.IO
 import cats.syntax.all._
+import cats.instances.option._
 
 /**
   * Controller for handling Page related actions.
@@ -67,16 +69,17 @@ class Pages @Inject()(forms: OreForms, stats: StatTracker)(
     * @param page
     * @return Tuple: Optional Page, true if using legacy fallback
     */
-  def withPage(project: Project, page: String): OptionT[IO, (Page, Boolean)] = {
+  def withPage(project: Model[Project], page: String): OptionT[IO, (Model[Page], Boolean)] = {
     val parts = page.split("/").map(page => UriEncoding.decodePathSegment(page, StandardCharsets.UTF_8))
 
     if (parts.length == 2) {
       OptionT(service.runDBIO(childPageQuery((parts(0), parts(1))).result.headOption)).map(_ -> false)
     } else {
-      project.pages
+      project
+        .pages(ModelView.now(Page))
         .find(p => p.slug.toLowerCase === parts(0).toLowerCase && p.parentId.isEmpty)
         .map(_ -> false)
-        .orElse(project.pages.find(_.slug.toLowerCase === parts(0).toLowerCase).map(_ -> true))
+        .orElse(project.pages(ModelView.now(Page)).find(_.slug.toLowerCase === parts(0).toLowerCase).map(_ -> true))
     }
   }
 
@@ -98,7 +101,19 @@ class Pages @Inject()(forms: OreForms, stats: StatTracker)(
               val parentPage =
                 if (pages.map(_._1).contains(p)) None
                 else pages.collectFirst { case (pp, subPage) if subPage.contains(p) => pp }
-              this.stats.projectViewed(Ok(views.view(request.data, request.scoped, pages, p, parentPage, pageCount, b)))
+              this.stats.projectViewed(
+                Ok(
+                  views.view(
+                    request.data,
+                    request.scoped,
+                    Model.unwrapNested[Seq[(Model[Page], Seq[Page])]](pages),
+                    p,
+                    Model.unwrapNested(parentPage),
+                    pageCount,
+                    b
+                  )
+                )
+              )
             }
         }
         .getOrElse(notFound)
@@ -124,7 +139,17 @@ class Pages @Inject()(forms: OreForms, stats: StatTracker)(
             case (p, _) =>
               val pageCount  = pages.size + pages.map(_._2.size).sum
               val parentPage = pages.collectFirst { case (pp, page) if page.contains(p) => pp }
-              Ok(views.view(request.data, request.scoped, pages, p, parentPage, pageCount, editorOpen = true))
+              Ok(
+                views.view(
+                  request.data,
+                  request.scoped,
+                  Model.unwrapNested[Seq[(Model[Page], Seq[Page])]](pages),
+                  p,
+                  Model.unwrapNested(parentPage),
+                  pageCount,
+                  editorOpen = true
+                )
+              )
           }
       }
     }
@@ -155,7 +180,7 @@ class Pages @Inject()(forms: OreForms, stats: StatTracker)(
         val parentId = pageData.parentId
 
         //noinspection ComparingUnrelatedTypes
-        project.rootPages.flatMap { rootPages =>
+        service.runDBIO(project.rootPages(ModelView.raw(Page)).result).flatMap { rootPages =>
           if (parentId.isDefined && !rootPages
                 .filter(_.name != Page.homeName)
                 .exists(p => parentId.contains(p.id.value))) {
@@ -167,10 +192,19 @@ class Pages @Inject()(forms: OreForms, stats: StatTracker)(
               val parts = page.split("/")
 
               val created = if (parts.size == 2) {
-                project.pages.find(equalsIgnoreCase(_.slug, parts(0))).map(_.id.value).value.flatMap { parentId =>
-                  val pageName = pageData.name.getOrElse(parts(1))
-                  project.getOrCreatePage(pageName, parentId, content)
-                }
+                service
+                  .runDBIO(
+                    project
+                      .pages(ModelView.later(Page))
+                      .find(equalsIgnoreCase(_.slug, parts(0)))
+                      .map(_.id)
+                      .result
+                      .headOption
+                  )
+                  .flatMap { parentId =>
+                    val pageName = pageData.name.getOrElse(parts(1))
+                    project.getOrCreatePage(pageName, parentId, content)
+                  }
               } else {
                 val pageName = pageData.name.getOrElse(parts(0))
                 project.getOrCreatePage(pageName, parentId, content)
@@ -183,10 +217,10 @@ class Pages @Inject()(forms: OreForms, stats: StatTracker)(
                     UserActionLogger.log(
                       request.request,
                       LoggedAction.ProjectPageEdited,
-                      createdPage.id.value,
+                      createdPage.id,
                       newPage,
                       oldPage
-                    ) *> service.update(createdPage.copy(contents = newPage))
+                    ) *> service.update(createdPage)(_.copy(contents = newPage))
                   }
                 }
                 .as(Redirect(self.show(author, slug, page)))
